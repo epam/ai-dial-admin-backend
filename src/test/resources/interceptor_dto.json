@@ -1,0 +1,7 @@
+{
+  "name": "test_interceptor",
+  "displayName": "Test Interceptor",
+  "description": "It is a test interceptor",
+  "endpoint": "https://endpoint.test.com/embeddings",
+  "forwardAuthToken": false
+}

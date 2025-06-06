@@ -1,0 +1,2 @@
+-- the script below is required due to manual direct 'id' value insert specified in V1.29__CreateAuditTables.sql at line 265
+ALTER TABLE REVINFO ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM REVINFO);

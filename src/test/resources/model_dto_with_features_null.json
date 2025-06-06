@@ -1,0 +1,13 @@
+{
+	"name": "test",
+	"description": "",
+	"displayVersion": "",
+	"endpoint": "test/chat/completions",
+	"displayName": "test",
+	"forwardAuthToken": false,
+	"defaults": {},
+	"interceptors": [],
+	"topics": [],
+	"roleLimits": {},
+	"maxRetryAttempts": 5
+}

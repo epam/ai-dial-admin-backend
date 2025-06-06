@@ -1,0 +1,142 @@
+services:
+  admin-back:
+    container_name: ai-dial-admin-backend
+    image: aidial/ai-dial-admin-backend:latest
+    ports:
+      - "8080:8080"
+      - "15006:5006"
+    volumes:
+      - ./data:/app/data
+    environment:
+      CONFIG_REST_SECURITY_MODE: "none"
+      SECURITY_JWT_ACCEPTED_ISSUERS: "local_issuer"
+      DIAL_ADMIN_CLIENT_ID: "client_id"
+      DEBUG_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
+      METRICS_ENABLED: "true"
+      METRICS_STORAGE_HOST: "http://influxdb:8086"
+      METRICS_STORAGE_TOKEN: "myadmintoken"
+      CORE_CLIENT_URL: "http://core:8080"
+      DISABLE_SWAGGER_AUTHORIZATION: true
+      H2_DATASOURCE_MASTER_KEY: t8+npcgNMiipR+kHMb8zXAjgA3IedCXC
+      H2_DATASOURCE_ENCRYPTED_FILE_KEY: 9vW1l/Eg+1J3YXpCsyR6AUI4ptMtI6pjkktePuUQts+wKVAauoP5CG21z5WTzp91xBcEww==
+      H2_DATASOURCE_PASSWORD: password
+      POSTGRES_HOST: postgres
+      MS_SQL_SERVER_HOST: sqlserver
+      MS_SQL_SERVER_OPS: encrypt=false;
+
+  redis:
+    container_name: ai-dial-redis
+    image: redis:7.2.5-alpine3.20
+    restart: always
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --maxmemory 2000mb
+      --maxmemory-policy volatile-lfu
+      --save ""
+      --appendonly no
+      --loglevel warning
+    mem_limit: 2200M
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:latest
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: "setup"
+      DOCKER_INFLUXDB_INIT_USERNAME: "admin"
+      DOCKER_INFLUXDB_INIT_PASSWORD: "adminpassword"
+      DOCKER_INFLUXDB_INIT_ORG: "dial"
+      DOCKER_INFLUXDB_INIT_BUCKET: "analytics-realtime"
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "myadmintoken"
+
+  keycloak:
+    container_name: ai-dial-admin-backend-keycloak
+    image: quay.io/keycloak/keycloak:25.0.4
+    ports:
+      - "8888:8080"
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./.keycloak/data:/opt/keycloak/data/
+    profiles:
+      - keycloak
+
+  themes:
+    image: epam/ai-dial-chat-themes
+    ports:
+      - "3001:8080"
+
+  chat:
+    ports:
+      - "3000:3000"
+    image: epam/ai-dial-chat
+    depends_on:
+      - themes
+      - core
+    environment:
+      NEXTAUTH_SECRET: "secret"
+      THEMES_CONFIG_HOST: "http://themes:8080"
+      DIAL_API_HOST: "http://core:8080"
+      DIAL_API_KEY: "dial_api_key"
+      ENABLED_FEATURES: "conversations-section,prompts-section,top-settings,top-clear-conversation,top-chat-info,top-chat-model-settings,empty-chat-settings,header,footer,request-api-key,report-an-issue,likes,conversations-sharing,prompts-sharing,input-files,attachments-manager,conversations-publishing,prompts-publishing,input-links,custom-applications,message-templates,marketplace,quick-apps"
+
+      AUTH_DISABLED: 'true'
+#      AUTH_AZURE_AD_CLIENT_ID: ${AUTH_AZURE_AD_CLIENT_ID}
+#      AUTH_AZURE_AD_NAME: ${AUTH_AZURE_AD_NAME}
+#      AUTH_AZURE_AD_SCOPE: ${AUTH_AZURE_AD_SCOPE}
+#      AUTH_AZURE_AD_SECRET: ${AUTH_AZURE_AD_SECRET}
+#      AUTH_AZURE_AD_TENANT_ID: ${AUTH_AZURE_AD_TENANT_ID}
+
+  core:
+    ports:
+      - "8081:8080"
+    image: epam/ai-dial-core
+    environment:
+      'AIDIAL_SETTINGS': '/opt/settings/settings.json'
+      'JAVA_OPTS': '-Dgflog.config=/opt/settings/gflog.xml'
+      'aidial.config.files': '["/opt/config/out.json"]'
+      'aidial.redis.singleServerConfig.address': 'redis://redis:6379'
+      'aidial.access.admin.rules': '[{"source": "roles", "function": "TRUE"}]'
+    depends_on:
+      - redis
+    volumes:
+      - ./data/dial_conf/settings:/opt/settings
+      - ./data/export:/opt/config
+      - ./data/logs/core-logs:/app/log
+
+  adapter-dial:
+    image: "epam/ai-dial-adapter-dial"
+    ports:
+      - "5000:5000"
+    environment:
+      DIAL_URL: "http://core:8080"
+      LOG_LEVEL: "INFO"
+
+  postgres:
+    image: postgres:17.4
+    container_name: ai-dial-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.postgresql/data:/var/lib/postgresql/data
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04
+    container_name: ai-dial-ms-sql-server
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: SQLServerPassword1
+    ports:
+      - "1433:1433"
+    volumes:
+      # scripts located in "/mssql-server-setup-scripts.d/" are executed on first container startup
+      - ./.sqlserver/init:/mssql-server-setup-scripts.d/

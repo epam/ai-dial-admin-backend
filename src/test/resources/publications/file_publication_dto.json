@@ -1,0 +1,34 @@
+{
+  "path": "bucket/file",
+  "requestName": "Pub req 6",
+  "author": "Test Author",
+  "createdAt": 1741595184514,
+  "status": "pending",
+  "folderId": "Target folder 1",
+  "rules": [
+    {
+      "source": "role",
+      "function": "equal",
+      "targets": ["admin"]
+    }
+  ],
+  "action": "add",
+  "files": [
+    {
+      "path": "Folder 1/File 1.txt",
+      "name": "File 1.txt",
+      "updateTime": 1741595170582,
+      "author": "File Author",
+      "contentLength": 12345,
+      "contentType": "text/plain"
+    },
+    {
+      "path": "Folder 1/Prompt 2.txt",
+      "name": "Prompt 2.txt",
+      "updateTime": 1741595170789,
+      "author": "File Author",
+      "contentLength": 12345,
+      "contentType": "text/plain"
+    }
+  ]
+}

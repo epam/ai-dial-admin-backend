@@ -1,0 +1,66 @@
+package com.epam.aidial.cfg.web.facade;
+
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.RouteDto;
+import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@RequiredArgsConstructor
+@Service
+@LogExecution
+@Transactional
+public class RouteFacade {
+
+    private final RouteService routeService;
+    private final RouteDtoMapper mapper;
+
+    public Collection<RouteDto> getAllRoutes() {
+        return routeService.getAll()
+                .stream()
+                .map(mapper::toDto)
+                .toList();
+    }
+
+    public RouteDto getRoute(String routeName) {
+        Route route = routeService.get(routeName);
+        return mapper.toDto(route);
+    }
+
+    public void createRoute(RouteDto routeDto) {
+        Optional.of(routeDto)
+                .map(mapper::toDomain)
+                .ifPresent(routeService::create);
+    }
+
+    public void updateRoute(String routeName, RouteDto routeDto) {
+        Route value = mapper.toDomain(routeDto);
+        routeService.update(routeName, value);
+    }
+
+    public void deleteRoute(String routeName) {
+        routeService.delete(routeName);
+    }
+
+    public RouteDto getSnapshot(String routeName, Integer revision) {
+        Route route = routeService.getSnapshot(routeName, revision);
+        return mapper.toDto(route);
+    }
+
+    public Collection<RouteDto> getAllAtRevision(Integer revision) {
+        return routeService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
+}

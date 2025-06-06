@@ -1,0 +1,1 @@
+{"ToolEndpointInfoMethodType":{"enum":["get","post","put","delete"],"title":"ToolEndpointInfoMethodType","type":"string"}}

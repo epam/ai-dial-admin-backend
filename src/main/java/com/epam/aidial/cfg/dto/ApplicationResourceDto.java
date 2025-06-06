@@ -1,0 +1,29 @@
+package com.epam.aidial.cfg.dto;
+
+import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
+
+@Data
+public class ApplicationResourceDto {
+
+    private String path;
+    private String version;
+    private String folderId;
+    private long updateTime;
+    private String author;
+    private String name;
+    private String endpoint;
+    private String displayName;
+    private String displayVersion;
+    private String iconUrl;
+    private String description;
+    private String reference;
+    private Boolean forwardAuthToken;
+    private List<String> inputAttachmentTypes;
+    private Map<String, Object> defaults;
+    private List<String> interceptors;
+    private List<String> descriptionKeywords;
+    private Integer maxRetryAttempts;
+}

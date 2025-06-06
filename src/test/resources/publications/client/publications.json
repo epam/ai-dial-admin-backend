@@ -1,0 +1,48 @@
+{
+  "publications": [
+    {
+      "url": "publications/bucket/prompt_pending_id",
+      "name": "prompt_pending",
+      "targetFolder": "public/",
+      "status": "PENDING",
+      "createdAt": 12345,
+      "author": "John Dough",
+      "resourceTypes": [
+        "PROMPT"
+      ]
+    },
+    {
+      "url": "publications/bucket/file_pending_id",
+      "name": "file_pending",
+      "targetFolder": "public/",
+      "status": "PENDING",
+      "createdAt": 12345,
+      "author": "John Dough",
+      "resourceTypes": [
+        "FILE"
+      ]
+    },
+    {
+      "url": "publications/bucket/application_pending_id",
+      "name": "application_pending",
+      "targetFolder": "public/",
+      "status": "PENDING",
+      "createdAt": 12345,
+      "author": "John Dough",
+      "resourceTypes": [
+        "APPLICATION"
+      ]
+    },
+    {
+      "url": "publications/bucket/conversation_pending_id",
+      "name": "conversation_pending",
+      "targetFolder": "public/",
+      "status": "PENDING",
+      "createdAt": 12345,
+      "author": "John Dough",
+      "resourceTypes": [
+        "CONVERSATION"
+      ]
+    }
+  ]
+}

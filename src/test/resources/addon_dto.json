@@ -1,0 +1,9 @@
+{
+  "name": "test_addon",
+  "endpoint": "https://endpoint.test.com/embeddings",
+  "iconUrl": "https://test.com/icon",
+  "description": "It is a test addon",
+  "displayName": "Test Addon",
+  "forwardAuthToken": false,
+  "roleLimits": {}
+}

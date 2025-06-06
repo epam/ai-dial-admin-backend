@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "schemaId": "schema-123",
+    "schema": "{ \"type\": \"object\", \"properties\": { \"name\": { \"type\": \"string\" } } }",
+    "description": "This is a sample application type schema",
+    "applicationTypeEditorUrl": "https://example.com/editor",
+    "applicationTypeViewerUrl": "https://example.com/viewer",
+    "applicationTypeDisplayName": "Sample Application Type",
+    "applicationTypeCompletionEndpoint": "https://example.com/complete",
+    "defs": {
+      "maxLength": "255"
+    },
+    "properties": {
+      "id": "123"
+    },
+    "required": [
+      "name",
+      "version"
+    ]
+  }
+]

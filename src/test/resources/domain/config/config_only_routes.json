@@ -1,0 +1,40 @@
+{
+  "routes" : {
+    "sampleDeployment" : {
+      "name" : "sampleDeployment",
+      "userRoles" : [ "admin", "user" ],
+      "response" : {
+        "status" : 200,
+        "body" : "OK"
+      },
+      "rewritePath" : true,
+      "paths" : [ "/api/v1/resource", "/api/v1/data" ],
+      "methods" : [ "POST", "GET" ],
+      "upstreams" : [ {
+        "endpoint" : "https://upstream1.example.com",
+        "key" : "upstream-key-1",
+        "extraData" : "metadata-1",
+        "weight" : 10,
+        "tier" : 1
+      }, {
+        "endpoint" : "https://upstream2.example.com",
+        "key" : "upstream-key-2",
+        "extraData" : "metadata-2",
+        "weight" : 20,
+        "tier" : 2
+      } ],
+      "maxRetryAttempts" : 3
+    }
+  },
+  "models" : { },
+  "addons" : { },
+  "applications" : { },
+  "assistant" : {
+    "assistants" : { }
+  },
+  "keys" : { },
+  "roles" : { },
+  "retriableErrorCodes" : [ ],
+  "interceptors" : { },
+  "applicationTypeSchemas" : [ ]
+}

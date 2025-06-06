@@ -1,0 +1,27 @@
+[
+  {
+    "name": "test_model",
+    "adapter": "adapter1",
+    "displayName": "Test Model",
+    "displayVersion": "1.0.0",
+    "description": "It is a test model",
+    "forwardAuthToken": true,
+    "inputAttachmentTypes": [
+      "application/json"
+    ],
+    "maxInputAttachments": 10,
+    "topics": [
+      "Test Topic"
+    ],
+    "type": "embedding",
+    "tokenizerModel": "test_tokenizer_model",
+    "limits": {
+      "maxPromptTokens": 8192
+    },
+    "pricing": {
+      "unit": "token",
+      "prompt": "0.00000013",
+      "completion": "0.00000001"
+    }
+  }
+]

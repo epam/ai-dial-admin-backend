@@ -1,0 +1,40 @@
+{
+  "publications": [
+    {
+      "path": "bucket/prompt",
+      "requestName": "Pub req prompt",
+      "author": "Test Author",
+      "createdAt": 1741595184514,
+      "resourceTypes": [
+        "prompt"
+      ]
+    },
+    {
+      "path": "bucket/file",
+      "requestName": "Pub req file",
+      "author": "Test Author",
+      "createdAt": 1741595181234,
+      "resourceTypes": [
+        "file"
+      ]
+    },
+    {
+      "path": "bucket/application",
+      "requestName": "Pub req application",
+      "author": "Test Author",
+      "createdAt": 1741595187266,
+      "resourceTypes": [
+        "application"
+      ]
+    },
+    {
+      "path": "bucket/conversation",
+      "requestName": "Pub req conversation",
+      "author": "Test Author",
+      "createdAt": 1741595187266,
+      "resourceTypes": [
+        "conversation"
+      ]
+    }
+  ]
+}

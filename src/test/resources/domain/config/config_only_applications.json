@@ -1,0 +1,70 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {
+    "sampleDeployment": {
+      "name": "sampleDeployment",
+      "user_roles": [
+        "admin",
+        "user"
+      ],
+      "endpoint": "https://example.com/api",
+      "display_name": "Sample Application",
+      "display_version": "1.0.0",
+      "icon_url": "https://example.com/icon.png",
+      "description": "This is a sample application",
+      "reference": "app-ref-123",
+      "forward_auth_token": true,
+      "features": {
+        "rate_endpoint": "/rate",
+        "tokenize_endpoint": "/tokenize",
+        "truncate_prompt_endpoint": "/truncate",
+        "configuration_endpoint": "/config",
+        "system_prompt_supported": true,
+        "tools_supported": false,
+        "seed_supported": true,
+        "url_attachments_supported": true,
+        "folder_attachments_supported": false,
+        "allow_resume": true,
+        "accessible_by_per_request_key": true,
+        "content_parts_supported": true,
+        "temperature_supported": true,
+        "addons_supported": false,
+        "parallel_tool_calls_supported": true
+      },
+      "input_attachment_types": [
+        "pdf",
+        "docx"
+      ],
+      "max_input_attachments": 5,
+      "defaults": {
+        "timeout": "30s",
+        "language": "en"
+      },
+      "interceptors": [
+        "auth",
+        "logging"
+      ],
+      "description_keywords": [
+        "AI",
+        "automation",
+        "tool"
+      ],
+      "max_retry_attempts": 3,
+      "application_properties": {
+        "debug": true,
+        "maxUsers": 1000
+      },
+      "application_type_schema_id": "https://example.com/schema.json"
+    }
+  },
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {},
+  "retriableErrorCodes": [],
+  "interceptors": {},
+  "applicationTypeSchemas": []
+}

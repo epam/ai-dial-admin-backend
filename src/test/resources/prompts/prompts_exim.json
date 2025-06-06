@@ -1,0 +1,19 @@
+{
+  "prompts": [
+    {
+      "id": "prompts/public/test/Prompt 1__0.0.1",
+      "name": "Prompt 1",
+      "folderId": "prompts/public/test",
+      "description": "description value",
+      "content": "content value"
+    }
+  ],
+  "folders": [
+    {
+      "id": "prompts/public/test",
+      "name": "test",
+      "type": "prompt",
+      "folderId": "prompts/public"
+    }
+  ]
+}

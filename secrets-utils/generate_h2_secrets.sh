@@ -1,0 +1,1 @@
+java -jar secrets-utils-0.1.0-SNAPSHOT-all.jar

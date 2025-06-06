@@ -1,0 +1,93 @@
+[
+  {
+    "id": 1,
+    "endpoint": "https://example.com/api",
+    "iconUrl": "https://example.com/icon.png",
+    "reference": "app-ref-123",
+    "description": "This is a sample application",
+    "displayName": "Sample Application",
+    "displayVersion": "1.0.0",
+    "inputAttachmentTypes": [
+      "pdf",
+      "docx"
+    ],
+    "maxInputAttachments": 5,
+    "forwardAuthToken": true,
+    "descriptionKeywords": [
+      "AI",
+      "automation",
+      "tool"
+    ],
+    "maxRetryAttempts": 3,
+    "defaults": {
+      "timeout": "30s",
+      "language": "en"
+    },
+    "interceptors": [
+      "auth",
+      "logging"
+    ],
+    "features": {
+      "rateEndpoint": "/rate",
+      "tokenizeEndpoint": "/tokenize",
+      "truncatePromptEndpoint": "/truncate",
+      "configurationEndpoint": "/config",
+      "systemPromptSupported": true,
+      "toolsSupported": false,
+      "seedSupported": true,
+      "urlAttachmentsSupported": true,
+      "folderAttachmentsSupported": false,
+      "allowResume": true,
+      "accessibleByPerRequestKey": true,
+      "contentPartsSupported": true,
+      "temperatureSupported": true,
+      "addonsSupported": false
+    },
+    "applicationProperties": {
+      "debug": true,
+      "maxUsers": 1000
+    },
+    "applicationTypeSchemaId": "https://example.com/schema.json",
+    "deployment": {
+      "id": 100,
+      "name": "sampleDeployment",
+      "isPublic": false,
+      "defaultRoleLimit": {
+        "minute": 10,
+        "day": 1000,
+        "week": 5000,
+        "month": 20000,
+        "requestHour": 100,
+        "requestDay": 500
+      },
+      "roleLimits": [
+        {
+          "role": "admin",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 50,
+            "day": 5000,
+            "week": 20000,
+            "month": 80000,
+            "requestHour": 500,
+            "requestDay": 2000
+          }
+        },
+        {
+          "role": "user",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 20,
+            "day": 2000,
+            "week": 10000,
+            "month": 40000,
+            "requestHour": 200,
+            "requestDay": 1000
+          }
+        }
+      ]
+    }
+  }
+]

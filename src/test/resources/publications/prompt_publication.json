@@ -1,0 +1,39 @@
+{
+  "path": "bucket/file",
+  "requestName": "Pub req 6",
+  "author": "Test Author",
+  "createdAt": 1741595184514,
+  "status": "pending",
+  "folderId": "Target folder 1",
+  "rules": [
+    {
+      "source": "role",
+      "function": "EQUAL",
+      "targets": ["admin"]
+    }
+  ],
+  "resources": [
+    {
+      "action": "add",
+      "prompt": {
+        "path": "Folder 1/Prompt 1",
+        "name": "Prompt 1",
+        "folderId": "Folder 1",
+        "description": "Description 1",
+        "updateTime": 1741595170582,
+        "content": "Content 1"
+      }
+    },
+    {
+      "action": "add",
+      "prompt": {
+        "path": "Folder 1/Prompt 2",
+        "name": "Prompt 2",
+        "folderId": "Folder 1",
+        "description": "Description 2",
+        "updateTime": 1741595170789,
+        "content": "Content 2"
+      }
+    }
+  ]
+}

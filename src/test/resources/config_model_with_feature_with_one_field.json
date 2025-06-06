@@ -1,0 +1,20 @@
+{
+	"routes": {},
+	"models": {
+		"testName": {
+			"name": "testName",
+			"displayName": "testName",
+			"features": {
+				"rateEndpoint": "rateEndpoint"
+			}
+		}
+	},
+	"addons": {},
+	"applications": {},
+	"assistant": {},
+	"keys": {},
+	"roles": {},
+	"retriableErrorCodes": [],
+	"interceptors": {},
+	"applicationTypeSchemas": []
+}

@@ -1,0 +1,4 @@
+/build/
+/out/
+src/main/antlr/*.tokens
+/src/main/java/com/epam/aidial/ql/deserializers/sql/gen/

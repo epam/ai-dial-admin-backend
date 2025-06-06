@@ -1,0 +1,57 @@
+{
+  "models": {
+    "testModel1": {
+      "type": "embedding",
+      "name": "testModel1",
+      "descriptionKeywords": [
+        "Customer Service",
+        "Finance"
+      ],
+      "userRoles": [
+        "testRole1"
+      ]
+    },
+    "testModel2": {
+      "type": "embedding",
+      "name": "testModel2",
+      "descriptionKeywords": [
+        "Accounting",
+        "Engineering"
+      ],
+      "userRoles": [
+        "testRole1"
+      ]
+    }
+  },
+  "applications": {
+    "testApplication1": {
+      "name": "testApplication1",
+      "descriptionKeywords": [
+        "Accounting"
+      ],
+      "userRoles": [
+        "testRole1"
+      ]
+    },
+    "testApplication2": {
+      "name": "testApplication2",
+      "descriptionKeywords": [
+        "Business Development"
+      ],
+      "userRoles": [
+        "testRole1"
+      ]
+    }
+  },
+  "roles": {
+    "testRole1": {
+      "limits": {
+        "testModel1": {},
+        "testModel2": {},
+        "testApplication1": {},
+        "testApplication2": {}
+      },
+      "share": {}
+    }
+  }
+}

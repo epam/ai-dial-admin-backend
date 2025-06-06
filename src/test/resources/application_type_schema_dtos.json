@@ -1,0 +1,63 @@
+[
+	{
+	"$schema": "https://test.com/application_type_schemas/schema#",
+	"$id": "https://test-schema.example",
+	"dial:applicationTypeEditorUrl": "https://test.com/billings",
+	"dial:applicationTypeViewerUrl": "https://test.com/claims",
+	"dial:applicationTypeDisplayName": "Claims Use case",
+	"dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+	"$defs": {
+		"ToolEndpointInfo": {
+			"properties": {
+				"name": {
+					"title": "Name",
+					"type": "string"
+				},
+				"method_url": {
+					"title": "Method Url",
+					"type": "string"
+				},
+				"method_type": {
+					"$ref": "#/$defs/ToolEndpointInfoMethodType"
+				},
+				"description": {
+					"title": "Description",
+					"type": "string"
+				},
+				"parameters": {
+					"items": {
+						"$ref": "#/$defs/ToolEndpointParameterInfo"
+					},
+					"title": "Parameters",
+					"type": "array"
+				}
+			},
+			"required": [
+				"name",
+				"method_url",
+				"method_type",
+				"description",
+				"parameters"
+			],
+			"title": "ToolEndpointInfo",
+			"type": "object"
+		}
+	},
+	"properties": {
+		"temperature": {
+			"title": "Temperature",
+			"type": "number",
+			"dial:meta": {
+				"dial:propertyKind": "server",
+				"dial:propertyOrder": 1
+			}
+		}
+	},
+	"required": [
+		"temperature",
+		"instructions",
+		"model",
+		"web_api_toolset"
+	]
+	}
+]

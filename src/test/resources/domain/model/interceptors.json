@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "SampleInterceptor",
+    "endpoint": "https://example.com/interceptor",
+    "iconUrl": "https://example.com/icon.png",
+    "description": "This is a sample interceptor",
+    "displayName": "Sample Interceptor",
+    "forwardAuthToken": true,
+    "entities": [
+      "user",
+      "transaction",
+      "log"
+    ]
+  }
+]

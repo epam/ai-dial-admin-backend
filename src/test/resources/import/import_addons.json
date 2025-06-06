@@ -1,0 +1,19 @@
+{
+  "models": {},
+  "applications": {},
+  "roles": {},
+  "addons": {
+    "testAddon1": {
+      "name": "testAddon1",
+      "endpoint": "https://endpoint.test.com/embeddings",
+      "iconUrl": "https://test.com/icon",
+      "description": "It is a test Addon",
+      "displayName": "Test Addon1",
+      "forwardAuthToken": false
+    }
+  },
+  "interceptors": {},
+  "keys": {},
+  "applicationTypeSchemas": [],
+  "routes": {}
+}

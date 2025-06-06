@@ -1,0 +1,14 @@
+{
+  "prompts": [
+    {
+      "id": "prompts/public/subfolder/Test__1.0.0",
+      "name": "Test",
+      "folderId": "prompts/public/subfolder",
+      "description": "test description",
+      "content": "test content",
+      "publishedWithMe": true,
+      "status": "LOADED"
+    }
+  ],
+  "folders": []
+}

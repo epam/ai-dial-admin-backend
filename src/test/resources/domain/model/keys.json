@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "key": "abc123xyz",
+    "project": "SampleProject",
+    "secured": true,
+    "roles": [
+      "admin",
+      "user"
+    ],
+    "description": "This is a sample key for authentication"
+  }
+]

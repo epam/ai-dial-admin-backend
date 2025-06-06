@@ -1,0 +1,10 @@
+{
+  "applicationRunners": [
+    {
+      "description": "description",
+      "type": "APPLICATION_TYPE_SCHEMA",
+      "dial:applicationTypeDisplayName": "displayName",
+      "$id": "id"
+    }
+  ]
+}

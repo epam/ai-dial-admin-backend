@@ -1,0 +1,11 @@
+{
+  "public/test/": [
+    {
+      "source": "role",
+      "function": "equal",
+      "targets": [
+        "admin"
+      ]
+    }
+  ]
+}

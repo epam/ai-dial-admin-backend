@@ -1,0 +1,64 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {
+    "testApplication1": {
+      "name": "testApplication1",
+      "display_name": "Test Application1",
+      "display_version": "2.0.0",
+      "forward_auth_token": false,
+      "features": {
+        "system_prompt_supported": true,
+        "tools_supported": false,
+        "seed_supported": false,
+        "url_attachments_supported": false,
+        "folder_attachments_supported": false,
+        "allow_resume": false,
+        "accessible_by_per_request_key": true,
+        "content_parts_supported": false,
+        "temperature_supported": true,
+        "addons_supported": false
+      },
+      "defaults": {},
+      "interceptors": [
+        "testInterceptor1"
+      ],
+      "description_keywords": [],
+      "max_retry_attempts": 1,
+      "application_properties": {},
+      "application_type_schema_id": "https://test-schema-id.example"
+    }
+  },
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {},
+  "retriableErrorCodes": [],
+  "interceptors": {
+    "testInterceptor1": {
+      "name": "testInterceptor1",
+      "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor",
+      "forwardAuthToken": false,
+      "defaults": {},
+      "interceptors": [],
+      "descriptionKeywords": [],
+      "maxRetryAttempts": 1
+    }
+  },
+  "applicationTypeSchemas": [
+    {
+      "properties": {},
+      "required": [],
+      "$schema": "https://dial.epam.com/application_type_schemas/schema#",
+      "$id": "https://test-schema-id.example",
+      "dial:applicationTypeEditorUrl": "https://test.com/billings",
+      "dial:applicationTypeViewerUrl": "https://test.com/claims",
+      "dial:applicationTypeDisplayName": "runner display name",
+      "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+      "$defs": {}
+    }
+  ]
+}

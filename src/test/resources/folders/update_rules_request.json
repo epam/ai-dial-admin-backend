@@ -1,0 +1,12 @@
+{
+  "targetFolder": "public/test/",
+  "rules": [
+    {
+      "source": "roles",
+      "function": "CONTAIN",
+      "targets": [
+        "admin"
+      ]
+    }
+  ]
+}

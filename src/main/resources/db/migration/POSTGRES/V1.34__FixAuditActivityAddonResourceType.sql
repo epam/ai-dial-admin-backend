@@ -1,0 +1,1 @@
+update audit_activity_entity set resource_type='Addon' where resource_type='Adapter';

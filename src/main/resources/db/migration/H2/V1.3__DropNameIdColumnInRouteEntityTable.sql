@@ -1,0 +1,1 @@
+alter table if exists route_entity drop column if exists (name_id);

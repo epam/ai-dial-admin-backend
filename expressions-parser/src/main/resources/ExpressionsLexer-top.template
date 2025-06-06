@@ -1,0 +1,60 @@
+lexer grammar ExpressionsLexer;
+
+channels { ERRORCHANNEL }
+
+// Keywords
+// Common Keywords
+
+AS:                                  A S;
+FALSE:                               F A L S E;
+TRUE:                                T R U E;
+NAN:                                 N A N;
+INF:                                 I N F | I N F I N I T Y;
+NULL:                                N U L L;
+
+// Operators. Arithmetics
+
+MULTIPLY_OPERATOR:                   '*';
+DIVIDE_OPERATOR:                     '/';
+MODULO_OPERATOR:                     '%';
+PLUS_OPERATOR:                       '+';
+MINUS_OPERATOR:                      '-';
+
+// Operators. Comparisons
+
+EQUAL_OPERATOR:                      '==' | '=';
+NOT_EQUAL_OPERATOR:                  '!=' | '<>';
+LESS_OPERATOR:                       '<';
+GREATER_OPERATOR:                    '>';
+LESS_OR_EQUAL_OPERATOR:              '<=';
+GREATER_OR_EQUAL_OPERATOR:           '>=';
+
+// Operators. Logicals
+
+NOT_OPERATOR:                        'NOT';
+AND_OPERATOR:                        'AND';
+OR_OPERATOR:                         'OR';
+
+// Ternary operators
+
+QUESTION_SYMBOL:                     '?';
+COLON_SYMBOL:                        ':';
+
+// Operators. Bit
+
+BIT_NOT_OP:                          '~';
+BIT_OR_OP:                           '|';
+BIT_AND_OP:                          '&';
+BIT_XOR_OP:                          '^';
+
+// Constructors symbols
+
+DOT:                                 '.';
+LR_BRACKET:                          '(';
+RR_BRACKET:                          ')';
+COMMA:                               ',';
+SEMI:                                ';';
+AT_SIGN:                             '@';
+SINGLE_QUOTE_SYMB:                   '\'';
+DOUBLE_QUOTE_SYMB:                   '"';
+REVERSE_QUOTE_SYMB:                  '`';

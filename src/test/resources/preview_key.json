@@ -1,0 +1,16 @@
+{
+  "keys": [
+    {
+      "name": "keyName",
+      "displayName": "displayName",
+      "displayVersion": null,
+      "description": "key description",
+      "type": "KEY",
+      "roles": [
+        "default"
+      ],
+      "expiresAt": null,
+      "keyGeneratedAt": null
+    }
+  ]
+}

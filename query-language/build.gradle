@@ -1,0 +1,54 @@
+apply plugin: 'java'
+apply plugin: 'net.ltgt.apt'
+apply plugin: 'net.ltgt.apt-idea'
+apply plugin: 'antlr'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.15"
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antlr 'org.antlr:antlr4:4.13.2'
+    apt 'org.immutables:value:2.5.6'
+    compileOnly 'org.immutables:value:2.5.6:annotations'
+
+    api project(':expressions-parser')
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+    implementation 'org.hibernate:hibernate-validator:8.0.2.Final'
+
+    implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'com.google.guava:guava:33.4.0-jre'
+
+    implementation 'org.jetbrains:annotations:26.0.2'
+
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'org.mockito:mockito-core:5.15.2'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.15.2'
+}
+
+generateGrammarSource {
+    arguments += ["-package", "com.epam.aidial.ql.deserializers.sql.gen"]
+    outputDirectory = file("src/main/java/com/epam/aidial/ql/deserializers/sql/gen")
+}

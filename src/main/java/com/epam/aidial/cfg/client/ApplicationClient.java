@@ -1,0 +1,36 @@
+package com.epam.aidial.cfg.client;
+
+import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
+import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@FeignClient(
+        name = "applicationClient",
+        url = "${core.client.url}",
+        configuration = {
+                MessageConversionCoreClientConfiguration.class,
+                AuthorizationCoreClientConfiguration.class,
+                RetryClientConfiguration.class,
+        })
+public interface ApplicationClient {
+
+    @GetMapping("/v1/metadata/applications/{path}")
+    ApplicationMetadataDto getApplicationMetadata(@PathVariable String path,
+                                                  @RequestParam boolean recursive,
+                                                  @RequestParam String token);
+
+    /**
+     * Implementation Details:
+     *
+     * <p>The response from the server does not include a Content-Type header. To handle this, a custom decoder was created
+     * to facilitate the decoding of the response.
+     *
+     * <p>For more information, refer to the custom decoder implementation in:
+     * {@link MessageConversionCoreClientConfiguration#feignDecoder(org.springframework.beans.factory.ObjectFactory, com.fasterxml.jackson.databind.ObjectMapper)}
+     */
+    @GetMapping("/v1/applications/{path}")
+    ApplicationResourceDto getApplicationResource(@PathVariable String path);
+}

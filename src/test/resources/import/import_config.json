@@ -1,0 +1,200 @@
+{
+  "models": {
+    "testModel1": {
+      "type": "embedding",
+      "name": "testModel1",
+      "displayName": "Test Model1",
+      "displayVersion": "2.0.0",
+      "userRoles": [
+        "testRole1",
+        "testRole3"
+      ],
+      "interceptors": [
+        "testInterceptor1"
+      ]
+    },
+    "testModel2": {
+      "type": "embedding",
+      "name": "testModel2",
+      "displayName": "Test Model2",
+      "displayVersion": "1.0.0"
+    }
+  },
+  "applications": {
+    "testApplication1": {
+      "name": "testApplication1",
+      "displayName": "Test Application1",
+      "displayVersion": "2.0.0",
+      "userRoles": [
+        "testRole1"
+      ],
+      "interceptors": [
+        "testInterceptor1"
+      ],
+      "applicationTypeSchemaId": "https://test-schema-id.example"
+    },
+    "testApplication2": {
+      "name": "testApplication2",
+      "displayName": "Test Application2",
+      "displayVersion": "1.0.0",
+      "userRoles": [
+        "testRole1"
+      ],
+      "endpoint": "endpoint"
+    }
+  },
+  "roles": {
+    "testRole1": {
+      "description": "test role 1 description",
+      "limits": {
+        "testModel1": {"day": "1"},
+        "testModel2": {},
+        "testApplication1": {},
+        "testApplication2": {},
+        "testAssistant1": {}
+      },
+      "share": {}
+    },
+    "testRole2": {
+      "description": "test role 1 description",
+      "limits": {
+        "testModel1": {},
+        "testModel2": {},
+        "testApplication1": {},
+        "testApplication2": {},
+        "testAssistant1": {}
+      },
+      "share": {}
+    },
+    "testRole3": {
+      "description": "test role 1 description",
+      "limits": {
+        "testModel1": {},
+        "testModel2": {},
+        "testApplication1": {},
+        "testApplication2": {},
+        "testAssistant1": {}
+      },
+      "share": {}
+    },
+    "default": {
+      "description": "test role 1 description",
+      "limits": {
+        "testModel1": {"day": "3"},
+        "testModel2": {},
+        "testApplication1": {},
+        "testApplication2": {},
+        "testAssistant1": {}
+      },
+      "share": {}
+    }
+  },
+  "addons": {
+    "testAddon1": {
+      "name": "testAddon1",
+      "endpoint": "https://endpoint.test.com/embeddings",
+      "iconUrl": "https://test.com/icon",
+      "description": "It is a test Addon",
+      "displayName": "Test Addon1",
+      "forwardAuthToken": false,
+      "userRoles": [
+        "testRole1"
+      ]
+    }
+  },
+  "interceptors": {
+    "testInterceptor1": {
+      "name": "testInterceptor1",
+      "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor",
+      "userRoles": [
+        "testRole1"
+      ]
+    }
+  },
+  "assistant": {
+    "assistants": {
+      "testAssistant1": {
+        "name": "testAssistant1",
+        "iconUrl": "https://test.com/icon",
+        "description": "It is a test assistant",
+        "displayName": "Test Assistant1",
+        "forwardAuthToken": false,
+        "userRoles": [
+          "testRole1"
+        ],
+        "defaults": {}
+      }
+    }
+  },
+  "keys": {
+    "testKey1": {
+      "key": "key1",
+      "project": "testProject1",
+      "role": "testRole1",
+      "secured": true,
+      "description": "key description",
+      "projectContactPoint": "test@mail.com",
+      "expiresAt": 253402300799999
+    },
+    "testKey2": {
+      "key": "key2",
+      "project": "testProject1",
+      "role": "testRole1",
+      "secured": true,
+      "description": "key 2 description",
+      "projectContactPoint": "test@mail.com",
+      "expiresAt": 253402300799999
+    }
+  },
+  "applicationTypeSchemas": [
+      {
+        "$id": "https://test-schema-id.example",
+        "dial:applicationTypeEditorUrl": "https://test.com/billings",
+        "dial:applicationTypeViewerUrl": "https://test.com/claims",
+        "dial:applicationTypeDisplayName": "runner display name",
+        "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+        "$defs": {},
+        "properties": {},
+        "required": []
+      }
+	],
+	"routes": {
+		"test_route1": {
+			"name": "test_route1",
+			"response": {
+				"status": 200,
+				"body": "OK"
+			},
+			"rewritePath": true,
+			"paths": [
+				"/api/v1/",
+				"/service/"
+			],
+			"methods": [
+				"GET",
+				"POST"
+			],
+			"upstreams": [
+				{
+					"endpoint": "http://upstream1.example.com",
+					"key": "upstream-key-1",
+					"extraData": "{\"custom\":\"data1\"}",
+					"weight": 1,
+					"tier": 0
+				},
+				{
+					"endpoint": "http://upstream2.example.com",
+					"key": "upstream-key-2",
+					"extraData": "{\"custom\":\"data2\"}",
+					"weight": 2,
+					"tier": 1
+				}
+			],
+			"maxRetryAttempts": 3,
+			"userRoles": [
+				"testRole1"
+			]
+		}
+	}
+}

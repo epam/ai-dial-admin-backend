@@ -1,0 +1,253 @@
+@user=admin
+@password=password
+
+###
+
+# @name Actuator Health
+#@no-log
+GET http://localhost:8080/api/v1/health
+
+###
+
+# @name Get All Roles
+#@no-log
+GET http://localhost:8080/api/v1/roles
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Role
+#@no-log
+@roleName = NewRole7
+GET http://localhost:8080/api/v1/roles/{{roleName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Delete Role
+#@no-log
+@roleToDelete = NewRole7
+DELETE http://localhost:8080/api/v1/roles/{{roleToDelete}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All Models
+#@no-log
+GET http://localhost:8080/api/v1/models
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Model
+#@no-log
+@modelName = chat-gpt
+GET http://localhost:8080/api/v1/models/{{modelName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Delete Model
+#@no-log
+@modelToDelete = chat-gpt
+DELETE http://localhost:8080/api/v1/models/{{modelToDelete}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All Applications
+#@no-log
+GET http://localhost:8080/api/v1/applications
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Application
+#@no-log
+@appName = echo
+GET http://localhost:8080/api/v1/applications/{{appName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Delete Application
+#@no-log
+@appToDelete = echo
+DELETE http://localhost:8080/api/v1/applications/{{appToDelete}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All Interceptors
+#@no-log
+GET http://localhost:8080/api/v1/interceptors
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Interceptor
+#@no-log
+@interceptorName = logging-interceptor
+GET http://localhost:8080/api/v1/interceptors/{{interceptorName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All Routes
+#@no-log
+GET http://localhost:8080/api/v1/routes
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Route
+#@no-log
+@routeName = chat-route
+GET http://localhost:8080/api/v1/routes/{{routeName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Delete Route
+#@no-log
+@routeToDelete = chat-route
+DELETE http://localhost:8080/api/v1/routes/{{routeToDelete}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All Keys
+#@no-log
+GET http://localhost:8080/api/v1/keys
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Key
+#@no-log
+@keyName = openai-key
+GET http://localhost:8080/api/v1/keys/{{keyName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Create Key
+#@no-log
+POST http://localhost:8080/api/v1/keys
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "openai-key",
+  "key": "sk-...",
+  "project": "ABC",
+  "description": "OpenAI API key",
+  "expiresAt": "1746541366000"
+}
+
+###
+
+# @name Update Key
+#@no-log
+@keyName = openai-key
+PUT http://localhost:8080/api/v1/keys/{{keyName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "name": "{{keyName}}",
+  "key": "sk-...",
+  "project": "ABC",
+  "description": "OpenAI API key",
+  "expiresAt": "1746541366000"
+}
+
+###
+
+# @name Delete Key
+#@no-log
+@keyToDelete = openai-key
+DELETE http://localhost:8080/api/v1/keys/{{keyToDelete}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All Adapters
+#@no-log
+GET http://localhost:8080/api/v1/adapters
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All Tokenizers
+#@no-log
+GET http://localhost:8080/api/v1/tokenizers
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Application Type Schemas
+#@no-log
+GET http://localhost:8080/api/v1/applicationTypeSchemas
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Application Type Schema by ID
+#@no-log
+@schemaId = chat-schema
+GET http://localhost:8080/api/v1/applicationTypeSchemas?id={{schemaId}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Folders
+#@no-log
+POST http://localhost:8080/api/v1/folders
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+{
+  "path": "/prompts",
+  "type": "PROMPT"
+}
+
+###
+
+# @name Get Rules
+#@no-log
+GET http://localhost:8080/api/v1/folders?path=/prompts
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Delete Folder
+#@no-log
+DELETE http://localhost:8080/api/v1/folders?path=/prompts
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}

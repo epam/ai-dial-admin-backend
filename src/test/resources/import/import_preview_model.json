@@ -1,0 +1,24 @@
+{
+  "roles": [],
+  "keys": [],
+  "interceptors": [],
+  "applicationRunners": [],
+  "routes": [],
+  "models": [
+    {
+      "importAction": "CREATE",
+      "value": {
+        "isPublic": false,
+        "name": "testModel1",
+        "displayName": "testModel1",
+        "displayVersion": "1.0.0",
+        "interceptors": [
+          "testInterceptor1"
+        ]
+      }
+    }
+  ],
+  "applications": [],
+  "addons": [],
+  "assistants": []
+}

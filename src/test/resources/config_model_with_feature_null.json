@@ -1,0 +1,17 @@
+{
+	"routes": {},
+	"models": {
+		"testModel": {
+			"name": "testModel",
+			"displayName": "testModel"
+		}
+	},
+	"addons": {},
+	"applications": {},
+	"assistant": {},
+	"keys": {},
+	"roles": {},
+	"retriableErrorCodes": [],
+	"interceptors": {},
+	"applicationTypeSchemas": []
+}
