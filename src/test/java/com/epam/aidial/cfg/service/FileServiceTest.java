@@ -1,0 +1,206 @@
+package com.epam.aidial.cfg.service;
+
+import com.epam.aidial.cfg.client.FileClient;
+import com.epam.aidial.cfg.client.ResourceClient;
+import com.epam.aidial.cfg.client.dto.FileMetadataDto;
+import com.epam.aidial.cfg.client.dto.MoveResourceDto;
+import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.FolderUrlMapperImpl;
+import com.epam.aidial.cfg.client.mapper.ResourceClientMapperImpl;
+import com.epam.aidial.cfg.dto.NodeTypeDto;
+import com.epam.aidial.cfg.model.FileNodeInfo;
+import com.epam.aidial.cfg.model.FolderInfo;
+import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
+import com.epam.aidial.cfg.model.ImportResources;
+import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.MoveResource;
+import com.epam.aidial.cfg.model.NodeType;
+import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import feign.Response;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {
+        ResourceClientMapperImpl.class,
+        FileClientMapperImpl.class,
+        FolderUrlMapperImpl.class,
+        FileService.class,
+        SimpleCircuitBreaker.class,
+})
+@TestPropertySource(properties = {
+        "prompts.import.consecutiveErrorsThreshold=2"
+})
+class FileServiceTest {
+
+    @MockitoBean
+    private FileClient fileClient;
+
+    @MockitoBean
+    private ResourceClient resourceClient;
+
+    @Autowired
+    private FileService fileService;
+
+    @Test
+    void testGetAll() {
+        // given
+        ResourceMetadataRequest filesRequest = new ResourceMetadataRequest();
+        FileMetadataDto fileMetadataDto = new FileMetadataDto();
+        fileMetadataDto.setNodeType(NodeTypeDto.ITEM);
+        fileMetadataDto.setUrl("files/public/testFile.txt");
+        fileMetadataDto.setName("testFile.txt");
+        FileNodeInfo expected = new FileNodeInfo();
+        expected.setName("testFile.txt");
+        expected.setPath("public/testFile.txt");
+        expected.setFolderId("public");
+        expected.setNodeType(NodeType.ITEM);
+        when(fileClient.getFilesMetadata(any(), anyBoolean(), any())).thenReturn(fileMetadataDto);
+        // when
+        FileNodeInfo result = fileService.getAll(filesRequest);
+        // then
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result).isEqualTo(expected);
+        verify(fileClient).getFilesMetadata(any(), anyBoolean(), any());
+    }
+
+    @Test
+    void testGet() {
+        // given
+        String path = "public/test.txt";
+        Response response = mock(Response.class);
+        when(fileClient.getFile(path)).thenReturn(response);
+        // when
+        Response result = fileService.get(path);
+        // then
+        Assertions.assertThat(result).isEqualTo(response);
+    }
+
+    @Test
+    void testUploadFile() {
+        // given
+        MultipartFile multipart = mock(MultipartFile.class);
+        String path = "public/";
+        String expectedFileName = path + multipart.getOriginalFilename();
+        ImportResources importResources = new ImportResources(path, ImportConflictResolutionStrategy.OVERRIDE);
+        // when
+        ImportResourcesFileResult result = fileService.uploadFile(List.of(multipart), importResources);
+        // then
+        Assertions.assertThat(result).isNotNull();
+        verify(fileClient).uploadFile(multipart, expectedFileName, Map.of("If-Match", "*"));
+    }
+
+    @Test
+    void testDeleteFile() {
+        // given
+        String path = "public/test.txt";
+        // when
+        fileService.deleteFile(path);
+        // then
+        verify(fileClient).deleteFile(path);
+    }
+
+    @Test
+    void testMove() {
+        // given
+        MoveResource moveResource = MoveResource.builder()
+                .sourceUrl("public/test.txt")
+                .destinationUrl("public/test/test.txt")
+                .build();
+        ArgumentCaptor<MoveResourceDto> argumentCaptor = ArgumentCaptor.forClass(MoveResourceDto.class);
+        // when
+        fileService.moveFile(moveResource);
+        // then
+        verify(resourceClient).move(argumentCaptor.capture());
+        Assertions.assertThat(argumentCaptor.getValue()).satisfies(dto -> {
+            Assertions.assertThat(dto).isNotNull();
+            Assertions.assertThat(dto.getSourceUrl()).isEqualTo("files/public/test.txt");
+            Assertions.assertThat(dto.getDestinationUrl()).isEqualTo("files/public/test/test.txt");
+            Assertions.assertThat(dto.isOverwrite()).isFalse();
+        });
+    }
+
+    @Test
+    void testGetFolders() {
+        // given
+        ResourceMetadataRequest request = ResourceMetadataRequest.builder()
+                .path("public/")
+                .build();
+        FileMetadataDto item = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.ITEM)
+                .url("files/public/testFile.txt")
+                .name("testFile.txt")
+                .build();
+        FileMetadataDto folder = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.FOLDER)
+                .url("files/public/test/")
+                .name("test")
+                .build();
+        FileMetadataDto response = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.FOLDER)
+                .url("public/")
+                .bucket("public")
+                .items(List.of(item, folder))
+                .build();
+        when(fileClient.getFilesMetadata(any(), anyBoolean(), any())).thenReturn(response);
+        // when
+        FolderInfo folderInfo = fileService.getFolders(request);
+        // then
+        Assertions.assertThat(folderInfo).isNotNull().satisfies(info ->
+                Assertions.assertThat(info.getItems()).hasSize(1));
+    }
+
+    @Test
+    void testGetItemResources() {
+        // given
+        String path = "public/test/";
+        FileMetadataDto item1 = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.ITEM)
+                .url("files/public/test/test2/testFile2.txt")
+                .name("testFile.txt")
+                .build();
+        FileMetadataDto folder = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.FOLDER)
+                .url("files/public/test/test2/")
+                .name("test2")
+                .items(List.of(item1))
+                .build();
+        FileMetadataDto item2 = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.ITEM)
+                .url("files/public/test/testFile.txt")
+                .name("testFile.txt")
+                .build();
+        FileMetadataDto response = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.FOLDER)
+                .url("public/test/")
+                .bucket("public")
+                .items(List.of(item2, folder))
+                .build();
+        when(fileClient.getFilesMetadata(any(), anyBoolean(), any())).thenReturn(response);
+        // when
+        Set<String> resourceUrls = fileService.getResourceUrls(path);
+        // then
+        Assertions.assertThat(resourceUrls)
+                .containsExactlyInAnyOrder("files/public/test/testFile.txt",
+                        "files/public/test/test2/testFile2.txt");
+    }
+
+}

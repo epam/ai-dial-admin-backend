@@ -1,0 +1,12 @@
+{
+  "roles": {
+    "testRole1": {
+      "limits": {
+        "testApplication1": {
+          "minute": "100000000",
+          "day": "100000000"
+        }
+      }
+    }
+  }
+}

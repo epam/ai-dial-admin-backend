@@ -1,0 +1,17 @@
+{
+  "models": {
+    "testModel4": {
+      "type": "embedding",
+      "name": "testModel4",
+      "displayName": "Test Model4",
+      "displayVersion": "2.0.0",
+      "userRoles": [
+        "testRole1"
+      ]
+    }
+  },
+  "roles": {
+    "default": {
+    }
+  }
+}

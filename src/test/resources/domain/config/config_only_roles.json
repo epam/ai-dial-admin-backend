@@ -1,0 +1,36 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {},
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {
+    "admin": {
+      "name": "admin",
+      "limits": {
+        "sampleDeployment1": {
+          "minute": 50,
+          "day": 5000,
+          "week": 20000,
+          "month": 80000,
+          "requestHour": 500,
+          "requestDay": 2000
+        },
+        "sampleDeployment2": {
+          "minute": 20,
+          "day": 2000,
+          "week": 10000,
+          "month": 40000,
+          "requestHour": 200,
+          "requestDay": 1000
+        }
+      }
+    }
+  },
+  "retriableErrorCodes": [],
+  "interceptors": {},
+  "applicationTypeSchemas": []
+}

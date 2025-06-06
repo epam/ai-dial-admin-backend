@@ -1,0 +1,27 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {},
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {},
+  "retriableErrorCodes": [],
+  "interceptors": {
+    "SampleInterceptor": {
+      "name": "SampleInterceptor",
+      "endpoint": "https://example.com/interceptor",
+      "displayName": "Sample Interceptor",
+      "iconUrl": "https://example.com/icon.png",
+      "description": "This is a sample interceptor",
+      "forwardAuthToken": true,
+      "defaults": {},
+      "interceptors": [],
+      "descriptionKeywords": [],
+      "maxRetryAttempts": 1
+    }
+  },
+  "applicationTypeSchemas": []
+}

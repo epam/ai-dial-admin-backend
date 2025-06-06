@@ -1,0 +1,39 @@
+[
+  {
+    "id": 1,
+    "name": "admin",
+    "description": "Administrator role with full access",
+    "limits": [
+      {
+        "role": "admin",
+        "deploymentName": "sampleDeployment1",
+        "enabled": true,
+        "limit": {
+          "minute": 50,
+          "day": 5000,
+          "week": 20000,
+          "month": 80000,
+          "requestHour": 500,
+          "requestDay": 2000
+        }
+      },
+      {
+        "role": "admin",
+        "deploymentName": "sampleDeployment2",
+        "enabled": true,
+        "limit": {
+          "minute": 20,
+          "day": 2000,
+          "week": 10000,
+          "month": 40000,
+          "requestHour": 200,
+          "requestDay": 1000
+        }
+      }
+    ],
+    "keys": [
+      "key-123",
+      "key-456"
+    ]
+  }
+]

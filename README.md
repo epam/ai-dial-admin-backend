@@ -1,0 +1,158 @@
+# AIDIAL Admin Panel Backend
+
+[![Java Version](https://img.shields.io/badge/Java-17-blue.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
+Admin Panel API for AIDIAL Core. This API exposes REST endpoints to manage dial-core configuration.
+The system uses a database (H2/PostgreSQL) as persistent storage and includes a scheduled job that produces a JSON file compatible with dial-core config format.
+This file can be used by aidial-core if listed in the `config.files` configuration property.
+
+For more information about aidial-core, visit the [aidial-core repository](https://github.com/epam/ai-dial-core/blob/development/README.md) or [DIAL Documentation](https://docs.dialx.ai/).
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Features](#features)
+- [REST API](#rest-api)
+- [Configuration](#configuration)
+  - [Authentication](#authentication)
+  - [Keycloak Integration](#keycloak)
+- [Managing Configurations](#managing-existing-dial-core-configurations)
+- [Getting Started](#getting-started)
+  - [Running with Gradle](#run-application-with-gradle)
+  - [Running with Docker](#run-with-docker)
+  - [Running with Docker Compose](#run-locally-with-docker-compose)
+- [Development](#development)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Prerequisites
+
+- Java 17 or higher
+- Gradle 7.x or higher
+- Docker and Docker Compose (for containerized deployment)
+
+## Features
+
+- RESTful API for managing dial-core configurations
+- RESTful API for managing dial-core public resources
+- RESTful API for managing dial-core publications
+- Multiple authentication methods (Basic Auth and JWT)
+- Multiple database support for internal storage (Basic Auth and JWT)
+- Keycloak/AzureAD integration for identity management
+- Configuration file generation and management
+- DIAL core config file expot in multiple destinations (File on filesystem/Kubernetes ConfigMap/Kubernetes Secret/Azure Keyvault/Hashicorp/AWS Vault/GCP secrets manager)
+- Containerized deployment support
+- Health monitoring endpoints
+- Metrics query API with InfluxDB integration [https://github.com/epam/ai-dial-analytics-realtime]
+
+## REST API
+
+The Admin Panel API exposes REST endpoints under the `/api/v1` prefix.
+Sample REST API requests can be found in [AdminPanel.http](docs/sample/http-requests/AdminPanel.http).
+
+For detailed API documentation, refer to the [API Documentation](docs/api.md).
+
+## Configuration
+
+Complete list of configuration properties can be found [here](docs/configuration.md).
+
+### Authentication
+
+The system supports two authentication methods:
+
+1. **Basic Authentication** (Default)
+   - Configure username and password in `application.properties`:
+     ```properties
+     spring.security.user.name=your_username
+     spring.security.user.password=your_password
+     ```
+   - Enable with:
+     ```properties
+     config.rest.security=basic
+     com.c4-soft.springaddons.oidc.resourceserver.enabled=false
+     ```
+
+2. **JWT Authentication**
+   - Configure Identity Provider settings:
+     ```properties
+     com.c4-soft.springaddons.oidc.resourceserver.enabled=true
+     com.c4-soft.springaddons.oidc.ops[0].iss=your_issuer
+     com.c4-soft.springaddons.oidc.ops[0].authorities[0].path=your_authorities_path
+     com.c4-soft.springaddons.oidc.ops[0].username-claim=your_username_claim
+     com.c4-soft.springaddons.oidc.ops[0].jwk-set-uri=your_jwk_set_uri
+     ```
+   - Enable with:
+     ```properties
+     config.rest.security=oidc
+     com.c4-soft.springaddons.oidc.resourceserver.enabled=true
+     ```
+
+### Keycloak
+
+Keycloak can be used as a simple IDP replacement for local test/development.
+Please refer to the [Keycloak setup guide](docs/keycloak_configuration.md) for more information.
+
+## Managing Existing Dial Core Configurations
+
+The system creates an empty configuration. To utilize existing Dial Core configurations:
+
+1. Import configuration file in the AIDIAL admin panel using special import endpoint
+
+## Getting Started
+
+### Run Application with Gradle
+
+From the project's root directory:
+
+```bash
+./gradlew bootRun
+```
+
+### Run with Docker
+
+#### Build Docker Image
+
+```bash
+docker build . -t aidial/ai-dial-admin-backend:latest
+```
+
+#### Run Container
+
+```bash
+docker run -p 8080:8080 <image:tag>
+```
+
+Verify the installation:
+
+```bash
+curl -X GET --location "http://localhost:8080/actuator/health"
+```
+
+Expected response:
+```json
+{
+  "status": "UP"
+}
+```
+
+### Run Locally with Docker Compose
+
+Use the predefined setup in [docker-compose.yml](local_env/docker-compose.yml)
+
+```bash
+docker-compose up
+```
+
+## Security
+For information about security practices and reporting security issues, please refer to our [Security.md](Security.md) document.
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

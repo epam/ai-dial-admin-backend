@@ -1,0 +1,24 @@
+package com.epam.aidial.cfg.domain.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Collection;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExportConfigPreview {
+
+    private Collection<ExportComponentInfo> routes;
+    private Collection<ExportComponentInfo> applications;
+    private Collection<ExportComponentInfo> models;
+
+    private Collection<ExportComponentInfo> roles;
+    private Collection<ExportKeyInfo> keys;
+    private Collection<ExportApplicationTypeSchemaInfo> applicationRunners;
+    private Collection<ExportComponentInfo> interceptors;
+}

@@ -1,0 +1,48 @@
+package com.epam.aidial.cfg.dao.model;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.hibernate.envers.AuditJoinTable;
+import org.hibernate.envers.Audited;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@Entity
+@Audited
+public class RoleEntity extends AbstractEntity<String> {
+
+    @Id
+    @EqualsAndHashCode.Include
+    private String name;
+    private String description;
+    @ToString.Exclude
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "role", orphanRemoval = true)
+    @AuditJoinTable
+    private List<RoleLimitEntity> limits = new ArrayList<>();
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "roles")
+    @AuditJoinTable
+    private List<KeyEntity> keys = new ArrayList<>();
+
+    @PreRemove
+    public void preRemove() {
+        keys.forEach(key -> key.getRoles().remove(this));
+    }
+
+    @Override
+    public String getId() {
+        return name;
+    }
+
+
+}

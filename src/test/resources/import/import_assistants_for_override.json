@@ -1,0 +1,36 @@
+{
+  "models": {},
+  "applications": {},
+  "roles": {},
+  "addons": {},
+  "interceptors": {},
+  "assistant": {
+    "endpoint": "https://test-assistant2.local/openai/deployments/assistant/chat/completions",
+    "features": {
+      "system_prompt_supported": true,
+      "tools_supported": false,
+      "seed_supported": false,
+      "url_attachments_supported": false,
+      "folder_attachments_supported": false,
+      "allow_resume": false,
+      "accessible_by_per_request_key": true,
+      "content_parts_supported": false,
+      "temperature_supported": true,
+      "addons_supported": false
+    },
+    "assistants": {
+      "testAssistant1": {
+        "name": "testAssistant1",
+        "iconUrl": "https://test2.com/icon",
+        "description": "It is a test assistant",
+        "displayName": "Test Assistant1",
+        "forwardAuthToken": false,
+        "userRoles": [],
+        "defaults": {}
+      }
+    }
+  },
+  "keys": {},
+  "applicationTypeSchemas": [],
+  "routes": {}
+}

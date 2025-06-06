@@ -1,0 +1,59 @@
+// Literal Primitives
+
+IDENTIFIER_LITERAL:                  IDENTIFIER/* | BQUOTA_STRING*/;
+STRING_LITERAL:                      DQUOTA_STRING | SQUOTA_STRING;
+HEX_STRING:                          'X\'' HEX_DIGIT+ '\'';
+DECIMAL_LITERAL:                     DEC_DIGIT+;
+HEXADECIMAL_LITERAL:                 '0x' HEX_DIGIT+;
+
+REAL_LITERAL:                        (DEC_DIGIT+)? '.' DEC_DIGIT+ |
+                                        DEC_DIGIT+ '.' EXPONENT_NUM_PART |
+                                        (DEC_DIGIT+)? '.' (DEC_DIGIT+ EXPONENT_NUM_PART) |
+                                        DEC_DIGIT+ EXPONENT_NUM_PART
+                                     ;
+//NULL_SPEC_LITERAL:                   '\\' 'N';
+//BIT_STRING:                          BIT_STRING_L;
+
+// Fragments for Literal primitives
+
+fragment EXPONENT_NUM_PART:          E (PLUS_OPERATOR|MINUS_OPERATOR)? DEC_DIGIT+;
+fragment IDENTIFIER:                 [a-zA-Z_][0-9a-zA-Z_]*;
+fragment DQUOTA_STRING:              '"' ( '\\'. | '""' | ~('"'| '\\') )* '"';
+fragment SQUOTA_STRING:              '\'' ('\\'. | '\'\'' | ~('\'' | '\\'))* '\'';
+//fragment BQUOTA_STRING:              '`' ( '\\'. | '``' | ~('`'|'\\'))* '`';
+fragment HEX_DIGIT:                  [0-9A-Fa-f];
+fragment DEC_DIGIT:                  [0-9];
+//fragment BIT_STRING_L:               'b' '\'' [01]+ '\'';
+
+// Letters
+
+fragment A:                          [aA];
+fragment B:                          [bB];
+fragment C:                          [cC];
+fragment D:                          [dD];
+fragment E:                          [eE];
+fragment F:                          [fF];
+fragment G:                          [gG];
+fragment H:                          [hH];
+fragment I:                          [iI];
+fragment J:                          [jJ];
+fragment K:                          [kK];
+fragment L:                          [lL];
+fragment M:                          [mM];
+fragment N:                          [nN];
+fragment O:                          [oO];
+fragment P:                          [pP];
+fragment Q:                          [qQ];
+fragment R:                          [rR];
+fragment S:                          [sS];
+fragment T:                          [tT];
+fragment U:                          [uU];
+fragment V:                          [vV];
+fragment W:                          [wW];
+fragment X:                          [xX];
+fragment Y:                          [yY];
+fragment Z:                          [zZ];
+
+// Last tokens must generate Errors
+
+ERROR_RECONGNIGION:                  .    -> channel(ERRORCHANNEL);

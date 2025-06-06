@@ -1,0 +1,79 @@
+[
+  {
+    "id": 1,
+    "description": "This is a sample route",
+    "response": {
+      "status": 200,
+      "body": "OK"
+    },
+    "rewritePath": true,
+    "paths": [
+      "/api/v1/resource",
+      "/api/v1/data"
+    ],
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "upstreams": [
+      {
+        "id": 10,
+        "endpoint": "https://upstream1.example.com",
+        "key": "upstream-key-1",
+        "extraData": "metadata-1",
+        "weight": 10,
+        "tier": 1
+      },
+      {
+        "id": 11,
+        "endpoint": "https://upstream2.example.com",
+        "key": "upstream-key-2",
+        "extraData": "metadata-2",
+        "weight": 20,
+        "tier": 2
+      }
+    ],
+    "maxRetryAttempts": 3,
+    "deployment": {
+      "id": 100,
+      "name": "sampleDeployment",
+      "isPublic": false,
+      "defaultRoleLimit": {
+        "minute": 10,
+        "day": 1000,
+        "week": 5000,
+        "month": 20000,
+        "requestHour": 100,
+        "requestDay": 500
+      },
+      "roleLimits": [
+        {
+          "role": "admin",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 50,
+            "day": 5000,
+            "week": 20000,
+            "month": 80000,
+            "requestHour": 500,
+            "requestDay": 2000
+          }
+        },
+        {
+          "role": "user",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 20,
+            "day": 2000,
+            "week": 10000,
+            "month": 40000,
+            "requestHour": 200,
+            "requestDay": 1000
+          }
+        }
+      ]
+    }
+  }
+]

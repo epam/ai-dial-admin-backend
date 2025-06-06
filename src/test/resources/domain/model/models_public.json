@@ -1,0 +1,118 @@
+[
+  {
+    "id": 1,
+    "description": "This is a sample model",
+    "endpoint": "https://example.com/model",
+    "displayName": "Sample Model",
+    "displayVersion": "1.0.0",
+    "iconUrl": "https://example.com/icon.png",
+    "reference": "model-ref-123",
+    "forwardAuthToken": true,
+    "features": {
+      "rateEndpoint": "/rate",
+      "tokenizeEndpoint": "/tokenize",
+      "truncatePromptEndpoint": "/truncate",
+      "configurationEndpoint": "/config",
+      "systemPromptSupported": true,
+      "toolsSupported": false,
+      "seedSupported": true,
+      "urlAttachmentsSupported": true,
+      "folderAttachmentsSupported": false,
+      "allowResume": true,
+      "accessibleByPerRequestKey": true,
+      "contentPartsSupported": true,
+      "temperatureSupported": true,
+      "addonsSupported": false
+    },
+    "inputAttachmentTypes": [
+      "pdf",
+      "docx"
+    ],
+    "maxInputAttachments": 5,
+    "defaults": {
+      "timeout": "30s",
+      "language": "en"
+    },
+    "interceptors": [
+      "auth",
+      "logging"
+    ],
+    "topics": [
+      "AI",
+      "ML"
+    ],
+    "maxRetryAttempts": 3,
+    "type": "CHAT",
+    "tokenizerModel": "gpt-4-tokenizer",
+    "limits": {
+      "maxTotalTokens": 4096,
+      "maxPromptTokens": 2048,
+      "maxCompletionTokens": 1024
+    },
+    "pricing": {
+      "unit": "per-1000-tokens",
+      "prompt": "0.01",
+      "completion": "0.02"
+    },
+    "upstreams": [
+      {
+        "id": 10,
+        "endpoint": "https://upstream1.example.com",
+        "key": "upstream-key-1",
+        "extraData": "metadata-1",
+        "weight": 10,
+        "tier": 1
+      },
+      {
+        "id": 11,
+        "endpoint": "https://upstream2.example.com",
+        "key": "upstream-key-2",
+        "extraData": "metadata-2",
+        "weight": 20,
+        "tier": 2
+      }
+    ],
+    "overrideName": "Custom Model Override",
+    "deployment": {
+      "id": 100,
+      "name": "sampleDeployment",
+      "isPublic": true,
+      "defaultRoleLimit": {
+        "minute": 10,
+        "day": 1000,
+        "week": 5000,
+        "month": 20000,
+        "requestHour": 100,
+        "requestDay": 500
+      },
+      "roleLimits": [
+        {
+          "role": "admin",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 50,
+            "day": 5000,
+            "week": 20000,
+            "month": 80000,
+            "requestHour": 500,
+            "requestDay": 2000
+          }
+        },
+        {
+          "role": "user",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 20,
+            "day": 2000,
+            "week": 10000,
+            "month": 40000,
+            "requestHour": 200,
+            "requestDay": 1000
+          }
+        }
+      ]
+    }
+  }
+]

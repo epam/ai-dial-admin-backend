@@ -1,0 +1,29 @@
+package com.epam.aidial.core.config;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class CoreRoute extends RoleBasedEntity {
+
+    private Response response;
+    private boolean rewritePath;
+    private List<Pattern> paths = List.of();
+    private Set<String> methods = Set.of();
+    private List<CoreUpstream> upstreams = List.of();
+    /**
+     * Indicated max retry attempts to route a single user request.
+     */
+    private int maxRetryAttempts = 1;
+
+    @Data
+    public static class Response {
+        private int status = 200;
+        private String body = "";
+    }
+}

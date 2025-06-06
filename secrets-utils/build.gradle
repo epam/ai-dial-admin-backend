@@ -1,0 +1,51 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'io.freefair.lombok' version '8.0.1'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group 'com.epam.aidial'
+version '0.1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.24.3'
+    implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
+    implementation 'org.apache.logging.log4j:log4j-jul:2.24.3'
+    implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.build {
+    dependsOn shadowJar
+}
+
+shadowJar {
+    mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    manifest {
+        attributes("Main-Class": "com.epam.aidial.GenerateSecretsMain") // Replace with your main class
+    }
+}

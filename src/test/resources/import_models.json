@@ -1,0 +1,57 @@
+{
+  "models": {
+    "testModel1": {
+      "type": "embedding",
+      "name": "testModel1",
+      "displayName": "Test Model1",
+      "displayVersion": "2.0.0",
+      "userRoles": [
+        "testRole1"
+      ]
+    },
+    "testModel2": {
+      "type": "embedding",
+      "name": "testModel2",
+      "displayName": "Test Model2",
+      "displayVersion": "1.0.0",
+      "userRoles": [
+        "testRole1"
+      ]
+    }
+  },
+  "applications": {},
+  "roles": {
+    "testRole1": {
+      "description": "test role 1 description",
+      "limits": {
+        "testModel1": {},
+        "testModel2": {}
+      }
+    }
+  },
+  "addons": {},
+  "interceptors": {},
+  "assistant": {},
+  "keys": {
+    "testKey1": {
+      "key": "key1",
+      "project": "testProject1",
+      "role": "testRole1",
+      "secured": true,
+      "description": "key description",
+      "projectContactPoint": "test@mail.com",
+      "expiresAt": 253402300799999
+    },
+    "testKey2": {
+      "key": "key2",
+      "project": "testProject1",
+      "role": "testRole1",
+      "secured": true,
+      "description": "key 2 description",
+      "projectContactPoint": "test@mail.com",
+      "expiresAt": 253402300799999
+    }
+  },
+  "applicationTypeSchemas": [],
+  "routes": {}
+}

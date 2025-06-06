@@ -1,0 +1,113 @@
+package com.epam.aidial.cfg.service.prompt;
+
+import com.epam.aidial.cfg.client.PromptClient;
+import com.epam.aidial.cfg.client.ResourceClient;
+import com.epam.aidial.cfg.client.dto.PromptMetadataDto;
+import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
+import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.model.CreatePrompt;
+import com.epam.aidial.cfg.model.FolderInfo;
+import com.epam.aidial.cfg.model.MoveResource;
+import com.epam.aidial.cfg.model.Prompt;
+import com.epam.aidial.cfg.model.PromptNodeInfo;
+import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.service.ResourceService;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static com.epam.aidial.cfg.client.mapper.PromptClientMapper.PROMPTS_PREFIX;
+
+@Slf4j
+@Service
+@LogExecution
+@RequiredArgsConstructor
+public class PromptService implements ResourceService {
+
+    private static final String BASE_PATH = "public/";
+
+    private final PromptClient promptClient;
+    private final PromptClientMapper promptClientMapper;
+    private final ResourceClient resourceClient;
+    private final ResourceClientMapper resourceClientMapper;
+
+    public PromptNodeInfo getPrompts(ResourceMetadataRequest request) {
+        var promptsMetadataResponse = getMetadata(request);
+        return promptClientMapper.toPromptInfo(promptsMetadataResponse);
+    }
+
+    public FolderInfo getFolders(ResourceMetadataRequest request) {
+        try {
+            var promptsMetadataResponse = getMetadata(request);
+            return promptClientMapper.toFolderInfo(promptsMetadataResponse, PROMPTS_PREFIX);
+        } catch (FeignException.FeignClientException.NotFound notFound) {
+            return null;
+        }
+    }
+
+    public PromptMetadataDto getMetadata(ResourceMetadataRequest request) {
+        var recursive = request.isRecursive();
+        var nextToken = request.getNextToken();
+        var path = request.getPath() != null ? request.getPath() : BASE_PATH;
+        return promptClient.getPromptsMetadata(path, recursive, nextToken);
+    }
+
+    public Prompt getPrompt(String path) {
+        var promptDto = promptClient.getPrompt(path);
+        var promptMetadata = promptClient.getPromptsMetadata(path, false, null);
+        return promptClientMapper.toPrompt(promptDto, promptMetadata);
+    }
+
+    public List<PromptNodeInfo> getPromptVersions(String folderId, String name) {
+        var normalizedFolderId = StringUtils.stripEnd(folderId, "/");
+        var path = normalizedFolderId + "/";
+
+        return createStream(path, false)
+                .map(promptClientMapper::toPromptInfo)
+                .filter(p -> p.getName().equals(name) && p.getFolderId().equals(normalizedFolderId))
+                .toList();
+    }
+
+    public Prompt createPrompt(CreatePrompt createPrompt, boolean allowOverride, String etag) {
+        var promptDto = promptClientMapper.toPromptDto(createPrompt);
+        var path = promptClientMapper.toPath(createPrompt);
+        var headers = createHeadersForCreate(allowOverride, etag);
+        var promptMetadata = promptClient.createPrompt(path, promptDto, headers);
+        return promptClientMapper.toPrompt(promptDto, promptMetadata);
+    }
+
+    private Map<String, String> createHeadersForCreate(boolean allowOverride, String etag) {
+        if (!allowOverride) {
+            return Map.of(PromptClient.IF_NONE_MATCH_HEADER_NAME, "*");
+        }
+        if (etag != null) {
+            return Map.of(PromptClient.IF_MATCH_HEADER_NAME, etag);
+        }
+        return Map.of();
+    }
+
+    public void deletePrompt(String path) {
+        promptClient.deletePrompt(path);
+    }
+
+    public void movePrompt(MoveResource moveResource) {
+        var moveResourceDto = resourceClientMapper.toMoveResourceDto(moveResource, PROMPTS_PREFIX);
+        resourceClient.move(moveResourceDto);
+    }
+
+    private Stream<PromptMetadataDto> createStream(String path, boolean recursive) {
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive);
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
+    }
+
+}

@@ -1,0 +1,526 @@
+{
+  "roles": [
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testRole1",
+        "limits": [
+          {
+            "deploymentName": "testApplication1",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testApplication2",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testModel2",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testModel1",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 1,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          }
+        ]
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testRole2",
+        "limits": [
+          {
+            "deploymentName": "testApplication1",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testApplication2",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testModel2",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testModel1",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          }
+        ]
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testRole3",
+        "limits": [
+          {
+            "deploymentName": "testApplication1",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testApplication2",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testModel2",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "deploymentName": "testModel1",
+            "enabled": true,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          }
+        ]
+      }
+    },
+    {
+      "importAction": "update",
+      "value": {
+        "name": "default"
+      }
+    }
+  ],
+  "keys": [
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testKey2",
+        "key": "testKey2",
+        "project": "testProject1",
+        "secured": true,
+        "roles": [
+          "testRole1"
+        ]
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testKey1",
+        "key": "testKey1",
+        "project": "testProject1",
+        "secured": true,
+        "roles": [
+          "testRole1"
+        ]
+      }
+    }
+  ],
+  "interceptors": [
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testInterceptor1",
+        "displayName": "Test Interceptor1",
+        "forwardAuthToken": false
+      }
+    }
+  ],
+  "applicationRunners": [
+    {
+      "importAction": "create",
+      "value": {
+        "schemaId": "https://test-schema-id.example",
+        "schema": "https://dial.epam.com/application_type_schemas/schema#",
+        "applicationTypeEditorUrl": "https://test.com/billings",
+        "applicationTypeViewerUrl": "https://test.com/claims",
+        "applicationTypeDisplayName": "runner display name",
+        "applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+        "defs": {},
+        "properties": {},
+        "required": []
+      }
+    }
+  ],
+  "routes": [
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "test_route1",
+          "roleLimits": [
+            {
+              "role": "testRole1",
+              "enabled": true,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole3",
+              "enabled": false,
+              "limit": {}
+            }
+          ],
+          "isPublic": false,
+          "defaultRoleLimit": {}
+        },
+        "response": {
+          "status": 200,
+          "body": "OK"
+        },
+        "rewritePath": true,
+        "paths": [
+          "/api/v1/",
+          "/service/"
+        ],
+        "methods": [
+          "POST",
+          "GET"
+        ],
+        "upstreams": [
+          {
+            "endpoint": "http://upstream1.example.com",
+            "key": "upstream-key-1",
+            "extraData": "{\"custom\":\"data1\"}",
+            "weight": 1,
+            "tier": 0
+          },
+          {
+            "endpoint": "http://upstream2.example.com",
+            "key": "upstream-key-2",
+            "extraData": "{\"custom\":\"data2\"}",
+            "weight": 2,
+            "tier": 1
+          }
+        ],
+        "maxRetryAttempts": 3
+      }
+    }
+  ],
+  "models": [
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "testModel2",
+          "roleLimits": [
+            {
+              "role": "testRole1",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole3",
+              "enabled": false,
+              "limit": {}
+            }
+          ],
+          "isPublic": true,
+          "defaultRoleLimit": {}
+        },
+        "displayName": "Test Model2",
+        "displayVersion": "1.0.0",
+        "forwardAuthToken": false,
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false
+        },
+        "defaults": {},
+        "interceptors": [],
+        "topics": [],
+        "maxRetryAttempts": 5,
+        "type": "embedding",
+        "upstreams": []
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "testModel1",
+          "roleLimits": [
+            {
+              "role": "testRole1",
+              "enabled": true,
+              "limit": {
+                "day": 1
+              }
+            },
+            {
+              "role": "testRole2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole3",
+              "enabled": true,
+              "limit": {}
+            }
+          ],
+          "isPublic": false,
+          "defaultRoleLimit": {
+            "day": 3
+          }
+        },
+        "displayName": "Test Model1",
+        "displayVersion": "2.0.0",
+        "forwardAuthToken": false,
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false
+        },
+        "defaults": {},
+        "interceptors": [
+          "testInterceptor1"
+        ],
+        "topics": [],
+        "maxRetryAttempts": 5,
+        "type": "embedding",
+        "upstreams": []
+      }
+    }
+  ],
+  "applications": [
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "testApplication1",
+          "roleLimits": [
+            {
+              "role": "testRole1",
+              "enabled": true,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole3",
+              "enabled": false,
+              "limit": {}
+            }
+          ],
+          "isPublic": false,
+          "defaultRoleLimit": {}
+        },
+        "displayName": "Test Application1",
+        "displayVersion": "2.0.0",
+        "forwardAuthToken": false,
+        "descriptionKeywords": [],
+        "maxRetryAttempts": 1,
+        "defaults": {},
+        "interceptors": [
+          "testInterceptor1"
+        ],
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false
+        },
+        "applicationTypeSchemaId": "https://test-schema-id.example"
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "testApplication2",
+          "roleLimits": [
+            {
+              "role": "testRole1",
+              "enabled": true,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole3",
+              "enabled": false,
+              "limit": {}
+            }
+          ],
+          "isPublic": false,
+          "defaultRoleLimit": {}
+        },
+        "endpoint": "endpoint",
+        "displayName": "Test Application2",
+        "displayVersion": "1.0.0",
+        "forwardAuthToken": false,
+        "descriptionKeywords": [],
+        "maxRetryAttempts": 1,
+        "defaults": {},
+        "interceptors": [],
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false
+        }
+      }
+    }
+  ],
+  "addons": [
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "testAddon1",
+          "roleLimits": [
+            {
+              "role": "testRole1",
+              "enabled": true,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole3",
+              "enabled": false,
+              "limit": {}
+            }
+          ],
+          "isPublic": false,
+          "defaultRoleLimit": {}
+        },
+        "endpoint": "https://endpoint.test.com/embeddings",
+        "iconUrl": "https://test.com/icon",
+        "description": "It is a test Addon",
+        "displayName": "Test Addon1",
+        "forwardAuthToken": false
+      }
+    }
+  ],
+  "assistants": []
+}

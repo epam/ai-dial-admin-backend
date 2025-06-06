@@ -1,0 +1,1 @@
+alter table application_entity add constraint UK_APPLICATION_ENTITY_DISPLAY_NAME_DISPLAY_VERSION unique (display_name, display_version);

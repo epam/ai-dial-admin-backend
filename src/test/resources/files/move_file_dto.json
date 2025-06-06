@@ -1,0 +1,5 @@
+{
+  "sourceUrl": "public/test.txt",
+  "destinationUrl": "public/test/test.txt",
+  "overwrite": false
+}

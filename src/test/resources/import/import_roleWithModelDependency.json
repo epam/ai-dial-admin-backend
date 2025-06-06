@@ -1,0 +1,23 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {},
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {
+    "testRole1": {
+      "name": "testRole1",
+      "limits": {
+        "testModel1": {
+          "day": 1
+        }
+      }
+    }
+  },
+  "retriableErrorCodes": [],
+  "interceptors": {},
+  "applicationTypeSchemas": []
+}

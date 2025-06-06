@@ -1,0 +1,17 @@
+[
+  {
+    "name": "test_application",
+    "endpoint": "https://endpoint.test.com/embeddings",
+    "displayName": "Test Application",
+    "displayVersion": "1.0.0",
+    "description": "It is a test application",
+    "forwardAuthToken": true,
+    "inputAttachmentTypes": [
+      "application/json"
+    ],
+    "maxInputAttachments": 10,
+    "topics": [
+      "Test Topic"
+    ]
+  }
+]

@@ -1,0 +1,1 @@
+ALTER TABLE deployment_entity ALTER COLUMN type varchar(64) not null;

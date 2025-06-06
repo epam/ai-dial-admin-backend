@@ -1,0 +1,42 @@
+{
+	"name": "test_route",
+	"description": "routeDescription",
+	"response": {
+		"status": 200,
+		"body": "OK"
+	},
+	"rewritePath": true,
+	"paths": [],
+	"methods": [
+		"GET",
+		"POST"
+	],
+	"upstreams": [
+		{
+			"endpoint": "http://upstream1.example.com",
+			"key": "upstream-key-1",
+			"extraData": "{\"custom\":\"data1\"}",
+			"weight": 1,
+			"tier": 0
+		},
+		{
+			"endpoint": "http://upstream2.example.com",
+			"key": "upstream-key-2",
+			"extraData": "{\"custom\":\"data2\"}",
+			"weight": 2,
+			"tier": 1
+		}
+	],
+	"maxRetryAttempts": 3,
+	"roleLimits": {
+		"testRole1": {
+			"enabled": true,
+			"minute": "100",
+			"day": "500",
+			"week":"30",
+			"month":"2",
+			"requestHour":"1",
+			"requestDay":"1"
+		}
+	}
+}

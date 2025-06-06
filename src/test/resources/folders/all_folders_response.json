@@ -1,0 +1,18 @@
+{
+  "bucket": "public",
+  "path": "public/",
+  "items": [
+    {
+      "name": "test",
+      "bucket": "public",
+      "path": "public/test/",
+      "items": []
+    },
+    {
+      "name": "test2",
+      "bucket": "public",
+      "path": "public/test2/",
+      "items": []
+    }
+  ]
+}

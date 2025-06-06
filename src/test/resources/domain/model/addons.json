@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "endpoint": "https://example.com/api",
+    "iconUrl": "https://example.com/icon.png",
+    "description": "This is a sample addon",
+    "displayName": "Sample Addon",
+    "inputAttachmentTypes": [
+      "pdf",
+      "docx"
+    ],
+    "maxInputAttachments": 5,
+    "forwardAuthToken": true,
+    "deployment": {
+      "id": 100,
+      "name": "sampleDeployment",
+      "isPublic": false,
+      "defaultRoleLimit": {
+        "minute": 10,
+        "day": 1000,
+        "week": 5000,
+        "month": 20000,
+        "requestHour": 100,
+        "requestDay": 500
+      },
+      "roleLimits": [
+        {
+          "role": "admin",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 50,
+            "day": 5000,
+            "week": 20000,
+            "month": 80000,
+            "requestHour": 500,
+            "requestDay": 2000
+          }
+        },
+        {
+          "role": "user",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 20,
+            "day": 2000,
+            "week": 10000,
+            "month": 40000,
+            "requestHour": 200,
+            "requestDay": 1000
+          }
+        }
+      ]
+    }
+  }
+]
