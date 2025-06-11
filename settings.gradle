@@ -1,6 +1,11 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+apply plugin: 'org.gradle.toolchains.foojay-resolver-convention'
+
 rootProject.name = 'ai-dial-admin-backend'
 include 'query-language'
 include 'expressions-parser'
 include 'influx-engine'
 include 'secrets-utils'
-
