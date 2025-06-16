@@ -24,14 +24,6 @@ springBoot {
     buildInfo()
 }
 
-subprojects {
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
-        }
-    }
-}
-
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
