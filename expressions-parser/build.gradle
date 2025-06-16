@@ -1,6 +1,12 @@
 apply plugin: 'java'
 apply plugin: 'antlr'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 repositories {
     mavenCentral()
 }
