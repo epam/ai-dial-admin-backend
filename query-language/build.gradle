@@ -3,6 +3,12 @@ apply plugin: 'net.ltgt.apt'
 apply plugin: 'net.ltgt.apt-idea'
 apply plugin: 'antlr'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 buildscript {
     repositories {
         maven {
