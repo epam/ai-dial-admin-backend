@@ -15,7 +15,7 @@ excludes:
     comment: "Packages for testing only."
 resolutions:
   rule_violations:
-    - message: "The declared license 'The BSD License' could not be mapped to a valid license or parsed as an SPDX expression. The license was found in package 'Maven:org.antlr:ST4:4.3.4'"
+    - message: "The declared license 'The BSD License' could not be mapped to a valid license or parsed as an SPDX expression. The license was found in package 'Maven:org.antlr:ST4:4.3.4'."
       reason: 'CANT_FIX_EXCEPTION'
       comment: "The dependency has 'The BSD License' license in github repo"
     - message: "No license information is available for dependency 'Maven:org.antlr:ST4:4.3.4'."
