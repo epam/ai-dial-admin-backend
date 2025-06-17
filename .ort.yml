@@ -13,3 +13,8 @@ excludes:
   - pattern: "test.*"
     reason: "TEST_DEPENDENCY_OF"
     comment: "Packages for testing only."
+resolutions:
+  rule_violations:
+    - message: "No license information is available for dependency 'Maven:org.antlr:ST4:4.3.4'."
+      reason: 'CANT_FIX_EXCEPTION'
+      comment: "The dependency has 'The BSD License' license in github repo"
