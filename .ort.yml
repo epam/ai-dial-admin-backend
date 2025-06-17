@@ -1,0 +1,23 @@
+---
+excludes:
+  scopes:
+  - pattern: "annotationProcessor"
+    reason: "BUILD_DEPENDENCY_OF"
+    comment: "Packages to process code annotations only."
+  - pattern: "checkstyle"
+    reason: "DEV_DEPENDENCY_OF"
+    comment: "Packages for static code analysis only."
+  - pattern: "lombok"
+    reason: "DEV_DEPENDENCY_OF"
+    comment: "Packages from Project Lombok only."
+  - pattern: "test.*"
+    reason: "TEST_DEPENDENCY_OF"
+    comment: "Packages for testing only."
+resolutions:
+  rule_violations:
+    - message: "The declared license 'The BSD License' could not be mapped to a valid license or parsed as an SPDX expression. The license was found in package 'Maven:org.antlr:ST4:4.3.4'."
+      reason: 'CANT_FIX_EXCEPTION'
+      comment: "The dependency has 'The BSD License' license in github repo"
+    - message: "No license information is available for dependency 'Maven:org.antlr:ST4:4.3.4'."
+      reason: 'CANT_FIX_EXCEPTION'
+      comment: "The dependency has 'The BSD License' license in github repo"
