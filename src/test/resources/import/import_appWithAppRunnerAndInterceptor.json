@@ -40,6 +40,7 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor",
       "forwardAuthToken": false,
       "defaults": {},
       "interceptors": [],

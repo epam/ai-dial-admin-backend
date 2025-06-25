@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.model.PromptExim;
 import com.epam.aidial.cfg.model.PromptNodeInfo;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.core.util.UrlUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -23,11 +24,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Mapper(componentModel = "spring", uses = FolderUrlMapper.class)
-public interface PromptClientMapper {
+@Slf4j
+public abstract class PromptClientMapper {
 
-    String PROMPTS_PREFIX = "prompts/";
+    public static final String PROMPTS_PREFIX = "prompts/";
 
-    default PromptNodeInfo toPromptInfo(PromptMetadataDto dto) {
+    public PromptNodeInfo toPromptInfo(PromptMetadataDto dto) {
         if (dto == null) {
             return null;
         }
@@ -69,13 +71,14 @@ public interface PromptClientMapper {
         return dtoList.stream().map(this::toPromptInfo).toList();
     }
 
-    NodeType toPromptNodeType(NodeTypeDto dto);
+    protected abstract NodeType toPromptNodeType(NodeTypeDto dto);
 
-    default Prompt toPrompt(PromptDto promptDto, PromptMetadataDto metadataDto) {
+    public Prompt toPrompt(PromptDto promptDto, PromptMetadataDto metadataDto) {
         if (promptDto == null || metadataDto == null) {
             return null;
         }
         if (metadataDto.getNodeType() != NodeTypeDto.ITEM) {
+            log.error("Metadata: {} must have item node type", metadataDto);
             throw new IllegalStateException("Metadata must have item node type");
         }
 
@@ -92,9 +95,9 @@ public interface PromptClientMapper {
                 .build();
     }
 
-    PromptExim toPromptExim(PromptDto promptDto);
+    public abstract PromptExim toPromptExim(PromptDto promptDto);
 
-    static PathUtils.VersionedPathParts parseEncodedVersionedPath(String path) {
+    public static PathUtils.VersionedPathParts parseEncodedVersionedPath(String path) {
         var pathWithoutPrefix = removePromptsPrefix(path);
         var pathDecoded = UrlUtil.decodePath(pathWithoutPrefix);
 
@@ -103,10 +106,10 @@ public interface PromptClientMapper {
 
     @Mapping(target = "path", source = "url", qualifiedByName = "mapUrl")
     @Mapping(target = "items", source = "items", qualifiedByName = "mapItems")
-    FolderInfo toFolderInfo(PromptMetadataDto promptMetadataDto, @Context String prefix);
+    public abstract FolderInfo toFolderInfo(PromptMetadataDto promptMetadataDto, @Context String prefix);
 
     @Named("mapItems")
-    default List<FolderInfo> mapItems(List<PromptMetadataDto> items) {
+    protected List<FolderInfo> mapItems(List<PromptMetadataDto> items) {
         return Optional.ofNullable(items)
                 .orElse(Collections.emptyList())
                 .stream()
@@ -123,7 +126,7 @@ public interface PromptClientMapper {
         return path.startsWith(PROMPTS_PREFIX) ? path.substring(PROMPTS_PREFIX.length()) : path;
     }
 
-    default PromptDto toPromptDto(CreatePrompt createPrompt) {
+    public PromptDto toPromptDto(CreatePrompt createPrompt) {
         var folderId = StringUtils.stripEnd(createPrompt.getFolderId(), "/");
         var id = folderId + "/" + createPrompt.getName();
 
@@ -136,7 +139,7 @@ public interface PromptClientMapper {
                 .build();
     }
 
-    default String toPath(CreatePrompt createPrompt) {
+    public String toPath(CreatePrompt createPrompt) {
         var folderId = StringUtils.stripEnd(createPrompt.getFolderId(), "/");
         return folderId + "/" + createPrompt.getName() + "__" + createPrompt.getVersion();
     }

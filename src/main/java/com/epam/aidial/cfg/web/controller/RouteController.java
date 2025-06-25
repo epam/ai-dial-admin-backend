@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.RouteDto;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
@@ -72,5 +73,10 @@ public class RouteController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public RouteDto getSnapshot(@PathVariable String routeName, @PathVariable Integer revision) {
         return routeFacade.getSnapshot(routeName, revision);
+    }
+
+    @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public Collection<RouteDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+        return routeFacade.getAllAtRevision(revision);
     }
 }

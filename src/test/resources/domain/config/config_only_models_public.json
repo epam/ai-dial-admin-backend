@@ -3,7 +3,7 @@
   "models": {
     "sampleDeployment": {
       "name": "sampleDeployment",
-      "endpoint": "https://example.com/model",
+      "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
       "displayName": "Sample Model",
       "displayVersion": "1.0.0",
       "iconUrl": "https://example.com/icon.png",
@@ -24,7 +24,8 @@
         "accessible_by_per_request_key": true,
         "content_parts_supported": true,
         "temperature_supported": true,
-        "addons_supported": false
+        "addons_supported": false,
+        "parallel_tool_calls_supported": true
       },
       "inputAttachmentTypes": [
         "pdf",

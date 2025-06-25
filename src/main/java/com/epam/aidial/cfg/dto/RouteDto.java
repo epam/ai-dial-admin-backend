@@ -1,10 +1,10 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
-import com.epam.aidial.cfg.dto.validation.annotation.RoutePath;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -24,7 +24,7 @@ public class RouteDto extends RoleBasedDto {
     private ResponseDto response;
     private boolean rewritePath;
     @NotEmpty
-    private List<@RoutePath String> paths;
+    private List<@NotNull String> paths;
     private Set<@HttpMethod String> methods;
     @Valid
     private List<UpstreamDto> upstreams;

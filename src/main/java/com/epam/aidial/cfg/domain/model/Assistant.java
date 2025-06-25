@@ -19,5 +19,9 @@ public class Assistant extends RoleBased {
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private List<String> topics;
-    private Map<String, String> defaults;
+    private Map<String, Object> defaults;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
 }

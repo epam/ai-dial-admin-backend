@@ -22,4 +22,8 @@ public class FeaturesEntity {
     private boolean contentPartsSupported;
     private boolean temperatureSupported = true;
     private boolean addonsSupported;
+    private Boolean cacheSupported;
+    private Boolean autoCachingSupported;
+    private Boolean consentRequired;
+    private Boolean parallelToolCallsSupported = true;
 }

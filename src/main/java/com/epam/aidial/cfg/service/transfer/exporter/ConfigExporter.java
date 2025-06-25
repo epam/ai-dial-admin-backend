@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.transfer.exporter;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
@@ -43,6 +44,8 @@ public class ConfigExporter {
     private final KeyExporter keyExporter;
     private final ApplicationTypeSchemaExporter applicationTypeSchemaExporter;
     private final InterceptorExporter interceptorExporter;
+    private final InterceptorRunnerExporter interceptorRunnerExporter;
+    private final AdapterExporter adapterExporter;
 
     public ExportConfig getConfig(ExportRequest request) {
         if (request instanceof SelectedItemsExportRequest exportRequest) {
@@ -53,6 +56,10 @@ public class ConfigExporter {
         config.setApplications(applications);
         LinkedHashMap<String, Route> routes = routeExporter.getRoutes(request);
         config.setRoutes(routes);
+
+        Map<String, Adapter> adapters = adapterExporter.getAdapters(request);
+        config.setAdapters(adapters);
+
         Map<String, Model> models = modelExporter.getModels(request);
         config.setModels(models);
 
@@ -61,6 +68,7 @@ public class ConfigExporter {
         config.setRoles(roles);
         config.setKeys(keyExporter.getKeys(request));
         config.setInterceptors(interceptorExporter.getInterceptors(request));
+        config.setInterceptorRunners(interceptorRunnerExporter.getInterceptorRunners(request));
         config.setApplicationRunners(applicationTypeSchemaExporter.getApplicationTypeSchemas(request));
         // todo prompts and files
         return config;
@@ -73,10 +81,12 @@ public class ConfigExporter {
 
         Collection<ExportComponentInfo> applications = applicationExporter.preview(request);
         Collection<ExportComponentInfo> routes = routeExporter.preview(request);
+        Collection<ExportComponentInfo> adapters = adapterExporter.preview(request);
         Collection<ExportComponentInfo> models = modelExporter.preview(request);
         Collection<ExportComponentInfo> roles = roleExporter.preview(request);
         Collection<ExportKeyInfo> keys = keyExporter.preview(request);
         Collection<ExportComponentInfo> interceptors = interceptorExporter.preview(request);
+        Collection<ExportComponentInfo> interceptorRunners = interceptorRunnerExporter.preview(request);
         Collection<ExportApplicationTypeSchemaInfo> applicationRunners = applicationTypeSchemaExporter.preview(request);
 
         // todo prompts and files
@@ -87,7 +97,9 @@ public class ConfigExporter {
                 .roles(roles)
                 .keys(keys)
                 .interceptors(interceptors)
+                .interceptorRunners(interceptorRunners)
                 .applicationRunners(applicationRunners)
+                .adapters(adapters)
                 .build();
     }
 

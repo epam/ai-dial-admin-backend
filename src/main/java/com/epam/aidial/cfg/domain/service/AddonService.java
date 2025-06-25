@@ -3,7 +3,9 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.AddonJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AddonEntityMapper;
 import com.epam.aidial.cfg.dao.model.AddonEntity;
+import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Addon;
+import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.validator.AddonValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
@@ -81,6 +83,14 @@ public class AddonService {
     public Addon getSnapshot(String addonName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, addonName, AddonEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Addon> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, AddonEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     private void assertExists(String addonName) {

@@ -1,0 +1,76 @@
+package com.epam.aidial.cfg.service.transfer.exporter;
+
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.service.impl.storage.ConfigSource;
+import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreModel;
+import com.epam.aidial.core.config.CoreUpstream;
+import lombok.RequiredArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@RequiredArgsConstructor
+@LogExecution
+public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
+
+    private final ConfigSource configSource;
+    private final ConfigSource securedConfigSource;
+
+    @Override
+    public RawConfig getRawConfig(boolean addSecrets) {
+        var rawConfigs = configSource.readRawConfig();
+        Map<String, String> rawSecrets = null;
+        if (addSecrets) {
+            rawSecrets = securedConfigSource.readRawConfig();
+        }
+        return new RawConfig(rawConfigs, rawSecrets);
+    }
+
+    @Override
+    public Config getConfig(boolean addSecrets) {
+        Config publicConfig = Optional.of(configSource.readConfig())
+                .orElseThrow(() -> new IllegalStateException("Can't read public core config from storage."));
+
+        if (!addSecrets) {
+            return publicConfig;
+        }
+
+        Config secretConfig = Optional.of(securedConfigSource.readConfig())
+                .orElseThrow(() -> new IllegalStateException("Can't read secret core config from storage."));
+
+        if (secretConfig.getKeys() != null) {
+            publicConfig.setKeys(secretConfig.getKeys());
+        }
+
+        Map<String, CoreModel> publicModels = optionalMap(publicConfig.getModels());
+        Map<String, CoreModel> secretModels = optionalMap(secretConfig.getModels());
+        for (Map.Entry<String, CoreModel> entry : secretModels.entrySet()) {
+            String modelName = entry.getKey();
+            CoreModel secretModel = entry.getValue();
+            CoreModel publicModel = publicModels.computeIfAbsent(modelName, k -> new CoreModel());
+
+            List<CoreUpstream> mergedUpstreams = new ArrayList<>();
+            if (publicModel.getUpstreams() != null) {
+                mergedUpstreams.addAll(publicModel.getUpstreams());
+            }
+            if (secretModel.getUpstreams() != null) {
+                mergedUpstreams.addAll(secretModel.getUpstreams());
+            }
+            publicModel.setUpstreams(mergedUpstreams);
+        }
+        publicConfig.setModels(publicModels);
+
+        return publicConfig;
+    }
+
+    /* Helper that guarantees we always work on a mutable map. */
+    private static <K, V> Map<K, V> optionalMap(Map<K, V> source) {
+        return source == null ? new HashMap<>() :
+                (source instanceof HashMap ? source : new HashMap<>(source));
+    }
+
+}

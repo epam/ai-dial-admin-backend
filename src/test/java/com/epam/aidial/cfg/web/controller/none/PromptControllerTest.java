@@ -11,8 +11,10 @@ import com.epam.aidial.cfg.mapper.PromptMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
+import com.epam.aidial.cfg.model.ImportResourcePreview;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.ImportResourcesPreview;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.Prompt;
@@ -361,6 +363,55 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
                         .value("path: Resource name and/or parent folders must not end with .(dot)"));
 
         verifyNoInteractions(promptEximService);
+    }
+
+    @Test
+    void testPreviewImportPromptsFromZip() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/prompts/import_preview_zip_prompt_result_dto.json");
+
+        var path = "public/";
+
+        var configDto = new ImportResourcesDto();
+        configDto.setPath(path);
+        configDto.setConflictResolutionStrategy(ImportResourcesConflictResolutionStrategyDto.OVERRIDE);
+
+        var config = new ImportResources();
+        config.setPath(path);
+        config.setConflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE);
+
+
+        var configFile = new MockMultipartFile(
+                "config",
+                "config.json",
+                MimeTypeUtils.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(configDto)
+        );
+        var zipFile = new MockMultipartFile(
+                "file",
+                "file.zip",
+                MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE,
+                "mockData".getBytes()
+        );
+
+        var importResourcesPreview = ImportResourcesPreview.builder()
+                .resourcePreviews(List.of(
+                        ImportResourcePreview.builder()
+                                .name("name")
+                                .version("1.0.0")
+                                .fileName("file1.json")
+                                .build()
+                ))
+                .build();
+
+        when(zipPromptEximService.previewImportPromptsFromZip(config, zipFile))
+                .thenReturn(importResourcesPreview);
+
+        mockMvc.perform(multipart("/api/v1/prompts/import/zip/preview")
+                        .file(configFile)
+                        .file(zipFile))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
     }
 
     @Test

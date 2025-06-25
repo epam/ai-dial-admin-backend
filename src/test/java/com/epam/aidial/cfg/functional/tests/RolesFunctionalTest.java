@@ -428,6 +428,7 @@ public abstract class RolesFunctionalTest {
         roleDto.setDescription("description" + suffix);
         roleDto.setGrantedKeys(keys);
         roleDto.setLimits(limits);
+        roleDto.setShare(Map.of());
         return roleDto;
     }
 }

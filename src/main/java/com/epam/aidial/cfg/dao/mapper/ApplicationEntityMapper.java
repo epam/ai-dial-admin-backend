@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, PropertiesEntityMapper.class, MapPropertiesMapper.class})
+@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, MapPropertiesMapper.class})
 public abstract class ApplicationEntityMapper {
 
     @Autowired

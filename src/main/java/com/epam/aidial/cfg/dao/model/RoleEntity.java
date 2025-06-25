@@ -33,6 +33,10 @@ public class RoleEntity extends AbstractEntity<String> {
     @ManyToMany(mappedBy = "roles")
     @AuditJoinTable
     private List<KeyEntity> keys = new ArrayList<>();
+    @ToString.Exclude
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "role", orphanRemoval = true)
+    @AuditJoinTable
+    private List<RoleShareResourceLimitEntity> share = new ArrayList<>();
 
     @PreRemove
     public void preRemove() {
@@ -43,6 +47,5 @@ public class RoleEntity extends AbstractEntity<String> {
     public String getId() {
         return name;
     }
-
 
 }

@@ -8,6 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PreRemove;
@@ -34,7 +35,9 @@ public class ModelEntity extends AbstractEntity<String> {
     @OneToOne(targetEntity = DeploymentEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private DeploymentEntity deployment;
     private String description;
-    private String endpoint;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "adapter_name")
+    private AdapterEntity adapter;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -51,6 +54,10 @@ public class ModelEntity extends AbstractEntity<String> {
     private List<InterceptorEntity> interceptors = new ArrayList<>();
     private List<String> topics;
     private Integer maxRetryAttempts;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
     private ModelTypeEntity type;
     private String tokenizerModel;
     @Embedded
@@ -60,6 +67,7 @@ public class ModelEntity extends AbstractEntity<String> {
     @Column(columnDefinition = "CLOB")
     private String upstreams;
     private String overrideName;
+    private List<String> fieldsHashingOrder;
 
     @PreRemove
     public void preRemove() {

@@ -1,9 +1,12 @@
 package com.epam.aidial.cfg.service.prompt;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.PromptEximDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
+import com.epam.aidial.cfg.model.ImportResourcePreview;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.ImportResourcesPreview;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
 import com.epam.aidial.cfg.utils.PathUtils;
@@ -11,6 +14,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -36,6 +40,7 @@ import java.util.zip.ZipOutputStream;
 public class ZipPromptEximService {
 
     private static final String PROMPTS_FOLDER = "prompts/";
+    private static final String PUBLIC_FOLDER = "public/";
     private static final String PROMPTS_FILENAME = "prompts.json";
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String PROMPTS_FULL_PATH = PROMPTS_FOLDER + PROMPTS_FILENAME;
@@ -92,6 +97,34 @@ public class ZipPromptEximService {
                     .build();
         }
     }
+
+    public ImportResourcesPreview previewImportPromptsFromZip(ImportResources importPrompts, MultipartFile zipFile) {
+        try (ZipInputStream zipInputStream = new ZipInputStream(zipFile.getInputStream())) {
+
+            ZipEntry zipEntry;
+            List<ImportResourcePreview> previews = new ArrayList<>();
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                var zipEntryName = zipEntry.getName();
+                if (zipEntryName.startsWith(PROMPTS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
+                    var promptsEximDto = jsonMapper.readValue(zipInputStream, PromptsEximDto.class);
+                    promptsEximDto.getPrompts().stream()
+                            .map(prompt -> getPromptPathParts(importPrompts, prompt))
+                            .map(pathParts -> buildImportResourcePreview(pathParts, zipEntryName))
+                            .forEach(previews::add);
+                } else {
+                    log.info("Ignoring file {} in zip archive during import preview", zipEntryName);
+                }
+            }
+
+            return ImportResourcesPreview.builder()
+                    .resourcePreviews(previews)
+                    .build();
+        } catch (Exception ex) {
+            log.debug("Prompt file {} import preview failed", zipFile.getOriginalFilename(), ex);
+            throw new IllegalArgumentException(ex);
+        }
+    }
+
 
     private PromptsEximDto compactPromptsEximDtos(HashMap<String, PromptsEximDto> fileNameToPromptsEximDtos) {
         checkPromptsExistence(fileNameToPromptsEximDtos);
@@ -227,6 +260,27 @@ public class ZipPromptEximService {
         return promptToFilenamesMap.entrySet().stream()
                 .filter(entry -> entry.getValue().size() > 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private PathUtils.VersionedPathParts getPromptPathParts(ImportResources importPrompts, PromptEximDto prompt) {
+        var rootPath = importPrompts.getPath();
+        var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
+
+        var rawPath = prompt.getId();
+        var sourcePath = StringUtils.removeStart(rawPath, PROMPTS_FOLDER);
+        var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, PUBLIC_FOLDER);
+
+        var targetPath = rootPathStripped + "/" + sourcePathWithoutPublic;
+
+        return PathUtils.parseVersionedPath(targetPath);
+    }
+
+    private ImportResourcePreview buildImportResourcePreview(PathUtils.VersionedPathParts promptPathParts, String fileName) {
+        return ImportResourcePreview.builder()
+                .name(promptPathParts.getName())
+                .version(promptPathParts.getVersion())
+                .fileName(fileName)
+                .build();
     }
 
 }

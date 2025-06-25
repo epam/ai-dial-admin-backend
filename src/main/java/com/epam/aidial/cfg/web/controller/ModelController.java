@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +36,7 @@ public class ModelController {
 
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ModelDto> getAllModels(HttpServletResponse response) throws Exception { //TODO change to model info
-        Collection<ModelDto> allModels = modelFacade.getAllModels();
+        Collection<ModelDto> allModels = modelFacade.getAll();
         return allModels;
     }
 
@@ -76,5 +75,10 @@ public class ModelController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelDto getSnapshot(@PathVariable String modelName, @PathVariable Integer revision) {
         return modelFacade.getSnapshot(modelName, revision);
+    }
+
+    @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public Collection<ModelDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+        return modelFacade.getAllAtRevision(revision);
     }
 }

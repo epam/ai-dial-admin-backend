@@ -4,7 +4,9 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.KeyJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.KeyEntityMapper;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
+import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.Key;
+import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
 import com.epam.aidial.cfg.domain.validator.KeyValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -88,6 +90,14 @@ public class KeyService {
     public Key getSnapshot(String keyName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, keyName, KeyEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Key> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, KeyEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     private void assertExists(String keyName) {

@@ -149,6 +149,7 @@ public abstract class InterceptorFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
         interceptorDto.setDescription("description" + suffix);
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         interceptorDto.setEntities(List.of("application" + suffix));
         return interceptorDto;
     }

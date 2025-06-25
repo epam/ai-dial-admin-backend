@@ -11,7 +11,9 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.dto.FullExportRequestDto;
+import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.export.CoreConfigService;
@@ -27,11 +29,14 @@ import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.KeyDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.LimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ModelEndpointDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ResponseDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleBasedDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleLimitDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.RoleShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.UpstreamDtoMapperImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -65,7 +70,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({ExportConfigMapperImpl.class, ImportConfigMapperImpl.class, KeyDtoMapperImpl.class, RoleDtoMapperImpl.class,
         InterceptorDtoMapperImpl.class, ModelDtoMapperImpl.class, ApplicationDtoMapperImpl.class, ApplicationTypeSchemaDtoMapperImpl.class,
         AddonDtoMapperImpl.class, AssistantDtoMapperImpl.class, RouteDtoMapperImpl.class, RoleLimitDtoMapperImpl.class,
-        LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class
+        LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class,
+        ModelEndpointDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class, RoleShareResourceLimitDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 
@@ -105,7 +111,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                 config.getBytes()
         );
 
-        doNothing().when(configTransfer).importConfig(List.of(mockFile), ConflictResolutionPolicy.SKIP, false);
+        doNothing().when(configTransfer).importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, false, true));
         // when
         mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/configs/import")
                         .file(mockFile)
@@ -114,7 +120,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 // then
                 .andExpect(status().isOk());
-        verify(configTransfer).importConfig(List.of(mockFile), ConflictResolutionPolicy.SKIP, false);
+        verify(configTransfer).importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, false, true));
     }
 
     @Test
@@ -128,7 +134,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                 config.getBytes()
         );
 
-        doNothing().when(configTransfer).importConfigZip(mockFile, ConflictResolutionPolicy.SKIP, true);
+        doNothing().when(configTransfer).importConfigZip(mockFile, new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
         // when
         mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/configs/import/zip")
                         .file(mockFile)
@@ -136,7 +142,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 // then
                 .andExpect(status().isOk());
-        verify(configTransfer).importConfigZip(mockFile, ConflictResolutionPolicy.SKIP, true);
+        verify(configTransfer).importConfigZip(mockFile, new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
     }
 
     @Test

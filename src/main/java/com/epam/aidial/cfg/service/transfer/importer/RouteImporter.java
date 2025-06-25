@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Path;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +67,7 @@ public class RouteImporter extends RoleBasedImporter {
                     .map(routeEntry -> {
                                 var route = routeEntry.getValue();
                                 createRoleIfAbsent(importOptions, route.getDeployment().getRoleLimits());
-                                var importAction = processRoute(routeEntry.getKey(), route, importOptions.getConflictResolutionPolicy(), isPreview);
+                                var importAction = processRoute(routeEntry.getKey(), route, importOptions.conflictResolutionPolicy(), isPreview);
                                 return new ImportComponent<>(importAction, route);
                             }
                     )
@@ -120,8 +121,9 @@ public class RouteImporter extends RoleBasedImporter {
         if (CollectionUtils.isNotEmpty(violations)) {
             for (ConstraintViolation<Route> violation : violations) {
                 String message = violation.getMessage();
-                log.error("Route '{}' invalid: {}", routeName, message);
-                throw new IllegalArgumentException("Route '" + routeName + "' invalid: " + message);
+                Path propertyPath = violation.getPropertyPath();
+                log.error("Route '{}' invalid: {} {}", routeName, propertyPath, message);
+                throw new IllegalArgumentException("Route '" + routeName + "' invalid: " + propertyPath + " " + message);
             }
         }
     }

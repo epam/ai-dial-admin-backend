@@ -14,8 +14,6 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {RoleLimitMapper.class, FeatureCoreMapper.class})
 public abstract class AssistantCoreMapper {
@@ -32,14 +30,5 @@ public abstract class AssistantCoreMapper {
     @AfterMapping
     public void mapRoles(@MappingTarget Addon addon, CoreAddon coreEntity, Map<String, CoreRole> roles) {
         roleLimitMapper.mapRoles(addon.getDeployment(), coreEntity.getUserRoles(), coreEntity.getName(), roles);
-    }
-
-    public Map<String, String> mapDefaults(Map<String, Object> value) {
-        if (value == null) {
-            return null;
-        }
-        return value.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Objects::toString));
     }
 }

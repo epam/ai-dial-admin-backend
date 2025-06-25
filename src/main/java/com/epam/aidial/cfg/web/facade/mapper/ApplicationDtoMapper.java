@@ -6,10 +6,6 @@ import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 @Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class})
 public interface ApplicationDtoMapper {
 
@@ -29,14 +25,5 @@ public interface ApplicationDtoMapper {
     @Mapping(target = "topics", source = "descriptionKeywords")
     @Mapping(target = "name", source = "deployment.name")
     ApplicationInfoDto toApplicationInfoDto(Application application);
-
-    default Map<String, String> map(Map<String, Object> value) {
-        if (value == null) {
-            return null;
-        }
-        return value.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Objects::toString));
-    }
 
 }

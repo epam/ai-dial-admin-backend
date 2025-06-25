@@ -4,9 +4,11 @@ import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ExportConfigMapper;
 import com.epam.aidial.cfg.dto.ConfigExportDto;
+import com.epam.aidial.cfg.dto.CoreExportRequestDto;
 import com.epam.aidial.cfg.dto.ExportConfigPreviewDto;
 import com.epam.aidial.cfg.dto.ExportRequestDto;
 import com.epam.aidial.cfg.dto.ImportConfigPreviewDto;
+import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.export.CoreConfigService;
@@ -93,6 +95,19 @@ public class ConfigController {
                 .body(stream);
     }
 
+    @PostMapping(path = "/export/raw/core", consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StreamingResponseBody> exportConfigFromCore(@Valid @RequestBody CoreExportRequestDto dto) {
+        var stream = configTransfer.exportRawConfig(dto.isAddSecrets());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE);
+        var headerValue = "attachment; filename=\"" + properties.getExportRawConfigFileZipName() + "\"";
+        headers.add("Content-Disposition", headerValue);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(stream);
+    }
+
     @PostMapping(path = "/export/preview")
     public ExportConfigPreviewDto preview(@Valid @RequestBody ExportRequestDto dto) {
         var request = exportConfigMapper.toExportRequest(dto);
@@ -103,13 +118,15 @@ public class ConfigController {
     @PostMapping(path = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void importConfig(@RequestPart("file") @Valid @Size(min = 1) List<MultipartFile> files,
                              @RequestParam("resolutionPolicy") ConflictResolutionPolicy resolutionPolicy,
-                             @RequestParam(value = "createRoleIfAbsent", required = false, defaultValue = "true") boolean createRoleIfAbsent) {
+                             @RequestParam(value = "createRoleIfAbsent", required = false, defaultValue = "true") boolean createRoleIfAbsent,
+                             @RequestParam(value = "createAdapterIfAbsent", required = false, defaultValue = "true") boolean createAdapterIfAbsent) {
+
         int filesSize = CollectionUtils.size(files);
         if (filesSize > importConfigsMaxCount) {
             throw new IllegalArgumentException(String.format("Exceeded maximum file upload limit. Can upload up to %d files, but found %d.",
                     importConfigsMaxCount, filesSize));
         }
-        configTransfer.importConfig(files, resolutionPolicy, createRoleIfAbsent);
+        configTransfer.importConfig(files, new ConfigImportOptions(resolutionPolicy, createRoleIfAbsent, createAdapterIfAbsent));
     }
 
     @PostMapping(path = "/import/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -127,8 +144,9 @@ public class ConfigController {
     @PostMapping(path = "/import/zip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void importConfigZip(@RequestPart("file") MultipartFile file,
                                 @RequestParam("resolutionPolicy") ConflictResolutionPolicy resolutionPolicy,
-                                @RequestParam(value = "createRoleIfAbsent", required = false, defaultValue = "true") boolean createRoleIfAbsent) {
-        configTransfer.importConfigZip(file, resolutionPolicy, createRoleIfAbsent);
+                                @RequestParam(value = "createRoleIfAbsent", required = false, defaultValue = "true") boolean createRoleIfAbsent,
+                                @RequestParam(value = "createAdapterIfAbsent", required = false, defaultValue = "true") boolean createAdapterIfAbsent) {
+        configTransfer.importConfigZip(file, new ConfigImportOptions(resolutionPolicy, createRoleIfAbsent, createAdapterIfAbsent));
     }
 
     @PostMapping(path = "/import/zip/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

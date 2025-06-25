@@ -52,7 +52,8 @@
         "testApplication1": {},
         "testApplication2": {},
         "testAssistant1": {}
-      }
+      },
+      "share": {}
     },
     "testRole2": {
       "description": "test role 1 description",
@@ -62,7 +63,8 @@
         "testApplication1": {},
         "testApplication2": {},
         "testAssistant1": {}
-      }
+      },
+      "share": {}
     },
     "testRole3": {
       "description": "test role 1 description",
@@ -72,7 +74,8 @@
         "testApplication1": {},
         "testApplication2": {},
         "testAssistant1": {}
-      }
+      },
+      "share": {}
     },
     "default": {
       "description": "test role 1 description",
@@ -82,7 +85,8 @@
         "testApplication1": {},
         "testApplication2": {},
         "testAssistant1": {}
-      }
+      },
+      "share": {}
     }
   },
   "addons": {
@@ -102,6 +106,7 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor",
       "userRoles": [
         "testRole1"
       ]

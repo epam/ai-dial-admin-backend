@@ -7,8 +7,10 @@ import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.mapper.FileMapperImpl;
 import com.epam.aidial.cfg.mapper.PublicationMapperImpl;
 import com.epam.aidial.cfg.model.ApplicationPublication;
+import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.PromptPublication;
+import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationInfos;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.PublicationService;
@@ -17,12 +19,17 @@ import com.epam.aidial.cfg.web.controller.PublicationController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
+
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,56 +88,18 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
         verify(publicationService).getAllPublications(ResourceType.PROMPT);
     }
 
-    @Test
-    void testGetPublication_PromptPublication() throws Exception {
-        var modelJson = ResourceUtils.readResource("/publications/prompt_publication.json");
-        var model = objectMapper.readValue(modelJson, new TypeReference<PromptPublication>() {
-        });
+    @ParameterizedTest
+    @MethodSource("testGetPublicationParams")
+    void testGetPublication(String publicationFilePath, String publicationDtoFilePath, Class<? extends Publication> publicationClass) throws Exception {
+        var modelJson = ResourceUtils.readResource(publicationFilePath);
+        var model = objectMapper.readValue(modelJson, publicationClass);
         var publicationPath = "bucket/file";
 
         when(publicationService.getPublication(publicationPath)).thenReturn(model);
 
         var body = new PublicationPathDto();
         body.setPath(publicationPath);
-        var dtoJson = ResourceUtils.readResource("/publications/prompt_publication_dto.json");
-        mockMvc.perform(post("/api/v1/publications/get")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
-    }
-
-    @Test
-    void testGetPublication_FilePublication() throws Exception {
-        var modelJson = ResourceUtils.readResource("/publications/file_publication.json");
-        var model = objectMapper.readValue(modelJson, new TypeReference<FilePublication>() {
-        });
-        var publicationPath = "bucket/file";
-
-        when(publicationService.getPublication(publicationPath)).thenReturn(model);
-
-        var body = new PublicationPathDto();
-        body.setPath(publicationPath);
-        var dtoJson = ResourceUtils.readResource("/publications/file_publication_dto.json");
-        mockMvc.perform(post("/api/v1/publications/get")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
-    }
-
-    @Test
-    void testGetPublication_ApplicationPublication() throws Exception {
-        var modelJson = ResourceUtils.readResource("/publications/application_publication.json");
-        var model = objectMapper.readValue(modelJson, new TypeReference<ApplicationPublication>() {
-        });
-        var publicationPath = "bucket/file";
-
-        when(publicationService.getPublication(publicationPath)).thenReturn(model);
-
-        var body = new PublicationPathDto();
-        body.setPath(publicationPath);
-        var dtoJson = ResourceUtils.readResource("/publications/application_publication_dto.json");
+        var dtoJson = ResourceUtils.readResource(publicationDtoFilePath);
         mockMvc.perform(post("/api/v1/publications/get")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
@@ -200,6 +169,31 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isOk());
 
         verify(publicationService).rejectPublication(publicationPath, comment);
+    }
+
+    private static Stream<Arguments> testGetPublicationParams() {
+        return Stream.of(
+                Arguments.of(
+                        "/publications/prompt_publication.json",
+                        "/publications/prompt_publication_dto.json",
+                        PromptPublication.class
+                ),
+                Arguments.of(
+                        "/publications/file_publication.json",
+                        "/publications/file_publication_dto.json",
+                        FilePublication.class
+                ),
+                Arguments.of(
+                        "/publications/application_publication.json",
+                        "/publications/application_publication_dto.json",
+                        ApplicationPublication.class
+                ),
+                Arguments.of(
+                        "/publications/conversation_publication.json",
+                        "/publications/conversation_publication_dto.json",
+                        ConversationPublication.class
+                )
+        );
     }
 
 }

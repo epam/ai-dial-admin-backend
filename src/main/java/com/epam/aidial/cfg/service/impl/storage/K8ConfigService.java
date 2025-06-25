@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Base64;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -26,6 +27,21 @@ public class K8ConfigService {
         try (KubernetesClient client = createKubernetesClient(k8sProperties)) {
             return task.apply(client);
         }
+    }
+
+    public void createConfigMapEntry(KubernetesClient client, String resourceName, String key, String value) {
+        log.trace("createConfigMapEntry. resourceName = {}. key = {}. value = {}", resourceName, key, value);
+        final var configMap = new ConfigMapBuilder()
+                .withNewMetadata()
+                .withName(resourceName)
+                .endMetadata()
+                .withData(Map.of(key, value))
+                .build();
+        final var created = client.configMaps()
+                .inNamespace(k8sProperties.getNamespace())
+                .resource(configMap)
+                .create();
+        log.debug("createConfigMapEntry. Created ConfigMap {}, key {} = {}", created.getMetadata().getSelfLink(), key, value);
     }
 
     public void updateConfigMapEntry(KubernetesClient client, String resourceName, String key, String value) {
@@ -93,13 +109,28 @@ public class K8ConfigService {
         return entry;
     }
 
+    public void createSecretMapEntry(KubernetesClient client, String secretName, String secretKey, String value) {
+        log.trace("createSecretMapEntry. secretName = {}. secretKey = {}. value = {}", secretName, secretKey, value);
+        final var secret = new SecretBuilder()
+                .withNewMetadata()
+                .withName(secretName)
+                .endMetadata()
+                .withData(Map.of(secretKey, value))
+                .build();
+        final var created = client.secrets()
+                .inNamespace(k8sProperties.getNamespace())
+                .resource(secret)
+                .create();
+        log.debug("createSecretMapEntry. Created Secret {}, key {} = {}", created.getFullResourceName(), secretKey, SecretUtils.mask(value));
+    }
+
     public void updateSecretMapEntry(KubernetesClient client, String secretName, String secretKey, String value) {
         log.trace("updateSecretMapEntry. secretName = {}. secretKey = {}. value = {}", secretName, secretKey, value);
         final var configMap = client.secrets()
                 .inNamespace(k8sProperties.getNamespace())
                 .withName(secretName)
                 .edit(SecretBuilder.class, builder -> builder.getData().replace(secretKey, value));
-        log.debug("updateSecretMapEntry. Updated ConfigMap {}, key {} = {}", configMap.getFullResourceName(), secretKey, SecretUtils.mask(value));
+        log.debug("updateSecretMapEntry. Updated Secret {}, key {} = {}", configMap.getFullResourceName(), secretKey, SecretUtils.mask(value));
     }
 }
 

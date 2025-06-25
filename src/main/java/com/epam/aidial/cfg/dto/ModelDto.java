@@ -16,6 +16,7 @@ public class ModelDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
+    private String adapter;
     private String endpoint;
     private String displayName;
     private String displayVersion;
@@ -30,6 +31,10 @@ public class ModelDto extends RoleBasedDto {
     private List<String> interceptors;
     private List<String> topics;
     private Integer maxRetryAttempts;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
 
     private ModelTypeDto type;
     private String tokenizerModel;
@@ -37,5 +42,6 @@ public class ModelDto extends RoleBasedDto {
     private PricingDto pricing;
     private List<UpstreamDto> upstreams = List.of();
     private String overrideName;
+    private List<String> fieldsHashingOrder;
 
 }

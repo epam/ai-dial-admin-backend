@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.KeyDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -66,5 +67,10 @@ public class KeyController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public KeyDto getSnapshot(@PathVariable String name, @PathVariable Integer revision) {
         return keyFacade.getSnapshot(name, revision);
+    }
+
+    @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public Collection<KeyDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+        return keyFacade.getAllAtRevision(revision);
     }
 }

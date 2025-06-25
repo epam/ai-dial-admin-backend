@@ -60,7 +60,7 @@ public class ApplicationImporter extends RoleBasedImporter {
                     .map((appEntry) -> {
                                 var application = appEntry.getValue();
                                 createRoleIfAbsent(importOptions, application.getDeployment().getRoleLimits());
-                                var importAction = processApplication(appEntry.getKey(), application, importOptions.getConflictResolutionPolicy(), isPreview);
+                                var importAction = processApplication(appEntry.getKey(), application, importOptions.conflictResolutionPolicy(), isPreview);
                                 return new ImportComponent<>(importAction, application);
                             }
                     )

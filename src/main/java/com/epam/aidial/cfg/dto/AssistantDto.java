@@ -23,4 +23,8 @@ public class AssistantDto extends RoleBasedDto {
     private Boolean forwardAuthToken;
     private List<String> topics;
     private Map<String, String> defaults;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
 }

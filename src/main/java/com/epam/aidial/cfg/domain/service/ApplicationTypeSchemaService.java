@@ -5,7 +5,9 @@ import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
+import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
+import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -90,6 +92,14 @@ public class ApplicationTypeSchemaService {
     public ApplicationTypeSchema getSnapshot(String id, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, id, ApplicationTypeSchemaEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<ApplicationTypeSchema> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, ApplicationTypeSchemaEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     private ApplicationTypeSchemaEntity findBySchemaId(String schemaId) {

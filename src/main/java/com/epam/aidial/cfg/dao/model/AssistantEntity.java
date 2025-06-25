@@ -38,6 +38,10 @@ public class AssistantEntity extends AbstractEntity<String> {
     private List<String> descriptionKeywords;
     @Column(columnDefinition = "CLOB")
     private String defaults;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
 
     @Override
     public String getId() {

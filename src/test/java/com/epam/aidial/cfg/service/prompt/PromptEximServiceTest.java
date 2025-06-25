@@ -11,9 +11,10 @@ import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
-import com.epam.aidial.cfg.service.SimpleCircuitBreaker;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
+import com.epam.aidial.cfg.model.Rule;
+import com.epam.aidial.cfg.model.RuleFunction;
+import com.epam.aidial.cfg.model.UpdateRulesRequest;
+import com.epam.aidial.cfg.service.FolderService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -41,7 +44,6 @@ import static org.mockito.Mockito.when;
         JsonMapperConfiguration.class,
         PromptClientMapperImpl.class,
         FolderUrlMapperImpl.class,
-        SimpleCircuitBreaker.class,
         PromptEximService.class,
 })
 @TestPropertySource(properties = {
@@ -55,6 +57,10 @@ class PromptEximServiceTest {
     private PromptClient promptClient;
     @MockitoBean
     private PromptService promptService;
+    @MockitoBean
+    private FolderService folderService;
+    @MockitoBean
+    private PromptImportValidator validator;
 
     @Autowired
     private PromptEximService promptEximService;
@@ -183,17 +189,31 @@ class PromptEximServiceTest {
     @SneakyThrows
     void importPrompts() {
         // given
+        var path = "public/to/";
+        var rule = Rule.builder()
+                .source("role")
+                .function(RuleFunction.EQUAL)
+                .targets(List.of("admin"))
+                .build();
+        var rules = List.of(rule);
         var importPrompts = ImportResources.builder()
-                .path("public/test/")
+                .path(path)
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .rules(rules)
                 .build();
 
         var promptExim = new PromptEximDto();
-        promptExim.setId("prompts/public/PROMPT 1__1.0.0");
+        promptExim.setId("prompts/public/from/PROMPT 1__1.0.0");
         promptExim.setDescription("Test description");
         promptExim.setContent("Test content");
         var promptsExim = new PromptsEximDto();
         promptsExim.setPrompts(List.of(promptExim));
+
+        var updateRulesRequest = UpdateRulesRequest.builder()
+                .targetFolder(path)
+                .rules(rules)
+                .build();
+        doNothing().when(folderService).updatesRules(updateRulesRequest);
 
         // when
         var importResults = promptEximService.importPrompts(importPrompts, promptsExim);
@@ -201,83 +221,101 @@ class PromptEximServiceTest {
         // then
         assertThat(importResults.getImportResults()).hasSize(1);
         var importResult = importResults.getImportResults().get(0);
-        assertThat(importResult.getSourcePath()).isEqualTo("public/PROMPT 1__1.0.0");
-        assertThat(importResult.getTargetPath()).isEqualTo("public/test/PROMPT 1__1.0.0");
+        assertThat(importResult.getSourcePath()).isEqualTo("public/from/PROMPT 1__1.0.0");
+        assertThat(importResult.getTargetPath()).isEqualTo("public/to/from/PROMPT 1__1.0.0");
         assertThat(importResult.getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
         assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(CreatePrompt.class);
         verify(promptService).createPrompt(captor.capture(), eq(true), isNull());
+        verify(folderService).updatesRules(updateRulesRequest);
 
         var prompt = captor.getValue();
         assertThat(prompt.getName()).isEqualTo("PROMPT 1");
         assertThat(prompt.getVersion()).isEqualTo("1.0.0");
-        assertThat(prompt.getFolderId()).isEqualTo("public/test/");
+        assertThat(prompt.getFolderId()).isEqualTo("public/to/from/");
         assertThat(prompt.getDescription()).isEqualTo("Test description");
         assertThat(prompt.getContent()).isEqualTo("Test content");
     }
 
     @Test
     @SneakyThrows
-    void importPrompts_FolderNameEndsWithDot_ThrowValidationError() {
+    void importPrompts_FlatImport() {
         // given
+        var path = "public/to/";
+        var rule = Rule.builder()
+                .source("role")
+                .function(RuleFunction.EQUAL)
+                .targets(List.of("admin"))
+                .build();
+        var rules = List.of(rule);
         var importPrompts = ImportResources.builder()
-                .path("public/test/")
+                .path(path)
+                .flatImport(true)
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .rules(rules)
                 .build();
 
-        // Create a PromptEximDto with path traversal
         var promptExim = new PromptEximDto();
-        promptExim.setId("prompts/public/../../PROMPT 1__1.0.0");
+        promptExim.setId("prompts/public/from/PROMPT 1__1.0.0");
         promptExim.setDescription("Test description");
         promptExim.setContent("Test content");
         var promptsExim = new PromptsEximDto();
         promptsExim.setPrompts(List.of(promptExim));
-        promptsExim.setFolders(List.of());
+
+        var updateRulesRequest = UpdateRulesRequest.builder()
+                .targetFolder(path)
+                .rules(rules)
+                .build();
+        doNothing().when(folderService).updatesRules(updateRulesRequest);
 
         // when
-        var validator = Validation.buildDefaultValidatorFactory().getValidator();
-        var executableValidator = validator.forExecutables();
-        var method = promptEximService.getClass().getMethod("importPrompts", ImportResources.class, PromptsEximDto.class);
-        var violations = executableValidator.validateParameters(promptEximService, method, new Object[]{importPrompts, promptsExim});
+        var importResults = promptEximService.importPrompts(importPrompts, promptsExim);
 
         // then
-        assertThat(violations).hasSize(1);
-        assertThat(violations).first().extracting(ConstraintViolation::getMessage)
-                .isEqualTo("Resource name and/or parent folders must not end with .(dot)");
+        assertThat(importResults.getImportResults()).hasSize(1);
+        var importResult = importResults.getImportResults().get(0);
+        assertThat(importResult.getSourcePath()).isEqualTo("public/from/PROMPT 1__1.0.0");
+        assertThat(importResult.getTargetPath()).isEqualTo("public/to/PROMPT 1__1.0.0");
+        assertThat(importResult.getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
+        assertThat(importResult.getError()).isNull();
 
-        verifyNoInteractions(promptService);
+        var captor = ArgumentCaptor.forClass(CreatePrompt.class);
+        verify(promptService).createPrompt(captor.capture(), eq(true), isNull());
+        verify(folderService).updatesRules(updateRulesRequest);
+
+        var prompt = captor.getValue();
+        assertThat(prompt.getName()).isEqualTo("PROMPT 1");
+        assertThat(prompt.getVersion()).isEqualTo("1.0.0");
+        assertThat(prompt.getFolderId()).isEqualTo("public/to/");
+        assertThat(prompt.getDescription()).isEqualTo("Test description");
+        assertThat(prompt.getContent()).isEqualTo("Test content");
     }
 
     @Test
     @SneakyThrows
-    void importPrompts_PathNotStartsWithPromptsPublic_ThrowValidationError() {
+    void importPrompts_ValidatorThrowsError_RethrowsError() {
         // given
         var importPrompts = ImportResources.builder()
                 .path("public/test/")
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
 
-        // Create a PromptEximDto with invalid path
         var promptExim = new PromptEximDto();
         promptExim.setId("prompts/test/PROMPT 1__1.0.0");
-        promptExim.setDescription("Test description");
         promptExim.setContent("Test content");
         var promptsExim = new PromptsEximDto();
         promptsExim.setPrompts(List.of(promptExim));
         promptsExim.setFolders(List.of());
 
-        // when
-        var validator = Validation.buildDefaultValidatorFactory().getValidator();
-        var executableValidator = validator.forExecutables();
-        var method = promptEximService.getClass().getMethod("importPrompts", ImportResources.class, PromptsEximDto.class);
-        var violations = executableValidator.validateParameters(promptEximService, method, new Object[]{importPrompts, promptsExim});
+        doThrow(new IllegalArgumentException("Validation error"))
+                .when(validator).validatePromptImport(importPrompts, promptsExim);
 
-        // then
-        assertThat(violations).hasSize(1);
-        assertThat(violations).first().extracting(ConstraintViolation::getMessage)
-                .isEqualTo("must match \"prompts/public/([^/]+/)*[^/]+__[^/]+\"");
+        // when/then
+        var thrown = assertThrows(IllegalArgumentException.class,
+                () -> promptEximService.importPrompts(importPrompts, promptsExim));
 
+        assertThat(thrown).hasMessage("Validation error");
         verifyNoInteractions(promptService);
     }
 

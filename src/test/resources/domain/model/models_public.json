@@ -2,7 +2,10 @@
   {
     "id": 1,
     "description": "This is a sample model",
-    "endpoint": "https://example.com/model",
+    "adapter": {
+      "name": "example.model",
+      "baseEndpoint": "https://example.com/model"
+    },
     "displayName": "Sample Model",
     "displayVersion": "1.0.0",
     "iconUrl": "https://example.com/icon.png",

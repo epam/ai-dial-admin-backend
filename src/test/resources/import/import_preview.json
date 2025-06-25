@@ -53,6 +53,15 @@
               "requestDay": 9223372036854775807
             }
           }
+        ],
+        "share": [
+          {
+            "deploymentName": "testModel1",
+            "limit": {
+              "maxAcceptedUsers": 10,
+              "invitationTtl": 120
+            }
+          }
         ]
       }
     },
@@ -207,6 +216,7 @@
       "value": {
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
+        "endpoint": "https://endpoint.test.com/interceptor",
         "forwardAuthToken": false
       }
     }
@@ -286,6 +296,7 @@
       }
     }
   ],
+  "adapters": [],
   "models": [
     {
       "importAction": "create",
@@ -379,7 +390,9 @@
           "temperatureSupported": true,
           "addonsSupported": false
         },
-        "defaults": {},
+        "defaults": {
+          "max_tokens": 8000
+        },
         "interceptors": [
           "testInterceptor1"
         ],
@@ -471,7 +484,9 @@
         "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
-        "defaults": {},
+        "defaults": {
+          "defaults_key": "defaults_value"
+        },
         "interceptors": [],
         "features": {
           "systemPromptSupported": true,

@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
-import com.epam.aidial.cfg.dao.model.AssistantEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
@@ -15,13 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service("coreInterceptorService")
 @RequiredArgsConstructor
 public class InterceptorService {
 
-    private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor with name %s does not exist";
+    private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor with name '%s' does not exist";
 
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final InterceptorEntityMapper mapper;
@@ -30,7 +28,7 @@ public class InterceptorService {
 
     @Transactional(readOnly = true)
     public Collection<Interceptor> getAll() {
-        return StreamSupport.stream(interceptorJpaRepository.findAll().spliterator(), false)
+        return interceptorJpaRepository.findAll().stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -40,15 +38,16 @@ public class InterceptorService {
         return Optional.ofNullable(interceptorName)
                 .flatMap(interceptorJpaRepository::findById)
                 .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException("unable to find interceptor " + interceptorName));
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName)));
     }
 
     @Transactional
     public void create(Interceptor interceptor) {
+        interceptorValidator.validateCreation(interceptor);
         assertNotExists(interceptor.getName());
         Optional.of(interceptor)
                 .map(domainModel -> mapper.toEntity(domainModel, new InterceptorEntity()))
-                .map(interceptorJpaRepository::save);
+                .ifPresent(interceptorJpaRepository::save);
     }
 
     @Transactional
@@ -76,6 +75,14 @@ public class InterceptorService {
     public Interceptor getSnapshot(String interceptorName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, interceptorName, InterceptorEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Interceptor> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, InterceptorEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     private void assertExists(String name) {

@@ -27,6 +27,9 @@ public class CoreApplication extends Deployment {
     @JsonAlias({"applicationTypeSchemaId", "application_type_schema_id"})
     private URI applicationTypeSchemaId;
 
+    private String viewerUrl; // 0.29.0
+    private String editorUrl; // 0.29.0
+
     @Data
     @Accessors(chain = true)
     @JsonInclude(JsonInclude.Include.NON_NULL)

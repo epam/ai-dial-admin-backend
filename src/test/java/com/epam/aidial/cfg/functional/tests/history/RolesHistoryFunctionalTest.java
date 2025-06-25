@@ -192,6 +192,7 @@ public abstract class RolesHistoryFunctionalTest {
         roleDto.setName("role" + suffix);
         roleDto.setDescription("description" + suffix);
         roleDto.setLimits(Map.of());
+        roleDto.setShare(Map.of());
         roleDto.setGrantedKeys(List.of());
         return roleDto;
     }

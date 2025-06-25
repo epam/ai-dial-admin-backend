@@ -35,7 +35,7 @@ class DescriptionKeywordsServiceTest {
     @Test
     void testGetAllDescriptionKeywords() {
 
-        when(modelService.getAllModels()).thenReturn(getModels());
+        when(modelService.getAll()).thenReturn(getModels());
         when(applicationService.getAllApplications()).thenReturn(getApplications());
         when(applicationTypeSchemaService.getAll()).thenReturn(getAppRunners());
 

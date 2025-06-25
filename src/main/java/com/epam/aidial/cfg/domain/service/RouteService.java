@@ -2,8 +2,10 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
+import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
+import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -85,5 +87,13 @@ public class RouteService {
     public Route getSnapshot(String routeName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, routeName, RouteEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Route> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, RouteEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

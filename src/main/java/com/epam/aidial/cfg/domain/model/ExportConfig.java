@@ -17,6 +17,8 @@ public class ExportConfig {
     private Map<String, Key> keys;
     private Map<String, ApplicationTypeSchema> applicationRunners;
     private Map<String, Interceptor> interceptors;
+    private Map<String, InterceptorRunner> interceptorRunners;
+    private Map<String, Adapter> adapters;
 
     public Collection<Deployment> collectDeployment() {
         return Stream.of(routes, applications, models)

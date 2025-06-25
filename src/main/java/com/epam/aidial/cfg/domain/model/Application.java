@@ -25,10 +25,16 @@ public class Application extends RoleBased {
     private Boolean forwardAuthToken;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
-    private Map<String, String> defaults;
+    private Map<String, Object> defaults;
     private List<String> interceptors;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
     private FeaturesEntity features;
     private Map<String, Object> applicationProperties;
     private URI applicationTypeSchemaId;
+    private String viewerUrl;
+    private String editorUrl;
 
 }

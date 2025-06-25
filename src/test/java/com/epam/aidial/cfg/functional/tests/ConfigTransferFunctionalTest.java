@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
@@ -8,31 +9,37 @@ import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.RouteDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
+import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.utils.ResourceUtils;
+import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
 import com.epam.aidial.cfg.web.facade.AssistantsPropertyFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
+import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -63,6 +70,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -81,6 +89,8 @@ public abstract class ConfigTransferFunctionalTest {
     @Autowired
     private InterceptorFacade interceptorFacade;
     @Autowired
+    private InterceptorRunnerFacade interceptorRunnerFacade;
+    @Autowired
     private KeyFacade keyFacade;
     @Autowired
     private ConfigTransfer configTransfer;
@@ -98,6 +108,10 @@ public abstract class ConfigTransferFunctionalTest {
     private AssistantsPropertyFacade assistantsPropertyFacade;
     @Autowired
     private FeatureFlagGateEvaluationAspect featureFlagAspect;
+    @Autowired
+    private AdapterFacade adapterFacade;
+    @Autowired
+    private CoreConfigVersionProperties versionProperties;
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
 
@@ -114,9 +128,9 @@ public abstract class ConfigTransferFunctionalTest {
         );
 
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         // then
-        Map<String, ModelDto> models = modelFacade.getAllModels().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+        Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
             Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
@@ -134,12 +148,16 @@ public abstract class ConfigTransferFunctionalTest {
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
+            Assertions.assertThat(modelDto.getDefaults())
+                    .containsExactlyInAnyOrderEntriesOf(Map.of("max_tokens", 8000));
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
         Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        ApplicationDto applicationDto2 = applicationFacade.getApplication("testApplication2");
+        Assertions.assertThat(applicationDto2.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
         Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
         Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
@@ -158,11 +176,11 @@ public abstract class ConfigTransferFunctionalTest {
                 startConfigString.getBytes()
         );
 
-        configTransfer.importConfig(List.of(startConfig), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(startConfig), overrideAndCreateRoleAndCreateNew());
         // when
-        configTransfer.importConfig(List.of(startConfig), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(startConfig), overrideAndCreateRoleAndCreateNew());
         // then
-        Map<String, ModelDto> models = modelFacade.getAllModels().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+        Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
             Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
@@ -181,7 +199,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, false))
+        Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), overrideAndNotCreateRoleAndCreateNew()))
                 //then
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("unable to find roles: [testRole1]");
@@ -198,7 +216,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         // then
         RoleDto testRole = roleFacade.getRole("testRole1");
         Assertions.assertThat(testRole).isNotNull().satisfies(role -> {
@@ -217,7 +235,7 @@ public abstract class ConfigTransferFunctionalTest {
                 "application/json",
                 startConfig.getBytes()
         );
-        configTransfer.importConfig(List.of(startData), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(startData), overrideAndCreateRoleAndCreateNew());
 
         String config = FileUtils.readFileToString(new File("src/test/resources/import/configWithNotExistingRole.json"), StandardCharsets.UTF_8);
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -227,7 +245,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         // then
         ModelDto modelDto = modelFacade.getModel("testModel4");
         Assertions.assertThat(modelDto).isNotNull()
@@ -245,7 +263,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true))
+        Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew()))
                 // then
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Deployment with name testApplication1 does not exist");
@@ -261,7 +279,7 @@ public abstract class ConfigTransferFunctionalTest {
                 "application/json",
                 startConfig.getBytes()
         );
-        configTransfer.importConfig(List.of(startData), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(startData), overrideAndCreateRoleAndCreateNew());
 
         String config = FileUtils.readFileToString(new File("src/test/resources/configWithDefaultRoleAndNotExistingApp.json"), StandardCharsets.UTF_8);
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -271,7 +289,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         // then
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app ->
@@ -292,7 +310,7 @@ public abstract class ConfigTransferFunctionalTest {
                 "application/json",
                 startConfig.getBytes()
         );
-        configTransfer.importConfig(List.of(startData), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(startData), overrideAndCreateRoleAndCreateNew());
 
         String config = FileUtils.readFileToString(new File("src/test/resources/configWithRoleAndNotExistingApp.json"), StandardCharsets.UTF_8);
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -302,7 +320,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         // then
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app ->
@@ -323,6 +341,7 @@ public abstract class ConfigTransferFunctionalTest {
         request.setComponentTypes(componentTypes);
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptorName");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
@@ -354,24 +373,41 @@ public abstract class ConfigTransferFunctionalTest {
         Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.MODEL,
                 ExportConfigComponentType.INTERCEPTOR,
                 ExportConfigComponentType.ROLE);
+
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.ADMIN);
         request.setComponentTypes(componentTypes);
+
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptorName");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
+
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
+
         RoleDto roleDto = new RoleDto();
         roleDto.setName("testRole");
+
         LimitDto limitDto = new LimitDto();
         limitDto.setMinute(5L);
         modelDto.setRoleLimits(Map.of("testRole", limitDto));
+
         interceptorFacade.createInterceptor(interceptorDto);
         roleFacade.createRole(roleDto);
         modelFacade.createModel(modelDto);
+
+        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
+        shareResourceLimitDto.setInvitationTtl(120);
+        shareResourceLimitDto.setMaxAcceptedUsers(10);
+        roleDto.setShare(Map.of("modelName", shareResourceLimitDto));
+        roleDto.setLimits(Map.of("modelName", limitDto));
+
+        roleFacade.updateRole("testRole", roleDto);
+
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
         // then
         ExportConfig result = extractConfigFromZip(streamingResponseBody);
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
@@ -385,6 +421,13 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
             Assertions.assertThat(config.getRoles().get("testRole").getLimits()).isNotEmpty().hasSize(1).first()
                     .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("modelName"));
+            Assertions.assertThat(config.getRoles().get("testRole").getShare()).isNotEmpty().hasSize(1).first()
+                    .satisfies(share -> {
+                        Assertions.assertThat(share.getDeploymentName()).isEqualTo("modelName");
+                        Assertions.assertThat(share.getLimit()).isNotNull();
+                        Assertions.assertThat(share.getLimit().getMaxAcceptedUsers()).isEqualTo(10);
+                        Assertions.assertThat(share.getLimit().getInvitationTtl()).isEqualTo(120);
+                    });
             Assertions.assertThat(config.getApplications()).isEmpty();
         });
     }
@@ -435,6 +478,7 @@ public abstract class ConfigTransferFunctionalTest {
         request.setComponentTypes(componentTypes);
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptorName");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         ApplicationDto applicationDto = new ApplicationDto();
         applicationDto.setName("applicationName");
         applicationDto.setInterceptors(List.of("interceptorName"));
@@ -462,6 +506,64 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
             Assertions.assertThat(result.getModels()).isEmpty();
+        });
+    }
+
+    @Test
+    void testExport_AdminFormatInterceptorRunnerWithInterceptors_FullRequest() throws IOException {
+        // given
+        Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.INTERCEPTOR_RUNNER,
+                ExportConfigComponentType.INTERCEPTOR);
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(componentTypes);
+        
+        // Create interceptor runner
+        InterceptorRunnerDto runnerDto = new InterceptorRunnerDto();
+        runnerDto.setName("testRunner");
+        runnerDto.setDisplayName("Test Runner");
+        runnerDto.setDescription("Test interceptor runner");
+        runnerDto.setCompletionEndpoint("https://test.com/completion");
+        runnerDto.setConfigurationEndpoint("https://test.com/configuration");
+        interceptorRunnerFacade.createInterceptorRunner(runnerDto);
+        
+        // Create interceptors associated with the runner
+        InterceptorDto interceptor1 = new InterceptorDto();
+        interceptor1.setName("testInterceptor1");
+        interceptor1.setDescription("Test interceptor 1");
+        interceptor1.setInterceptorRunner("testRunner");
+        
+        InterceptorDto interceptor2 = new InterceptorDto();
+        interceptor2.setName("testInterceptor2");
+        interceptor2.setDescription("Test interceptor 2");
+        interceptor2.setInterceptorRunner("testRunner");
+        
+        interceptorFacade.createInterceptor(interceptor1);
+        interceptorFacade.createInterceptor(interceptor2);
+        
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        
+        // then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getInterceptorRunners()).isNotEmpty()
+                    .containsOnlyKeys("testRunner")
+                    .satisfies(runners -> {
+                        Assertions.assertThat(runners.get("testRunner").getDisplayName()).isEqualTo("Test Runner");
+                        Assertions.assertThat(runners.get("testRunner").getDescription()).isEqualTo("Test interceptor runner");
+                        Assertions.assertThat(runners.get("testRunner").getCompletionEndpoint()).isEqualTo("https://test.com/completion");
+                        Assertions.assertThat(runners.get("testRunner").getConfigurationEndpoint()).isEqualTo("https://test.com/configuration");
+                        // Verify interceptors are not included in the runner (they're exported separately)
+                        Assertions.assertThat(runners.get("testRunner").getInterceptors()).isNull();
+                    });
+            
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty()
+                    .containsOnlyKeys("testInterceptor1", "testInterceptor2")
+                    .satisfies(interceptors -> {
+                        Assertions.assertThat(interceptors.get("testInterceptor1").getInterceptorRunner()).isEqualTo("testRunner");
+                        Assertions.assertThat(interceptors.get("testInterceptor2").getInterceptorRunner()).isEqualTo("testRunner");
+                    });
         });
     }
 
@@ -525,7 +627,7 @@ public abstract class ConfigTransferFunctionalTest {
         );
 
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         SelectedItemsExportRequest request = new SelectedItemsExportRequest();
         request.setAddSecrets(addSecrets);
         request.setExportFormat(ExportFormat.CORE);
@@ -567,6 +669,29 @@ public abstract class ConfigTransferFunctionalTest {
         });
     }
 
+    @Test
+    void testImport_ImportModelWithAdapter() throws IOException {
+        // given
+        String config = FileUtils.readFileToString(new File("src/test/resources/import/import_modelWithAdapter.json"), StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        Assertions.assertThatThrownBy(() -> configTransfer
+                        .importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, true, false)))
+                .hasMessageContaining("Unable to import adapters, adapter with endpoint http://endpoint2/ does not exist");
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, true, true));
+
+        Set<String> adapterNames = adapterFacade.getAllAdapters().stream().map(AdapterDto::getName).collect(Collectors.toSet());
+        Set<String> adapterEndpoints = adapterFacade.getAllAdapters().stream().map(AdapterDto::getBaseEndpoint).collect(Collectors.toSet());
+        Assertions.assertThat(adapterEndpoints).isEqualTo(Set.of("http://endpoint1/", "http://endpoint2/"));
+        Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, Function.identity()));
+        Assertions.assertThat(adapterNames).containsAll(Set.of(models.get("testModel1").getAdapter(), models.get("testModel2").getAdapter()));
+    }
+
     private static Stream<Arguments> addSecrets() {
         return Stream.of(
                 Arguments.of(false, null),
@@ -587,7 +712,7 @@ public abstract class ConfigTransferFunctionalTest {
         );
 
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         SelectedItemsExportRequest request = new SelectedItemsExportRequest();
         request.setExportFormat(ExportFormat.CORE);
         request.setComponents(List.of(new ExportConfigComponent(
@@ -633,9 +758,9 @@ public abstract class ConfigTransferFunctionalTest {
         var inputStream = getZipInputStreamWithAdminConfig();
         var zipFile = new MockMultipartFile("file", inputStream);
         // when
-        configTransfer.importConfigZip(zipFile, ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfigZip(zipFile, overrideAndCreateRoleAndCreateNew());
         // then
-        Map<String, ModelDto> models = modelFacade.getAllModels().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+        Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
             Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
@@ -653,6 +778,7 @@ public abstract class ConfigTransferFunctionalTest {
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
+            Assertions.assertThat(modelDto.getAdapter()).isEqualTo("adapter1");
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
@@ -664,6 +790,13 @@ public abstract class ConfigTransferFunctionalTest {
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
         Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
+
+        Map<String, AdapterDto> adapters = adapterFacade.getAllAdapters().stream().collect(Collectors.toMap(AdapterDto::getName, a -> a));
+        Assertions.assertThat(adapters.get("adapter1")).satisfies(adapterDto -> {
+            Assertions.assertThat(adapterDto.getName()).isEqualTo("adapter1");
+            Assertions.assertThat(adapterDto.getBaseEndpoint()).isEqualTo("http://endpoint1/");
+            Assertions.assertThat(adapterDto.getDescription()).isEqualTo("test adapter");
+        });
     }
 
     @Test
@@ -685,7 +818,7 @@ public abstract class ConfigTransferFunctionalTest {
                 role.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(modelFile, roleFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(modelFile, roleFile), overrideAndCreateRoleAndCreateNew());
         // then
         ModelDto modelDto = modelFacade.getModel("testModel1");
         Assertions.assertThat(modelDto).isNotNull().satisfies(importedModel ->
@@ -715,7 +848,7 @@ public abstract class ConfigTransferFunctionalTest {
                 appWithDependencies2.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(appWithDependenciesFile, appWithDependencies2File), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(appWithDependenciesFile, appWithDependencies2File), overrideAndCreateRoleAndCreateNew());
         // then
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app -> {
@@ -737,7 +870,7 @@ public abstract class ConfigTransferFunctionalTest {
         );
 
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
         // then
         Collection<AddonDto> allAddons = addonFacade.getAllAddons();
         Assertions.assertThat(allAddons).isNotEmpty()
@@ -761,7 +894,7 @@ public abstract class ConfigTransferFunctionalTest {
         );
         doThrow(new UnsupportedOperationException("Feature flag 'addonsSupported' is disabled.")).when(featureFlagAspect).evaluate(any(), any());
         // when
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true))
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE)))
                 // then
                 .isInstanceOf(UnsupportedOperationException.class)
                 .hasMessageContaining("Feature flag 'addonsSupported' is disabled.");
@@ -780,7 +913,7 @@ public abstract class ConfigTransferFunctionalTest {
         );
         doThrow(new UnsupportedOperationException("Feature flag 'assistantsSupported' is disabled.")).when(featureFlagAspect).evaluate(any(), any());
         // when
-        Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true))
+        Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE)))
                 .isInstanceOf(UnsupportedOperationException.class)
                 .hasMessageContaining("Feature flag 'assistantsSupported' is disabled.");
     }
@@ -797,7 +930,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
         // then
         AssistantsPropertyDto assistantsPropertyDto = assistantsPropertyFacade.getAssistantsProperty();
         Collection<AssistantDto> allAssistants = assistantFacade.getAllAssistants();
@@ -821,7 +954,7 @@ public abstract class ConfigTransferFunctionalTest {
                 config.getBytes()
         );
         // when
-        configTransfer.importConfig(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE, true);
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
         // then
         AssistantsPropertyDto assistantsPropertyDto = assistantsPropertyFacade.getAssistantsProperty();
         Collection<AssistantDto> allAssistants = assistantFacade.getAllAssistants();
@@ -911,16 +1044,139 @@ public abstract class ConfigTransferFunctionalTest {
         return null;
     }
 
-    private String getAppRunnerDto() {
-        return "{\"$id\": \"https://test-schema-id.example\",\n"
-                + "        \"dial:applicationTypeEditorUrl\": \"https://test.com/billings\",\n"
-                + "        \"dial:applicationTypeViewerUrl\": \"https://test.com/claims\",\n"
-                + "        \"dial:applicationTypeDisplayName\": \"runner display name\",\n"
-                + "        \"dial:applicationTypeCompletionEndpoint\": \"https://test.io/openai/deployments/mindmap/chat/completions\",\n"
-                + "        \"$defs\": {},\n"
-                + "        \"properties\": {},\n"
-                + "        \"required\": []\n"
-                + "      }";
+    @Test
+    void testExportCoreConfig_VersionFiltering() throws IOException {
+        // given
+        var modelName = "versionTestModel";
+        var interceptorName = "versionTestInterceptor";
+        var endpoint = "https://endpoint.test.com/interceptor";
+
+        var interceptorDto = new InterceptorDto();
+        interceptorDto.setName(interceptorName);
+        interceptorDto.setEndpoint(endpoint);
+        interceptorDto.setConfigurationEndpoint("https://endpoint.test.com/interceptor/conf");
+
+        var modelDto = new ModelDto();
+        modelDto.setName(modelName);
+        modelDto.setInterceptors(List.of("versionTestInterceptor"));
+
+        interceptorFacade.createInterceptor(interceptorDto);
+        modelFacade.createModel(modelDto);
+
+        var request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.INTERCEPTOR));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result.getModels()).containsKey(modelName);
+        Assertions.assertThat(result.getInterceptors()).containsKey(interceptorName);
+
+        // this verifies versioning works correctly, since configuration endpoint is not present in schema v0.30.0
+        var exportedInterceptor = result.getInterceptors().get(interceptorName);
+        Assertions.assertThat(exportedInterceptor.getEndpoint()).isEqualTo(endpoint);
+        Assertions.assertThat(exportedInterceptor.getConfigurationEndpoint()).isNull();
     }
 
+    @Test
+    void testExportCoreConfig_VersionFieldSerialization() throws IOException {
+        // given
+        var modelName = "versionFieldsModel";
+        var author = "Test Author";
+        var createdAt = 1624987654321L;
+        var updatedAt = 1624987654999L;
+
+        var modelDto = new ModelDto();
+        modelDto.setName(modelName);
+        modelDto.setAuthor(author);
+        modelDto.setCreatedAt(createdAt);
+        modelDto.setUpdatedAt(updatedAt);
+
+        modelFacade.createModel(modelDto);
+
+        var request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL));
+
+        // Save original version setting
+        String originalVersion = versionProperties.getTarget();
+
+        try {
+            // Part 1: Test with current version - author/createdAt/updatedAt should be present
+            // when
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            // then
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+
+            Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+            Assertions.assertThat(result).isNotNull();
+            Assertions.assertThat(result.getModels()).containsKey(modelName);
+
+            var exportedModel = result.getModels().get(modelName);
+            Assertions.assertThat(exportedModel.getAuthor()).isEqualTo(author);
+            Assertions.assertThat(exportedModel.getCreatedAt()).isEqualTo(createdAt);
+            Assertions.assertThat(exportedModel.getUpdatedAt()).isEqualTo(updatedAt);
+
+            // Part 2: Test with version 0.23.0 - author/createdAt/updatedAt should be absent
+            // given
+            versionProperties.setTarget("0.23.0");
+
+            // when
+            streamingResponseBody = configTransfer.exportConfig(request);
+
+            // then
+            outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+
+            result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+            Assertions.assertThat(result).isNotNull();
+            Assertions.assertThat(result.getModels()).containsKey(modelName);
+
+            exportedModel = result.getModels().get(modelName);
+            Assertions.assertThat(exportedModel.getAuthor()).isNull();
+            Assertions.assertThat(exportedModel.getCreatedAt()).isNull();
+            Assertions.assertThat(exportedModel.getUpdatedAt()).isNull();
+        } finally {
+            // Restore original version setting
+            versionProperties.setTarget(originalVersion);
+        }
+    }
+
+    private String getAppRunnerDto() {
+        return """
+            {"$id": "https://test-schema-id.example",
+                    "dial:applicationTypeEditorUrl": "https://test.com/billings",
+                    "dial:applicationTypeViewerUrl": "https://test.com/claims",
+                    "dial:applicationTypeDisplayName": "runner display name",
+                    "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+                    "dial:applicationTypeConfigurationEndpoint": "https://test.com/conf",
+                    "dial:applicationTypeRateEndpoint": "https://test.com/rate",
+                    "dial:applicationTypeTokenizeEndpoint": "https://test.com/tokenize",
+                    "dial:applicationTypeTruncatePromptEndpoint": "https://test.com/truncate-prompt",
+                    "dial:appendApplicationPropertiesHeader": false,
+                    "$defs": {},
+                    "properties": {},
+                    "required": []
+                  }""";
+    }
+
+    private static ConfigImportOptions overrideAndCreateRoleAndCreateNew() {
+        return new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, true, true);
+    }
+
+    private static ConfigImportOptions overrideAndNotCreateRoleAndCreateNew() {
+        return new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, false, true);
+    }
 }

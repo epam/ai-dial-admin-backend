@@ -15,7 +15,7 @@ public abstract class RoleBasedImporter {
     private final RoleService roleService;
 
     protected void createRoleIfAbsent(ConfigImportOptions importOptions, List<RoleLimit> roleLimits) {
-        if (!importOptions.isCreateRoleIfAbsent() || CollectionUtils.isEmpty(roleLimits)) {
+        if (!importOptions.createRoleIfAbsent() || CollectionUtils.isEmpty(roleLimits)) {
             return;
         }
         roleLimits.stream()

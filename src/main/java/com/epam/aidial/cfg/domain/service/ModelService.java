@@ -33,7 +33,7 @@ public class ModelService {
     private final HistoryService historyService;
 
     @Transactional(readOnly = true)
-    public Collection<Model> getAllModels() {
+    public Collection<Model> getAll() {
         return StreamSupport.stream(modelJpaRepository.findAll().spliterator(), false)
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
@@ -111,5 +111,13 @@ public class ModelService {
         if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {
             assertNotExists(newDisplayName, newDisplayVersion);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Model> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, ModelEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

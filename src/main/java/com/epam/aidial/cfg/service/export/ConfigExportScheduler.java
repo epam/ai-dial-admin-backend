@@ -6,6 +6,7 @@ import com.epam.aidial.core.config.Config;
 import lombok.RequiredArgsConstructor;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,9 @@ public class ConfigExportScheduler {
     private final List<CoreConfigNormalizer> normalizers;
     private final ConfigExportErrorHandler errorHandler;
 
+    @Value("${config.export.createResources}")
+    private boolean createResources;
+
     @Scheduled(fixedRateString = "${config.export.syncPeriod}")
     @Synchronized
     public void exportCurrentConfig() {
@@ -32,7 +36,7 @@ public class ConfigExportScheduler {
             Config config = configService.getConfig();
             log.debug("Exporting current Configuration settings.");
             normalizers.forEach(n -> n.normalize(config));
-            configExportService.export(config);
+            configExportService.export(config, createResources);
             errorHandler.setLastErrorMessage(null);
         } catch (Exception e) {
             log.error("Can't export current configuration", e);

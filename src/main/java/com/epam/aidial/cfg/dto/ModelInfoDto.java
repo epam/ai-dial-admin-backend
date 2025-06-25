@@ -17,9 +17,14 @@ public class ModelInfoDto {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private List<String> topics;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
     private ModelTypeDto type;
     private String tokenizerModel;
     private TokenLimitsDto limits;
     private PricingDto pricing;
+    private List<String> fieldsHashingOrder;
 
 }

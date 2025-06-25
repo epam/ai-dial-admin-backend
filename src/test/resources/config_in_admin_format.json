@@ -149,6 +149,11 @@
 				"temperatureSupported": true,
 				"addonsSupported": false
 			},
+			"adapter": {
+				"name": "adapter1",
+				"baseEndpoint": "http://endpoint1/",
+				"description": "test adapter"
+			},
 			"defaults": {},
 			"interceptors": [
 				"testInterceptor1"
@@ -162,7 +167,8 @@
 	"roles": {
 		"default": {
 			"name": "default",
-			"limits": []
+			"limits": [],
+            "share": []
 		},
 		"testRole3": {
 			"name": "testRole3",
@@ -197,7 +203,8 @@
 					"enabled": false,
 					"limit": {}
 				}
-			]
+			],
+            "share": []
 		},
 		"testRole2": {
 			"name": "testRole2",
@@ -232,7 +239,8 @@
 					"enabled": false,
 					"limit": {}
 				}
-			]
+			],
+            "share": []
 		},
 		"testRole1": {
 			"name": "testRole1",
@@ -269,7 +277,8 @@
 					"enabled": true,
 					"limit": {}
 				}
-			]
+			],
+            "share": []
 		}
 	},
 	"keys": {
@@ -313,7 +322,16 @@
 		"testInterceptor1": {
 			"name": "testInterceptor1",
 			"displayName": "Test Interceptor1",
+            "endpoint": "https://endpoint.test.com/interceptor",
 			"forwardAuthToken": false
+		}
+	},
+    "interceptorRunners": {},
+	"adapters": {
+		"adapter1": {
+			"name": "adapter1",
+			"baseEndpoint": "http://endpoint1/",
+			"description": "test adapter"
 		}
 	}
 }

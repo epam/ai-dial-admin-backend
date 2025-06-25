@@ -106,7 +106,8 @@
     "roles": {
       "role1": {
         "name": "role1",
-        "limits": {}
+        "limits": {},
+        "share": {}
       }
     }
   },

@@ -5,8 +5,6 @@ import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreAssistant;
 import com.epam.aidial.core.config.CoreRoute;
 import com.google.common.collect.Lists;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,7 +21,7 @@ import java.util.stream.Stream;
 @Component
 public class ConfigSplitter {
 
-    public List<ConfigPart> splitConfig(Config configBody, Function<Object, String> encoder, int maxSize, int partitioningLimit) {
+    public List<ConfigPart> splitConfig(Config configBody, Function<Config, String> encoder, int maxSize, int partitioningLimit) {
         return splitConfig(encoder, maxSize, Stream.of(
                                 mapEntries(configBody, this::getRoutes, this::getSetRoutes, LinkedHashMap::new),
                                 mapEntries(configBody, Config::getModels, Config::setModels),
@@ -42,7 +40,7 @@ public class ConfigSplitter {
                 partitioningLimit);
     }
 
-    private List<ConfigPart> splitConfig(Function<Object, String> encoder, int maxSize, List<ConfigEntry> entries, int partitioningLimit) {
+    private List<ConfigPart> splitConfig(Function<Config, String> encoder, int maxSize, List<ConfigEntry> entries, int partitioningLimit) {
 
         for (int i = 1; i <= partitioningLimit; i++) {
             int partSize = (int) Math.ceil(entries.size() / (double) i);
@@ -55,7 +53,7 @@ public class ConfigSplitter {
         throw new IllegalStateException("Unable to split config to " + partitioningLimit + " parts with maxSize " + maxSize);
     }
 
-    private List<ConfigPart> trySplit(Function<Object, String> encoder, int maxSize, List<ConfigEntry> entries, int partSize) {
+    private List<ConfigPart> trySplit(Function<Config, String> encoder, int maxSize, List<ConfigEntry> entries, int partSize) {
         List<List<ConfigEntry>> parts = Lists.partition(entries, partSize);
         List<ConfigPart> configs = new ArrayList<>();
         for (List<ConfigEntry> configEntries : parts) {
@@ -63,7 +61,7 @@ public class ConfigSplitter {
             for (ConfigEntry entry : configEntries) {
                 entry.put().accept(config);
             }
-            removeEmptyCollections(config);
+            ConfigUtils.removeEmptyCollections(config);
             String encoded = encoder.apply(config);
             ConfigPart configPart = new ConfigPart(config, encoded);
             if (encoded.getBytes().length > maxSize) {
@@ -122,46 +120,6 @@ public class ConfigSplitter {
             config.getAssistant().setAssistants(assistants);
         };
         return mapEntries(configBody, getter, setter);
-    }
-
-    private void removeEmptyCollections(Config config) {
-        if (config.getAssistant() != null
-                && MapUtils.isEmpty(config.getAssistant().getAssistants())) {
-            config.getAssistant().setAssistants(null);
-        }
-        if (config.getAssistant() != null
-                && MapUtils.isEmpty(config.getAssistant().getAssistants())
-                && config.getAssistant().getEndpoint() == null
-                && config.getAssistant().getFeatures() == null) {
-            config.setAssistant(null);
-        }
-        if (MapUtils.isEmpty(config.getRoutes())) {
-            config.setRoutes(null);
-        }
-        if (MapUtils.isEmpty(config.getModels())) {
-            config.setModels(null);
-        }
-        if (MapUtils.isEmpty(config.getAddons())) {
-            config.setAddons(null);
-        }
-        if (MapUtils.isEmpty(config.getApplications())) {
-            config.setApplications(null);
-        }
-        if (MapUtils.isEmpty(config.getKeys())) {
-            config.setKeys(null);
-        }
-        if (MapUtils.isEmpty(config.getRoles())) {
-            config.setRoles(null);
-        }
-        if (MapUtils.isEmpty(config.getInterceptors())) {
-            config.setInterceptors(null);
-        }
-        if (MapUtils.isEmpty(config.getApplicationTypeSchemas())) {
-            config.setApplicationTypeSchemas(null);
-        }
-        if (CollectionUtils.isEmpty(config.getRetriableErrorCodes())) {
-            config.setRetriableErrorCodes(null);
-        }
     }
 
     private <T> Stream<ConfigEntry> mapEntries(Config configBody,

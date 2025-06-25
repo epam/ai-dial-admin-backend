@@ -77,7 +77,7 @@ public interface RoleLimitMapper {
         }
         for (String userRole : userRoles) {
             if (!roles.containsKey(userRole)) {
-                RoleLimit roleLimit = createRoleLimit(userRole, entityName, roles.get(userRole), true);
+                RoleLimit roleLimit = createRoleLimit(userRole, entityName, null, true);
                 roleLimits.add(roleLimit);
             }
         }
@@ -116,6 +116,8 @@ public interface RoleLimitMapper {
             CoreLimit limit = limits.get(entityName);
             Limit limit1 = limit == null ? new Limit() : toLimit(limit);
             roleLimit.setLimit(limit1);
+        } else {
+            roleLimit.setLimit(new Limit());
         }
         return roleLimit;
     }

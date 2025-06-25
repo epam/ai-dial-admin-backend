@@ -33,6 +33,13 @@ public class ApplicationDto extends RoleBasedDto {
     private List<String> interceptors;
     private List<String> topics;
     private Integer maxRetryAttempts;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
+
+    private String viewerUrl;
+    private String editorUrl;
 
     private FunctionDto function;
 

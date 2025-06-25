@@ -21,4 +21,16 @@ public class InterceptorDto {
     private Boolean forwardAuthToken;
 
     private List<String> entities;
+
+    private String interceptorRunner;
+
+    private String configurationEndpoint;
+
+    private String author;
+
+    private Long createdAt;
+
+    private Long updatedAt;
+
+    private List<String> dependencies;
 }

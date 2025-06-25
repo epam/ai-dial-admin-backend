@@ -43,14 +43,14 @@ public abstract class ApplicationFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndGetApplication() {
         initRoles();
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createDtoWithDefaults("1");
 
         applicationFacade.createApplication(applicationDto);
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
-        ApplicationDto expected = createDto("1");
+        ApplicationDto expected = createDtoWithDefaults("1");
 
-        assertApplication(actual, expected);
+        assertApplicationWithDefaults(actual, expected);
 
         applicationFacade.createApplication(createDto("2"));
 
@@ -94,6 +94,7 @@ public abstract class ApplicationFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("int1");
         interceptorDto.setDescription("int1_dsc");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         interceptorFacade.createInterceptor(interceptorDto);
 
         ApplicationDto applicationDto = createDto("1");
@@ -133,6 +134,7 @@ public abstract class ApplicationFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("int1");
         interceptorDto.setDescription("int1_dsc");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         interceptorFacade.createInterceptor(interceptorDto);
 
         ApplicationDto applicationDto = createDto("1");
@@ -196,10 +198,21 @@ public abstract class ApplicationFunctionalTest {
         return applicationDto;
     }
 
+    private ApplicationDto createDtoWithDefaults(String suffix) {
+        ApplicationDto applicationDto = createDto(suffix);
+        applicationDto.setDefaults(Map.of("max_tokens", 8000));
+        return applicationDto;
+    }
+
     private void assertApplication(ApplicationDto actual, ApplicationDto expected) {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
+    }
+
+    private void assertApplicationWithDefaults(ApplicationDto actual, ApplicationDto expected) {
+        assertApplication(actual, expected);
+        Assertions.assertEquals(expected.getDefaults(), actual.getDefaults());
     }
 
     private void assertApp(Collection<ApplicationInfoDto> actual, Collection<ApplicationDto> expected) {

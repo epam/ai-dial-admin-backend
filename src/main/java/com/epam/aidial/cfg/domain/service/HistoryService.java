@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dao.audit.repository.ApplicationTypeSchemaHistoryRepo
 import com.epam.aidial.cfg.dao.audit.repository.AssistantHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.AssistantPropertiesHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.InterceptorHistoryRepository;
+import com.epam.aidial.cfg.dao.audit.repository.InterceptorRunnerHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.KeyHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.ModelHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.RoleHistoryRepository;
@@ -24,7 +25,6 @@ import org.hibernate.envers.AuditReaderFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -45,6 +45,7 @@ public class HistoryService {
     private final AssistantPropertiesHistoryRepository assistantPropertiesHistoryRepository;
     private final RouteHistoryRepository routeHistoryRepository;
     private final InterceptorHistoryRepository interceptorHistoryRepository;
+    private final InterceptorRunnerHistoryRepository interceptorRunnerHistoryRepository;
     private final KeyHistoryRepository keyHistoryRepository;
     private final ConfigRevisionEntityMapper configRevisionEntityMapper;
     private final PageEntityMapper pageEntityMapper;
@@ -70,13 +71,7 @@ public class HistoryService {
         assistantPropertiesHistoryRepository.rollbackAssistantsProperties(revision, auditReader);
         routeHistoryRepository.rollbackRoutes(revision, auditReader);
         interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
-    }
-
-    @Transactional(readOnly = true)
-    public Integer revisionOnTimestamp(long timestamp) {
-        AuditReader auditReader = AuditReaderFactory.get(entityManager);
-        Number revision = auditReader.getRevisionNumberForDate(Instant.ofEpochMilli(timestamp));
-        return revision.intValue();
+        interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
     }
 
     @Transactional(readOnly = true)
@@ -85,6 +80,14 @@ public class HistoryService {
 
         return Optional.ofNullable(auditReader.find(clazz, id, revision))
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find " + clazz.getSimpleName() + " with id " + id + " at revision " + revision));
+    }
+
+    @Transactional(readOnly = true)
+    public <T> List<T> getEntitiesAtRevision(Number revision, Class<T> entityClass) {
+        AuditReader auditReader = AuditReaderFactory.get(entityManager);
+        return auditReader.createQuery()
+                .forEntitiesAtRevision(entityClass, revision)
+                .getResultList();
     }
 
     @Transactional(readOnly = true)

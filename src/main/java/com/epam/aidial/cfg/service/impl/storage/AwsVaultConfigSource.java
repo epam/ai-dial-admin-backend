@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.service.impl.storage;
 
+import com.epam.aidial.cfg.service.transfer.VersionAwareFieldFilter;
+import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -8,9 +10,11 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueReques
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 public class AwsVaultConfigSource extends CompositeConfigSource {
@@ -19,26 +23,44 @@ public class AwsVaultConfigSource extends CompositeConfigSource {
     private final ObjectMapper objectMapper;
     private final SecretsManagerClient secretsManagerClient;
 
-    public AwsVaultConfigSource(SecretsManagerClient secretsManagerClient,
+    public AwsVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
+                                SecretsManagerClient secretsManagerClient,
                                 ConfigSplitter configSplitter,
+                                ConfigMerger configMerger,
                                 List<String> secretNames,
                                 ObjectMapper objectMapper) {
-        super(configSplitter, secretNames, MAX_SECRET_SIZE);
+        super(versionAwareFieldFilter, configSplitter, configMerger, secretNames, MAX_SECRET_SIZE);
         this.objectMapper = objectMapper;
         this.secretsManagerClient = secretsManagerClient;
     }
 
     @Override
-    protected void setSource(SourceValue source) {
+    protected String getSource(String sourceName) {
+        return getSourceOptional(sourceName)
+                .orElseThrow(() -> new IllegalStateException("Secret is not found " + sourceName));
+    }
 
+    private Optional<String> getSourceOptional(String sourceName) {
         GetSecretValueRequest valueRequest = GetSecretValueRequest.builder()
-                .secretId(source.sourceName())
+                .secretId(sourceName)
                 .build();
-        GetSecretValueResponse valueResponse = secretsManagerClient.getSecretValue(valueRequest);
-        String oldValue = valueResponse.secretString();
+        try {
+            GetSecretValueResponse valueResponse = secretsManagerClient.getSecretValue(valueRequest);
+            return Optional.of(valueResponse.secretString());
+        } catch (ResourceNotFoundException ex) {
+            log.warn("Secret is not found %s", ex);
+            return Optional.empty();
+        }
+    }
 
-        if (Objects.equals(source.value(), oldValue)) {
+    @Override
+    protected void setSource(SourceValue source, boolean createResources) {
+        Optional<String> oldValue = getSourceOptional(source.sourceName());
+        if (oldValue.isPresent() && Objects.equals(source.value(), oldValue.get())) {
             return;
+        }
+        if (oldValue.isEmpty() && !createResources) {
+            throw new IllegalStateException("Secret is not found " + source.sourceName());
         }
 
         PutSecretValueRequest putValueRequest = PutSecretValueRequest.builder()
@@ -52,7 +74,14 @@ public class AwsVaultConfigSource extends CompositeConfigSource {
 
     @Override
     @SneakyThrows
-    protected String encode(Object body) {
+    protected Config decode(String encoded) {
+        return objectMapper.readValue(encoded, Config.class);
+    }
+
+    @Override
+    @SneakyThrows
+    protected String encode(Config body) {
         return objectMapper.writeValueAsString(body);
     }
+
 }

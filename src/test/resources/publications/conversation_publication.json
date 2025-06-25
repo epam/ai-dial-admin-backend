@@ -1,0 +1,119 @@
+{
+  "path": "bucket/file",
+  "requestName": "Pub req 6",
+  "author": "Test Author",
+  "createdAt": 1741595184514,
+  "status": "pending",
+  "folderId": "Target folder 1",
+  "rules": [
+    {
+      "source": "role",
+      "function": "EQUAL",
+      "targets": [
+        "admin"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "action": "add",
+      "conversation": {
+        "path": "Folder 1/Conversation 1",
+        "folderId": "Folder 1",
+        "updateTime": 1741595170582,
+        "name": "Conversation 1",
+        "model": {
+          "id": "gpt-4"
+        },
+        "prompt": "/",
+        "temperature": 0.6,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hello GPT-4",
+            "templateMapping": [
+              [
+                "Hello",
+                "{{var1}}"
+              ],
+              [
+                "GPT-4",
+                "{{var2}}"
+              ]
+            ],
+            "model": {
+              "id": "gpt-4"
+            },
+            "settings": {
+              "prompt": "",
+              "temperature": 1
+            }
+          },
+          {
+            "content": "Hello! How can I assist you today?",
+            "model": {
+              "id": "gpt-4"
+            },
+            "settings": {
+              "prompt": "",
+              "temperature": 1
+            },
+            "role": "assistant",
+            "responseId": "chatcmpl-Bf0PPj1s8neTPEZA5EKqUK036BqCy"
+          }
+        ],
+        "assistantModelId": "gpt-4"
+      }
+    },
+    {
+      "action": "add",
+      "conversation": {
+        "path": "Folder 1/Conversation 2",
+        "folderId": "Folder 1",
+        "updateTime": 1741595180582,
+        "name": "Conversation 2",
+        "model": {
+          "id": "gpt-4"
+        },
+        "prompt": "/",
+        "temperature": 0.6,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Hello, how are you",
+            "templateMapping": [
+              [
+                "Hello",
+                "{{var1}}"
+              ],
+              [
+                "how are you",
+                "{{var2}}"
+              ]
+            ],
+            "model": {
+              "id": "gpt-4"
+            },
+            "settings": {
+              "prompt": "",
+              "temperature": 1
+            }
+          },
+          {
+            "content": "Hello! How can I assist you today?",
+            "model": {
+              "id": "gpt-4"
+            },
+            "settings": {
+              "prompt": "",
+              "temperature": 1
+            },
+            "role": "assistant",
+            "responseId": "chatcmpl-Mk0WEg5q7miPOWVS6FLwPL147NwDu"
+          }
+        ],
+        "assistantModelId": "gpt-4"
+      }
+    }
+  ]
+}

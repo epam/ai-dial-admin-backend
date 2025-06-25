@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.KeyDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.mapper.KeyDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,5 +52,12 @@ public class KeyFacade {
     public KeyDto getSnapshot(String keyName, Integer revision) {
         Key interceptor = keyService.getSnapshot(keyName, revision);
         return mapper.toDto(interceptor);
+    }
+
+    public Collection<KeyDto> getAllAtRevision(Integer revision) {
+        return keyService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

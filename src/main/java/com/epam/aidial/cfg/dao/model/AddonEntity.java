@@ -35,6 +35,10 @@ public class AddonEntity extends AbstractEntity<String> {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
 
     @Override
     public String getId() {

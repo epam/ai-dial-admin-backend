@@ -7,11 +7,14 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
+import com.epam.aidial.core.config.CoreShareResourceLimit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -20,8 +23,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -72,7 +78,7 @@ public class RoleImporter {
                         CoreRole coreRole = role.getValue();
                         coreRole.setName(roleName);
                         var importAction = importRole(roleName, coreRole, resolutionPolicy, Set.of(), true);
-                        return new ImportComponent<>(importAction, map(coreRole, Set.of()));
+                        return new ImportComponent<>(importAction, map(coreRole, Set.of(), List.of(), List.of()));
                     })
                     .toList();
         }
@@ -119,8 +125,9 @@ public class RoleImporter {
                                     ConflictResolutionPolicy resolutionPolicy,
                                     Set<String> deploymentNamesInConfig,
                                     boolean isPreview) {
-        if (roleService.exists(roleName)) {
-            return handleExisting(newRole, resolutionPolicy, roleName, deploymentNamesInConfig, isPreview);
+        Optional<Role> role = roleService.tryGetRole(roleName);
+        if (role.isPresent()) {
+            return handleExisting(newRole, resolutionPolicy, roleName, deploymentNamesInConfig, role.get(), isPreview);
         } else {
             return create(newRole, deploymentNamesInConfig, isPreview);
         }
@@ -156,6 +163,7 @@ public class RoleImporter {
                                         ConflictResolutionPolicy resolutionPolicy,
                                         String roleName,
                                         Set<String> deploymentNamesInConfig,
+                                        Role existingRole,
                                         boolean isPreview) {
         switch (resolutionPolicy) {
             case SKIP -> {
@@ -164,7 +172,13 @@ public class RoleImporter {
             }
             case OVERRIDE -> {
                 if (!isPreview) {
-                    Role updatedRole = map(newRole, deploymentNamesInConfig);
+                    List<RoleLimit> existingLimitsNotPresentInConfig = existingRole.getLimits().stream()
+                            .filter(limit -> !newRole.getLimits().containsKey(limit.getDeploymentName()))
+                            .toList();
+                    List<RoleShareResourceLimit> existingRoleShareResourceLimitsNotPresentInConfig = existingRole.getShare().stream()
+                            .filter(shareResourceLimit -> !newRole.getShare().containsKey(shareResourceLimit.getDeploymentName()))
+                            .toList();
+                    Role updatedRole = map(newRole, deploymentNamesInConfig, existingLimitsNotPresentInConfig, existingRoleShareResourceLimitsNotPresentInConfig);
                     roleService.updateRole(roleName, updatedRole);
                 }
                 return UPDATE;
@@ -175,16 +189,24 @@ public class RoleImporter {
 
     private ImportAction create(CoreRole role, Set<String> deploymentNamesInConfig, boolean isPreview) {
         if (!isPreview) {
-            Role newRole = map(role, deploymentNamesInConfig);
+            Role newRole = map(role, deploymentNamesInConfig, List.of(), List.of());
             roleService.createRole(newRole);
         }
         return CREATE;
     }
 
-    private Role map(CoreRole coreRole, Set<String> deploymentNamesInConfig) {
-        Map<String, CoreLimit> limits = coreRole.getLimits().entrySet().stream()
+    private Role map(CoreRole coreRole,
+                     Set<String> deploymentNamesInConfig,
+                     List<RoleLimit> existingLimitsNotPresentInConfig,
+                     List<RoleShareResourceLimit> existingShareResourceLimitsNotPresentInConfig) {
+        Map<String, CoreLimit> limits = Optional.ofNullable(coreRole.getLimits()).orElse(new HashMap<>())
+                .entrySet().stream()
                 .filter(coreLimit -> !deploymentNamesInConfig.contains(coreLimit.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        return roleCoreMapper.mapToRole(coreRole, limits);
+        Map<String, CoreShareResourceLimit> shareResourceLimits = Optional.ofNullable(coreRole.getShare()).orElse(new HashMap<>())
+                .entrySet().stream()
+                .filter(coreShareResourceLimit -> !deploymentNamesInConfig.contains(coreShareResourceLimit.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return roleCoreMapper.mapToRole(coreRole, limits, shareResourceLimits, existingLimitsNotPresentInConfig, existingShareResourceLimitsNotPresentInConfig);
     }
 }

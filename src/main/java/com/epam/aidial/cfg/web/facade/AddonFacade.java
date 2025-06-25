@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.dto.AddonDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.mapper.AddonDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,5 +52,12 @@ public class AddonFacade {
     public AddonDto getSnapshot(String addonName, Integer revision) {
         Addon addon = addonService.getSnapshot(addonName, revision);
         return mapper.toDto(addon);
+    }
+
+    public Collection<AddonDto> getAllAtRevision(Integer revision) {
+        return addonService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

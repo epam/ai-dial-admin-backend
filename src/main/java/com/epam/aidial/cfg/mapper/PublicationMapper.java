@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.mapper;
 
 import com.epam.aidial.cfg.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.ApplicationResourcePublicationDto;
+import com.epam.aidial.cfg.dto.ConversationDto;
+import com.epam.aidial.cfg.dto.ConversationPublicationDto;
 import com.epam.aidial.cfg.dto.FileInfoDto;
 import com.epam.aidial.cfg.dto.FilePublicationDto;
 import com.epam.aidial.cfg.dto.PromptDto;
@@ -12,6 +14,9 @@ import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.Conversation;
+import com.epam.aidial.cfg.model.ConversationPublication;
+import com.epam.aidial.cfg.model.ConversationPublicationResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
@@ -42,6 +47,8 @@ public interface PublicationMapper {
             return toFilePublicationDto(filePublication, action);
         } else if (model instanceof ApplicationPublication applicationPublication) {
             return toApplicationResourcePublicationDto(applicationPublication, action);
+        } else if (model instanceof ConversationPublication conversationPublication) {
+            return toConversationPublicationDto(conversationPublication, action);
         }
 
         throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
@@ -86,6 +93,20 @@ public interface PublicationMapper {
                                                                           PublicationResourceAction action,
                                                                           List<ApplicationResourceDto> applicationResources);
 
+    default ConversationPublicationDto toConversationPublicationDto(ConversationPublication model, PublicationResourceAction action) {
+        var conversations = model.getResources()
+                .stream()
+                .map(ConversationPublicationResource::getConversation)
+                .map(this::toConversationDto)
+                .toList();
+
+        return toConversationPublicationDto(model, action, conversations);
+    }
+
+    ConversationPublicationDto toConversationPublicationDto(ConversationPublication model,
+                                                            PublicationResourceAction action,
+                                                            List<ConversationDto> conversations);
+
     private PublicationResourceAction getAction(Publication model) {
         return model.getResources()
                 .stream()
@@ -101,6 +122,8 @@ public interface PublicationMapper {
     FileInfoDto toFileInfoDto(FileNodeInfo model);
 
     ApplicationResourceDto toApplicationResourceDto(ApplicationResource model);
+
+    ConversationDto toConversationDto(Conversation model);
 
     ResourceType toResourceType(ResourceTypeDto dto);
 

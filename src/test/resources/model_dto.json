@@ -19,7 +19,7 @@
     }
   ],
   "name": "test_model",
-  "endpoint": "https://endpoint.test.com/embeddings",
+  "adapter": "adapter1",
   "displayName": "Test Model",
   "description": "It is a test model",
   "displayVersion": "1.0.0",

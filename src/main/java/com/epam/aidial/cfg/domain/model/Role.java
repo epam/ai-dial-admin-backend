@@ -10,4 +10,5 @@ public class Role {
     private String description;
     private List<RoleLimit> limits;
     private List<String> keys;
+    private List<RoleShareResourceLimit> share;
 }

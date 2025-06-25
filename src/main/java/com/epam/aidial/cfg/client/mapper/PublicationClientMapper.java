@@ -13,6 +13,9 @@ import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.Conversation;
+import com.epam.aidial.cfg.model.ConversationPublication;
+import com.epam.aidial.cfg.model.ConversationPublicationResource;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublication;
@@ -96,6 +99,17 @@ public interface PublicationClientMapper {
     @Mapping(target = "files", source = "files")
     ApplicationPublication toApplicationPublication(PublicationDto dto, String path, List<ApplicationPublicationResource> resources, List<String> files);
 
+    default ConversationPublication toConversationPublication(PublicationDto dto, List<ConversationPublicationResource> resources, List<String> files) {
+        var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
+        return toConversationPublication(dto, path, resources, files);
+    }
+
+    @Mapping(target = "requestName", source = "dto.name")
+    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "resources", source = "resources")
+    @Mapping(target = "files", source = "files")
+    ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<String> files);
+
     @Mapping(target = "sourceUrl", ignore = true)
     @Mapping(target = "targetUrl", ignore = true)
     PromptPublicationResource toPromptPublicationResource(PublicationResourceActionDto action, Prompt prompt);
@@ -107,6 +121,10 @@ public interface PublicationClientMapper {
     @Mapping(target = "sourceUrl", ignore = true)
     @Mapping(target = "targetUrl", ignore = true)
     ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceActionDto action, ApplicationResource applicationResource);
+
+    @Mapping(target = "sourceUrl", ignore = true)
+    @Mapping(target = "targetUrl", ignore = true)
+    ConversationPublicationResource toConversationPublicationResource(PublicationResourceActionDto action, Conversation conversation);
 
     private static String removePrefix(String path, String prefix) {
         if (path.startsWith(prefix)) {

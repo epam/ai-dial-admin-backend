@@ -51,6 +51,10 @@ public class ApplicationEntity extends AbstractEntity<String> {
     @ToString.Exclude
     @ManyToMany(mappedBy = "applications")
     private List<InterceptorEntity> interceptors = new ArrayList<>();
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
     @Embedded
     private FeaturesEntity features;
     private String applicationProperties;
@@ -58,6 +62,8 @@ public class ApplicationEntity extends AbstractEntity<String> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_type_schema_id")
     private ApplicationTypeSchemaEntity applicationTypeSchema;
+    private String viewerUrl;
+    private String editorUrl;
 
     @PreRemove
     public void preRemove() {

@@ -12,6 +12,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Stream;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
@@ -34,7 +38,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers(swaggerPathPatterns()).permitAll()
+                    .requestMatchers(publicPathPatterns()).permitAll()
                     .requestMatchers("/api/v1/**").hasAnyAuthority(allowedRoles)
                     .anyRequest().denyAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -44,7 +48,17 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-    protected String[] swaggerPathPatterns() {
-        return disableSwaggerAuthorization ? new String[]{"/swagger-ui/**", "/v3/api-docs/**"} : new String[] {};
+    protected String[] publicPathPatterns() {
+        var swaggerPaths = disableSwaggerAuthorization
+                ? List.of("/swagger-ui/**", "/v3/api-docs/**")
+                : List.<String>of();
+        var appHealthPaths = List.of("/api/v1/health/**");
+
+        return Stream.of(
+                        swaggerPaths,
+                        appHealthPaths
+                )
+                .flatMap(Collection::stream)
+                .toArray(String[]::new);
     }
 }
