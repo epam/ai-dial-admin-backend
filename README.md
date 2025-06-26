@@ -12,21 +12,24 @@ For more information about aidial-core, visit the [aidial-core repository](https
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Features](#features)
-- [REST API](#rest-api)
-- [Configuration](#configuration)
-  - [Authentication](#authentication)
-  - [Keycloak Integration](#keycloak)
-- [Managing Configurations](#managing-existing-dial-core-configurations)
-- [Getting Started](#getting-started)
-  - [Running with Gradle](#run-application-with-gradle)
-  - [Running with Docker](#run-with-docker)
-  - [Running with Docker Compose](#run-locally-with-docker-compose)
-- [Development](#development)
-- [Security](#security)
-- [Contributing](#contributing)
-- [License](#license)
+- [AIDIAL Admin Panel Backend](#aidial-admin-panel-backend)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Features](#features)
+  - [REST API](#rest-api)
+  - [Configuration](#configuration)
+    - [Authentication](#authentication)
+    - [Keycloak](#keycloak)
+  - [Managing Existing Dial Core Configurations](#managing-existing-dial-core-configurations)
+  - [Getting Started](#getting-started)
+    - [Run Application with Gradle](#run-application-with-gradle)
+    - [Run with Docker](#run-with-docker)
+      - [Build Docker Image](#build-docker-image)
+      - [Run Container](#run-container)
+    - [Run Locally with Docker Compose](#run-locally-with-docker-compose)
+  - [Security](#security)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Prerequisites
 
@@ -128,7 +131,7 @@ docker run -p 8080:8080 <image:tag>
 Verify the installation:
 
 ```bash
-curl -X GET --location "http://localhost:8080/actuator/health"
+curl -X GET --location "http://localhost:8080/api/v1/health"
 ```
 
 Expected response:

@@ -5,7 +5,7 @@
 
 # @name Actuator Health
 #@no-log
-GET http://localhost:8080/actuator/health
+GET http://localhost:8080/api/v1/health
 
 ###
 
