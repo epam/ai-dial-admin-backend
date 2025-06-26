@@ -32,7 +32,7 @@ public abstract class AdapterFunctionalTest {
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
         AdapterDto expected = createDto("1");
 
-        assertAdapter(actual, expected);
+        Assertions.assertEquals(expected, actual);
 
         adapterFacade.createAdapter(createDto("2"));
 
@@ -64,7 +64,7 @@ public abstract class AdapterFunctionalTest {
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
         var expected = createDto("1");
         expected.setBaseEndpoint("new adapter endpoint");
-        assertAdapter(actual, expected);
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
@@ -95,7 +95,7 @@ public abstract class AdapterFunctionalTest {
         AdapterDto expected = createDto("1");
         expected.setModels(List.of("model1", "model2"));
 
-        assertAdapter(actual, expected);
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
@@ -117,11 +117,11 @@ public abstract class AdapterFunctionalTest {
 
         AdapterDto expectedAdapter1 = createDto("1");
         expectedAdapter1.setModels(List.of());
-        assertAdapter(expectedAdapter1, actualAdapter1);
+        Assertions.assertEquals(expectedAdapter1, actualAdapter1);
 
         AdapterDto expectedAdapter2 = createDto("2");
         expectedAdapter2.setModels(List.of("model1"));
-        assertAdapter(expectedAdapter2, actualAdapter2);
+        Assertions.assertEquals(expectedAdapter2, actualAdapter2);
 
         ModelDto expectedModel1 = createModel("1");
         expectedModel1.setAdapter("adapter2");
@@ -130,6 +130,52 @@ public abstract class AdapterFunctionalTest {
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
+    }
+
+    @Test
+    public void shouldChangeModelsInAdapter() {
+        AdapterDto adapterDto1 = createDto("1");
+        adapterFacade.createAdapter(adapterDto1);
+
+        ModelDto model1 = createModel("1");
+        modelFacade.createModel(model1);
+
+        // add model to adapter
+        adapterDto1.setModels(List.of("model1"));
+
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1);
+        AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
+        ModelDto actualModel1 = modelFacade.getModel(model1.getName());
+
+        // verify adapter and model
+        AdapterDto expectedAdapter1 = createDto("1");
+        expectedAdapter1.setModels(List.of("model1"));
+        Assertions.assertEquals(expectedAdapter1, actualAdapter1);
+
+        ModelDto expectedModel1 = createModel("1");
+        expectedModel1.setAdapter("adapter1");
+        expectedModel1.setEndpoint("endpoint1/model1/chat/completions");
+        expectedModel1.setDefaults(Map.of());
+        expectedModel1.setRoleLimits(Map.of());
+        expectedModel1.setDefaultRoleLimit(new LimitDto());
+        Assertions.assertEquals(expectedModel1, actualModel1);
+
+        // remove model from adapter
+        adapterDto1.setModels(List.of());
+
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1);
+        AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto1.getName());
+        ModelDto actualModel2 = modelFacade.getModel(model1.getName());
+
+        AdapterDto expectedAdapter2 = createDto("1");
+        expectedAdapter2.setModels(List.of());
+        Assertions.assertEquals(expectedAdapter2, actualAdapter2);
+
+        ModelDto expectedModel2 = createModel("1");
+        expectedModel2.setDefaults(Map.of());
+        expectedModel2.setRoleLimits(Map.of());
+        expectedModel2.setDefaultRoleLimit(new LimitDto());
+        Assertions.assertEquals(expectedModel2, actualModel2);
     }
 
     private AdapterDto createDto(String suffix) {
@@ -146,16 +192,13 @@ public abstract class AdapterFunctionalTest {
         return modelDto;
     }
 
-    private void assertAdapter(AdapterDto actual, AdapterDto expected) {
-        Assertions.assertEquals(expected, actual);
-    }
-
     private void assertAdapters(Collection<AdapterDto> actual, Collection<AdapterDto> expected) {
         Map<String, AdapterDto> actualMap = toMap(actual);
         Map<String, AdapterDto> expectedMap = toMap(expected);
         Assertions.assertEquals(expectedMap.keySet(), actualMap.keySet());
         for (String name : actualMap.keySet()) {
-            assertAdapter(actualMap.get(name), expectedMap.get(name));
+            AdapterDto actual1 = actualMap.get(name);
+            Assertions.assertEquals(expectedMap.get(name), actual1);
         }
     }
 

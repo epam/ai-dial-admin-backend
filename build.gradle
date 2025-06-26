@@ -5,6 +5,9 @@ plugins {
     id 'org.springframework.boot' version '3.5.3'
 }
 
+group = 'com.epam.aidial'
+version = "0.1.0-rc"
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)

@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface AdapterDtoMapper {
 
-    @Mapping(target = "models", ignore = true)
     Adapter toDomain(AdapterDto entity);
 
     AdapterDto toDto(Adapter domain);

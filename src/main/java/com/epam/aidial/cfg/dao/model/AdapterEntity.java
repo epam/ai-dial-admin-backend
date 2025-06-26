@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.dao.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,5 +32,12 @@ public class AdapterEntity extends AbstractEntity<String> {
     @Override
     public String getId() {
         return getName();
+    }
+
+    @PreRemove
+    public void preRemove() {
+        for (ModelEntity model : models) {
+            model.setAdapter(null);
+        }
     }
 }

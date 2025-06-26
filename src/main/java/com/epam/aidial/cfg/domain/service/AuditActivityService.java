@@ -38,7 +38,7 @@ public class AuditActivityService {
     public Page<AuditActivity> getActivitiesList(PageRequestModel pageRequest) {
         var page = pageEntityMapper.toPageRequest(pageRequest);
         var filters = pageEntityMapper.toSpecifications(pageRequest,
-                new PageEntityMapper.SpecificationContext(auditActivityCaseInSensitiveColumns));
+                new PageEntityMapper.SpecificationContext(auditActivityCaseInSensitiveColumns), AuditActivityEntity.class);
         var specification = Specification.allOf(Specification.allOf(filters), defaultFilters());
         var resultPage = auditActivityJpaRepository.findAll(specification, page);
 

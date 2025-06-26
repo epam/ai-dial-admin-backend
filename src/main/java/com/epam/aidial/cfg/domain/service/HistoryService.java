@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.audit.jpa.ConfigRevisionJpaRepository;
+import com.epam.aidial.cfg.dao.audit.model.ConfigRevisionEntity;
 import com.epam.aidial.cfg.dao.audit.repository.AddonHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.ApplicationHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.ApplicationTypeSchemaHistoryRepository;
@@ -22,16 +23,24 @@ import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class HistoryService {
+
+    private static final Set<String> configRevisionCaseInSensitiveColumns = Set.of(
+            "email",
+            "author"
+    );
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -51,8 +60,12 @@ public class HistoryService {
     private final PageEntityMapper pageEntityMapper;
 
     @Transactional(readOnly = true)
-    public List<ConfigRevision> getRevisionsList(PageRequestModel pageRequest) {
-        return configRevisionJpaRepository.findAll(pageEntityMapper.toPageRequest(pageRequest))
+    public List<ConfigRevision> getRevisionsList(PageRequestModel pageRequestModel) {
+        PageRequest pageRequest = pageEntityMapper.toPageRequest(pageRequestModel);
+        List<Specification<ConfigRevisionEntity>> filters = pageEntityMapper.toSpecifications(pageRequestModel,
+                new PageEntityMapper.SpecificationContext(configRevisionCaseInSensitiveColumns), ConfigRevisionEntity.class);
+        var specification = Specification.allOf(filters);
+        return configRevisionJpaRepository.findAll(specification, pageRequest)
                 .stream()
                 .map(configRevisionEntityMapper::map)
                 .collect(Collectors.toList());
