@@ -26,16 +26,8 @@ public class InterceptorValidator {
         String configurationEndpoint = interceptor.getConfigurationEndpoint();
         String interceptorRunner = interceptor.getInterceptorRunner();
 
-        if (endpoint != null && StringUtils.isBlank(endpoint)) {
-            throw new IllegalArgumentException("Invalid endpoint: '%s'".formatted(endpoint));
-        }
-
         if (configurationEndpoint != null && EndpointValidator.isInvalidUrl(configurationEndpoint)) {
             throw new IllegalArgumentException("Invalid configuration endpoint: '%s'".formatted(configurationEndpoint));
-        }
-
-        if (endpoint == null && StringUtils.isBlank(interceptorRunner)) {
-            throw new IllegalArgumentException("Missing endpoint and interceptor runner. At least one of them should be specified");
         }
 
         if (endpoint != null && StringUtils.isNotBlank(interceptorRunner)) {
