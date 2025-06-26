@@ -1,9 +1,9 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
-import com.epam.aidial.cfg.dto.validation.annotation.RoutePath;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -21,7 +21,7 @@ public class Route extends RoleBased {
     private Response response;
     private boolean rewritePath;
     @NotEmpty
-    private List<@RoutePath String> paths;
+    private List<@NotNull String> paths;
     private Set<@HttpMethod String> methods;
     @Valid
     private List<Upstream> upstreams;

@@ -27,7 +27,7 @@ public class DescriptionKeywordsService {
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
 
     public Collection<String> getAllDescriptionKeywords() {
-        var modelKeywords = modelService.getAllModels().stream()
+        var modelKeywords = modelService.getAll().stream()
                 .map(Model::getTopics)
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)

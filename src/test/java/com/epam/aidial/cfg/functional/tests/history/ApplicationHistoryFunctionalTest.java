@@ -248,6 +248,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
         interceptorDto.setDescription("int description" + suffix);
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         return interceptorDto;
     }
 

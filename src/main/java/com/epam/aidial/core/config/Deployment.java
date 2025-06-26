@@ -51,4 +51,20 @@ public abstract class Deployment extends RoleBasedEntity {
      */
     @JsonAlias({"maxRetryAttempts", "max_retry_attempts"})
     private int maxRetryAttempts = 1;
+
+    /**
+     * The author who has developed that deployment(application/assistant/model)
+     */
+    private String author; // 0.24.0
+
+    @JsonAlias({"createdAt", "created_at"})
+    private Long createdAt; // 0.25.0
+
+    @JsonAlias({"updatedAt", "updated_at"})
+    private Long updatedAt; // 0.25.0
+
+    /**
+     * Dependent deployments
+     */
+    private List<String> dependencies; // 0.27.0
 }

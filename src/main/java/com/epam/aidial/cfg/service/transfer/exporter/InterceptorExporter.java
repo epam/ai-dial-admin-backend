@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,35 +30,45 @@ public class InterceptorExporter {
     protected Map<String, Interceptor> getInterceptors(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.INTERCEPTOR)
-                    ? getInterceptorWithRemovedDependencies().stream()
+                    ? getInterceptorsWithRemovedDependencies(fullExportRequest.getComponentTypes()).stream()
                     .collect(Collectors.toMap(Interceptor::getName, Function.identity()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getInterceptors(selectedItemsExportRequest.getComponents()).stream()
+            return getInterceptorsWithRemovedDependencies(selectedItemsExportRequest.getComponents()).stream()
                     .collect(Collectors.toMap(Interceptor::getName, Function.identity()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
-    private List<Interceptor> getInterceptors(List<ExportConfigComponent> components) {
+    private Collection<Interceptor> getInterceptorsWithRemovedDependencies(Set<ExportConfigComponentType> componentTypes) {
+        return interceptorService.getAll().stream()
+            .map(interceptor -> removeDependency(interceptor, componentTypes))
+            .toList();
+    }
+
+    private List<Interceptor> getInterceptorsWithRemovedDependencies(List<ExportConfigComponent> components) {
         return components.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.INTERCEPTOR)
                 .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
                         (existing, replacement) -> {
                             existing.addDependencies(replacement.getDependencies());
                             return existing;
-                        }
-                ))
+                        }))
                 .values()
                 .stream()
-                .map(component -> interceptorService.get(component.getName()))
+                .map(component -> {
+                    Interceptor interceptor = interceptorService.get(component.getName());
+                    return removeDependency(interceptor, component.getDependencies());
+                })
                 .toList();
     }
 
-    private Collection<Interceptor> getInterceptorWithRemovedDependencies() {
-        return interceptorService.getAll().stream()
-                .peek(interceptor -> interceptor.setEntities(null))
-                .toList();
+    private Interceptor removeDependency(Interceptor interceptor, Set<ExportConfigComponentType> componentTypes) {
+        if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR_RUNNER)) {
+            interceptor.setInterceptorRunner(null);
+        }
+        interceptor.setEntities(null);
+        return interceptor;
     }
 
     protected Collection<ExportComponentInfo> preview(ExportRequest request) {

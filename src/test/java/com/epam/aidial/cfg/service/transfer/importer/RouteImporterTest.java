@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class RouteImporterTest {
@@ -50,12 +49,12 @@ class RouteImporterTest {
         Deployment deployment = new Deployment("routeName");
         route.setDeployment(deployment);
         when(mapper.mapRoute(any(), anyMap())).thenReturn(route);
-        ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true);
+        ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
         Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, true))
                 // then
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Route 'routeName' invalid: must not be empty");
+                .hasMessageContaining("Route 'routeName' invalid: paths must not be empty");
     }
 
     @ParameterizedTest
@@ -70,42 +69,11 @@ class RouteImporterTest {
         route.setDeployment(deployment);
         route.setPaths(paths);
         when(mapper.mapRoute(any(), anyMap())).thenReturn(route);
-        ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true);
+        ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
         Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, false))
                 // then
                 .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @ParameterizedTest
-    @MethodSource("validPaths")
-    void testImport_ValidPaths(List<String> paths) {
-        // given
-        String routeName = "routeName";
-        CoreRoute coreRoute = new CoreRoute();
-        coreRoute.setName(routeName);
-        Route route = new Route();
-        Deployment deployment = new Deployment("routeName");
-        route.setDeployment(deployment);
-        route.setPaths(paths);
-        when(mapper.mapRoute(any(), anyMap())).thenReturn(route);
-        ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true);
-        // when
-        routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, false);
-        // then
-        verify(routeService).create(any());
-    }
-
-    private static Stream<Arguments> validPaths() {
-        return Stream.of(
-                Arguments.of(List.of("/path")),
-                Arguments.of(List.of("/api/v1/items")),
-                Arguments.of(List.of("/path/to/resource")),
-                Arguments.of(List.of("/a/b/c/d/e")),
-                Arguments.of(List.of("/resource_1/another-resource")),
-                Arguments.of(List.of("/user/123")),
-                Arguments.of(List.of("/abc-def_ghi"))
-        );
     }
 
     private static Stream<Arguments> notValidPaths() {
@@ -115,16 +83,7 @@ class RouteImporterTest {
 
         return Stream.of(
                 Arguments.of(pathsWithNull),
-                Arguments.of(List.of()),
-                Arguments.of(List.of("path")),
-                Arguments.of(List.of("//double-slash")),
-                Arguments.of(List.of("/path<>")),
-                Arguments.of(List.of("/path/with<invalid>")),
-                Arguments.of(List.of("/")),
-                Arguments.of(List.of("/with_trailing_space ")),
-                Arguments.of(List.of("/path/with/space in between")),
-                Arguments.of(List.of("/.."))
+                Arguments.of(List.of())
         );
     }
-
 }

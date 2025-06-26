@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.RouteDto;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -53,5 +55,12 @@ public class RouteFacade {
     public RouteDto getSnapshot(String routeName, Integer revision) {
         Route route = routeService.getSnapshot(routeName, revision);
         return mapper.toDto(route);
+    }
+
+    public Collection<RouteDto> getAllAtRevision(Integer revision) {
+        return routeService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

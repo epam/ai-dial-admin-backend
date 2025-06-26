@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.config;
 
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
+import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
 import com.epam.aidial.cfg.configuration.JpaConfiguration;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
@@ -24,6 +25,7 @@ import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.service.export.CoreConfigAggregatorService;
+import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
 import org.mockito.Mockito;
@@ -58,12 +60,14 @@ public class FunctionalTestConfiguration {
     @Bean
     public CoreConfigAggregatorService configAggregatorService(AddonService addonService, ApplicationService applicationService,
                                                                ApplicationTypeSchemaService applicationTypeSchemaService,
-                                                               InterceptorService interceptorService, KeyService keyService,
+                                                               InterceptorService interceptorService,
+                                                               KeyService keyService,
                                                                ModelService modelService, RoleService roleService,
                                                                RouteService routeService, DeploymentService deploymentService,
                                                                AddonCoreMapper addonMapper, ApplicationCoreMapper applicationMapper,
                                                                ApplicationTypeSchemaCoreMapper schemaMapper,
-                                                               InterceptorCoreMapper interceptorMapper, KeyCoreMapper keyMapper,
+                                                               InterceptorCoreMapper interceptorMapper,
+                                                               KeyCoreMapper keyMapper,
                                                                ModelCoreMapper modelMapper, RoleCoreMapper roleMapper,
                                                                RouteCoreMapper routeMapper) {
         return new CoreConfigAggregatorService(addonService, applicationService, applicationTypeSchemaService, interceptorService,
@@ -82,6 +86,18 @@ public class FunctionalTestConfiguration {
         configExportProperties.setExportConfigFileName("aidial.config.json");
         configExportProperties.setExportConfigFileZipName("admin.config.zip");
         return configExportProperties;
+    }
+
+    @Bean
+    public CoreConfigRetriever configSource() {
+        return Mockito.mock(CoreConfigRetriever.class);
+    }
+
+    @Bean
+    public CoreConfigVersionProperties coreConfigVersionProperties() {
+        CoreConfigVersionProperties properties = new CoreConfigVersionProperties();
+        properties.setTarget("latest");
+        return properties;
     }
 
 }

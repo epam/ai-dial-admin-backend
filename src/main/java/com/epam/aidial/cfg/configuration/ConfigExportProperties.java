@@ -18,6 +18,7 @@ public class ConfigExportProperties {
     private KeyVault keyvault;
     private String exportConfigFileName;
     private String exportConfigFileZipName;
+    private String exportRawConfigFileZipName;
 
     @Data
     public static class LocalFileStorage {

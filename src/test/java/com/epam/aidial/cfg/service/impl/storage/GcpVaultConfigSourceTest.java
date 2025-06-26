@@ -1,9 +1,13 @@
 package com.epam.aidial.cfg.service.impl.storage;
 
+import com.epam.aidial.cfg.service.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.gax.httpjson.HttpJsonStatusCode;
+import com.google.api.gax.rpc.NotFoundException;
+import com.google.api.gax.rpc.StatusCode;
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import com.google.cloud.secretmanager.v1.SecretPayload;
@@ -37,15 +41,18 @@ class GcpVaultConfigSourceTest {
     private SecretManagerServiceClient secretClient;
     @Captor
     private ArgumentCaptor<SecretPayload> keyVaultSecretArgumentCaptor;
-    private String projectId = "c";
     private ObjectMapper objectMapper = new ObjectMapper();
     private GcpVaultConfigSource source;
     @Mock
     private ConfigSplitter configSplitter;
+    @Mock
+    private ConfigMerger configMerger;
+    @Mock
+    private VersionAwareFieldFilter versionAwareFieldFilter;
 
     @Test
     void writeConfig_shouldWriteSecret() throws JsonProcessingException, UnsupportedEncodingException {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, List.of("secret1"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -54,6 +61,8 @@ class GcpVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
+
         ByteString body = ByteString.copyFrom("{}", "utf-8");
         SecretPayload payload = SecretPayload.newBuilder().setData(body).build();
         AccessSecretVersionResponse response = AccessSecretVersionResponse.newBuilder().setPayload(payload).build();
@@ -61,7 +70,7 @@ class GcpVaultConfigSourceTest {
         Config secretConfig = new Config();
         secretConfig.setKeys(Map.of("key1", key));
 
-        source.writeConfig(config);
+        source.writeConfig(config, false);
 
         verify(configSplitter, times(0)).splitConfig(any(), any(), anyInt(), eq(1));
         verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret1"), keyVaultSecretArgumentCaptor.capture());
@@ -73,7 +82,7 @@ class GcpVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldWriteWithoutSplit() throws JsonProcessingException, UnsupportedEncodingException {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, List.of("secret1", "secret2"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -81,6 +90,8 @@ class GcpVaultConfigSourceTest {
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
+
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
         ByteString body = ByteString.copyFrom("{}", "utf-8");
         SecretPayload payload = SecretPayload.newBuilder().setData(body).build();
@@ -91,7 +102,7 @@ class GcpVaultConfigSourceTest {
         ConfigPart configPart = new ConfigPart(secretConfig, objectMapper.writeValueAsString(secretConfig));
         when(configSplitter.splitConfig(any(), any(), anyInt(), eq(2))).thenReturn(List.of(configPart));
 
-        source.writeConfig(config);
+        source.writeConfig(config, false);
 
         verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret1"), keyVaultSecretArgumentCaptor.capture());
         verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret2"), keyVaultSecretArgumentCaptor.capture());
@@ -104,7 +115,7 @@ class GcpVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JsonProcessingException {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, List.of("secret1", "secret2"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -113,13 +124,64 @@ class GcpVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
+
         Config secretConfig = new Config();
         secretConfig.setKeys(Map.of("key1", key));
         ConfigPart configPart = new ConfigPart(secretConfig, objectMapper.writeValueAsString(secretConfig));
 
         when(configSplitter.splitConfig(any(), any(), anyInt(), eq(2))).thenReturn(List.of(configPart, emptyConfigPart(), emptyConfigPart()));
 
-        Assertions.assertThrows(Exception.class, () -> source.writeConfig(config));
+        Assertions.assertThrows(Exception.class, () -> source.writeConfig(config, false));
+    }
+
+    @Test
+    void writeConfig_shouldCreateResourceWhenTrue() throws JsonProcessingException {
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+
+        Config config = new Config();
+        CoreKey key = new CoreKey();
+        key.setKey("key");
+        key.setProject("project");
+        key.setRole("role");
+        config.setKeys(Map.of("key1", key));
+
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
+
+        when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
+                .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
+
+        source.writeConfig(config, true);
+
+        verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret1"), keyVaultSecretArgumentCaptor.capture());
+
+        List<SecretPayload> allValues = keyVaultSecretArgumentCaptor.getAllValues();
+        Assertions.assertEquals(1, allValues.size());
+        Assertions.assertEquals(config, objectMapper.readValue(allValues.get(0).getData().toStringUtf8(), Config.class));
+    }
+
+    @Test
+    void writeConfig_shouldThrowExceptionWhenResourceNotFoundAndCreateResourcesFalse() {
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+
+        Config config = new Config();
+        CoreKey key = new CoreKey();
+        key.setKey("key");
+        key.setProject("project");
+        key.setRole("role");
+        config.setKeys(Map.of("key1", key));
+
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
+
+        when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
+                .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
+
+        IllegalStateException exception = Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> source.writeConfig(config, false)
+        );
+
+        Assertions.assertTrue(exception.getMessage().contains("Secret is not found"));
     }
 
     @SneakyThrows

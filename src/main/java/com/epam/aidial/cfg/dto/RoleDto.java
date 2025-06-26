@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -16,6 +15,9 @@ public class RoleDto {
     private String description;
     @Valid
     private Map<@NotBlank(message = "Deployment name is required") String, @Valid LimitDto> limits;
+    @Valid
+    private Map<@NotBlank(message = "Deployment name is required") String, @Valid ShareResourceLimitDto> share;
 
     private List<String> grantedKeys;
+
 }

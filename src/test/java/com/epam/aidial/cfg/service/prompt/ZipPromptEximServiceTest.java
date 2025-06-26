@@ -7,11 +7,12 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.PromptEximDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
+import com.epam.aidial.cfg.model.ImportResourcePreview;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.ImportResourcesPreview;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
-import com.epam.aidial.cfg.service.SimpleCircuitBreaker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
@@ -41,7 +42,6 @@ import static org.mockito.Mockito.when;
         JsonMapperConfiguration.class,
         PromptClientMapperImpl.class,
         FolderUrlMapperImpl.class,
-        SimpleCircuitBreaker.class,
         ZipPromptEximService.class,
 })
 class ZipPromptEximServiceTest {
@@ -305,6 +305,45 @@ class ZipPromptEximServiceTest {
         // Verify that promptEximService was not called
         verifyNoInteractions(promptEximService);
         verifyNoInteractions(promptService);
+    }
+
+    @Test
+    @SneakyThrows
+    void previewImportPromptsFromZip() {
+        // given
+        var importPrompts = ImportResources.builder()
+                .path("public/test/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var prompt = PromptEximDto.builder()
+                .id("prompts/public/PROMPT 1__1.0.0")
+                .description("Test description")
+                .content("Test content")
+                .build();
+
+        var inputStream = getZipInputStream(List.of(
+                Pair.of("prompts/prompt.json", PromptsEximDto.builder()
+                        .prompts(List.of(prompt))
+                        .build())
+        ));
+
+        var mockMultipartFile = new MockMultipartFile("file", inputStream);
+
+        var expectedResult = ImportResourcesPreview.builder()
+                .resourcePreviews(List.of(
+                        ImportResourcePreview.builder()
+                                .name("PROMPT 1")
+                                .version("1.0.0")
+                                .fileName("prompts/prompt.json")
+                                .build()
+                ))
+                .build();
+        // when
+        var actualResult = zipPromptEximService.previewImportPromptsFromZip(importPrompts, mockMultipartFile);
+
+        // then
+        assertThat(actualResult).isEqualTo(expectedResult);
     }
 
     @SneakyThrows

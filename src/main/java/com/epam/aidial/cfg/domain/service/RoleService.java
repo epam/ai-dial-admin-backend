@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RoleEntityMapper;
-import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.validator.RoleValidator;
@@ -38,10 +37,15 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public Role getRole(String roleName) {
+        return tryGetRole(roleName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(roleName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Role> tryGetRole(String roleName) {
         return Optional.ofNullable(roleName)
                 .flatMap(roleJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(roleName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional
@@ -85,6 +89,14 @@ public class RoleService {
     public Role getSnapshot(String roleName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, roleName, RoleEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Role> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, RoleEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     private void assertNotExists(String name) {

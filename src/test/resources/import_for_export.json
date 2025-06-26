@@ -49,7 +49,8 @@
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
-      }
+      },
+      "share": {}
     },
     "default": {
       "description": "test role 1 description",
@@ -60,13 +61,15 @@
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
-      }
+      },
+      "share": {}
     }
   },
   "interceptors": {
     "testInterceptor1": {
       "name": "testInterceptor1",
-      "displayName": "Test Interceptor1"
+      "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor"
     }
   },
   "keys": {

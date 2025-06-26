@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.AddonDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -76,5 +77,10 @@ public class AddonController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public AddonDto getSnapshot(@PathVariable String addonName, @PathVariable Integer revision) {
         return addonFacade.getSnapshot(addonName, revision);
+    }
+
+    @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public Collection<AddonDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+        return addonFacade.getAllAtRevision(revision);
     }
 }

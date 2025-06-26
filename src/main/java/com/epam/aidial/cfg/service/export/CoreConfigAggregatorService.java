@@ -90,7 +90,7 @@ public class CoreConfigAggregatorService {
     }
 
     private Map<String, CoreModel> getModels() {
-        return modelService.getAllModels().stream()
+        return modelService.getAll().stream()
                 .map(modelMapper::mapModel)
                 .collect(Collectors.toMap(RoleBasedEntity::getName, model -> model));
     }

@@ -51,7 +51,7 @@ public class AssistantImporter extends RoleBasedImporter {
                                                                    boolean isPreview) {
         if (coreAssistants != null) {
             AssistantsProperty assistantsProperty = mapper.mapAssistantsProperty(coreAssistants);
-            processAssistantsProperty(assistantsProperty, importOptions.getConflictResolutionPolicy());
+            processAssistantsProperty(assistantsProperty, importOptions.conflictResolutionPolicy());
             Map<String, CoreAssistant> coreAssistantsMap = coreAssistants.getAssistants();
             if (MapUtils.isNotEmpty(coreAssistantsMap)) {
                 Map<String, Assistant> assistants = coreAssistantsMap.entrySet()
@@ -114,7 +114,7 @@ public class AssistantImporter extends RoleBasedImporter {
                     .map(assistantEntry -> {
                                 var assistant = assistantEntry.getValue();
                                 createRoleIfAbsent(importOptions, assistant.getDeployment().getRoleLimits());
-                                var importAction = processAssistant(assistantEntry.getKey(), assistant, importOptions.getConflictResolutionPolicy(), isPreview);
+                                var importAction = processAssistant(assistantEntry.getKey(), assistant, importOptions.conflictResolutionPolicy(), isPreview);
                                 return new ImportComponent<>(importAction, assistant);
                             }
                     )

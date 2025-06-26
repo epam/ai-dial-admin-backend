@@ -35,6 +35,7 @@ public class RoleHistoryRepository extends RevisionRepository {
             Role domain = roleEntityMapper.toDomain(role);
             RoleEntity entity = roleJpaRepository.findById(domain.getName()).orElseGet(RoleEntity::new);
             domain.getLimits().removeIf(roleLimit -> !allDeploymentNames.contains(roleLimit.getDeploymentName()));
+            domain.getShare().removeIf(roleShare -> !allDeploymentNames.contains(roleShare.getDeploymentName()));
             domain.getKeys().removeIf(key -> !allKeys.contains(key));
             RoleEntity roleEntity = roleEntityMapper.toEntity(domain, entity);
             roleJpaRepository.save(roleEntity);

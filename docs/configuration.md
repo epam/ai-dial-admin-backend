@@ -11,6 +11,7 @@ This document provides a comprehensive list of all configurable properties in th
 - [Cloud Provider Configuration](#cloud-provider-configuration)
 - [DIAL Core Configuration](#dial-core-configuration)
 - [OpenTelemetry Configuration](#opentelemetry-configuration)
+- [Actuator Configuration](#actuator-configuration)
 - [Datasource Configuration](#datasource-configuration)
 - [Metrics Configuration](#metrics-configuration)
 - [Logging Configuration](#logging-configuration)
@@ -18,24 +19,24 @@ This document provides a comprehensive list of all configurable properties in th
 
 ## AIDIAL Config File Exporter
 
-| Setting                                  | Environment Variable                     | Default | Description                                                                                                                                 |
-|------------------------------------------|------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| config.export.enabled                    | CONFIG_EXPORT_ENABLED                    | true | Enables or disables DIAL Core configuration file export functionality                                                                       |
-| config.export.syncPeriod                 | CONFIG_EXPORT_SYNCPERIOD                 | 15000 | Interval in milliseconds for DIAL configuration export                                                                                      |
-| config.export.delayConfigReload          | DELAY_CONFIG_RELOAD_MILLISECONDS         | 5000 | Delay in milliseconds before calling the /reload_config endpoint on core after writing to destination storage (e.g., configMap sync period) |
-| config.export.storageType                | CONFIG_EXPORT_STORAGETYPE                | LOCAL_FILE | Type of storage for DIAL configuration export (KUBE_SECRET, CONFIG_MAP, LOCAL_FILE)                                                         |
+| Setting                                  | Environment Variable                     | Default              | Description                                                                                                                                 |
+|------------------------------------------|------------------------------------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| config.export.enabled                    | CONFIG_EXPORT_ENABLED                    | true                 | Enables or disables DIAL Core configuration file export functionality                                                                       |
+| config.version.target                    | CORE_CONFIG_VERSION                      | latest               | Version of DIAL Core configuration used in file export functionality                                                                        |
+| config.export.syncPeriod                 | CONFIG_EXPORT_SYNCPERIOD                 | 15000                | Interval in milliseconds for DIAL configuration export                                                                                      |
+| config.export.delayConfigReload          | DELAY_CONFIG_RELOAD_MILLISECONDS         | 5000                 | Delay in milliseconds before calling the /reload_config endpoint on core after writing to destination storage (e.g., configMap sync period) |
+| config.export.storageType                | CONFIG_EXPORT_STORAGETYPE                | LOCAL_FILE           | Type of storage for DIAL configuration export (KUBE_SECRET, CONFIG_MAP, LOCAL_FILE)                                                         |
 | config.export.outputFile.path            | CONFIG_EXPORT_OUTPUTFILE_PATH            | data/export/out.json | Path for configuration file when using LOCAL_FILE storage type                                                                              |
-| config.export.configMap.name             | CONFIG_EXPORT_CONFIGMAP_NAME             | core-config-git | Name of the ConfigMap used for DIAL configuration export                                                                                    |
-| config.export.configMap.names            | CONFIG_EXPORT_CONFIGMAP_NAMES            | core-config-git | Comma separated names of the ConfigMaps used for DIAL configuration export                                                                  |
-| config.export.configMap.key              | CONFIG_EXPORT_CONFIGMAP_KEY              | env.config.json | Key in ConfigMap used for DIAL configuration export                                                                                         |
-| config.export.kubeSecret.name            | CONFIG_EXPORT_KUBESECRET_NAME            | kubeSecretName | Name of the Kubernetes Secret used for DIAL configuration export                                                                            |
-| config.export.kubeSecret.names           | CONFIG_EXPORT_KUBESECRET_NAMES           | kubeSecretName | Comma separated names of the Kubernetes Secrets used for DIAL configuration export                                                          |
-| config.export.kubeSecret.key             | CONFIG_EXPORT_KUBESECRET_KEY             | kubeSecretKey | Key in Kubernetes Secret used for DIAL configuration export                                                                                 |
-| config.export.keyvault.type              | CONFIG_EXPORT_KEYVAULT_TYPE              | none | Type of keyvault storage for secret values (none, azure, vault, aws, gcp)                                                                   |
-| config.export.keyvault.secretNames       | CONFIG_EXPORT_KEYVAULT_SECRETNAMES       | - | Names of secrets in keyvault (used when keyvault.type is azure, vault, or aws)                                                              |
-| config.export.keyvault.secretPath        | CONFIG_EXPORT_KEYVAULT_SECRETPATH        | - | Path to secrets in keyvault (used when keyvault.type is vault)                                                                              |
-| config.export.keyvault.expiration.period | CONFIG_EXPORT_KEYVAULT_EXPIRATION_PERIOD | 3 | Expiration period for keyvault values                                                                                                       |
-| config.export.keyvault.expiration.unit   | CONFIG_EXPORT_KEYVAULT_EXPIRATION_UNIT   | MONTHS | Unit of time for keyvault value expiration                                                                                                  |
+| config.export.configMap.names            | CONFIG_EXPORT_CONFIGMAP_NAMES            | core-config-git      | Comma separated names of the ConfigMaps used for DIAL configuration export                                                                  |
+| config.export.configMap.key              | CONFIG_EXPORT_CONFIGMAP_KEY              | env.config.json      | Key in ConfigMap used for DIAL configuration export                                                                                         |                                                                          
+| config.export.kubeSecret.names           | CONFIG_EXPORT_KUBESECRET_NAMES           | kube-secret-name       | Comma separated names of the Kubernetes Secrets used for DIAL configuration export                                                          |
+| config.export.kubeSecret.key             | CONFIG_EXPORT_KUBESECRET_KEY             | kube-secret-key        | Key in Kubernetes Secret used for DIAL configuration export                                                                                 |
+| config.export.keyvault.type              | CONFIG_EXPORT_KEYVAULT_TYPE              | none                 | Type of keyvault storage for secret values (none, azure, vault, aws, gcp)                                                                   |
+| config.export.keyvault.secretNames       | CONFIG_EXPORT_KEYVAULT_SECRETNAMES       | -                    | Names of secrets in keyvault (used when keyvault.type is azure, vault, or aws)                                                              |
+| config.export.keyvault.secretPath        | CONFIG_EXPORT_KEYVAULT_SECRETPATH        | -                    | Path to secrets in keyvault (used when keyvault.type is vault)                                                                              |
+| config.export.keyvault.expiration.period | CONFIG_EXPORT_KEYVAULT_EXPIRATION_PERIOD | 3                    | Expiration period for keyvault values                                                                                                       |
+| config.export.keyvault.expiration.unit   | CONFIG_EXPORT_KEYVAULT_EXPIRATION_UNIT   | MONTHS               | Unit of time for keyvault value expiration                                                                                                  |
+| config.export.createResources            | CONFIG_EXPORT_CREATE_RESOURCES           | false                | If true, create resources where config is exported if they don't already exist                                                              |
 
 ## Kubernetes Configuration
 config.export.storageType=CONFIG_MAP|KUBE_SECRET
@@ -66,17 +67,18 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 ## Security Configuration
 
-| Setting | Environment Variable | Default | Description |
-|---------|---------------------|---------|-------------|
-| config.rest.security.mode | CONFIG_REST_SECURITY_MODE | oidc | Authentication mode (oidc, basic, or none) |
-| config.rest.security.allowedRoles | SECURITY_ALLOWED_ROLES | ConfigAdmin,admin | Comma-separated list of roles with access permissions |
-| config.rest.security.principal-claim | SECURITY_USER_CLAIM | oid | JWT claim name for user identification |
-| config.rest.security.roles-claim | SECURITY_ROLES_CLAIM | roles | JWT claim name for user roles |
-| config.rest.security.jwk-key-uris | SECURITY_JWT_JWKS_URI | https://login.microsoftonline.com/common/discovery/v2.0/keys | URI for JSON Web Key Set |
-| config.rest.security.accepted-issuers | SECURITY_JWT_ACCEPTED_ISSUERS | - | List of accepted JWT token issuers |
-| config.rest.security.accepted-issuers-aliases | SECURITY_JWT_ACCEPTED_ISSUERS_ALIAS | - | Aliases for accepted JWT token issuers |
-| config.rest.security.accepted-audiences | SECURITY_JWT_ACCEPTED_AUDIENCES | - | List of accepted JWT token audiences |
-| config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false | Disable authorization for Swagger UI |
+| Setting | Environment Variable | Default | Description                                                                                 |
+|---------|---------------------|---------|---------------------------------------------------------------------------------------------|
+| config.rest.security.mode | CONFIG_REST_SECURITY_MODE | oidc | Authentication mode (oidc, basic, or none)                                                  |
+| config.rest.security.allowedRoles | SECURITY_ALLOWED_ROLES | ConfigAdmin,admin | Comma-separated list of roles with access permissions                                       |
+| config.rest.security.principal-claim | SECURITY_USER_CLAIM | oid | JWT claim name for user identification                                                      |
+| config.rest.security.roles-claim | SECURITY_ROLES_CLAIM | roles | JWT claim name for user roles                                                               |
+| config.rest.security.jwk-key-uris | SECURITY_JWT_JWKS_URI | https://login.microsoftonline.com/common/discovery/v2.0/keys | URI for JSON Web Key Set                                                                    |
+| config.rest.security.accepted-issuers | SECURITY_JWT_ACCEPTED_ISSUERS | - | List of accepted JWT token issuers                                                          |
+| config.rest.security.accepted-issuers-aliases | SECURITY_JWT_ACCEPTED_ISSUERS_ALIAS | - | Aliases for accepted JWT token issuers                                                      |
+| config.rest.security.accepted-audiences | DIAL_ADMIN_CLIENT_ID | - | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
+| config.rest.security.accepted-audiences | SECURITY_JWT_ACCEPTED_AUDIENCES | - | List of additional accepted JWT token audiences                                             |
+| config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false | Disable authorization for Swagger UI                                                        |
 
 ## Cloud Provider Configuration
 
@@ -85,7 +87,7 @@ config.export.keyvault.type=azure
 
 | Setting | Environment Variable | Default | Description |
 |---------|---------------------|---------|-------------|
-| azure.auth.type | AUTH_AZURE_TYPE | none | Azure authentication method |
+| azure.auth.type | AUTH_AZURE_TYPE | none | Azure authentication method (values: credential,cli,managed) |
 | azure.auth.clientId | AUTH_AZURE_CLIENT_ID | - | Azure service principal client ID |
 | azure.auth.tenantId | AUTH_AZURE_TENANT_ID | - | Azure tenant ID |
 | azure.auth.clientSecret | AUTH_AZURE_CLIENT_SECRET | - | Azure service principal client secret |
@@ -98,6 +100,22 @@ config.export.keyvault.type=gcp
 |---------|---------------------|---------|-------------|
 | gcp.keyvault.projectId | GCP_KEY_VAULT_PROJECT_ID | - | Google Cloud Platform project ID |
 
+### AWS Configuration
+config.export.keyvault.type=aws
+
+| Setting | Environment Variable | Default | Description |
+|---------|---------------------|---------|-------------|
+
+AWS Secrets Manager will be used for AWS services auth
+
+### Hashivault (on premise server)
+config.export.keyvault.type=vault
+
+| Setting | Environment Variable | Default | Description |
+|---------|---------------------|---------|-------------|
+| vault.uri | VAULT_URI          |         | URL of the hashivault |
+| vault.token | VAULT_TOKEN     |         | hashivault access token |
+
 ## DIAL Core Configuration
 
 | Setting | Environment Variable | Default | Description |
@@ -106,25 +124,22 @@ config.export.keyvault.type=gcp
 
 ## OpenTelemetry Configuration
 
-| Setting                             | Environment Variable                | Default               | Description                               |
-|-------------------------------------|-------------------------------------|-----------------------|-------------------------------------------|
-| otel.sdk.disabled                   | OTEL_SDK_DISABLED                   | true                  | Disable OpenTelemetry SDK                 |
-| otel.exporter.otlp.endpoint         | OTEL_EXPORTER_OTLP_ENDPOINT         | http://localhost:4317 | OpenTelemetry collector endpoint          |
-| otel.exporter.otlp.protocol         | OTEL_EXPORTER_OTLP_PROTOCOL         | grpc                  | Protocol for OpenTelemetry data export    |
-| otel.exporter.otlp.traces.endpoint  | OTEL_EXPORTER_OTLP_TRACES_ENDPOINT  | http://localhost:4317 | OpenTelemetry traces collector endpoint   |
-| otel.exporter.otlp.traces.protocol  | OTEL_EXPORTER_OTLP_TRACES_PROTOCOL  | grpc                  | Protocol for OpenTelemetry traces export  |
-| otel.exporter.otlp.metrics.endpoint | OTEL_EXPORTER_OTLP_METRICS_ENDPOINT | http://localhost:4317 | OpenTelemetry metrics collector endpoint  |
-| otel.exporter.otlp.metrics.protocol | OTEL_EXPORTER_OTLP_METRICS_PROTOCOL | grpc                  | Protocol for OpenTelemetry metrics export |
-| otel.logs.exporter                  | OTEL_LOGS_EXPORTER                  | otlp                  | Exporter for application logs             |
-| otel.traces.exporter                | OTEL_TRACES_EXPORTER                | otlp                  | Exporter for distributed traces           |
-| otel.metrics.exporter               | OTEL_METRICS_EXPORTER               | otlp                  | Exporter for application metrics          |
-| otel.resource.attributes            | OTEL_RESOURCE_ATTRIBUTES            |                       | Key-value pairs to be used as resource attributes          |
+| Setting                             | Environment Variable        | Default               | Description                                       |
+|-------------------------------------|-----------------------------|-----------------------|---------------------------------------------------|
+| otel.sdk.disabled                   | OTEL_SDK_DISABLED           | true                  | Disable OpenTelemetry SDK                         |
+| otel.service.name                   | OTEL_SERVICE_NAME           | dial-admin-backend    | Service name                                      |
+| otel.exporter.otlp.endpoint         | OTEL_EXPORTER_OTLP_ENDPOINT | http://localhost:4317 | OpenTelemetry collector endpoint                  |
+| otel.exporter.otlp.protocol         | OTEL_EXPORTER_OTLP_PROTOCOL | grpc                  | Protocol for OpenTelemetry data export            |
+| otel.logs.exporter                  | OTEL_LOGS_EXPORTER          | otlp                  | Exporter for application logs                     |
+| otel.traces.exporter                | OTEL_TRACES_EXPORTER        | otlp                  | Exporter for distributed traces                   |
+| otel.metrics.exporter               | OTEL_METRICS_EXPORTER       | otlp                  | Exporter for application metrics                  |
+| otel.resource.attributes            | OTEL_RESOURCE_ATTRIBUTES    |                       | Key-value pairs to be used as resource attributes |
 
 ## Actuator Configuration
 
 | Setting | Environment Variable | Default | Description                  |
 |---------|---------------------|---------|------------------------------|
-| management.endpoints.web.exposure.include | MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE | prometheus | Actuator endpoints to expose |
+| management.endpoints.web.exposure.include | MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE | prometheus,health | Actuator endpoints to expose |
 | management.endpoint.health.show-details | MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS | always | Show health information      |
 | management.server.port | MANAGEMENT_SERVER_PORT | 9464 | Actuator endpoints port      |
 
@@ -191,4 +206,17 @@ When using MS_SQL_SERVER we recommend to set case-sensitive, accept-sensitive da
 | feign.retry.maxAttempts | FEIGN_RETRY_MAXATTEMPTS | 3 | Maximum number of retry attempts |
 | feign.retry.errorCodes | FEIGN_RETRY_ERRORCODES | 408,429,500,502,503,504 | HTTP status codes that trigger retries |
 | prompts.import.consecutiveErrorsThreshold | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2 | Maximum number of consecutive errors allowed during prompts import |
+| files.import.consecutiveErrorsThreshold   | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2 | Maximum number of consecutive errors allowed during files import   |
 
+## Export/Import Configuration
+
+| Setting | Environment Variable | Default | Description |
+|---------|---------------------|---------|-------------|
+| config.import.configsMaxCount | IMPORT_CONFIGS_MAX_COUNT | 64 | Maximum number of files allowed for a single import config operation |
+
+## Additional Entities Configuration
+*(Temporary configuration - will be implemented as managed entities inside admin app)*
+
+| Setting | Environment Variable | Default | Description |
+|---------|---------------------|---------|-------------|
+| config.env.tokenizers.json | CONFIG_ENV_TOKENIZERS_JSON | - | Preconfigured DIAL tokenizers list in JSON format |

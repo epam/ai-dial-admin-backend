@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -78,5 +78,10 @@ public class InterceptorController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public InterceptorDto getSnapshot(@PathVariable String interceptorName, @PathVariable Integer revision) {
         return interceptorFacade.getSnapshot(interceptorName, revision);
+    }
+
+    @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public Collection<InterceptorDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+        return interceptorFacade.getAllAtRevision(revision);
     }
 }

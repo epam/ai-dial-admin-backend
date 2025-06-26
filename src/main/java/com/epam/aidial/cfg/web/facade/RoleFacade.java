@@ -53,4 +53,11 @@ public class RoleFacade {
         Role role = roleService.getSnapshot(roleName, revision);
         return mapper.toDto(role);
     }
+
+    public Collection<RoleDto> getAllAtRevision(Integer revision) {
+        return roleService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

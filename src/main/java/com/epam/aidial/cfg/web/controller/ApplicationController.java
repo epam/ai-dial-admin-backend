@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -74,5 +75,10 @@ public class ApplicationController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ApplicationDto getSnapshot(@PathVariable String applicationName, @PathVariable Integer revision) {
         return applicationFacade.getSnapshot(applicationName, revision);
+    }
+
+    @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public Collection<ApplicationDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+        return applicationFacade.getAllAtRevision(revision);
     }
 }

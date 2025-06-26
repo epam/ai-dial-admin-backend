@@ -9,6 +9,8 @@ public enum ExportConfigComponentType {
     ROLE,
     KEY,
     INTERCEPTOR,
-    APPLICATION_TYPE_SCHEMA
+    INTERCEPTOR_RUNNER,
+    APPLICATION_TYPE_SCHEMA,
+    ADAPTER
 
 }

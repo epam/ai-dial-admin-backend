@@ -82,4 +82,9 @@ public class RoleController {
     public RoleDto getSnapshot(@PathVariable String roleName, @PathVariable Integer revision) {
         return roleFacade.getSnapshot(roleName, revision);
     }
+
+    @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public Collection<RoleDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+        return roleFacade.getAllAtRevision(revision);
+    }
 }

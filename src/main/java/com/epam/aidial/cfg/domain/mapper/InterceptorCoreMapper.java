@@ -21,6 +21,7 @@ public interface InterceptorCoreMapper {
     CoreInterceptor mapInterceptor(Interceptor interceptor);
 
     @Mapping(target = "entities", ignore = true)
+    @Mapping(target = "interceptorRunner", ignore = true)
     Interceptor mapInterceptor(CoreInterceptor interceptor);
 
 }

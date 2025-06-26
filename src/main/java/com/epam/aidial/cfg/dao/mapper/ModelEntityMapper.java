@@ -1,10 +1,13 @@
 package com.epam.aidial.cfg.dao.mapper;
 
+import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
+import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -19,10 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, PropertiesEntityMapper.class, UpstreamEntityMapper.class})
+@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, MapPropertiesMapper.class,
+        UpstreamEntityMapper.class, PropertiesEntityMapper.class, AdapterEntityMapper.class})
 public abstract class ModelEntityMapper {
 
     @Autowired
@@ -30,6 +35,8 @@ public abstract class ModelEntityMapper {
 
     @Autowired
     private InterceptorJpaRepository interceptorJpaRepository;
+    @Autowired
+    private AdapterJpaRepository adapterJpaRepository;
 
     public abstract Model toDomain(ModelEntity entity);
 
@@ -45,6 +52,8 @@ public abstract class ModelEntityMapper {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
+        AdapterEntity adapterEntity = findAdapter(domain.getAdapter());
+
         ModelEntity updatedEntity = update(domain, entity);
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getModels().remove(updatedEntity));
@@ -53,12 +62,23 @@ public abstract class ModelEntityMapper {
         updatedEntity.getInterceptors().addAll(interceptors);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
+
+        AdapterEntity currentAdapter = updatedEntity.getAdapter();
+        if (currentAdapter != null) {
+            currentAdapter.getModels().remove(updatedEntity);
+        }
+        if (adapterEntity != null) {
+            adapterEntity.getModels().add(updatedEntity);
+        }
+        updatedEntity.setAdapter(adapterEntity);
+
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.MODEL);
         return updatedEntity;
     }
 
     @Mapping(target = "deploymentName", ignore = true)
     @Mapping(target = "interceptors", ignore = true)
+    @Mapping(target = "adapter", ignore = true)
     public abstract ModelEntity update(Model domain, @MappingTarget ModelEntity entity);
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
@@ -75,6 +95,13 @@ public abstract class ModelEntityMapper {
         }
 
         return interceptors;
+    }
+
+    private AdapterEntity findAdapter(Adapter domain) {
+        return Optional.ofNullable(domain)
+                .map(adapter -> adapterJpaRepository.findById(adapter.getName())
+                        .orElseThrow(() -> new EntityNotFoundException("Unable to find adapter: " + adapter)))
+                .orElse(null);
     }
 
 }

@@ -6,12 +6,14 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -51,5 +53,12 @@ public class ApplicationFacade {
     public ApplicationDto getSnapshot(String applicationName, Integer revision) {
         Application application = applicationService.getSnapshot(applicationName, revision);
         return mapper.toDto(application);
+    }
+
+    public Collection<ApplicationDto> getAllAtRevision(Integer revision) {
+        return applicationService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

@@ -2,9 +2,9 @@ package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.AdapterDto;
-import com.epam.aidial.cfg.service.AdapterService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.AdaptersController;
+import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -31,14 +31,14 @@ class AdaptersControllerTest extends AbstractControllerNoneSecureTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private AdapterService adapterService;
+    private AdapterFacade adapterFacade;
 
     @Test
     void testGetAllAdapters() throws Exception {
         var dtosJson = ResourceUtils.readResource("/adapter_dtos.json");
         var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<AdapterDto>>() {});
 
-        when(adapterService.getAllAdapters()).thenReturn(dtos);
+        when(adapterFacade.getAllAdapters()).thenReturn(dtos);
 
         mockMvc.perform(get("/api/v1/adapters"))
                 .andExpect(status().isOk())

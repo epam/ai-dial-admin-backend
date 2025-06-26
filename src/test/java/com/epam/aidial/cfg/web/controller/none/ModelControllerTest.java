@@ -47,7 +47,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<ModelDto>>() {
         });
 
-        when(modelFacade.getAllModels()).thenReturn(dtos);
+        when(modelFacade.getAll()).thenReturn(dtos);
 
         mockMvc.perform(get("/api/v1/models"))
                 .andExpect(status().isOk())

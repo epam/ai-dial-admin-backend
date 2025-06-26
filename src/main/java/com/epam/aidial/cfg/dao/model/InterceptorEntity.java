@@ -1,10 +1,12 @@
 package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,6 +30,16 @@ public class InterceptorEntity extends AbstractEntity<String> {
     private String description;
     private String displayName;
     private Boolean forwardAuthToken;
+    private String author;
+    private Long createdAt;
+    private Long updatedAt;
+    private List<String> dependencies;
+    private String configurationEndpoint;
+
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "interceptor_runner_name")
+    private InterceptorRunnerEntity interceptorRunner;
 
     @ToString.Exclude
     @ManyToMany

@@ -36,6 +36,21 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypeCompletionEndpoint")
     private String applicationTypeCompletionEndpoint = "https://app_hostname/openai/deployments/app_name/chat/completions";
 
+    @JsonProperty("dial:applicationTypeConfigurationEndpoint")
+    private String applicationTypeConfigurationEndpoint;
+
+    @JsonProperty("dial:applicationTypeRateEndpoint")
+    private String applicationTypeRateEndpoint;
+
+    @JsonProperty("dial:applicationTypeTokenizeEndpoint")
+    private String applicationTypeTokenizeEndpoint;
+
+    @JsonProperty("dial:applicationTypeTruncatePromptEndpoint")
+    private String applicationTypeTruncatePromptEndpoint;
+
+    @JsonProperty("dial:appendApplicationPropertiesHeader")
+    private Boolean appendApplicationPropertiesHeader;
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)

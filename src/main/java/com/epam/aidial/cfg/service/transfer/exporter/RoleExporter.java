@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -82,13 +83,27 @@ public class RoleExporter {
 
     private Role removeDependency(Role role, Set<String> allEntities) {
         role.setKeys(null);
+
+        if (CollectionUtils.isEmpty(allEntities)) {
+            return role;
+        }
+
         List<RoleLimit> limits = role.getLimits();
-        if (CollectionUtils.isNotEmpty(limits) && CollectionUtils.isNotEmpty(allEntities)) {
+        if (CollectionUtils.isNotEmpty(limits)) {
             List<RoleLimit> filteredLimits = role.getLimits().stream()
                     .filter(limit -> allEntities.contains(limit.getDeploymentName()))
                     .collect(Collectors.toList());
             role.setLimits(filteredLimits);
         }
+
+        List<RoleShareResourceLimit> shareResourceLimits = role.getShare();
+        if (CollectionUtils.isNotEmpty(shareResourceLimits)) {
+            List<RoleShareResourceLimit> filteredShareResourceLimits = role.getShare().stream()
+                    .filter(shareLimit -> allEntities.contains(shareLimit.getDeploymentName()))
+                    .collect(Collectors.toList());
+            role.setShare(filteredShareResourceLimits);
+        }
+
         return role;
     }
 

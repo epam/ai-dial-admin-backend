@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -27,6 +29,8 @@ public abstract class ModelFunctionalTest {
     private InterceptorFacade interceptorFacade;
     @Autowired
     private ModelFacade modelFacade;
+    @Autowired
+    private AdapterFacade adapterFacade;
 
     private void initRoles() {
         RoleDto role1 = new RoleDto();
@@ -47,17 +51,17 @@ public abstract class ModelFunctionalTest {
     public void shouldSuccessfullyCreateAndGetModels() {
         initRoles();
 
-        ModelDto modelDto = createDto("1");
+        ModelDto modelDto = createDtoWithDefaults("1");
 
         modelFacade.createModel(modelDto);
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
 
-        assertModel(actual, expectedDto1());
+        assertModel(actual, expectedDto1WithDefaults());
 
         modelFacade.createModel(createDto("2"));
 
-        Collection<ModelDto> actualModels = modelFacade.getAllModels();
+        Collection<ModelDto> actualModels = modelFacade.getAll();
 
         assertModels(actualModels, expectedDtos());
     }
@@ -72,16 +76,20 @@ public abstract class ModelFunctionalTest {
         modelFacade.deleteModel(modelDto.getName());
 
         Assertions.assertThrows(EntityNotFoundException.class, () -> modelFacade.getModel(modelDto.getName()));
-        Assertions.assertTrue(modelFacade.getAllModels().isEmpty());
+        Assertions.assertTrue(modelFacade.getAll().isEmpty());
     }
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateModel() {
         initRoles();
+        createAdapter(1);
+        createAdapter(2);
 
         ModelDto modelDto = createDto("1");
+        modelDto.setAdapter("adapter1");
         modelFacade.createModel(modelDto);
         ModelDto updatedModel = createDto("1");
+        updatedModel.setAdapter("adapter2");
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
 
@@ -93,6 +101,8 @@ public abstract class ModelFunctionalTest {
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
+        expected.setAdapter("adapter2");
+        expected.setEndpoint("http://adapter.endpoint2/model1/chat/completions");
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
         assertModel(actual, expected);
@@ -100,14 +110,16 @@ public abstract class ModelFunctionalTest {
         updatedModel.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         modelFacade.updateModel(modelDto.getName(), updatedModel);
         actual = modelFacade.getModel(modelDto.getName());
-        assertModel(actual, updatedModel);
+        expected.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
+        assertModel(actual, expected);
 
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
         modelFacade.updateModel(modelDto.getName(), updatedModel);
         actual = modelFacade.getModel(modelDto.getName());
-        assertModel(actual, updatedModel);
+        expected.setRoleLimits(Map.of("role3", limitDto));
+        assertModel(actual, expected);
 
         roleFacade.deleteRole("role3");
 
@@ -138,6 +150,7 @@ public abstract class ModelFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("int1");
         interceptorDto.setDescription("int1_dsc");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         interceptorFacade.createInterceptor(interceptorDto);
 
         ModelDto modelDto = createDto("1");
@@ -161,6 +174,7 @@ public abstract class ModelFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("int1");
         interceptorDto.setDescription("int1_dsc");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         interceptorFacade.createInterceptor(interceptorDto);
 
         ModelDto modelDto = createDto("1");
@@ -243,6 +257,12 @@ public abstract class ModelFunctionalTest {
         return modelDto;
     }
 
+    private ModelDto expectedDto1WithDefaults() {
+        ModelDto modelDto = expectedDto1();
+        modelDto.setDefaults(Map.of("max_tokens", 8000));
+        return modelDto;
+    }
+
     private Collection<ModelDto> expectedDtos() {
         ModelDto modelDto1 = new ModelDto();
         modelDto1.setName("model1");
@@ -251,7 +271,7 @@ public abstract class ModelFunctionalTest {
                 "role1", new LimitDto()
         ));
         modelDto1.setDefaultRoleLimit(new LimitDto());
-        modelDto1.setDefaults(Map.of());
+        modelDto1.setDefaults(Map.of("max_tokens", 8000));
 
         ModelDto modelDto2 = new ModelDto();
         modelDto2.setName("model2");
@@ -272,6 +292,19 @@ public abstract class ModelFunctionalTest {
         modelDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
+        return modelDto;
+    }
+
+    private void createAdapter(int i) {
+        AdapterDto adapterDto = new AdapterDto();
+        adapterDto.setName("adapter" + i);
+        adapterDto.setBaseEndpoint("http://adapter.endpoint" + i);
+        adapterFacade.createAdapter(adapterDto);
+    }
+
+    private ModelDto createDtoWithDefaults(String suffix) {
+        ModelDto modelDto = createDto(suffix);
+        modelDto.setDefaults(Map.of("max_tokens", 8000));
         return modelDto;
     }
 }

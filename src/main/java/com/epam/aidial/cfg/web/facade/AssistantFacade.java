@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.domain.service.AssistantService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.mapper.AssistantDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,13 @@ public class AssistantFacade {
     public AssistantDto getSnapshot(String assistantName, Integer revision) {
         Assistant assistant = assistantService.getSnapshot(assistantName, revision);
         return mapper.toDto(assistant);
+    }
+
+    public Collection<AssistantDto> getAllAtRevision(Integer revision) {
+        return assistantService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 
     private Assistant mapToAssistant(AssistantDto assistantDto) {

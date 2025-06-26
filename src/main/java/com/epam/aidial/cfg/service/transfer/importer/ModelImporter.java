@@ -2,11 +2,14 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
+import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreModel;
@@ -30,12 +33,16 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 public class ModelImporter extends RoleBasedImporter {
 
     private final ModelService modelService;
+    private final AdapterService adapterService;
     private final ModelCoreMapper modelMapper;
+    private final ModelEndpointUtils modelEndpointUtils;
 
-    public ModelImporter(RoleService roleService, ModelService modelService, ModelCoreMapper modelMapper) {
+    public ModelImporter(RoleService roleService, ModelService modelService, AdapterService adapterService, ModelCoreMapper modelMapper, ModelEndpointUtils modelEndpointUtils) {
         super(roleService);
         this.modelService = modelService;
+        this.adapterService = adapterService;
         this.modelMapper = modelMapper;
+        this.modelEndpointUtils = modelEndpointUtils;
     }
 
     public Collection<ImportComponent<Model>> importModels(Map<String, CoreModel> coreModels,
@@ -59,7 +66,7 @@ public class ModelImporter extends RoleBasedImporter {
                     .map(modelEntry -> {
                                 var model = modelEntry.getValue();
                                 createRoleIfAbsent(importOptions, model.getDeployment().getRoleLimits());
-                                var importAction = processModel(modelEntry.getKey(), model, importOptions.getConflictResolutionPolicy(), isPreview);
+                                var importAction = processModel(modelEntry.getKey(), model, importOptions.conflictResolutionPolicy(), isPreview);
                                 return new ImportComponent<>(importAction, model);
                             }
                     )
@@ -107,7 +114,16 @@ public class ModelImporter extends RoleBasedImporter {
 
     private Model map(String modelName, CoreModel model, Map<String, CoreRole> roles) {
         model.setName(modelName);
-        return modelMapper.mapModel(model, roles);
+        Adapter adapter = getAdapterByEndpoint(model);
+        return modelMapper.mapModel(model, roles, adapter);
+    }
+
+    private Adapter getAdapterByEndpoint(CoreModel coreModel) {
+        if (coreModel == null || coreModel.getEndpoint() == null) {
+            return null;
+        }
+        String adapterEndpoint = modelEndpointUtils.extractAdapterEndpoint(coreModel.getEndpoint(), coreModel.getName(), coreModel.getType());
+        return adapterService.getByEndpoint(adapterEndpoint);
     }
 
 }

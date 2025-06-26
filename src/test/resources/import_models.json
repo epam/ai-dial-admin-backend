@@ -24,9 +24,9 @@
     "testRole1": {
       "description": "test role 1 description",
       "limits": {
-        "testModel1": {},
-        "testModel2": {}
-      }
+        "testModel1": {}
+      },
+      "share": {}
     }
   },
   "addons": {},

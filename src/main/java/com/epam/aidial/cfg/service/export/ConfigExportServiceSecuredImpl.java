@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.service.export;
 
 import com.epam.aidial.cfg.service.impl.storage.ConfigSource;
+import com.epam.aidial.cfg.service.impl.storage.ConfigUtils;
+import com.epam.aidial.cfg.service.transfer.ConfigTransferLock;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreUpstream;
@@ -19,26 +21,15 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
 
     private final ConfigSource configSource;
     private final ConfigSource securedConfigSource;
+    private final ConfigTransferLock configTransferLock;
 
     @Override
-    public void export(Config config) {
+    public void export(Config config, boolean createResources) {
         Config secretConfig = secretConfig(config);
-        removeSecrets(config);
-        configSource.writeConfig(config);
-        securedConfigSource.writeConfig(secretConfig);
-    }
-
-    private void removeSecrets(Config config) {
-        config.setKeys(Map.of());
-        config.getModels().forEach((key, model) -> {
-            if (model.getUpstreams() == null) {
-                return;
-            }
-            List<CoreUpstream> upstreams = model.getUpstreams()
-                    .stream()
-                    .filter(upstream -> upstream.getKey() == null)
-                    .collect(Collectors.toList());
-            model.setUpstreams(upstreams);
+        ConfigUtils.removeSecrets(config);
+        configTransferLock.withWriteLock(() -> {
+            configSource.writeConfig(config, createResources);
+            securedConfigSource.writeConfig(secretConfig, createResources);
         });
     }
 

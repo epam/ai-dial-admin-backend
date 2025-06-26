@@ -107,7 +107,7 @@ public abstract class ModelHistoryFunctionalTest {
 
         Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
 
-        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAllModels();
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
         Assertions.assertEquals(List.of(actualAtRevision), modelsAfterRollbackToRevision);
     }
 
@@ -124,7 +124,7 @@ public abstract class ModelHistoryFunctionalTest {
         modelFacade.createModel(modelDto);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
-        var actualAtRevision = modelFacade.getAllModels();
+        var actualAtRevision = modelFacade.getAll();
 
         // create interceptor1
         InterceptorDto interceptor2 = createInterceptor("2");
@@ -140,7 +140,7 @@ public abstract class ModelHistoryFunctionalTest {
 
         Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
 
-        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAllModels();
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
         Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
     }
 
@@ -157,7 +157,7 @@ public abstract class ModelHistoryFunctionalTest {
         modelFacade.createModel(modelDto);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
-        var actualAtRevision = modelFacade.getAllModels();
+        var actualAtRevision = modelFacade.getAll();
 
         modelDto.setDescription("new description");
         modelFacade.updateModel(modelDto.getName(), modelDto);
@@ -170,7 +170,7 @@ public abstract class ModelHistoryFunctionalTest {
 
         Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
 
-        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAllModels();
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
         Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
     }
 
@@ -178,6 +178,7 @@ public abstract class ModelHistoryFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
         interceptorDto.setDescription("int description" + suffix);
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         return interceptorDto;
     }
 

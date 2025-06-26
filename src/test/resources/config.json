@@ -54,7 +54,8 @@
         "testApplication2": {},
         "testInterceptor1": {},
         "testAssistant1": {}
-      }
+      },
+      "share": {}
     }
   },
   "addons": {
@@ -74,6 +75,7 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor",
       "userRoles": [
         "testRole1"
       ]

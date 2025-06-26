@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.ConversationClient;
 import com.epam.aidial.cfg.client.dto.ConversationMetadataDto;
 import com.epam.aidial.cfg.client.mapper.ConversationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import feign.FeignException;
@@ -31,6 +32,12 @@ public class ConversationService implements ResourceService {
 
     public ConversationMetadataDto getMetadata(ResourceMetadataRequest request) {
         return conversationClient.getConversationMetadata(request.getPath(), request.isRecursive(), request.getNextToken());
+    }
+
+    public Conversation getConversation(String path) {
+        var conversationDto = conversationClient.getConversation(path);
+        var conversationMetadataDto = conversationClient.getConversationMetadata(path, false, null);
+        return mapper.toConversation(conversationDto, conversationMetadataDto);
     }
 
 }

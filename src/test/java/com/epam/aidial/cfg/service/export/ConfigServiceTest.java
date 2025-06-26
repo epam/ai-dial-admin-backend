@@ -14,11 +14,13 @@ import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,6 +44,7 @@ import static org.mockito.Mockito.when;
         ConfigServiceTest.ComponentScanConfig.class,
         CoreConfigAggregatorService.class,
         JsonMapperConfiguration.class,
+        ModelEndpointUtils.class
 })
 class ConfigServiceTest {
 
@@ -59,6 +62,8 @@ class ConfigServiceTest {
     private ApplicationTypeSchemaService applicationTypeSchemaService;
     @MockitoBean
     private InterceptorService interceptorService;
+    @MockitoBean
+    private InterceptorRunnerService interceptorRunnerService;
     @MockitoBean
     private KeyService keyService;
     @MockitoBean
@@ -83,7 +88,7 @@ class ConfigServiceTest {
         when(applicationTypeSchemaService.getAll()).thenReturn(List.of());
         when(interceptorService.getAll()).thenReturn(List.of());
         when(keyService.getAllKeys()).thenReturn(List.of());
-        when(modelService.getAllModels()).thenReturn(List.of());
+        when(modelService.getAll()).thenReturn(List.of());
         when(roleService.getAllRoles()).thenReturn(List.of());
         when(routeService.getAll()).thenReturn(List.of());
     }
@@ -163,7 +168,7 @@ class ConfigServiceTest {
         var rawModels = ResourceUtils.readResource("/domain/model/models.json");
         var models = objectMapper.readValue(rawModels, new TypeReference<List<Model>>() {
         });
-        when(modelService.getAllModels()).thenReturn(models);
+        when(modelService.getAll()).thenReturn(models);
 
         var actualConfig = configService.getConfig();
 
@@ -177,7 +182,7 @@ class ConfigServiceTest {
         var rawModels = ResourceUtils.readResource("/domain/model/models_public.json");
         var models = objectMapper.readValue(rawModels, new TypeReference<List<Model>>() {
         });
-        when(modelService.getAllModels()).thenReturn(models);
+        when(modelService.getAll()).thenReturn(models);
 
         var actualConfig = configService.getConfig();
 

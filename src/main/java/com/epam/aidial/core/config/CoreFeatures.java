@@ -40,4 +40,15 @@ public class CoreFeatures {
     private Boolean temperatureSupported;
     @JsonAlias({"addonsSupported", "addons_supported"})
     private Boolean addonsSupported;
+
+    @JsonAlias({"cacheSupported", "cache_supported"})
+    private Boolean cacheSupported; // 0.26.0
+
+    @JsonAlias({"autoCachingSupported", "auto_caching_supported"})
+    private Boolean autoCachingSupported; // 0.26.0
+    @JsonAlias({"consentRequired", "consent_required"})
+    private Boolean consentRequired; // 0.27.0
+
+    @JsonAlias({"parallelToolCallsSupported", "parallel_tool_calls_supported"})
+    private Boolean parallelToolCallsSupported; // 0.29.0
 }

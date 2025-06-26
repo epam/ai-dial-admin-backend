@@ -1,0 +1,12 @@
+# Core Config Properties Tracker
+
+This document tracks new properties added to the Core Config schema across different versions.
+
+| Core version | New properties |
+|-------------|---------------|
+| 0.24.0 | - `author` in Deployment |
+| 0.25.0 | - `createdAt` in Deployment<br>- `updatedAt` in Deployment |
+| 0.26.0 | - `fieldsHashingOrder` in Model<br>- `applicationTypeConfigurationEndpoint` in ApplicationTypeSchema<br>- `applicationTypeRateEndpoint` in ApplicationTypeSchema<br>- `applicationTypeTokenizeEndpoint` in ApplicationTypeSchema<br>- `applicationTypeTruncatePromptEndpoint` in ApplicationTypeSchema<br>- `appendApplicationPropertiesHeader` in ApplicationTypeSchema<br>- `cacheSupported` in CoreFeatures<br>- `autoCachingSupported` in CoreFeatures |
+| 0.27.0 | - `dependencies` in Deployment<br>- `consentRequired` in CoreFeatures |
+| 0.29.0 | - `viewerUrl` in Application<br>- `editorUrl` in Application<br>- `parallelToolCallsSupported` in CoreFeatures |
+| 0.30.0 | - `share` in Role |

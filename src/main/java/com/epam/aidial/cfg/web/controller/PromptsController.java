@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.CreatePromptDto;
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
 import com.epam.aidial.cfg.dto.ImportResourcesFileResultDto;
+import com.epam.aidial.cfg.dto.ImportResourcesPreviewDto;
 import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.dto.PromptDto;
 import com.epam.aidial.cfg.dto.PromptNodeInfoDto;
@@ -124,6 +125,18 @@ public class PromptsController {
         var importPrompts = resourceMapper.toImportResources(importPromptsDto);
         var importResult = zipPromptEximService.importPrompts(importPrompts, zipFile);
         return resourceMapper.toImportResourcesFileResultDto(importResult);
+    }
+
+    @PostMapping(path = "/import/zip/preview",
+            consumes = "multipart/form-data",
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ImportResourcesPreviewDto previewImportPromptsFromZip(
+            @RequestPart("config") @Validated ImportResourcesDto importPromptsDto,
+            @RequestPart("file") MultipartFile zipFile
+    ) {
+        var importPrompts = resourceMapper.toImportResources(importPromptsDto);
+        var importResourcesPreview = zipPromptEximService.previewImportPromptsFromZip(importPrompts, zipFile);
+        return resourceMapper.toImportResourcesPreviewDto(importResourcesPreview);
     }
 
     @PostMapping(path = "/import/json",

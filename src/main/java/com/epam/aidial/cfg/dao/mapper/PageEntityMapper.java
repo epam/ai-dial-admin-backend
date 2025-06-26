@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dao.mapper;
 
-import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
 import com.epam.aidial.cfg.domain.model.page.PageRequestModel;
 import com.epam.aidial.cfg.domain.model.page.SortDirection;
 import com.epam.aidial.cfg.domain.model.page.filter.Filter;
@@ -29,16 +28,16 @@ public interface PageEntityMapper {
         return org.springframework.data.domain.PageRequest.of(pageNumber, pageSize, Sort.by(orders));
     }
 
-    default List<Specification<AuditActivityEntity>> toSpecifications(PageRequestModel pageRequest, SpecificationContext specificationContext) {
+    default <T> List<Specification<T>> toSpecifications(PageRequestModel pageRequest, SpecificationContext specificationContext, Class<T> clazz) {
         if (pageRequest == null || CollectionUtils.isEmpty(pageRequest.getFilters())) {
             return List.of();
         }
         return pageRequest.getFilters().stream()
-                .map(filter -> mapFilter(filter, specificationContext))
+                .map(filter -> mapFilter(filter, specificationContext, clazz))
                 .collect(Collectors.toList());
     }
 
-    private Specification<AuditActivityEntity> mapFilter(Filter filter, SpecificationContext specificationContext) {
+    private <T> Specification<T> mapFilter(Filter filter, SpecificationContext specificationContext, Class<T> clazz) {
         return (root, query, criteriaBuilder) -> {
             if (filter == null) {
                 return null;

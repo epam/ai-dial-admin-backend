@@ -91,7 +91,10 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
         // given
         MockMultipartFile mockFile = new MockMultipartFile("files", "test.txt", MediaType.TEXT_PLAIN_VALUE, "test content".getBytes());
         String path = "public/uploads/test.txt";
-        ImportResources importResources = new ImportResources(path, ImportConflictResolutionStrategy.OVERRIDE);
+        ImportResources importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
         ImportResourcesFileResult importResult = ImportResourcesFileResult.builder()
                 .build();
         when(fileService.uploadFile(List.of(mockFile), importResources)).thenReturn(importResult);
@@ -122,7 +125,10 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                 "mockData".getBytes()
         );
         String path = "public/uploads/";
-        ImportResources importResources = new ImportResources(path, ImportConflictResolutionStrategy.OVERRIDE);
+        ImportResources importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
         ImportResourcesFileResult importResult = ImportResourcesFileResult.builder()
                 .build();
         when(fileService.uploadFileZip(importResources, zipFile)).thenReturn(importResult);

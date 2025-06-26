@@ -10,8 +10,6 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Mapper(
         componentModel = "spring",
@@ -33,15 +31,6 @@ public abstract class ApplicationCoreMapper {
     @Mapping(target = "deployment.name", source = "application.name")
     @Mapping(target = "features", source = "application.features", qualifiedByName = "toFeaturesDto")
     public abstract Application mapApplication(CoreApplication application, Map<String, CoreRole> roles);
-
-    public Map<String, String> map(Map<String, Object> value) {
-        if (value == null) {
-            return null;
-        }
-        return value.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Objects::toString));
-    }
 
     @AfterMapping
     public void mapRoles(@MappingTarget Application application, CoreApplication coreEntity, Map<String, CoreRole> roles) {

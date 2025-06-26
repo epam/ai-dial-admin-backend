@@ -91,6 +91,10 @@ public class PathUtils {
         private String folderId;
         private String name;
         private String version;
+
+        public String getVersionedName() {
+            return version == null ? name : name + "__" + version;
+        }
     }
 
     @Data

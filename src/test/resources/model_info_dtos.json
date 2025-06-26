@@ -1,7 +1,7 @@
 [
   {
     "name": "test_model",
-    "endpoint": "https://endpoint.test.com/embeddings",
+    "adapter": "adapter1",
     "displayName": "Test Model",
     "displayVersion": "1.0.0",
     "description": "It is a test model",

@@ -21,6 +21,7 @@ class InterceptorValidatorTest {
     void validateUpdate_shouldThrowExceptionWhenInterceptorNameIsUpdated() {
         Interceptor interceptor = new Interceptor();
         interceptor.setName("new_interceptor_name");
+        interceptor.setEndpoint("https://test.endpoint.com");
 
         assertThatThrownBy(() -> interceptorValidator.validateUpdate("interceptor_name", interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -31,6 +32,7 @@ class InterceptorValidatorTest {
     void validateUpdate_shouldDoNothingWhenInterceptorNameIsNotUpdated() {
         Interceptor interceptor = new Interceptor();
         interceptor.setName("interceptor_name");
+        interceptor.setEndpoint("https://test.endpoint.com");
 
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateUpdate("interceptor_name", interceptor));
     }

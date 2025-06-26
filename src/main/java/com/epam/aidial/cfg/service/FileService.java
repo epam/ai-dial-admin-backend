@@ -21,7 +21,7 @@ import feign.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,7 +49,9 @@ public class FileService implements ResourceService {
     private final FileClientMapper fileClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
-    private final ObjectFactory<SimpleCircuitBreaker> circuitBreakerFactory;
+
+    @Value("${files.import.consecutiveErrorsThreshold}")
+    private int importErrorsThreshold;
 
     public FileNodeInfo getAll(ResourceMetadataRequest request) {
         var filesMetadataResponse = getMetadata(request);
@@ -77,7 +79,7 @@ public class FileService implements ResourceService {
         var path = importFile.getPath();
         try {
             var strategy = importFile.getConflictResolutionStrategy();
-            var circuitBreaker = circuitBreakerFactory.getObject();
+            var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
             var results = new ArrayList<ImportResourcesResult>();
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
@@ -118,7 +120,7 @@ public class FileService implements ResourceService {
             var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
             var inputStream = zipFile.getInputStream();
             var conflictResolutionStrategy = importFiles.getConflictResolutionStrategy();
-            var circuitBreaker = circuitBreakerFactory.getObject();
+            var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
 
             var results = new ArrayList<ImportResourcesResult>();
             try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
@@ -177,13 +179,12 @@ public class FileService implements ResourceService {
         return circuitBreaker.apply(
                 () -> createFileOrThrow(file, sourcePath, targetPath, conflictResolutionStrategy),
                 (ex) -> {
-                    if (ex != null) {
-                        log.warn("File {} import failed", targetPath, ex);
-                        return ImportResourcesResult.createFailure(sourcePath, targetPath, ex.getMessage());
-                    } else {
-                        log.warn("File {} import was skipped due to consecutive errors", targetPath);
-                        return ImportResourcesResult.createFailure(sourcePath, targetPath, "Skipped due to consecutive errors");
-                    }
+                    log.warn("File {} import failed", targetPath, ex);
+                    return ImportResourcesResult.createFailure(sourcePath, targetPath, ex.getMessage());
+                },
+                () -> {
+                    log.warn("File {} import was skipped due to consecutive errors", targetPath);
+                    return ImportResourcesResult.createFailure(sourcePath, targetPath, "Skipped due to consecutive errors");
                 }
         );
     }

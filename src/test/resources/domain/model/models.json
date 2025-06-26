@@ -2,7 +2,10 @@
   {
     "id": 1,
     "description": "This is a sample model",
-    "endpoint": "https://example.com/model",
+    "adapter": {
+      "name": "example.model",
+      "baseEndpoint": "https://example.com/model"
+    },
     "displayName": "Sample Model",
     "displayVersion": "1.0.0",
     "iconUrl": "https://example.com/icon.png",
@@ -44,6 +47,10 @@
     "maxRetryAttempts": 3,
     "type": "CHAT",
     "tokenizerModel": "gpt-4-tokenizer",
+    "tokenizer": {
+      "id": "testTokenizerModel",
+      "name": "gpt-4-tokenizer"
+    },
     "limits": {
       "maxTotalTokens": 4096,
       "maxPromptTokens": 2048,

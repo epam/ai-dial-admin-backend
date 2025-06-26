@@ -12,4 +12,6 @@ public class CoreRole {
 
     private String name;
     private Map<String, CoreLimit> limits = new HashMap<>();
+
+    private Map<String, CoreShareResourceLimit> share; // 0.30.0
 }

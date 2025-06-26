@@ -11,7 +11,10 @@
       ],
       "interceptors": [
         "testInterceptor1"
-      ]
+      ],
+      "defaults": {
+        "max_tokens": 8000
+      }
     },
     "testModel2": {
       "type": "embedding",
@@ -40,7 +43,10 @@
       "userRoles": [
         "testRole1"
       ],
-      "endpoint": "endpoint"
+      "endpoint": "endpoint",
+      "defaults": {
+        "defaults_key": "defaults_value"
+      }
     }
   },
   "roles": {
@@ -51,6 +57,12 @@
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
+      },
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": "10",
+          "invitationTtl": "120"
+        }
       }
     },
     "testRole2": {
@@ -98,6 +110,7 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor",
       "userRoles": [
         "testRole1"
       ]
@@ -135,7 +148,7 @@
         "required": []
       }
 	],
-	"routes": {
+  "routes": {
 		"test_route1": {
 			"name": "test_route1",
 			"response": {
@@ -172,5 +185,12 @@
 				"testRole1"
 			]
 		}
-	}
+	},
+  "adapters": {
+    "adapter1": {
+      "name": "adapter1",
+      "baseEndpoint": "http://adapter1/",
+      "description": "adapter1"
+    }
+  }
 }

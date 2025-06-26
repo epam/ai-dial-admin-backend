@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.service.export.ConfigExportServiceImpl;
 import com.epam.aidial.cfg.service.export.ConfigExportServiceSecuredImpl;
 import com.epam.aidial.cfg.service.impl.storage.AwsVaultConfigSource;
 import com.epam.aidial.cfg.service.impl.storage.AzureKeyVaultConfigSource;
+import com.epam.aidial.cfg.service.impl.storage.ConfigMerger;
 import com.epam.aidial.cfg.service.impl.storage.ConfigSource;
 import com.epam.aidial.cfg.service.impl.storage.ConfigSourceConfigMap;
 import com.epam.aidial.cfg.service.impl.storage.ConfigSourceFile;
@@ -14,6 +15,11 @@ import com.epam.aidial.cfg.service.impl.storage.ConfigSplitter;
 import com.epam.aidial.cfg.service.impl.storage.GcpVaultConfigSource;
 import com.epam.aidial.cfg.service.impl.storage.HashiVaultConfigSource;
 import com.epam.aidial.cfg.service.impl.storage.K8ConfigService;
+import com.epam.aidial.cfg.service.transfer.ConfigTransferLock;
+import com.epam.aidial.cfg.service.transfer.VersionAwareFieldFilter;
+import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
+import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetrieverImpl;
+import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetrieverSecuredImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,14 +44,18 @@ public class ExportConfiguration {
     @Bean("configSource")
     @Qualifier("configSource")
     @ConditionalOnProperty(value = "config.export.storageType", havingValue = "LOCAL_FILE")
-    public ConfigSourceFile configSourceJsonFile(ObjectMapper objectMapper, @Value("${config.export.outputFile.path}") String outputFilePath) {
-        return new ConfigSourceFile(objectMapper, outputFilePath);
+    public ConfigSourceFile configSourceJsonFile(VersionAwareFieldFilter versionAwareFieldFilter,
+                                                 ObjectMapper objectMapper,
+                                                 @Value("${config.export.outputFile.path}") String outputFilePath) {
+        return new ConfigSourceFile(versionAwareFieldFilter, objectMapper, outputFilePath);
     }
 
     @Bean("configSource")
     @Qualifier("configSource")
     @ConditionalOnProperty(value = "config.export.storageType", havingValue = "CONFIG_MAP")
-    public ConfigSourceConfigMap configSourceJsonConfigMap(ConfigSplitter configSplitter,
+    public ConfigSourceConfigMap configSourceJsonConfigMap(VersionAwareFieldFilter versionAwareFieldFilter,
+                                                           ConfigSplitter configSplitter,
+                                                           ConfigMerger configMerger,
                                                            @Value("${config.export.configMap.maxSize:1048576}") int maxSize,
                                                            @Value("${config.export.configMap.name:}") String configMapName,
                                                            @Value("${config.export.configMap.names:}") List<String> configMapNames,
@@ -56,13 +66,15 @@ public class ExportConfiguration {
             throw new IllegalArgumentException("Config map name and names are both specified");
         }
         List<String> names = resolveNames(configMapName, configMapNames);
-        return new ConfigSourceConfigMap(configSplitter, names, maxSize, k8ConfigService, configKey, objectMapper);
+        return new ConfigSourceConfigMap(versionAwareFieldFilter, configSplitter, configMerger, names, maxSize, k8ConfigService, configKey, objectMapper);
     }
 
     @Bean("configSource")
     @Qualifier("configSource")
     @ConditionalOnProperty(value = "config.export.storageType", havingValue = "KUBE_SECRET")
-    public ConfigSourceKubeSecret configSourceJsonKubeSecret(ConfigSplitter configSplitter,
+    public ConfigSourceKubeSecret configSourceJsonKubeSecret(VersionAwareFieldFilter versionAwareFieldFilter,
+                                                             ConfigSplitter configSplitter,
+                                                             ConfigMerger configMerger,
                                                              @Value("${config.export.kubeSecret.maxSize:1048576}") int maxSize,
                                                              @Value("${config.export.kubeSecret.name:}") String kubeSecretName,
                                                              @Value("${config.export.kubeSecret.names:}") List<String> kubeSecretNames,
@@ -73,7 +85,7 @@ public class ExportConfiguration {
             throw new IllegalArgumentException("Kube secret name and names are both specified");
         }
         List<String> names = resolveNames(kubeSecretName, kubeSecretNames);
-        return new ConfigSourceKubeSecret(configSplitter, names, maxSize, k8ConfigService, kubeSecretKey, objectMapper);
+        return new ConfigSourceKubeSecret(versionAwareFieldFilter, configSplitter, configMerger, names, maxSize, k8ConfigService, kubeSecretKey, objectMapper);
     }
 
     @Bean
@@ -84,58 +96,80 @@ public class ExportConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "config.export.keyvault.type", havingValue = "none", matchIfMissing = true)
-    public ConfigExportService configExportService(ConfigSource configSource) {
-        return new ConfigExportServiceImpl(configSource);
+    public ConfigExportService configExportService(ConfigSource configSource, ConfigTransferLock lock) {
+        return new ConfigExportServiceImpl(configSource, lock);
     }
 
     @Bean
     @ConditionalOnExpression("'${config.export.keyvault.type:none}' != 'none'")
     public ConfigExportService securedConfigExportService(@Qualifier("configSource") ConfigSource configSource,
+                                                          @Qualifier("securedConfigSource") ConfigSource securedConfigSource,
+                                                          ConfigTransferLock lock) {
+        return new ConfigExportServiceSecuredImpl(configSource, securedConfigSource, lock);
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "config.export.keyvault.type", havingValue = "none", matchIfMissing = true)
+    public CoreConfigRetriever coreConfigRetriever(ConfigSource configSource, ConfigTransferLock lock) {
+        return new CoreConfigRetrieverImpl(configSource, lock);
+    }
+
+    @Bean
+    @ConditionalOnExpression("'${config.export.keyvault.type:none}' != 'none'")
+    public CoreConfigRetriever securedCoreConfigRetriever(@Qualifier("configSource") ConfigSource configSource,
                                                           @Qualifier("securedConfigSource") ConfigSource securedConfigSource) {
-        return new ConfigExportServiceSecuredImpl(configSource, securedConfigSource);
+        return new CoreConfigRetrieverSecuredImpl(configSource, securedConfigSource);
     }
 
     @Bean("securedConfigSource")
     @Qualifier("securedConfigSource")
     @ConditionalOnProperty(value = "config.export.keyvault.type", havingValue = "azure")
-    public AzureKeyVaultConfigSource azureKeyVaultConfigSource(ObjectMapper objectMapper,
+    public AzureKeyVaultConfigSource azureKeyVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
+                                                               ObjectMapper objectMapper,
                                                                SecretClient secretClient,
                                                                @Value("${config.export.keyvault.secretNames}") List<String> secretNames,
                                                                @Value("${config.export.keyvault.expiration.unit}") String expirationTimeUnit,
                                                                @Value("${config.export.keyvault.expiration.period}") Long expirationPeriod,
-                                                               ConfigSplitter configSplitter) {
-        return new AzureKeyVaultConfigSource(configSplitter, secretNames, secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
+                                                               ConfigSplitter configSplitter,
+                                                               ConfigMerger configMerger) {
+        return new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, secretNames, secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
     }
 
     @Bean("securedConfigSource")
     @Qualifier("securedConfigSource")
     @ConditionalOnProperty(value = "config.export.keyvault.type", havingValue = "vault")
-    public HashiVaultConfigSource hashiVaultConfigSource(@Value("${config.export.keyvault.secretPath}") String secretPath,
+    public HashiVaultConfigSource hashiVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
+                                                         ObjectMapper objectMapper,
+                                                         @Value("${config.export.keyvault.secretPath}") String secretPath,
                                                          VaultTemplate vaultTemplate) {
-        return new HashiVaultConfigSource(vaultTemplate, secretPath);
+        return new HashiVaultConfigSource(versionAwareFieldFilter, vaultTemplate, secretPath, objectMapper);
     }
 
     @Bean("securedConfigSource")
     @Qualifier("securedConfigSource")
     @ConditionalOnProperty(value = "config.export.keyvault.type", havingValue = "aws")
-    public AwsVaultConfigSource awsVaultConfigSource(ObjectMapper objectMapper,
+    public AwsVaultConfigSource awsVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
+                                                     ObjectMapper objectMapper,
                                                      SecretsManagerClient secretsManagerClient,
                                                      @Value("${config.export.keyvault.secretNames}") List<String> secretNames,
                                                      @Value("${config.export.keyvault.expiration.unit}") String expirationTimeUnit,
                                                      @Value("${config.export.keyvault.expiration.period}") Long expirationPeriod,
-                                                     ConfigSplitter configSplitter) {
-        return new AwsVaultConfigSource(secretsManagerClient, configSplitter, secretNames, objectMapper);
+                                                     ConfigSplitter configSplitter,
+                                                     ConfigMerger configMerger) {
+        return new AwsVaultConfigSource(versionAwareFieldFilter, secretsManagerClient, configSplitter, configMerger, secretNames, objectMapper);
     }
 
     @Bean("securedConfigSource")
     @Qualifier("securedConfigSource")
     @ConditionalOnProperty(value = "config.export.keyvault.type", havingValue = "gcp")
-    public GcpVaultConfigSource gcpVaultConfigSource(ObjectMapper objectMapper,
+    public GcpVaultConfigSource gcpVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
+                                                     ObjectMapper objectMapper,
                                                      SecretManagerServiceClient secretsManagerClient,
                                                      @Value("${config.export.keyvault.secretNames}") List<String> secretNames,
                                                      @Value("${gcp.keyvault.projectId}") String projectId,
-                                                     ConfigSplitter configSplitter) {
-        return new GcpVaultConfigSource(secretsManagerClient, configSplitter, secretNames, objectMapper, projectId);
+                                                     ConfigSplitter configSplitter,
+                                                     ConfigMerger configMerger) {
+        return new GcpVaultConfigSource(versionAwareFieldFilter, secretsManagerClient, configSplitter, configMerger, secretNames, objectMapper, projectId);
     }
 
     private List<String> resolveNames(String name, List<String> names) {

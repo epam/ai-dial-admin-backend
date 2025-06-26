@@ -13,22 +13,21 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.PromptExim;
 import com.epam.aidial.cfg.model.PromptsExim;
+import com.epam.aidial.cfg.model.UpdateRulesRequest;
+import com.epam.aidial.cfg.service.FolderService;
 import com.epam.aidial.cfg.service.SimpleCircuitBreaker;
 import com.epam.aidial.cfg.utils.PathUtils;
 import feign.FeignException;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@Validated
 @Service
 @LogExecution
 @RequiredArgsConstructor
@@ -40,7 +39,11 @@ public class PromptEximService {
     private final PromptClient promptClient;
     private final PromptClientMapper promptClientMapper;
     private final PromptService promptService;
-    private final ObjectFactory<SimpleCircuitBreaker> circuitBreakerFactory;
+    private final FolderService folderService;
+    private final PromptImportValidator uniquenessValidator;
+
+    @Value("${prompts.import.consecutiveErrorsThreshold}")
+    private int importErrorsThreshold;
 
     public PromptsExim exportPrompts(List<String> paths) {
         var distinctPaths = paths.stream()
@@ -88,29 +91,42 @@ public class PromptEximService {
                 .toList();
     }
 
-    public ImportResourcesFileResult importPrompts(ImportResources importPrompts, @Valid PromptsEximDto promptsEximDto) {
-        var rootPath = importPrompts.getPath();
-        var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
-        var conflictResolutionStrategy = importPrompts.getConflictResolutionStrategy();
-        var circuitBreaker = circuitBreakerFactory.getObject();
+    public ImportResourcesFileResult importPrompts(ImportResources importPrompts, PromptsEximDto promptsEximDto) {
+        uniquenessValidator.validatePromptImport(importPrompts, promptsEximDto);
 
-        return importPrompt(rootPathStripped, promptsEximDto, conflictResolutionStrategy, circuitBreaker);
+        if (importPrompts.getRules() != null) {
+            var updateRulesRequest = UpdateRulesRequest.builder()
+                    .targetFolder(importPrompts.getPath())
+                    .rules(importPrompts.getRules())
+                    .build();
+            folderService.updatesRules(updateRulesRequest);
+        }
+
+        var rootPathStripped = StringUtils.stripEnd(importPrompts.getPath(), "/");
+        var normalizedImportPrompts = ImportResources.builder()
+                .path(rootPathStripped)
+                .flatImport(importPrompts.isFlatImport())
+                .conflictResolutionStrategy(importPrompts.getConflictResolutionStrategy())
+                .rules(importPrompts.getRules())
+                .build();
+        var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
+
+        return importPrompt(normalizedImportPrompts, promptsEximDto, circuitBreaker);
     }
 
-    private ImportResourcesFileResult importPrompt(String rootPath,
+    private ImportResourcesFileResult importPrompt(ImportResources importPrompts,
                                                    PromptsEximDto promptsEximDto,
-                                                   ImportConflictResolutionStrategy conflictResolutionStrategy,
                                                    SimpleCircuitBreaker circuitBreaker) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
             for (var prompt : promptsEximDto.getPrompts()) {
-                results.add(importPrompt(rootPath, prompt, conflictResolutionStrategy, circuitBreaker));
+                results.add(importPrompt(importPrompts, prompt, circuitBreaker));
             }
             return ImportResourcesFileResult.builder()
                     .importResults(results)
                     .build();
         } catch (Exception ex) {
-            log.debug("Prompt file {} import failed", rootPath, ex);
+            log.debug("Prompt file {} import failed", importPrompts.getPath(), ex);
             return ImportResourcesFileResult.builder()
                     .importResults(List.of())
                     .error(ex.getMessage())
@@ -118,14 +134,20 @@ public class PromptEximService {
         }
     }
 
-    private ImportResourcesResult importPrompt(String rootPath,
+    private ImportResourcesResult importPrompt(ImportResources importPrompts,
                                                PromptEximDto promptExim,
-                                               ImportConflictResolutionStrategy conflictResolutionStrategy,
                                                SimpleCircuitBreaker circuitBreaker) {
+
         var rawPath = promptExim.getId();
         var sourcePath = StringUtils.removeStart(rawPath, PROMPTS_FOLDER);
-        var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, PUBLIC_FOLDER);
-        var targetPath = rootPath + "/" + sourcePathWithoutPublic;
+        String targetPath;
+        if (importPrompts.isFlatImport()) {
+            var promptName = PathUtils.parseVersionedPath(sourcePath).getVersionedName();
+            targetPath = importPrompts.getPath() + "/" + promptName;
+        } else {
+            var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, PUBLIC_FOLDER);
+            targetPath = importPrompts.getPath() + "/" + sourcePathWithoutPublic;
+        }
 
         try {
             var itemParts = PathUtils.parseVersionedPath(targetPath);
@@ -136,8 +158,8 @@ public class PromptEximService {
                     .description(promptExim.getDescription())
                     .content(promptExim.getContent())
                     .build();
-            return createPromptWithCircuitBreaker(createPrompt, sourcePath, targetPath, conflictResolutionStrategy,
-                    circuitBreaker);
+            return createPromptWithCircuitBreaker(createPrompt, sourcePath, targetPath,
+                    importPrompts.getConflictResolutionStrategy(), circuitBreaker);
         } catch (Exception ex) {
             return ImportResourcesResult.createFailure(sourcePath, targetPath, ex.getMessage());
         }
@@ -151,13 +173,12 @@ public class PromptEximService {
         return circuitBreaker.apply(
                 () -> createPromptOrThrow(createPrompt, sourcePath, targetPath, conflictResolutionStrategy),
                 (ex) -> {
-                    if (ex != null) {
-                        log.error("Prompt {} import failed", targetPath, ex);
-                        return ImportResourcesResult.createFailure(sourcePath, targetPath, ex.getMessage());
-                    } else {
-                        log.error("Prompt {} import was skipped due to consecutive errors", targetPath);
-                        return ImportResourcesResult.createFailure(sourcePath, targetPath, "Skipped due to consecutive errors");
-                    }
+                    log.error("Prompt {} import failed", targetPath, ex);
+                    return ImportResourcesResult.createFailure(sourcePath, targetPath, ex.getMessage());
+                },
+                () -> {
+                    log.error("Prompt {} import was skipped due to consecutive errors", targetPath);
+                    return ImportResourcesResult.createFailure(sourcePath, targetPath, "Skipped due to consecutive errors");
                 }
         );
     }

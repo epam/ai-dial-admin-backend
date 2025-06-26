@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.web.controller.oidc;
 
-import com.epam.aidial.cfg.service.AdapterService;
 import com.epam.aidial.cfg.web.controller.AdaptersController;
+import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AdaptersControllerSecurityTest extends AbstractControllerSecurityTest {
 
     @MockitoBean
-    private AdapterService adapterService;
+    private AdapterFacade adapterFacade;
 
     @ParameterizedTest
     @MethodSource("arguments")

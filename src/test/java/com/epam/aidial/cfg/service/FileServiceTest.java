@@ -43,11 +43,10 @@ import static org.mockito.Mockito.when;
         ResourceClientMapperImpl.class,
         FileClientMapperImpl.class,
         FolderUrlMapperImpl.class,
-        FileService.class,
-        SimpleCircuitBreaker.class,
+        FileService.class
 })
 @TestPropertySource(properties = {
-        "prompts.import.consecutiveErrorsThreshold=2"
+        "files.import.consecutiveErrorsThreshold=2"
 })
 class FileServiceTest {
 
@@ -100,7 +99,10 @@ class FileServiceTest {
         MultipartFile multipart = mock(MultipartFile.class);
         String path = "public/";
         String expectedFileName = path + multipart.getOriginalFilename();
-        ImportResources importResources = new ImportResources(path, ImportConflictResolutionStrategy.OVERRIDE);
+        ImportResources importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
         // when
         ImportResourcesFileResult result = fileService.uploadFile(List.of(multipart), importResources);
         // then

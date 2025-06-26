@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapper;
 import lombok.RequiredArgsConstructor;
@@ -53,5 +54,12 @@ public class InterceptorFacade {
     public InterceptorDto getSnapshot(String interceptorName, Integer revision) {
         Interceptor interceptor = interceptorService.getSnapshot(interceptorName, revision);
         return mapper.toDto(interceptor);
+    }
+
+    public Collection<InterceptorDto> getAllAtRevision(Integer revision) {
+        return interceptorService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

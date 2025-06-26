@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, PropertiesEntityMapper.class})
+@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, MapPropertiesMapper.class})
 public abstract class AssistantEntityMapper {
 
     @Autowired

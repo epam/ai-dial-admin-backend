@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.page.SortDirectionDto;
 import com.epam.aidial.cfg.dto.revision.BaseGetRevisionQuery;
 import com.epam.aidial.cfg.dto.revision.GetRevisionByIdQuery;
 import com.epam.aidial.cfg.dto.revision.GetRevisionByTimestampQuery;
+import com.epam.aidial.cfg.dto.revision.RollbackRequestDto;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class HistoryController {
 
     private final HistoryFacade historyFacade;
 
-    @GetMapping("/history/revisions")
+    @PostMapping("/history/revisions")
     public List<ConfigRevisionDto> getRevisionsList(@RequestBody @Valid PageRequestDto pageRequestDto) {
         return historyFacade.getRevisionsList(pageRequestDto);
     }
@@ -42,5 +43,10 @@ public class HistoryController {
             return historyFacade.getRevisionById(revisionByIdQuery.getId());
         }
         throw new IllegalArgumentException("Unknown query type " + query);
+    }
+
+    @PostMapping("/history/rollback")
+    public void getRevision(@RequestBody @Valid RollbackRequestDto request) {
+        historyFacade.rollbackToRevision(request.getRevisionNumber());
     }
 }

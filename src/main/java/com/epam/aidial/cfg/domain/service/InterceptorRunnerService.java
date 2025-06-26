@@ -1,0 +1,131 @@
+package com.epam.aidial.cfg.domain.service;
+
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorRunnerJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.InterceptorRunnerEntityMapper;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
+import com.epam.aidial.cfg.domain.model.InterceptorRunner;
+import com.epam.aidial.cfg.domain.validator.InterceptorRunnerValidator;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+@LogExecution
+@Service("coreInterceptorRunnerService")
+@RequiredArgsConstructor
+public class InterceptorRunnerService {
+
+    private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor Runner with name '%s' does not exist";
+
+    private final InterceptorRunnerJpaRepository interceptorRunnerJpaRepository;
+    private final InterceptorRunnerEntityMapper mapper;
+    private final InterceptorRunnerValidator interceptorRunnerValidator;
+    private final HistoryService historyService;
+    private final InterceptorJpaRepository interceptorJpaRepository;
+
+    @Transactional(readOnly = true)
+    public Collection<InterceptorRunner> getAll() {
+        return StreamSupport.stream(interceptorRunnerJpaRepository.findAll().spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public InterceptorRunner get(String interceptorRunnerName) {
+        return Optional.ofNullable(interceptorRunnerName)
+                .flatMap(interceptorRunnerJpaRepository::findById)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorRunnerName)));
+    }
+
+    @Transactional
+    public void create(InterceptorRunner interceptorRunner) {
+        interceptorRunnerValidator.validateCreation(interceptorRunner);
+        assertNotExists(interceptorRunner.getName());
+        Optional.of(interceptorRunner)
+                .map(domainModel -> mapper.toEntity(domainModel, new InterceptorRunnerEntity()))
+                .ifPresent(interceptorRunnerJpaRepository::save);
+    }
+
+    @Transactional
+    public void update(String interceptorRunnerName, InterceptorRunner interceptorRunner) {
+        interceptorRunnerValidator.validateUpdate(interceptorRunnerName, interceptorRunner);
+        InterceptorRunnerEntity interceptorRunnerEntity = findByInterceptorRunnerName(interceptorRunnerName);
+        Optional.of(interceptorRunner)
+                .map(domainModel ->  mapper.toEntity(domainModel, interceptorRunnerEntity))
+                .ifPresent(interceptorRunnerJpaRepository::save);
+    }
+
+    @Transactional
+    public void delete(String interceptorRunnerName, boolean removeInterceptor) {
+        InterceptorRunnerEntity interceptorRunnerEntity = findByInterceptorRunnerName(interceptorRunnerName);
+        List<InterceptorEntity> interceptors = interceptorRunnerEntity.getInterceptors();
+
+        if (CollectionUtils.isEmpty(interceptors)) {
+            interceptorRunnerJpaRepository.delete(interceptorRunnerEntity);
+            return;
+        }
+
+        if (removeInterceptor) {
+            removeInterceptorsFromRunner(interceptorRunnerEntity, interceptors);
+        } else {
+            detachInterceptorsFromRunner(interceptorRunnerEntity, interceptors);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public boolean exists(String interceptorRunnerName) {
+        return interceptorRunnerJpaRepository.existsById(interceptorRunnerName);
+    }
+
+    @Transactional(readOnly = true)
+    public InterceptorRunner getSnapshot(String interceptorRunnerName, Integer revision) {
+        var entity = historyService.entitySnapshotAtRevision(revision, interceptorRunnerName, InterceptorRunnerEntity.class);
+        return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<InterceptorRunner> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, InterceptorRunnerEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    private InterceptorRunnerEntity findByInterceptorRunnerName(String interceptorRunnerName) {
+        return interceptorRunnerJpaRepository.findById(interceptorRunnerName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorRunnerName)));
+    }
+
+    private void assertNotExists(String name) {
+        if (interceptorRunnerJpaRepository.existsById(name)) {
+            throw new EntityAlreadyExistsException("Interceptor Runner with name '%s' already exists".formatted(name));
+        }
+    }
+
+    private void removeInterceptorsFromRunner(InterceptorRunnerEntity interceptorRunnerEntity, List<InterceptorEntity> interceptors) {
+        interceptorJpaRepository.deleteAll(interceptors);
+        interceptorRunnerJpaRepository.delete(interceptorRunnerEntity);
+    }
+
+    private void detachInterceptorsFromRunner(InterceptorRunnerEntity interceptorRunnerEntity, List<InterceptorEntity> interceptors) {
+        interceptors.forEach(interceptor -> {
+            interceptor.setInterceptorRunner(null);
+            interceptor.setEndpoint(interceptorRunnerEntity.getCompletionEndpoint());
+            interceptor.setConfigurationEndpoint(interceptorRunnerEntity.getConfigurationEndpoint());
+        });
+        interceptorRunnerJpaRepository.delete(interceptorRunnerEntity);
+    }
+
+}

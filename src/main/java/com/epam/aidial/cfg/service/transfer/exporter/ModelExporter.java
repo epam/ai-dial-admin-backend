@@ -43,7 +43,7 @@ public class ModelExporter {
     }
 
     protected Collection<Model> getModels() {
-        return modelService.getAllModels();
+        return modelService.getAll();
     }
 
     private List<Model> getModels(List<ExportConfigComponent> components, boolean addSecrets) {

@@ -4,7 +4,9 @@ import com.epam.aidial.cfg.dao.jpa.AssistantJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AssistantEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.AssistantEntity;
+import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Assistant;
+import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.validator.AssistantValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
@@ -82,6 +84,14 @@ public class AssistantService {
     public Assistant getSnapshot(String assistantName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, assistantName, AssistantEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Assistant> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, AssistantEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     private void assertExists(String name) {

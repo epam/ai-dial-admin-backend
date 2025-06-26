@@ -76,11 +76,15 @@ public class ApplicationPublicationResolver implements PublicationResolver {
     }
 
     private String extractApplicationPath(ResourceInfo resourceInfo) {
-        return PathUtils.parseEncodedVersionedPath(resourceInfo.resourceUrl(), ApplicationClientMapper.APPLICATIONS_PREFIX).getPath();
+        return extractPath(resourceInfo, ApplicationClientMapper.APPLICATIONS_PREFIX);
     }
 
     private String extractFilePath(ResourceInfo resourceInfo) {
-        return PathUtils.parseEncodedVersionedPath(resourceInfo.resourceUrl(), FileClientMapper.FILES_PREFIX).getPath();
+        return extractPath(resourceInfo, FileClientMapper.FILES_PREFIX);
+    }
+
+    private String extractPath(ResourceInfo resourceInfo, String prefix) {
+        return PathUtils.parseEncodedVersionedPath(resourceInfo.resourceUrl(), prefix).getPath();
     }
 
     private record ResourceInfo(PublicationResourceDto resource, String resourceUrl, PublicationStatusDto status) {

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional;
 
 import com.epam.aidial.cfg.functional.config.PostgresFunctionalTestConfiguration;
+import com.epam.aidial.cfg.functional.tests.AdapterFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AddonFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ApplicationFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ApplicationTypeSchemaFunctionalTest;
@@ -8,6 +9,7 @@ import com.epam.aidial.cfg.functional.tests.AssistantFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantsPropertyFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ConfigTransferFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.InterceptorFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.InterceptorRunnerFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.KeyFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ModelFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RolesFunctionalTest;
@@ -19,6 +21,7 @@ import com.epam.aidial.cfg.functional.tests.history.ApplicationTypeSchemaHistory
 import com.epam.aidial.cfg.functional.tests.history.AssistantHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AssistantsPropertyHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.InterceptorHistoryFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.history.InterceptorRunnerHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.KeyHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ModelHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RolesHistoryFunctionalTest;
@@ -77,6 +80,10 @@ public class PostgresFunctionalTests extends FunctionalTestSuite {
     }
 
     @Nested
+    class InterceptorRunnerTests extends InterceptorRunnerFunctionalTest {
+    }
+
+    @Nested
     class KeyTests extends KeyFunctionalTest {
     }
 
@@ -90,6 +97,10 @@ public class PostgresFunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class RouteTests extends RouteFunctionalTest {
+    }
+
+    @Nested
+    class AdapterTest extends AdapterFunctionalTest {
     }
 
     @Nested
@@ -114,6 +125,10 @@ public class PostgresFunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class InterceptorHistoryTests extends InterceptorHistoryFunctionalTest {
+    }
+
+    @Nested
+    class InterceptorRunnerHistoryTests extends InterceptorRunnerHistoryFunctionalTest {
     }
 
     @Nested

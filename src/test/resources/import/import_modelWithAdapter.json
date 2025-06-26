@@ -1,0 +1,69 @@
+{
+  "routes": {},
+  "models": {
+    "testModel1": {
+      "name": "testModel1",
+      "displayName": "Test Model1",
+      "displayVersion": "2.0.0",
+      "forwardAuthToken": false,
+      "features": {
+        "system_prompt_supported": true,
+        "tools_supported": false,
+        "seed_supported": false,
+        "url_attachments_supported": false,
+        "folder_attachments_supported": false,
+        "allow_resume": false,
+        "accessible_by_per_request_key": true,
+        "content_parts_supported": false,
+        "temperature_supported": true,
+        "addons_supported": false
+      },
+      "defaults": {},
+      "interceptors": [],
+      "descriptionKeywords": [],
+      "maxRetryAttempts": 5,
+      "type": "embedding",
+      "upstreams": [],
+      "userRoles": [
+      ],
+      "endpoint": "http://endpoint1/testModel1/embeddings"
+    },
+    "testModel2": {
+      "name": "testModel2",
+      "displayName": "Test Model2",
+      "displayVersion": "2.0.0",
+      "forwardAuthToken": false,
+      "features": {
+        "system_prompt_supported": true,
+        "tools_supported": false,
+        "seed_supported": false,
+        "url_attachments_supported": false,
+        "folder_attachments_supported": false,
+        "allow_resume": false,
+        "accessible_by_per_request_key": true,
+        "content_parts_supported": false,
+        "temperature_supported": true,
+        "addons_supported": false
+      },
+      "defaults": {},
+      "interceptors": [],
+      "descriptionKeywords": [],
+      "maxRetryAttempts": 5,
+      "type": "embedding",
+      "upstreams": [],
+      "userRoles": [
+      ],
+      "endpoint": "http://endpoint2/testModel2/embeddings"
+    }
+  },
+  "addons": {},
+  "applications": {},
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {},
+  "retriableErrorCodes": [],
+  "interceptors": {},
+  "applicationTypeSchemas": []
+}

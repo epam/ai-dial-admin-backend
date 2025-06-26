@@ -27,7 +27,8 @@
           "requestHour": 200,
           "requestDay": 1000
         }
-      }
+      },
+      "share": {}
     }
   },
   "retriableErrorCodes": [],

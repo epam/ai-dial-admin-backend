@@ -16,6 +16,11 @@ public class ApplicationTypeSchema {
     private String applicationTypeViewerUrl;
     private String applicationTypeDisplayName;
     private String applicationTypeCompletionEndpoint;
+    private String applicationTypeConfigurationEndpoint;
+    private String applicationTypeRateEndpoint;
+    private String applicationTypeTokenizeEndpoint;
+    private String applicationTypeTruncatePromptEndpoint;
+    private Boolean appendApplicationPropertiesHeader;
     private Map<String, String> defs;
     private Map<String, String> properties;
     private List<String> required;

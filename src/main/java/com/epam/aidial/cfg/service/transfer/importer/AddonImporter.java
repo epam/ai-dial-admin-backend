@@ -59,7 +59,7 @@ public class AddonImporter extends RoleBasedImporter {
                     .map(addonEntry -> {
                                 var addon = addonEntry.getValue();
                                 createRoleIfAbsent(importOptions, addon.getDeployment().getRoleLimits());
-                                var importAction = processAddon(addonEntry.getKey(), addon, importOptions.getConflictResolutionPolicy(), isPreview);
+                                var importAction = processAddon(addonEntry.getKey(), addon, importOptions.conflictResolutionPolicy(), isPreview);
                                 return new ImportComponent<>(importAction, addon);
                             }
                     )

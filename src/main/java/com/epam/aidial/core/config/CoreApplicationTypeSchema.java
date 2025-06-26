@@ -35,6 +35,21 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("dial:applicationTypeCompletionEndpoint")
     private String applicationTypeCompletionEndpoint;
 
+    @JsonProperty("dial:applicationTypeConfigurationEndpoint")
+    private String applicationTypeConfigurationEndpoint; // 0.26.0
+
+    @JsonProperty("dial:applicationTypeRateEndpoint")
+    private String applicationTypeRateEndpoint; // 0.26.0
+
+    @JsonProperty("dial:applicationTypeTokenizeEndpoint")
+    private String applicationTypeTokenizeEndpoint; // 0.26.0
+
+    @JsonProperty("dial:applicationTypeTruncatePromptEndpoint")
+    private String applicationTypeTruncatePromptEndpoint; // 0.26.0
+
+    @JsonProperty("dial:appendApplicationPropertiesHeader")
+    private Boolean appendApplicationPropertiesHeader; // 0.26.0
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)

@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationTypeSchemaDtoMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -51,5 +53,12 @@ public class ApplicationTypeSchemaFacade {
     public ApplicationTypeSchemaDto getSnapshot(String id, Integer revision) {
         ApplicationTypeSchema applicationTypeSchema = schemaService.getSnapshot(id, revision);
         return mapper.toDto(applicationTypeSchema);
+    }
+
+    public Collection<ApplicationTypeSchemaDto> getAllAtRevision(Integer revision) {
+        return schemaService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

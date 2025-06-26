@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
+import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
+import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitId;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import com.epam.aidial.cfg.security.SecurityClaimsExtractor;
@@ -70,14 +72,11 @@ public class ConfigRevisionListener implements EntityTrackingRevisionListener, A
     private List<AuditActivityEntity> issueUpdateActivities(RevisionType revisionType, Object entityId, Class<?> entityClass, ConfigRevisionEntity revEntity) {
         if (RoleLimitEntity.class == entityClass) {
             RoleLimitId roleLimitId = (RoleLimitId) entityId;
-            String deploymentName = roleLimitId.getDeploymentName();
-            DeploymentEntity deploymentEntity = findDeployment(deploymentName);
-            AuditActivityEntity deploymentAuditActivity = buildDeploymentActivity(revEntity, deploymentEntity);
-            AuditActivityEntity roleActivity = buildAuditActivity(revEntity, ActivityType.Update, ActivityResourceType.Role, roleLimitId.getRoleName());
-            if (deploymentAuditActivity == null) {
-                return List.of(roleActivity);
-            }
-            return List.of(deploymentAuditActivity, roleActivity);
+            return issueDeploymentAuditActivity(roleLimitId.getDeploymentName(), revEntity, roleLimitId.getRoleName());
+        }
+        if (RoleShareResourceLimitEntity.class == entityClass) {
+            RoleShareResourceLimitId roleShareResourceLimitId = (RoleShareResourceLimitId) entityId;
+            return issueDeploymentAuditActivity(roleShareResourceLimitId.getDeploymentName(), revEntity, roleShareResourceLimitId.getRoleName());
         }
         if (revisionType == RevisionType.MOD && DeploymentEntity.class == entityClass) {
             String deploymentName = (String) entityId;
@@ -87,11 +86,21 @@ public class ConfigRevisionListener implements EntityTrackingRevisionListener, A
         return List.of();
     }
 
+    private List<AuditActivityEntity> issueDeploymentAuditActivity(String deploymentName, ConfigRevisionEntity revEntity, String roleName) {
+        DeploymentEntity deploymentEntity = findDeployment(deploymentName);
+        AuditActivityEntity deploymentAuditActivity = buildDeploymentActivity(revEntity, deploymentEntity);
+        AuditActivityEntity roleActivity = buildAuditActivity(revEntity, ActivityType.Update, ActivityResourceType.Role, roleName);
+        if (deploymentAuditActivity == null) {
+            return List.of(roleActivity);
+        }
+        return List.of(deploymentAuditActivity, roleActivity);
+    }
+
     private AuditActivityEntity buildDeploymentActivity(ConfigRevisionEntity revEntity, DeploymentEntity deploymentEntity) {
         if (deploymentEntity == null) {
             return null;
         }
-        ActivityResourceType resourceType = auditActivityMapper.mapDeploymentTypeToActivityResouceType(deploymentEntity.getType());
+        ActivityResourceType resourceType = auditActivityMapper.mapDeploymentTypeToActivityResourceType(deploymentEntity.getType());
         String resourceId = deploymentEntity.getName();
 
         return buildAuditActivity(revEntity, ActivityType.Update, resourceType, resourceId);

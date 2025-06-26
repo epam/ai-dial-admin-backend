@@ -22,8 +22,8 @@ public class ModelFacade {
     private final ModelService modelService;
     private final ModelDtoMapper mapper;
 
-    public Collection<ModelDto> getAllModels() {
-        return modelService.getAllModels()
+    public Collection<ModelDto> getAll() {
+        return modelService.getAll()
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
@@ -53,5 +53,12 @@ public class ModelFacade {
     public ModelDto getSnapshot(String modelName, Integer revision) {
         Model model = modelService.getSnapshot(modelName, revision);
         return mapper.toDto(model);
+    }
+
+    public Collection<ModelDto> getAllAtRevision(Integer revision) {
+        return modelService.getAllAtRevision(revision)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

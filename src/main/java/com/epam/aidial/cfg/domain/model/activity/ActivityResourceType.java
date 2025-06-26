@@ -1,7 +1,5 @@
 package com.epam.aidial.cfg.domain.model.activity;
 
-import java.util.Set;
-
 public enum ActivityResourceType {
     Adapter,
     Addon,
@@ -11,10 +9,12 @@ public enum ActivityResourceType {
     AssistantsProperty,
     Deployment,
     Interceptor,
+    InterceptorRunner,
     Key,
     Model,
     Role,
     RoleLimit,
+    RoleShareResourceLimit,
     Route,
     Tokenizer,
 }

@@ -26,6 +26,15 @@
       "resourceTypes": [
         "APPLICATION"
       ]
+    },
+    {
+      "path": "bucket/conversation",
+      "requestName": "Pub req conversation",
+      "author": "Test Author",
+      "createdAt": 1741595187266,
+      "resourceTypes": [
+        "CONVERSATION"
+      ]
     }
   ]
 }

@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.utils.PathUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,16 +18,17 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Mapper(componentModel = "spring", uses = FolderUrlMapper.class)
-public interface ApplicationClientMapper {
+@Slf4j
+public abstract class ApplicationClientMapper {
 
-    String APPLICATIONS_PREFIX = "applications/";
+    public static final String APPLICATIONS_PREFIX = "applications/";
 
     @Mapping(target = "path", source = "url", qualifiedByName = "mapUrl")
     @Mapping(target = "items", source = "items", qualifiedByName = "mapItems")
-    FolderInfo toFolderInfo(ApplicationMetadataDto applicationMetadataDto, @Context String prefix);
+    public abstract FolderInfo toFolderInfo(ApplicationMetadataDto applicationMetadataDto, @Context String prefix);
 
     @Named("mapItems")
-    default List<FolderInfo> mapItems(List<ApplicationMetadataDto> items) {
+    public List<FolderInfo> mapItems(List<ApplicationMetadataDto> items) {
         return Optional.ofNullable(items)
                 .orElse(Collections.emptyList())
                 .stream()
@@ -35,11 +37,12 @@ public interface ApplicationClientMapper {
                 .toList();
     }
 
-    default ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto, ApplicationMetadataDto metadataDto) {
+    public ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto, ApplicationMetadataDto metadataDto) {
         if (applicationResourceDto == null || metadataDto == null) {
             return null;
         }
         if (metadataDto.getNodeType() != NodeTypeDto.ITEM) {
+            log.error("Metadata: {} must have item node type", metadataDto);
             throw new IllegalStateException("Metadata must have item node type");
         }
 
@@ -49,7 +52,7 @@ public interface ApplicationClientMapper {
 
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "updateTime", source = "metadataDto.updatedAt")
-    ApplicationResource toApplicationResource(ApplicationResourceDto dto, ApplicationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
+    protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto, ApplicationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
 
 
 }
