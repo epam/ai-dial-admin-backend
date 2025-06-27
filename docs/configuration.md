@@ -124,16 +124,16 @@ config.export.keyvault.type=vault
 
 ## OpenTelemetry Configuration
 
-| Setting                             | Environment Variable        | Default               | Description                                       |
-|-------------------------------------|-----------------------------|-----------------------|---------------------------------------------------|
-| otel.sdk.disabled                   | OTEL_SDK_DISABLED           | true                  | Disable OpenTelemetry SDK                         |
-| otel.service.name                   | OTEL_SERVICE_NAME           | dial-admin-backend    | Service name                                      |
-| otel.exporter.otlp.endpoint         | OTEL_EXPORTER_OTLP_ENDPOINT | http://localhost:4317 | OpenTelemetry collector endpoint                  |
-| otel.exporter.otlp.protocol         | OTEL_EXPORTER_OTLP_PROTOCOL | grpc                  | Protocol for OpenTelemetry data export            |
-| otel.logs.exporter                  | OTEL_LOGS_EXPORTER          | otlp                  | Exporter for application logs                     |
-| otel.traces.exporter                | OTEL_TRACES_EXPORTER        | otlp                  | Exporter for distributed traces                   |
-| otel.metrics.exporter               | OTEL_METRICS_EXPORTER       | otlp                  | Exporter for application metrics                  |
-| otel.resource.attributes            | OTEL_RESOURCE_ATTRIBUTES    |                       | Key-value pairs to be used as resource attributes |
+| Setting                             | Environment Variable        | Default            | Description                                       |
+|-------------------------------------|-----------------------------|--------------------|---------------------------------------------------|
+| otel.sdk.disabled                   | OTEL_SDK_DISABLED           | true               | Disable OpenTelemetry SDK                         |
+| otel.service.name                   | OTEL_SERVICE_NAME           | dial-admin-backend | Service name                                      |
+| otel.exporter.otlp.endpoint         | OTEL_EXPORTER_OTLP_ENDPOINT |                    | OpenTelemetry collector endpoint                  |
+| otel.exporter.otlp.protocol         | OTEL_EXPORTER_OTLP_PROTOCOL |                    | Protocol for OpenTelemetry data export            |
+| otel.logs.exporter                  | OTEL_LOGS_EXPORTER          | otlp               | Exporter for application logs                     |
+| otel.traces.exporter                | OTEL_TRACES_EXPORTER        | otlp               | Exporter for distributed traces                   |
+| otel.metrics.exporter               | OTEL_METRICS_EXPORTER       | otlp               | Exporter for application metrics                  |
+| otel.resource.attributes            | OTEL_RESOURCE_ATTRIBUTES    |                    | Key-value pairs to be used as resource attributes |
 
 ## Actuator Configuration
 
