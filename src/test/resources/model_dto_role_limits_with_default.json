@@ -37,7 +37,11 @@
     "folderAttachmentsSupported": true,
     "allowResume": true,
     "accessibleByPerRequestKey": true,
-    "contentPartsSupported": true
+    "contentPartsSupported": true,
+    "cacheSupported": true,
+    "autoCachingSupported": true,
+    "consentRequired": false,
+    "parallelToolCallsSupported": true
   },
   "inputAttachmentTypes": [
     "application/json"
@@ -56,5 +60,10 @@
   "roleLimits": {
     "default": {
     }
-  }
+  },
+  "author": "test-author",
+  "createdAt": "12345",
+  "updatedAt": "12345",
+  "dependencies": ["dep1", "dep2"],
+  "fieldsHashingOrder": ["prompt", "temperature", "seed"]
 }

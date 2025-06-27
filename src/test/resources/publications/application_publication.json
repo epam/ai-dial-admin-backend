@@ -21,6 +21,8 @@
         "updateTime": 1741595170582,
         "name": "Application 1",
         "endpoint": "https://app1.test.com",
+        "viewerUrl": "https://viewer.app1.test.com",
+        "editorUrl": "https://editor.app1.test.com",
         "displayName": "Application 1",
         "description": "Description 1",
         "reference": "test_reference",
@@ -36,7 +38,10 @@
         ],
         "descriptionKeywords": [
           "Test Topic"
-        ]
+        ],
+        "author": "test-author",
+        "createdAt": 12345,
+        "dependencies": ["dep1", "dep2"]
       }
     },
     {
@@ -47,6 +52,8 @@
         "updateTime": 1741595170789,
         "name": "Application 2",
         "endpoint": "https://app2.test.com",
+        "viewerUrl": "https://viewer.app2.test.com",
+        "editorUrl": "https://editor.app2.test.com",
         "displayName": "Application 2",
         "description": "Description 2",
         "reference": "test_reference",
@@ -62,7 +69,10 @@
         ],
         "descriptionKeywords": [
           "Test Topic"
-        ]
+        ],
+        "author": "test-author",
+        "createdAt": 12345,
+        "dependencies": []
       }
     }
   ]

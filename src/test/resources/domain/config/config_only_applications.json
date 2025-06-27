@@ -13,6 +13,8 @@
       "display_name": "Sample Application",
       "display_version": "1.0.0",
       "icon_url": "https://example.com/icon.png",
+      "viewer_url": "https://viewer.example.com",
+      "editor_url": "https://editor.example.com",
       "description": "This is a sample application",
       "reference": "app-ref-123",
       "forward_auth_token": true,
@@ -31,6 +33,9 @@
         "content_parts_supported": true,
         "temperature_supported": true,
         "addons_supported": false,
+        "cache_supported": true,
+        "auto_caching_supported": false,
+        "consent_required": true,
         "parallel_tool_calls_supported": true
       },
       "input_attachment_types": [
@@ -56,7 +61,11 @@
         "debug": true,
         "maxUsers": 1000
       },
-      "application_type_schema_id": "https://example.com/schema.json"
+      "application_type_schema_id": "https://example.com/schema.json",
+      "author": "test-author",
+      "created_at": 12345,
+      "updated_at": 12345,
+      "dependencies": ["dep1", "dep2"]
     }
   },
   "assistant": {

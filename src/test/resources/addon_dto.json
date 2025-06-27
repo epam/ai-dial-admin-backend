@@ -5,5 +5,9 @@
   "description": "It is a test addon",
   "displayName": "Test Addon",
   "forwardAuthToken": false,
-  "roleLimits": {}
+  "roleLimits": {},
+  "author": "test-author",
+  "createdAt": "12345",
+  "updatedAt": "12345",
+  "dependencies": ["dep1", "dep2"]
 }

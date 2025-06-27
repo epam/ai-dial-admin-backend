@@ -22,6 +22,11 @@
       "unit": "token",
       "prompt": "0.00000013",
       "completion": "0.00000001"
-    }
+    },
+    "author": "test-author",
+    "createdAt": 12345,
+    "updatedAt": 12345,
+    "dependencies": ["dep1", "dep2"],
+    "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
   }
 ]

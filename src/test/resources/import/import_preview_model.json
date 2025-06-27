@@ -14,7 +14,12 @@
         "displayVersion": "1.0.0",
         "interceptors": [
           "testInterceptor1"
-        ]
+        ],
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": ["dep1", "dep2"],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
     }
   ],

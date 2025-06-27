@@ -16,17 +16,26 @@
         "accessible_by_per_request_key": true,
         "content_parts_supported": false,
         "temperature_supported": true,
-        "addons_supported": false
+        "addons_supported": false,
+        "cacheSupported": true,
+        "autoCachingSupported": false,
+        "consentRequired": false,
+        "parallelToolCallsSupported": true
       },
       "defaults": {},
       "interceptors": [],
       "descriptionKeywords": [],
       "maxRetryAttempts": 5,
       "type": "embedding",
+      "fieldsHashingOrder": ["prompt", "temperature"],
       "upstreams": [],
       "userRoles": [
         "testRole1"
-      ]
+      ],
+      "author": "test-author",
+      "createdAt": "12345",
+      "updatedAt": "12345",
+      "dependencies": ["dep1", "dep2"]
     }
   },
   "addons": {},

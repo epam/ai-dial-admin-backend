@@ -3,5 +3,9 @@
   "displayName": "Test Interceptor",
   "description": "It is a test interceptor",
   "endpoint": "https://endpoint.test.com/embeddings",
-  "forwardAuthToken": false
+  "forwardAuthToken": false,
+  "author": "test-author",
+  "createdAt": "12345",
+  "updatedAt": "12345",
+  "dependencies": []
 }

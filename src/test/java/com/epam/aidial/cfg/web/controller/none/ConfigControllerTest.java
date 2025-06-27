@@ -161,6 +161,11 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         model.setDisplayName("testModel1");
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
+        model.setAuthor("test-author");
+        model.setCreatedAt(12345L);
+        model.setUpdatedAt(12345L);
+        model.setDependencies(List.of("dep1", "dep2"));
+        model.setFieldsHashingOrder(List.of("prompt", "temperature", "seed", "system"));
         var importConfigPreview = ImportConfigPreview.builder()
                 .models(List.of(new ImportComponent<>(CREATE, model)))
                 .build();
@@ -194,6 +199,11 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         model.setDisplayName("testModel1");
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
+        model.setAuthor("test-author");
+        model.setCreatedAt(12345L);
+        model.setUpdatedAt(12345L);
+        model.setDependencies(List.of("dep1", "dep2"));
+        model.setFieldsHashingOrder(List.of("prompt", "temperature", "seed", "system"));
         var importConfigPreview = ImportConfigPreview.builder()
                 .models(List.of(new ImportComponent<>(CREATE, model)))
                 .build();
