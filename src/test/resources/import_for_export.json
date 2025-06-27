@@ -7,7 +7,12 @@
       "displayVersion": "2.0.0",
       "interceptors": [
         "testInterceptor1"
-      ]
+      ],
+      "author": "test-author",
+      "createdAt": "12345",
+      "updatedAt": "12345",
+      "dependencies": ["dep1", "dep2"],
+      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
     },
     "testModel2": {
       "type": "embedding",
@@ -27,7 +32,11 @@
       "interceptors": [
         "testInterceptor1"
       ],
-      "applicationTypeSchemaId": "https://test-schema-id.example"
+      "applicationTypeSchemaId": "https://test-schema-id.example",
+      "author": "test-author",
+      "createdAt": "12345",
+      "updatedAt": "12345",
+      "dependencies": ["dep1", "dep2"]
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -50,7 +59,12 @@
         "testApplication1": {},
         "testApplication2": {}
       },
-      "share": {}
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": "10",
+          "invitationTtl": "120"
+        }
+      }
     },
     "default": {
       "description": "test role 1 description",
@@ -69,7 +83,11 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
-      "endpoint": "https://endpoint.test.com/interceptor"
+      "endpoint": "https://endpoint.test.com/interceptor",
+      "author": "test-author",
+      "createdAt": "12345",
+      "updatedAt": "12345",
+      "dependencies": ["dep1", "dep2"]
     }
   },
   "keys": {
@@ -99,6 +117,11 @@
       "dial:applicationTypeViewerUrl": "https://test.com/claims",
       "dial:applicationTypeDisplayName": "runner display name",
       "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+      "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+      "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+      "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+      "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+      "dial:appendApplicationPropertiesHeader": true,
       "$defs": {},
       "properties": {},
       "required": []

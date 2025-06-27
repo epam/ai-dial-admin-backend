@@ -26,4 +26,8 @@ public class ApplicationResourceDto {
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
+    private Long createdAt;
+    private List<String> dependencies;
+    private String viewerUrl;
+    private String editorUrl;
 }

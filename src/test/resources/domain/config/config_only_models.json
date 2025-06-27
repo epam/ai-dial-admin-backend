@@ -29,6 +29,9 @@
         "content_parts_supported": true,
         "temperature_supported": true,
         "addons_supported": false,
+        "cache_supported": true,
+        "auto_caching_supported": false,
+        "consent_required": true,
         "parallel_tool_calls_supported": true
       },
       "inputAttachmentTypes": [
@@ -50,6 +53,7 @@
       ],
       "maxRetryAttempts": 3,
       "type": "chat",
+      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
       "tokenizerModel": "gpt-4-tokenizer",
       "limits": {
         "maxTotalTokens": 4096,
@@ -77,7 +81,11 @@
           "tier": 2
         }
       ],
-      "overrideName": "Custom Model Override"
+      "overrideName": "Custom Model Override",
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": ["dep1", "dep2"]
     }
   },
   "addons": {},

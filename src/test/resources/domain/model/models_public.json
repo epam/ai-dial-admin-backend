@@ -25,7 +25,11 @@
       "accessibleByPerRequestKey": true,
       "contentPartsSupported": true,
       "temperatureSupported": true,
-      "addonsSupported": false
+      "addonsSupported": false,
+      "cacheSupported": true,
+      "autoCachingSupported": false,
+      "consentRequired": true,
+      "parallelToolCallsSupported": true
     },
     "inputAttachmentTypes": [
       "pdf",
@@ -46,6 +50,7 @@
     ],
     "maxRetryAttempts": 3,
     "type": "CHAT",
+    "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
     "tokenizerModel": "gpt-4-tokenizer",
     "limits": {
       "maxTotalTokens": 4096,
@@ -116,6 +121,10 @@
           }
         }
       ]
-    }
+    },
+    "author": "test-author",
+    "createdAt": 12345,
+    "updatedAt": 12345,
+    "dependencies": ["dep1", "dep2"]
   }
 ]

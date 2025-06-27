@@ -21,7 +21,12 @@
         "interceptors": [],
         "descriptionKeywords": [],
         "maxRetryAttempts": 5,
-        "upstreams": []
+        "upstreams": [],
+        "author": "test-author",
+        "createdAt": "12345",
+        "updatedAt": "12345",
+        "dependencies": ["dep1", "dep2"],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
     },
     "addons": {}
@@ -34,7 +39,11 @@
         "defaults": {},
         "interceptors": [],
         "descriptionKeywords": [],
-        "maxRetryAttempts": 1
+        "maxRetryAttempts": 1,
+        "author": "test-author",
+        "createdAt": "12345",
+        "updatedAt": "12345",
+        "dependencies": []
       }
     },
     "applications": {}
@@ -47,7 +56,11 @@
         "defaults": {},
         "interceptors": [],
         "description_keywords": [],
-        "max_retry_attempts": 1
+        "max_retry_attempts": 1,
+        "author": "test-author",
+        "createdAt": "12345",
+        "updatedAt": "12345",
+        "dependencies": []
       }
     }
   },
@@ -70,7 +83,11 @@
           "interceptors": [],
           "descriptionKeywords": [],
           "maxRetryAttempts": 1,
-          "addons": []
+          "addons": [],
+          "author": "test-author",
+          "createdAt": "12345",
+          "updatedAt": "12345",
+          "dependencies": ["dep1", "dep2"]
         }
       }
     },
@@ -107,7 +124,12 @@
       "role1": {
         "name": "role1",
         "limits": {},
-        "share": {}
+        "share": {
+          "model1": {
+            "maxAcceptedUsers": "10",
+            "invitationTtl": "120"
+          }
+        }
       }
     }
   },
@@ -125,7 +147,11 @@
         "defaults": {},
         "interceptors": [],
         "descriptionKeywords": [],
-        "maxRetryAttempts": 1
+        "maxRetryAttempts": 1,
+        "author": "test-author",
+        "createdAt": "12345",
+        "updatedAt": "12345",
+        "dependencies": ["dep1", "dep2"]
       }
     },
     "applicationTypeSchemas": []
@@ -139,6 +165,11 @@
         "dial:applicationTypeViewerUrl": "https://test.com/claims",
         "dial:applicationTypeDisplayName": "Claims Use case",
         "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+        "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+        "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+        "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+        "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+        "dial:appendApplicationPropertiesHeader": true,
         "$defs": {
           "ToolEndpointInfo": {
             "properties": {

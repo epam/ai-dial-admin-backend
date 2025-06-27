@@ -5,6 +5,11 @@
 	"dial:applicationTypeViewerUrl": "https://test.com/claims",
 	"dial:applicationTypeDisplayName": "Claims Use case",
 	"dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+	"dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+	"dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+	"dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+	"dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+	"dial:appendApplicationPropertiesHeader": true,
 	"$defs": {
 		"ToolEndpointInfo": {
 			"properties": {
