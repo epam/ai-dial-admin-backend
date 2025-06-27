@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.functional.tests.ModelFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RolesFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RouteFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ActivityAuditFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.history.AdapterHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AddonHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ApplicationHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ApplicationTypeSchemaHistoryFunctionalTest;
@@ -149,5 +150,9 @@ public class PostgresFunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class ActivityAuditTest extends ActivityAuditFunctionalTest {
+    }
+
+    @Nested
+    class AdapterHistoryTest extends AdapterHistoryFunctionalTest {
     }
 }
