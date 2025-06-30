@@ -219,8 +219,8 @@
         "endpoint": "https://endpoint.test.com/interceptor",
         "forwardAuthToken": false,
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": []
       }
     }
@@ -355,8 +355,8 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"],
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
@@ -417,8 +417,8 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": [],
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
@@ -476,8 +476,8 @@
         },
         "applicationTypeSchemaId": "https://test-schema-id.example",
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"]
       }
     },
@@ -564,8 +564,8 @@
         "displayName": "Test Addon1",
         "forwardAuthToken": false,
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": []
       }
     }

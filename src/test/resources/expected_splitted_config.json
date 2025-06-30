@@ -23,8 +23,8 @@
         "maxRetryAttempts": 5,
         "upstreams": [],
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"],
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
@@ -41,8 +41,8 @@
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": []
       }
     },
@@ -58,8 +58,8 @@
         "description_keywords": [],
         "max_retry_attempts": 1,
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": []
       }
     }
@@ -85,8 +85,8 @@
           "maxRetryAttempts": 1,
           "addons": [],
           "author": "test-author",
-          "createdAt": "12345",
-          "updatedAt": "12345",
+          "createdAt": 12345,
+          "updatedAt": 12345,
           "dependencies": ["dep1", "dep2"]
         }
       }
@@ -126,8 +126,8 @@
         "limits": {},
         "share": {
           "model1": {
-            "maxAcceptedUsers": "10",
-            "invitationTtl": "120"
+            "maxAcceptedUsers": 10,
+            "invitationTtl": 120
           }
         }
       }
@@ -149,8 +149,8 @@
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
         "author": "test-author",
-        "createdAt": "12345",
-        "updatedAt": "12345",
+        "createdAt": 12345,
+        "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"]
       }
     },

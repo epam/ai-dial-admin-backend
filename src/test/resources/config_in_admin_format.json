@@ -75,8 +75,8 @@
             "viewerUrl": "https://viewer.test.com/app1",
             "editorUrl": "https://editor.test.com/app1",
             "author": "test-author",
-            "createdAt": "12345",
-            "updatedAt": "12345",
+            "createdAt": 12345,
+            "updatedAt": 12345,
             "dependencies": ["dep1", "dep2"]
         },
 		"testApplication2": {
@@ -144,8 +144,8 @@
 			"type": "embedding",
 			"upstreams": [],
             "author": "test-author",
-            "createdAt": "12345",
-            "updatedAt": "12345",
+            "createdAt": 12345,
+            "updatedAt": 12345,
             "dependencies": ["dep1", "dep2"],
             "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
 		},
@@ -190,8 +190,8 @@
 			"type": "embedding",
 			"upstreams": [],
             "author": "test-author",
-            "createdAt": "12345",
-            "updatedAt": "12345",
+            "createdAt": 12345,
+            "updatedAt": 12345,
             "dependencies": ["dep1", "dep2"],
             "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
 		}
@@ -370,8 +370,8 @@
             "endpoint": "https://endpoint.test.com/interceptor",
 			"forwardAuthToken": false,
             "author": "test-author",
-            "createdAt": "12345",
-            "updatedAt": "12345",
+            "createdAt": 12345,
+            "updatedAt": 12345,
             "dependencies": []
 		}
 	},
@@ -382,8 +382,8 @@
 			"baseEndpoint": "http://endpoint1/",
 			"description": "test adapter",
             "author": "test-author",
-            "createdAt": "12345",
-            "updatedAt": "12345",
+            "createdAt": 12345,
+            "updatedAt": 12345,
             "dependencies": []
 		}
 	}

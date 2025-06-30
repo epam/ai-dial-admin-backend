@@ -62,8 +62,8 @@
     }
   },
   "author": "test-author",
-  "createdAt": "12345",
-  "updatedAt": "12345",
+  "createdAt": 12345,
+  "updatedAt": 12345,
   "dependencies": ["dep1", "dep2"],
   "fieldsHashingOrder": ["prompt", "temperature", "seed"]
 }
