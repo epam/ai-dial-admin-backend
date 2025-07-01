@@ -1097,8 +1097,8 @@ public abstract class ConfigTransferFunctionalTest {
         var modelDto = new ModelDto();
         modelDto.setName(modelName);
         modelDto.setAuthor(author);
-        modelDto.setCreatedAt(createdAt);
-        modelDto.setUpdatedAt(updatedAt);
+        modelDto.setCreatedAtMs(createdAt);
+        modelDto.setUpdatedAtMs(updatedAt);
 
         modelFacade.createModel(modelDto);
 

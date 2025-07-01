@@ -22,7 +22,7 @@ public class AddonDto extends RoleBasedDto {
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
+    private Long createdAtMs;
+    private Long updatedAtMs;
     private List<String> dependencies;
 }

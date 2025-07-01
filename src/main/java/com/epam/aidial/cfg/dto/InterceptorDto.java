@@ -28,9 +28,9 @@ public class InterceptorDto {
 
     private String author;
 
-    private Long createdAt;
+    private Long createdAtMs;
 
-    private Long updatedAt;
+    private Long updatedAtMs;
 
     private List<String> dependencies;
 }

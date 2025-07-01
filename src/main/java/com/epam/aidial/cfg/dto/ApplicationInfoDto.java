@@ -17,8 +17,8 @@ public class ApplicationInfoDto {
     private Integer maxInputAttachments;
     private List<String> topics;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
+    private Long createdAtMs;
+    private Long updatedAtMs;
     private List<String> dependencies;
 
     private String viewerUrl;

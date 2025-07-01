@@ -16,11 +16,15 @@ public abstract class ModelDtoMapper {
 
     @Mapping(target = "upstreams.id", ignore = true)
     @RoleBasedDtoMapper.ToDomain
+    @Mapping(target = "createdAt", source = "createdAtMs")
+    @Mapping(target = "updatedAt", source = "updatedAtMs")
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "adapter", source = "entity", qualifiedByName = "mapToAdapter")
     public abstract Model toDomain(ModelDto entity);
 
     @RoleBasedDtoMapper.ToDto
+    @Mapping(target = "createdAtMs", source = "createdAt")
+    @Mapping(target = "updatedAtMs", source = "updatedAt")
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "adapter", source = "adapter.name")
     @Mapping(target = "endpoint", source = "domain", qualifiedByName = "mapEndpointFromModel")
