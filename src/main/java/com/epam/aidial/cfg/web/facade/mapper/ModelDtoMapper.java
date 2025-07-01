@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -18,12 +19,16 @@ public abstract class ModelDtoMapper {
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "adapter", source = "entity", qualifiedByName = "mapToAdapter")
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "instantToLong")
+    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "instantToLong")
     public abstract Model toDomain(ModelDto entity);
 
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "adapter", source = "adapter.name")
     @Mapping(target = "endpoint", source = "domain", qualifiedByName = "mapEndpointFromModel")
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
+    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     public abstract ModelDto toDto(Model domain);
 
     public Map<String, String> mapMap(Map<String, Object> value) {
@@ -43,5 +48,15 @@ public abstract class ModelDtoMapper {
             return adapter;
         }
         return null;
+    }
+
+    @Named("instantToLong")
+    static Long mapInstantToLong(Instant instant) {
+        return instant != null ? instant.toEpochMilli() : null;
+    }
+
+    @Named("longToInstant")
+    static Instant mapLongToInstant(Long epochMilli) {
+        return epochMilli != null ? Instant.ofEpochMilli(epochMilli) : null;
     }
 }

@@ -51,6 +51,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -162,8 +163,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
         model.setAuthor("test-author");
-        model.setCreatedAt(12345L);
-        model.setUpdatedAt(12345L);
+        model.setCreatedAt(Instant.parse("2025-06-01T12:00:00Z").toEpochMilli());
+        model.setUpdatedAt(Instant.parse("2025-06-01T15:30:00Z").toEpochMilli());
         model.setDependencies(List.of("dep1", "dep2"));
         model.setFieldsHashingOrder(List.of("prompt", "temperature", "seed", "system"));
         var importConfigPreview = ImportConfigPreview.builder()
@@ -200,8 +201,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
         model.setAuthor("test-author");
-        model.setCreatedAt(12345L);
-        model.setUpdatedAt(12345L);
+        model.setCreatedAt(Instant.parse("2025-06-01T12:00:00Z").toEpochMilli());
+        model.setUpdatedAt(Instant.parse("2025-06-01T15:30:00Z").toEpochMilli());
         model.setDependencies(List.of("dep1", "dep2"));
         model.setFieldsHashingOrder(List.of("prompt", "temperature", "seed", "system"));
         var importConfigPreview = ImportConfigPreview.builder()

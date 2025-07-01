@@ -16,8 +16,8 @@
       "Test Topic"
     ],
     "author": "test-author",
-    "createdAt": 12345,
-    "updatedAt": 12345,
+    "createdAt": "2025-06-01T12:00:00Z",
+    "updatedAt": "2025-06-01T15:30:00Z",
     "dependencies": ["dep1", "dep2"]
   }
 ]
