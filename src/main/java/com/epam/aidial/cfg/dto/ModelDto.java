@@ -32,8 +32,8 @@ public class ModelDto extends RoleBasedDto {
     private List<String> topics;
     private Integer maxRetryAttempts;
     private String author;
-    private Long createdAtMs;
-    private Long updatedAtMs;
+    private Long createdAt;
+    private Long updatedAt;
     private List<String> dependencies;
 
     private ModelTypeDto type;

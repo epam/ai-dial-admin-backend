@@ -9,16 +9,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class})
 public interface ApplicationDtoMapper {
 
-    @Mapping(target = "createdAt", source = "createdAtMs")
-    @Mapping(target = "updatedAt", source = "updatedAtMs")
     @Mapping(target = "descriptionKeywords", source = "topics")
     @Mapping(target = "applicationTypeSchemaId", source = "customAppSchemaId")
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
     Application toDomain(ApplicationDto dto);
 
-    @Mapping(target = "createdAtMs", source = "createdAt")
-    @Mapping(target = "updatedAtMs", source = "updatedAt")
     @Mapping(target = "function", ignore = true)
     @Mapping(target = "topics", source = "descriptionKeywords")
     @Mapping(target = "customAppSchemaId", source = "applicationTypeSchemaId")
@@ -26,8 +22,6 @@ public interface ApplicationDtoMapper {
     @Mapping(target = "name", source = "deployment.name")
     ApplicationDto toDto(Application domain);
 
-    @Mapping(target = "createdAtMs", source = "createdAt")
-    @Mapping(target = "updatedAtMs", source = "updatedAt")
     @Mapping(target = "topics", source = "descriptionKeywords")
     @Mapping(target = "name", source = "deployment.name")
     ApplicationInfoDto toApplicationInfoDto(Application application);
