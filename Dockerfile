@@ -19,6 +19,9 @@ WORKDIR /app
 RUN adduser -u 1001 --disabled-password --gecos "" appuser && \
     chown appuser:appuser /app
 
+RUN mkdir -p /app/data && \
+    chown -R appuser:appuser /app/data
+
 COPY --from=builder --chown=appuser:appuser /build-workspace/build/libs/ai-dial-admin-backend*.jar ./app.jar
 
 USER appuser
