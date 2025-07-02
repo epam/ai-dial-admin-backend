@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.config;
 
+import com.epam.aidial.cfg.client.CoreConfigClient;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
@@ -97,7 +98,13 @@ public class FunctionalTestConfiguration {
     public CoreConfigVersionProperties coreConfigVersionProperties() {
         CoreConfigVersionProperties properties = new CoreConfigVersionProperties();
         properties.setTarget("latest");
+        properties.setEnableAutoDetect(false);
         return properties;
+    }
+
+    @Bean
+    public CoreConfigClient coreConfigClient() {
+        return Mockito.mock(CoreConfigClient.class);
     }
 
 }

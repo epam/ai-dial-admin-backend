@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.transfer;
 
-import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.SchemaValidationException;
 import com.epam.aidial.core.config.Config;
@@ -25,7 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class VersionAwareFieldFilter {
 
-    private final CoreConfigVersionProperties versionProperties;
+    private final CoreConfigVersionAutoDetectService versionAutoDetectService;
     private final VersionedSchemaLoader schemaLoader;
     private final ObjectMapper objectMapper;
 
@@ -36,7 +35,7 @@ public class VersionAwareFieldFilter {
      * @return Filtered config with only schema-defined fields
      */
     public Config filterForTargetVersion(Config config) {
-        String version = versionProperties.getTarget();
+        String version = versionAutoDetectService.getVersion();
         try {
             JsonNode schema = schemaLoader.loadSchema(version);
             String configJson = objectMapper.writeValueAsString(config);
@@ -303,7 +302,7 @@ public class VersionAwareFieldFilter {
      */
     private JsonNode findRootSchema(JsonNode schema) {
         try {
-            String version = versionProperties.getTarget();
+            String version = versionAutoDetectService.getVersion();
             return schemaLoader.loadSchema(version);
         } catch (Exception e) {
             log.warn("Failed to load root schema, using current schema", e);

@@ -19,6 +19,7 @@ public class CoreConfigVersionProperties {
     private static final String LATEST_VERSION = "latest";
 
     private String target;
+    private boolean enableAutoDetect;
     
     @PostConstruct
     public void validateConfiguration() {
