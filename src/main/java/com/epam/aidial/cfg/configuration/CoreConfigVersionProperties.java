@@ -22,7 +22,7 @@ public class CoreConfigVersionProperties {
     private String target;
 
     @Value("${config.version.autoDetect.enabled}")
-    private boolean enableAutoDetect;
+    private boolean autoDetectEnabled;
 
     @Value("${config.version.autoDetect.maxAttempts}")
     private int maxRetries;
