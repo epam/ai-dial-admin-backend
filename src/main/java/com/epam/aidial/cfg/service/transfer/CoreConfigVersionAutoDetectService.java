@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -20,13 +19,6 @@ public class CoreConfigVersionAutoDetectService {
 
     private final CoreConfigClient coreConfigClient;
     private final CoreConfigVersionProperties coreConfigVersionProperties;
-
-    @Value("${feign.retry.maxAttempts:3}")
-    private int maxRetries;
-
-    @Value("${feign.retry.period:5000}")
-    private long retryDelayMilliseconds;
-    
     private final AtomicReference<String> cachedVersion = new AtomicReference<>();
 
     /**
@@ -37,7 +29,7 @@ public class CoreConfigVersionAutoDetectService {
      * @return the Core version
      */
     public String getVersion() {
-        if (!coreConfigVersionProperties.isEnableAutoDetect()) {
+        if (!coreConfigVersionProperties.isEnable()) {
             log.debug("Core version auto-detection is disabled. Using target version: {}",
                     coreConfigVersionProperties.getTarget());
             return coreConfigVersionProperties.getTarget();
@@ -60,6 +52,7 @@ public class CoreConfigVersionAutoDetectService {
 
     private String attemptToGetVersionWithRetries() throws Exception {
         Exception lastException = null;
+        int maxRetries = coreConfigVersionProperties.getMaxRetries();
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -78,8 +71,8 @@ public class CoreConfigVersionAutoDetectService {
         throw Objects.requireNonNull(lastException);
     }
 
-    private String tryToGetVersion(int attempt) throws Exception {
-        log.info("Attempting to get Core version, attempt {}/{}", attempt, maxRetries);
+    private String tryToGetVersion(int attempt) {
+        log.info("Attempting to get Core version, attempt {}/{}", attempt, coreConfigVersionProperties.getMaxRetries());
         String version = coreConfigClient.getVersion();
         log.info("Successfully retrieved Core version: {}", version);
         return version;
@@ -87,6 +80,7 @@ public class CoreConfigVersionAutoDetectService {
 
     private void waitBeforeNextRetry() {
         try {
+            long retryDelayMilliseconds = coreConfigVersionProperties.getRetryDelayMs();
             log.info("Waiting {} ms before next retry", retryDelayMilliseconds);
             TimeUnit.MILLISECONDS.sleep(retryDelayMilliseconds);
         } catch (InterruptedException ie) {
@@ -97,6 +91,7 @@ public class CoreConfigVersionAutoDetectService {
 
     private String fallbackToTargetVersion(Exception lastException) {
         String targetVersion = coreConfigVersionProperties.getTarget();
+        cachedVersion.set(targetVersion);
         log.warn("All attempts to get Core version failed, falling back to target version: {}", targetVersion);
         log.debug("Last exception: ", lastException);
         return targetVersion;
