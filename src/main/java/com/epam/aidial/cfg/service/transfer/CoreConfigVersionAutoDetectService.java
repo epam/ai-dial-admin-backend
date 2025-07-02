@@ -29,7 +29,7 @@ public class CoreConfigVersionAutoDetectService {
      * @return the Core version
      */
     public String getVersion() {
-        if (!coreConfigVersionProperties.isEnable()) {
+        if (!coreConfigVersionProperties.isEnableAutoDetect()) {
             log.debug("Core version auto-detection is disabled. Using target version: {}",
                     coreConfigVersionProperties.getTarget());
             return coreConfigVersionProperties.getTarget();

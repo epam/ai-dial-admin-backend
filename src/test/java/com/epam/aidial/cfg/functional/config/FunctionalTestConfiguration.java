@@ -98,7 +98,7 @@ public class FunctionalTestConfiguration {
     public CoreConfigVersionProperties coreConfigVersionProperties() {
         CoreConfigVersionProperties properties = new CoreConfigVersionProperties();
         properties.setTarget("latest");
-        properties.setEnable(false);
+        properties.setEnableAutoDetect(false);
         return properties;
     }
 
