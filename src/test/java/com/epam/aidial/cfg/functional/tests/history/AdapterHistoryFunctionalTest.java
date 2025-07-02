@@ -73,7 +73,7 @@ public abstract class AdapterHistoryFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyRollbackModelsWithModels() {
+    public void shouldSuccessfullyRollbackAdaptersLinkedWithModels() {
         initRoles();
 
         // create model1
