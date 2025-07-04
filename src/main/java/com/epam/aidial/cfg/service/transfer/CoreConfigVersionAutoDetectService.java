@@ -8,7 +8,6 @@ import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -51,7 +50,7 @@ public class CoreConfigVersionAutoDetectService {
         }
 
         try {
-            version = attemptToGetVersionWithRetries();
+            version = getVersionFromCore();
             versionCache.put(CURRENT_VERSION_CACHE_KEY, version);
             return version;
         } catch (Exception e) {
@@ -59,42 +58,15 @@ public class CoreConfigVersionAutoDetectService {
         }
     }
 
-    private String attemptToGetVersionWithRetries() throws Exception {
-        Exception lastException = null;
-        int maxRetries = coreConfigVersionProperties.getMaxRetries();
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                return tryToGetVersion(attempt);
-            } catch (Exception e) {
-                lastException = e;
-                log.warn("Failed to get Core version on attempt {}/{}: {}",
-                        attempt, maxRetries, e.getMessage());
-
-                if (attempt < maxRetries) {
-                    waitBeforeNextRetry();
-                }
-            }
-        }
-
-        throw Objects.requireNonNull(lastException);
-    }
-
-    private String tryToGetVersion(int attempt) {
-        log.info("Attempting to get Core version, attempt {}/{}", attempt, coreConfigVersionProperties.getMaxRetries());
-        String version = coreConfigClient.getVersion();
-        log.info("Successfully retrieved Core version: {}", version);
-        return version;
-    }
-
-    private void waitBeforeNextRetry() {
+    private String getVersionFromCore() {
         try {
-            long retryDelayMilliseconds = coreConfigVersionProperties.getRetryDelayMs();
-            log.info("Waiting {} ms before next retry", retryDelayMilliseconds);
-            TimeUnit.MILLISECONDS.sleep(retryDelayMilliseconds);
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            log.warn("Retry delay was interrupted", ie);
+            log.info("Attempting to get version from Core");
+            String version = coreConfigClient.getVersion();
+            log.info("Successfully retrieved Core version: {}", version);
+            return version;
+        } catch (Exception e) {
+            log.warn("Failed to get Core version: {}", e.getMessage());
+            throw e;
         }
     }
 

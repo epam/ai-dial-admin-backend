@@ -24,12 +24,6 @@ public class CoreConfigVersionProperties {
     @Value("${config.version.autoDetect.enabled}")
     private boolean autoDetectEnabled;
 
-    @Value("${config.version.autoDetect.maxAttempts}")
-    private int maxRetries;
-
-    @Value("${config.version.autoDetect.period}")
-    private long retryDelayMs;
-
     @Value("${config.version.autoDetect.cacheExpirationMs}")
     private long cacheExpirationMs;
 
