@@ -51,6 +51,7 @@ public class RoleService {
     @Transactional
     public void createRole(Role role) {
         assertNotExists(role.getName());
+        roleValidator.validateRoleCreation(role);
         Optional.of(role)
                 .map(domainModel -> mapper.toEntity(domainModel, new RoleEntity()))
                 .ifPresent(roleJpaRepository::save);

@@ -16,6 +16,7 @@ This document provides a comprehensive list of all configurable properties in th
 - [Metrics Configuration](#metrics-configuration)
 - [Logging Configuration](#logging-configuration)
 - [Retry Configuration](#retry-configuration)
+- [Validation Configuration](#validation-configuration)
 
 ## AIDIAL Config File Exporter
 
@@ -220,3 +221,9 @@ When using MS_SQL_SERVER we recommend to set case-sensitive, accept-sensitive da
 | Setting | Environment Variable | Default | Description |
 |---------|---------------------|---------|-------------|
 | config.env.tokenizers.json | CONFIG_ENV_TOKENIZERS_JSON | - | Preconfigured DIAL tokenizers list in JSON format |
+
+## Validation Configuration
+
+| Setting | Environment Variable | Default | Description                       |
+|---------|---------------------|---------|-----------------------------------|
+| validation.role.name | ROLE_NAME_VALIDATION_PATTERN | - | Validation pattern for Role name  |
