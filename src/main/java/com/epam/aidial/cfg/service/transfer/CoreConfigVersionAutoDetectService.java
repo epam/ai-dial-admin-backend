@@ -3,23 +3,32 @@ package com.epam.aidial.cfg.service.transfer;
 import com.epam.aidial.cfg.client.CoreConfigClient;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import lombok.RequiredArgsConstructor;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
 @LogExecution
-@RequiredArgsConstructor
 public class CoreConfigVersionAutoDetectService {
+
+    private static final String CURRENT_VERSION_CACHE_KEY = "current-version";
 
     private final CoreConfigClient coreConfigClient;
     private final CoreConfigVersionProperties coreConfigVersionProperties;
-    private final AtomicReference<String> cachedVersion = new AtomicReference<>();
+    private final Cache<String, String> versionCache;    
+    
+    public CoreConfigVersionAutoDetectService(CoreConfigClient coreConfigClient, CoreConfigVersionProperties coreConfigVersionProperties) {
+        this.coreConfigClient = coreConfigClient;
+        this.coreConfigVersionProperties = coreConfigVersionProperties;
+        this.versionCache = CacheBuilder.newBuilder()
+                .expireAfterWrite(coreConfigVersionProperties.getCacheExpirationMs(), TimeUnit.MILLISECONDS)
+                .build();
+    }
 
     /**
      * Gets the Core version with retry mechanism.
@@ -35,7 +44,7 @@ public class CoreConfigVersionAutoDetectService {
             return coreConfigVersionProperties.getTarget();
         }
 
-        String version = cachedVersion.get();
+        String version = versionCache.getIfPresent(CURRENT_VERSION_CACHE_KEY);
         if (version != null) {
             log.debug("Using cached Core version: {}", version);
             return version;
@@ -43,7 +52,7 @@ public class CoreConfigVersionAutoDetectService {
 
         try {
             version = attemptToGetVersionWithRetries();
-            cachedVersion.set(version);
+            versionCache.put(CURRENT_VERSION_CACHE_KEY, version);
             return version;
         } catch (Exception e) {
             return fallbackToTargetVersion(e);
@@ -91,7 +100,7 @@ public class CoreConfigVersionAutoDetectService {
 
     private String fallbackToTargetVersion(Exception lastException) {
         String targetVersion = coreConfigVersionProperties.getTarget();
-        cachedVersion.set(targetVersion);
+        versionCache.put(CURRENT_VERSION_CACHE_KEY, targetVersion);
         log.warn("All attempts to get Core version failed, falling back to target version: {}", targetVersion);
         log.debug("Last exception: ", lastException);
         return targetVersion;

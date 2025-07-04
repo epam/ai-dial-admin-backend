@@ -30,6 +30,9 @@ public class CoreConfigVersionProperties {
     @Value("${config.version.autoDetect.period}")
     private long retryDelayMs;
 
+    @Value("${config.version.autoDetect.cacheExpirationMs}")
+    private long cacheExpirationMs;
+
     @PostConstruct
     public void validateConfiguration() {
         log.info("Initializing core config version properties. Target: {}", target);

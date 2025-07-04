@@ -99,6 +99,9 @@ public class FunctionalTestConfiguration {
         CoreConfigVersionProperties properties = new CoreConfigVersionProperties();
         properties.setTarget("latest");
         properties.setAutoDetectEnabled(false);
+        properties.setCacheExpirationMs(300000);
+        properties.setMaxRetries(2);
+        properties.setRetryDelayMs(10000);
         return properties;
     }
 
