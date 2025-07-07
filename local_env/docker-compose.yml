@@ -17,6 +17,7 @@ services:
       METRICS_STORAGE_TOKEN: "myadmintoken"
       CORE_CLIENT_URL: "http://core:8080"
       DISABLE_SWAGGER_AUTHORIZATION: true
+      H2_FILE: ./data/testdb
       H2_DATASOURCE_MASTER_KEY: t8+npcgNMiipR+kHMb8zXAjgA3IedCXC
       H2_DATASOURCE_ENCRYPTED_FILE_KEY: 9vW1l/Eg+1J3YXpCsyR6AUI4ptMtI6pjkktePuUQts+wKVAauoP5CG21z5WTzp91xBcEww==
       H2_DATASOURCE_PASSWORD: password

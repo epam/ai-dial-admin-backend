@@ -15,4 +15,5 @@ public class ExportConfigPreviewDto {
     private Collection<ExportKeyInfoDto> keys;
     private Collection<ExportApplicationTypeSchemaInfoDto> applicationRunners;
     private Collection<ExportComponentInfoDto> interceptors;
+    private Collection<ExportComponentInfoDto> adapters;
 }

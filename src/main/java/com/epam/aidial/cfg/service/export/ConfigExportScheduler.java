@@ -29,7 +29,7 @@ public class ConfigExportScheduler {
     @Value("${config.export.createResources}")
     private boolean createResources;
 
-    @Scheduled(fixedRateString = "${config.export.syncPeriod}")
+    @Scheduled(fixedDelayString = "${config.export.syncPeriod}")
     @Synchronized
     public void exportCurrentConfig() {
         try {
