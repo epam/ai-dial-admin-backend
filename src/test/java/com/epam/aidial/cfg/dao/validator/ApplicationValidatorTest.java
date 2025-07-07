@@ -36,6 +36,8 @@ class ApplicationValidatorTest {
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
 
         // when
         applicationValidator.validateCreation(application);
@@ -52,6 +54,8 @@ class ApplicationValidatorTest {
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
@@ -73,6 +77,9 @@ class ApplicationValidatorTest {
         application.setEndpoint(endpoint);
         application.setApplicationTypeSchemaId(applicationTypeSchemaId);
 
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
+
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -89,6 +96,8 @@ class ApplicationValidatorTest {
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setApplicationTypeSchemaId(URI.create("https://test.com"));
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))

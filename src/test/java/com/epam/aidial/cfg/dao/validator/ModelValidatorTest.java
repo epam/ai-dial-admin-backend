@@ -30,6 +30,8 @@ class ModelValidatorTest {
         Model model = new Model();
         model.setDisplayName("text");
         model.setDisplayVersion("1.0");
+        Deployment deployment = new Deployment("text");
+        model.setDeployment(deployment);
 
         // when
         modelValidator.validateCreation(model);
