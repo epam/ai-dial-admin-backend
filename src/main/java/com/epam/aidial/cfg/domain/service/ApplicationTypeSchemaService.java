@@ -5,9 +5,7 @@ import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
-import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
-import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -51,6 +49,7 @@ public class ApplicationTypeSchemaService {
 
     @Transactional
     public void create(ApplicationTypeSchema applicationTypeSchema) {
+        applicationTypeSchemaValidator.validateCreation(applicationTypeSchema);
         assertNotExists(applicationTypeSchema.getSchemaId());
         Optional.of(applicationTypeSchema)
                 .map(domainModel -> mapper.toEntity(domainModel, new ApplicationTypeSchemaEntity()))

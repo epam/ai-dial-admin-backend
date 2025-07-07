@@ -2,10 +2,7 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
-import com.epam.aidial.cfg.dao.model.ModelEntity;
-import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
-import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -47,6 +44,7 @@ public class RouteService {
 
     @Transactional
     public void create(Route route) {
+        routeValidator.validateRouteCreation(route);
         deploymentService.assertDeploymentNotExists(route.getDeployment().getName());
         Optional.of(route)
                 .map(domainModel -> mapper.toEntity(domainModel, new RouteEntity()))

@@ -54,6 +54,7 @@ public class AdapterService {
 
     @Transactional
     public void create(Adapter adapter) {
+        adapterValidator.validateAdapterCreation(adapter);
         assertNotExists(adapter.getName());
         Optional.of(adapter)
                 .map(domainModel -> mapper.toEntity(domainModel, new AdapterEntity()))

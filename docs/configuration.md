@@ -224,6 +224,16 @@ When using MS_SQL_SERVER we recommend to set case-sensitive, accept-sensitive da
 
 ## Validation Configuration
 
-| Setting | Environment Variable | Default | Description                       |
-|---------|---------------------|---------|-----------------------------------|
-| validation.role.name | ROLE_NAME_VALIDATION_PATTERN | - | Validation pattern for Role name  |
+| Setting                             | Environment Variable | Default | Description |
+|-------------------------------------|---------------------|---------|-------------|
+| validation.role.name                | ROLE_NAME_VALIDATION_PATTERN | - | Validation pattern for Role name |
+| validation.adapter.name             | ADAPTER_NAME_VALIDATION_PATTERN | - | Validation pattern for Adapter name |
+| validation.addon.name               | ADDON_NAME_VALIDATION_PATTERN | - | Validation pattern for Addon name |
+| validation.application.name         | APPLICATION_NAME_VALIDATION_PATTERN | - | Validation pattern for Application name |
+| validation.assistant.name           | ASSISTANT_NAME_VALIDATION_PATTERN | - | Validation pattern for Assistant name |
+| validation.interceptor.name         | INTERCEPTOR_NAME_VALIDATION_PATTERN | - | Validation pattern for Interceptor name |
+| validation.interceptorRunner.name   | INTERCEPTOR_RUNNER_NAME_VALIDATION_PATTERN | - | Validation pattern for InterceptorRunner name |
+| validation.key.name                 | KEY_NAME_VALIDATION_PATTERN | - | Validation pattern for Key name |
+| validation.model.name               | MODEL_NAME_VALIDATION_PATTERN | - | Validation pattern for Model name |
+| validation.route.name               | ROUTE_NAME_VALIDATION_PATTERN | - | Validation pattern for Route name |
+| validation.applicationTypeSchema.id | APPLICATION_TYPE_SCHEMA_ID_VALIDATION_PATTERN | - | Validation pattern for ApplicationTypeSchema id |
