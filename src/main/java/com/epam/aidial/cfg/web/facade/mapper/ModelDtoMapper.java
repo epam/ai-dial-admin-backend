@@ -7,12 +7,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, UpstreamDtoMapper.class, RoleBasedDtoMapper.class, ModelEndpointDtoMapper.class})
+@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, UpstreamDtoMapper.class, RoleBasedDtoMapper.class, ModelEndpointDtoMapper.class, InstantMapper.class})
 public abstract class ModelDtoMapper {
 
     @Mapping(target = "upstreams.id", ignore = true)
@@ -50,13 +49,4 @@ public abstract class ModelDtoMapper {
         return null;
     }
 
-    @Named("instantToLong")
-    static Long mapInstantToLong(Instant instant) {
-        return instant != null ? instant.toEpochMilli() : null;
-    }
-
-    @Named("longToInstant")
-    static Instant mapLongToInstant(Long epochMilli) {
-        return epochMilli != null ? Instant.ofEpochMilli(epochMilli) : null;
-    }
 }

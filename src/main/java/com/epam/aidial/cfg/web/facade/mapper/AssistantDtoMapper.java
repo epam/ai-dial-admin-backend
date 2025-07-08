@@ -4,11 +4,8 @@ import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.time.Instant;
-
-@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class})
+@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class})
 public interface AssistantDtoMapper {
 
     @RoleBasedDtoMapper.ToDomain
@@ -24,13 +21,4 @@ public interface AssistantDtoMapper {
     @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     AssistantDto toDto(Assistant domain);
 
-    @Named("instantToLong")
-    static Long mapInstantToLong(Instant instant) {
-        return instant != null ? instant.toEpochMilli() : null;
-    }
-
-    @Named("longToInstant")
-    static Instant mapLongToInstant(Long epochMilli) {
-        return epochMilli != null ? Instant.ofEpochMilli(epochMilli) : null;
-    }
 }
