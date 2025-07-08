@@ -4,11 +4,8 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.time.Instant;
-
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {InstantMapper.class})
 public interface InterceptorDtoMapper {
 
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "instantToLong")
@@ -19,13 +16,4 @@ public interface InterceptorDtoMapper {
     @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     InterceptorDto toDto(Interceptor domain);
 
-    @Named("instantToLong")
-    static Long mapInstantToLong(Instant instant) {
-        return instant != null ? instant.toEpochMilli() : null;
-    }
-
-    @Named("longToInstant")
-    static Instant mapLongToInstant(Long epochMilli) {
-        return epochMilli != null ? Instant.ofEpochMilli(epochMilli) : null;
-    }
 }

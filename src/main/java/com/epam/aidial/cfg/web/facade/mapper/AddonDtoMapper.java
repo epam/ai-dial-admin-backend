@@ -4,11 +4,8 @@ import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.dto.AddonDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.time.Instant;
-
-@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class})
+@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class})
 public interface AddonDtoMapper {
 
     @RoleBasedDtoMapper.ToDomain
@@ -23,13 +20,4 @@ public interface AddonDtoMapper {
     @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     AddonDto toDto(Addon domain);
 
-    @Named("instantToLong")
-    static Long mapInstantToLong(Instant instant) {
-        return instant != null ? instant.toEpochMilli() : null;
-    }
-
-    @Named("longToInstant")
-    static Instant mapLongToInstant(Long epochMilli) {
-        return epochMilli != null ? Instant.ofEpochMilli(epochMilli) : null;
-    }
 }
