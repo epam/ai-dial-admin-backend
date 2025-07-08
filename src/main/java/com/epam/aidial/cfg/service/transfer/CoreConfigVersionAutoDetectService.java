@@ -19,14 +19,16 @@ public class CoreConfigVersionAutoDetectService {
 
     private final CoreConfigClient coreConfigClient;
     private final CoreConfigVersionProperties coreConfigVersionProperties;
-    private final Cache<String, String> versionCache;    
-    
+    private final Cache<String, String> versionCache;
+    private final Cache<String, String> nonExpiringVersionCache;
+
     public CoreConfigVersionAutoDetectService(CoreConfigClient coreConfigClient, CoreConfigVersionProperties coreConfigVersionProperties) {
         this.coreConfigClient = coreConfigClient;
         this.coreConfigVersionProperties = coreConfigVersionProperties;
         this.versionCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(coreConfigVersionProperties.getCacheExpirationMs(), TimeUnit.MILLISECONDS)
                 .build();
+        this.nonExpiringVersionCache = CacheBuilder.newBuilder().build();
     }
 
     /**
@@ -52,6 +54,7 @@ public class CoreConfigVersionAutoDetectService {
         try {
             version = getVersionFromCore();
             versionCache.put(CURRENT_VERSION_CACHE_KEY, version);
+            nonExpiringVersionCache.put(CURRENT_VERSION_CACHE_KEY, version);
             return version;
         } catch (Exception e) {
             return fallbackToTargetVersion(e);
@@ -60,7 +63,7 @@ public class CoreConfigVersionAutoDetectService {
 
     private String getVersionFromCore() {
         try {
-            log.info("Attempting to get version from Core");
+            log.debug("Attempting to get version from Core");
             String version = coreConfigClient.getVersion();
             log.info("Successfully retrieved Core version: {}", version);
             return version;
@@ -71,10 +74,18 @@ public class CoreConfigVersionAutoDetectService {
     }
 
     private String fallbackToTargetVersion(Exception lastException) {
+        String version = nonExpiringVersionCache.getIfPresent(CURRENT_VERSION_CACHE_KEY);
+        if (version != null) {
+            log.debug("Using the last successfully retrieved Core version: {}", version);
+            return version;
+        }
+
         String targetVersion = coreConfigVersionProperties.getTarget();
         versionCache.put(CURRENT_VERSION_CACHE_KEY, targetVersion);
+
         log.warn("All attempts to get Core version failed, falling back to target version: {}", targetVersion);
         log.debug("Last exception: ", lastException);
+
         return targetVersion;
     }
 }
