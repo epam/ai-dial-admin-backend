@@ -16,17 +16,26 @@
         "accessible_by_per_request_key": true,
         "content_parts_supported": false,
         "temperature_supported": true,
-        "addons_supported": false
+        "addons_supported": false,
+        "cache_supported": true,
+        "auto_caching_supported": false,
+        "consent_required": false,
+        "parallel_tool_calls_supported": true
       },
       "defaults": {},
       "interceptors": [],
       "descriptionKeywords": [],
       "maxRetryAttempts": 5,
       "type": "embedding",
+      "fieldsHashingOrder": ["prompt", "temperature"],
       "upstreams": [],
       "userRoles": [
       ],
-      "endpoint": "http://endpoint1/testModel1/embeddings"
+      "endpoint": "http://endpoint1/testModel1/embeddings",
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": ["dep1", "dep2"]
     },
     "testModel2": {
       "name": "testModel2",
@@ -43,17 +52,26 @@
         "accessible_by_per_request_key": true,
         "content_parts_supported": false,
         "temperature_supported": true,
-        "addons_supported": false
+        "addons_supported": false,
+        "cache_supported": true,
+        "auto_caching_supported": false,
+        "consent_required": false,
+        "parallel_tool_calls_supported": true
       },
       "defaults": {},
       "interceptors": [],
       "descriptionKeywords": [],
       "maxRetryAttempts": 5,
       "type": "embedding",
+      "fieldsHashingOrder": [],
       "upstreams": [],
       "userRoles": [
       ],
-      "endpoint": "http://endpoint2/testModel2/embeddings"
+      "endpoint": "http://endpoint2/testModel2/embeddings",
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": []
     }
   },
   "addons": {},

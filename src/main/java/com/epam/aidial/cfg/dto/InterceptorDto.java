@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -28,9 +29,9 @@ public class InterceptorDto {
 
     private String author;
 
-    private Long createdAt;
+    private Instant createdAt;
 
-    private Long updatedAt;
+    private Instant updatedAt;
 
     private List<String> dependencies;
 }

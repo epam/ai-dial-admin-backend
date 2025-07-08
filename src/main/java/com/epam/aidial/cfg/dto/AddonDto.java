@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -22,7 +23,7 @@ public class AddonDto extends RoleBasedDto {
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private List<String> dependencies;
 }

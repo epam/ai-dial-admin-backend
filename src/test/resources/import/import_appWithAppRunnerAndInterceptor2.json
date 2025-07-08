@@ -7,6 +7,8 @@
       "name": "testApplication1",
       "display_name": "Test Application1",
       "display_version": "2.0.0",
+      "viewer_url": "https://viewer.test.com/app1",
+      "editor_url": "https://editor.test.com/app1",
       "forward_auth_token": false,
       "features": {
         "system_prompt_supported": true,
@@ -18,7 +20,11 @@
         "accessible_by_per_request_key": true,
         "content_parts_supported": false,
         "temperature_supported": true,
-        "addons_supported": false
+        "addons_supported": false,
+        "cache_supported": true,
+        "auto_caching_supported": false,
+        "consent_required": false,
+        "parallel_tool_calls_supported": true
       },
       "defaults": {},
       "interceptors": [
@@ -27,7 +33,11 @@
       "description_keywords": [],
       "max_retry_attempts": 1,
       "application_properties": {},
-      "application_type_schema_id": "https://test2-schema-id.example"
+      "application_type_schema_id": "https://test2-schema-id.example",
+      "author": "test-author",
+      "created_at": "12345",
+      "updated_at": "12345",
+      "dependencies": []
     }
   },
   "assistant": {
@@ -58,6 +68,11 @@
       "dial:applicationTypeViewerUrl": "https://test.com/claims",
       "dial:applicationTypeDisplayName": "runner display name",
       "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+      "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+      "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+      "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+      "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+      "dial:appendApplicationPropertiesHeader": true,
       "$defs": {}
     },
     {
@@ -69,6 +84,11 @@
       "dial:applicationTypeViewerUrl": "https://test.com/claims",
       "dial:applicationTypeDisplayName": "runner display name",
       "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+      "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+      "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+      "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+      "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+      "dial:appendApplicationPropertiesHeader": true,
       "$defs": {}
     }
   ]

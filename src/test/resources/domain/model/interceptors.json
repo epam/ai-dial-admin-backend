@@ -11,6 +11,10 @@
       "user",
       "transaction",
       "log"
-    ]
+    ],
+    "author": "test-author",
+    "createdAt": 12345,
+    "updatedAt": 12345,
+    "dependencies": []
   }
 ]

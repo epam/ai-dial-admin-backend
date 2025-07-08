@@ -8,6 +8,11 @@
     "applicationTypeViewerUrl": "https://example.com/viewer",
     "applicationTypeDisplayName": "Sample Application Type",
     "applicationTypeCompletionEndpoint": "https://example.com/complete",
+    "applicationTypeConfigurationEndpoint": "https://example.com/configuration",
+    "applicationTypeRateEndpoint": "https://example.com/rate",
+    "applicationTypeTokenizeEndpoint": "https://example.com/tokenize",
+    "applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
+    "appendApplicationPropertiesHeader": true,
     "defs": {
       "maxLength": "255"
     },

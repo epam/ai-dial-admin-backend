@@ -44,7 +44,15 @@
             "limit": {}
           }
         ],
-        "share": []
+        "share": [
+          {
+            "deploymentName": "testModel1",
+            "limit": {
+              "maxAcceptedUsers": 10,
+              "invitationTtl": 120
+            }
+          }
+        ]
       }
     },
     {
@@ -165,7 +173,11 @@
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
-        "forwardAuthToken": false
+        "forwardAuthToken": false,
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": []
       }
     }
   ],
@@ -180,6 +192,11 @@
         "applicationTypeViewerUrl": "https://test.com/claims",
         "applicationTypeDisplayName": "runner display name",
         "applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+        "applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+        "applicationTypeRateEndpoint": "https://test.io/openai/rate",
+        "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+        "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+        "appendApplicationPropertiesHeader": true,
         "defs": {},
         "properties": {},
         "required": []
@@ -235,7 +252,11 @@
         "name": "adapter1",
         "baseEndpoint": "http://endpoint1/",
         "description": "test adapter",
-        "models": []
+        "models": [],
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": []
       }
     }
   ],
@@ -261,13 +282,22 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
         },
         "defaults": {},
         "topics": [],
         "maxRetryAttempts": 5,
         "type": "embedding",
-        "upstreams": []
+        "upstreams": [],
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": ["dep1", "dep2"],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
     },
     {
@@ -299,7 +329,11 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
         },
         "defaults": {},
         "interceptors": [
@@ -308,7 +342,12 @@
         "topics": [],
         "maxRetryAttempts": 5,
         "type": "embedding",
-        "upstreams": []
+        "upstreams": [],
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": ["dep1", "dep2"],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
     }
   ],
@@ -326,6 +365,8 @@
         "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
+        "viewerUrl": "https://viewer.test.com/app1",
+        "editorUrl": "https://editor.test.com/app1",
         "defaults": {},
         "interceptors": [
           "testInterceptor1"
@@ -340,10 +381,18 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
         },
         "applicationProperties": {},
-        "applicationTypeSchemaId": "https://test-schema-id.example"
+        "applicationTypeSchemaId": "https://test-schema-id.example",
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": ["dep1", "dep2"]
       }
     },
     {
@@ -372,7 +421,11 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
         },
         "applicationProperties": {}
       }

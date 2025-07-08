@@ -16,7 +16,11 @@
       "accessible_by_per_request_key": true,
       "content_parts_supported": false,
       "temperature_supported": true,
-      "addons_supported": false
+      "addons_supported": false,
+      "cache_supported": true,
+      "auto_caching_supported": false,
+      "consent_required": false,
+      "parallel_tool_calls_supported": true
     },
     "assistants": {
       "testAssistant1": {
@@ -26,7 +30,11 @@
         "displayName": "Test Assistant1",
         "forwardAuthToken": false,
         "userRoles": [],
-        "defaults": {}
+        "defaults": {},
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": ["dep1", "dep2"]
       }
     }
   },

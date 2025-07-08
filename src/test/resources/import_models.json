@@ -7,7 +7,12 @@
       "displayVersion": "2.0.0",
       "userRoles": [
         "testRole1"
-      ]
+      ],
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": ["dep1", "dep2"],
+      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
     },
     "testModel2": {
       "type": "embedding",
@@ -26,7 +31,12 @@
       "limits": {
         "testModel1": {}
       },
-      "share": {}
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
     }
   },
   "addons": {},

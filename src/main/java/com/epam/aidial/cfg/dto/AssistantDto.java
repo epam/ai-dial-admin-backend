@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class AssistantDto extends RoleBasedDto {
     private List<String> topics;
     private Map<String, String> defaults;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private List<String> dependencies;
 }
