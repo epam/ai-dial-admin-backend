@@ -1,10 +1,12 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
+import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -30,6 +32,8 @@ public abstract class ModelHistoryFunctionalTest {
     private TestHistoryFacade historyFacade;
     @Autowired
     private AuditActivityFacade auditActivityFacade;
+    @Autowired
+    private AdapterFacade adapterFacade;
 
     private void initRoles() {
         RoleDto role1 = createRoleDto("1");
@@ -174,6 +178,69 @@ public abstract class ModelHistoryFunctionalTest {
         Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
     }
 
+    @Test
+    public void shouldSuccessfullyRollbackModelsWithAdapters() {
+        initRoles();
+
+        // create adapter1
+        AdapterDto adapter1 = createAdapter("1");
+        adapterFacade.createAdapter(adapter1);
+        // create model1
+        ModelDto modelDto = createDto("1");
+        modelDto.setAdapter(adapter1.getName());
+        modelFacade.createModel(modelDto);
+
+        final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        var actualAtRevision = modelFacade.getAll();
+
+        // create adapter2
+        AdapterDto adapter2 = createAdapter("2");
+        adapterFacade.createAdapter(adapter2);
+
+        // update model
+        modelDto.setAdapter(adapter2.getName());
+        modelFacade.updateModel(modelDto.getName(), modelDto);
+
+        List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        List<ConfigRevisionDto> revisionsListAfterRollback = historyFacade.getRevisionsList();
+
+        Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
+
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
+        Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
+    }
+
+    @Test
+    public void shouldSuccessfullyRollbackModelsWithAdaptersWhenAdapterDeleted() {
+        initRoles();
+
+        // create adapter1
+        AdapterDto adapter1 = createAdapter("1");
+        adapterFacade.createAdapter(adapter1);
+        // create model1
+        ModelDto modelDto = createDto("1");
+        modelDto.setAdapter(adapter1.getName());
+        modelFacade.createModel(modelDto);
+
+        final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        var actualAtRevision = modelFacade.getAll();
+
+        modelDto.setDescription("new description");
+        modelFacade.updateModel(modelDto.getName(), modelDto);
+
+        adapterFacade.deleteAdapter(adapter1.getName());
+
+        List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        List<ConfigRevisionDto> revisionsListAfterRollback = historyFacade.getRevisionsList();
+
+        Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
+
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
+        Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
+    }
+
     private InterceptorDto createInterceptor(String suffix) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
@@ -201,5 +268,13 @@ public abstract class ModelHistoryFunctionalTest {
         role1.setName("role" + suffix);
         role1.setDescription("role" + suffix);
         return role1;
+    }
+
+    private AdapterDto createAdapter(String suffix) {
+        AdapterDto adapterDto = new AdapterDto();
+        adapterDto.setName("adapter" + suffix);
+        adapterDto.setBaseEndpoint("adapter" + suffix + "/endpoint");
+        adapterDto.setDescription("adapter" + suffix);
+        return adapterDto;
     }
 }

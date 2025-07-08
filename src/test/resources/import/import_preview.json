@@ -217,7 +217,11 @@
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
-        "forwardAuthToken": false
+        "forwardAuthToken": false,
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": []
       }
     }
   ],
@@ -231,6 +235,11 @@
         "applicationTypeViewerUrl": "https://test.com/claims",
         "applicationTypeDisplayName": "runner display name",
         "applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+        "applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+        "applicationTypeRateEndpoint": "https://test.io/openai/rate",
+        "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+        "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+        "appendApplicationPropertiesHeader": true,
         "defs": {},
         "properties": {},
         "required": []
@@ -336,14 +345,20 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "parallelToolCallsSupported": true
         },
         "defaults": {},
         "interceptors": [],
         "topics": [],
         "maxRetryAttempts": 5,
         "type": "embedding",
-        "upstreams": []
+        "upstreams": [],
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": ["dep1", "dep2"],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
     },
     {
@@ -388,7 +403,8 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "parallelToolCallsSupported": true
         },
         "defaults": {
           "max_tokens": 8000
@@ -399,7 +415,12 @@
         "topics": [],
         "maxRetryAttempts": 5,
         "type": "embedding",
-        "upstreams": []
+        "upstreams": [],
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": [],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
     }
   ],
@@ -431,6 +452,8 @@
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
+        "viewerUrl": "https://viewer.test.com/app1",
+        "editorUrl": "https://editor.test.com/app1",
         "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
@@ -448,9 +471,14 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "parallelToolCallsSupported": true
         },
-        "applicationTypeSchemaId": "https://test-schema-id.example"
+        "applicationTypeSchemaId": "https://test-schema-id.example",
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": ["dep1", "dep2"]
       }
     },
     {
@@ -498,7 +526,8 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false
+          "addonsSupported": false,
+          "parallelToolCallsSupported": true
         }
       }
     }
@@ -533,7 +562,11 @@
         "iconUrl": "https://test.com/icon",
         "description": "It is a test Addon",
         "displayName": "Test Addon1",
-        "forwardAuthToken": false
+        "forwardAuthToken": false,
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": []
       }
     }
   ],

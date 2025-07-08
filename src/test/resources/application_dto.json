@@ -2,6 +2,8 @@
   "custom_property_1": "custom_value_1",
   "custom_property_2": "custom_value_2",
   "name": "test_application",
+  "viewerUrl": "https://viewer.test.com",
+  "editorUrl": "https://editor.test.com",
   "endpoint": "https://endpoint.test.com/embeddings",
   "displayName": "Test Application",
   "description": "It is a test application",
@@ -44,5 +46,9 @@
       "minute": "128000",
       "day": "2000000"
     }
-  }
+  },
+  "author": "test-author",
+  "createdAt": "2025-06-01T12:00:00Z",
+  "updatedAt": "2025-06-01T15:30:00Z",
+  "dependencies": ["dep1", "dep2"]
 }

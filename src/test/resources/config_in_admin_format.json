@@ -64,11 +64,21 @@
 				"accessibleByPerRequestKey": true,
 				"contentPartsSupported": false,
 				"temperatureSupported": true,
-				"addonsSupported": false
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
 			},
 			"applicationProperties": {},
-			"applicationTypeSchemaId": "https://test-schema-id.example"
-		},
+			"applicationTypeSchemaId": "https://test-schema-id.example",
+			"viewerUrl": "https://viewer.test.com/app1",
+			"editorUrl": "https://editor.test.com/app1",
+			"author": "test-author",
+			"createdAt": 12345,
+			"updatedAt": 12345,
+			"dependencies": ["dep1", "dep2"]
+        },
 		"testApplication2": {
 			"deployment": {
 				"name": "testApplication2",
@@ -93,7 +103,11 @@
 				"accessibleByPerRequestKey": true,
 				"contentPartsSupported": false,
 				"temperatureSupported": true,
-				"addonsSupported": false
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
 			},
 			"applicationProperties": {}
 		}
@@ -118,13 +132,22 @@
 				"accessibleByPerRequestKey": true,
 				"contentPartsSupported": false,
 				"temperatureSupported": true,
-				"addonsSupported": false
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
 			},
 			"defaults": {},
 			"topics": [],
 			"maxRetryAttempts": 5,
 			"type": "embedding",
-			"upstreams": []
+			"upstreams": [],
+			"author": "test-author",
+			"createdAt": 12345,
+			"updatedAt": 12345,
+			"dependencies": ["dep1", "dep2"],
+			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
 		},
 		"testModel1": {
 			"deployment": {
@@ -147,7 +170,11 @@
 				"accessibleByPerRequestKey": true,
 				"contentPartsSupported": false,
 				"temperatureSupported": true,
-				"addonsSupported": false
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
 			},
 			"adapter": {
 				"name": "adapter1",
@@ -161,7 +188,12 @@
 			"topics": [],
 			"maxRetryAttempts": 5,
 			"type": "embedding",
-			"upstreams": []
+			"upstreams": [],
+			"author": "test-author",
+			"createdAt": 12345,
+			"updatedAt": 12345,
+			"dependencies": ["dep1", "dep2"],
+			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
 		}
 	},
 	"roles": {
@@ -204,7 +236,15 @@
 					"limit": {}
 				}
 			],
-            "share": []
+			"share": [
+				{
+                	"deploymentName": "testModel1",
+                	"limit": {
+                		"maxAcceptedUsers": 10,
+                		"invitationTtl": 120
+					}
+				}
+			]
 		},
 		"testRole2": {
 			"name": "testRole2",
@@ -240,7 +280,7 @@
 					"limit": {}
 				}
 			],
-            "share": []
+			"share": []
 		},
 		"testRole1": {
 			"name": "testRole1",
@@ -278,7 +318,7 @@
 					"limit": {}
 				}
 			],
-            "share": []
+			"share": []
 		}
 	},
 	"keys": {
@@ -313,6 +353,11 @@
 			"applicationTypeViewerUrl": "https://test.com/claims",
 			"applicationTypeDisplayName": "runner display name",
 			"applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+			"applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+			"applicationTypeRateEndpoint": "https://test.io/openai/rate",
+			"applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+			"applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+			"appendApplicationPropertiesHeader": true,
 			"defs": {},
 			"properties": {},
 			"required": []
@@ -323,7 +368,11 @@
 			"name": "testInterceptor1",
 			"displayName": "Test Interceptor1",
             "endpoint": "https://endpoint.test.com/interceptor",
-			"forwardAuthToken": false
+			"forwardAuthToken": false,
+			"author": "test-author",
+			"createdAt": 12345,
+			"updatedAt": 12345,
+			"dependencies": []
 		}
 	},
     "interceptorRunners": {},
@@ -331,7 +380,11 @@
 		"adapter1": {
 			"name": "adapter1",
 			"baseEndpoint": "http://endpoint1/",
-			"description": "test adapter"
+			"description": "test adapter",
+			"author": "test-author",
+			"createdAt": 12345,
+			"updatedAt": 12345,
+			"dependencies": []
 		}
 	}
 }

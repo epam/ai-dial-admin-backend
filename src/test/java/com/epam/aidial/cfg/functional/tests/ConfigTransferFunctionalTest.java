@@ -66,6 +66,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -1091,8 +1092,8 @@ public abstract class ConfigTransferFunctionalTest {
         // given
         var modelName = "versionFieldsModel";
         var author = "Test Author";
-        var createdAt = 1624987654321L;
-        var updatedAt = 1624987654999L;
+        var createdAt = Instant.parse("2025-06-01T12:00:00Z");
+        var updatedAt = Instant.parse("2025-07-01T15:00:00Z");
 
         var modelDto = new ModelDto();
         modelDto.setName(modelName);
@@ -1125,8 +1126,8 @@ public abstract class ConfigTransferFunctionalTest {
 
             var exportedModel = result.getModels().get(modelName);
             Assertions.assertThat(exportedModel.getAuthor()).isEqualTo(author);
-            Assertions.assertThat(exportedModel.getCreatedAt()).isEqualTo(createdAt);
-            Assertions.assertThat(exportedModel.getUpdatedAt()).isEqualTo(updatedAt);
+            Assertions.assertThat(exportedModel.getCreatedAt()).isEqualTo(createdAt.toEpochMilli());
+            Assertions.assertThat(exportedModel.getUpdatedAt()).isEqualTo(updatedAt.toEpochMilli());
 
             // Part 2: Test with version 0.23.0 - author/createdAt/updatedAt should be absent
             // given

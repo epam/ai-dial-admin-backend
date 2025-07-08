@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dto;
 
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -18,8 +19,8 @@ public class ModelInfoDto {
     private Integer maxInputAttachments;
     private List<String> topics;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private List<String> dependencies;
     private ModelTypeDto type;
     private String tokenizerModel;

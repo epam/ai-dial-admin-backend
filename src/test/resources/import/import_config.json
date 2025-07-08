@@ -11,7 +11,12 @@
       ],
       "interceptors": [
         "testInterceptor1"
-      ]
+      ],
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": ["dep1", "dep2"],
+      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
     },
     "testModel2": {
       "type": "embedding",
@@ -25,22 +30,34 @@
       "name": "testApplication1",
       "displayName": "Test Application1",
       "displayVersion": "2.0.0",
+      "viewerUrl": "https://viewer.test.com/app1",
+      "editorUrl": "https://editor.test.com/app1",
       "userRoles": [
         "testRole1"
       ],
       "interceptors": [
         "testInterceptor1"
       ],
-      "applicationTypeSchemaId": "https://test-schema-id.example"
+      "applicationTypeSchemaId": "https://test-schema-id.example",
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": ["dep1", "dep2"]
     },
     "testApplication2": {
       "name": "testApplication2",
       "displayName": "Test Application2",
       "displayVersion": "1.0.0",
+      "viewerUrl": "https://viewer.test.com/app2",
+      "editorUrl": "https://editor.test.com/app2",
       "userRoles": [
         "testRole1"
       ],
-      "endpoint": "endpoint"
+      "endpoint": "endpoint",
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": ["dep1", "dep2"]
     }
   },
   "roles": {
@@ -53,7 +70,12 @@
         "testApplication2": {},
         "testAssistant1": {}
       },
-      "share": {}
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
     },
     "testRole2": {
       "description": "test role 1 description",
@@ -99,7 +121,11 @@
       "forwardAuthToken": false,
       "userRoles": [
         "testRole1"
-      ]
+      ],
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": []
     }
   },
   "interceptors": {
@@ -109,7 +135,11 @@
       "endpoint": "https://endpoint.test.com/interceptor",
       "userRoles": [
         "testRole1"
-      ]
+      ],
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": []
     }
   },
   "assistant": {
@@ -123,7 +153,11 @@
         "userRoles": [
           "testRole1"
         ],
-        "defaults": {}
+        "defaults": {},
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": []
       }
     }
   },
@@ -154,6 +188,11 @@
         "dial:applicationTypeViewerUrl": "https://test.com/claims",
         "dial:applicationTypeDisplayName": "runner display name",
         "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+        "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+        "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+        "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+        "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+        "dial:appendApplicationPropertiesHeader": true,
         "$defs": {},
         "properties": {},
         "required": []

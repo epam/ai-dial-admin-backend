@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +35,8 @@ public class ApplicationDto extends RoleBasedDto {
     private List<String> topics;
     private Integer maxRetryAttempts;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private List<String> dependencies;
 
     private String viewerUrl;
