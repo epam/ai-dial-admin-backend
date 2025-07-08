@@ -57,8 +57,8 @@ public class CoreConfigVersionAutoDetectService {
             nonExpiringVersionCache.put(CURRENT_VERSION_CACHE_KEY, version);
             return version;
         } catch (Exception e) {
-            log.warn("Failed to get Core version: {}", e.getMessage());
-            return fallbackToTargetVersion();
+            log.warn("Failed to get Core version. Reason: {}", e.getMessage());
+            return fallbackToTargetVersion(e);
         }
     }
 
@@ -69,7 +69,7 @@ public class CoreConfigVersionAutoDetectService {
         return version;
     }
 
-    private String fallbackToTargetVersion() {
+    private String fallbackToTargetVersion(Exception lastException) {
         String version = nonExpiringVersionCache.getIfPresent(CURRENT_VERSION_CACHE_KEY);
         if (version != null) {
             log.debug("Using the last successfully retrieved Core version: {}", version);
@@ -79,6 +79,7 @@ public class CoreConfigVersionAutoDetectService {
         String targetVersion = coreConfigVersionProperties.getTarget();
         versionCache.put(CURRENT_VERSION_CACHE_KEY, targetVersion);
         log.warn("All attempts to get Core version failed, falling back to target version: {}", targetVersion);
+        log.debug("Last exception: ", lastException);
 
         return targetVersion;
     }
