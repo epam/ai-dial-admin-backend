@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.audit.jpa.ConfigRevisionJpaRepository;
 import com.epam.aidial.cfg.dao.audit.model.ConfigRevisionEntity;
+import com.epam.aidial.cfg.dao.audit.repository.AdapterHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.AddonHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.ApplicationHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.ApplicationTypeSchemaHistoryRepository;
@@ -56,6 +57,7 @@ public class HistoryService {
     private final InterceptorHistoryRepository interceptorHistoryRepository;
     private final InterceptorRunnerHistoryRepository interceptorRunnerHistoryRepository;
     private final KeyHistoryRepository keyHistoryRepository;
+    private final AdapterHistoryRepository adapterHistoryRepository;
     private final ConfigRevisionEntityMapper configRevisionEntityMapper;
     private final PageEntityMapper pageEntityMapper;
 
@@ -85,6 +87,7 @@ public class HistoryService {
         routeHistoryRepository.rollbackRoutes(revision, auditReader);
         interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
         interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
+        adapterHistoryRepository.rollbackAdapters(revision, auditReader);
     }
 
     @Transactional(readOnly = true)
