@@ -7,14 +7,21 @@ import com.epam.aidial.cfg.domain.validator.DisplayFieldsValidator;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ModelValidatorTest {
+
+    private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
 
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
@@ -58,6 +65,37 @@ class ModelValidatorTest {
         // then
         verify(deploymentValidator).validateUpdate(deploymentName, deployment, "Model");
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"valid-name", "valid_name", "ValidName123", "name-123_456", "name.with.dots"})
+    void validateCreation_shouldNotThrowExceptionForValidName(String name) {
+        // given
+        ReflectionTestUtils.setField(modelValidator, "modelNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        Deployment deployment = new Deployment(name);
+        Model model = new Model();
+        model.setDeployment(deployment);
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name", 
+            "name-that-is-way-too-long-for-validation-pattern"})
+    void validateCreation_shouldThrowExceptionForInvalidName(String name) {
+        // given
+        ReflectionTestUtils.setField(modelValidator, "modelNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        Deployment deployment = new Deployment(name);
+        Model model = new Model();
+        model.setDeployment(deployment);
+
+        // when/then
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not match the required pattern");
     }
 
 }
