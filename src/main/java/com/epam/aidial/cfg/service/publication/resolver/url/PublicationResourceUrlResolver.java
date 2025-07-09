@@ -11,7 +11,7 @@ public class PublicationResourceUrlResolver {
 
     public String resolveUrl(PublicationResourceDto publicationResource, PublicationStatusDto status) {
         return switch (publicationResource.getAction()) {
-            case ADD -> resolveUrlForPublishing(publicationResource, status);
+            case ADD, ADD_IF_ABSENT -> resolveUrlForPublishing(publicationResource, status);
             case DELETE -> resolveUrlForUnPublishing(publicationResource);
         };
     }
