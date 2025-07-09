@@ -6,6 +6,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -38,6 +39,15 @@ class UpstreamEndpointTest {
         TestClass testClass = new TestClass(endpoint);
         Set<ConstraintViolation<TestClass>> violations = validator.validate(testClass);
         Assertions.assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    void testIsValid_violationHasCorrectMessageWhenEndpointIsNull() {
+        TestClass testClass = new TestClass(null);
+        Set<ConstraintViolation<TestClass>> violations = validator.validate(testClass);
+        Assertions.assertThat(violations).isNotEmpty();
+        ConstraintViolation<TestClass> violation = violations.iterator().next();
+        Assertions.assertThat(violation.getMessage()).isEqualTo("Upstream endpoint must not be null.");
     }
 
     private static Stream<Arguments> validEndpoints() {
