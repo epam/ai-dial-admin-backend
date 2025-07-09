@@ -50,6 +50,7 @@ public class RoleService {
 
     @Transactional
     public void createRole(Role role) {
+        roleValidator.validateRoleCreation(role);
         assertNotExists(role.getName());
         Optional.of(role)
                 .map(domainModel -> mapper.toEntity(domainModel, new RoleEntity()))
