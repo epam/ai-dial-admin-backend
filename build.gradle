@@ -38,7 +38,6 @@ configurations {
         resolutionStrategy {
             force 'com.google.code.gson:gson:2.8.9'
             force 'commons-beanutils:commons-beanutils:1.11.0'
-            force 'commons-io:commons-io:2.18.0'
         }
     }
 }
