@@ -4,15 +4,16 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath "com.github.johnrengelman:shadow:8.1.1"
+        classpath "com.gradleup.shadow:shadow-gradle-plugin:8.3.8"
     }
 }
 
 plugins {
     id 'java'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
+
+apply plugin: 'com.gradleup.shadow'
 
 group 'com.epam.aidial'
 version '0.1.0-SNAPSHOT'
