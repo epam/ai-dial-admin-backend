@@ -2,13 +2,36 @@ package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Assistant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Pattern;
+
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AssistantValidator {
 
     private final DeploymentValidator deploymentValidator;
+
+    @Value("${validation.assistant.name:}")
+    private String assistantNameValidationPattern;
+
+    public void validateAssistantCreation(Assistant assistant) {
+        final String assistantName = assistant.getDeployment().getName();
+
+        if (StringUtils.isEmpty(assistantNameValidationPattern)) {
+            log.debug("Assistant name validation pattern is empty, skipping validation for assistant: {}", assistantName);
+            return;
+        }
+
+        if (!Pattern.matches(assistantNameValidationPattern, assistantName)) {
+            throw new IllegalArgumentException("Assistant name '" + assistantName
+                + "' does not match the required pattern: " + assistantNameValidationPattern);
+        }
+    }
 
     public void validateUpdate(String assistantName, Assistant assistant) {
         deploymentValidator.validateUpdate(assistantName, assistant.getDeployment(), "Assistant");

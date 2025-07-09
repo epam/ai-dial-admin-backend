@@ -1,18 +1,36 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.dao.model.AdapterEntity;
-import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
-import com.epam.aidial.cfg.domain.model.Key;
-import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AdapterValidator {
+
+    @Value("${validation.adapter.name:}")
+    private String adapterNameValidationPattern;
+
+    public void validateAdapterCreation(Adapter adapter) {
+        final String adapterName = adapter.getName();
+
+        if (StringUtils.isEmpty(adapterNameValidationPattern)) {
+            log.debug("Adapter name validation pattern is empty, skipping validation for adapter: {}", adapterName);
+            return;
+        }
+
+        if (!Pattern.matches(adapterNameValidationPattern, adapterName)) {
+            throw new IllegalArgumentException("Adapter name '" + adapterName
+                + "' does not match the required pattern: " + adapterNameValidationPattern);
+        }
+    }
 
     public void validateUpdate(String adapterName, Adapter adapter) {
         if (!Objects.equals(adapterName, adapter.getName())) {

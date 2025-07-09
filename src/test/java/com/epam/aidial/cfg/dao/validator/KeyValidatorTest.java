@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,6 +20,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class KeyValidatorTest {
+
+    private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
 
     @Mock
     private TransactionTimestampContext transactionTimestampContext;
@@ -85,6 +89,38 @@ class KeyValidatorTest {
         keyEntity.setCreatedAt(2);
 
         assertThatNoException().isThrownBy(() -> keyValidator.validateUpdate("key_name", key, keyEntity));
+    }
+    
+    @ParameterizedTest
+    @ValueSource(strings = {"valid-name", "valid_name", "ValidName123", "name-123_456", "name.with.dots"})
+    void validateCreation_shouldNotThrowExceptionForValidName(String name) {
+        // given
+        ReflectionTestUtils.setField(keyValidator, "keyNameValidationPattern", NAME_VALIDATION_PATTERN);
+        when(transactionTimestampContext.getTimestamp()).thenReturn(2L);
+
+        Key key = new Key();
+        key.setName(name);
+        key.setExpiresAt(3L);
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> keyValidator.validateCreation(key));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name", 
+            "name-that-is-way-too-long-for-validation-pattern"})
+    void validateCreation_shouldThrowExceptionForInvalidName(String name) {
+        // given
+        ReflectionTestUtils.setField(keyValidator, "keyNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        Key key = new Key();
+        key.setName(name);
+        key.setExpiresAt(3L);
+
+        // when/then
+        assertThatThrownBy(() -> keyValidator.validateCreation(key))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not match the required pattern");
     }
 
 }
