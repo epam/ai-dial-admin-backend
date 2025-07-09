@@ -2,11 +2,8 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.AssistantJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AssistantEntityMapper;
-import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.AssistantEntity;
-import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Assistant;
-import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.validator.AssistantValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
@@ -49,6 +46,7 @@ public class AssistantService {
     @FeatureFlagGate(featureFlag = "assistantsSupported")
     @Transactional
     public void createAssistant(Assistant assistant) {
+        assistantValidator.validateAssistantCreation(assistant);
         deploymentService.assertDeploymentNotExists(assistant.getDeployment().getName());
         Optional.of(assistant)
                 .map(domainModel -> mapper.toEntity(domainModel, new AssistantEntity()))

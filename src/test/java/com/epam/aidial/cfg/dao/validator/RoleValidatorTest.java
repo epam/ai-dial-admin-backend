@@ -4,11 +4,16 @@ import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.validator.RoleValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RoleValidatorTest {
+
+    private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
 
     private RoleValidator roleValidator;
 
@@ -45,5 +50,34 @@ class RoleValidatorTest {
         role.setName("role_name");
 
         assertThatNoException().isThrownBy(() -> roleValidator.validateRoleUpdate("role_name", role));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"valid-name", "valid_name", "ValidName123", "name-123_456", "name.with.dots"})
+    void validateRoleCreation_shouldNotThrowExceptionForValidName(String name) {
+        // given
+        ReflectionTestUtils.setField(roleValidator, "roleNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        Role role = new Role();
+        role.setName(name);
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> roleValidator.validateRoleCreation(role));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name", 
+            "name-that-is-way-too-long-for-validation-pattern"})
+    void validateRoleCreation_shouldThrowExceptionForInvalidName(String name) {
+        // given
+        ReflectionTestUtils.setField(roleValidator, "roleNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        Role role = new Role();
+        role.setName(name);
+
+        // when/then
+        assertThatThrownBy(() -> roleValidator.validateRoleCreation(role))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not match the required pattern");
     }
 }
