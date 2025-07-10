@@ -64,6 +64,13 @@ Complete list of configuration properties can be found [here](docs/configuration
 
 ### Authentication
 
+**Security is disabled for default configuration. It's highly not recommended to use default configuration 
+for production environment.** 
+
+For production environment:
+- Set `CONFIG_REST_SECURITY_MODE` environment variable with either `oidc` or `basic` value
+- (optional) Set `MS_SQL_SERVER_OPS` environment variable with `encrypt=true;` value if application is launched with sql server.
+
 The system supports two authentication methods:
 
 1. **Basic Authentication** (Default)
@@ -74,7 +81,7 @@ The system supports two authentication methods:
      ```
    - Enable with:
      ```properties
-     config.rest.security=basic
+     config.rest.security.mode=basic
      com.c4-soft.springaddons.oidc.resourceserver.enabled=false
      ```
 
@@ -89,7 +96,7 @@ The system supports two authentication methods:
      ```
    - Enable with:
      ```properties
-     config.rest.security=oidc
+     config.rest.security.mode=oidc
      com.c4-soft.springaddons.oidc.resourceserver.enabled=true
      ```
 
@@ -108,8 +115,58 @@ The system creates an empty configuration. To utilize existing Dial Core configu
 
 ### Run Application with Gradle
 
+#### Run with H2 database
+
 From the project's root directory:
 
+Execute 
+```bash
+python secrets-utils/keys_generator.py
+```
+to get values for 
+- `H2_DATASOURCE_PASSWORD`, 
+- `H2_DATASOURCE_MASTER_KEY`, 
+- `H2_DATASOURCE_ENCRYPTED_FILE_KEY` 
+
+environment variables.
+
+Set those environment variables and execute
+```bash
+./gradlew bootRun
+```
+
+#### Run with POSTGRES database
+
+From the project's root directory:
+
+Execute
+```bash
+cd local_env
+docker-compose up postgres
+```
+to start postgres container.
+
+Set `DATASOURCE_VENDOR=POSTGRES` environment variable to run application with postgres database.
+
+Execute
+```bash
+./gradlew bootRun
+```
+
+#### Run with MS_SQL_SERVER database
+
+From the project's root directory:
+
+Execute
+```bash
+cd local_env
+docker-compose up sqlserver
+```
+to start sqlserver container.
+
+Set `DATASOURCE_VENDOR=MS_SQL_SERVER` environment variable to run application with sql server database.
+
+Execute
 ```bash
 ./gradlew bootRun
 ```
