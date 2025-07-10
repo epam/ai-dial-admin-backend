@@ -64,6 +64,13 @@ Complete list of configuration properties can be found [here](docs/configuration
 
 ### Authentication
 
+**Security is disabled for default configuration. It's highly not recommended to use default configuration 
+for production environment.** 
+
+For production environment:
+- Set `CONFIG_REST_SECURITY_MODE` environment variable with either `oidc` or `basic` value
+- (optional) Set `MS_SQL_SERVER_OPS` environment variable with `encrypt=true;` value if application is launched with sql server.
+
 The system supports two authentication methods:
 
 1. **Basic Authentication** (Default)
@@ -74,7 +81,7 @@ The system supports two authentication methods:
      ```
    - Enable with:
      ```properties
-     config.rest.security=basic
+     config.rest.security.mode=basic
      com.c4-soft.springaddons.oidc.resourceserver.enabled=false
      ```
 
@@ -89,7 +96,7 @@ The system supports two authentication methods:
      ```
    - Enable with:
      ```properties
-     config.rest.security=oidc
+     config.rest.security.mode=oidc
      com.c4-soft.springaddons.oidc.resourceserver.enabled=true
      ```
 
