@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.service.transfer;
 
-import com.epam.aidial.cfg.client.CoreConfigClient;
+import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ class CoreConfigVersionAutoDetectServiceTest {
     private static final long CACHE_EXPIRATION_MS = 300000;
 
     @Mock
-    private CoreConfigClient coreConfigClient;
+    private AnonymousCoreConfigClient coreConfigClient;
     @Mock
     private CoreConfigVersionProperties properties;
 

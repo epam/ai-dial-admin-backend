@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.functional.config;
 
-import com.epam.aidial.cfg.client.CoreConfigClient;
+import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
@@ -104,8 +104,8 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
-    public CoreConfigClient coreConfigClient() {
-        return Mockito.mock(CoreConfigClient.class);
+    public AnonymousCoreConfigClient coreConfigClient() {
+        return Mockito.mock(AnonymousCoreConfigClient.class);
     }
 
 }
