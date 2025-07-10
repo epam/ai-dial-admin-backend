@@ -1,12 +1,11 @@
 package com.epam.aidial.cfg.web.security;
 
 import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,21 +14,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@Component
+@RequiredArgsConstructor
 public class IssuerToDecoderMapFactory {
 
     private static final String AUDIENCE_PREFIX = "api://";
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0/";
 
-    @Value("${config.rest.security.accepted-issuers}")
-    protected String[] acceptedIssuers;
-
-    @Value("${config.rest.security.accepted-audiences}")
-    protected String[] acceptedAudiences;
-
-    @Value("${config.rest.security.accepted-issuers-aliases}")
-    private String[] acceptedIssuersAliases;
+    private final String[] acceptedIssuers;
+    private final String[] acceptedAudiences;
+    private final String[] acceptedIssuersAliases;
 
     @NotNull
     public Map<String, JwtDecoder> createIssuerToDecoderMap(final NimbusJwtDecoder jwtDecoder) {
