@@ -108,8 +108,58 @@ The system creates an empty configuration. To utilize existing Dial Core configu
 
 ### Run Application with Gradle
 
+#### Run with H2 database
+
 From the project's root directory:
 
+Execute 
+```bash
+python secrets-utils/keys_generator.py
+```
+to get values for 
+- `H2_DATASOURCE_PASSWORD`, 
+- `H2_DATASOURCE_MASTER_KEY`, 
+- `H2_DATASOURCE_ENCRYPTED_FILE_KEY` 
+
+environment variables.
+
+Set those environment variables and execute
+```bash
+./gradlew bootRun
+```
+
+#### Run with POSTGRES database
+
+From the project's root directory:
+
+Execute
+```bash
+cd local_env
+docker-compose up postgres
+```
+to start postgres container.
+
+Set `DATASOURCE_VENDOR=POSTGRES` environment variable to run application with postgres database.
+
+Execute
+```bash
+./gradlew bootRun
+```
+
+#### Run with MS_SQL_SERVER database
+
+From the project's root directory:
+
+Execute
+```bash
+cd local_env
+docker-compose up sqlserver
+```
+to start sqlserver container.
+
+Set `DATASOURCE_VENDOR=MS_SQL_SERVER` environment variable to run application with postgres database.
+
+Execute
 ```bash
 ./gradlew bootRun
 ```

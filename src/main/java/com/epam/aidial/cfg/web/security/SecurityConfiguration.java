@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.web.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @ConditionalOnProperty(value = "config.rest.security.mode", havingValue = "oidc", matchIfMissing = true)
@@ -28,14 +27,29 @@ public class SecurityConfiguration {
     @Value("${config.rest.security.disable-swagger-authorization}")
     protected boolean disableSwaggerAuthorization;
 
-    @Autowired
-    private TokenDecoderFactory tokenDecoderFactory;
-
-    @Autowired
-    private JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory;
+    @Bean
+    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.roles-claim}") String rolesClaim,
+                                                                               @Value("${config.rest.security.principal-claim}") String principalClaim) {
+        return new JwtAuthenticationConverterFactory(rolesClaim, principalClaim);
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public IssuerToDecoderMapFactory issuerToDecoderMapFactory(@Value("${config.rest.security.accepted-issuers}") String[] acceptedIssuers,
+                                                               @Value("${config.rest.security.accepted-audiences}") String[] acceptedAudiences,
+                                                               @Value("${config.rest.security.accepted-issuers-aliases}") String[] acceptedIssuersAliases) {
+        return new IssuerToDecoderMapFactory(acceptedIssuers, acceptedAudiences, acceptedIssuersAliases);
+    }
+
+    @Bean
+    public TokenDecoderFactory tokenDecoderFactory(@Value("${config.rest.security.jwk-key-uris}") String[] keySetUris,
+                                                   IssuerToDecoderMapFactory issuerToDecoderMapFactory) {
+        return new TokenDecoderFactoryImpl(keySetUris, issuerToDecoderMapFactory);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   TokenDecoderFactory tokenDecoderFactory,
+                                                   JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(publicPathPatterns()).permitAll()
