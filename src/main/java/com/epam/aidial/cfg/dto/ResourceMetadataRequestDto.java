@@ -12,4 +12,5 @@ public class ResourceMetadataRequestDto {
     private String path;
     @Nullable
     private String nextToken;
+    private Integer limit;
 }
