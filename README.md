@@ -157,7 +157,7 @@ docker-compose up sqlserver
 ```
 to start sqlserver container.
 
-Set `DATASOURCE_VENDOR=MS_SQL_SERVER` environment variable to run application with postgres database.
+Set `DATASOURCE_VENDOR=MS_SQL_SERVER` environment variable to run application with sql server database.
 
 Execute
 ```bash
