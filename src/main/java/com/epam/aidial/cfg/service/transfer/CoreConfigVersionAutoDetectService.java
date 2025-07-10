@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
@@ -20,7 +21,7 @@ public class CoreConfigVersionAutoDetectService {
     private final AnonymousCoreConfigClient coreConfigClient;
     private final CoreConfigVersionProperties coreConfigVersionProperties;
     private final Cache<String, String> versionCache;
-    private final Cache<String, String> nonExpiringVersionCache;
+    private final AtomicReference<String> nonExpiringCachedVersion;
 
     public CoreConfigVersionAutoDetectService(AnonymousCoreConfigClient coreConfigClient, CoreConfigVersionProperties coreConfigVersionProperties) {
         this.coreConfigClient = coreConfigClient;
@@ -28,7 +29,7 @@ public class CoreConfigVersionAutoDetectService {
         this.versionCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(coreConfigVersionProperties.getCacheExpirationMs(), TimeUnit.MILLISECONDS)
                 .build();
-        this.nonExpiringVersionCache = CacheBuilder.newBuilder().build();
+        this.nonExpiringCachedVersion = new AtomicReference<>();
     }
 
     /**
@@ -54,7 +55,7 @@ public class CoreConfigVersionAutoDetectService {
         try {
             version = getVersionFromCore();
             versionCache.put(CURRENT_VERSION_CACHE_KEY, version);
-            nonExpiringVersionCache.put(CURRENT_VERSION_CACHE_KEY, version);
+            nonExpiringCachedVersion.set(version);
             return version;
         } catch (Exception e) {
             log.warn("Failed to get Core version. Reason: ", e);
@@ -70,7 +71,7 @@ public class CoreConfigVersionAutoDetectService {
     }
 
     private String fallbackToTargetVersion() {
-        String version = nonExpiringVersionCache.getIfPresent(CURRENT_VERSION_CACHE_KEY);
+        String version = nonExpiringCachedVersion.get();
         if (version != null) {
             log.debug("Using the last successfully retrieved Core version: {}", version);
             return version;
