@@ -119,10 +119,10 @@ config.export.keyvault.type=vault
 
 ## DIAL Core Configuration
 
-| Setting | Environment Variable | Default | Description |
-|---------|---------------------|---------|-------------|
+| Setting | Environment Variable | Default        | Description |
+|---------|---------------------|----------------|-------------|
 | core.client.url | CORE_CLIENT_URL | localhost:8081 | URL of the DIAL Core service |
-| core.prompts.metadata.default.limit | CORE_PROMPTS_METADATA_DEFAULT_LIMIT | 100 | Default limit on the number of items in the prompts metadata response from DIAL Core |
+| core.prompts.metadata.default.limit | CORE_PROMPTS_METADATA_DEFAULT_LIMIT | 256 | Default limit on the number of items in the prompts metadata response from DIAL Core |
 
 ## OpenTelemetry Configuration
 
