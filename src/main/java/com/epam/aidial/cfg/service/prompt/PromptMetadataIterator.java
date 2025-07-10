@@ -17,6 +17,7 @@ class PromptMetadataIterator implements Iterator<PromptMetadataDto> {
     private final PromptClient promptClient;
     private final String path;
     private final boolean recursive;
+    private final int limit;
 
     private List<PromptMetadataDto> items = Collections.emptyList();
     private String nextToken = null;
@@ -31,7 +32,7 @@ class PromptMetadataIterator implements Iterator<PromptMetadataDto> {
         }
         firstRequest = false;
 
-        var data = promptClient.getPromptsMetadata(path, recursive, nextToken);
+        var data = promptClient.getPromptsMetadata(path, recursive, nextToken, limit);
         log.debug("New batch of prompt metadata is fetched in iterator: data={}", data);
         items = data.getItems() != null ? data.getItems() : Collections.emptyList();
         nextToken = data.getNextToken();
