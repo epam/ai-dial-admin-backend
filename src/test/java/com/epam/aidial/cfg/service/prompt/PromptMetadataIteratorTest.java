@@ -24,6 +24,7 @@ class PromptMetadataIteratorTest {
     void testIteration_SinglePage_ReturnsAllItems() {
         String path = "test-path";
         boolean recursive = true;
+        int limit = 100;
 
         var item1 = new PromptMetadataDto();
         item1.setName("item1");
@@ -34,9 +35,9 @@ class PromptMetadataIteratorTest {
         response.setItems(List.of(item1, item2));
         response.setNextToken(null);
 
-        when(promptClient.getPromptsMetadata(path, recursive, null)).thenReturn(response);
+        when(promptClient.getPromptsMetadata(path, recursive, null, limit)).thenReturn(response);
 
-        var iterator = new PromptMetadataIterator(promptClient, path, recursive);
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive, limit);
 
         assertThat(iterator.hasNext()).isTrue();
         assertThat(iterator.next()).isEqualTo(item1);
@@ -49,6 +50,7 @@ class PromptMetadataIteratorTest {
     void testIteration_MultiplePages_ReturnsAllItems() {
         String path = "test-path";
         boolean recursive = true;
+        int limit = 2;
 
         var item1 = new PromptMetadataDto();
         item1.setName("item1");
@@ -64,10 +66,10 @@ class PromptMetadataIteratorTest {
         secondResponse.setItems(List.of(item3));
         secondResponse.setNextToken(null);
 
-        when(promptClient.getPromptsMetadata(path, recursive, null)).thenReturn(firstResponse);
-        when(promptClient.getPromptsMetadata(path, recursive, "next-token")).thenReturn(secondResponse);
+        when(promptClient.getPromptsMetadata(path, recursive, null, limit)).thenReturn(firstResponse);
+        when(promptClient.getPromptsMetadata(path, recursive, "next-token", limit)).thenReturn(secondResponse);
 
-        var iterator = new PromptMetadataIterator(promptClient, path, recursive);
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive, limit);
 
         assertThat(iterator.hasNext()).isTrue();
         assertThat(iterator.next()).isEqualTo(item1);
@@ -82,14 +84,15 @@ class PromptMetadataIteratorTest {
     void testHasNext_EmptyData_ReturnsFalse() {
         String path = "test-path";
         boolean recursive = true;
+        int limit = 100;
 
         var response = new PromptMetadataDto();
         response.setItems(List.of());
         response.setNextToken(null);
 
-        when(promptClient.getPromptsMetadata(path, recursive, null)).thenReturn(response);
+        when(promptClient.getPromptsMetadata(path, recursive, null, limit)).thenReturn(response);
 
-        var iterator = new PromptMetadataIterator(promptClient, path, recursive);
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive, limit);
 
         assertThat(iterator.hasNext()).isFalse();
     }
@@ -98,14 +101,15 @@ class PromptMetadataIteratorTest {
     void testNext_NoMoreElements_ThrowsException() {
         String path = "test-path";
         boolean recursive = true;
+        int limit = 100;
 
         var response = new PromptMetadataDto();
         response.setItems(List.of());
         response.setNextToken(null);
 
-        when(promptClient.getPromptsMetadata(path, recursive, null)).thenReturn(response);
+        when(promptClient.getPromptsMetadata(path, recursive, null, limit)).thenReturn(response);
 
-        var iterator = new PromptMetadataIterator(promptClient, path, recursive);
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive, limit);
 
         assertThat(iterator.hasNext()).isFalse();
         assertThatThrownBy(iterator::next)

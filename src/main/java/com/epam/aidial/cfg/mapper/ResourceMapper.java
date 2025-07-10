@@ -36,6 +36,7 @@ public interface ResourceMapper {
                 .path(dto.getPath())
                 .recursive(dto.isRecursive())
                 .nextToken(dto.getNextToken())
+                .limit(dto.getLimit())
                 .build();
     }
 
