@@ -69,7 +69,7 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 | Setting | Environment Variable | Default | Description                                                                                 |
 |---------|---------------------|---------|---------------------------------------------------------------------------------------------|
-| config.rest.security.mode | CONFIG_REST_SECURITY_MODE | oidc | Authentication mode (oidc, basic, or none)                                                  |
+| config.rest.security.mode | CONFIG_REST_SECURITY_MODE | none | Authentication mode (oidc, basic, or none)                                                  |
 | config.rest.security.allowedRoles | SECURITY_ALLOWED_ROLES | ConfigAdmin,admin | Comma-separated list of roles with access permissions                                       |
 | config.rest.security.principal-claim | SECURITY_USER_CLAIM | oid | JWT claim name for user identification                                                      |
 | config.rest.security.roles-claim | SECURITY_ROLES_CLAIM | roles | JWT claim name for user roles                                                               |
@@ -118,9 +118,10 @@ config.export.keyvault.type=vault
 
 ## DIAL Core Configuration
 
-| Setting | Environment Variable | Default | Description |
-|---------|---------------------|---------|-------------|
+| Setting | Environment Variable | Default        | Description |
+|---------|---------------------|----------------|-------------|
 | core.client.url | CORE_CLIENT_URL | localhost:8081 | URL of the DIAL Core service |
+| core.prompts.metadata.default.limit | CORE_PROMPTS_METADATA_DEFAULT_LIMIT | 256 | Default limit on the number of items in the prompts metadata response from DIAL Core |
 
 ## OpenTelemetry Configuration
 
@@ -166,7 +167,7 @@ config.export.keyvault.type=vault
 |                                | MS_SQL_SERVER_HOST                | localhost                                           | MSSQL Server database host                                                                                                                             |
 |                                | MS_SQL_SERVER_PORT                | 1433                                                | MSSQL Server database port                                                                                                                             |
 |                                | MS_SQL_SERVER_DATABASE            | testdb                                              | MSSQL Server database name                                                                                                                             |
-|                                | MS_SQL_SERVER_OPS                 | encrypt=true;                                       | MSSQL Server database connection options                                                                                                               |
+|                                | MS_SQL_SERVER_OPS                 | encrypt=false;                                      | MSSQL Server database connection options                                                                                                               |
 | sqlserver.datasource.username  | MS_SQL_SERVER_DATASOURCE_USERNAME | sa                                                  | Username for MSSQL Server database access                                                                                                              |
 | sqlserver.datasource.password  | MS_SQL_SERVER_DATASOURCE_PASSWORD | SQLServerPassword1                                  | Password for MSSQL Server database access                                                                                                              |
 | spring.jpa.hibernate.ddl-auto  | SPRING_JPA_HIBERNATE_DDL_AUTO     | validate                                            | Hibernate schema generation strategy                                                                                                                   |

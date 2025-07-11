@@ -1,21 +1,16 @@
 package com.epam.aidial.cfg.web.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
-@Component
+@RequiredArgsConstructor
 public class TokenDecoderFactoryImpl implements TokenDecoderFactory {
 
-    @Value("${config.rest.security.jwk-key-uris}")
-    protected String[] keySetUris;
-
-    @Autowired
-    private IssuerToDecoderMapFactory issuerToDecoderMapFactory;
+    private final String[] keySetUris;
+    private final IssuerToDecoderMapFactory issuerToDecoderMapFactory;
 
     public JwtDecoder createJwtDecoder() {
         final var issuerToDecoderMap = new HashMap<String, JwtDecoder>();

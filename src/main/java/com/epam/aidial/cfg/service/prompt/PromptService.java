@@ -14,9 +14,9 @@ import com.epam.aidial.cfg.model.PromptNodeInfo;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.service.ResourceService;
 import feign.FeignException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,7 +31,6 @@ import static com.epam.aidial.cfg.client.mapper.PromptClientMapper.PROMPTS_PREFI
 @Slf4j
 @Service
 @LogExecution
-@RequiredArgsConstructor
 public class PromptService implements ResourceService {
 
     private static final String BASE_PATH = "public/";
@@ -40,6 +39,20 @@ public class PromptService implements ResourceService {
     private final PromptClientMapper promptClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
+
+    private final int promptsMetadataDefaultLimit;
+
+    public PromptService(PromptClient promptClient,
+                         PromptClientMapper promptClientMapper,
+                         ResourceClient resourceClient,
+                         ResourceClientMapper resourceClientMapper,
+                         @Value("${core.prompts.metadata.default.limit}") int promptsMetadataDefaultLimit) {
+        this.promptClient = promptClient;
+        this.promptClientMapper = promptClientMapper;
+        this.resourceClient = resourceClient;
+        this.resourceClientMapper = resourceClientMapper;
+        this.promptsMetadataDefaultLimit = promptsMetadataDefaultLimit;
+    }
 
     public PromptNodeInfo getPrompts(ResourceMetadataRequest request) {
         var promptsMetadataResponse = getMetadata(request);
@@ -59,12 +72,13 @@ public class PromptService implements ResourceService {
         var recursive = request.isRecursive();
         var nextToken = request.getNextToken();
         var path = request.getPath() != null ? request.getPath() : BASE_PATH;
-        return promptClient.getPromptsMetadata(path, recursive, nextToken);
+        var limit = request.getLimit() != null ? request.getLimit() : promptsMetadataDefaultLimit;
+        return promptClient.getPromptsMetadata(path, recursive, nextToken, limit);
     }
 
     public Prompt getPrompt(String path) {
         var promptDto = promptClient.getPrompt(path);
-        var promptMetadata = promptClient.getPromptsMetadata(path, false, null);
+        var promptMetadata = promptClient.getPromptsMetadata(path, false, null, promptsMetadataDefaultLimit);
         return promptClientMapper.toPrompt(promptDto, promptMetadata);
     }
 
@@ -106,7 +120,7 @@ public class PromptService implements ResourceService {
     }
 
     private Stream<PromptMetadataDto> createStream(String path, boolean recursive) {
-        var iterator = new PromptMetadataIterator(promptClient, path, recursive);
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive, promptsMetadataDefaultLimit);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
     }
 
