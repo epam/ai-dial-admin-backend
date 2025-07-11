@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
@@ -21,7 +20,6 @@ public class CoreConfigVersionAutoDetectService {
     private final AnonymousCoreConfigClient coreConfigClient;
     private final CoreConfigVersionProperties coreConfigVersionProperties;
     private final Cache<String, String> versionCache;
-    private final AtomicReference<String> nonExpiringCachedVersion;
 
     public CoreConfigVersionAutoDetectService(AnonymousCoreConfigClient coreConfigClient, CoreConfigVersionProperties coreConfigVersionProperties) {
         this.coreConfigClient = coreConfigClient;
@@ -29,7 +27,6 @@ public class CoreConfigVersionAutoDetectService {
         this.versionCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(coreConfigVersionProperties.getCacheExpirationMs(), TimeUnit.MILLISECONDS)
                 .build();
-        this.nonExpiringCachedVersion = new AtomicReference<>();
     }
 
     /**
@@ -55,11 +52,10 @@ public class CoreConfigVersionAutoDetectService {
         try {
             version = getVersionFromCore();
             versionCache.put(CURRENT_VERSION_CACHE_KEY, version);
-            nonExpiringCachedVersion.set(version);
             return version;
         } catch (Exception e) {
-            log.warn("Failed to get Core version. Reason: ", e);
-            return fallbackToTargetVersion();
+            log.error("All attempts to get Core version failed. Reason: ", e);
+            throw e;
         }
     }
 
@@ -68,19 +64,5 @@ public class CoreConfigVersionAutoDetectService {
         String version = coreConfigClient.getVersion();
         log.info("Successfully retrieved Core version: {}", version);
         return version;
-    }
-
-    private String fallbackToTargetVersion() {
-        String version = nonExpiringCachedVersion.get();
-        if (version != null) {
-            log.debug("Using the last successfully retrieved Core version: {}", version);
-            return version;
-        }
-
-        String targetVersion = coreConfigVersionProperties.getTarget();
-        versionCache.put(CURRENT_VERSION_CACHE_KEY, targetVersion);
-        log.warn("All attempts to get Core version failed, falling back to target version: {}", targetVersion);
-
-        return targetVersion;
     }
 }

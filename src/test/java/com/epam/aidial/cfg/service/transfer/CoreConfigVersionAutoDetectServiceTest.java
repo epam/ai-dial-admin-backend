@@ -66,23 +66,6 @@ class CoreConfigVersionAutoDetectServiceTest {
     }
 
     @Test
-    void getVersion_failedApiCall_fallsBackToTargetVersion() {
-        // Given
-        when(properties.isAutoDetectEnabled()).thenReturn(true);
-        when(properties.getTarget()).thenReturn(TARGET_VERSION);
-        when(coreConfigClient.getVersion()).thenThrow(new RuntimeException("API error"));
-
-        // When
-        String result = service.getVersion();
-
-        // Then
-        assertEquals(TARGET_VERSION, result);
-        verify(properties).isAutoDetectEnabled();
-        verify(properties).getTarget();
-        verify(coreConfigClient).getVersion();
-    }
-
-    @Test
     void getVersion_cachedVersion_returnsCachedVersionWithoutApiCall() {
         // Given
         when(properties.isAutoDetectEnabled()).thenReturn(true);
