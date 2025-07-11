@@ -10,9 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URI;
 
@@ -20,6 +22,8 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ApplicationValidatorTest {
+
+    private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
 
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
@@ -36,6 +40,8 @@ class ApplicationValidatorTest {
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
 
         // when
         applicationValidator.validateCreation(application);
@@ -52,6 +58,8 @@ class ApplicationValidatorTest {
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
@@ -73,6 +81,9 @@ class ApplicationValidatorTest {
         application.setEndpoint(endpoint);
         application.setApplicationTypeSchemaId(applicationTypeSchemaId);
 
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
+
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -89,6 +100,8 @@ class ApplicationValidatorTest {
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setApplicationTypeSchemaId(URI.create("https://test.com"));
+        Deployment deployment = new Deployment("text");
+        application.setDeployment(deployment);
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
@@ -170,5 +183,38 @@ class ApplicationValidatorTest {
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. Only one of them should be specified");
+    }
+    
+    @ParameterizedTest
+    @ValueSource(strings = {"valid-name", "valid_name", "ValidName123", "name-123_456", "name.with.dots"})
+    void validateCreation_shouldNotThrowExceptionForValidName(String name) {
+        // given
+        ReflectionTestUtils.setField(applicationValidator, "applicationNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        Deployment deployment = new Deployment(name);
+        Application application = new Application();
+        application.setDeployment(deployment);
+        application.setEndpoint("test"); // To avoid other validation errors
+
+        // when/then
+        Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name", 
+            "name-that-is-way-too-long-for-validation-pattern"})
+    void validateCreation_shouldThrowExceptionForInvalidName(String name) {
+        // given
+        ReflectionTestUtils.setField(applicationValidator, "applicationNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        Deployment deployment = new Deployment(name);
+        Application application = new Application();
+        application.setDeployment(deployment);
+        application.setEndpoint("test"); // To avoid other validation errors
+
+        // when/then
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not match the required pattern");
     }
 }

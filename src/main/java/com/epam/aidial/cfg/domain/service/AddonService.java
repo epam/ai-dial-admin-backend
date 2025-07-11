@@ -3,9 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.AddonJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AddonEntityMapper;
 import com.epam.aidial.cfg.dao.model.AddonEntity;
-import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Addon;
-import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.validator.AddonValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
@@ -48,6 +46,7 @@ public class AddonService {
     @FeatureFlagGate(featureFlag = "addonsSupported")
     @Transactional
     public void createAddon(Addon addon) {
+        addonValidator.validateAddonCreation(addon);
         deploymentService.assertDeploymentNotExists(addon.getDeployment().getName());
         Optional.of(addon)
                 .map(domainAddon -> mapper.toEntity(domainAddon, new AddonEntity()))

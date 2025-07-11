@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 import static com.epam.aidial.cfg.client.dto.PublicationResourceActionDto.ADD;
+import static com.epam.aidial.cfg.client.dto.PublicationResourceActionDto.ADD_IF_ABSENT;
 import static com.epam.aidial.cfg.client.dto.PublicationResourceActionDto.DELETE;
 import static com.epam.aidial.cfg.client.dto.PublicationStatusDto.APPROVED;
 import static com.epam.aidial.cfg.client.dto.PublicationStatusDto.PENDING;
@@ -44,7 +45,10 @@ class PublicationResourceUrlResolverTest {
                 Arguments.of(publicationResourceDto(ADD), REJECTED, SOURCE_URL),
                 Arguments.of(publicationResourceDto(DELETE), PENDING, TARGET_URL),
                 Arguments.of(publicationResourceDto(DELETE), APPROVED, TARGET_URL),
-                Arguments.of(publicationResourceDto(DELETE), REJECTED, TARGET_URL)
+                Arguments.of(publicationResourceDto(DELETE), REJECTED, TARGET_URL),
+                Arguments.of(publicationResourceDto(ADD_IF_ABSENT), PENDING, REVIEW_URL),
+                Arguments.of(publicationResourceDto(ADD_IF_ABSENT), APPROVED, TARGET_URL),
+                Arguments.of(publicationResourceDto(ADD_IF_ABSENT), REJECTED, SOURCE_URL)
         );
     }
 

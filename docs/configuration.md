@@ -16,6 +16,7 @@ This document provides a comprehensive list of all configurable properties in th
 - [Metrics Configuration](#metrics-configuration)
 - [Logging Configuration](#logging-configuration)
 - [Retry Configuration](#retry-configuration)
+- [Validation Configuration](#validation-configuration)
 
 ## AIDIAL Config File Exporter
 
@@ -71,7 +72,7 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 | Setting | Environment Variable | Default | Description                                                                                 |
 |---------|---------------------|---------|---------------------------------------------------------------------------------------------|
-| config.rest.security.mode | CONFIG_REST_SECURITY_MODE | oidc | Authentication mode (oidc, basic, or none)                                                  |
+| config.rest.security.mode | CONFIG_REST_SECURITY_MODE | none | Authentication mode (oidc, basic, or none)                                                  |
 | config.rest.security.allowedRoles | SECURITY_ALLOWED_ROLES | ConfigAdmin,admin | Comma-separated list of roles with access permissions                                       |
 | config.rest.security.principal-claim | SECURITY_USER_CLAIM | oid | JWT claim name for user identification                                                      |
 | config.rest.security.roles-claim | SECURITY_ROLES_CLAIM | roles | JWT claim name for user roles                                                               |
@@ -120,9 +121,10 @@ config.export.keyvault.type=vault
 
 ## DIAL Core Configuration
 
-| Setting | Environment Variable | Default | Description |
-|---------|---------------------|---------|-------------|
+| Setting | Environment Variable | Default        | Description |
+|---------|---------------------|----------------|-------------|
 | core.client.url | CORE_CLIENT_URL | localhost:8081 | URL of the DIAL Core service |
+| core.prompts.metadata.default.limit | CORE_PROMPTS_METADATA_DEFAULT_LIMIT | 256 | Default limit on the number of items in the prompts metadata response from DIAL Core |
 
 ## OpenTelemetry Configuration
 
@@ -168,7 +170,7 @@ config.export.keyvault.type=vault
 |                                | MS_SQL_SERVER_HOST                | localhost                                           | MSSQL Server database host                                                                                                                             |
 |                                | MS_SQL_SERVER_PORT                | 1433                                                | MSSQL Server database port                                                                                                                             |
 |                                | MS_SQL_SERVER_DATABASE            | testdb                                              | MSSQL Server database name                                                                                                                             |
-|                                | MS_SQL_SERVER_OPS                 | encrypt=true;                                       | MSSQL Server database connection options                                                                                                               |
+|                                | MS_SQL_SERVER_OPS                 | encrypt=false;                                      | MSSQL Server database connection options                                                                                                               |
 | sqlserver.datasource.username  | MS_SQL_SERVER_DATASOURCE_USERNAME | sa                                                  | Username for MSSQL Server database access                                                                                                              |
 | sqlserver.datasource.password  | MS_SQL_SERVER_DATASOURCE_PASSWORD | SQLServerPassword1                                  | Password for MSSQL Server database access                                                                                                              |
 | spring.jpa.hibernate.ddl-auto  | SPRING_JPA_HIBERNATE_DDL_AUTO     | validate                                            | Hibernate schema generation strategy                                                                                                                   |
@@ -222,3 +224,19 @@ When using MS_SQL_SERVER we recommend to set case-sensitive, accept-sensitive da
 | Setting | Environment Variable | Default | Description |
 |---------|---------------------|---------|-------------|
 | config.env.tokenizers.json | CONFIG_ENV_TOKENIZERS_JSON | - | Preconfigured DIAL tokenizers list in JSON format |
+
+## Validation Configuration
+
+| Setting                             | Environment Variable | Default | Description |
+|-------------------------------------|---------------------|---------|-------------|
+| validation.role.name                | ROLE_NAME_VALIDATION_PATTERN | - | Validation pattern for Role name |
+| validation.adapter.name             | ADAPTER_NAME_VALIDATION_PATTERN | - | Validation pattern for Adapter name |
+| validation.addon.name               | ADDON_NAME_VALIDATION_PATTERN | - | Validation pattern for Addon name |
+| validation.application.name         | APPLICATION_NAME_VALIDATION_PATTERN | - | Validation pattern for Application name |
+| validation.assistant.name           | ASSISTANT_NAME_VALIDATION_PATTERN | - | Validation pattern for Assistant name |
+| validation.interceptor.name         | INTERCEPTOR_NAME_VALIDATION_PATTERN | - | Validation pattern for Interceptor name |
+| validation.interceptorRunner.name   | INTERCEPTOR_RUNNER_NAME_VALIDATION_PATTERN | - | Validation pattern for InterceptorRunner name |
+| validation.key.name                 | KEY_NAME_VALIDATION_PATTERN | - | Validation pattern for Key name |
+| validation.model.name               | MODEL_NAME_VALIDATION_PATTERN | - | Validation pattern for Model name |
+| validation.route.name               | ROUTE_NAME_VALIDATION_PATTERN | - | Validation pattern for Route name |
+| validation.applicationTypeSchema.id | APPLICATION_TYPE_SCHEMA_ID_VALIDATION_PATTERN | - | Validation pattern for ApplicationTypeSchema id |
