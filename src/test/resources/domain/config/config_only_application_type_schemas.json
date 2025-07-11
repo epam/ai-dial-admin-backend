@@ -14,7 +14,7 @@
     {
       "description": "This is a sample application type schema",
       "properties": {
-        "id": 123
+        "id": "123"
       },
       "required": [
         "name",
@@ -32,7 +32,7 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "$defs": {
-        "maxLength": 255
+        "maxLength": "255"
       }
     }
   ]
