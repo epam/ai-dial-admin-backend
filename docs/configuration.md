@@ -203,14 +203,14 @@ When using MS_SQL_SERVER we recommend to set case-sensitive, accept-sensitive da
 
 ## Retry Configuration
 
-| Setting | Environment Variable | Default | Description |
-|---------|---------------------|---------|-------------|
-| feign.retry.period | FEIGN_RETRY_PERIOD | 5000 | Initial retry delay in milliseconds |
-| feign.retry.maxPeriod | FEIGN_RETRY_MAXPERIOD | 10000 | Maximum retry delay in milliseconds |
-| feign.retry.maxAttempts | FEIGN_RETRY_MAXATTEMPTS | 3 | Maximum number of retry attempts |
-| feign.retry.errorCodes | FEIGN_RETRY_ERRORCODES | 408,429,500,502,503,504 | HTTP status codes that trigger retries |
-| prompts.import.consecutiveErrorsThreshold | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2 | Maximum number of consecutive errors allowed during prompts import |
-| files.import.consecutiveErrorsThreshold   | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2 | Maximum number of consecutive errors allowed during files import   |
+| Setting                                   | Environment Variable                        | Default                 | Description                                                        |
+|-------------------------------------------|---------------------------------------------|-------------------------|--------------------------------------------------------------------|
+| feign.retry.period                        | FEIGN_RETRY_PERIOD                          | 10000                   | Initial retry delay in milliseconds                                |
+| feign.retry.maxPeriod                     | FEIGN_RETRY_MAXPERIOD                       | 15000                   | Maximum retry delay in milliseconds                                |
+| feign.retry.maxAttempts                   | FEIGN_RETRY_MAXATTEMPTS                     | 5                       | Maximum number of retry attempts                                   |
+| feign.retry.errorCodes                    | FEIGN_RETRY_ERRORCODES                      | 408,429,500,502,503,504 | HTTP status codes that trigger retries                             |
+| prompts.import.consecutiveErrorsThreshold | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | Maximum number of consecutive errors allowed during prompts import |
+| files.import.consecutiveErrorsThreshold   | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD   | 2                       | Maximum number of consecutive errors allowed during files import   |
 
 ## Export/Import Configuration
 
