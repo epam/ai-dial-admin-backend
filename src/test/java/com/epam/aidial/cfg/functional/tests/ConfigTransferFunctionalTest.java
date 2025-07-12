@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
@@ -9,6 +10,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
@@ -383,19 +385,24 @@ public abstract class ConfigTransferFunctionalTest {
         interceptorDto.setName("interceptorName");
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
 
+        LimitDto limitDto = new LimitDto();
+        limitDto.setMinute(5L);
+
+        AdapterDto adapterDto = new AdapterDto();
+        adapterDto.setName("testAdapter");
+
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
+        modelDto.setRoleLimits(Map.of("testRole", limitDto));
+        modelDto.setAdapter("testAdapter");
 
         RoleDto roleDto = new RoleDto();
         roleDto.setName("testRole");
 
-        LimitDto limitDto = new LimitDto();
-        limitDto.setMinute(5L);
-        modelDto.setRoleLimits(Map.of("testRole", limitDto));
-
         interceptorFacade.createInterceptor(interceptorDto);
         roleFacade.createRole(roleDto);
+        adapterFacade.createAdapter(adapterDto);
         modelFacade.createModel(modelDto);
 
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
@@ -415,8 +422,10 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getModels()).isNotEmpty()
                     .containsOnlyKeys("modelName")
                     .satisfies(models -> {
-                        Assertions.assertThat(models.get("modelName").getInterceptors()).containsExactlyInAnyOrder("interceptorName");
-                        Assertions.assertThat(models.get("modelName").getDeployment().getRoleLimits()).isNull();
+                        Model model = models.get("modelName");
+                        Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
+                        Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
+                        Assertions.assertThat(model.getAdapter()).isNull();
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
@@ -430,6 +439,87 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(share.getLimit().getInvitationTtl()).isEqualTo(120);
                     });
             Assertions.assertThat(config.getApplications()).isEmpty();
+            Assertions.assertThat(config.getAdapters()).isEmpty();
+        });
+    }
+
+    @Test
+    void testExport_AdminFormatModelWithInterceptorAndRoleAndAdapter_FullRequest() throws IOException {
+        // given
+        Set<ExportConfigComponentType> componentTypes = Set.of(
+                ExportConfigComponentType.MODEL,
+                ExportConfigComponentType.INTERCEPTOR,
+                ExportConfigComponentType.ROLE,
+                ExportConfigComponentType.ADAPTER);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(componentTypes);
+
+        InterceptorDto interceptorDto = new InterceptorDto();
+        interceptorDto.setName("interceptorName");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
+
+        LimitDto limitDto = new LimitDto();
+        limitDto.setMinute(5L);
+
+        AdapterDto adapterDto = new AdapterDto();
+        adapterDto.setName("testAdapter");
+
+        ModelDto modelDto = new ModelDto();
+        modelDto.setName("modelName");
+        modelDto.setInterceptors(List.of("interceptorName"));
+        modelDto.setRoleLimits(Map.of("testRole", limitDto));
+        modelDto.setAdapter("testAdapter");
+
+        RoleDto roleDto = new RoleDto();
+        roleDto.setName("testRole");
+
+        interceptorFacade.createInterceptor(interceptorDto);
+        roleFacade.createRole(roleDto);
+        adapterFacade.createAdapter(adapterDto);
+        modelFacade.createModel(modelDto);
+
+        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
+        shareResourceLimitDto.setInvitationTtl(120);
+        shareResourceLimitDto.setMaxAcceptedUsers(10);
+        roleDto.setShare(Map.of("modelName", shareResourceLimitDto));
+        roleDto.setLimits(Map.of("modelName", limitDto));
+
+        roleFacade.updateRole("testRole", roleDto);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getModels()).isNotEmpty()
+                    .containsOnlyKeys("modelName")
+                    .satisfies(models -> {
+                        Model model = models.get("modelName");
+                        Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
+                        Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
+                        Assertions.assertThat(model.getAdapter().getName()).isEqualTo("testAdapter");
+                    });
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
+            Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
+            Assertions.assertThat(config.getRoles().get("testRole").getLimits()).isNotEmpty().hasSize(1).first()
+                    .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("modelName"));
+            Assertions.assertThat(config.getRoles().get("testRole").getShare()).isNotEmpty().hasSize(1).first()
+                    .satisfies(share -> {
+                        Assertions.assertThat(share.getDeploymentName()).isEqualTo("modelName");
+                        Assertions.assertThat(share.getLimit()).isNotNull();
+                        Assertions.assertThat(share.getLimit().getMaxAcceptedUsers()).isEqualTo(10);
+                        Assertions.assertThat(share.getLimit().getInvitationTtl()).isEqualTo(120);
+                    });
+            Assertions.assertThat(config.getApplications()).isEmpty();
+            Assertions.assertThat(config.getAdapters()).isNotEmpty().hasSize(1)
+                    .satisfies(adapters -> {
+                        Adapter adapter = adapters.get("testAdapter");
+                        Assertions.assertThat(adapter.getName()).isEqualTo("testAdapter");
+                        Assertions.assertThat(adapter.getModels()).isEmpty();
+                    });
         });
     }
 

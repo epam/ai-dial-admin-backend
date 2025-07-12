@@ -93,6 +93,9 @@ public class ModelExporter {
         if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {
             model.setInterceptors(null);
         }
+        if (!componentTypes.contains(ExportConfigComponentType.ADAPTER)) {
+            model.setAdapter(null);
+        }
         return model;
     }
 
