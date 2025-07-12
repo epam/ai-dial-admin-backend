@@ -10,6 +10,8 @@ import com.epam.aidial.cfg.domain.validator.AdapterValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import java.util.stream.StreamSupport;
 @Service("coreAdapterService")
 @RequiredArgsConstructor
 @LogExecution
+@Slf4j
 public class AdapterService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Adapter with name %s does not exist";
@@ -47,7 +50,8 @@ public class AdapterService {
     @Transactional(readOnly = true)
     public Adapter getByEndpoint(String adapterEndpoint) {
         return Optional.ofNullable(adapterEndpoint)
-                .flatMap(adapterJpaRepository::findByBaseEndpoint)
+                .map(adapterJpaRepository::findByBaseEndpointOrderByNameAsc)
+                .map(this::resolveAdapterFromAdaptersWithSameBaseEndpoint)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new EntityNotFoundException("Adapter with endpoint %s does not exist".formatted(adapterEndpoint)));
     }
@@ -108,5 +112,16 @@ public class AdapterService {
         if (adapterJpaRepository.existsById(name)) {
             throw new EntityAlreadyExistsException("Adapter with name " + name + " already exists");
         }
+    }
+
+    // Such resolution is temporary and will be removed once there is an option for user to resolve
+    // conflict on UI
+    private AdapterEntity resolveAdapterFromAdaptersWithSameBaseEndpoint(Iterable<AdapterEntity> adapters) {
+        if (IterableUtils.isEmpty(adapters)) {
+            return null;
+        }
+
+        log.warn("Found several adapters with same base endpoint: {}. Will use the first one", adapters);
+        return IterableUtils.first(adapters);
     }
 }

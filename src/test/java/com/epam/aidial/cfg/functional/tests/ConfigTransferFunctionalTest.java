@@ -692,6 +692,45 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(adapterNames).containsAll(Set.of(models.get("testModel1").getAdapter(), models.get("testModel2").getAdapter()));
     }
 
+    @Test
+    void testImport_ImportModelWithAdapterConflictingByBaseEndpoint() throws IOException {
+        // given
+        AdapterDto adapterDto1 = new AdapterDto();
+        adapterDto1.setName("adapter1");
+        adapterDto1.setBaseEndpoint("http://endpoint1/");
+
+        AdapterDto adapterDto2 = new AdapterDto();
+        adapterDto2.setName("adapter2");
+        adapterDto2.setBaseEndpoint("http://endpoint1/");
+
+        AdapterDto adapterDto3 = new AdapterDto();
+        adapterDto3.setName("adapter3");
+        adapterDto3.setBaseEndpoint("http://endpoint2/");
+
+        adapterFacade.createAdapter(adapterDto1);
+        adapterFacade.createAdapter(adapterDto2);
+        adapterFacade.createAdapter(adapterDto3);
+
+        String config = FileUtils.readFileToString(new File("src/test/resources/import/import_modelWithAdapter.json"), StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        Map<String, ModelDto> models = modelFacade.getAll().stream()
+                .collect(Collectors.toMap(ModelDto::getName, Function.identity()));
+        String model1AdapterName = models.get("testModel1").getAdapter();
+        String model2AdapterName = models.get("testModel2").getAdapter();
+        Assertions.assertThat(model1AdapterName).isEqualTo("adapter1");
+        Assertions.assertThat(model2AdapterName).isEqualTo("adapter3");
+    }
+
     private static Stream<Arguments> addSecrets() {
         return Stream.of(
                 Arguments.of(false, null),
