@@ -152,6 +152,9 @@ dependencies {
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
             because("previous versions have vulnerabilities")
         }
+        implementation ('com.nimbusds:nimbus-jose-jwt:10.3.1') {
+            because("previous versions have vulnerabilities")
+        }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
         }
