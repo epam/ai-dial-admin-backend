@@ -13,8 +13,8 @@
     "applicationTypeTokenizeEndpoint": "https://example.com/tokenize",
     "applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
     "appendApplicationPropertiesHeader": true,
-    "defs": {
-      "maxLength": "255"
+    "$defs": {
+      "maxLength": 255
     },
     "properties": {
       "id": "123"
