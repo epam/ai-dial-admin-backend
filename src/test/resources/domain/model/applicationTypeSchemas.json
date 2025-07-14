@@ -14,7 +14,7 @@
     "applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
     "appendApplicationPropertiesHeader": true,
     "$defs": {
-      "maxLength": "255"
+      "maxLength": 255
     },
     "properties": {
       "id": "123"

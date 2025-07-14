@@ -32,7 +32,7 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "$defs": {
-        "maxLength": "255"
+        "maxLength": 255
       }
     }
   ]
