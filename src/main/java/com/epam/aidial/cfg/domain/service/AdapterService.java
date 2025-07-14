@@ -122,7 +122,10 @@ public class AdapterService {
             return null;
         }
 
-        log.warn("Found several adapters with same base endpoint: {}. Will use the first one", adapters);
+        if (IterableUtils.size(adapters) != 1) {
+            log.warn("Found multiple adapters with same base endpoint: {}. Will use the first one", adapters);
+        }
+
         return IterableUtils.first(adapters);
     }
 }
