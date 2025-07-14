@@ -41,10 +41,10 @@ public class AdapterImporter {
             for (Adapter adapter : adapterService.getAll()) {
                 adapterByEndpoint.put(adapter.getBaseEndpoint(), adapter);
             }
-            Set<String> coreEndpoints = coreModels.entrySet()
+            Set<String> coreEndpoints = coreModels.values()
                     .stream()
-                    .filter(e -> e.getValue().getEndpoint() != null)
-                    .map(e -> mapToAdapterBaseEndpoint(e.getKey(), e.getValue()))
+                    .filter(coreModel -> coreModel.getEndpoint() != null)
+                    .map(this::mapToAdapterBaseEndpoint)
                     .collect(Collectors.toSet());
             boolean createAdapterIfAbsent = importOptions.createAdapterIfAbsent();
             List<ImportComponent<Adapter>> result = new ArrayList<>();
@@ -63,14 +63,16 @@ public class AdapterImporter {
                     }
                 }
             }
+
+            return result;
         }
         return Collections.emptyList();
     }
 
-    private String mapToAdapterBaseEndpoint(String name, CoreModel coreModel) {
+    private String mapToAdapterBaseEndpoint(CoreModel coreModel) {
         String modelEndpoint = coreModel.getEndpoint();
         ModelType type = coreModel.getType();
-        return modelEndpointUtils.extractAdapterEndpoint(modelEndpoint, name, type);
+        return modelEndpointUtils.extractAdapterEndpoint(modelEndpoint, type);
     }
 
     public List<ImportComponent<Adapter>> importAdminAdapters(Map<String, Adapter> adapters,
