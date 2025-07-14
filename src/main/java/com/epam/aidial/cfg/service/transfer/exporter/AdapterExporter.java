@@ -29,21 +29,23 @@ public class AdapterExporter {
     protected Map<String, Adapter> getAdapters(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.ADAPTER)
-                    ? getAdapters().stream()
+                    ? getAdaptersWithRemovedDependencies().stream()
                     .collect(Collectors.toMap(Adapter::getName, Function.identity()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getAdapters(selectedItemsExportRequest.getComponents()).stream()
+            return getAdaptersWithRemovedDependencies(selectedItemsExportRequest.getComponents()).stream()
                     .collect(Collectors.toMap(Adapter::getName, Function.identity()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
-    private Collection<Adapter> getAdapters() {
-        return adapterService.getAll();
+    private Collection<Adapter> getAdaptersWithRemovedDependencies() {
+        return adapterService.getAll().stream()
+                .map(this::removeDependency)
+                .toList();
     }
 
-    private List<Adapter> getAdapters(List<ExportConfigComponent> elements) {
+    private List<Adapter> getAdaptersWithRemovedDependencies(List<ExportConfigComponent> elements) {
         return elements.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.ADAPTER)
                 .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
@@ -55,7 +57,13 @@ public class AdapterExporter {
                 .values()
                 .stream()
                 .map(component -> adapterService.get(component.getName()))
+                .map(this::removeDependency)
                 .toList();
+    }
+
+    private Adapter removeDependency(Adapter adapter) {
+        adapter.setModels(null);
+        return adapter;
     }
 
     protected Collection<ExportComponentInfo> preview(ExportRequest request) {
