@@ -39,9 +39,9 @@ class ModelEndpointUtilsTest {
         Assertions.assertThatThrownBy(() -> modelEndpointUtils.extractAdapterEndpoint(modelEndpoint, type))
                 // then
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unable to extract adapter endpoint from invalid model endpoint: " + modelEndpoint +
-                        ". Model endpoint must satisfy the following pattern: " +
-                        "<adapter_base_endpoint>/any_string/" + expectedExceptionMessageEnding);
+                .hasMessage("Unable to extract adapter endpoint from invalid model endpoint: " + modelEndpoint
+                        + ". Model endpoint must satisfy the following pattern: "
+                        + "<adapter_base_endpoint>/any_string/" + expectedExceptionMessageEnding);
     }
 
     private static Stream<Arguments> extractAdapterEndpoint_shouldSuccessfullyExtractAdapterEndpointTestParams() {
