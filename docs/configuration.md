@@ -20,7 +20,7 @@ This document provides a comprehensive list of all configurable properties in th
 
 ## AIDIAL Config File Exporter
 
-| Setting                                  | Environment Variable                     | Default              | Required | Condition | Description                                                                                                                                 |
+| Setting                                  | Environment Variable                     | Default              | Required | Applied when | Description                                                                                                                                 |
 |------------------------------------------|------------------------------------------|----------------------|----------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | config.export.enabled                    | CONFIG_EXPORT_ENABLED                    | true                 | No       | -         | Enables or disables DIAL Core configuration file export functionality                                                                       |
 | config.version.target                    | CORE_CONFIG_VERSION                      | latest               | No  (recommended to adjust for target environment)       | -         | Version of DIAL Core configuration used in file export. functionality                                                                        |
@@ -41,9 +41,9 @@ This document provides a comprehensive list of all configurable properties in th
 
 ## Kubernetes Configuration
 
-Condition: config.export.storageType=CONFIG_MAP|KUBE_SECRET
+Applied when: config.export.storageType=CONFIG_MAP|KUBE_SECRET
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | kubernetes-config.connectType | KUBERNETES_CONFIG_CONNECTTYPE | CONFIG_FILE | No | - | Kubernetes connection type (CONFIG_FILE or TOKEN) |
 | kubernetes-config.masterUrl | KUBERNETES_CONFIG_MASTERURL | url | Yes | kubernetes-config.connectType=TOKEN | Kubernetes master URL |
@@ -69,7 +69,7 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 ## Security Configuration
 
-| Setting | Environment Variable | Default | Required | Condition | Description                                                                                 |
+| Setting | Environment Variable | Default | Required | Applied when | Description                                                                                 |
 |---------|---------------------|---------|----------|-----------|--------------------------------------------------------------------------------------------|
 | config.rest.security.mode | CONFIG_REST_SECURITY_MODE | none | No (recommended to adjust for target environment) | - | Authentication mode (oidc, basic, or none)                                                  |
 | config.rest.security.allowedRoles | SECURITY_ALLOWED_ROLES | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions                                       |
@@ -86,9 +86,9 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 ### Azure Configuration
 
-Condition: config.export.keyvault.type=azure
+Applied when: config.export.keyvault.type=azure
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | azure.auth.type | AUTH_AZURE_TYPE | none | Yes | - | Azure authentication method (values: credential,cli,managed) |
 | azure.auth.clientId | AUTH_AZURE_CLIENT_ID | - | Yes | azure.auth.type=credential | Azure service principal client ID |
@@ -98,40 +98,40 @@ Condition: config.export.keyvault.type=azure
 
 ### GCP Configuration
 
-Condition: config.export.keyvault.type=gcp
+Applied when: config.export.keyvault.type=gcp
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | gcp.keyvault.projectId | GCP_KEY_VAULT_PROJECT_ID | - | Yes | - | Google Cloud Platform project ID |
 
 ### AWS Configuration
 
-Condition: config.export.keyvault.type=aws
+Applied when: config.export.keyvault.type=aws
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 
 AWS Secrets Manager will be used for AWS services auth
 
 ### Hashivault (on premise server)
 
-Condition: config.export.keyvault.type=vault
+Applied when: config.export.keyvault.type=vault
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | vault.uri | VAULT_URI          |         | Yes | - | URL of the hashivault |
 | vault.token | VAULT_TOKEN     |         | Yes | - | hashivault access token |
 
 ## DIAL Core Configuration
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | core.client.url | CORE_CLIENT_URL | localhost:8081 | No (recommended to adjust for target environment) | - | URL of the DIAL Core service |
 | core.prompts.metadata.default.limit | CORE_PROMPTS_METADATA_DEFAULT_LIMIT | 256 | No | - | Default limit on the number of items in the prompts metadata response from DIAL Core |
 
 ## OpenTelemetry Configuration
 
-| Setting                             | Environment Variable        | Default            | Required | Condition | Description                                       |
+| Setting                             | Environment Variable        | Default            | Required | Applied when | Description                                       |
 |-------------------------------------|-----------------------------|--------------------|----------|-----------|---------------------------------------------------|
 | otel.sdk.disabled                   | OTEL_SDK_DISABLED           | true               | No       | -         | Disable OpenTelemetry SDK                         |
 | otel.service.name                   | OTEL_SERVICE_NAME           | dial-admin-backend | No       | -         | Service name                                      |
@@ -144,7 +144,7 @@ Condition: config.export.keyvault.type=vault
 
 ## Actuator Configuration
 
-| Setting | Environment Variable | Default | Required | Condition | Description                  |
+| Setting | Environment Variable | Default | Required | Applied when | Description                  |
 |---------|---------------------|---------|----------|-----------|------------------------------|
 | management.endpoints.web.exposure.include | MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE | prometheus,health | No | - | Actuator endpoints to expose |
 | management.endpoint.health.show-details | MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS | always | No | - | Show health information      |
@@ -152,7 +152,7 @@ Condition: config.export.keyvault.type=vault
 
 ## Datasource Configuration
 
-| Setting                        | Environment Variable              | Default                                             | Required | Condition | Description                                                                                                                                            |
+| Setting                        | Environment Variable              | Default                                             | Required | Applied when | Description                                                                                                                                            |
 |--------------------------------|-----------------------------------|-----------------------------------------------------|----------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
 | datasource.vendor              | DATASOURCE_VENDOR                 | H2   | No (recommended to adjust for target environment)       | -         | Datasource vendor: <ul><li>H2</li><li>POSTGRES</li><li>MS_SQL_SERVER</li></ul>                                                                         |
 | datasource.auth.type           | DATASOURCE_AUTH_TYPE              | basic                                               | No       | -         | Datasource auth type: <ul><li>basic (username and password)</li><li>azure (see [Azure Configuration](#azure-configuration): azure.auth.type)</li></ul> |
@@ -185,7 +185,7 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 
 ## Metrics Configuration
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | metrics.enabled | METRICS_ENABLED | false | No | - | Enable or disable metrics collection |
 | metrics.configFile.contentEnvVar | METRICS_CONFIGFILE_CONTENTENVVAR | METRICS_CONFIG_CONTENT | No | metrics.enabled=true | Environment variable containing metrics configuration |
@@ -201,7 +201,7 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 
 ## Logging Configuration
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | logging.level.org.springframework.security | LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY | INFO | No | - | Log level for Spring Security |
 | logging.level.com.epam.aidial.cfg | APP_LOG_LEVEL | INFO | No | - | Default Log level for application code |
@@ -217,7 +217,7 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 
 ## Retry Configuration
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | feign.retry.period | FEIGN_RETRY_PERIOD | 5000 | No | - | Initial retry delay in milliseconds |
 | feign.retry.maxPeriod | FEIGN_RETRY_MAXPERIOD | 10000 | No | - | Maximum retry delay in milliseconds |
@@ -228,14 +228,14 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 
 ## Export/Import Configuration
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | config.import.configsMaxCount | IMPORT_CONFIGS_MAX_COUNT | 64 | No | - | Maximum number of files allowed for a single import config operation |
 
 ## Additional Entities Configuration
 *(Temporary configuration - will be implemented as managed entities inside admin app)*
 
-| Setting | Environment Variable | Default | Required | Condition | Description |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | config.env.tokenizers.json | CONFIG_ENV_TOKENIZERS_JSON | - | No | - | Preconfigured DIAL tokenizers list in JSON format |
 
@@ -243,7 +243,7 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 
 Allows specifying additional environment-specific entity name validation patterns.
 
-| Setting                             | Environment Variable | Default | Required | Condition | Description |
+| Setting                             | Environment Variable | Default | Required | Applied when | Description |
 |-------------------------------------|---------------------|---------|----------|-----------|-------------|
 | validation.role.name                | ROLE_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Role name |
 | validation.adapter.name             | ADAPTER_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Adapter name |
