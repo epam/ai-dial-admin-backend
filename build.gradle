@@ -157,6 +157,9 @@ dependencies {
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
         }
+        checkstyle ('org.apache.commons:commons-lang3:3.18.0') {
+            because("previous versions have vulnerabilities")
+        }
     }
 }
 
