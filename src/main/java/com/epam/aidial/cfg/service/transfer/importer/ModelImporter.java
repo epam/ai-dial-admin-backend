@@ -114,15 +114,15 @@ public class ModelImporter extends RoleBasedImporter {
 
     private Model map(String modelName, CoreModel model, Map<String, CoreRole> roles) {
         model.setName(modelName);
-        Adapter adapter = getAdapterByEndpoint(modelName, model);
+        Adapter adapter = getAdapterByEndpoint(model);
         return modelMapper.mapModel(model, roles, adapter);
     }
 
-    private Adapter getAdapterByEndpoint(String name, CoreModel coreModel) {
+    private Adapter getAdapterByEndpoint(CoreModel coreModel) {
         if (coreModel == null || coreModel.getEndpoint() == null) {
             return null;
         }
-        String adapterEndpoint = modelEndpointUtils.extractAdapterEndpoint(coreModel.getEndpoint(), name, coreModel.getType());
+        String adapterEndpoint = modelEndpointUtils.extractAdapterEndpoint(coreModel.getEndpoint(), coreModel.getType());
         return adapterService.getByEndpoint(adapterEndpoint);
     }
 
