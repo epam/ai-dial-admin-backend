@@ -1,5 +1,5 @@
 package com.epam.aidial.cfg.model;
 
 public enum PublicationResourceAction {
-    ADD, DELETE
+    ADD, DELETE, ADD_IF_ABSENT
 }

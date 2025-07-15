@@ -21,7 +21,11 @@
       "defaults": {},
       "interceptors": [],
       "descriptionKeywords": [],
-      "maxRetryAttempts": 1
+      "maxRetryAttempts": 1,
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": []
     }
   },
   "applications": {},

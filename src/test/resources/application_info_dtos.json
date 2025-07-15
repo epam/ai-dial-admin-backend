@@ -2,6 +2,8 @@
   {
     "name": "test_application",
     "endpoint": "https://endpoint.test.com/embeddings",
+    "viewerUrl": "https://viewer.test.com",
+    "editorUrl": "https://editor.test.com",
     "displayName": "Test Application",
     "displayVersion": "1.0.0",
     "description": "It is a test application",
@@ -12,6 +14,10 @@
     "maxInputAttachments": 10,
     "topics": [
       "Test Topic"
-    ]
+    ],
+    "author": "test-author",
+    "createdAt": "2025-06-01T12:00:00Z",
+    "updatedAt": "2025-06-01T15:30:00Z",
+    "dependencies": ["dep1", "dep2"]
   }
 ]

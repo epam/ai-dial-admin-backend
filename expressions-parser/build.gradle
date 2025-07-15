@@ -29,6 +29,12 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     testImplementation 'junit:junit:4.13.2'
+
+    constraints {
+        implementation ('org.apache.commons:commons-lang3:3.18.0') {
+            because("previous versions have vulnerabilities")
+        }
+    }
 }
 
 generateGrammarSource {

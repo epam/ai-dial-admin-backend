@@ -14,7 +14,7 @@
     {
       "description": "This is a sample application type schema",
       "properties": {
-        "id": 123
+        "id": "123"
       },
       "required": [
         "name",
@@ -26,6 +26,11 @@
       "dial:applicationTypeViewerUrl": "https://example.com/viewer",
       "dial:applicationTypeDisplayName": "Sample Application Type",
       "dial:applicationTypeCompletionEndpoint": "https://example.com/complete",
+      "dial:applicationTypeConfigurationEndpoint": "https://example.com/configuration",
+      "dial:applicationTypeRateEndpoint": "https://example.com/rate",
+      "dial:applicationTypeTokenizeEndpoint": "https://example.com/tokenize",
+      "dial:applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
+      "dial:appendApplicationPropertiesHeader": true,
       "$defs": {
         "maxLength": 255
       }

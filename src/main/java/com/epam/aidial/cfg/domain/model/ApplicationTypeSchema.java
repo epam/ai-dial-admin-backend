@@ -1,5 +1,10 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.dto.databind.JsonMapDeserializer;
+import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
 import java.util.List;
@@ -21,8 +26,16 @@ public class ApplicationTypeSchema {
     private String applicationTypeTokenizeEndpoint;
     private String applicationTypeTruncatePromptEndpoint;
     private Boolean appendApplicationPropertiesHeader;
+
+    @JsonProperty("$defs")
+    @JsonSerialize(using = JsonMapSerializer.class)
+    @JsonDeserialize(using = JsonMapDeserializer.class)
     private Map<String, String> defs;
+
+    @JsonSerialize(using = JsonMapSerializer.class)
+    @JsonDeserialize(using = JsonMapDeserializer.class)
     private Map<String, String> properties;
+
     private List<String> required;
     private List<String> applications;
     private Set<String> topics;

@@ -12,10 +12,10 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Constraint(validatedBy = {})
-@Pattern(regexp = "https?://(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)", message = "Invalid upstream endpoint")
+@Pattern(regexp = "https?://[-a-zA-Z0-9@:%._\\+~#=]{1,256}(\\.[a-zA-Z0-9()]{1,6})?\\b(:[0-9]{1,5})?([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)", message = "Invalid upstream endpoint")
 @Documented
 @Retention(RUNTIME)
-@NotNull
+@NotNull(message = "Upstream endpoint must not be null.")
 @Target(FIELD)
 public @interface UpstreamEndpoint {
 

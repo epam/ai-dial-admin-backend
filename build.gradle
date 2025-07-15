@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.epam.aidial'
-version = "0.4.0-rc"
+version = "0.5.0-rc"
 
 java {
     toolchain {
@@ -82,11 +82,12 @@ dependencies {
     implementation 'org.hibernate.validator:hibernate-validator:8.0.2.Final'
     implementation 'org.glassfish:jakarta.el:4.0.2'
     implementation 'com.networknt:json-schema-validator:1.5.2' //TODO: will become transitive dependency of core.config lib
-    implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation 'org.apache.commons:commons-collections4:4.5.0-M3'
     implementation 'commons-validator:commons-validator:1.9.0'
     implementation 'commons-io:commons-io:2.18.0'
     implementation 'com.github.f4b6a3:uuid-creator:5.0.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1'
 
     implementation 'org.mapstruct:mapstruct:1.6.0'
 
@@ -136,7 +137,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.3.1'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
     testImplementation 'org.assertj:assertj-core:3.24.2'
-    testImplementation 'org.apache.commons:commons-lang3:3.17.0'
+    testImplementation 'org.apache.commons:commons-lang3:3.18.0'
     testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.0'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -146,6 +147,12 @@ dependencies {
 
     constraints {
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:10.1.42') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('commons-fileupload:commons-fileupload:1.6.0') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('com.nimbusds:nimbus-jose-jwt:10.3.1') {
             because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {

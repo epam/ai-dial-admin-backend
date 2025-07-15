@@ -117,4 +117,16 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(jsonPath("$.message").value("roleLimits: The role limits cannot contain the default role name."));
     }
 
+    @Test
+    void testCreateModel_MissingUpstreamEndpoint_ValidationException() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/model_dto_without_upstream_endpoint.json");
+
+        mockMvc.perform(post("/api/v1/models")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.message").value("JSON parse error: endpoint: Upstream endpoint must not be null."));
+    }
+
 }

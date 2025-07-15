@@ -13,4 +13,5 @@ public class ResourceMetadataRequest {
     private boolean recursive;
     private String path;
     private String nextToken;
+    private Integer limit;
 }

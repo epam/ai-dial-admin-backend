@@ -3,6 +3,8 @@
     "id": 1,
     "endpoint": "https://example.com/api",
     "iconUrl": "https://example.com/icon.png",
+    "viewerUrl": "https://viewer.example.com",
+    "editorUrl": "https://editor.example.com",
     "reference": "app-ref-123",
     "description": "This is a sample application",
     "displayName": "Sample Application",
@@ -41,7 +43,11 @@
       "accessibleByPerRequestKey": true,
       "contentPartsSupported": true,
       "temperatureSupported": true,
-      "addonsSupported": false
+      "addonsSupported": false,
+      "cacheSupported": true,
+      "autoCachingSupported": false,
+      "consentRequired": true,
+      "parallelToolCallsSupported": true
     },
     "applicationProperties": {
       "debug": true,
@@ -88,6 +94,10 @@
           }
         }
       ]
-    }
+    },
+    "author": "test-author",
+    "createdAt": 12345,
+    "updatedAt": 12345,
+    "dependencies": ["dep1", "dep2"]
   }
 ]

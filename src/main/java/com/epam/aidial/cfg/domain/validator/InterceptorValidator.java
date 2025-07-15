@@ -1,15 +1,23 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
+@Slf4j
 @Component
 public class InterceptorValidator {
 
+    @Value("${validation.interceptor.name:}")
+    private String interceptorNameValidationPattern;
+
     public void validateCreation(Interceptor interceptor) {
+        validateInterceptorName(interceptor);
         validateInterceptorRunnerAndEndpoint(interceptor);
     }
 
@@ -19,6 +27,20 @@ public class InterceptorValidator {
                 .formatted(interceptorName, interceptor.getName()));
         }
         validateInterceptorRunnerAndEndpoint(interceptor);
+    }
+    
+    private void validateInterceptorName(Interceptor interceptor) {
+        final String interceptorName = interceptor.getName();
+
+        if (StringUtils.isEmpty(interceptorNameValidationPattern)) {
+            log.debug("Interceptor name validation pattern is empty, skipping validation for interceptor: {}", interceptorName);
+            return;
+        }
+
+        if (!Pattern.matches(interceptorNameValidationPattern, interceptorName)) {
+            throw new IllegalArgumentException("Interceptor name '" + interceptorName
+                + "' does not match the required pattern: " + interceptorNameValidationPattern);
+        }
     }
 
     private void validateInterceptorRunnerAndEndpoint(Interceptor interceptor) {
