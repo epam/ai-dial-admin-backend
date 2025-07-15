@@ -8,8 +8,8 @@
     "applicationTypeViewerUrl": "https://example.com/viewer",
     "applicationTypeDisplayName": "Sample Application Type",
     "applicationTypeCompletionEndpoint": "https://example.com/complete",
-    "defs": {
-      "maxLength": "255"
+    "$defs": {
+      "maxLength": 255
     },
     "properties": {
       "id": "123"
