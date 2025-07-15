@@ -61,11 +61,11 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 ## Web Server Configuration
 
-| Setting | Environment Variable | Default | Required | Description |
-|---------|---------------------|---------|----------|-------------|
-| server.port | SERVER_PORT | 8080 | No | Port number for the web server |
-| server.tomcat.accesslog.pattern | SERVER_TOMCAT_ACCESSLOG_PATTERN | "request: method=%m uri=\"%U\" response: statuscode=%s bytes=%b duration=%D(ms) client: remoteip=%a user=%u useragent=\"%{User-Agent}i\"" | No | Pattern for Tomcat access logs |
-| server.tomcat.accesslog.enabled | TOMCAT_ACCESSLOG_ENABLED | false | No | Enable or disable Tomcat access logging |
+| Setting | Environment Variable | Default | Required | Applied when | Description |
+|---------|---------------------|---------|----------|-----------|-------------|
+| server.port | SERVER_PORT | 8080 | No | - | Port number for the web server |
+| server.tomcat.accesslog.pattern | SERVER_TOMCAT_ACCESSLOG_PATTERN | "request: method=%m uri=\"%U\" response: statuscode=%s bytes=%b duration=%D(ms) client: remoteip=%a user=%u useragent=\"%{User-Agent}i\"" | No | server.tomcat.accesslog.enabled=true | Pattern for Tomcat access logs |
+| server.tomcat.accesslog.enabled | TOMCAT_ACCESSLOG_ENABLED | false | No | - | Enable or disable Tomcat access logging |
 
 ## Security Configuration
 
