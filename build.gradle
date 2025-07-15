@@ -87,6 +87,7 @@ dependencies {
     implementation 'commons-validator:commons-validator:1.9.0'
     implementation 'commons-io:commons-io:2.18.0'
     implementation 'com.github.f4b6a3:uuid-creator:5.0.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1'
 
     implementation 'org.mapstruct:mapstruct:1.6.0'
 
