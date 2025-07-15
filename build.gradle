@@ -1,3 +1,13 @@
+buildscript {
+    dependencies {
+        constraints {
+            classpath ('org.apache.commons:commons-lang3:3.18.0') {
+                because("previous versions have vulnerabilities")
+            }
+        }
+    }
+}
+
 plugins {
     id "java"
     id 'checkstyle'
