@@ -74,7 +74,7 @@ Steps:
 
 ## Security Configuration
 
-| Environment Variable Name| Value | Description                                                                                 |
+| Environment Variable Name | Value | Description                                                                                 |
 |--------------------------|-------|---------------------------------------------------------------------------------------------|
 | SECURITY_ALLOWED_ROLES | ConfigAdmin | Ai.Dial.Env.Tst role name |
 | SECURITY_JWT_JWKS_URI | https://login.microsoftonline.com/common/discovery/v2.0/keys | URI for JSON Web Key Set |
