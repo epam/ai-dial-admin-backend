@@ -115,7 +115,8 @@ public class ModelImporter extends RoleBasedImporter {
     private Model map(String modelName, CoreModel model, Map<String, CoreRole> roles) {
         model.setName(modelName);
         Adapter adapter = getAdapterByEndpoint(model);
-        return modelMapper.mapModel(model, roles, adapter);
+        String alias = getAliasByEndpoint(model);
+        return modelMapper.mapModel(model, roles, adapter, alias);
     }
 
     private Adapter getAdapterByEndpoint(CoreModel coreModel) {
@@ -124,6 +125,13 @@ public class ModelImporter extends RoleBasedImporter {
         }
         String adapterEndpoint = modelEndpointUtils.extractAdapterEndpoint(coreModel.getEndpoint(), coreModel.getType());
         return adapterService.getByEndpoint(adapterEndpoint);
+    }
+
+    private String getAliasByEndpoint(CoreModel coreModel) {
+        if (coreModel == null || coreModel.getEndpoint() == null) {
+            return null;
+        }
+        return modelEndpointUtils.extractModelAlias(coreModel.getEndpoint(), coreModel.getType());
     }
 
 }

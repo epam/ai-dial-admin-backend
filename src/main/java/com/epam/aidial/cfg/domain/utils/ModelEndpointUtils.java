@@ -27,27 +27,38 @@ public class ModelEndpointUtils {
             return null;
         }
         String baseEndpoint = adapter.getBaseEndpoint();
-        String modelName = model.getDeployment().getName();
-        return createEndpoint(baseEndpoint, modelName, model.getType());
+        String modelAlias = model.getAlias();
+        return createEndpoint(baseEndpoint, modelAlias, model.getType());
     }
 
-    private String createEndpoint(String baseEndpoint, String modelName, ModelType type) {
-        String suffix = modelPath(modelName, type);
+    private String createEndpoint(String baseEndpoint, String modelAlias, ModelType type) {
+        String suffix = modelPath(modelAlias, type);
         return Strings.CS.appendIfMissing(baseEndpoint, "/") + suffix;
     }
 
     public String extractAdapterEndpoint(String modelEndpoint, com.epam.aidial.core.config.ModelType type) {
+        return parseModelEndpoint(modelEndpoint, type, "adapter endpoint", 1);
+    }
+
+    public String extractModelAlias(String modelEndpoint, com.epam.aidial.core.config.ModelType type) {
+        return parseModelEndpoint(modelEndpoint, type, "model alias", 2);
+    }
+
+    private String parseModelEndpoint(String modelEndpoint,
+                                      com.epam.aidial.core.config.ModelType type,
+                                      String parsingSubject,
+                                      int group) {
         boolean isChat = isChat(type);
         Pattern pattern = MODEL_PATTERN_MAP.get(isChat).getRight();
         Matcher matcher = pattern.matcher(modelEndpoint);
 
         if (!matcher.matches()) {
             String modelEndpointPattern = "<adapter_base_endpoint>/any_string/" + getEndpointByType(isChat);
-            throw new IllegalArgumentException("Unable to extract adapter endpoint from invalid model endpoint: "
+            throw new IllegalArgumentException("Unable to extract " + parsingSubject + " from invalid model endpoint: "
                     + modelEndpoint + ". Model endpoint must satisfy the following pattern: " + modelEndpointPattern);
         }
 
-        return matcher.group(1);
+        return matcher.group(group);
     }
 
     private boolean isChat(ModelType type) {
@@ -66,7 +77,9 @@ public class ModelEndpointUtils {
         return MODEL_PATTERN_MAP.get(chat).getLeft();
     }
 
-    private String modelPath(String modelName, ModelType type) {
-        return modelName + "/" + getEndpointByType(type);
+    private String modelPath(String modelAlias, ModelType type) {
+        return modelAlias != null
+                ? modelAlias + "/" + getEndpointByType(type)
+                : getEndpointByType(type);
     }
 }

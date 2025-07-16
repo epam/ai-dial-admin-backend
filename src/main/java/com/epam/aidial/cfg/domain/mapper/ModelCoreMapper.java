@@ -40,7 +40,7 @@ public abstract class ModelCoreMapper {
     @Mapping(target = "topics", source = "model.descriptionKeywords")
     @Mapping(target = "deployment", ignore = true)
     @Mapping(target = "features", source = "model.features", qualifiedByName = "toFeaturesDto")
-    public abstract Model mapModel(CoreModel model, Map<String, CoreRole> roles, Adapter adapter);
+    public abstract Model mapModel(CoreModel model, Map<String, CoreRole> roles, Adapter adapter, String alias);
 
     @Mapping(target = "id", ignore = true)
     public abstract Upstream map(CoreUpstream upstream);
