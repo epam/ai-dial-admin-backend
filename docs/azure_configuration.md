@@ -1,6 +1,6 @@
 # Azure Provider Configuration Guide for Admin Application
 
-This guide details the steps to configure Azure AD App Registrations  for the `ai-dial-admin` application environment.
+This guide details the steps to configure Azure AD App Registrations for the `ai-dial-admin` application environment.
 
 ---
 
