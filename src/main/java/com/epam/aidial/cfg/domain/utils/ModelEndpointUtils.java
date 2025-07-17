@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.utils;
 
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
@@ -13,8 +14,8 @@ import java.util.regex.Pattern;
 @Component
 public class ModelEndpointUtils {
 
-    private static final Pattern CHAT_MODEL_ENDPOINT_PATTERN = Pattern.compile("^(.*/)(.*?)/chat/completions$");
-    private static final Pattern NON_CHAT_MODEL_ENDPOINT_PATTERN = Pattern.compile("^(.*/)(.*?)/embeddings$");
+    private static final Pattern CHAT_MODEL_ENDPOINT_PATTERN = Pattern.compile("^(https?://.+?)(?:/([^/]+))?/chat/completions$");
+    private static final Pattern NON_CHAT_MODEL_ENDPOINT_PATTERN = Pattern.compile("^(https?://.+?)(?:/([^/]+))?/embeddings$");
 
     private static final Map<Boolean, Pair<String, Pattern>> MODEL_PATTERN_MAP = Map.of(
             true, Pair.of("chat/completions", CHAT_MODEL_ENDPOINT_PATTERN),
@@ -36,29 +37,25 @@ public class ModelEndpointUtils {
         return Strings.CS.appendIfMissing(baseEndpoint, "/") + suffix;
     }
 
-    public String extractAdapterEndpoint(String modelEndpoint, com.epam.aidial.core.config.ModelType type) {
-        return parseModelEndpoint(modelEndpoint, type, "adapter endpoint", 1);
-    }
-
-    public String extractModelAlias(String modelEndpoint, com.epam.aidial.core.config.ModelType type) {
-        return parseModelEndpoint(modelEndpoint, type, "model alias", 2);
-    }
-
-    private String parseModelEndpoint(String modelEndpoint,
-                                      com.epam.aidial.core.config.ModelType type,
-                                      String parsingSubject,
-                                      int group) {
+    public ModelEndpointComponents parseModelEndpoint(String modelEndpoint, com.epam.aidial.core.config.ModelType type) {
         boolean isChat = isChat(type);
+        String endpointEnding = MODEL_PATTERN_MAP.get(isChat).getLeft();
+        boolean isDirectOpenAiEndpoint = modelEndpoint.endsWith("v1/" + endpointEnding);
+
+        if (isDirectOpenAiEndpoint) {
+            String adapterEndpoint = Strings.CS.removeEnd(modelEndpoint, endpointEnding);
+            return new ModelEndpointComponents(adapterEndpoint, null);
+        }
+
         Pattern pattern = MODEL_PATTERN_MAP.get(isChat).getRight();
         Matcher matcher = pattern.matcher(modelEndpoint);
 
         if (!matcher.matches()) {
-            String modelEndpointPattern = "<adapter_base_endpoint>/any_string/" + getEndpointByType(isChat);
-            throw new IllegalArgumentException("Unable to extract " + parsingSubject + " from invalid model endpoint: "
-                    + modelEndpoint + ". Model endpoint must satisfy the following pattern: " + modelEndpointPattern);
+            throw new IllegalArgumentException("Unable to extract adapter endpoint and model alias "
+                    + "from invalid model endpoint: " + modelEndpoint);
         }
 
-        return matcher.group(group);
+        return new ModelEndpointComponents(matcher.group(1) + "/", matcher.group(2));
     }
 
     private boolean isChat(ModelType type) {
@@ -81,5 +78,8 @@ public class ModelEndpointUtils {
         return modelAlias != null
                 ? modelAlias + "/" + getEndpointByType(type)
                 : getEndpointByType(type);
+    }
+
+    public record ModelEndpointComponents(String adapterEndpoint, @Nullable String modelAlias) {
     }
 }

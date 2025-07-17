@@ -72,7 +72,7 @@ public class AdapterImporter {
     private String mapToAdapterBaseEndpoint(CoreModel coreModel) {
         String modelEndpoint = coreModel.getEndpoint();
         ModelType type = coreModel.getType();
-        return modelEndpointUtils.extractAdapterEndpoint(modelEndpoint, type);
+        return modelEndpointUtils.parseModelEndpoint(modelEndpoint, type).adapterEndpoint();
     }
 
     public List<ImportComponent<Adapter>> importAdminAdapters(Map<String, Adapter> adapters,

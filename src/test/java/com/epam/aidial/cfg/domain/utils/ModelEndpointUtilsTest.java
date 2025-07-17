@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.utils;
 
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.core.config.ModelType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,27 +34,26 @@ class ModelEndpointUtilsTest {
     }
 
     @ParameterizedTest
-    @MethodSource("extractAdapterEndpoint_shouldSuccessfullyExtractAdapterEndpointTestParams")
-    void extractAdapterEndpoint_shouldSuccessfullyExtractAdapterEndpoint(String modelEndpoint,
-                                                                         ModelType type,
-                                                                         String expected) {
+    @MethodSource("parseModelEndpoint_shouldSuccessfullyReturnEndpointComponentsTestParams")
+    void parseModelEndpoint_shouldSuccessfullyReturnEndpointComponents(String modelEndpoint,
+                                                                       ModelType type,
+                                                                       ModelEndpointComponents expected) {
         // when
-        String actual = modelEndpointUtils.extractAdapterEndpoint(modelEndpoint, type);
+        ModelEndpointComponents actual = modelEndpointUtils.parseModelEndpoint(modelEndpoint, type);
 
         // then
         assertThat(actual).isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @MethodSource("extractAdapterEndpoint_shouldThrowExceptionWhenInvalidModelEndpointTestParams")
-    void extractAdapterEndpoint_shouldThrowExceptionWhenInvalidModelEndpoint(String modelEndpoint, ModelType type, String expectedExceptionMessageEnding) {
+    @MethodSource("parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpointTestParams")
+    void parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpoint(String modelEndpoint, ModelType type, String expectedExceptionMessageEnding) {
         // when
-        Assertions.assertThatThrownBy(() -> modelEndpointUtils.extractAdapterEndpoint(modelEndpoint, type))
+        Assertions.assertThatThrownBy(() -> modelEndpointUtils.parseModelEndpoint(modelEndpoint, type))
                 // then
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unable to extract adapter endpoint from invalid model endpoint: " + modelEndpoint
-                        + ". Model endpoint must satisfy the following pattern: "
-                        + "<adapter_base_endpoint>/any_string/" + expectedExceptionMessageEnding);
+                .hasMessage("Unable to extract adapter endpoint and model alias "
+                        + "from invalid model endpoint: " + modelEndpoint);
     }
 
     private static Stream<Arguments> createEndpoint_shouldSuccessfullyCreateEndpointTestParams() {
@@ -64,7 +64,7 @@ class ModelEndpointUtilsTest {
 
         Model modelWithAdapterAndAlias = new Model();
         modelWithAdapterAndAlias.setAdapter(adapter);
-        modelWithAdapterAndAlias.setAlias("model-name");
+        modelWithAdapterAndAlias.setAlias("model-alias");
 
         Model modelWithAdapter = new Model();
         modelWithAdapter.setAdapter(adapter);
@@ -72,7 +72,7 @@ class ModelEndpointUtilsTest {
         Model chatModelWithAdapterAndAlias = new Model();
         chatModelWithAdapterAndAlias.setType(com.epam.aidial.cfg.domain.model.ModelType.CHAT);
         chatModelWithAdapterAndAlias.setAdapter(adapter);
-        chatModelWithAdapterAndAlias.setAlias("model-name");
+        chatModelWithAdapterAndAlias.setAlias("model-alias");
 
         Model chatModelWithAdapter = new Model();
         chatModelWithAdapter.setType(com.epam.aidial.cfg.domain.model.ModelType.CHAT);
@@ -81,7 +81,7 @@ class ModelEndpointUtilsTest {
         Model nonChatModelWithAdapterAndAlias = new Model();
         nonChatModelWithAdapterAndAlias.setType(com.epam.aidial.cfg.domain.model.ModelType.EMBEDDING);
         nonChatModelWithAdapterAndAlias.setAdapter(adapter);
-        nonChatModelWithAdapterAndAlias.setAlias("model-name");
+        nonChatModelWithAdapterAndAlias.setAlias("model-alias");
 
         Model nonChatModelWithAdapter = new Model();
         nonChatModelWithAdapter.setType(com.epam.aidial.cfg.domain.model.ModelType.EMBEDDING);
@@ -89,31 +89,49 @@ class ModelEndpointUtilsTest {
 
         return Stream.of(
                 Arguments.of(modelWithoutAdapter, null),
-                Arguments.of(modelWithAdapterAndAlias, "http://host/openai/deployments/model-name/chat/completions"),
+                Arguments.of(modelWithAdapterAndAlias, "http://host/openai/deployments/model-alias/chat/completions"),
                 Arguments.of(modelWithAdapter, "http://host/openai/deployments/chat/completions"),
-                Arguments.of(chatModelWithAdapterAndAlias, "http://host/openai/deployments/model-name/chat/completions"),
+                Arguments.of(chatModelWithAdapterAndAlias, "http://host/openai/deployments/model-alias/chat/completions"),
                 Arguments.of(chatModelWithAdapter, "http://host/openai/deployments/chat/completions"),
-                Arguments.of(nonChatModelWithAdapterAndAlias, "http://host/openai/deployments/model-name/embeddings"),
+                Arguments.of(nonChatModelWithAdapterAndAlias, "http://host/openai/deployments/model-alias/embeddings"),
                 Arguments.of(nonChatModelWithAdapter, "http://host/openai/deployments/embeddings")
         );
     }
 
-    private static Stream<Arguments> extractAdapterEndpoint_shouldSuccessfullyExtractAdapterEndpointTestParams() {
+    private static Stream<Arguments> parseModelEndpoint_shouldSuccessfullyReturnEndpointComponentsTestParams() {
         return Stream.of(
-                Arguments.of("http://host/openai/deployments/model-name/chat/completions", ModelType.CHAT, "http://host/openai/deployments/"),
-                Arguments.of("http://host/openai/deployments/model-name/embeddings", ModelType.EMBEDDING, "http://host/openai/deployments/")
+                Arguments.of(
+                        "http://host/openai/deployments/model-alias/chat/completions",
+                        ModelType.CHAT,
+                        new ModelEndpointComponents("http://host/openai/deployments/", "model-alias")
+                ),
+                Arguments.of(
+                        "http://host/openai/deployments/model-alias/embeddings",
+                        ModelType.EMBEDDING,
+                        new ModelEndpointComponents("http://host/openai/deployments/", "model-alias")
+                ),
+                Arguments.of(
+                        "http://host/v1/chat/completions",
+                        ModelType.CHAT,
+                        new ModelEndpointComponents("http://host/v1/", null)
+                ),
+                Arguments.of(
+                        "http://host/v1/embeddings",
+                        ModelType.EMBEDDING,
+                        new ModelEndpointComponents("http://host/v1/", null)
+                )
         );
     }
 
-    private static Stream<Arguments> extractAdapterEndpoint_shouldThrowExceptionWhenInvalidModelEndpointTestParams() {
+    private static Stream<Arguments> parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpointTestParams() {
         return Stream.of(
-                Arguments.of("http://host/openai/deployments/model-name/chat/completions/text", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/model-name/chat", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/model-name/", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/model-name", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/model-name/embeddings/text", ModelType.EMBEDDING, "embeddings"),
-                Arguments.of("http://host/openai/deployments/model-name/", ModelType.EMBEDDING, "embeddings"),
-                Arguments.of("http://host/openai/deployments/model-name", ModelType.EMBEDDING, "embeddings")
+                Arguments.of("http://host/openai/deployments/model-alias/chat/completions/text", ModelType.CHAT, "chat/completions"),
+                Arguments.of("http://host/openai/deployments/model-alias/chat", ModelType.CHAT, "chat/completions"),
+                Arguments.of("http://host/openai/deployments/model-alias/", ModelType.CHAT, "chat/completions"),
+                Arguments.of("http://host/openai/deployments/model-alias", ModelType.CHAT, "chat/completions"),
+                Arguments.of("http://host/openai/deployments/model-alias/embeddings/text", ModelType.EMBEDDING, "embeddings"),
+                Arguments.of("http://host/openai/deployments/model-alias/", ModelType.EMBEDDING, "embeddings"),
+                Arguments.of("http://host/openai/deployments/model-alias", ModelType.EMBEDDING, "embeddings")
         );
     }
 }

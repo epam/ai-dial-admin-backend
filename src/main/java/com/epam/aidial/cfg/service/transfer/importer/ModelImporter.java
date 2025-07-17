@@ -10,12 +10,14 @@ import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -114,24 +116,19 @@ public class ModelImporter extends RoleBasedImporter {
 
     private Model map(String modelName, CoreModel model, Map<String, CoreRole> roles) {
         model.setName(modelName);
-        Adapter adapter = getAdapterByEndpoint(model);
-        String alias = getAliasByEndpoint(model);
-        return modelMapper.mapModel(model, roles, adapter, alias);
+        Pair<Adapter, String> modelEndpointComponents = getModelEndpointComponents(model);
+        return modelMapper.mapModel(model, roles, modelEndpointComponents.getLeft(), modelEndpointComponents.getRight());
     }
 
-    private Adapter getAdapterByEndpoint(CoreModel coreModel) {
+    private Pair<Adapter, String> getModelEndpointComponents(CoreModel coreModel) {
         if (coreModel == null || coreModel.getEndpoint() == null) {
-            return null;
+            return Pair.of(null, null);
         }
-        String adapterEndpoint = modelEndpointUtils.extractAdapterEndpoint(coreModel.getEndpoint(), coreModel.getType());
-        return adapterService.getByEndpoint(adapterEndpoint);
-    }
-
-    private String getAliasByEndpoint(CoreModel coreModel) {
-        if (coreModel == null || coreModel.getEndpoint() == null) {
-            return null;
-        }
-        return modelEndpointUtils.extractModelAlias(coreModel.getEndpoint(), coreModel.getType());
+        ModelEndpointComponents modelEndpointComponents = modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
+        return Pair.of(
+                adapterService.getByEndpoint(modelEndpointComponents.adapterEndpoint()),
+                modelEndpointComponents.modelAlias()
+        );
     }
 
 }
