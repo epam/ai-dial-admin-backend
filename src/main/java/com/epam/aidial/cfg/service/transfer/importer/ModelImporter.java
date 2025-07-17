@@ -17,7 +17,6 @@ import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -116,19 +115,19 @@ public class ModelImporter extends RoleBasedImporter {
 
     private Model map(String modelName, CoreModel model, Map<String, CoreRole> roles) {
         model.setName(modelName);
-        Pair<Adapter, String> modelEndpointComponents = getModelEndpointComponents(model);
-        return modelMapper.mapModel(model, roles, modelEndpointComponents.getLeft(), modelEndpointComponents.getRight());
+        ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
+        Adapter adapter = modelEndpointComponents != null
+                ? adapterService.getByEndpoint(modelEndpointComponents.adapterEndpoint())
+                : null;
+        String alias = modelEndpointComponents != null ? modelEndpointComponents.modelAlias() : null;
+        return modelMapper.mapModel(model, roles, adapter, alias);
     }
 
-    private Pair<Adapter, String> getModelEndpointComponents(CoreModel coreModel) {
+    private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {
         if (coreModel == null || coreModel.getEndpoint() == null) {
-            return Pair.of(null, null);
+            return null;
         }
-        ModelEndpointComponents modelEndpointComponents = modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
-        return Pair.of(
-                adapterService.getByEndpoint(modelEndpointComponents.adapterEndpoint()),
-                modelEndpointComponents.modelAlias()
-        );
+        return modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
     }
 
 }
