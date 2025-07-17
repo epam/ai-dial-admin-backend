@@ -68,7 +68,7 @@ public class ModelEntity extends AbstractEntity<String> {
     private String upstreams;
     private String overrideName;
     private List<String> fieldsHashingOrder;
-    private String alias;
+    private String endpointDeploymentName;
 
     @PreRemove
     public void preRemove() {

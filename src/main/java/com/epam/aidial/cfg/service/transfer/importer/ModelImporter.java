@@ -119,8 +119,10 @@ public class ModelImporter extends RoleBasedImporter {
         Adapter adapter = modelEndpointComponents != null
                 ? adapterService.getByEndpoint(modelEndpointComponents.adapterEndpoint())
                 : null;
-        String alias = modelEndpointComponents != null ? modelEndpointComponents.modelAlias() : null;
-        return modelMapper.mapModel(model, roles, adapter, alias);
+        String endpointDeploymentName = modelEndpointComponents != null
+                ? modelEndpointComponents.endpointDeploymentName()
+                : null;
+        return modelMapper.mapModel(model, roles, adapter, endpointDeploymentName);
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {

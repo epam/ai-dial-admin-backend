@@ -28,12 +28,12 @@ public class ModelEndpointUtils {
             return null;
         }
         String baseEndpoint = adapter.getBaseEndpoint();
-        String modelAlias = model.getAlias();
-        return createEndpoint(baseEndpoint, modelAlias, model.getType());
+        String endpointDeploymentName = model.getEndpointDeploymentName();
+        return createEndpoint(baseEndpoint, endpointDeploymentName, model.getType());
     }
 
-    private String createEndpoint(String baseEndpoint, String modelAlias, ModelType type) {
-        String suffix = modelPath(modelAlias, type);
+    private String createEndpoint(String baseEndpoint, String endpointDeploymentName, ModelType type) {
+        String suffix = modelPath(endpointDeploymentName, type);
         return Strings.CS.appendIfMissing(baseEndpoint, "/") + suffix;
     }
 
@@ -51,7 +51,7 @@ public class ModelEndpointUtils {
         Matcher matcher = pattern.matcher(modelEndpoint);
 
         if (!matcher.matches()) {
-            throw new IllegalArgumentException("Unable to extract adapter endpoint and model alias "
+            throw new IllegalArgumentException("Unable to extract adapter endpoint and endpoint deployment name "
                     + "from invalid model endpoint: " + modelEndpoint);
         }
 
@@ -74,12 +74,12 @@ public class ModelEndpointUtils {
         return MODEL_PATTERN_MAP.get(chat).getLeft();
     }
 
-    private String modelPath(String modelAlias, ModelType type) {
-        return modelAlias != null
-                ? modelAlias + "/" + getEndpointByType(type)
+    private String modelPath(String endpointDeploymentName, ModelType type) {
+        return endpointDeploymentName != null
+                ? endpointDeploymentName + "/" + getEndpointByType(type)
                 : getEndpointByType(type);
     }
 
-    public record ModelEndpointComponents(String adapterEndpoint, @Nullable String modelAlias) {
+    public record ModelEndpointComponents(String adapterEndpoint, @Nullable String endpointDeploymentName) {
     }
 }

@@ -109,7 +109,7 @@ public abstract class AdapterFunctionalTest {
         model1.setAdapter("adapter1");
         modelFacade.createModel(model1);
         model1.setAdapter("adapter2");
-        model1.setAlias("model1");
+        model1.setEndpointDeploymentName("model1");
         modelFacade.updateModel(model1.getName(), model1);
 
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
@@ -130,7 +130,7 @@ public abstract class AdapterFunctionalTest {
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
-        expectedModel1.setAlias("model1");
+        expectedModel1.setEndpointDeploymentName("model1");
         Assertions.assertEquals(expectedModel1, actualModel1);
     }
 

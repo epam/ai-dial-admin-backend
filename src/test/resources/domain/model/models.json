@@ -130,6 +130,6 @@
     "createdAt": 12345,
     "updatedAt": 12345,
     "dependencies": ["dep1", "dep2"],
-    "alias": "sampleDeployment"
+    "endpointDeploymentName": "sampleDeployment"
   }
 ]

@@ -93,7 +93,7 @@ public abstract class ModelFunctionalTest {
         updatedModel.setAdapter("adapter2");
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
-        updatedModel.setAlias("newModelAlias");
+        updatedModel.setEndpointDeploymentName("newEndpointDeploymentName");
         modelFacade.updateModel(modelDto.getName(), updatedModel);
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
@@ -103,8 +103,8 @@ public abstract class ModelFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setAdapter("adapter2");
-        expected.setEndpoint("http://adapter.endpoint2/newModelAlias/chat/completions");
-        expected.setAlias("newModelAlias");
+        expected.setEndpoint("http://adapter.endpoint2/newEndpointDeploymentName/chat/completions");
+        expected.setEndpointDeploymentName("newEndpointDeploymentName");
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
         assertModel(actual, expected);
@@ -118,12 +118,12 @@ public abstract class ModelFunctionalTest {
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
-        updatedModel.setAlias(null);
+        updatedModel.setEndpointDeploymentName(null);
         modelFacade.updateModel(modelDto.getName(), updatedModel);
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role3", limitDto));
         expected.setEndpoint("http://adapter.endpoint2/chat/completions");
-        expected.setAlias(null);
+        expected.setEndpointDeploymentName(null);
         assertModel(actual, expected);
 
         roleFacade.deleteRole("role3");
