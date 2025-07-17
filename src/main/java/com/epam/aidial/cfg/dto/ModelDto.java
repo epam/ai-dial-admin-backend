@@ -43,5 +43,6 @@ public class ModelDto extends RoleBasedDto {
     private List<UpstreamDto> upstreams = List.of();
     private String overrideName;
     private List<String> fieldsHashingOrder;
+    private String endpointDeploymentName;
 
 }
