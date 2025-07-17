@@ -129,6 +129,7 @@
     "author": "test-author",
     "createdAt": 12345,
     "updatedAt": 12345,
-    "dependencies": ["dep1", "dep2"]
+    "dependencies": ["dep1", "dep2"],
+    "endpointDeploymentName": "sampleDeployment"
   }
 ]

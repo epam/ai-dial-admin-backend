@@ -1,0 +1,2 @@
+alter table if exists model_entity add column if not exists endpoint_deployment_name varchar(255);
+alter table if exists model_entity_aud add column if not exists endpoint_deployment_name varchar(255);
