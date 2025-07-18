@@ -17,12 +17,12 @@ import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -151,13 +151,12 @@ public class ModelImporter extends RoleBasedImporter {
             return adapterService.getByEndpoint(adapterEndpoint);
         }
 
-        Map<String, Adapter> adaptersToCreateByBaseEndpoint = adaptersForPreview.stream()
+        return adaptersForPreview.stream()
                 .filter(importComponent -> importComponent.getImportAction() == CREATE)
                 .map(ImportComponent::getValue)
-                .collect(Collectors.toMap(Adapter::getBaseEndpoint, Function.identity()));
-
-        Adapter adapter = adaptersToCreateByBaseEndpoint.get(adapterEndpoint);
-        return adapter != null ? adapter : adapterService.getByEndpoint(adapterEndpoint);
+                .filter(adapter -> Strings.CS.equals(adapter.getBaseEndpoint(), adapterEndpoint))
+                .findFirst()
+                .orElseGet(() -> adapterService.getByEndpoint(adapterEndpoint));
     }
 
     private String resolveEndpointDeploymentName(ModelEndpointComponents modelEndpointComponents) {
