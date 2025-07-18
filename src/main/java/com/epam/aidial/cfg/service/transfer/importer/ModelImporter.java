@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -49,11 +50,16 @@ public class ModelImporter extends RoleBasedImporter {
     public Collection<ImportComponent<Model>> importModels(Map<String, CoreModel> coreModels,
                                                            Map<String, CoreRole> roles,
                                                            ConfigImportOptions importOptions,
+                                                           Collection<ImportComponent<Adapter>> adaptersForPreview,
                                                            boolean isPreview) {
         if (MapUtils.isNotEmpty(coreModels)) {
             Map<String, Model> models = coreModels.entrySet()
                     .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue(), roles)));
+                    .collect(Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    entry -> map(entry.getKey(), entry.getValue(), roles, adaptersForPreview, isPreview)
+                            )
+                    );
             return importAdminModels(models, importOptions, isPreview);
         }
         return Collections.emptyList();
@@ -113,15 +119,15 @@ public class ModelImporter extends RoleBasedImporter {
         return CREATE;
     }
 
-    private Model map(String modelName, CoreModel model, Map<String, CoreRole> roles) {
+    private Model map(String modelName,
+                      CoreModel model,
+                      Map<String, CoreRole> roles,
+                      Collection<ImportComponent<Adapter>> adaptersForPreview,
+                      boolean isPreview) {
         model.setName(modelName);
         ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
-        Adapter adapter = modelEndpointComponents != null
-                ? adapterService.getByEndpoint(modelEndpointComponents.adapterEndpoint())
-                : null;
-        String endpointDeploymentName = modelEndpointComponents != null
-                ? modelEndpointComponents.endpointDeploymentName()
-                : null;
+        Adapter adapter = resolveAdapter(adaptersForPreview, isPreview, modelEndpointComponents);
+        String endpointDeploymentName = resolveEndpointDeploymentName(modelEndpointComponents);
         return modelMapper.mapModel(model, roles, adapter, endpointDeploymentName);
     }
 
@@ -130,6 +136,32 @@ public class ModelImporter extends RoleBasedImporter {
             return null;
         }
         return modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
+    }
+
+    private Adapter resolveAdapter(Collection<ImportComponent<Adapter>> adaptersForPreview,
+                                   boolean isPreview,
+                                   ModelEndpointComponents modelEndpointComponents) {
+        if (modelEndpointComponents == null) {
+            return null;
+        }
+
+        String adapterEndpoint = modelEndpointComponents.adapterEndpoint();
+
+        if (!isPreview) {
+            return adapterService.getByEndpoint(adapterEndpoint);
+        }
+
+        Map<String, Adapter> adaptersToCreateByBaseEndpoint = adaptersForPreview.stream()
+                .filter(importComponent -> importComponent.getImportAction() == CREATE)
+                .map(ImportComponent::getValue)
+                .collect(Collectors.toMap(Adapter::getBaseEndpoint, Function.identity()));
+
+        Adapter adapter = adaptersToCreateByBaseEndpoint.get(adapterEndpoint);
+        return adapter != null ? adapter : adapterService.getByEndpoint(adapterEndpoint);
+    }
+
+    private String resolveEndpointDeploymentName(ModelEndpointComponents modelEndpointComponents) {
+        return modelEndpointComponents != null ? modelEndpointComponents.endpointDeploymentName() : null;
     }
 
 }

@@ -1,0 +1,120 @@
+{
+  "roles": [],
+  "keys": [],
+  "interceptors": [],
+  "applicationRunners": [],
+  "routes": [],
+  "adapters": [
+    {
+      "importAction": "create",
+      "value": {
+        "name": "<will be defined during import>",
+        "baseEndpoint": "http://endpoint2/",
+        "models": []
+      }
+    }
+  ],
+  "models": [
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "testModel2",
+          "isPublic": true,
+          "defaultRoleLimit": {}
+        },
+        "adapter": {
+          "name": "<will be defined during import>",
+          "baseEndpoint": "http://endpoint2/",
+          "models": []
+        },
+        "displayName": "Test Model2",
+        "displayVersion": "2.0.0",
+        "forwardAuthToken": false,
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false,
+          "cacheSupported": true,
+          "autoCachingSupported": false,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
+        },
+        "defaults": {},
+        "interceptors": [],
+        "topics": [],
+        "maxRetryAttempts": 5,
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": [],
+        "type": "embedding",
+        "upstreams": [],
+        "fieldsHashingOrder": [],
+        "endpointDeploymentName": "testModel2"
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "testModel1",
+          "isPublic": true,
+          "defaultRoleLimit": {}
+        },
+        "adapter": {
+          "name": "adapter1",
+          "baseEndpoint": "http://endpoint1/",
+          "models": []
+        },
+        "displayName": "Test Model1",
+        "displayVersion": "2.0.0",
+        "forwardAuthToken": false,
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false,
+          "cacheSupported": true,
+          "autoCachingSupported": false,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
+        },
+        "defaults": {},
+        "interceptors": [],
+        "topics": [],
+        "maxRetryAttempts": 5,
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": [
+          "dep1",
+          "dep2"
+        ],
+        "type": "embedding",
+        "upstreams": [],
+        "fieldsHashingOrder": [
+          "prompt",
+          "temperature"
+        ],
+        "endpointDeploymentName": "testModel1"
+      }
+    }
+  ],
+  "applications": [],
+  "addons": [],
+  "assistants": []
+}

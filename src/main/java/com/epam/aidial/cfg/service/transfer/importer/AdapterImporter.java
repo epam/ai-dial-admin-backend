@@ -52,10 +52,12 @@ public class AdapterImporter {
                 if (!adapterByEndpoint.containsKey(endpoint)) {
                     if (createAdapterIfAbsent) {
                         Adapter adapter = new Adapter();
-                        adapter.setName(UUID.randomUUID().toString());
                         adapter.setBaseEndpoint(endpoint);
                         if (!isPreview) {
+                            adapter.setName(UUID.randomUUID().toString());
                             adapterService.create(adapter);
+                        } else {
+                            adapter.setName("<will be defined during import>");
                         }
                         result.add(new ImportComponent<>(ImportAction.CREATE, adapter));
                     } else {
