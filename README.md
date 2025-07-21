@@ -206,6 +206,10 @@ Use the predefined setup in [docker-compose.yml](local_env/docker-compose.yml)
 docker-compose up
 ```
 
+### Components diagramm
+
+![components-diagram](docs/images/DIAL_Admin_Components_diag.png)
+
 ## Security
 For information about security practices and reporting security issues, please refer to our [Security.md](Security.md) document.
 

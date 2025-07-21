@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreModel;
@@ -114,16 +115,21 @@ public class ModelImporter extends RoleBasedImporter {
 
     private Model map(String modelName, CoreModel model, Map<String, CoreRole> roles) {
         model.setName(modelName);
-        Adapter adapter = getAdapterByEndpoint(modelName, model);
-        return modelMapper.mapModel(model, roles, adapter);
+        ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
+        Adapter adapter = modelEndpointComponents != null
+                ? adapterService.getByEndpoint(modelEndpointComponents.adapterEndpoint())
+                : null;
+        String endpointDeploymentName = modelEndpointComponents != null
+                ? modelEndpointComponents.endpointDeploymentName()
+                : null;
+        return modelMapper.mapModel(model, roles, adapter, endpointDeploymentName);
     }
 
-    private Adapter getAdapterByEndpoint(String name, CoreModel coreModel) {
+    private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {
         if (coreModel == null || coreModel.getEndpoint() == null) {
             return null;
         }
-        String adapterEndpoint = modelEndpointUtils.extractAdapterEndpoint(coreModel.getEndpoint(), name, coreModel.getType());
-        return adapterService.getByEndpoint(adapterEndpoint);
+        return modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
     }
 
 }

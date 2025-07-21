@@ -1,13 +1,26 @@
 package com.epam.aidial.cfg.domain.utils;
 
-import com.epam.aidial.cfg.dao.model.ModelTypeEntity;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
-import org.apache.commons.lang3.StringUtils;
+import jakarta.annotation.Nullable;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class ModelEndpointUtils {
+
+    private static final Pattern CHAT_MODEL_ENDPOINT_PATTERN = Pattern.compile("^(https?://.+?)(?:/([^/]+))?/chat/completions$");
+    private static final Pattern NON_CHAT_MODEL_ENDPOINT_PATTERN = Pattern.compile("^(https?://.+?)(?:/([^/]+))?/embeddings$");
+
+    private static final Map<Boolean, Pair<String, Pattern>> MODEL_PATTERN_MAP = Map.of(
+            true, Pair.of("chat/completions", CHAT_MODEL_ENDPOINT_PATTERN),
+            false, Pair.of("embeddings", NON_CHAT_MODEL_ENDPOINT_PATTERN)
+    );
 
     public String createEndpoint(Model model) {
         var adapter = model.getAdapter();
@@ -15,40 +28,34 @@ public class ModelEndpointUtils {
             return null;
         }
         String baseEndpoint = adapter.getBaseEndpoint();
-        String modelName = model.getDeployment().getName();
-        return createEndpoint(baseEndpoint, modelName, model.getType());
+        String endpointDeploymentName = model.getEndpointDeploymentName();
+        return createEndpoint(baseEndpoint, endpointDeploymentName, model.getType());
     }
 
-    public String createEndpoint(String baseEndpoint, String modelName, ModelType type) {
-        String suffix = modelPath(modelName, type);
-        return StringUtils.appendIfMissing(baseEndpoint, "/") + suffix;
+    private String createEndpoint(String baseEndpoint, String endpointDeploymentName, ModelType type) {
+        String suffix = modelPath(endpointDeploymentName, type);
+        return Strings.CS.appendIfMissing(baseEndpoint, "/") + suffix;
     }
 
-    public String createEndpoint(String baseEndpoint, String modelName, com.epam.aidial.core.config.ModelType type) {
-        String suffix = modelPath(modelName, type);
-        return baseEndpoint + suffix;
-    }
+    public ModelEndpointComponents parseModelEndpoint(String modelEndpoint, com.epam.aidial.core.config.ModelType type) {
+        boolean isChat = isChat(type);
+        String endpointEnding = MODEL_PATTERN_MAP.get(isChat).getLeft();
+        boolean isDirectOpenAiEndpoint = modelEndpoint.endsWith("v1/" + endpointEnding);
 
-    public String extractAdapterEndpoint(String modelEndpoint, String name, com.epam.aidial.core.config.ModelType type) {
-        String modelPath = modelPath(name, type);
-        return extractAdapterEndpoint(modelEndpoint, modelPath);
-    }
-
-    public String extractAdapterEndpoint(String modelEndpoint, String name, ModelType type) {
-        String modelPath = modelPath(name, type);
-        return extractAdapterEndpoint(modelEndpoint, modelPath);
-    }
-
-    public String extractAdapterEndpoint(String modelEndpoint, String name, ModelTypeEntity type) {
-        String modelPath = modelPath(name, type);
-        return extractAdapterEndpoint(modelEndpoint, modelPath);
-    }
-
-    private String extractAdapterEndpoint(String modelEndpoint, String modelPath) {
-        if (!StringUtils.endsWith(modelEndpoint, modelPath)) {
-            throw new IllegalArgumentException("Model endpoint " + modelEndpoint + " must ends with " + modelPath);
+        if (isDirectOpenAiEndpoint) {
+            String adapterEndpoint = Strings.CS.removeEnd(modelEndpoint, endpointEnding);
+            return new ModelEndpointComponents(adapterEndpoint, null);
         }
-        return StringUtils.removeEnd(modelEndpoint, modelPath);
+
+        Pattern pattern = MODEL_PATTERN_MAP.get(isChat).getRight();
+        Matcher matcher = pattern.matcher(modelEndpoint);
+
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Unable to extract adapter endpoint and endpoint deployment name "
+                    + "from invalid model endpoint: " + modelEndpoint);
+        }
+
+        return new ModelEndpointComponents(matcher.group(1) + "/", matcher.group(2));
     }
 
     private boolean isChat(ModelType type) {
@@ -59,37 +66,20 @@ public class ModelEndpointUtils {
         return type == com.epam.aidial.core.config.ModelType.CHAT || type == null;
     }
 
-    private boolean isChat(ModelTypeEntity type) {
-        return type == ModelTypeEntity.CHAT || type == null;
-    }
-
     private String getEndpointByType(ModelType type) {
         return getEndpointByType(isChat(type));
     }
 
-    private String getEndpointByType(com.epam.aidial.core.config.ModelType type) {
-        return getEndpointByType(isChat(type));
-    }
-
-    private String getEndpointByType(ModelTypeEntity type) {
-        return getEndpointByType(isChat(type));
-    }
-
     private String getEndpointByType(boolean chat) {
-        return chat
-                ? "chat/completions"
-                : "embeddings";
+        return MODEL_PATTERN_MAP.get(chat).getLeft();
     }
 
-    private String modelPath(String modelName, ModelType type) {
-        return modelName + "/" + getEndpointByType(type);
+    private String modelPath(String endpointDeploymentName, ModelType type) {
+        return endpointDeploymentName != null
+                ? endpointDeploymentName + "/" + getEndpointByType(type)
+                : getEndpointByType(type);
     }
 
-    private String modelPath(String modelName, com.epam.aidial.core.config.ModelType type) {
-        return modelName + "/" + getEndpointByType(type);
-    }
-
-    private String modelPath(String modelName, ModelTypeEntity type) {
-        return modelName + "/" + getEndpointByType(type);
+    public record ModelEndpointComponents(String adapterEndpoint, @Nullable String endpointDeploymentName) {
     }
 }
