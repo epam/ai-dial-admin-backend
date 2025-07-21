@@ -171,7 +171,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                 .models(List.of(new ImportComponent<>(CREATE, model)))
                 .build();
 
-        when(configTransfer.importPreview(List.of(mockFile), ConflictResolutionPolicy.SKIP)).thenReturn(importConfigPreview);
+        var configImportOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, false, true);
+        when(configTransfer.importPreview(List.of(mockFile), configImportOptions)).thenReturn(importConfigPreview);
         String expected = ResourceUtils.readResource("/import/import_preview_model.json");
         // when
         mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/configs/import/preview")
@@ -181,7 +182,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(content().json(expected, JsonCompareMode.LENIENT));
-        verify(configTransfer).importPreview(List.of(mockFile), ConflictResolutionPolicy.SKIP);
+        verify(configTransfer).importPreview(List.of(mockFile), configImportOptions);
     }
 
     @Test
