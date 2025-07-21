@@ -13,6 +13,7 @@ public class ImportConfigPreviewDto {
     private Collection<ImportComponent<InterceptorDto>> interceptors;
     private Collection<ImportComponent<ApplicationTypeSchemaDto>> applicationRunners;
     private Collection<ImportComponent<RouteDto>> routes;
+    private Collection<ImportComponent<AdapterDto>> adapters;
     private Collection<ImportComponent<ModelDto>> models;
     private Collection<ImportComponent<ApplicationDto>> applications;
     private Collection<ImportComponent<AddonDto>> addons;
