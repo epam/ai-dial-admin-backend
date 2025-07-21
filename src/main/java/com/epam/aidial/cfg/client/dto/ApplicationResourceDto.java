@@ -34,5 +34,6 @@ public class ApplicationResourceDto {
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
+    private String applicationTypeSchemaId;
 }
 
