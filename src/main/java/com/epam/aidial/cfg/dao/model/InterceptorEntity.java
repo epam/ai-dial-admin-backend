@@ -37,6 +37,9 @@ public class InterceptorEntity extends AbstractEntity<String> {
     private String configurationEndpoint;
 
     @ToString.Exclude
+    private String containerId;
+
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interceptor_runner_name")
     private InterceptorRunnerEntity interceptorRunner;

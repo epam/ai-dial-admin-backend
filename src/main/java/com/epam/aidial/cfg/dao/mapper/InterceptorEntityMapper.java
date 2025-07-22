@@ -9,6 +9,8 @@ import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.Source;
+import com.epam.aidial.cfg.domain.model.SourceType;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
 import org.apache.commons.collections4.CollectionUtils;
@@ -45,7 +47,7 @@ public abstract class InterceptorEntityMapper {
     private InterceptorRunnerJpaRepository interceptorRunnerJpaRepository;
 
     @Mapping(target = "entities", source = "entity", qualifiedByName = "mapApplicationsAndModelsToStrings")
-    @Mapping(target = "interceptorRunner", source = "interceptorRunner.name")
+    @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     public abstract Interceptor toDomain(InterceptorEntity entity);
 
     @Named("mapApplicationsAndModelsToStrings")
@@ -57,6 +59,29 @@ public abstract class InterceptorEntityMapper {
                 .collect(Collectors.toList());
     }
 
+    @Named("mapSource")
+    protected Source mapSource(InterceptorEntity entity) {
+        SourceType type = SourceType.ENDPOINTS;
+        String name = null;
+
+        InterceptorRunnerEntity interceptorRunnerEntity = entity.getInterceptorRunner();
+        String containerId = entity.getContainerId();
+
+        if (interceptorRunnerEntity != null && StringUtils.isNotBlank(containerId)) {
+            throw new IllegalStateException("Interceptor cannot have both interceptor runner and container set");
+        }
+
+        if (interceptorRunnerEntity != null) {
+            type = SourceType.TEMPLATE;
+            name = interceptorRunnerEntity.getName();
+        } else if (StringUtils.isNotBlank(containerId)) {
+            type = SourceType.CONTAINER;
+            name = containerId;
+        }
+
+        return new Source(type, name);
+    }
+
     private <T> Stream<String> getNames(Collection<T> entities, Function<T, String> modelEntityStringFunction) {
         return entities.stream().map(modelEntityStringFunction);
     }
@@ -64,7 +89,19 @@ public abstract class InterceptorEntityMapper {
     public InterceptorEntity toEntity(Interceptor domain, InterceptorEntity entity) {
         Pair<List<ApplicationEntity>, List<ModelEntity>> applicationsAndModels = findApplicationsAndModelsByNames(domain.getEntities());
 
-        InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(domain.getInterceptorRunner());
+        Source source = domain.getSource();
+        String interceptorName = null;
+        String containerId = null;
+
+        if (source != null) {
+            if (SourceType.TEMPLATE == source.getType()) {
+                interceptorName = source.getName();
+            } else if (SourceType.CONTAINER == source.getType()) {
+                containerId = source.getName();
+            }
+        }
+
+        InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(interceptorName);
 
         InterceptorEntity updatedEntity = update(domain, entity);
 
@@ -88,6 +125,7 @@ public abstract class InterceptorEntityMapper {
             interceptorRunner.getInterceptors().add(updatedEntity);
         }
         updatedEntity.setInterceptorRunner(interceptorRunner);
+        updatedEntity.setContainerId(containerId);
 
         return updatedEntity;
     }
@@ -95,6 +133,7 @@ public abstract class InterceptorEntityMapper {
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "models", ignore = true)
     @Mapping(target = "interceptorRunner", ignore = true)
+    @Mapping(target = "containerId", ignore = true)
     public abstract InterceptorEntity update(Interceptor domain, @MappingTarget InterceptorEntity entity);
 
     private Pair<List<ApplicationEntity>, List<ModelEntity>> findApplicationsAndModelsByNames(List<String> names) {

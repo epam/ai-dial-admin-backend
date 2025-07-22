@@ -18,6 +18,6 @@ public class Interceptor {
     private Long updatedAt;
     private List<String> dependencies;
     private List<String> entities;
-    private String interceptorRunner;
+    private Source source;
     private String configurationEndpoint;
 }

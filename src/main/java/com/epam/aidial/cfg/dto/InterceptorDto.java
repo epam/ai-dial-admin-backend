@@ -23,7 +23,7 @@ public class InterceptorDto {
 
     private List<String> entities;
 
-    private String interceptorRunner;
+    private SourceDto source;
 
     private String configurationEndpoint;
 
