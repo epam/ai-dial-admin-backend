@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.facade.mapper;
 
+import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
@@ -11,6 +12,7 @@ import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
@@ -50,6 +52,8 @@ public abstract class ImportConfigMapper {
     private AddonDtoMapper addonDtoMapper;
     @Autowired
     private RouteDtoMapper routeDtoMapper;
+    @Autowired
+    private AdapterDtoMapper adapterDtoMapper;
 
     public abstract ImportConfigPreviewDto toImportConfigPreviewDto(ImportConfigPreview importConfigPreview);
 
@@ -87,6 +91,10 @@ public abstract class ImportConfigMapper {
 
     public Collection<ImportComponent<AssistantDto>> mapAssistants(Collection<ImportComponent<Assistant>> assistants) {
         return mapGeneric(assistants, assistantDtoMapper::toDto);
+    }
+
+    public Collection<ImportComponent<AdapterDto>> mapAdapters(Collection<ImportComponent<Adapter>> adapters) {
+        return mapGeneric(adapters, adapterDtoMapper::toDto);
     }
 
     public <T, D> Collection<ImportComponent<D>> mapGeneric(Collection<ImportComponent<T>> input,

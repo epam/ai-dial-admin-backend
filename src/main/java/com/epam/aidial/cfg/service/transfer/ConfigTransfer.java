@@ -139,16 +139,16 @@ public class ConfigTransfer {
 
     @Transactional(readOnly = true)
     public ImportConfigPreview importPreview(List<MultipartFile> files,
-                                             ConflictResolutionPolicy resolutionPolicy) {
+                                             ConfigImportOptions importOptions) {
         try {
+            ConflictResolutionPolicy resolutionPolicy = importOptions.conflictResolutionPolicy();
             Config config = readAndMergeConfig(files);
             var roles = roleImporter.preview(config.getRoles(), resolutionPolicy);
             var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
             var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, true);
             var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, true);
-            ConfigImportOptions importOptions = createConfigImportOptions(resolutionPolicy);
             var adapters = adapterImporter.importAdapters(config.getModels(), importOptions, true);
-            var models = modelImporter.importModels(config.getModels(), config.getRoles(), importOptions, true);
+            var models = modelImporter.importModels(config.getModels(), config.getRoles(), importOptions, adapters, true);
             var addons = addonTransfer.importAddons(config.getAddons(), config.getRoles(), importOptions, true);
             var applications = applicationImporter.importApplications(config.getApplications(), config.getRoles(), importOptions, true);
             var routes = routeImporter.importRoutes(config.getRoutes(), config.getRoles(), importOptions, true);
@@ -166,7 +166,7 @@ public class ConfigTransfer {
                     .assistants(assistants)
                     .build();
         } catch (Exception exception) {
-            log.warn("Failed to import config. Conflict resolution policy: {}. Error: {}", resolutionPolicy, exception);
+            log.warn("Failed to import config. Config import options: {}. Error: {}", importOptions, exception);
             throw exception;
         }
 
@@ -240,7 +240,7 @@ public class ConfigTransfer {
             interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, false);
             applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, false);
             adapterImporter.importAdapters(config.getModels(), importOptions, false);
-            modelImporter.importModels(config.getModels(), config.getRoles(), importOptions, false);
+            modelImporter.importModels(config.getModels(), config.getRoles(), importOptions, List.of(), false);
             addonTransfer.importAddons(config.getAddons(), config.getRoles(), importOptions, false);
             applicationImporter.importApplications(config.getApplications(), config.getRoles(), importOptions, false);
             routeImporter.importRoutes(config.getRoutes(), config.getRoles(), importOptions, false);

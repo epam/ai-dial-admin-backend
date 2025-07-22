@@ -1107,9 +1107,10 @@ public abstract class ConfigTransferFunctionalTest {
                 "application/json",
                 config.getBytes()
         );
+        ConfigImportOptions configImportOptions = new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, false, true);
 
         // when
-        var importConfigPreview = configTransfer.importPreview(List.of(mockFile), ConflictResolutionPolicy.OVERRIDE);
+        var importConfigPreview = configTransfer.importPreview(List.of(mockFile), configImportOptions);
         // then
         var expected = ResourceUtils.readResource("/import/import_preview.json");
         var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
@@ -1125,6 +1126,32 @@ public abstract class ConfigTransferFunctionalTest {
         var importConfigPreview = configTransfer.importPreviewZip(zipFile, ConflictResolutionPolicy.OVERRIDE);
         // then
         var expected = ResourceUtils.readResource("/import/import_zip_preview.json");
+        var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
+        Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
+    }
+
+    @Test
+    void testImportPreview_ImportModelWithAdapter() throws IOException {
+        // given
+        AdapterDto adapterDto = new AdapterDto();
+        adapterDto.setName("adapter1");
+        adapterDto.setBaseEndpoint("http://endpoint1/");
+        adapterFacade.createAdapter(adapterDto);
+
+        String config = FileUtils.readFileToString(new File("src/test/resources/import/import_modelWithAdapter.json"), StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+        ConfigImportOptions configImportOptions = new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, false, true);
+
+        // when
+        var importConfigPreview = configTransfer.importPreview(List.of(mockFile), configImportOptions);
+
+        // then
+        var expected = ResourceUtils.readResource("/import/import_modelWithAdapter_preview.json");
         var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
         Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
     }
