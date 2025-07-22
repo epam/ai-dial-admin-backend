@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.configuration;
 import com.epam.aidial.cfg.exception.InvalidVersionException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,7 +20,13 @@ public class CoreConfigVersionProperties {
     private static final String LATEST_VERSION = "latest";
 
     private String target;
-    
+
+    @Value("${config.version.autoDetect.enabled}")
+    private boolean autoDetectEnabled;
+
+    @Value("${config.version.autoDetect.cacheExpirationMs}")
+    private long cacheExpirationMs;
+
     @PostConstruct
     public void validateConfiguration() {
         log.info("Initializing core config version properties. Target: {}", target);

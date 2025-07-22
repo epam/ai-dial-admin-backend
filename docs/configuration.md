@@ -24,14 +24,16 @@ This document provides a comprehensive list of all configurable properties in th
 |------------------------------------------|------------------------------------------|----------------------|----------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | config.export.enabled                    | CONFIG_EXPORT_ENABLED                    | true                 | No       | -         | Enables or disables DIAL Core configuration file export functionality                                                                       |
 | config.version.target                    | CORE_CONFIG_VERSION                      | latest               | No  (recommended to adjust for target environment)       | -         | Version of DIAL Core configuration used in file export. functionality                                                                        |
+| config.version.autoDetect.enabled        | ENABLE_CORE_CONFIG_VERSION_AUTO_DETECT   | false                | Enable auto-detection of DIAL Core version                                                                                                  |
+| config.version.autoDetect.cacheExpirationMs    | CORE_VERSION_CACHE_EXPIRATION_MS    | 300000              | Cached version expiration in milliseconds for Core version auto-detection                                                                   |
 | config.export.syncPeriod                 | CONFIG_EXPORT_SYNCPERIOD                 | 15000                | No       | -         | Interval in milliseconds for DIAL configuration export                                                                                      |
 | config.export.delayConfigReload          | DELAY_CONFIG_RELOAD_MILLISECONDS         | 5000                 | No       | -         | Delay in milliseconds before calling the /reload_config endpoint on core after writing to destination storage (e.g., configMap sync period) |
 | config.export.storageType                | CONFIG_EXPORT_STORAGETYPE                | LOCAL_FILE           | No (recommended to adjust for target environment)      | -         | Type of storage for DIAL configuration export (KUBE_SECRET, CONFIG_MAP, LOCAL_FILE)                                                         |
 | config.export.outputFile.path            | CONFIG_EXPORT_OUTPUTFILE_PATH            | data/export/out.json | No       | config.export.storageType=LOCAL_FILE         | Path for configuration file when using LOCAL_FILE storage type |
 | config.export.configMap.names            | CONFIG_EXPORT_CONFIGMAP_NAMES            | -     | Yes      | config.export.storageType=CONFIG_MAP         | Comma separated names of the ConfigMaps used for DIAL configuration export                                                                  |
 | config.export.configMap.key              | CONFIG_EXPORT_CONFIGMAP_KEY              | env.config.json      | No (recommended to adjust for target environment)      | config.export.storageType=CONFIG_MAP         | Key in ConfigMap used for DIAL configuration export                                                                                         |                                                                          
-| config.export.kubeSecret.names           | CONFIG_EXPORT_KUBESECRET_NAMES           | -       | Yes       | config.export.storageType=KUBE_SECRET         | Comma separated names of the Kubernetes Secrets used for DIAL configuration export                                                          |
-| config.export.kubeSecret.key             | CONFIG_EXPORT_KUBESECRET_KEY             | kube-secret-key        | No (recommended to adjust for target environment)      | config.export.storageType=KUBE_SECRET         | Key in Kubernetes Secret used for DIAL configuration export                                                                                 |
+| config.export.kubeSecret.names           | CONFIG_EXPORT_KUBESECRET_NAMES           | -       | Yes       | config.export.storageType=KUBE_SECRET     | Comma separated names of the Kubernetes Secrets used for DIAL configuration export                                                          |
+| config.export.kubeSecret.key             | CONFIG_EXPORT_KUBESECRET_KEY             | kube-secret-key      | No (recommended to adjust for target environment)      | config.export.storageType=KUBE_SECRET         | Key in Kubernetes Secret used for DIAL configuration export                                                                                 |
 | config.export.keyvault.type              | CONFIG_EXPORT_KEYVAULT_TYPE              | none                 | No (recommended to adjust for target environment)      | -         | Type of keyvault storage for secret values (none, azure, vault, aws, gcp)                                                                   |
 | config.export.keyvault.secretNames       | CONFIG_EXPORT_KEYVAULT_SECRETNAMES       | -                    | Yes  | config.export.keyvault.type in [azure, aws, gcp]         | Names of secrets in keyvault (used when keyvault.type is azure, vault, or aws)                                                              |
 | config.export.keyvault.secretPath        | CONFIG_EXPORT_KEYVAULT_SECRETPATH        | -                    | Yes | config.export.keyvault.type == vault         | Path to secrets in keyvault (used when keyvault.type is vault)                                                                              |
@@ -218,14 +220,14 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 
 ## Retry Configuration
 
-| Setting | Environment Variable | Default | Required | Applied when | Description |
-|---------|---------------------|---------|----------|-----------|-------------|
-| feign.retry.period | FEIGN_RETRY_PERIOD | 5000 | No | - | Initial retry delay in milliseconds |
-| feign.retry.maxPeriod | FEIGN_RETRY_MAXPERIOD | 10000 | No | - | Maximum retry delay in milliseconds |
-| feign.retry.maxAttempts | FEIGN_RETRY_MAXATTEMPTS | 3 | No | - | Maximum number of retry attempts |
-| feign.retry.errorCodes | FEIGN_RETRY_ERRORCODES | 408,429,500,502,503,504 | No | - | HTTP status codes that trigger retries |
-| prompts.import.consecutiveErrorsThreshold | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2 | No | - | Maximum number of consecutive errors allowed during prompts import |
-| files.import.consecutiveErrorsThreshold   | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2 | No | - | Maximum number of consecutive errors allowed during files import   |
+| Setting                                   | Environment Variable                        | Default                 | Required | Applied when | Description                                                        |
+|-------------------------------------------|---------------------------------------------|-------------------------|-----------------------------------------------------------------|-----------|-------------|
+| feign.retry.period                        | FEIGN_RETRY_PERIOD                          | 10000                   | No | - | Initial retry delay in milliseconds                                |
+| feign.retry.maxPeriod                     | FEIGN_RETRY_MAXPERIOD                       | 15000                   | No | - | Maximum retry delay in milliseconds                                |
+| feign.retry.maxAttempts                   | FEIGN_RETRY_MAXATTEMPTS                     | 5                       | No | - | Maximum number of retry attempts                                   |
+| feign.retry.errorCodes                    | FEIGN_RETRY_ERRORCODES                      | 408,429,500,502,503,504 | No | - | HTTP status codes that trigger retries                             |
+| prompts.import.consecutiveErrorsThreshold | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No | - | Maximum number of consecutive errors allowed during prompts import |
+| files.import.consecutiveErrorsThreshold   | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD   | 2                       | No | - | Maximum number of consecutive errors allowed during files import   |
 
 ## Export/Import Configuration
 
