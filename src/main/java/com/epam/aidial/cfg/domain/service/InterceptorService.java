@@ -123,8 +123,8 @@ public class InterceptorService {
     }
 
     private static boolean isEndpointsResolutionNeeded(Source source, String endpoint, String configurationEndpoint) {
-        return source != null &&
-                SourceType.CONTAINER == source.getType() &&
-                (StringUtils.isBlank(endpoint) || StringUtils.isBlank(configurationEndpoint));
+        return source != null
+                && SourceType.CONTAINER == source.getType()
+                && (StringUtils.isBlank(endpoint) || StringUtils.isBlank(configurationEndpoint));
     }
 }

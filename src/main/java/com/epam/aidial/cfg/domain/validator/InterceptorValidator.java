@@ -50,15 +50,12 @@ public class InterceptorValidator {
         }
     }
 
-    // TODO [VPA]: refactor
     private void validateInterceptorSource(Interceptor interceptor) {
         Source source = interceptor.getSource();
         String endpoint = interceptor.getEndpoint();
         String configurationEndpoint = interceptor.getConfigurationEndpoint();
 
-        if (configurationEndpoint != null && EndpointValidator.isInvalidUrl(configurationEndpoint)) {
-            throw new IllegalArgumentException("Invalid configuration endpoint: '%s'".formatted(configurationEndpoint));
-        }
+        validateConfigurationEndpoint(configurationEndpoint);
 
         if (source == null) {
             // TODO [VPA]: uncomment validations when FE will support interceptor runners
@@ -71,49 +68,68 @@ public class InterceptorValidator {
             return;
         }
 
+        validateSourceName(source);
+        validateSourceByType(source, endpoint, configurationEndpoint);
+    }
+
+    private void validateConfigurationEndpoint(String configurationEndpoint) {
+        if (configurationEndpoint != null && EndpointValidator.isInvalidUrl(configurationEndpoint)) {
+            throw new IllegalArgumentException("Invalid configuration endpoint: '%s'".formatted(configurationEndpoint));
+        }
+    }
+
+    private void validateSourceName(Source source) {
+        if (source.getName() == null && source.getType() != SourceType.ENDPOINTS) {
+            throw new IllegalArgumentException("Source name is required when source is specified");
+        }
+    }
+
+    private void validateSourceByType(Source source, String endpoint, String configurationEndpoint) {
         SourceType sourceType = source.getType();
         String sourceName = source.getName();
 
-        if (sourceName == null) {
-            throw new IllegalArgumentException("Source name is required when source is specified");
+        switch (sourceType) {
+            case ENDPOINTS -> validateEndpointsSource(endpoint, sourceType);
+            case TEMPLATE -> validateTemplateSource(endpoint, sourceName);
+            case CONTAINER -> validateContainerSource(sourceName, endpoint, configurationEndpoint);
+            default -> throw new IllegalArgumentException("Unsupported source type: " + sourceType);
+        }
+    }
+
+    private void validateEndpointsSource(String endpoint, SourceType sourceType) {
+        if (endpoint == null) {
+            throw new IllegalArgumentException(
+                "Endpoint is required when source type is '%s'".formatted(sourceType.getDescription())
+            );
+        }
+    }
+
+    private void validateTemplateSource(String endpoint, String sourceName) {
+        if (endpoint != null) {
+            throw new IllegalArgumentException(
+                "Both endpoint: '%s' and interceptor runner: '%s' are specified. Only one of them should be specified"
+                    .formatted(endpoint, sourceName)
+            );
+        }
+    }
+
+    private void validateContainerSource(String sourceName, String endpoint, String configurationEndpoint) {
+        var deploymentInfo = deploymentService.getById(sourceName);
+        if (deploymentInfo == null) {
+            throw new IllegalArgumentException("Container with name '%s' not found".formatted(sourceName));
         }
 
-        switch (sourceType) {
-            case ENDPOINTS:
-                if (endpoint == null) {
-                    throw new IllegalArgumentException(
-                        "Endpoint is required when source type is %s".formatted(sourceType.getDescription())
-                    );
-                }
-                break;
-            case TEMPLATE:
-                if (endpoint != null) {
-                    throw new IllegalArgumentException(
-                        "Both endpoint: '%s' and interceptor runner: '%s' are specified. Only one of them should be specified"
-                            .formatted(endpoint, sourceName)
-                    );
-                }
-                break;
-            case CONTAINER:
-                var deploymentInfo = deploymentService.getById(sourceName);
-                if (deploymentInfo == null) {
-                    throw new IllegalArgumentException("Container with name '%s' not found".formatted(sourceName));
-                }
+        var deploymentUrl = deploymentInfo.getUrl();
+        if (deploymentUrl != null) {
+            validateEndpointUrlMatch(endpoint, deploymentUrl, "Completion endpoint");
+            validateEndpointUrlMatch(configurationEndpoint, deploymentUrl, "Configuration endpoint");
+        }
+    }
 
-                var deploymentUrl = deploymentInfo.getUrl();
-                if (deploymentUrl != null) {
-                    if (endpoint != null  && !endpoint.startsWith(deploymentUrl)) {
-                        throw new IllegalArgumentException("Completion endpoint should start with '%s' but was: %s"
-                                .formatted(deploymentUrl, endpoint));
-                    }
-                    if (configurationEndpoint != null && !configurationEndpoint.startsWith(deploymentUrl)) {
-                        throw new IllegalArgumentException("Configuration endpoint should start with '%s' but was: %s"
-                                .formatted(deploymentUrl, configurationEndpoint));
-                    }
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported source type: " + sourceType);
+    private void validateEndpointUrlMatch(String endpoint, String deploymentUrl, String endpointType) {
+        if (endpoint != null && !endpoint.startsWith(deploymentUrl)) {
+            throw new IllegalArgumentException("%s should start with '%s' but was: %s"
+                    .formatted(endpointType, deploymentUrl, endpoint));
         }
     }
 }

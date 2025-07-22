@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.SourceType;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -63,9 +64,14 @@ public class InterceptorExporter {
                 .toList();
     }
 
+    // TODO [VPA]: should we set 'source' to null if source is CONTAINER?
+    //  If other env, where config will be imported, won't have container with the same ID, import will fail
     private Interceptor removeDependency(Interceptor interceptor, Set<ExportConfigComponentType> componentTypes) {
-        if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR_RUNNER)) {
-            interceptor.setInterceptorRunner(null);
+        if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR_RUNNER)
+                && interceptor.getSource() != null
+                && SourceType.TEMPLATE == interceptor.getSource().getType()
+        ) {
+            interceptor.setSource(null);
         }
         interceptor.setEntities(null);
         return interceptor;

@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
+import com.epam.aidial.cfg.dto.SourceDto;
+import com.epam.aidial.cfg.dto.SourceTypeDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
@@ -72,7 +74,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         interceptorFacade.createInterceptor(interceptorDto);
 
         InterceptorDto retrievedInterceptor = interceptorFacade.getInterceptor(interceptorDto.getName());
-        Assertions.assertEquals(runnerDto.getName(), retrievedInterceptor.getInterceptorRunner());
+        Assertions.assertEquals(runnerDto.getName(), retrievedInterceptor.getSource().getName());
 
         interceptorRunnerFacade.deleteInterceptorRunner(runnerDto.getName(), true);
 
@@ -100,10 +102,12 @@ public abstract class InterceptorRunnerFunctionalTest {
                 () -> interceptorRunnerFacade.getInterceptorRunner(runnerDto.getName()));
 
         InterceptorDto detachedInterceptor = interceptorFacade.getInterceptor(interceptorDto.getName());
-        Assertions.assertNull(detachedInterceptor.getInterceptorRunner());
+        Assertions.assertEquals(detachedInterceptor.getSource().getType(), SourceTypeDto.ENDPOINTS);
         Assertions.assertEquals(runnerDto.getCompletionEndpoint(), detachedInterceptor.getEndpoint());
         Assertions.assertEquals(runnerDto.getConfigurationEndpoint(), detachedInterceptor.getConfigurationEndpoint());
     }
+
+    // TODO [VPA]: test with SourceType CONTAINER
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateInterceptorRunner() {
@@ -169,7 +173,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
         interceptorDto.setDescription("description" + suffix);
-        interceptorDto.setInterceptorRunner(runnerName);
+        interceptorDto.setSource(new SourceDto(SourceTypeDto.TEMPLATE, runnerName));
         return interceptorDto;
     }
 
