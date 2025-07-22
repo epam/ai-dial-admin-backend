@@ -275,8 +275,8 @@ public class ConfigTransfer {
     private void importAdminConfig(ExportConfig config,
                                    ConfigImportOptions importOptions) {
         var resolutionPolicy = importOptions.conflictResolutionPolicy();
-        interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, false);
         interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, false);
+        interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, false);
         applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, false);
         routeImporter.importAdminRoutes(config.getRoutes(), importOptions, false);
         adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, false);

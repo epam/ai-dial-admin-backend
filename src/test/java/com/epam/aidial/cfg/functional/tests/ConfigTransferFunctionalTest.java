@@ -920,9 +920,19 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
         Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
-        Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
-        Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
+        Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
+        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i -> {
+            Assertions.assertThat(i.getSource().getType()).isEqualTo(SourceTypeDto.TEMPLATE);
+            Assertions.assertThat(i.getSource().getName()).isEqualTo("testRunner1");
+        });
+        Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
+        Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {
+            Assertions.assertThat(r.getName()).isEqualTo("testRunner1");
+            Assertions.assertThat(r.getCompletionEndpoint()).isEqualTo("https://template.test.com/api");
+            Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
+        });
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
         Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
 

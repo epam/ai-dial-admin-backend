@@ -179,9 +179,34 @@
         "updatedAt": 12345,
         "dependencies": []
       }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testInterceptor2",
+        "displayName": "Test Interceptor2",
+        "forwardAuthToken": false,
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": [],
+        "source": {
+          "type": "TEMPLATE",
+          "name": "testRunner1"
+        }
+      }
     }
   ],
-  "interceptorRunners": [],
+  "interceptorRunners": [
+    {
+      "importAction": "create",
+      "value": {
+        "name": "testRunner1",
+        "completionEndpoint": "https://template.test.com/api",
+        "configurationEndpoint": "https://template.test.com/conf"
+      }
+    }
+  ],
   "applicationRunners": [
     {
       "importAction": "create",
