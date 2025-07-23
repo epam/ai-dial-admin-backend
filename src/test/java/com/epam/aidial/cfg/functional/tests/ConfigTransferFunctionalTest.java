@@ -921,7 +921,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
-                Assertions.assertThat(((InterceptorRunnerSource) i.getSource()).getTemplateName()).isEqualTo("testRunner1")
+                Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).templateName()).isEqualTo("testRunner1")
         );
         Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
         Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {

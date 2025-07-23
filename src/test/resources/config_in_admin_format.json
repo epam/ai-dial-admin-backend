@@ -383,8 +383,8 @@
 			"updatedAt": 12345,
 			"dependencies": [],
 			"source": {
-				"type": "TEMPLATE",
-				"name": "testRunner1"
+				"$type": "template",
+				"templateName": "testRunner1"
 			}
 		}
 	},
