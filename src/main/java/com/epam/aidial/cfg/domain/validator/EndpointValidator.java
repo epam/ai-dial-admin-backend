@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import static org.apache.commons.validator.routines.UrlValidator.ALLOW_LOCAL_URLS;
@@ -23,7 +24,15 @@ public class EndpointValidator {
     }
 
     public static boolean isValidUrlPath(String urlPath) {
-        var validator = new UrlValidator();
-        return validator.isValid(urlPath);
+        if (StringUtils.isEmpty(urlPath)) {
+            return true;
+        }
+
+        String path = urlPath;
+        if (!path.isEmpty() && !path.startsWith("/")) {
+            path = "/" + path;
+        }
+
+        return path.matches("^/?[\\w\\-./\\?=;]*$");
     }
 }

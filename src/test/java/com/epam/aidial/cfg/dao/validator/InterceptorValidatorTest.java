@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
-import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import com.epam.aidial.cfg.domain.service.ExternalDeploymentScheduledService;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +23,9 @@ class InterceptorValidatorTest {
 
     private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
     private static final String TEST_ENDPOINT = "https://test.endpoint.com";
-    private static final String TEST_CONFIG_ENDPOINT = "https://test.config.endpoint.com";
-    private static final String TEST_DEPLOYMENT_URL = "https://test.deployment.com";
     private static final String TEST_CONTAINER_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final String COMPLETION_PATH = "/api/completion";
+    private static final String CONFIG_PATH = "/api/config";
 
     private InterceptorValidator interceptorValidator;
 
@@ -107,156 +106,132 @@ class InterceptorValidatorTest {
     }
 
     @Test
-    void validateInterceptorSource_shouldThrowExceptionWhenSourceNameIsNull() {
+    void validateEndpointsSource_shouldThrowExceptionWhenCompletionEndpointIsMissing() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        InterceptorSource source = new InterceptorRunnerSource(null);
-        interceptor.setSource(source);
-
-        // when/then
-        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Source name is required when source is specified");
-    }
-
-    @Test
-    void validateInterceptorSource_shouldThrowExceptionWhenEndpointIsMissingForEndpointsSource() {
-        // given
-        Interceptor interceptor = new Interceptor();
-        interceptor.setName("test-interceptor");
-
-        InterceptorSource source = new InterceptorEndpointsSource();
-        interceptor.setSource(source);
+        interceptor.setSource(new InterceptorEndpointsSource());
         interceptor.setEndpoint(null);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Endpoint is required when source type is 'External endpoints'");
+                .hasMessage("Completion endpoint is required when source type is 'Interceptor endpoints'");
     }
 
     @Test
-    void validateInterceptorSource_shouldNotThrowExceptionWhenEndpointIsProvidedForEndpointsSource() {
+    void validateEndpointsSource_shouldValidateEndpoints() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorEndpointsSource());
+        interceptor.setEndpoint("invalid-url");
 
-        InterceptorSource source = new InterceptorEndpointsSource();
-        interceptor.setSource(source);
-        interceptor.setEndpoint(TEST_ENDPOINT);
+        // when/then
+        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid completion endpoint: 'invalid-url'");
+    }
+
+    @Test
+    void validateRunnerSource_shouldThrowExceptionWhenTemplateNameIsBlank() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorRunnerSource(""));
+
+        // when/then
+        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Template name is required when source type is 'Interceptor template'");
+    }
+
+    @Test
+    void validateRunnerSource_shouldNotThrowExceptionWhenTemplateNameIsProvided() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorRunnerSource("template-name"));
 
         // when/then
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));
     }
 
     @Test
-    void validateInterceptorSource_shouldThrowExceptionWhenEndpointIsProvidedForTemplateSource() {
+    void validateContainerSource_shouldThrowExceptionWhenContainerNotFound() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH));
 
-        InterceptorSource source = new InterceptorRunnerSource("test-template");
-        interceptor.setSource(source);
-        interceptor.setEndpoint(TEST_ENDPOINT);
-
-        // when/then
-        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Both endpoint: 'https://test.endpoint.com' and interceptor runner: 'test-template' are specified. Only one of them should be specified");
-    }
-
-    @Test
-    void validateInterceptorSource_shouldNotThrowExceptionWhenEndpointIsNullForTemplateSource() {
-        // given
-        Interceptor interceptor = new Interceptor();
-        interceptor.setName("test-interceptor");
-
-        InterceptorSource source = new InterceptorRunnerSource("test-template");
-        interceptor.setSource(source);
-        interceptor.setEndpoint(null);
-
-        // when/then
-        assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));
-    }
-
-    @Test
-    void validateInterceptorSource_shouldThrowExceptionWhenContainerNotFound() {
-        // given
-        Interceptor interceptor = new Interceptor();
-        interceptor.setName("test-interceptor");
-
-        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
-        interceptor.setSource(source);
-        
         when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(null);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Container with name '550e8400-e29b-41d4-a716-446655440000' not found");
+                .hasMessage("Container with ID '550e8400-e29b-41d4-a716-446655440000' not found");
     }
 
-    // TODO [VPA]: test endpoint paths validation
     @Test
-    void validateInterceptorSource_shouldThrowExceptionWhenEndpointDoesNotMatchDeploymentUrl() {
+    void validateContainerSource_shouldThrowExceptionWhenDeploymentUrlIsBlank() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH));
 
-        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
-        interceptor.setSource(source);
-        interceptor.setEndpoint(TEST_ENDPOINT);
-        
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
-        deploymentInfo.setUrl(TEST_DEPLOYMENT_URL);
+        deploymentInfo.setUrl("");
         when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Completion endpoint should start with 'https://test.deployment.com' but was: https://test.endpoint.com");
+                .hasMessage("Container URL is not present, please check if it is deployed. Container ID: 550e8400-e29b-41d4-a716-446655440000");
     }
 
     @Test
-    void validateInterceptorSource_shouldThrowExceptionWhenConfigEndpointDoesNotMatchDeploymentUrl() {
+    void validateContainerSource_shouldValidateEndpointPaths() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, "invalid path with spaces", CONFIG_PATH));
 
-        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
-        interceptor.setSource(source);
-        interceptor.setEndpoint(TEST_DEPLOYMENT_URL + "/api");
-        interceptor.setConfigurationEndpoint(TEST_CONFIG_ENDPOINT);
-        
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
-        deploymentInfo.setUrl(TEST_DEPLOYMENT_URL);
+        deploymentInfo.setUrl("https://deployment.url");
         when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Configuration endpoint should start with 'https://test.deployment.com' but was: https://test.config.endpoint.com");
+                .hasMessage("Invalid completion endpoint path: 'invalid path with spaces'");
     }
 
     @Test
-    void validateInterceptorSource_shouldNotThrowExceptionWhenEndpointsMatchDeploymentUrl() {
+    void validateContainerSource_shouldValidateConfigurationEndpointPath() {
         // given
-        String validEndpoint = TEST_DEPLOYMENT_URL + "/api";
-        String validConfigEndpoint = TEST_DEPLOYMENT_URL + "/config";
-        
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, "invalid path with spaces"));
 
-        // TODO [VPA]: set endpoints
-        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
-        interceptor.setSource(source);
-        interceptor.setEndpoint(validEndpoint);
-        interceptor.setConfigurationEndpoint(validConfigEndpoint);
-        
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
-        deploymentInfo.setUrl(TEST_DEPLOYMENT_URL);
+        deploymentInfo.setUrl("https://deployment.url");
+        when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid configuration endpoint path: 'invalid path with spaces'");
+    }
+
+    @Test
+    void validateContainerSource_shouldAcceptValidEndpointPaths() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH));
+
+        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
         when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
@@ -264,17 +239,14 @@ class InterceptorValidatorTest {
     }
 
     @Test
-    void validateInterceptorSource_shouldNotThrowExceptionWhenDeploymentUrlIsNull() {
+    void validateContainerSource_shouldAcceptPathsWithoutLeadingSlash() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, "api/completion", "api/config"));
 
-        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
-        interceptor.setSource(source);
-        interceptor.setEndpoint(TEST_ENDPOINT);
-        
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
-        deploymentInfo.setUrl(null);
+        deploymentInfo.setUrl("https://deployment.url");
         when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then

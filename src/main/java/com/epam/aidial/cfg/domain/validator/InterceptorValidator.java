@@ -80,7 +80,7 @@ public class InterceptorValidator {
         //}
 
         //validateEndpoint(endpoint, COMPLETION_ENDPOINT_LOG_NAME);
-        validateEndpoint(configurationEndpoint, "configuration endpoint");
+        validateEndpoint(configurationEndpoint, CONFIGURATION_ENDPOINT_LOG_NAME);
     }
 
     private void validateEndpointsSource(String completionEndpoint, String configurationEndpoint) {
