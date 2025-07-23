@@ -2,9 +2,7 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapper;
-import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,14 +28,6 @@ public class DeploymentService {
         return StreamSupport.stream(deploymentJpaRepository.findAll().spliterator(), false)
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void updateDefaultLimit(String deploymentName, Limit defaultLimit) {
-        DeploymentEntity deploymentEntity = deploymentJpaRepository.findById(deploymentName)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(deploymentName)));
-        DeploymentEntity entity = mapper.toEntity(defaultLimit, deploymentEntity);
-        deploymentJpaRepository.save(entity);
     }
 
     @Transactional(readOnly = true)

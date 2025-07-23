@@ -12,11 +12,8 @@ import org.mapstruct.Mapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.epam.aidial.core.config.CoreRole.DEFAULT_ROLE_NAME;
 
 @Mapper(componentModel = "spring")
 public interface RoleLimitMapper {
@@ -40,15 +37,12 @@ public interface RoleLimitMapper {
                           Map<String, CoreRole> roles) {
         boolean isPublic = CollectionUtils.isEmpty(userRoles);
         deployment.setIsPublic(isPublic);
+        deployment.setDefaultRoleLimit(new Limit());
 
-        if (MapUtils.isEmpty(roles)) {
-            deployment.setDefaultRoleLimit(new Limit());
+        if (MapUtils.isEmpty(roles) && CollectionUtils.isEmpty(userRoles)) {
             deployment.setRoleLimits(null);
             return;
         }
-
-        Limit defaultLimit = mapDefaultLimit(roles, entityName);
-        deployment.setDefaultRoleLimit(defaultLimit);
 
         List<RoleLimit> roleLimits = mapRoleLimits(roles, userRoles, entityName);
         deployment.setRoleLimits(roleLimits);
@@ -60,65 +54,55 @@ public interface RoleLimitMapper {
         List<RoleLimit> roleLimits = new ArrayList<>();
         for (Map.Entry<String, CoreRole> entry : roles.entrySet()) {
             String roleName = entry.getKey();
-            if (Objects.equals(roleName, DEFAULT_ROLE_NAME)) {
-                continue;
-            }
             CoreRole role = entry.getValue();
             RoleLimit roleLimit = mapRoleLimit(userRoles, roleName, entityName, role);
-            roleLimits.add(roleLimit);
+            if (roleLimit != null) {
+                roleLimits.add(roleLimit);
+            }
         }
-        createRoleLimitsFromUserRoles(userRoles, roles, entityName, roleLimits);
+        createRoleLimitsFromUserRoles(userRoles, roleLimits);
         return roleLimits;
     }
 
-    private void createRoleLimitsFromUserRoles(Set<String> userRoles, Map<String, CoreRole> roles, String entityName, List<RoleLimit> roleLimits) {
+    private void createRoleLimitsFromUserRoles(Set<String> userRoles, List<RoleLimit> roleLimits) {
         if (CollectionUtils.isEmpty(userRoles)) {
             return;
         }
+
+        Set<String> alreadyAddedRoleLimits = roleLimits.stream().map(RoleLimit::getRole).collect(Collectors.toSet());
+
         for (String userRole : userRoles) {
-            if (!roles.containsKey(userRole)) {
-                RoleLimit roleLimit = createRoleLimit(userRole, entityName, null, true);
+            if (!alreadyAddedRoleLimits.contains(userRole)) {
+                RoleLimit roleLimit = createRoleLimitFromUserRole(userRole);
                 roleLimits.add(roleLimit);
             }
         }
     }
 
+    private RoleLimit createRoleLimitFromUserRole(String roleName) {
+        RoleLimit roleLimit = new RoleLimit();
+        roleLimit.setEnabled(true);
+        roleLimit.setRole(roleName);
+        roleLimit.setLimit(new Limit());
+        return roleLimit;
+    }
+
     private RoleLimit mapRoleLimit(Set<String> userRoles, String roleName, String entityName, CoreRole role) {
-        boolean isEnable = userRoles != null && userRoles.contains(roleName);
-        return createRoleLimit(roleName, entityName, role, isEnable);
-
-    }
-
-    private Limit mapDefaultLimit(Map<String, CoreRole> roles, String entityName) {
-        CoreRole defaultRole = roles.get(DEFAULT_ROLE_NAME);
-        return mapDefaultRole(defaultRole, entityName);
-    }
-
-    private Limit mapDefaultRole(CoreRole defaultRole, String entityName) {
-        if (defaultRoleNotContainsLimits(defaultRole)) {
-            return new Limit();
+        Map<String, CoreLimit> limits = role.getLimits();
+        CoreLimit limit = MapUtils.emptyIfNull(limits).get(entityName);
+        if (limit == null) {
+            return null;
         }
-        Map<String, CoreLimit> limits = defaultRole.getLimits();
-        CoreLimit limit = limits.get(entityName);
-        return limit == null ? new Limit() : toLimit(limit);
+
+        boolean isEnable = userRoles != null && userRoles.contains(roleName);
+        return createRoleLimit(roleName, limit, isEnable);
     }
 
-    private boolean defaultRoleNotContainsLimits(CoreRole defaultRole) {
-        return defaultRole == null || MapUtils.isEmpty(defaultRole.getLimits());
-    }
-
-    private RoleLimit createRoleLimit(String roleName, String entityName, CoreRole role, boolean isEnable) {
+    private RoleLimit createRoleLimit(String roleName, CoreLimit limit, boolean isEnable) {
         RoleLimit roleLimit = new RoleLimit();
         roleLimit.setEnabled(isEnable);
         roleLimit.setRole(roleName);
-        Map<String, CoreLimit> limits = role != null ? role.getLimits() : Map.of();
-        if (MapUtils.isNotEmpty(limits)) {
-            CoreLimit limit = limits.get(entityName);
-            Limit limit1 = limit == null ? new Limit() : toLimit(limit);
-            roleLimit.setLimit(limit1);
-        } else {
-            roleLimit.setLimit(new Limit());
-        }
+        roleLimit.setLimit(toLimit(limit));
         return roleLimit;
     }
 

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static com.epam.aidial.core.config.CoreRole.DEFAULT_ROLE_NAME;
-
 @Component
 @Slf4j
 public class RoleValidator {
+
+    private static final String DEFAULT_ROLE_NAME = "default";
 
     @Value("${validation.role.name:}")
     private String roleNameValidationPattern;
@@ -28,7 +28,7 @@ public class RoleValidator {
 
         if (!Pattern.matches(roleNameValidationPattern, roleName)) {
             throw new IllegalArgumentException("Role name '" + roleName
-                + "' does not match the required pattern: " + roleNameValidationPattern);
+                    + "' does not match the required pattern: " + roleNameValidationPattern);
         }
     }
 
