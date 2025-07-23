@@ -69,10 +69,10 @@ public interface RoleLimitMapper {
             return;
         }
 
-        Set<String> alreadyAddedRoleLimits = roleLimits.stream().map(RoleLimit::getRole).collect(Collectors.toSet());
+        Set<String> roleNamesOfAlreadyAddedRoleLimits = roleLimits.stream().map(RoleLimit::getRole).collect(Collectors.toSet());
 
         for (String userRole : userRoles) {
-            if (!alreadyAddedRoleLimits.contains(userRole)) {
+            if (!roleNamesOfAlreadyAddedRoleLimits.contains(userRole)) {
                 RoleLimit roleLimit = createRoleLimitFromUserRole(userRole);
                 roleLimits.add(roleLimit);
             }
@@ -80,11 +80,7 @@ public interface RoleLimitMapper {
     }
 
     private RoleLimit createRoleLimitFromUserRole(String roleName) {
-        RoleLimit roleLimit = new RoleLimit();
-        roleLimit.setEnabled(true);
-        roleLimit.setRole(roleName);
-        roleLimit.setLimit(new Limit());
-        return roleLimit;
+        return createRoleLimit(roleName, new CoreLimit(), true);
     }
 
     private RoleLimit mapRoleLimit(Set<String> userRoles, String roleName, String entityName, CoreRole role) {

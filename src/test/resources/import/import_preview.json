@@ -65,22 +65,12 @@
             "limit": {}
           },
           {
-            "deploymentName": "test_route1",
-            "enabled": false,
-            "limit": {}
-          },
-          {
             "deploymentName": "testModel2",
             "enabled": false,
             "limit": {}
           },
           {
             "deploymentName": "testModel1",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testAddon1",
             "enabled": false,
             "limit": {}
           }
@@ -103,11 +93,6 @@
             "limit": {}
           },
           {
-            "deploymentName": "test_route1",
-            "enabled": false,
-            "limit": {}
-          },
-          {
             "deploymentName": "testModel2",
             "enabled": false,
             "limit": {}
@@ -115,11 +100,6 @@
           {
             "deploymentName": "testModel1",
             "enabled": true,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testAddon1",
-            "enabled": false,
             "limit": {}
           }
         ]
@@ -141,11 +121,6 @@
             "limit": {}
           },
           {
-            "deploymentName": "test_route1",
-            "enabled": false,
-            "limit": {}
-          },
-          {
             "deploymentName": "testModel2",
             "enabled": false,
             "limit": {}
@@ -156,11 +131,6 @@
             "limit": {
               "day": 3
             }
-          },
-          {
-            "deploymentName": "testAddon1",
-            "enabled": false,
-            "limit": {}
           }
         ]
       }

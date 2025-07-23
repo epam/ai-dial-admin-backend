@@ -187,14 +187,13 @@ public interface RoleCoreMapper {
                     return toLimit(e.getValue(), deploymentName, enabled);
                 })
                 .toList();
+        Set<String> deploymentNamesOfAlreadyAddedRoleLimits = roleLimits.stream()
+                .map(RoleLimit::getDeploymentName)
+                .collect(Collectors.toSet());
 
-        List<RoleLimit> userRoleLimits = userRolesByDeploymentName.keySet().stream()
-                .filter(deploymentName -> roleLimits.stream().noneMatch(rl -> deploymentName.equals(rl.getDeploymentName())))
-                .map(deploymentName -> {
-                    Set<String> userRoles = userRolesByDeploymentName.get(deploymentName);
-                    boolean enabled = SetUtils.emptyIfNull(userRoles).contains(roleName);
-                    return toLimit(new CoreLimit(), deploymentName, enabled);
-                })
+        List<RoleLimit> userRoleLimits = userRolesByDeploymentName.entrySet().stream()
+                .filter(entry -> !deploymentNamesOfAlreadyAddedRoleLimits.contains(entry.getKey()) && entry.getValue().contains(roleName))
+                .map(entry -> toLimit(new CoreLimit(), entry.getKey(), true))
                 .toList();
 
         return ListUtils.union(roleLimits, userRoleLimits);
