@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {InstantMapper.class})
+@Mapper(componentModel = "spring", uses = {InstantMapper.class, InterceptorSourceDtoMapper.class})
 public interface InterceptorDtoMapper {
 
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "instantToLong")

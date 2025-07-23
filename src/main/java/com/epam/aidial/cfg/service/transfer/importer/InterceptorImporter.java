@@ -63,6 +63,7 @@ public class InterceptorImporter {
                                             Interceptor newInterceptor,
                                             ConflictResolutionPolicy resolutionPolicy,
                                             boolean isPreview) {
+        // TODO [VPA]: on import, clean 'source' if container is not found
         if (interceptorService.exists(interceptorName)) {
             return handleExisting(newInterceptor, resolutionPolicy, interceptorName, isPreview);
         } else {

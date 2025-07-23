@@ -1,9 +1,9 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.client.DeploymentClient;
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.DeploymentTypeDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.dto.DeploymentTypeDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,7 +28,7 @@ public class ExternalDeploymentScheduledService {
     }
 
     // TODO [VPA]: use system user
-    @Scheduled(fixedDelayString = "${deployment.cache.refresh.interval:300000}")
+    @Scheduled(fixedDelayString = "${deployment.cache.refresh.interval}")
     public void refreshDeploymentCache() {
         try {
             log.info("Refreshing deployment cache");

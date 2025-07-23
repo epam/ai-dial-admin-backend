@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.dao.validator;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Interceptor;
-import com.epam.aidial.cfg.domain.model.Source;
-import com.epam.aidial.cfg.domain.model.SourceType;
+import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
+import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import com.epam.aidial.cfg.domain.service.ExternalDeploymentScheduledService;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
-import com.epam.aidial.cfg.dto.DeploymentInfoDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -110,9 +112,7 @@ class InterceptorValidatorTest {
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
         
-        Source source = new Source();
-        source.setType(SourceType.TEMPLATE);
-        source.setName(null);
+        InterceptorSource source = new InterceptorRunnerSource(null);
         interceptor.setSource(source);
 
         // when/then
@@ -126,10 +126,8 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.ENDPOINTS);
-        source.setName("test-source");
+
+        InterceptorSource source = new InterceptorEndpointsSource();
         interceptor.setSource(source);
         interceptor.setEndpoint(null);
 
@@ -144,10 +142,8 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.ENDPOINTS);
-        source.setName("test-source");
+
+        InterceptorSource source = new InterceptorEndpointsSource();
         interceptor.setSource(source);
         interceptor.setEndpoint(TEST_ENDPOINT);
 
@@ -160,10 +156,8 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.TEMPLATE);
-        source.setName("test-template");
+
+        InterceptorSource source = new InterceptorRunnerSource("test-template");
         interceptor.setSource(source);
         interceptor.setEndpoint(TEST_ENDPOINT);
 
@@ -178,10 +172,8 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.TEMPLATE);
-        source.setName("test-template");
+
+        InterceptorSource source = new InterceptorRunnerSource("test-template");
         interceptor.setSource(source);
         interceptor.setEndpoint(null);
 
@@ -194,10 +186,8 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.CONTAINER);
-        source.setName(TEST_CONTAINER_ID);
+
+        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
         interceptor.setSource(source);
         
         when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(null);
@@ -208,15 +198,14 @@ class InterceptorValidatorTest {
                 .hasMessage("Container with name '550e8400-e29b-41d4-a716-446655440000' not found");
     }
 
+    // TODO [VPA]: test endpoint paths validation
     @Test
     void validateInterceptorSource_shouldThrowExceptionWhenEndpointDoesNotMatchDeploymentUrl() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.CONTAINER);
-        source.setName(TEST_CONTAINER_ID);
+
+        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
         interceptor.setSource(source);
         interceptor.setEndpoint(TEST_ENDPOINT);
         
@@ -235,10 +224,8 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.CONTAINER);
-        source.setName(TEST_CONTAINER_ID);
+
+        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
         interceptor.setSource(source);
         interceptor.setEndpoint(TEST_DEPLOYMENT_URL + "/api");
         interceptor.setConfigurationEndpoint(TEST_CONFIG_ENDPOINT);
@@ -261,10 +248,9 @@ class InterceptorValidatorTest {
         
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.CONTAINER);
-        source.setName(TEST_CONTAINER_ID);
+
+        // TODO [VPA]: set endpoints
+        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
         interceptor.setSource(source);
         interceptor.setEndpoint(validEndpoint);
         interceptor.setConfigurationEndpoint(validConfigEndpoint);
@@ -282,10 +268,8 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        
-        Source source = new Source();
-        source.setType(SourceType.CONTAINER);
-        source.setName(TEST_CONTAINER_ID);
+
+        InterceptorSource source = new InterceptorContainerSource(TEST_CONTAINER_ID, null, null);
         interceptor.setSource(source);
         interceptor.setEndpoint(TEST_ENDPOINT);
         

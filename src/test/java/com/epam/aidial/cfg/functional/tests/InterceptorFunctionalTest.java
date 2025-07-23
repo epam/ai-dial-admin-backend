@@ -23,6 +23,8 @@ public abstract class InterceptorFunctionalTest {
     @Autowired
     private ApplicationFacade applicationFacade;
 
+    // TODO [VPA]: test with SourceType CONTAINER
+
     @Test
     public void shouldSuccessfullyCreateAndGetInterceptors() {
         String firstSuffix = "1";

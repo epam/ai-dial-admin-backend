@@ -5,12 +5,15 @@ import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorRunnerJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
-import com.epam.aidial.cfg.domain.model.Source;
-import com.epam.aidial.cfg.domain.model.SourceType;
+import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
+import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,26 +63,23 @@ public abstract class InterceptorEntityMapper {
     }
 
     @Named("mapSource")
-    protected Source mapSource(InterceptorEntity entity) {
-        SourceType type = SourceType.ENDPOINTS;
-        String name = null;
+    protected InterceptorSource mapSource(InterceptorEntity entity) {
+        InterceptorRunnerEntity runnerEntity = entity.getInterceptorRunner();
+        InterceptorContainerEntity containerEntity = entity.getInterceptorContainer();
 
-        InterceptorRunnerEntity interceptorRunnerEntity = entity.getInterceptorRunner();
-        String containerId = entity.getContainerId();
-
-        if (interceptorRunnerEntity != null && StringUtils.isNotBlank(containerId)) {
-            throw new IllegalStateException("Interceptor cannot have both interceptor runner and container set");
+        if (runnerEntity != null && containerEntity != null) {
+            throw new IllegalStateException("Interceptor cannot have both runner and container set");
         }
 
-        if (interceptorRunnerEntity != null) {
-            type = SourceType.TEMPLATE;
-            name = interceptorRunnerEntity.getName();
-        } else if (StringUtils.isNotBlank(containerId)) {
-            type = SourceType.CONTAINER;
-            name = containerId;
+        if (runnerEntity != null) {
+            return new InterceptorRunnerSource(runnerEntity.getName());
+        } else if (containerEntity != null) {
+            return new InterceptorContainerSource(
+                containerEntity.getContainerId(), containerEntity.getCompletionEndpointPath(), containerEntity.getConfigurationEndpointPath()
+            );
         }
 
-        return new Source(type, name);
+        return new InterceptorEndpointsSource();
     }
 
     private <T> Stream<String> getNames(Collection<T> entities, Function<T, String> modelEntityStringFunction) {
@@ -89,19 +89,19 @@ public abstract class InterceptorEntityMapper {
     public InterceptorEntity toEntity(Interceptor domain, InterceptorEntity entity) {
         Pair<List<ApplicationEntity>, List<ModelEntity>> applicationsAndModels = findApplicationsAndModelsByNames(domain.getEntities());
 
-        Source source = domain.getSource();
-        String interceptorName = null;
-        String containerId = null;
+        String templateName = null;
+        InterceptorContainerEntity interceptorContainer = null;
 
+        InterceptorSource source = domain.getSource();
         if (source != null) {
-            if (SourceType.TEMPLATE == source.getType()) {
-                interceptorName = source.getName();
-            } else if (SourceType.CONTAINER == source.getType()) {
-                containerId = source.getName();
+            if (source instanceof InterceptorRunnerSource runnerSource) {
+                templateName = runnerSource.getTemplateName();
+            } else if (source instanceof InterceptorContainerSource containerSource) {
+                interceptorContainer = mapInterceptorContainerSourceToEntity(containerSource);
             }
         }
 
-        InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(interceptorName);
+        InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(templateName);
 
         InterceptorEntity updatedEntity = update(domain, entity);
 
@@ -125,7 +125,7 @@ public abstract class InterceptorEntityMapper {
             interceptorRunner.getInterceptors().add(updatedEntity);
         }
         updatedEntity.setInterceptorRunner(interceptorRunner);
-        updatedEntity.setContainerId(containerId);
+        updatedEntity.setInterceptorContainer(interceptorContainer);
 
         return updatedEntity;
     }
@@ -133,7 +133,7 @@ public abstract class InterceptorEntityMapper {
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "models", ignore = true)
     @Mapping(target = "interceptorRunner", ignore = true)
-    @Mapping(target = "containerId", ignore = true)
+    @Mapping(target = "interceptorContainer", ignore = true)
     public abstract InterceptorEntity update(Interceptor domain, @MappingTarget InterceptorEntity entity);
 
     private Pair<List<ApplicationEntity>, List<ModelEntity>> findApplicationsAndModelsByNames(List<String> names) {
@@ -164,5 +164,13 @@ public abstract class InterceptorEntityMapper {
         }
         return interceptorRunnerJpaRepository.findById(name)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find Interceptor Runner with name: '%s'".formatted(name)));
+    }
+
+    private InterceptorContainerEntity mapInterceptorContainerSourceToEntity(InterceptorContainerSource domain) {
+        InterceptorContainerEntity entity = new InterceptorContainerEntity();
+        entity.setContainerId(domain.getContainerId());
+        entity.setCompletionEndpointPath(domain.getCompletionEndpointPath());
+        entity.setCompletionEndpointPath(domain.getConfigurationEndpointPath());
+        return entity;
     }
 }

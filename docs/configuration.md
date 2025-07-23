@@ -242,6 +242,19 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 |---------|---------------------|---------|----------|-----------|-------------|
 | config.env.tokenizers.json | CONFIG_ENV_TOKENIZERS_JSON | - | No | - | Preconfigured DIAL tokenizers list in JSON format |
 
+## Deployment Configuration
+
+| Setting                           | Environment Variable                  | Default        | Required | Applied when | Description                                            |
+|-----------------------------------|---------------------------------------|----------------|----------|--------------|--------------------------------------------------------|
+| deployment.cache.refresh.interval | DEPLOYMENT_CACHE_REFRESH_INTERVAL_MS  | 300000         | No       | -            | Refresh interval (in ms) of external deployment cache  |
+| deployment.client.url             | DEPLOYMENT_CLIENT_URL                 | localhost:8082 | No       | -            | External deployment client URL                         |
+
+## Interceptor Configuration
+
+| Setting                                  | Environment Variable                         | Default | Required | Applied when | Description                                                                  |
+|------------------------------------------|----------------------------------------------|---------|----------|--------------|------------------------------------------------------------------------------|
+| interceptor.endpoints.refresh.interval   | INTERCEPTOR_ENDPOINTS_REFRESH_INTERVAL_MS    | 360000  | No       | -            | Refresh interval (in ms) of interceptor endpoints which source is container  |
+
 ## Validation Configuration
 
 Allows specifying additional environment-specific entity name validation patterns.

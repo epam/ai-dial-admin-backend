@@ -1,4 +1,4 @@
-package com.epam.aidial.cfg.dto;
+package com.epam.aidial.cfg.client.dto;
 
 public enum DeploymentTypeDto {
     MCP,

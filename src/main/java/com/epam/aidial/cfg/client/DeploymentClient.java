@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.client;
 
-import com.epam.aidial.cfg.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.dto.DeploymentTypeDto;
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.DeploymentTypeDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

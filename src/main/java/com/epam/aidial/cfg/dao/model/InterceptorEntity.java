@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dao.model;
 
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -36,8 +37,8 @@ public class InterceptorEntity extends AbstractEntity<String> {
     private List<String> dependencies;
     private String configurationEndpoint;
 
-    @ToString.Exclude
-    private String containerId;
+    @Embedded
+    private InterceptorContainerEntity interceptorContainer;
 
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)

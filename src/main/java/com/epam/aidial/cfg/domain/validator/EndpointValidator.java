@@ -17,4 +17,13 @@ public class EndpointValidator {
         var validator = new UrlValidator(schemes, ALLOW_LOCAL_URLS);
         return validator.isValid(url);
     }
+
+    public static boolean isInvalidUrlPath(String urlPath) {
+        return !isValidUrlPath(urlPath);
+    }
+
+    public static boolean isValidUrlPath(String urlPath) {
+        var validator = new UrlValidator();
+        return validator.isValid(urlPath);
+    }
 }
