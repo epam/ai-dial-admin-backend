@@ -5,6 +5,8 @@ import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.service.ExternalDeploymentScheduledService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreInterceptor;
@@ -30,6 +32,7 @@ public class InterceptorImporter {
 
     private final InterceptorService interceptorService;
     private final InterceptorCoreMapper interceptorCoreMapper;
+    private final ExternalDeploymentScheduledService externalDeploymentService;
 
     public Collection<ImportComponent<Interceptor>> importInterceptors(Map<String, CoreInterceptor> coreInterceptors,
                                                                        ConflictResolutionPolicy resolutionPolicy,
@@ -63,11 +66,22 @@ public class InterceptorImporter {
                                             Interceptor newInterceptor,
                                             ConflictResolutionPolicy resolutionPolicy,
                                             boolean isPreview) {
-        // TODO [VPA]: on import, clean 'source' if container is not found
+        removeContainerSourceDependencyIfContainerIsAbsent(newInterceptor);
         if (interceptorService.exists(interceptorName)) {
             return handleExisting(newInterceptor, resolutionPolicy, interceptorName, isPreview);
         } else {
             return create(newInterceptor, isPreview);
+        }
+    }
+
+    private void removeContainerSourceDependencyIfContainerIsAbsent(Interceptor newInterceptor) {
+        if (!(newInterceptor.getSource() instanceof InterceptorContainerSource containerSource)) {
+            return;
+        }
+
+        var deploymentInfo = externalDeploymentService.getByIdUncached(containerSource.getContainerId());
+        if (deploymentInfo == null) {
+            newInterceptor.setSource(null);
         }
     }
 

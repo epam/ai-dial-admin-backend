@@ -23,10 +23,6 @@ public class ExternalDeploymentScheduledService {
 
     private final Map<UUID, DeploymentInfoDto> deploymentCache = new ConcurrentHashMap<>();
 
-    public DeploymentInfoDto getById(String id) {
-        return deploymentCache.get(UUID.fromString(id));
-    }
-
     // TODO [VPA]: use system user
     @Scheduled(fixedDelayString = "${deployment.cache.refresh.interval}")
     public void refreshDeploymentCache() {
@@ -39,6 +35,25 @@ public class ExternalDeploymentScheduledService {
             log.info("Deployment cache refreshed successfully. Cache size: {}", deploymentCache.size());
         } catch (Exception e) {
             log.error("Failed to refresh deployment cache", e);
+        }
+    }
+
+    public DeploymentInfoDto getById(String id) {
+        return deploymentCache.get(UUID.fromString(id));
+    }
+
+    public DeploymentInfoDto getByIdUncached(String id) {
+        try {
+            DeploymentInfoDto deploymentInfo = deploymentClient.getDeployment(id);
+            deploymentCache.put(deploymentInfo.getId(), deploymentInfo);
+            return deploymentInfo;
+        } catch (Exception e) {
+            if (e.getMessage().contains("Deploy not found by id")) {
+                log.warn("Deployment not found by ID '{}'", id);
+                return null;
+            }
+            log.error("Failed to get deployment by ID '%s'".formatted(id), e);
+            throw e;
         }
     }
 }
