@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +24,11 @@ public class InterceptorService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor with name '%s' does not exist";
 
-    private final InterceptorJpaRepository interceptorJpaRepository;
-    private final InterceptorEntityMapper mapper;
-    private final InterceptorValidator interceptorValidator;
-    private final HistoryService historyService;
     private final ExternalDeploymentScheduledService deploymentService;
+    private final InterceptorJpaRepository interceptorJpaRepository;
+    private final InterceptorValidator interceptorValidator;
+    private final InterceptorEntityMapper mapper;
+    private final HistoryService historyService;
 
     @Transactional(readOnly = true)
     public Collection<Interceptor> getAll() {
@@ -90,6 +91,63 @@ public class InterceptorService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void refreshInterceptorEndpoints() {
+        var interceptorEntities = interceptorJpaRepository.findByContainerIdIsNotNull();
+
+        for (var interceptorEntity : interceptorEntities) {
+            var interceptorContainerEntity = interceptorEntity.getInterceptorContainer();
+            String containerId = interceptorContainerEntity.getContainerId();
+
+            DeploymentInfoDto deploymentInfo = deploymentService.getById(containerId);
+            validateDeploymentInfo(deploymentInfo, containerId);
+
+            // TODO [VPA]: extract this logic
+            String containerUrl = deploymentInfo.getUrl();
+            String completionEndpoint = containerUrl
+                    + Optional.ofNullable(interceptorContainerEntity.getCompletionEndpointPath()).orElse("");
+            String configurationEndpoint = containerUrl
+                    + Optional.ofNullable(interceptorContainerEntity.getConfigurationEndpointPath()).orElse("");
+
+            interceptorEntity.setEndpoint(completionEndpoint);
+            interceptorEntity.setConfigurationEndpoint(configurationEndpoint);
+        }
+
+        interceptorJpaRepository.saveAll(interceptorEntities);
+    }
+
+    // TODO [VPA]: use validator class
+    private void validateDeploymentInfo(DeploymentInfoDto deploymentInfo, String containerId) {
+        if (deploymentInfo == null) {
+            throw new IllegalArgumentException("Container with ID '%s' not found in cache".formatted(containerId));
+        }
+
+        String deploymentUrl = deploymentInfo.getUrl();
+        if (StringUtils.isBlank(deploymentUrl)) {
+            throw new IllegalArgumentException(
+                "Container URL is not present, please check if it is deployed. Container ID: %s".formatted(containerId)
+            );
+        }
+    }
+
+    private void resolveEndpointsIfContainerSource(Interceptor interceptor) {
+        if (!(interceptor.getSource() instanceof InterceptorContainerSource containerSource)) {
+            return;
+        }
+
+        // TODO [VPA]: extract this logic
+        DeploymentInfoDto deploymentInfo = deploymentService.getById(containerSource.getContainerId());
+        String containerUrl = deploymentInfo.getUrl();
+
+        String completionEndpoint = containerUrl
+                + Optional.ofNullable(containerSource.getCompletionEndpointPath()).orElse("");
+        String configurationEndpoint = containerUrl
+                + Optional.ofNullable(containerSource.getConfigurationEndpointPath()).orElse("");
+
+        interceptor.setEndpoint(completionEndpoint);
+        interceptor.setConfigurationEndpoint(configurationEndpoint);
+    }
+
     private void assertExists(String name) {
         boolean exists = interceptorJpaRepository.existsById(name);
         if (!exists) {
@@ -101,20 +159,5 @@ public class InterceptorService {
         if (interceptorJpaRepository.existsById(name)) {
             throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
         }
-    }
-
-    private void resolveEndpointsIfContainerSource(Interceptor interceptor) {
-        if (!(interceptor.getSource() instanceof InterceptorContainerSource containerSource)) {
-            return;
-        }
-
-        DeploymentInfoDto deploymentInfo = deploymentService.getById(containerSource.getContainerId());
-        String containerUrl = deploymentInfo.getUrl();
-
-        String completionEndpoint = containerUrl + containerSource.getCompletionEndpointPath();
-        String configurationEndpoint = containerUrl + containerSource.getConfigurationEndpointPath();
-
-        interceptor.setEndpoint(completionEndpoint);
-        interceptor.setConfigurationEndpoint(configurationEndpoint);
     }
 }

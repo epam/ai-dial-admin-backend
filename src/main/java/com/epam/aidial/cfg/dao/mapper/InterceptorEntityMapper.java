@@ -170,7 +170,7 @@ public abstract class InterceptorEntityMapper {
         InterceptorContainerEntity entity = new InterceptorContainerEntity();
         entity.setContainerId(domain.getContainerId());
         entity.setCompletionEndpointPath(domain.getCompletionEndpointPath());
-        entity.setCompletionEndpointPath(domain.getConfigurationEndpointPath());
+        entity.setConfigurationEndpointPath(domain.getConfigurationEndpointPath());
         return entity;
     }
 }
