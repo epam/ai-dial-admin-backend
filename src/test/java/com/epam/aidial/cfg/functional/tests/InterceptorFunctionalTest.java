@@ -200,9 +200,9 @@ public abstract class InterceptorFunctionalTest {
         interceptorDto.setDescription("Container interceptor");
         
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
-            containerId,
-            completionPath,
-            configPath
+                containerId,
+                completionPath,
+                configPath
         );
         
         interceptorDto.setSource(sourceDto);
@@ -240,19 +240,19 @@ public abstract class InterceptorFunctionalTest {
         updatedDeploymentInfo.setUrl(updatedUrl);
         
         Mockito.when(deploymentService.getById(containerId))
-            .thenReturn(initialDeploymentInfo)
-            .thenReturn(initialDeploymentInfo)
-            .thenReturn(updatedDeploymentInfo)
-            .thenReturn(updatedDeploymentInfo);
+                .thenReturn(initialDeploymentInfo)
+                .thenReturn(initialDeploymentInfo)
+                .thenReturn(updatedDeploymentInfo)
+                .thenReturn(updatedDeploymentInfo);
 
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("refresh-interceptor");
         interceptorDto.setDescription("Refresh interceptor");
         
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
-            containerId,
-            completionPath,
-            configPath
+                containerId,
+                completionPath,
+                configPath
         );
         
         interceptorDto.setSource(sourceDto);
