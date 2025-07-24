@@ -68,7 +68,9 @@ public abstract class InterceptorEntityMapper {
         InterceptorContainerEntity containerEntity = entity.getInterceptorContainer();
 
         if (runnerEntity != null && containerEntity != null) {
-            throw new IllegalStateException("Interceptor cannot have both runner and container set");
+            throw new IllegalStateException(
+                "Interceptor cannot have both runner and container set. Interceptor: " + entity.getId()
+            );
         }
 
         if (runnerEntity != null) {

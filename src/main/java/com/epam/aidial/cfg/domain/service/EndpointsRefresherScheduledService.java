@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -10,12 +11,21 @@ import org.springframework.stereotype.Service;
 @Service
 @LogExecution
 @RequiredArgsConstructor
-public class InterceptorEndpointsRefresherScheduledService {
+public class EndpointsRefresherScheduledService {
 
     private final InterceptorService interceptorService;
 
-    @Scheduled(fixedDelayString = "${interceptor.endpoints.refresh.interval}")
-    public void refreshInterceptorEndpoints() {
+    @Value("${endpoints.refresh.enabled}")
+    private boolean enableEndpointsRefresh;
+
+    // TODO [VPA]: use system user
+    @Scheduled(fixedDelayString = "${endpoints.refresh.interval}")
+    public void refreshEndpoints() {
+        if (!enableEndpointsRefresh) {
+            log.debug("Endpoints refresh is disabled");
+            return;
+        }
+
         try {
             log.info("Refreshing interceptor endpoints where source is container");
             interceptorService.refreshInterceptorEndpoints();

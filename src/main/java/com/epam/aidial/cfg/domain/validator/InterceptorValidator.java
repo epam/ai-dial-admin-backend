@@ -70,7 +70,9 @@ public class InterceptorValidator {
             } else if (source instanceof InterceptorContainerSource containerSource) {
                 validateContainerSource(containerSource);
             } else {
-                throw new IllegalArgumentException("Unsupported interceptor source: " + source);
+                throw new IllegalArgumentException(
+                    "Unsupported interceptor source: %s. Interceptor: %s".formatted(source, interceptor.getName())
+                );
             }
             return;
         }

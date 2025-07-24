@@ -2,16 +2,16 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.client.deployment.manager.DeploymentClient;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.client.dto.DeploymentTypeDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -21,25 +21,26 @@ public class ExternalDeploymentScheduledService {
 
     private final DeploymentClient deploymentClient;
 
-    private final Map<UUID, DeploymentInfoDto> deploymentCache = new ConcurrentHashMap<>();
+    private final Cache<UUID, DeploymentInfoDto> deploymentCache;
 
-    // TODO [VPA]: use system user
-    @Scheduled(fixedDelayString = "${deployment.cache.refresh.interval}")
-    public void refreshDeploymentCache() {
-        try {
-            log.info("Refreshing deployment cache");
-            deploymentCache.clear();
-            // interceptors only, other types are not needed for now
-            deploymentClient.getDeployments(DeploymentTypeDto.INTERCEPTOR)
-                    .forEach(deployment -> deploymentCache.put(deployment.getId(), deployment));
-            log.info("Deployment cache refreshed successfully. Cache size: {}", deploymentCache.size());
-        } catch (Exception e) {
-            log.error("Failed to refresh deployment cache", e);
-        }
+    public ExternalDeploymentScheduledService(DeploymentClient deploymentClient, 
+                                              @Value("${deployment.cache.expiration.interval}") long cacheExpirationInterval) {
+        this.deploymentClient = deploymentClient;
+        this.deploymentCache = CacheBuilder.newBuilder()
+                .expireAfterWrite(cacheExpirationInterval, TimeUnit.MILLISECONDS)
+                .build();
     }
 
     public DeploymentInfoDto getById(String id) {
-        return deploymentCache.get(UUID.fromString(id));
+        try {
+            return deploymentCache.get(UUID.fromString(id), () -> {
+                log.debug("Deployment '{}' is not present in cache, loading from deployment client", id);
+                return deploymentClient.getDeployment(id);
+            });
+        } catch (Exception e) {
+            log.error("Failed to get deployment by ID '{}'", id, e);
+            return null;
+        }
     }
 
     public DeploymentInfoDto getByIdUncached(String id) {

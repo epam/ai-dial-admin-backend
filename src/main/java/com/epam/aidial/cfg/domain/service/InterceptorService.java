@@ -1,11 +1,12 @@
 package com.epam.aidial.cfg.domain.service;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
+import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.util.InterceptorEndpointUtil;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -92,6 +93,7 @@ public class InterceptorService {
                 .collect(Collectors.toList());
     }
 
+    // TODO [VPA]: store error message for failed endpoints refresh, per interceptor
     @Transactional
     public void refreshInterceptorEndpoints() {
         var interceptorEntities = interceptorJpaRepository.findByContainerIdIsNotNull();
@@ -100,15 +102,19 @@ public class InterceptorService {
             var interceptorContainerEntity = interceptorEntity.getInterceptorContainer();
             String containerId = interceptorContainerEntity.getContainerId();
 
-            DeploymentInfoDto deploymentInfo = deploymentService.getById(containerId);
-            deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
-
-            String containerUrl = deploymentInfo.getUrl();
-            String completionEndpoint = resolveEndpoint(containerUrl, interceptorContainerEntity.getCompletionEndpointPath());
-            String configurationEndpoint = resolveEndpoint(containerUrl, interceptorContainerEntity.getConfigurationEndpointPath());
-
-            interceptorEntity.setEndpoint(completionEndpoint);
-            interceptorEntity.setConfigurationEndpoint(configurationEndpoint);
+            InterceptorEndpointUtil.processContainerEndpoints(
+                    deploymentService,
+                    deploymentInfoValidator,
+                    containerId,
+                    interceptorContainerEntity,
+                    InterceptorContainerEntity::getCompletionEndpointPath,
+                    InterceptorContainerEntity::getConfigurationEndpointPath,
+                    (entity, endpoints) -> {
+                        entity.setEndpoint(endpoints[0]);
+                        entity.setConfigurationEndpoint(endpoints[1]);
+                    },
+                    interceptorEntity
+            );
         }
 
         interceptorJpaRepository.saveAll(interceptorEntities);
@@ -119,14 +125,19 @@ public class InterceptorService {
             return;
         }
 
-        DeploymentInfoDto deploymentInfo = deploymentService.getById(containerSource.getContainerId());
-        String containerUrl = deploymentInfo.getUrl();
-
-        String completionEndpoint = resolveEndpoint(containerUrl, containerSource.getCompletionEndpointPath());
-        String configurationEndpoint = resolveEndpoint(containerUrl, containerSource.getConfigurationEndpointPath());
-
-        interceptor.setEndpoint(completionEndpoint);
-        interceptor.setConfigurationEndpoint(configurationEndpoint);
+        InterceptorEndpointUtil.processContainerEndpoints(
+                deploymentService,
+                deploymentInfoValidator,
+                containerSource.getContainerId(),
+                containerSource,
+                InterceptorContainerSource::getCompletionEndpointPath,
+                InterceptorContainerSource::getConfigurationEndpointPath,
+                (target, endpoints) -> {
+                    target.setEndpoint(endpoints[0]);
+                    target.setConfigurationEndpoint(endpoints[1]);
+                },
+                interceptor
+        );
     }
 
     private void assertExists(String name) {
@@ -140,9 +151,5 @@ public class InterceptorService {
         if (interceptorJpaRepository.existsById(name)) {
             throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
         }
-    }
-
-    private static String resolveEndpoint(final String url, final String path) {
-        return url + Optional.ofNullable(path).orElse("");
     }
 }
