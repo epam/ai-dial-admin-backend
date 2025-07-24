@@ -34,7 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = InterceptorContainerEntityMapper.class)
 public abstract class InterceptorEntityMapper {
 
     @Autowired
@@ -48,6 +48,9 @@ public abstract class InterceptorEntityMapper {
 
     @Autowired
     private InterceptorRunnerJpaRepository interceptorRunnerJpaRepository;
+
+    @Autowired
+    private InterceptorContainerEntityMapper interceptorContainerEntityMapper;
 
     @Mapping(target = "entities", source = "entity", qualifiedByName = "mapApplicationsAndModelsToStrings")
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
@@ -99,7 +102,7 @@ public abstract class InterceptorEntityMapper {
             if (source instanceof InterceptorRunnerSource runnerSource) {
                 runnerName = runnerSource.getRunnerName();
             } else if (source instanceof InterceptorContainerSource containerSource) {
-                interceptorContainer = mapInterceptorContainerSourceToEntity(containerSource);
+                interceptorContainer = interceptorContainerEntityMapper.toEntity(containerSource);
             }
         }
 
@@ -166,13 +169,5 @@ public abstract class InterceptorEntityMapper {
         }
         return interceptorRunnerJpaRepository.findById(name)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find Interceptor Runner with name: '%s'".formatted(name)));
-    }
-
-    private InterceptorContainerEntity mapInterceptorContainerSourceToEntity(InterceptorContainerSource domain) {
-        InterceptorContainerEntity entity = new InterceptorContainerEntity();
-        entity.setContainerId(domain.getContainerId());
-        entity.setCompletionEndpointPath(domain.getCompletionEndpointPath());
-        entity.setConfigurationEndpointPath(domain.getConfigurationEndpointPath());
-        return entity;
     }
 }
