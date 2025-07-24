@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.functional.config;
 
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
-import com.epam.aidial.cfg.client.deployment.manager.DeploymentClient;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
@@ -19,6 +18,7 @@ import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
@@ -110,8 +110,8 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
-    public DeploymentClient deploymentClient() {
-        return Mockito.mock(DeploymentClient.class);
+    public ExternalDeploymentService externalDeploymentService() {
+        return Mockito.mock(ExternalDeploymentService.class);
     }
 
 }
