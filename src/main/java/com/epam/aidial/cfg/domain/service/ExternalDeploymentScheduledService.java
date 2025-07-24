@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.networknt.schema.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,12 +21,15 @@ import java.util.concurrent.TimeUnit;
 public class ExternalDeploymentScheduledService {
 
     private final DeploymentClient deploymentClient;
+    private final String deploymentClientUrl;
 
     private final Cache<UUID, DeploymentInfoDto> deploymentCache;
 
     public ExternalDeploymentScheduledService(DeploymentClient deploymentClient, 
-                                              @Value("${deployment.cache.expiration.interval}") long cacheExpirationInterval) {
+                                              @Value("${deployment.cache.expiration.interval}") long cacheExpirationInterval,
+                                              @Value("${deployment.client.url}") String deploymentClientUrl) {
         this.deploymentClient = deploymentClient;
+        this.deploymentClientUrl = deploymentClientUrl;
         this.deploymentCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(cacheExpirationInterval, TimeUnit.MILLISECONDS)
                 .build();
@@ -35,7 +39,7 @@ public class ExternalDeploymentScheduledService {
         try {
             return deploymentCache.get(UUID.fromString(id), () -> {
                 log.debug("Deployment '{}' is not present in cache, loading from deployment client", id);
-                return deploymentClient.getDeployment(id);
+                return getDeploymentInfoDto(id);
             });
         } catch (Exception e) {
             log.error("Failed to get deployment by ID '{}'", id, e);
@@ -45,7 +49,7 @@ public class ExternalDeploymentScheduledService {
 
     public DeploymentInfoDto getByIdUncached(String id) {
         try {
-            DeploymentInfoDto deploymentInfo = deploymentClient.getDeployment(id);
+            DeploymentInfoDto deploymentInfo = getDeploymentInfoDto(id);
             deploymentCache.put(deploymentInfo.getId(), deploymentInfo);
             return deploymentInfo;
         } catch (Exception e) {
@@ -57,5 +61,12 @@ public class ExternalDeploymentScheduledService {
             log.error("Failed to get deployment by ID '%s'".formatted(id), e);
             throw e;
         }
+    }
+
+    private DeploymentInfoDto getDeploymentInfoDto(String id) {
+        if (StringUtils.isBlank(deploymentClientUrl)) {
+            throw new RuntimeException("Deployment client does not exist or URL is not specified");
+        }
+        return deploymentClient.getDeployment(id);
     }
 }

@@ -25,7 +25,7 @@ public class EndpointValidator {
 
     public static boolean isValidUrlPath(String urlPath) {
         if (StringUtils.isEmpty(urlPath)) {
-            return true;
+            return false;
         }
 
         String path = urlPath;
@@ -33,6 +33,6 @@ public class EndpointValidator {
             path = "/" + path;
         }
 
-        return path.matches("^/?[\\w\\-./\\?=;]*$");
+        return path.matches("^/?[\\w\\-./]*$");
     }
 }

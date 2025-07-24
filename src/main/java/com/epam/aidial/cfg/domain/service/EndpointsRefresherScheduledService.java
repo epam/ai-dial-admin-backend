@@ -28,7 +28,7 @@ public class EndpointsRefresherScheduledService {
 
         try {
             log.info("Refreshing interceptor endpoints where source is container");
-            interceptorService.refreshInterceptorEndpoints();
+            interceptorService.refreshEndpoints();
             log.info("Successfully refreshed interceptor endpoints");
         } catch (Exception e) {
             log.error("Failed to refresh interceptor endpoints", e);

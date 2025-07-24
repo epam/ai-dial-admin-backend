@@ -34,18 +34,20 @@ class EndpointValidatorTest {
     }
 
     @Test
-    void isValidUrlPath_shouldReturnTrueForPathsWithQueryParameters() {
-        assertTrue(EndpointValidator.isValidUrlPath("/somePath?param1=val1;param2=val2"));
+    void isValidUrlPath_shouldReturnFalseForPathsWithQueryParameters() {
+        assertFalse(EndpointValidator.isValidUrlPath("/somePath?param1=val1"));
+        assertFalse(EndpointValidator.isValidUrlPath("/somePath?param1=val1;param2=val2"));
+        assertFalse(EndpointValidator.isValidUrlPath("/api/v1?key=value"));
     }
 
     @Test
-    void isValidUrlPath_shouldReturnTrueForNullPath() {
-        assertTrue(EndpointValidator.isValidUrlPath(null));
+    void isValidUrlPath_shouldReturnFalseForNullPath() {
+        assertFalse(EndpointValidator.isValidUrlPath(null));
     }
 
     @Test
-    void isValidUrlPath_shouldReturnTrueForEmptyPath() {
-        assertTrue(EndpointValidator.isValidUrlPath(""));
+    void isValidUrlPath_shouldReturnFalseForEmptyPath() {
+        assertFalse(EndpointValidator.isValidUrlPath(""));
     }
 
     @ParameterizedTest
@@ -56,7 +58,10 @@ class EndpointValidatorTest {
             "/path$with$dollar",
             "/path\\with\\backslash",
             "/path:with:colon",
-            "/path<with>brackets"
+            "/path<with>brackets",
+            "/path?with=queryparams",
+            "/path;with;semicolons",
+            "/path=with=equals"
     })
     void isValidUrlPath_shouldReturnFalseForInvalidPaths(String path) {
         assertFalse(EndpointValidator.isValidUrlPath(path));
