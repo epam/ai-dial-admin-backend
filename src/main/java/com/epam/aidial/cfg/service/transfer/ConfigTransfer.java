@@ -25,7 +25,7 @@ import com.epam.aidial.cfg.service.transfer.importer.ModelImporter;
 import com.epam.aidial.cfg.service.transfer.importer.RoleImporter;
 import com.epam.aidial.cfg.service.transfer.importer.RouteImporter;
 import com.epam.aidial.core.config.Config;
-import com.epam.aidial.core.config.CoreRole;
+import com.epam.aidial.core.config.RoleBasedEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -143,7 +143,9 @@ public class ConfigTransfer {
         try {
             ConflictResolutionPolicy resolutionPolicy = importOptions.conflictResolutionPolicy();
             Config config = readAndMergeConfig(files);
-            var roles = roleImporter.preview(config.getRoles(), resolutionPolicy);
+            Set<String> deploymentNamesInConfig = getDeploymentNamesInConfig(config);
+            Map<String, Set<String>> userRolesByDeploymentName = getUserRolesByDeploymentName(config);
+            var roles = roleImporter.importRoles(deploymentNamesInConfig, userRolesByDeploymentName, config.getRoles(), resolutionPolicy, true);
             var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
             var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, true);
             var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, true);
@@ -235,7 +237,8 @@ public class ConfigTransfer {
             ConflictResolutionPolicy resolutionPolicy = importOptions.conflictResolutionPolicy();
             Config config = readAndMergeConfig(files);
             Set<String> deploymentNamesInConfig = getDeploymentNamesInConfig(config);
-            Map<String, CoreRole> importedRoles = roleImporter.importRoles(deploymentNamesInConfig, config.getRoles(), resolutionPolicy);
+            Map<String, Set<String>> userRolesByDeploymentName = getUserRolesByDeploymentName(config);
+            roleImporter.importRoles(deploymentNamesInConfig, userRolesByDeploymentName, config.getRoles(), resolutionPolicy, false);
             keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
             interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, false);
             applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, false);
@@ -245,7 +248,6 @@ public class ConfigTransfer {
             applicationImporter.importApplications(config.getApplications(), config.getRoles(), importOptions, false);
             routeImporter.importRoutes(config.getRoutes(), config.getRoles(), importOptions, false);
             assistantImporter.importAssistants(config.getAssistant(), config.getRoles(), importOptions, false);
-            roleImporter.importDefaultLimitsForExistingDeployments(importedRoles, deploymentNamesInConfig);
         } catch (Exception exception) {
             log.warn("Failed to import config. Conflict resolution policy: {}. Error: {}", importOptions.conflictResolutionPolicy(), exception);
             throw exception;
@@ -315,7 +317,26 @@ public class ConfigTransfer {
                 .collect(Collectors.toSet());
     }
 
-    public Map<String, String> normalizeZipFileNames(Map<String, String> map) {
+    private Map<String, Set<String>> getUserRolesByDeploymentName(Config config) {
+        return Stream.of(
+                        config.getModels(),
+                        config.getAddons(),
+                        config.getApplications(),
+                        config.getRoutes(),
+                        config.getAssistant().getAssistants()
+                )
+                .map(this::getUserRoles)
+                .flatMap(m -> m.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private <T extends RoleBasedEntity> Map<String, Set<String>> getUserRoles(Map<String, T> deployments) {
+        return deployments.entrySet().stream()
+                .filter(d -> CollectionUtils.isNotEmpty(d.getValue().getUserRoles()))
+                .collect(Collectors.toMap(Map.Entry::getKey, d -> d.getValue().getUserRoles()));
+    }
+
+    private Map<String, String> normalizeZipFileNames(Map<String, String> map) {
         var existingNames = new HashSet<String>();
 
         return map.entrySet().stream()
@@ -323,7 +344,7 @@ public class ConfigTransfer {
                 .collect(Collectors.toMap(entry -> makeNameUnique(entry.getKey(), existingNames), Map.Entry::getValue));
     }
 
-    public String normalizeZipFileName(String fileName) {
+    private String normalizeZipFileName(String fileName) {
         var baseName = FilenameUtils.getBaseName(fileName);
         if (StringUtils.isBlank(baseName)) {
             baseName = UUID.randomUUID().toString();
@@ -332,7 +353,7 @@ public class ConfigTransfer {
         return normalizedName + ".json";
     }
 
-    public String makeNameUnique(String name, Set<String> existingNames) {
+    private String makeNameUnique(String name, Set<String> existingNames) {
         if (!existingNames.contains(name)) {
             existingNames.add(name);
             return name;

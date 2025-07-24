@@ -105,19 +105,6 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testUpdateModel_RoleLimitsWithDefault_ValidationException() throws Exception {
-        var dtoJson = ResourceUtils.readResource("/model_dto_role_limits_with_default.json");
-
-        mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .content(dtoJson))
-                .andExpect(status().isBadRequest())
-
-                .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.message").value("roleLimits: The role limits cannot contain the default role name."));
-    }
-
-    @Test
     void testCreateModel_MissingUpstreamEndpoint_ValidationException() throws Exception {
         var dtoJson = ResourceUtils.readResource("/model_dto_without_upstream_endpoint.json");
 
