@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.client.deployment.manager;
 
+import com.epam.aidial.cfg.client.AuthorizationCoreClientConfiguration;
 import com.epam.aidial.cfg.client.RetryClientConfiguration;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import org.springframework.cloud.openfeign.FeignClient;
