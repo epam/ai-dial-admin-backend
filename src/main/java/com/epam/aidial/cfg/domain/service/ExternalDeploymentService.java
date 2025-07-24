@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.client.deployment.manager.DeploymentClient;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.networknt.schema.utils.StringUtils;
@@ -17,8 +18,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @LogExecution
 public class ExternalDeploymentService {
-
-    private static final String DEPLOYMENT_CLIENT_NOT_EXISTS = "Deployment client does not exist or URL is not specified";
 
     private final DeploymentClient deploymentClient;
     private final String deploymentClientUrl;
@@ -41,40 +40,18 @@ public class ExternalDeploymentService {
                 log.debug("Deployment '{}' is not present in cache, loading from deployment client", id);
                 return getDeploymentInfoDto(id);
             });
+        } catch (DeploymentClientNotExistsException deploymentClientNotExistsException) {
+            throw deploymentClientNotExistsException;
         } catch (Exception e) {
             log.error("Failed to get deployment by ID '{}'", id, e);
             return null;
         }
     }
 
-    public DeploymentInfoDto getByIdUncached(String id) {
-        try {
-            DeploymentInfoDto deploymentInfo = getDeploymentInfoDto(id);
-            deploymentCache.put(deploymentInfo.getId(), deploymentInfo);
-            return deploymentInfo;
-        } catch (Exception e) {
-            String message = e.getMessage();
-            if (message != null) {
-                logWarnMessage(message, id);
-                return null;
-            }
-            log.error("Failed to get deployment by ID '%s'".formatted(id), e);
-            throw e;
-        }
-    }
-
     private DeploymentInfoDto getDeploymentInfoDto(String id) {
         if (StringUtils.isBlank(deploymentClientUrl)) {
-            throw new RuntimeException(DEPLOYMENT_CLIENT_NOT_EXISTS);
+            throw new DeploymentClientNotExistsException();
         }
         return deploymentClient.getDeployment(id);
-    }
-
-    private static void logWarnMessage(String message, String deploymentId) {
-        if (message.contains("Deploy not found by id")) {
-            log.warn("Deployment not found by ID '{}'", deploymentId);
-        } else if (message.contains(DEPLOYMENT_CLIENT_NOT_EXISTS)) {
-            log.warn(DEPLOYMENT_CLIENT_NOT_EXISTS);
-        }
     }
 }

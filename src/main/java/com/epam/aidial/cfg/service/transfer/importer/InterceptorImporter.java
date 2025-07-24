@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service.transfer.importer;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
@@ -8,6 +9,7 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
+import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreInterceptor;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +81,16 @@ public class InterceptorImporter {
             return;
         }
 
-        var deploymentInfo = externalDeploymentService.getByIdUncached(containerSource.getContainerId());
+        String containerId = containerSource.getContainerId();
+
+        DeploymentInfoDto deploymentInfo = null;
+        try {
+            deploymentInfo = externalDeploymentService.getById(containerId);
+        } catch (DeploymentClientNotExistsException e) {
+            log.warn("Failed to get deployment by ID '%s' on Interceptor '%s' import"
+                    .formatted(containerId, newInterceptor.getName()), e);
+        }
+
         if (deploymentInfo == null) {
             newInterceptor.setSource(null);
         }
