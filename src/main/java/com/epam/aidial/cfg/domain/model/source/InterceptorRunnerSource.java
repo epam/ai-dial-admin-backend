@@ -12,5 +12,5 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InterceptorRunnerSource extends InterceptorSource {
-    private String templateName;
+    private String runnerName;
 }

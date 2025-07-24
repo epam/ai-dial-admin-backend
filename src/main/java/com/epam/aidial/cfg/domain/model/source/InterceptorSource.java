@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = InterceptorEndpointsSource.class, name = "endpoints"),
-        @JsonSubTypes.Type(value = InterceptorRunnerSource.class, name = "template"),
+        @JsonSubTypes.Type(value = InterceptorRunnerSource.class, name = "runner"),
         @JsonSubTypes.Type(value = InterceptorContainerSource.class, name = "container")
 })
 public abstract class InterceptorSource {

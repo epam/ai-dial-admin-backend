@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = InterceptorEndpointsSourceDto.class, name = "endpoints"),
-        @JsonSubTypes.Type(value = InterceptorRunnerSourceDto.class, name = "template"),
+        @JsonSubTypes.Type(value = InterceptorRunnerSourceDto.class, name = "runner"),
         @JsonSubTypes.Type(value = InterceptorContainerSourceDto.class, name = "container")
 })
 public interface InterceptorSourceDto {

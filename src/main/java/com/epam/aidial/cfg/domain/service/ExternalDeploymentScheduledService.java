@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
-import com.epam.aidial.cfg.client.DeploymentClient;
+import com.epam.aidial.cfg.client.deployment.manager.DeploymentClient;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.DeploymentTypeDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
@@ -48,7 +48,8 @@ public class ExternalDeploymentScheduledService {
             deploymentCache.put(deploymentInfo.getId(), deploymentInfo);
             return deploymentInfo;
         } catch (Exception e) {
-            if (e.getMessage().contains("Deploy not found by id")) {
+            String message = e.getMessage();
+            if (message != null && message.contains("Deploy not found by id")) {
                 log.warn("Deployment not found by ID '{}'", id);
                 return null;
             }

@@ -191,8 +191,8 @@
         "updatedAt": 12345,
         "dependencies": [],
         "source": {
-          "$type": "template",
-          "templateName": "testRunner1"
+          "$type": "runner",
+          "runnerName": "testRunner1"
         }
       }
     }

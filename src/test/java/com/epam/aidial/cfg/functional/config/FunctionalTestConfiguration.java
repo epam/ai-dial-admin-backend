@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.functional.config;
 
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
-import com.epam.aidial.cfg.client.DeploymentClient;
+import com.epam.aidial.cfg.client.deployment.manager.DeploymentClient;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;

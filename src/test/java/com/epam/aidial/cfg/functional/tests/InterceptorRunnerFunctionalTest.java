@@ -74,7 +74,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         interceptorFacade.createInterceptor(interceptorDto);
 
         InterceptorDto retrievedInterceptor = interceptorFacade.getInterceptor(interceptorDto.getName());
-        Assertions.assertEquals(runnerDto.getName(), ((InterceptorRunnerSourceDto) retrievedInterceptor.getSource()).templateName());
+        Assertions.assertEquals(runnerDto.getName(), ((InterceptorRunnerSourceDto) retrievedInterceptor.getSource()).runnerName());
 
         interceptorRunnerFacade.deleteInterceptorRunner(runnerDto.getName(), true);
 

@@ -6,11 +6,11 @@ import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +26,7 @@ public class InterceptorService {
 
     private final ExternalDeploymentScheduledService deploymentService;
     private final InterceptorJpaRepository interceptorJpaRepository;
+    private final DeploymentInfoValidator deploymentInfoValidator;
     private final InterceptorValidator interceptorValidator;
     private final InterceptorEntityMapper mapper;
     private final HistoryService historyService;
@@ -100,14 +101,11 @@ public class InterceptorService {
             String containerId = interceptorContainerEntity.getContainerId();
 
             DeploymentInfoDto deploymentInfo = deploymentService.getById(containerId);
-            validateDeploymentInfo(deploymentInfo, containerId);
+            deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
 
-            // TODO [VPA]: extract this logic
             String containerUrl = deploymentInfo.getUrl();
-            String completionEndpoint = containerUrl
-                    + Optional.ofNullable(interceptorContainerEntity.getCompletionEndpointPath()).orElse("");
-            String configurationEndpoint = containerUrl
-                    + Optional.ofNullable(interceptorContainerEntity.getConfigurationEndpointPath()).orElse("");
+            String completionEndpoint = resolveEndpoint(containerUrl, interceptorContainerEntity.getCompletionEndpointPath());
+            String configurationEndpoint = resolveEndpoint(containerUrl, interceptorContainerEntity.getConfigurationEndpointPath());
 
             interceptorEntity.setEndpoint(completionEndpoint);
             interceptorEntity.setConfigurationEndpoint(configurationEndpoint);
@@ -116,33 +114,16 @@ public class InterceptorService {
         interceptorJpaRepository.saveAll(interceptorEntities);
     }
 
-    // TODO [VPA]: use validator class
-    private void validateDeploymentInfo(DeploymentInfoDto deploymentInfo, String containerId) {
-        if (deploymentInfo == null) {
-            throw new IllegalArgumentException("Container with ID '%s' not found in cache".formatted(containerId));
-        }
-
-        String deploymentUrl = deploymentInfo.getUrl();
-        if (StringUtils.isBlank(deploymentUrl)) {
-            throw new IllegalArgumentException(
-                "Container URL is not present, please check if it is deployed. Container ID: %s".formatted(containerId)
-            );
-        }
-    }
-
     private void resolveEndpointsIfContainerSource(Interceptor interceptor) {
         if (!(interceptor.getSource() instanceof InterceptorContainerSource containerSource)) {
             return;
         }
 
-        // TODO [VPA]: extract this logic
         DeploymentInfoDto deploymentInfo = deploymentService.getById(containerSource.getContainerId());
         String containerUrl = deploymentInfo.getUrl();
 
-        String completionEndpoint = containerUrl
-                + Optional.ofNullable(containerSource.getCompletionEndpointPath()).orElse("");
-        String configurationEndpoint = containerUrl
-                + Optional.ofNullable(containerSource.getConfigurationEndpointPath()).orElse("");
+        String completionEndpoint = resolveEndpoint(containerUrl, containerSource.getCompletionEndpointPath());
+        String configurationEndpoint = resolveEndpoint(containerUrl, containerSource.getConfigurationEndpointPath());
 
         interceptor.setEndpoint(completionEndpoint);
         interceptor.setConfigurationEndpoint(configurationEndpoint);
@@ -159,5 +140,9 @@ public class InterceptorService {
         if (interceptorJpaRepository.existsById(name)) {
             throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
         }
+    }
+
+    private static String resolveEndpoint(final String url, final String path) {
+        return url + Optional.ofNullable(path).orElse("");
     }
 }

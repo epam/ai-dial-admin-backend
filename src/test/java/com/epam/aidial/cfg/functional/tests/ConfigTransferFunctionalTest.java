@@ -654,8 +654,8 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getInterceptors()).isNotEmpty()
                     .containsOnlyKeys("testInterceptor1", "testInterceptor2")
                     .satisfies(interceptors -> {
-                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor1").getSource()).getTemplateName()).isEqualTo("testRunner");
-                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor2").getSource()).getTemplateName()).isEqualTo("testRunner");
+                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor1").getSource()).getRunnerName()).isEqualTo("testRunner");
+                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor2").getSource()).getRunnerName()).isEqualTo("testRunner");
                     });
         });
     }
@@ -921,7 +921,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
-                Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).templateName()).isEqualTo("testRunner1")
+                Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
         );
         Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
         Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {

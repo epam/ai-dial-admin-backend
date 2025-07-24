@@ -25,6 +25,7 @@ public class InterceptorValidator {
     private static final String CONFIGURATION_ENDPOINT_LOG_NAME = "configuration";
 
     private final ExternalDeploymentScheduledService deploymentService;
+    private final DeploymentInfoValidator deploymentInfoValidator;
 
     @Value("${validation.interceptor.name:}")
     private String interceptorNameValidationPattern;
@@ -92,25 +93,15 @@ public class InterceptorValidator {
     }
 
     private void validateRunnerSource(InterceptorRunnerSource runnerSource) {
-        if (StringUtils.isBlank(runnerSource.getTemplateName())) {
-            throw new IllegalArgumentException("Template name is required when source type is 'Interceptor template'");
+        if (StringUtils.isBlank(runnerSource.getRunnerName())) {
+            throw new IllegalArgumentException("Runner name is required when source type is 'Interceptor runner'");
         }
     }
 
     private void validateContainerSource(InterceptorContainerSource containerSource) {
         String containerId = containerSource.getContainerId();
-
         DeploymentInfoDto deploymentInfo = deploymentService.getById(containerId);
-        if (deploymentInfo == null) {
-            throw new IllegalArgumentException("Container with ID '%s' not found".formatted(containerId));
-        }
-
-        String deploymentUrl = deploymentInfo.getUrl();
-        if (StringUtils.isBlank(deploymentUrl)) {
-            throw new IllegalArgumentException(
-                "Container URL is not present, please check if it is deployed. Container ID: %s".formatted(containerId)
-            );
-        }
+        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
 
         validateEndpointPath(containerSource.getCompletionEndpointPath(), COMPLETION_ENDPOINT_LOG_NAME);
         validateEndpointPath(containerSource.getConfigurationEndpointPath(), CONFIGURATION_ENDPOINT_LOG_NAME);

@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.service.ExternalDeploymentScheduledService;
+import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ class InterceptorValidatorTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        interceptorValidator = new InterceptorValidator(deploymentService);
+        interceptorValidator = new InterceptorValidator(deploymentService, new DeploymentInfoValidator());
     }
 
     @ParameterizedTest
@@ -134,7 +135,7 @@ class InterceptorValidatorTest {
     }
 
     @Test
-    void validateRunnerSource_shouldThrowExceptionWhenTemplateNameIsBlank() {
+    void validateRunnerSource_shouldThrowExceptionWhenRunnerNameIsBlank() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
@@ -143,15 +144,15 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Template name is required when source type is 'Interceptor template'");
+                .hasMessage("Runner name is required when source type is 'Interceptor runner'");
     }
 
     @Test
-    void validateRunnerSource_shouldNotThrowExceptionWhenTemplateNameIsProvided() {
+    void validateRunnerSource_shouldNotThrowExceptionWhenRunnerNameIsProvided() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorRunnerSource("template-name"));
+        interceptor.setSource(new InterceptorRunnerSource("runner-name"));
 
         // when/then
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));

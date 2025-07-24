@@ -89,19 +89,19 @@ public abstract class InterceptorEntityMapper {
     public InterceptorEntity toEntity(Interceptor domain, InterceptorEntity entity) {
         Pair<List<ApplicationEntity>, List<ModelEntity>> applicationsAndModels = findApplicationsAndModelsByNames(domain.getEntities());
 
-        String templateName = null;
+        String runnerName = null;
         InterceptorContainerEntity interceptorContainer = null;
 
         InterceptorSource source = domain.getSource();
         if (source != null) {
             if (source instanceof InterceptorRunnerSource runnerSource) {
-                templateName = runnerSource.getTemplateName();
+                runnerName = runnerSource.getRunnerName();
             } else if (source instanceof InterceptorContainerSource containerSource) {
                 interceptorContainer = mapInterceptorContainerSourceToEntity(containerSource);
             }
         }
 
-        InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(templateName);
+        InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(runnerName);
 
         InterceptorEntity updatedEntity = update(domain, entity);
 
