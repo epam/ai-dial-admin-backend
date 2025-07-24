@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.networknt.schema.utils.StringUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @LogExecution
-@RequiredArgsConstructor
 public class ExternalDeploymentScheduledService {
 
     private final DeploymentClient deploymentClient;

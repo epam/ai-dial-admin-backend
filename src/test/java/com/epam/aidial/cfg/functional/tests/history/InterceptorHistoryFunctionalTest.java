@@ -49,6 +49,7 @@ public abstract class InterceptorHistoryFunctionalTest {
         InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
         var expected = createDto("1");
         expected.setDescription("new interceptor description");
+        expected.setSource(new InterceptorEndpointsSourceDto());
         assertInterceptor(actual, expected);
 
         var actualAtRevision = actual;
@@ -185,7 +186,6 @@ public abstract class InterceptorHistoryFunctionalTest {
         interceptorDto.setDescription("description" + suffix);
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         interceptorDto.setEntities(List.of());
-        interceptorDto.setSource(new InterceptorEndpointsSourceDto());
         return interceptorDto;
     }
 }
