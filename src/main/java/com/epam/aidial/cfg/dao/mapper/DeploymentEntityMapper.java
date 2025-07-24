@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
-import com.epam.aidial.cfg.dao.model.LimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
@@ -32,9 +31,6 @@ public abstract class DeploymentEntityMapper {
     private RoleLimitEntityMapper roleLimitEntityMapper;
 
     @Autowired
-    private LimitEntityMapper limitEntityMapper;
-
-    @Autowired
     private RoleJpaRepository roleJpaRepository;
 
     public abstract Deployment toDomain(DeploymentEntity deploymentEntity);
@@ -42,12 +38,6 @@ public abstract class DeploymentEntityMapper {
     @Mapping(target = "roleLimits", ignore = true)
     @Mapping(target = "type", ignore = true)
     public abstract DeploymentEntity toEntity(Deployment deployment, @MappingTarget DeploymentEntity entity);
-
-    public DeploymentEntity toEntity(Limit defaultLimit, DeploymentEntity entity) {
-        LimitEntity limit = limitEntityMapper.toEntity(defaultLimit);
-        entity.setDefaultRoleLimit(limit);
-        return entity;
-    }
 
     public List<RoleEntity> findRolesByNames(List<String> names) {
         if (names.isEmpty()) {

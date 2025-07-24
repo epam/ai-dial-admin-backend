@@ -136,7 +136,7 @@ public abstract class ConfigTransferFunctionalTest {
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
-            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
+            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3", "default");
             Assertions.assertThat(modelDto.getRoleLimits().get("testRole1")).satisfies(limit1 -> {
                 Assertions.assertThat(limit1.isEnabled()).isTrue();
                 Assertions.assertThat(limit1.getDay()).isEqualTo(1);
@@ -269,7 +269,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew()))
                 // then
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Deployment with name testApplication1 does not exist");
+                .hasMessageContaining("unable to find deployments: [testApplication1]");
     }
 
     @Test
@@ -297,6 +297,17 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app ->
                 Assertions.assertThat(app.getDefaultRoleLimit()).isNotNull().satisfies(defaultRoleLimit -> {
+                    Assertions.assertThat(defaultRoleLimit.isEnabled()).isTrue();
+                    Assertions.assertThat(defaultRoleLimit.getMinute()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getDay()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getWeek()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getMonth()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getRequestHour()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getRequestDay()).isEqualTo(null);
+                })
+        );
+        Assertions.assertThat(applicationDto.getRoleLimits()).isNotEmpty().satisfies(roleLimits ->
+                Assertions.assertThat(roleLimits.get("default")).isNotNull().satisfies(defaultRoleLimit -> {
                     Assertions.assertThat(defaultRoleLimit.getMinute()).isEqualTo(100000000L);
                     Assertions.assertThat(defaultRoleLimit.getDay()).isEqualTo(100000000L);
                 })
