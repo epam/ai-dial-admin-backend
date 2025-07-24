@@ -28,7 +28,7 @@ public class InterceptorService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor with name '%s' does not exist";
 
-    private final ExternalDeploymentScheduledService deploymentService;
+    private final ExternalDeploymentService deploymentService;
     private final InterceptorRefreshService interceptorRefreshService;
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final DeploymentInfoValidator deploymentInfoValidator;

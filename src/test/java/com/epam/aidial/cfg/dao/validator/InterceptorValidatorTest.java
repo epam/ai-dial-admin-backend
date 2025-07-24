@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentScheduledService;
+import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class InterceptorValidatorTest {
     private InterceptorValidator interceptorValidator;
 
     @Mock
-    private ExternalDeploymentScheduledService deploymentService;
+    private ExternalDeploymentService deploymentService;
 
     @BeforeEach
     void setUp() {

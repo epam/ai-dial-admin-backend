@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.domain.util;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentScheduledService;
+import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import lombok.experimental.UtilityClass;
 
@@ -35,7 +35,7 @@ public final class InterceptorEndpointUtil {
      * @param target the object to receive the resolved endpoints
      */
     public static <T, R> void processContainerEndpoints(
-            ExternalDeploymentScheduledService deploymentService,
+            ExternalDeploymentService deploymentService,
             DeploymentInfoValidator deploymentInfoValidator,
             String containerId,
             T pathProvider,

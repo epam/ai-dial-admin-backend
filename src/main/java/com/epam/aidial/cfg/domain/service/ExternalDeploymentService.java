@@ -16,14 +16,16 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @LogExecution
-public class ExternalDeploymentScheduledService {
+public class ExternalDeploymentService {
+
+    private static final String DEPLOYMENT_CLIENT_NOT_EXISTS = "Deployment client does not exist or URL is not specified";
 
     private final DeploymentClient deploymentClient;
     private final String deploymentClientUrl;
 
     private final Cache<UUID, DeploymentInfoDto> deploymentCache;
 
-    public ExternalDeploymentScheduledService(DeploymentClient deploymentClient, 
+    public ExternalDeploymentService(DeploymentClient deploymentClient,
                                               @Value("${deployment.cache.expiration.interval}") long cacheExpirationInterval,
                                               @Value("${deployment.client.url}") String deploymentClientUrl) {
         this.deploymentClient = deploymentClient;
@@ -52,8 +54,8 @@ public class ExternalDeploymentScheduledService {
             return deploymentInfo;
         } catch (Exception e) {
             String message = e.getMessage();
-            if (message != null && message.contains("Deploy not found by id")) {
-                log.warn("Deployment not found by ID '{}'", id);
+            if (message != null) {
+                logWarnMessage(message, id);
                 return null;
             }
             log.error("Failed to get deployment by ID '%s'".formatted(id), e);
@@ -63,8 +65,16 @@ public class ExternalDeploymentScheduledService {
 
     private DeploymentInfoDto getDeploymentInfoDto(String id) {
         if (StringUtils.isBlank(deploymentClientUrl)) {
-            throw new RuntimeException("Deployment client does not exist or URL is not specified");
+            throw new RuntimeException(DEPLOYMENT_CLIENT_NOT_EXISTS);
         }
         return deploymentClient.getDeployment(id);
+    }
+
+    private static void logWarnMessage(String message, String deploymentId) {
+        if (message.contains("Deploy not found by id")) {
+            log.warn("Deployment not found by ID '{}'", deploymentId);
+        } else if (message.contains(DEPLOYMENT_CLIENT_NOT_EXISTS)) {
+            log.warn(DEPLOYMENT_CLIENT_NOT_EXISTS);
+        }
     }
 }

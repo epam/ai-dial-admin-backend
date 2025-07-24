@@ -6,7 +6,7 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentScheduledService;
+import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreInterceptor;
@@ -32,7 +32,7 @@ public class InterceptorImporter {
 
     private final InterceptorService interceptorService;
     private final InterceptorCoreMapper interceptorCoreMapper;
-    private final ExternalDeploymentScheduledService externalDeploymentService;
+    private final ExternalDeploymentService externalDeploymentService;
 
     public Collection<ImportComponent<Interceptor>> importInterceptors(Map<String, CoreInterceptor> coreInterceptors,
                                                                        ConflictResolutionPolicy resolutionPolicy,

@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class InterceptorRefreshService {
 
-    private final ExternalDeploymentScheduledService deploymentService;
+    private final ExternalDeploymentService deploymentService;
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final DeploymentInfoValidator deploymentInfoValidator;
 
