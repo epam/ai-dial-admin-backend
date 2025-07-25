@@ -184,8 +184,12 @@ public interface RoleCoreMapper {
                     String deploymentName = e.getKey();
                     Set<String> userRoles = userRolesByDeploymentName.get(deploymentName);
                     boolean enabled = SetUtils.emptyIfNull(userRoles).contains(roleName);
-                    return toLimit(e.getValue(), deploymentName, enabled);
+                    RoleLimit roleLimit = toLimit(e.getValue(), deploymentName, enabled);
+                    Limit limit = roleLimit.getLimit();
+                    boolean isDisabledEmptyLimit = !roleLimit.isEnabled() && limit.isEmpty();
+                    return isDisabledEmptyLimit ? null : roleLimit;
                 })
+                .filter(Objects::nonNull)
                 .toList();
         Set<String> deploymentNamesOfAlreadyAddedRoleLimits = roleLimits.stream()
                 .map(RoleLimit::getDeploymentName)
