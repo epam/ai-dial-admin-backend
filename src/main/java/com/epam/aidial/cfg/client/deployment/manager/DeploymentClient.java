@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
         name = "deploymentClient",
-        url = "${external.deployment.client.url}",
+        url = "${plugins.deployment.manager.client.url}",
         configuration = RetryClientConfiguration.class
 )
 public interface DeploymentClient {

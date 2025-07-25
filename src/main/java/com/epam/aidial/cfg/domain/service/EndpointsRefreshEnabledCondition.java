@@ -10,7 +10,7 @@ public class EndpointsRefreshEnabledCondition implements Condition {
     @Override
     public boolean matches(ConditionContext context, @NotNull AnnotatedTypeMetadata metadata) {
         final String refreshEnabled = context.getEnvironment()
-                .getProperty("external.deployment.endpoint.refresh.enabled", "false");
+                .getProperty("plugins.deployment.manager.endpoint.refresh.enabled", "false");
         return Boolean.parseBoolean(refreshEnabled);
     }
 }

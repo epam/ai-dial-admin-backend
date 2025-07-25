@@ -242,16 +242,14 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 |---------|---------------------|---------|----------|-----------|-------------|
 | config.env.tokenizers.json | CONFIG_ENV_TOKENIZERS_JSON | - | No | - | Preconfigured DIAL tokenizers list in JSON format |
 
-## External Deployment Configuration
-*External deployments are plugins/applications that can be used by entities in DIAL admin. These deployments are managed by deployment client.*
-*Endpoints of external deployments may change, so we need to refresh their use within DIAL admin according to a specific schedule.*
+## Plugins Configuration
 
-| Setting                                       | Environment Variable                              | Default | Required | Applied when                                        | Description                                               |
-|-----------------------------------------------|---------------------------------------------------|---------|----------|-----------------------------------------------------|-----------------------------------------------------------|
-| external.deployment.client.url                | EXTERNAL_DEPLOYMENT_CLIENT_URL                    | -       | No       | -                                                   | External deployment client URL                            |
-| external.deployment.cache.expiration.interval | EXTERNAL_DEPLOYMENT_CACHE_EXPIRATION_INTERVAL_MS  | 300000  | No       | -                                                   | Expiration interval (in ms) of external deployment cache  |
-| external.deployment.endpoint.refresh.enabled  | ENABLE_EXTERNAL_DEPLOYMENT_ENDPOINT_REFRESH       | false   | No       | -                                                   | Enable external deployment endpoint refresh               |
-| external.deployment.endpoint.refresh.interval | EXTERNAL_DEPLOYMENT_ENDPOINT_REFRESH_INTERVAL_MS  | 360000  | No       | external.deployment.endpoint.refresh.enabled = true | Refresh interval (in ms) of external deployment endpoints |
+| Setting                                              | Environment Variable                                    | Default | Required | Applied when                                               | Description                                              |
+|------------------------------------------------------|---------------------------------------------------------|---------|----------|------------------------------------------------------------|----------------------------------------------------------|
+| plugins.deployment.manager.client.url                | PLUGINS_DEPLOYMENT_MANAGER_CLIENT_URL                   | -       | No       | -                                                          | Deployment manager client URL                            |
+| plugins.deployment.manager.cache.expiration.interval | PLUGINS_DEPLOYMENT_MANAGER_CACHE_EXPIRATION_INTERVAL_MS | 300000  | No       | -                                                          | Expiration interval (in ms) of deployment manager cache  |
+| plugins.deployment.manager.endpoint.refresh.enabled  | ENABLE_PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH      | false   | No       | -                                                          | Enable deployment manager endpoint refresh               |
+| plugins.deployment.manager.endpoint.refresh.interval | PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH_INTERVAL_MS | 360000  | No       | plugins.deployment.manager.endpoint.refresh.enabled = true | Refresh interval (in ms) of deployment manager endpoints |
 
 ## Validation Configuration
 

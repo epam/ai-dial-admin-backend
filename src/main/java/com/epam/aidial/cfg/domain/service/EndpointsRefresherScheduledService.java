@@ -17,7 +17,7 @@ public class EndpointsRefresherScheduledService {
     private final InterceptorService interceptorService;
 
     // TODO [VPA]: use system user
-    @Scheduled(fixedDelayString = "${external.deployment.endpoint.refresh.interval}")
+    @Scheduled(fixedDelayString = "${plugins.deployment.manager.endpoint.refresh.interval}")
     public void refreshEndpoints() {
         try {
             log.debug("Refreshing interceptor endpoints where source is container");
