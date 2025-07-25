@@ -90,7 +90,9 @@ public class ApplicationExporter {
         if (!componentTypes.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)) {
             app.setApplicationTypeSchemaId(null);
         }
-        app.getDeployment().setRoleLimits(null);
+        if (!componentTypes.contains(ExportConfigComponentType.ROLE)) {
+            app.getDeployment().setRoleLimits(null);
+        }
         return app;
     }
 
