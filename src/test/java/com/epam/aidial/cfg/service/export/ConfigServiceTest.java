@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.mapper.MapperPackage;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
+import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
@@ -196,7 +197,11 @@ class ConfigServiceTest {
         var rawRoles = ResourceUtils.readResource("/domain/model/roles.json");
         var roles = objectMapper.readValue(rawRoles, new TypeReference<List<Role>>() {
         });
+        var rawDeployments = ResourceUtils.readResource("/domain/model/deployments_for_roles.json");
+        var deployments = objectMapper.readValue(rawDeployments, new TypeReference<List<Deployment>>() {
+        });
         when(roleService.getAllRoles()).thenReturn(roles);
+        when(deploymentService.getAll()).thenReturn(deployments);
 
         var actualConfig = configService.getConfig();
 
