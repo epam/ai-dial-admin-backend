@@ -19,13 +19,21 @@
           "requestHour": 500,
           "requestDay": 2000
         },
-        "sampleDeployment2": {
+        "sampleDeployment5": {
+          "minute": 23,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
+        },
+        "sampleDeployment6": {
           "minute": 20,
           "day": 2000,
-          "week": 10000,
-          "month": 40000,
-          "requestHour": 200,
-          "requestDay": 1000
+          "week": 9223372036854775807,
+          "month": 1000,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
         }
       },
       "share": {}
