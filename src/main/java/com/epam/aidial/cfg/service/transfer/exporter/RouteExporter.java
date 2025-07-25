@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,16 +63,18 @@ public class RouteExporter {
                 ))
                 .values()
                 .stream()
-                .map(component -> routeService.get(component.getName()))
+                .map(component -> {
+                    Route route = routeService.get(component.getName());
+                    return removeDependency(route, component.getDependencies());
+                })
                 .map(route -> removeUpstreamKey(route, addSecrets))
-                .map(this::removeDependency)
                 .toList();
     }
 
     private Collection<Route> getRoutes(FullExportRequest fullExportRequest) {
         return getRoutes().stream()
                 .map(route -> removeUpstreamKey(route, fullExportRequest.isAddSecrets()))
-                .map(this::removeDependency)
+                .map(route -> removeDependency(route, fullExportRequest.getComponentTypes()))
                 .toList();
     }
 
@@ -85,8 +88,10 @@ public class RouteExporter {
                 .collect(Collectors.toList());
     }
 
-    private Route removeDependency(Route route) {
-        route.getDeployment().setRoleLimits(null);
+    private Route removeDependency(Route route, Set<ExportConfigComponentType> componentTypes) {
+        if (!componentTypes.contains(ExportConfigComponentType.ROLE)) {
+            route.getDeployment().setRoleLimits(null);
+        }
         return route;
     }
 

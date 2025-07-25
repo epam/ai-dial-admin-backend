@@ -21,11 +21,6 @@
             "limit": {}
           },
           {
-            "deploymentName": "testModel2",
-            "enabled": false,
-            "limit": {}
-          },
-          {
             "deploymentName": "testModel1",
             "enabled": true,
             "limit": {
@@ -53,28 +48,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole2",
-        "limits": [
-          {
-            "deploymentName": "testApplication1",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testApplication2",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testModel2",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testModel1",
-            "enabled": false,
-            "limit": {}
-          }
-        ]
+        "limits": []
       }
     },
     {
@@ -82,21 +56,6 @@
       "value": {
         "name": "testRole3",
         "limits": [
-          {
-            "deploymentName": "testApplication1",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testApplication2",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testModel2",
-            "enabled": false,
-            "limit": {}
-          },
           {
             "deploymentName": "testModel1",
             "enabled": true,
@@ -110,21 +69,6 @@
       "value": {
         "name": "default",
         "limits": [
-          {
-            "deploymentName": "testApplication1",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testApplication2",
-            "enabled": false,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testModel2",
-            "enabled": false,
-            "limit": {}
-          },
           {
             "deploymentName": "testModel1",
             "enabled": false,
@@ -258,28 +202,7 @@
       "value": {
         "deployment": {
           "name": "testModel2",
-          "roleLimits": [
-            {
-              "role": "testRole1",
-              "enabled": false,
-              "limit": {}
-            },
-            {
-              "role": "testRole2",
-              "enabled": false,
-              "limit": {}
-            },
-            {
-              "role": "testRole3",
-              "enabled": false,
-              "limit": {}
-            },
-            {
-              "role": "default",
-              "enabled": false,
-              "limit": {}
-            }
-          ],
+          "roleLimits": [],
           "isPublic": true,
           "defaultRoleLimit": {}
         },
@@ -332,11 +255,6 @@
               "limit": {
                 "day": 1
               }
-            },
-            {
-              "role": "testRole2",
-              "enabled": false,
-              "limit": {}
             },
             {
               "role": "testRole3",
@@ -404,21 +322,6 @@
               "role": "testRole1",
               "enabled": true,
               "limit": {}
-            },
-            {
-              "role": "testRole2",
-              "enabled": false,
-              "limit": {}
-            },
-            {
-              "role": "testRole3",
-              "enabled": false,
-              "limit": {}
-            },
-            {
-              "role": "default",
-              "enabled": false,
-              "limit": {}
             }
           ],
           "isPublic": false,
@@ -467,21 +370,6 @@
             {
               "role": "testRole1",
               "enabled": true,
-              "limit": {}
-            },
-            {
-              "role": "testRole2",
-              "enabled": false,
-              "limit": {}
-            },
-            {
-              "role": "testRole3",
-              "enabled": false,
-              "limit": {}
-            },
-            {
-              "role": "default",
-              "enabled": false,
               "limit": {}
             }
           ],

@@ -23,6 +23,7 @@ public interface RoleLimitMapper {
             return null;
         }
         return deployment.getRoleLimits().stream()
+                .filter(RoleLimit::isEnabled)
                 .map(this::mapUserRole)
                 .collect(Collectors.toSet());
     }
@@ -85,13 +86,17 @@ public interface RoleLimitMapper {
 
     private RoleLimit mapRoleLimit(Set<String> userRoles, String roleName, String entityName, CoreRole role) {
         Map<String, CoreLimit> limits = role.getLimits();
-        CoreLimit limit = MapUtils.emptyIfNull(limits).get(entityName);
-        if (limit == null) {
+        CoreLimit coreLimit = MapUtils.emptyIfNull(limits).get(entityName);
+        if (coreLimit == null) {
             return null;
         }
 
         boolean isEnable = userRoles != null && userRoles.contains(roleName);
-        return createRoleLimit(roleName, limit, isEnable);
+        RoleLimit roleLimit = createRoleLimit(roleName, coreLimit, isEnable);
+        Limit limit = roleLimit.getLimit();
+        boolean isDisabledEmptyLimit = !roleLimit.isEnabled() && limit.isEmpty();
+
+        return isDisabledEmptyLimit ? null : roleLimit;
     }
 
     private RoleLimit createRoleLimit(String roleName, CoreLimit limit, boolean isEnable) {
