@@ -17,8 +17,8 @@ import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
@@ -110,8 +110,8 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
-    public ExternalDeploymentService externalDeploymentService() {
-        return Mockito.mock(ExternalDeploymentService.class);
+    public DeploymentManagerService deploymentManagerService() {
+        return Mockito.mock(DeploymentManagerService.class);
     }
 
 }

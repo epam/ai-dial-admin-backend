@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
@@ -28,7 +28,7 @@ public abstract class InterceptorFunctionalTest {
     @Autowired
     private ApplicationFacade applicationFacade;
     @Autowired
-    private ExternalDeploymentService deploymentService;
+    private DeploymentManagerService deploymentManagerService;
 
     @Test
     public void shouldSuccessfullyCreateAndGetInterceptors() {
@@ -193,7 +193,7 @@ public abstract class InterceptorFunctionalTest {
         deploymentInfoDto.setName("Test Container");
         deploymentInfoDto.setUrl(containerUrl);
         
-        Mockito.when(deploymentService.getById(containerId)).thenReturn(deploymentInfoDto);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
         
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("container-interceptor");
@@ -216,7 +216,7 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
         Assertions.assertEquals(containerUrl + configPath, result.getConfigurationEndpoint());
         
-        Mockito.verify(deploymentService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     @Test
@@ -239,7 +239,7 @@ public abstract class InterceptorFunctionalTest {
         updatedDeploymentInfo.setName(deploymentName);
         updatedDeploymentInfo.setUrl(updatedUrl);
         
-        Mockito.when(deploymentService.getById(containerId))
+        Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
                 .thenReturn(initialDeploymentInfo)
                 .thenReturn(updatedDeploymentInfo)
@@ -270,6 +270,6 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
         Assertions.assertEquals(updatedUrl + configPath, refreshedResult.getConfigurationEndpoint());
 
-        Mockito.verify(deploymentService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 }

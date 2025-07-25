@@ -1,19 +1,58 @@
 package com.epam.aidial.cfg.domain.util;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
+import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
-import lombok.experimental.UtilityClass;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * Utility class for handling interceptor endpoint operations.
+ * Service class for handling interceptor endpoint operations.
  */
-@UtilityClass
-public final class InterceptorEndpointUtil {
+@Service
+@RequiredArgsConstructor
+public class InterceptorEndpointResolver {
+
+    private final DeploymentManagerService deploymentManagerService;
+    private final DeploymentInfoValidator deploymentInfoValidator;
+
+    public void processContainerEndpoints(Interceptor interceptor) {
+        InterceptorContainerSource containerSource = (InterceptorContainerSource) interceptor.getSource();
+        processContainerEndpoints(
+                containerSource.getContainerId(),
+                containerSource,
+                InterceptorContainerSource::getCompletionEndpointPath,
+                InterceptorContainerSource::getConfigurationEndpointPath,
+                (target, endpoints) -> {
+                    target.setEndpoint(endpoints[0]);
+                    target.setConfigurationEndpoint(endpoints[1]);
+                },
+                interceptor
+        );
+    }
+
+    public void processContainerEndpoints(InterceptorEntity interceptorEntity) {
+        InterceptorContainerEntity interceptorContainerEntity = interceptorEntity.getInterceptorContainer();
+        processContainerEndpoints(
+                interceptorContainerEntity.getContainerId(),
+                interceptorContainerEntity,
+                InterceptorContainerEntity::getCompletionEndpointPath,
+                InterceptorContainerEntity::getConfigurationEndpointPath,
+                (entity, endpoints) -> {
+                    entity.setEndpoint(endpoints[0]);
+                    entity.setConfigurationEndpoint(endpoints[1]);
+                },
+                interceptorEntity
+        );
+    }
 
     /**
      * Processes container endpoints and applies them using the provided consumer.
@@ -25,8 +64,6 @@ public final class InterceptorEndpointUtil {
      *
      * @param <T> the type of object containing endpoint paths
      * @param <R> the type of object to receive the resolved endpoints
-     * @param deploymentService service to get deployment info
-     * @param deploymentInfoValidator validator for deployment info
      * @param containerId the container ID
      * @param pathProvider object containing endpoint paths
      * @param completionPathExtractor function to extract completion path from pathProvider
@@ -34,9 +71,7 @@ public final class InterceptorEndpointUtil {
      * @param endpointConsumer consumer to set the resolved endpoints on target object
      * @param target the object to receive the resolved endpoints
      */
-    public static <T, R> void processContainerEndpoints(
-            ExternalDeploymentService deploymentService,
-            DeploymentInfoValidator deploymentInfoValidator,
+    private <T, R> void processContainerEndpoints(
             String containerId,
             T pathProvider,
             Function<T, String> completionPathExtractor,
@@ -44,7 +79,7 @@ public final class InterceptorEndpointUtil {
             BiConsumer<R, String[]> endpointConsumer,
             R target) {
         
-        DeploymentInfoDto deploymentInfo = deploymentService.getById(containerId);
+        DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
         
         String containerUrl = deploymentInfo.getUrl();
@@ -63,7 +98,7 @@ public final class InterceptorEndpointUtil {
      * @param configurationEndpointPath the path for the configuration endpoint
      * @return array containing [completionEndpoint, configurationEndpoint]
      */
-    public static String[] resolveEndpoints(
+    private static String[] resolveEndpoints(
             String containerUrl,
             String completionEndpointPath,
             String configurationEndpointPath) {
@@ -79,7 +114,7 @@ public final class InterceptorEndpointUtil {
      * @param path the endpoint path
      * @return the complete endpoint URL
      */
-    public static String resolveEndpoint(final String url, final String path) {
+    private static String resolveEndpoint(final String url, final String path) {
         return url + Optional.ofNullable(path).orElse("");
     }
 }

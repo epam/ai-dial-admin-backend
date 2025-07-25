@@ -7,7 +7,7 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -34,7 +34,7 @@ public class InterceptorImporter {
 
     private final InterceptorService interceptorService;
     private final InterceptorCoreMapper interceptorCoreMapper;
-    private final ExternalDeploymentService externalDeploymentService;
+    private final DeploymentManagerService deploymentManagerService;
 
     public Collection<ImportComponent<Interceptor>> importInterceptors(Map<String, CoreInterceptor> coreInterceptors,
                                                                        ConflictResolutionPolicy resolutionPolicy,
@@ -85,7 +85,7 @@ public class InterceptorImporter {
 
         DeploymentInfoDto deploymentInfo = null;
         try {
-            deploymentInfo = externalDeploymentService.getById(containerId);
+            deploymentInfo = deploymentManagerService.getById(containerId);
         } catch (DeploymentClientNotExistsException e) {
             log.warn("Failed to get deployment by ID '%s' on Interceptor '%s' import"
                     .formatted(containerId, newInterceptor.getName()), e);

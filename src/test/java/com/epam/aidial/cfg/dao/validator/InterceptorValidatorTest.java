@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
-import com.epam.aidial.cfg.domain.service.ExternalDeploymentService;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,12 +31,12 @@ class InterceptorValidatorTest {
     private InterceptorValidator interceptorValidator;
 
     @Mock
-    private ExternalDeploymentService deploymentService;
+    private DeploymentManagerService deploymentManagerService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        interceptorValidator = new InterceptorValidator(deploymentService, new DeploymentInfoValidator());
+        interceptorValidator = new InterceptorValidator(deploymentManagerService, new DeploymentInfoValidator());
     }
 
     @ParameterizedTest
@@ -165,7 +165,7 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH));
 
-        when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(null);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(null);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
@@ -182,7 +182,7 @@ class InterceptorValidatorTest {
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("");
-        when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
@@ -199,7 +199,7 @@ class InterceptorValidatorTest {
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
@@ -216,7 +216,7 @@ class InterceptorValidatorTest {
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
@@ -233,7 +233,7 @@ class InterceptorValidatorTest {
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));
@@ -248,7 +248,7 @@ class InterceptorValidatorTest {
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));

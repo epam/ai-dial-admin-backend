@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
-import com.epam.aidial.cfg.client.deployment.manager.DeploymentClient;
+import com.epam.aidial.cfg.client.deployment.manager.DeploymentManagerClient;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
@@ -17,17 +17,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @LogExecution
-public class ExternalDeploymentService {
+public class DeploymentManagerService {
 
-    private final DeploymentClient deploymentClient;
+    private final DeploymentManagerClient deploymentManagerClient;
     private final String deploymentClientUrl;
 
     private final Cache<UUID, DeploymentInfoDto> deploymentCache;
 
-    public ExternalDeploymentService(DeploymentClient deploymentClient,
-                                              @Value("${plugins.deployment.manager.cache.expiration.interval}") long cacheExpirationInterval,
-                                              @Value("${plugins.deployment.manager.client.url}") String deploymentClientUrl) {
-        this.deploymentClient = deploymentClient;
+    public DeploymentManagerService(DeploymentManagerClient deploymentManagerClient,
+                                    @Value("${plugins.deployment.manager.cache.expiration.interval}") long cacheExpirationInterval,
+                                    @Value("${plugins.deployment.manager.client.url}") String deploymentClientUrl) {
+        this.deploymentManagerClient = deploymentManagerClient;
         this.deploymentClientUrl = deploymentClientUrl;
         this.deploymentCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(cacheExpirationInterval, TimeUnit.MILLISECONDS)
@@ -37,7 +37,7 @@ public class ExternalDeploymentService {
     public DeploymentInfoDto getById(String id) {
         try {
             return deploymentCache.get(UUID.fromString(id), () -> {
-                log.debug("Deployment '{}' is not present in cache, loading from deployment client", id);
+                log.debug("Deployment '{}' is not present in cache, loading from deployment manager client", id);
                 return getDeploymentInfoDto(id);
             });
         } catch (DeploymentClientNotExistsException deploymentClientNotExistsException) {
@@ -52,6 +52,6 @@ public class ExternalDeploymentService {
         if (StringUtils.isBlank(deploymentClientUrl)) {
             throw new DeploymentClientNotExistsException();
         }
-        return deploymentClient.getDeployment(id);
+        return deploymentManagerClient.getDeployment(id);
     }
 }

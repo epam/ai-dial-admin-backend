@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Conditional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 @LogExecution
 @RequiredArgsConstructor
-@Conditional(EndpointsRefreshEnabledCondition.class)
+@ConditionalOnProperty(value = "plugins.deployment.manager.endpoint.refresh.enabled", havingValue = "true")
 public class EndpointsRefresherScheduledService {
 
     private final InterceptorService interceptorService;

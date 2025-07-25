@@ -5,8 +5,7 @@ import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
-import com.epam.aidial.cfg.domain.util.InterceptorEndpointUtil;
-import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
+import com.epam.aidial.cfg.domain.util.InterceptorEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -28,10 +27,9 @@ public class InterceptorService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor with name '%s' does not exist";
 
-    private final ExternalDeploymentService deploymentService;
+    private final InterceptorEndpointResolver interceptorEndpointResolver;
     private final InterceptorRefreshService interceptorRefreshService;
     private final InterceptorJpaRepository interceptorJpaRepository;
-    private final DeploymentInfoValidator deploymentInfoValidator;
     private final InterceptorValidator interceptorValidator;
     private final InterceptorEntityMapper mapper;
     private final HistoryService historyService;
@@ -126,23 +124,10 @@ public class InterceptorService {
     }
 
     private void resolveEndpointsIfContainerSource(Interceptor interceptor) {
-        if (!(interceptor.getSource() instanceof InterceptorContainerSource containerSource)) {
+        if (!(interceptor.getSource() instanceof InterceptorContainerSource)) {
             return;
         }
-
-        InterceptorEndpointUtil.processContainerEndpoints(
-                deploymentService,
-                deploymentInfoValidator,
-                containerSource.getContainerId(),
-                containerSource,
-                InterceptorContainerSource::getCompletionEndpointPath,
-                InterceptorContainerSource::getConfigurationEndpointPath,
-                (target, endpoints) -> {
-                    target.setEndpoint(endpoints[0]);
-                    target.setConfigurationEndpoint(endpoints[1]);
-                },
-                interceptor
-        );
+        interceptorEndpointResolver.processContainerEndpoints(interceptor);
     }
 
     private void assertExists(String name) {

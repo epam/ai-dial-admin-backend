@@ -79,9 +79,7 @@ public abstract class InterceptorEntityMapper {
         if (runnerEntity != null) {
             return new InterceptorRunnerSource(runnerEntity.getName());
         } else if (containerEntity != null) {
-            return new InterceptorContainerSource(
-                containerEntity.getContainerId(), containerEntity.getCompletionEndpointPath(), containerEntity.getConfigurationEndpointPath()
-            );
+            return interceptorContainerEntityMapper.toDomain(containerEntity);
         }
 
         return new InterceptorEndpointsSource();
