@@ -77,12 +77,7 @@ public class InterceptorValidator {
             return;
         }
 
-        // TODO [VPA]: uncomment endpoint validations when FE will support interceptor runners
-        //if (endpoint == null) {
-        //    throw new IllegalArgumentException("Missing endpoint and source. At least one of them should be specified");
-        //}
-
-        //validateEndpoint(endpoint, COMPLETION_ENDPOINT_LOG_NAME);
+        validateEndpoint(endpoint, COMPLETION_ENDPOINT_LOG_NAME);
         validateEndpoint(configurationEndpoint, CONFIGURATION_ENDPOINT_LOG_NAME);
     }
 

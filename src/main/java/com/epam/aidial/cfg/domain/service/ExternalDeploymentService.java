@@ -25,8 +25,8 @@ public class ExternalDeploymentService {
     private final Cache<UUID, DeploymentInfoDto> deploymentCache;
 
     public ExternalDeploymentService(DeploymentClient deploymentClient,
-                                              @Value("${deployment.cache.expiration.interval}") long cacheExpirationInterval,
-                                              @Value("${deployment.client.url}") String deploymentClientUrl) {
+                                              @Value("${external.deployment.cache.expiration.interval}") long cacheExpirationInterval,
+                                              @Value("${external.deployment.client.url}") String deploymentClientUrl) {
         this.deploymentClient = deploymentClient;
         this.deploymentClientUrl = deploymentClientUrl;
         this.deploymentCache = CacheBuilder.newBuilder()

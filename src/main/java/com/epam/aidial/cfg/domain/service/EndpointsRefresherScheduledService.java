@@ -15,23 +15,23 @@ public class EndpointsRefresherScheduledService {
 
     private final InterceptorService interceptorService;
 
-    @Value("${endpoints.refresh.enabled}")
+    @Value("${external.deployment.endpoint.refresh.enabled}")
     private boolean enableEndpointsRefresh;
 
     // TODO [VPA]: use system user
-    @Scheduled(fixedDelayString = "${endpoints.refresh.interval}")
+    @Scheduled(fixedDelayString = "${external.deployment.endpoint.refresh.interval}")
     public void refreshEndpoints() {
         if (!enableEndpointsRefresh) {
-            log.debug("Endpoints refresh is disabled");
+            log.debug("External deployment endpoints refresh is disabled");
             return;
         }
 
         try {
-            log.info("Refreshing interceptor endpoints where source is container");
+            log.debug("Refreshing interceptor endpoints where source is container");
             interceptorService.refreshEndpoints();
-            log.info("Successfully refreshed interceptor endpoints");
+            log.debug("Successfully refreshed interceptor endpoints");
         } catch (Exception e) {
-            log.error("Failed to refresh interceptor endpoints", e);
+            log.warn("Failed to refresh interceptor endpoints", e);
         }
     }
 }

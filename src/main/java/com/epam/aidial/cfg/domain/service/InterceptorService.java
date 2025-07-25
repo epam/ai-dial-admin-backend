@@ -114,7 +114,6 @@ public class InterceptorService {
             }
         }
 
-        // TODO [VPA]: store error message for failed endpoints refresh (per interceptor)
         if (!failedInterceptors.isEmpty()) {
             log.warn("Failed to refresh endpoints for {} interceptors: {}",
                     failedInterceptors.size(), String.join(", ", failedInterceptors));
