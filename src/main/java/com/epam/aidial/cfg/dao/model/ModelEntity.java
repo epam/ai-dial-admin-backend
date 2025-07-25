@@ -11,14 +11,12 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.envers.Audited;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,15 +69,6 @@ public class ModelEntity extends AbstractEntity<String> {
     private String overrideName;
     private List<String> fieldsHashingOrder;
     private String endpointDeploymentName;
-
-    @PrePersist
-    void onCreate() {
-        Long now = Instant.now().toEpochMilli();
-        if (this.createdAt == null) {
-            this.setCreatedAt(now);
-        }
-        this.setUpdatedAt(now);
-    }
 
     @PreRemove
     public void preRemove() {
