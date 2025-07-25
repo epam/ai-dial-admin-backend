@@ -105,8 +105,13 @@ public abstract class InterceptorEntityMapper {
         }
 
         InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(runnerName);
+        Long createdAt = entity.getCreatedAt();
 
         InterceptorEntity updatedEntity = update(domain, entity);
+
+        if (updatedEntity.getCreatedAt() == null) {
+            updatedEntity.setCreatedAt(createdAt);
+        }
 
         List<ApplicationEntity> applications = applicationsAndModels.getLeft();
         updatedEntity.getApplications().forEach(application -> application.getInterceptors().remove(updatedEntity));
