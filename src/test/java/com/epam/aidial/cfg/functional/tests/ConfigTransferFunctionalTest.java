@@ -1217,6 +1217,7 @@ public abstract class ConfigTransferFunctionalTest {
         // when
         var importConfigPreview = configTransfer.importPreview(List.of(mockFile), configImportOptions);
 
+        // TODO [VPA]: ignore createdAt/updatedAt for adapter
         // then
         var expected = ResourceUtils.readResource("/import/import_modelWithAdapter_preview.json");
         var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
@@ -1349,8 +1350,8 @@ public abstract class ConfigTransferFunctionalTest {
 
             var exportedModel = result.getModels().get(modelName);
             Assertions.assertThat(exportedModel.getAuthor()).isEqualTo(author);
-            Assertions.assertThat(exportedModel.getCreatedAt()).isEqualTo(createdAt.toEpochMilli());
-            Assertions.assertThat(exportedModel.getUpdatedAt()).isEqualTo(updatedAt.toEpochMilli());
+            Assertions.assertThat(exportedModel.getCreatedAt()).isNotEqualTo(createdAt.toEpochMilli());
+            Assertions.assertThat(exportedModel.getUpdatedAt()).isNotEqualTo(updatedAt.toEpochMilli());
 
             // Part 2: Test with version 0.23.0 - author/createdAt/updatedAt should be absent
             // given

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Set;
 
 @Data
 @ApplicationTypeSchema
+@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class ApplicationTypeSchemaDto {
 
     @JsonProperty("$schema")

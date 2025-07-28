@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,8 @@ public abstract class KeyFunctionalTest {
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
 
-        keyDto.setCreatedAt(1L);
-        keyDto.setKeyGeneratedAt(1L);
+        keyDto.setCreatedAt(Instant.ofEpochMilli(1L));
+        keyDto.setKeyGeneratedAt(Instant.ofEpochMilli(1L));
         assertKey(actual, keyDto);
 
         doReturn(2L).when(transactionTimestampContext).getTimestamp();
@@ -69,8 +70,8 @@ public abstract class KeyFunctionalTest {
 
         Collection<KeyDto> actualKeys = keyFacade.getAllKeys();
 
-        keyDto2.setCreatedAt(2L);
-        keyDto2.setKeyGeneratedAt(2L);
+        keyDto2.setCreatedAt(Instant.ofEpochMilli(2L));
+        keyDto2.setKeyGeneratedAt(Instant.ofEpochMilli(2L));
         assertKeys(actualKeys, List.of(keyDto, keyDto2), false);
     }
 
@@ -160,8 +161,8 @@ public abstract class KeyFunctionalTest {
 
         var expected = createDto("1");
         expected.setKey("new keyValue");
-        expected.setCreatedAt(1L);
-        expected.setKeyGeneratedAt(2L);
+        expected.setCreatedAt(Instant.ofEpochMilli((1L)));
+        expected.setKeyGeneratedAt(Instant.ofEpochMilli((2L)));
 
         assertKey(actual, expected);
     }
@@ -334,7 +335,7 @@ public abstract class KeyFunctionalTest {
     private void assertKeyExcludingGeneratedFields(KeyDto actual, KeyDto expected) {
         assertThat(actual)
                 .usingRecursiveComparison()
-                .ignoringFields("createdAt", "keyGeneratedAt")
+                .ignoringFields("createdAt", "updatedAt", "keyGeneratedAt")
                 .isEqualTo(expected);
         assertThat(actual.getCreatedAt()).isNotNull();
         assertThat(actual.getKeyGeneratedAt()).isNotNull();
@@ -359,7 +360,7 @@ public abstract class KeyFunctionalTest {
         keyDto.setDescription("description" + suffix);
         keyDto.setRoles(roles);
         keyDto.setProjectContactPoint("test@mail.com");
-        keyDto.setExpiresAt(253402300799999L);
+        keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
         return keyDto;
     }
 }

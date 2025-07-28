@@ -3,12 +3,14 @@ package com.epam.aidial.cfg.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class RoleDto {
 
     @NotBlank(message = "Name is required")

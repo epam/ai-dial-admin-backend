@@ -8,7 +8,7 @@
   "secured": true,
   "description": "key description",
   "projectContactPoint": "owner@mail.com",
-  "createdAt": 1744200000000,
-  "expiresAt": 1744286400000,
-  "keyGeneratedAt": 1744200000000
+  "createdAt": "2025-01-12T01:30:00Z",
+  "expiresAt": "2025-06-12T01:30:00Z",
+  "keyGeneratedAt": "2025-01-12T01:30:00Z"
 }

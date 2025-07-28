@@ -3,11 +3,13 @@ package com.epam.aidial.cfg.dto;
 import com.epam.aidial.cfg.utils.SecretUtils;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class KeyDto {
 
     @NotBlank(message = "Name is required")

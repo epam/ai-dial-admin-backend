@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class ApplicationInfoDto {
 
     private String name;

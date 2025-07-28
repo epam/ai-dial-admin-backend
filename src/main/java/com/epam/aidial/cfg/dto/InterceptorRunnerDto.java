@@ -2,11 +2,13 @@ package com.epam.aidial.cfg.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class InterceptorRunnerDto {
 
     @NotBlank(message = "Name is required")

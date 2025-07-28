@@ -15,7 +15,7 @@ import java.util.Set;
 
 @Data
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"createdAt", "updatedAt"})
 public class RouteDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")

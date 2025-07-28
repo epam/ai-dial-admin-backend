@@ -71,7 +71,7 @@ class KeyValidatorTest {
         key.setExpiresAt(expiresAt);
 
         KeyEntity keyEntity = new KeyEntity();
-        keyEntity.setCreatedAt(2);
+        keyEntity.setCreatedAt(2L);
 
         assertThatThrownBy(() -> keyValidator.validateUpdate("key_name", key, keyEntity))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -86,7 +86,7 @@ class KeyValidatorTest {
         key.setExpiresAt(expiresAt);
 
         KeyEntity keyEntity = new KeyEntity();
-        keyEntity.setCreatedAt(2);
+        keyEntity.setCreatedAt(2L);
 
         assertThatNoException().isThrownBy(() -> keyValidator.validateUpdate("key_name", key, keyEntity));
     }

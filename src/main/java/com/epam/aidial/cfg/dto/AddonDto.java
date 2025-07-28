@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"createdAt", "updatedAt"})
 public class AddonDto extends RoleBasedDto {
     @NotBlank(message = "Name is required")
     private String name;
