@@ -91,7 +91,7 @@ public class ModelExporter {
     }
 
     private Model removeDependency(Model model, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
-        if (!componentTypes.contains(ExportConfigComponentType.ROLE)) {
+        if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
             model.getDeployment().setRoleLimits(null);
         }
         if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {

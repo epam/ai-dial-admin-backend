@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -30,11 +31,11 @@ public class ApplicationExporter {
     protected Map<String, Application> getApplications(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.APPLICATION)
-                    ? getApplicationsWithRemovedDependencies(fullExportRequest.getComponentTypes()).stream()
+                    ? getApplicationsWithRemovedDependencies(fullExportRequest).stream()
                     .collect(Collectors.toMap(app -> app.getDeployment().getName(), Function.identity()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getApplicationsWithRemovedDependencies(selectedItemsExportRequest.getComponents()).stream()
+            return getApplicationsWithRemovedDependencies(selectedItemsExportRequest).stream()
                     .collect(Collectors.toMap(app -> app.getDeployment().getName(), Function.identity()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
@@ -60,13 +61,14 @@ public class ApplicationExporter {
         return applicationService.getApplication(applicationName);
     }
 
-    private Collection<Application> getApplicationsWithRemovedDependencies(Set<ExportConfigComponentType> componentTypes) {
+    private Collection<Application> getApplicationsWithRemovedDependencies(FullExportRequest fullExportRequest) {
         return getApplications().stream()
-                .map(app -> removeDependency(app, componentTypes))
+                .map(app -> removeDependency(app, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
 
-    private List<Application> getApplicationsWithRemovedDependencies(List<ExportConfigComponent> components) {
+    private List<Application> getApplicationsWithRemovedDependencies(SelectedItemsExportRequest selectedItemsExportRequest) {
+        List<ExportConfigComponent> components = selectedItemsExportRequest.getComponents();
         return components.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.APPLICATION)
                 .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
@@ -78,19 +80,19 @@ public class ApplicationExporter {
                 .stream()
                 .map(component -> {
                     Application application = getApplication(component.getName());
-                    return removeDependency(application, component.getDependencies());
+                    return removeDependency(application, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
                 .toList();
     }
 
-    private Application removeDependency(Application app, Set<ExportConfigComponentType> componentTypes) {
+    private Application removeDependency(Application app, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
         if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {
             app.setInterceptors(null);
         }
         if (!componentTypes.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)) {
             app.setApplicationTypeSchemaId(null);
         }
-        if (!componentTypes.contains(ExportConfigComponentType.ROLE)) {
+        if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
             app.getDeployment().setRoleLimits(null);
         }
         return app;

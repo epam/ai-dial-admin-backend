@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.transfer.exporter;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.service.RouteService;
@@ -36,7 +37,7 @@ public class RouteExporter {
                             (existing, newRoute) -> newRoute, LinkedHashMap::new))
                     : new LinkedHashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getRoutes(selectedItemsExportRequest.getComponents(), request.isAddSecrets()).stream()
+            return getRoutes(selectedItemsExportRequest, request.isAddSecrets()).stream()
                     .collect(Collectors.toMap(
                             route -> route.getDeployment().getName(), Function.identity(),
                             (existing, replacement) -> {
@@ -52,7 +53,8 @@ public class RouteExporter {
         return routeService.getAll();
     }
 
-    private List<Route> getRoutes(List<ExportConfigComponent> elements, boolean addSecrets) {
+    private List<Route> getRoutes(SelectedItemsExportRequest selectedItemsExportRequest, boolean addSecrets) {
+        List<ExportConfigComponent> elements = selectedItemsExportRequest.getComponents();
         return elements.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.ROUTE)
                 .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
@@ -65,7 +67,7 @@ public class RouteExporter {
                 .stream()
                 .map(component -> {
                     Route route = routeService.get(component.getName());
-                    return removeDependency(route, component.getDependencies());
+                    return removeDependency(route, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
                 .map(route -> removeUpstreamKey(route, addSecrets))
                 .toList();
@@ -74,7 +76,7 @@ public class RouteExporter {
     private Collection<Route> getRoutes(FullExportRequest fullExportRequest) {
         return getRoutes().stream()
                 .map(route -> removeUpstreamKey(route, fullExportRequest.isAddSecrets()))
-                .map(route -> removeDependency(route, fullExportRequest.getComponentTypes()))
+                .map(route -> removeDependency(route, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
 
@@ -88,8 +90,8 @@ public class RouteExporter {
                 .collect(Collectors.toList());
     }
 
-    private Route removeDependency(Route route, Set<ExportConfigComponentType> componentTypes) {
-        if (!componentTypes.contains(ExportConfigComponentType.ROLE)) {
+    private Route removeDependency(Route route, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
+        if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
             route.getDeployment().setRoleLimits(null);
         }
         return route;
