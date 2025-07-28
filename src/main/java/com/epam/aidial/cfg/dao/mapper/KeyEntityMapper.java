@@ -32,8 +32,13 @@ public abstract class KeyEntityMapper {
 
     public KeyEntity toEntity(Key domain, long keyGeneratedAt, KeyEntity entity) {
         List<RoleEntity> roleEntities = findRolesByNames(domain.getRoles());
+        Long createdAt = entity.getCreatedAt();
 
         KeyEntity updatedEntity = update(domain, keyGeneratedAt, entity);
+
+        updatedEntity.setCreatedAt(
+                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
+        );
 
         updatedEntity.getRoles().forEach(role -> role.getKeys().remove(updatedEntity));
         roleEntities.forEach(role -> role.getKeys().add(updatedEntity));
@@ -43,7 +48,6 @@ public abstract class KeyEntityMapper {
         return updatedEntity;
     }
 
-    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "keyGeneratedAt", source = "keyGeneratedAt")
     protected abstract KeyEntity update(Key domain, long keyGeneratedAt, @MappingTarget KeyEntity keyEntity);

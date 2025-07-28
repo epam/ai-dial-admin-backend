@@ -14,6 +14,7 @@ public class Key {
     private String description;
     private String projectContactPoint;
     private Long createdAt;
+    private Long updatedAt;
     private Long expiresAt;
     private Long keyGeneratedAt;
 }

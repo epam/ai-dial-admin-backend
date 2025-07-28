@@ -1,8 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.utils.SecretUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -21,9 +19,10 @@ public class KeyDto {
     private List<String> roles;
     private String description;
     private String projectContactPoint;
-    private Long createdAt;
-    private Long expiresAt;
-    private Long keyGeneratedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private Instant expiresAt;
+    private Instant keyGeneratedAt;
 
     public String toString() {
         return "KeyDto(name=" + this.getName()

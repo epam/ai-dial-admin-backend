@@ -12,7 +12,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.envers.Audited;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import java.util.List;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Audited
-public class KeyEntity extends AbstractEntity<String> {
+public class KeyEntity extends TimeTrackableEntity {
 
     @Id
     @EqualsAndHashCode.Include
@@ -42,9 +41,6 @@ public class KeyEntity extends AbstractEntity<String> {
     private List<RoleEntity> roles = new ArrayList<>();
     private String description;
     private String projectContactPoint;
-    @CreatedDate
-    @Column(name = "created_at_ms")
-    private long createdAt;
     @Column(name = "expires_at_ms")
     private Long expiresAt;
     @Column(name = "key_value_generated_at_ms")
