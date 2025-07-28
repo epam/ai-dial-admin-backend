@@ -27,7 +27,13 @@ public abstract class AdapterEntityMapper {
     public abstract Adapter toDomain(AdapterEntity entity);
 
     public AdapterEntity toEntity(Adapter domain, AdapterEntity entity) {
-        AdapterEntity update = update(domain, entity);
+        Long createdAt = entity.getCreatedAt();
+
+        AdapterEntity updatedEntity = update(domain, entity);
+
+        updatedEntity.setCreatedAt(
+                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
+        );
 
         List<String> modelNames = domain.getModels();
         List<ModelEntity> models = Lists.newArrayList(modelJpaRepository.findAllById(modelNames));
@@ -37,15 +43,15 @@ public abstract class AdapterEntityMapper {
             throw new EntityNotFoundException("unable to find models: " + namesDiff);
         }
 
-        for (ModelEntity model : update.getModels()) {
+        for (ModelEntity model : updatedEntity.getModels()) {
             model.setAdapter(null);
         }
-        update.getModels().clear();
-        update.getModels().addAll(models);
+        updatedEntity.getModels().clear();
+        updatedEntity.getModels().addAll(models);
         for (ModelEntity model : models) {
             model.setAdapter(entity);
         }
-        return update;
+        return updatedEntity;
     }
 
     @Mapping(target = "models", ignore = true)

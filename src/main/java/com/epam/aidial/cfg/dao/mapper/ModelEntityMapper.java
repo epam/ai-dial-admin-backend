@@ -51,10 +51,15 @@ public abstract class ModelEntityMapper {
 
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+        Long createdAt = entity.getCreatedAt();
 
         AdapterEntity adapterEntity = findAdapter(domain.getAdapter());
 
         ModelEntity updatedEntity = update(domain, entity);
+
+        updatedEntity.setCreatedAt(
+                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
+        );
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getModels().remove(updatedEntity));
         interceptors.forEach(interceptor -> interceptor.getModels().add(updatedEntity));

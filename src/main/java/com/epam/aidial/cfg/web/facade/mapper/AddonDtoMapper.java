@@ -10,8 +10,8 @@ public interface AddonDtoMapper {
 
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "instantToLong")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "instantToLong")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Addon toDomain(AddonDto dto);
 
     @RoleBasedDtoMapper.ToDto

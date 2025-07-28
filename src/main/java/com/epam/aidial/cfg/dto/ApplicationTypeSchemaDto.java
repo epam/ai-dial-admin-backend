@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,4 +64,6 @@ public class ApplicationTypeSchemaDto {
     private List<String> required;
     private List<String> applications;
     private Set<String> topics;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

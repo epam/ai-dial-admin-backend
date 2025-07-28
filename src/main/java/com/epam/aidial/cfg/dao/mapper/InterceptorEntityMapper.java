@@ -109,9 +109,9 @@ public abstract class InterceptorEntityMapper {
 
         InterceptorEntity updatedEntity = update(domain, entity);
 
-        if (updatedEntity.getCreatedAt() == null) {
-            updatedEntity.setCreatedAt(createdAt);
-        }
+        updatedEntity.setCreatedAt(
+                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
+        );
 
         List<ApplicationEntity> applications = applicationsAndModels.getLeft();
         updatedEntity.getApplications().forEach(application -> application.getInterceptors().remove(updatedEntity));

@@ -5,12 +5,16 @@ import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = InstantMapper.class)
 public interface ApplicationTypeSchemaDtoMapper {
 
     @Mapping(target = "schemaId", source = "id")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     ApplicationTypeSchema toDomain(ApplicationTypeSchemaDto dto);
 
     @Mapping(target = "id", source = "schemaId")
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
+    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     ApplicationTypeSchemaDto toDto(ApplicationTypeSchema domain);
 }

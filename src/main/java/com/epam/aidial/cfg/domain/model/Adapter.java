@@ -12,5 +12,7 @@ public class Adapter {
     private String displayName;
     private String baseEndpoint;
     private String description;
+    private Long createdAt;
+    private Long updatedAt;
     private List<String> models = new ArrayList<>();
 }

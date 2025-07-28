@@ -5,10 +5,14 @@ import com.epam.aidial.cfg.dto.AdapterDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = InstantMapper.class)
 public interface AdapterDtoMapper {
 
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Adapter toDomain(AdapterDto entity);
 
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
+    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     AdapterDto toDto(Adapter domain);
 }
