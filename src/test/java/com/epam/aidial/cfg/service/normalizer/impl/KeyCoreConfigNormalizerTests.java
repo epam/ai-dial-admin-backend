@@ -9,13 +9,13 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-class KeyNormalizerTests {
+class KeyCoreConfigNormalizerTests {
 
-    private KeyNormalizer normalizer;
+    private KeyCoreConfigNormalizer normalizer;
 
     @BeforeEach
     void init() {
-        normalizer = new KeyNormalizer();
+        normalizer = new KeyCoreConfigNormalizer();
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.normalizer.impl;
 
 import com.epam.aidial.cfg.service.normalizer.CoreConfigNormalizer;
+import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class KeyNormalizer implements CoreConfigNormalizer {
+public class KeyCoreConfigNormalizer implements CoreConfigNormalizer {
 
     @Override
     public void normalize(Config config) {
@@ -27,7 +28,7 @@ public class KeyNormalizer implements CoreConfigNormalizer {
             String keyId = keyId2ValuePair.getKey();
             CoreKey key = keyId2ValuePair.getValue();
             if (StringUtils.isEmpty(key.getRole()) && CollectionUtils.isEmpty(key.getRoles())) {
-                log.debug("normalizeConfig. remove invalid key: {}", keyId);
+                log.debug("normalizeConfig. remove invalid key with empty roles: {}", SecretUtils.mask(keyId));
                 keys.remove(keyId);
             }
         }
