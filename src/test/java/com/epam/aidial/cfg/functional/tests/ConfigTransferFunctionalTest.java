@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
@@ -26,6 +27,7 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.RouteDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -637,13 +639,11 @@ public abstract class ConfigTransferFunctionalTest {
         InterceptorDto interceptor1 = new InterceptorDto();
         interceptor1.setName("testInterceptor1");
         interceptor1.setDescription("Test interceptor 1");
-        interceptor1.setInterceptorRunner("testRunner");
-
+        interceptor1.setSource(new InterceptorRunnerSourceDto("testRunner"));
         InterceptorDto interceptor2 = new InterceptorDto();
         interceptor2.setName("testInterceptor2");
         interceptor2.setDescription("Test interceptor 2");
-        interceptor2.setInterceptorRunner("testRunner");
-
+        interceptor2.setSource(new InterceptorRunnerSourceDto("testRunner"));
         interceptorFacade.createInterceptor(interceptor1);
         interceptorFacade.createInterceptor(interceptor2);
 
@@ -667,8 +667,8 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getInterceptors()).isNotEmpty()
                     .containsOnlyKeys("testInterceptor1", "testInterceptor2")
                     .satisfies(interceptors -> {
-                        Assertions.assertThat(interceptors.get("testInterceptor1").getInterceptorRunner()).isEqualTo("testRunner");
-                        Assertions.assertThat(interceptors.get("testInterceptor2").getInterceptorRunner()).isEqualTo("testRunner");
+                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor1").getSource()).getRunnerName()).isEqualTo("testRunner");
+                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor2").getSource()).getRunnerName()).isEqualTo("testRunner");
                     });
         });
     }
@@ -929,9 +929,18 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
         Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
-        Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
-        Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
+        Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
+        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
+                Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
+        );
+        Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
+        Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {
+            Assertions.assertThat(r.getName()).isEqualTo("testRunner1");
+            Assertions.assertThat(r.getCompletionEndpoint()).isEqualTo("https://template.test.com/api");
+            Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
+        });
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
         Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
 

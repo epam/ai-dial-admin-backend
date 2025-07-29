@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -48,6 +49,7 @@ public abstract class InterceptorHistoryFunctionalTest {
         InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
         var expected = createDto("1");
         expected.setDescription("new interceptor description");
+        expected.setSource(new InterceptorEndpointsSourceDto());
         assertInterceptor(actual, expected);
 
         var actualAtRevision = actual;

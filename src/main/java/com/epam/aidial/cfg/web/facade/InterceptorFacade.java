@@ -1,13 +1,9 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
-import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
-import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -61,5 +57,9 @@ public class InterceptorFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public void refreshEndpoints() {
+        interceptorService.refreshEndpoints();
     }
 }

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.InterceptorSourceDto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -23,7 +24,7 @@ public class InterceptorDto {
 
     private List<String> entities;
 
-    private String interceptorRunner;
+    private InterceptorSourceDto source;
 
     private String configurationEndpoint;
 

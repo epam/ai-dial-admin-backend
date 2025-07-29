@@ -373,9 +373,28 @@
 			"createdAt": 12345,
 			"updatedAt": 12345,
 			"dependencies": []
+		},
+		"testInterceptor2": {
+			"name": "testInterceptor2",
+			"displayName": "Test Interceptor2",
+			"forwardAuthToken": false,
+			"author": "test-author",
+			"createdAt": 12345,
+			"updatedAt": 12345,
+			"dependencies": [],
+			"source": {
+				"$type": "runner",
+				"runnerName": "testRunner1"
+			}
 		}
 	},
-    "interceptorRunners": {},
+	"interceptorRunners": {
+		"testRunner1": {
+			"name": "testRunner1",
+			"completionEndpoint": "https://template.test.com/api",
+			"configurationEndpoint": "https://template.test.com/conf"
+		}
+	},
 	"adapters": {
 		"adapter1": {
 			"name": "adapter1",
