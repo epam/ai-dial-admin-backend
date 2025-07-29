@@ -11,7 +11,6 @@ import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
@@ -36,6 +35,7 @@ import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
@@ -84,6 +84,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
 public abstract class ConfigTransferFunctionalTest {
@@ -118,6 +119,8 @@ public abstract class ConfigTransferFunctionalTest {
     private AdapterFacade adapterFacade;
     @Autowired
     private CoreConfigVersionProperties versionProperties;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
 
@@ -1156,6 +1159,8 @@ public abstract class ConfigTransferFunctionalTest {
     @Test
     void testImportPreview_ImportModelWithAdapter() throws IOException {
         // given
+        doReturn(123L).when(transactionTimestampContext).getTimestamp();
+
         AdapterDto adapterDto = new AdapterDto();
         adapterDto.setName("adapter1");
         adapterDto.setBaseEndpoint("http://endpoint1/");
@@ -1173,7 +1178,6 @@ public abstract class ConfigTransferFunctionalTest {
         // when
         var importConfigPreview = configTransfer.importPreview(List.of(mockFile), configImportOptions);
 
-        // TODO [VPA]: ignore createdAt/updatedAt for adapter
         // then
         var expected = ResourceUtils.readResource("/import/import_modelWithAdapter_preview.json");
         var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
@@ -1306,6 +1310,8 @@ public abstract class ConfigTransferFunctionalTest {
 
             var exportedModel = result.getModels().get(modelName);
             Assertions.assertThat(exportedModel.getAuthor()).isEqualTo(author);
+            Assertions.assertThat(exportedModel.getCreatedAt()).isNotNull();
+            Assertions.assertThat(exportedModel.getUpdatedAt()).isNotNull();
             Assertions.assertThat(exportedModel.getCreatedAt()).isNotEqualTo(createdAt.toEpochMilli());
             Assertions.assertThat(exportedModel.getUpdatedAt()).isNotEqualTo(updatedAt.toEpochMilli());
 

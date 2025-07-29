@@ -105,13 +105,8 @@ public abstract class InterceptorEntityMapper {
         }
 
         InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(runnerName);
-        Long createdAt = entity.getCreatedAt();
 
         InterceptorEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         List<ApplicationEntity> applications = applicationsAndModels.getLeft();
         updatedEntity.getApplications().forEach(application -> application.getInterceptors().remove(updatedEntity));
@@ -142,6 +137,8 @@ public abstract class InterceptorEntityMapper {
     @Mapping(target = "models", ignore = true)
     @Mapping(target = "interceptorRunner", ignore = true)
     @Mapping(target = "interceptorContainer", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract InterceptorEntity update(Interceptor domain, @MappingTarget InterceptorEntity entity);
 
     private Pair<List<ApplicationEntity>, List<ModelEntity>> findApplicationsAndModelsByNames(List<String> names) {

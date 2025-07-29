@@ -22,7 +22,7 @@ import java.util.List;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Audited
-public class KeyEntity extends TimeTrackableEntity {
+public class KeyEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include

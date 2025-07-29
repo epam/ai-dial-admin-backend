@@ -19,7 +19,7 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class RouteEntity extends TimeTrackableEntity {
+public class RouteEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include

@@ -27,13 +27,7 @@ public abstract class AdapterEntityMapper {
     public abstract Adapter toDomain(AdapterEntity entity);
 
     public AdapterEntity toEntity(Adapter domain, AdapterEntity entity) {
-        Long createdAt = entity.getCreatedAt();
-
         AdapterEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         List<String> modelNames = domain.getModels();
         List<ModelEntity> models = Lists.newArrayList(modelJpaRepository.findAllById(modelNames));
@@ -55,6 +49,8 @@ public abstract class AdapterEntityMapper {
     }
 
     @Mapping(target = "models", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract AdapterEntity update(Adapter domain, @MappingTarget AdapterEntity entity);
 
     public List<String> mapModels(List<ModelEntity> entities) {

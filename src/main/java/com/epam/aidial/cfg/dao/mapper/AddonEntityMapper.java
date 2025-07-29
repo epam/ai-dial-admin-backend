@@ -24,13 +24,8 @@ public abstract class AddonEntityMapper {
     public AddonEntity toEntity(Addon domain, AddonEntity entity) {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-        Long createdAt = entity.getCreatedAt();
 
         AddonEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ADDON);
@@ -38,6 +33,8 @@ public abstract class AddonEntityMapper {
     }
 
     @Mapping(target = "deploymentName", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     protected abstract AddonEntity update(Addon domain, @MappingTarget AddonEntity entity);
 
 }

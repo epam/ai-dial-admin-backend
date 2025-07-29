@@ -24,13 +24,8 @@ public abstract class RouteEntityMapper {
     public RouteEntity toEntity(Route domain, RouteEntity entity) {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-        Long createdAt = entity.getCreatedAt();
 
         RouteEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ROUTE);
@@ -38,5 +33,7 @@ public abstract class RouteEntityMapper {
     }
 
     @Mapping(target = "deploymentName", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract RouteEntity update(Route domain, @MappingTarget RouteEntity entity);
 }

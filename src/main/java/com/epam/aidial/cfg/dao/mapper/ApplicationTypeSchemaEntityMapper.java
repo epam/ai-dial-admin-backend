@@ -36,13 +36,8 @@ public abstract class ApplicationTypeSchemaEntityMapper {
         List<ApplicationEntity> applications = shouldUpdateApplications
                 ? findApplicationsByNames(domain.getApplications())
                 : entity.getApplications();
-        Long createdAt = entity.getCreatedAt();
 
         ApplicationTypeSchemaEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         if (shouldUpdateApplications) {
             updatedEntity.getApplications().forEach(app -> {
@@ -61,6 +56,8 @@ public abstract class ApplicationTypeSchemaEntityMapper {
     }
 
     @Mapping(target = "applications", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     abstract ApplicationTypeSchemaEntity update(ApplicationTypeSchema domain, @MappingTarget ApplicationTypeSchemaEntity entity);
 
     private List<ApplicationEntity> findApplicationsByNames(List<String> names) {

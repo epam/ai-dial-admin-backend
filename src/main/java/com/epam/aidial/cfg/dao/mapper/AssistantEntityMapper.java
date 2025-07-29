@@ -25,13 +25,8 @@ public abstract class AssistantEntityMapper {
     public AssistantEntity toEntity(Assistant domain, AssistantEntity entity) {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-        Long createdAt = entity.getCreatedAt();
 
         AssistantEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ASSISTANT);
@@ -39,6 +34,8 @@ public abstract class AssistantEntityMapper {
     }
 
     @Mapping(target = "deploymentName", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "descriptionKeywords", source = "topics")
     public abstract AssistantEntity update(Assistant domain, @MappingTarget AssistantEntity entity);
 }

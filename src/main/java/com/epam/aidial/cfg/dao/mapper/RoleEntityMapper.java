@@ -57,13 +57,7 @@ public abstract class RoleEntityMapper {
         List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getShare());
         List<DeploymentEntity> roleShareDeployments = findDeploymentsByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getDeploymentName).toList());
 
-        Long createdAt = entity.getCreatedAt();
-
         RoleEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         updatedEntity.getKeys().forEach(key -> key.getRoles().remove(updatedEntity));
         keyEntities.forEach(key -> key.getRoles().add(updatedEntity));
@@ -121,6 +115,8 @@ public abstract class RoleEntityMapper {
     @Mapping(target = "limits", ignore = true)
     @Mapping(target = "share", ignore = true)
     @Mapping(target = "keys", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract RoleEntity update(Role domain, @MappingTarget RoleEntity entity);
 
     private List<KeyEntity> findKeyEntitiesByKeys(List<String> keys) {

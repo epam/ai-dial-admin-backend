@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.domain.mapper;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
-import com.epam.aidial.cfg.web.facade.mapper.InstantMapper;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +15,11 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public abstract class ApplicationTypeSchemaCoreMapper {
 
-    private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
+    private final ObjectMapper objectMapper;
+
+    public ApplicationTypeSchemaCoreMapper() {
+        this.objectMapper = JsonMapperConfiguration.createJsonMapper();
+    }
 
     public String mapToCoreString(ApplicationTypeSchema applicationTypeSchema) {
         if (applicationTypeSchema == null) {
@@ -34,23 +37,14 @@ public abstract class ApplicationTypeSchemaCoreMapper {
         if (StringUtils.isEmpty(applicationTypeSchema)) {
             return null;
         }
-
         ApplicationTypeSchemaDto dto = toDto(applicationTypeSchema);
-        Long createdAt = null;
-        Long updatedAt = null;
-
-        if (dto != null) {
-            createdAt = dto.getCreatedAt() != null ? InstantMapper.mapInstantToLong(dto.getCreatedAt()) : null;
-            updatedAt = dto.getCreatedAt() != null ? InstantMapper.mapInstantToLong(dto.getCreatedAt()) : null;
-        }
-
-        return mapToApplicationTypeSchema(dto, createdAt, updatedAt);
+        return mapToApplicationTypeSchema(dto);
     }
 
-    @Mapping(target = "schemaId", source = "dto.id")
-    @Mapping(target = "createdAt", source = "createdAt")
-    @Mapping(target = "updatedAt", source = "updatedAt")
-    abstract ApplicationTypeSchema mapToApplicationTypeSchema(ApplicationTypeSchemaDto dto, Long createdAt, Long updatedAt);
+    @Mapping(target = "schemaId", source = "id")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    abstract ApplicationTypeSchema mapToApplicationTypeSchema(ApplicationTypeSchemaDto dto);
 
     private String toApplicationTypeSchemaAsString(CoreApplicationTypeSchema applicationTypeSchema) {
         if (applicationTypeSchema == null) {

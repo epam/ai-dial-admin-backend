@@ -35,13 +35,8 @@ public abstract class InterceptorRunnerEntityMapper {
         List<InterceptorEntity> interceptors = shouldUpdateInterceptors
                 ? findInterceptorsByNames(domain.getInterceptors())
                 : entity.getInterceptors();
-        Long createdAt = entity.getCreatedAt();
 
         InterceptorRunnerEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         if (shouldUpdateInterceptors) {
             updatedEntity.getInterceptors().forEach(app -> {
@@ -62,6 +57,8 @@ public abstract class InterceptorRunnerEntityMapper {
     }
 
     @Mapping(target = "interceptors", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     abstract InterceptorRunnerEntity update(InterceptorRunner domain, @MappingTarget InterceptorRunnerEntity entity);
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {

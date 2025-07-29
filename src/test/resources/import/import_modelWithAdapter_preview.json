@@ -52,8 +52,6 @@
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [],
         "type": "embedding",
         "upstreams": [],
@@ -72,7 +70,9 @@
         "adapter": {
           "name": "adapter1",
           "baseEndpoint": "http://endpoint1/",
-          "models": []
+          "models": [],
+          "createdAt": 123,
+          "updatedAt": 123
         },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
@@ -98,8 +98,6 @@
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [
           "dep1",
           "dep2"

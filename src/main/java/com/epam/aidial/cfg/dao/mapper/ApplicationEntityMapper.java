@@ -60,13 +60,8 @@ public abstract class ApplicationEntityMapper {
 
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-        Long createdAt = entity.getCreatedAt();
 
         ApplicationEntity updatedEntity = update(domain, entity);
-
-        updatedEntity.setCreatedAt(
-                updatedEntity.getCreatedAt() == null ? createdAt : updatedEntity.getCreatedAt()
-        );
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getApplications().remove(updatedEntity));
         interceptors.forEach(interceptor -> interceptor.getApplications().add(updatedEntity));
@@ -91,6 +86,8 @@ public abstract class ApplicationEntityMapper {
     @Mapping(target = "deploymentName", ignore = true)
     @Mapping(target = "applicationTypeSchema", ignore = true)
     @Mapping(target = "interceptors", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     protected abstract ApplicationEntity update(Application domain, @MappingTarget ApplicationEntity entity);
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {

@@ -115,8 +115,6 @@
         "endpoint": "https://endpoint.test.com/interceptor",
         "forwardAuthToken": false,
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": []
       }
     }
@@ -229,8 +227,6 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [
           "dep1",
           "dep2"
@@ -299,8 +295,6 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [],
         "fieldsHashingOrder": [
           "prompt",
@@ -353,8 +347,6 @@
         },
         "applicationTypeSchemaId": "https://test-schema-id.example",
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [
           "dep1",
           "dep2"
@@ -424,8 +416,6 @@
         "displayName": "Test Addon1",
         "forwardAuthToken": false,
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": []
       }
     }

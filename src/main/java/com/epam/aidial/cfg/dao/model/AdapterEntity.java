@@ -16,7 +16,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class AdapterEntity extends TimeTrackableEntity {
+public class AdapterEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
