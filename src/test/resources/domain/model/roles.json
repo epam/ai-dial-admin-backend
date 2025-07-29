@@ -29,6 +29,32 @@
           "requestHour": 200,
           "requestDay": 1000
         }
+      },
+      {
+        "role": "admin",
+        "deploymentName": "sampleDeployment3",
+        "enabled": true
+      },
+      {
+        "role": "admin",
+        "deploymentName": "sampleDeployment4",
+        "enabled": true,
+        "limit": {}
+      },
+      {
+        "role": "admin",
+        "deploymentName": "sampleDeployment5",
+        "enabled": true,
+        "limit": {}
+      },
+      {
+        "role": "admin",
+        "deploymentName": "sampleDeployment6",
+        "enabled": true,
+        "limit": {
+          "minute": 20,
+          "day": 2000
+        }
       }
     ],
     "roles": [],
