@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.networknt.schema.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -49,7 +48,7 @@ public class DeploymentManagerService {
     }
 
     private DeploymentInfoDto getDeploymentInfoDto(String id) {
-        if (StringUtils.isBlank(deploymentClientUrl)) {
+        if ("url-placeholder".equals(deploymentClientUrl)) {
             throw new DeploymentClientNotExistsException();
         }
         return deploymentManagerClient.getDeployment(id);
