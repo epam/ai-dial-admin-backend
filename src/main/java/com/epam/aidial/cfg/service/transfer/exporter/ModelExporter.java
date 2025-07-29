@@ -91,7 +91,9 @@ public class ModelExporter {
     }
 
     private Model removeDependency(Model model, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
-        if (!componentTypes.contains(ExportConfigComponentType.ROLE)) {
+        // Exclude role limits from deployment for Admin export format in order to have unidirectional association
+        // between deployments and roles, so it means that role with its limits will be defined only under "roles" section
+        if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
             model.getDeployment().setRoleLimits(null);
         }
         if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {

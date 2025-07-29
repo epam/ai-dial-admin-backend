@@ -40,7 +40,7 @@ public class ModelEndpointUtils {
     public ModelEndpointComponents parseModelEndpoint(String modelEndpoint, com.epam.aidial.core.config.ModelType type) {
         boolean isChat = isChat(type);
         String endpointEnding = MODEL_PATTERN_MAP.get(isChat).getLeft();
-        boolean isDirectOpenAiEndpoint = modelEndpoint.endsWith("v1/" + endpointEnding);
+        boolean isDirectOpenAiEndpoint = modelEndpoint.endsWith("/v1/" + endpointEnding);
 
         if (isDirectOpenAiEndpoint) {
             String adapterEndpoint = Strings.CS.removeEnd(modelEndpoint, endpointEnding);

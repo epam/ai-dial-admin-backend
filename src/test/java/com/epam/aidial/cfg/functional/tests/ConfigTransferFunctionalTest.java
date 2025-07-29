@@ -442,17 +442,7 @@ public abstract class ConfigTransferFunctionalTest {
                     .satisfies(models -> {
                         Model model = models.get("modelName");
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
-                        Assertions.assertThat(model.getDeployment().getRoleLimits()).isNotNull().satisfies(roleLimits -> {
-                            Assertions.assertThat(roleLimits).hasSize(1).first().satisfies(roleLimit -> {
-                                Assertions.assertThat(roleLimit.getRole()).isEqualTo("testRole");
-                                Assertions.assertThat(roleLimit.getDeploymentName()).isEqualTo("modelName");
-                                Assertions.assertThat(roleLimit.isEnabled()).isTrue();
-                                Assertions.assertThat(roleLimit.getLimit()).isNotNull().satisfies(limit -> {
-                                    Assertions.assertThat(limit.getMinute()).isEqualTo(5);
-                                    Assertions.assertThat(limit.getDay()).isNull();
-                                });
-                            });
-                        });
+                        Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
                         Assertions.assertThat(model.getAdapter()).isNull();
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
@@ -527,17 +517,7 @@ public abstract class ConfigTransferFunctionalTest {
                     .satisfies(models -> {
                         Model model = models.get("modelName");
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
-                        Assertions.assertThat(model.getDeployment().getRoleLimits()).isNotNull().satisfies(roleLimits -> {
-                            Assertions.assertThat(roleLimits).hasSize(1).first().satisfies(roleLimit -> {
-                                Assertions.assertThat(roleLimit.getRole()).isEqualTo("testRole");
-                                Assertions.assertThat(roleLimit.getDeploymentName()).isEqualTo("modelName");
-                                Assertions.assertThat(roleLimit.isEnabled()).isTrue();
-                                Assertions.assertThat(roleLimit.getLimit()).isNotNull().satisfies(limit -> {
-                                    Assertions.assertThat(limit.getMinute()).isEqualTo(5);
-                                    Assertions.assertThat(limit.getDay()).isNull();
-                                });
-                            });
-                        });
+                        Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
                         Assertions.assertThat(model.getAdapter().getName()).isEqualTo("testAdapter");
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
@@ -588,20 +568,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
             Assertions.assertThat(config.getRoutes()).isNotEmpty()
                     .containsOnlyKeys("routeName")
-                    .satisfies(routes -> {
-                        Route route = routes.get("routeName");
-                        Assertions.assertThat(route.getDeployment().getRoleLimits()).isNotNull().satisfies(roleLimits -> {
-                            Assertions.assertThat(roleLimits).hasSize(1).first().satisfies(roleLimit -> {
-                                Assertions.assertThat(roleLimit.getRole()).isEqualTo("testRole");
-                                Assertions.assertThat(roleLimit.getDeploymentName()).isEqualTo("routeName");
-                                Assertions.assertThat(roleLimit.isEnabled()).isTrue();
-                                Assertions.assertThat(roleLimit.getLimit()).isNotNull().satisfies(limit -> {
-                                    Assertions.assertThat(limit.getMinute()).isEqualTo(5);
-                                    Assertions.assertThat(limit.getDay()).isNull();
-                                });
-                            });
-                        });
-                    });
+                    .satisfies(routes -> Assertions.assertThat(routes.get("routeName").getDeployment().getRoleLimits()).isNull());
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
             Assertions.assertThat(config.getRoles().get("testRole").getLimits()).isNotEmpty().hasSize(1).first()
                     .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("routeName"));
@@ -737,19 +704,8 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getApplications()).isNotEmpty()
                     .containsOnlyKeys("applicationName")
                     .satisfies(apps -> {
-
                         Assertions.assertThat(apps.get("applicationName").getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
-                        Assertions.assertThat(apps.get("applicationName").getDeployment().getRoleLimits()).isNotNull().satisfies(roleLimits -> {
-                            Assertions.assertThat(roleLimits).hasSize(1).first().satisfies(roleLimit -> {
-                                Assertions.assertThat(roleLimit.getRole()).isEqualTo("testRole");
-                                Assertions.assertThat(roleLimit.getDeploymentName()).isEqualTo("applicationName");
-                                Assertions.assertThat(roleLimit.isEnabled()).isTrue();
-                                Assertions.assertThat(roleLimit.getLimit()).isNotNull().satisfies(limit -> {
-                                    Assertions.assertThat(limit.getMinute()).isEqualTo(5);
-                                    Assertions.assertThat(limit.getDay()).isNull();
-                                });
-                            });
-                        });
+                        Assertions.assertThat(apps.get("applicationName").getDeployment().getRoleLimits()).isNull();
                     });
 
             Assertions.assertThat(config.getApplicationRunners()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
