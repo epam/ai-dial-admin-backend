@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
 import com.epam.aidial.cfg.configuration.JpaConfiguration;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.configuration.ValidationConfig;
 import com.epam.aidial.cfg.domain.mapper.AddonCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
@@ -29,7 +30,6 @@ import com.epam.aidial.cfg.service.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
-import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +46,7 @@ import org.springframework.context.annotation.Import;
         "com.epam.aidial.cfg.service.normalizer",
         "com.epam.aidial.cfg.transaction",
 })
-@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class})
+@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, ValidationConfig.class})
 @EnableAspectJAutoProxy
 public class FunctionalTestConfiguration {
 
@@ -108,11 +108,6 @@ public class FunctionalTestConfiguration {
     @Bean
     public AnonymousCoreConfigClient coreConfigClient() {
         return Mockito.mock(AnonymousCoreConfigClient.class);
-    }
-
-    @Bean
-    public CustomApplicationConformToTypeSchemaValidator customApplicationConformToTypeSchemaValidator() {
-        return new CustomApplicationConformToTypeSchemaValidator();
     }
 
 }
