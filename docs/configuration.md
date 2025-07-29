@@ -244,12 +244,12 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 
 ## Plugins Configuration
 
-| Setting                                              | Environment Variable                                    | Default | Required | Applied when                                               | Description                                              |
-|------------------------------------------------------|---------------------------------------------------------|---------|----------|------------------------------------------------------------|----------------------------------------------------------|
-| plugins.deployment.manager.client.url                | PLUGINS_DEPLOYMENT_MANAGER_CLIENT_URL                   | -       | No       | -                                                          | Deployment manager client URL                            |
-| plugins.deployment.manager.cache.expiration.interval | PLUGINS_DEPLOYMENT_MANAGER_CACHE_EXPIRATION_INTERVAL_MS | 300000  | No       | -                                                          | Expiration interval (in ms) of deployment manager cache  |
-| plugins.deployment.manager.endpoint.refresh.enabled  | ENABLE_PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH      | false   | No       | -                                                          | Enable deployment manager endpoint refresh               |
-| plugins.deployment.manager.endpoint.refresh.interval | PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH_INTERVAL_MS | 360000  | No       | plugins.deployment.manager.endpoint.refresh.enabled = true | Refresh interval (in ms) of deployment manager endpoints |
+| Setting                                              | Environment Variable                                    | Default         | Required | Applied when                                               | Description                                              |
+|------------------------------------------------------|---------------------------------------------------------|-----------------|----------|------------------------------------------------------------|----------------------------------------------------------|
+| plugins.deployment.manager.client.url                | PLUGINS_DEPLOYMENT_MANAGER_CLIENT_URL                   | url-placeholder | No       | -                                                          | Deployment manager client URL                            |
+| plugins.deployment.manager.cache.expiration.interval | PLUGINS_DEPLOYMENT_MANAGER_CACHE_EXPIRATION_INTERVAL_MS | 300000          | No       | -                                                          | Expiration interval (in ms) of deployment manager cache  |
+| plugins.deployment.manager.endpoint.refresh.enabled  | ENABLE_PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH      | false           | No       | -                                                          | Enable deployment manager endpoint refresh               |
+| plugins.deployment.manager.endpoint.refresh.interval | PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH_INTERVAL_MS | 360000          | No       | plugins.deployment.manager.endpoint.refresh.enabled = true | Refresh interval (in ms) of deployment manager endpoints |
 
 ## Validation Configuration
 
