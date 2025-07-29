@@ -29,6 +29,7 @@ import com.epam.aidial.cfg.service.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
+import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,7 @@ import org.springframework.context.annotation.Import;
         "com.epam.aidial.cfg.domain",
         "com.epam.aidial.cfg.web.facade",
         "com.epam.aidial.cfg.service.transfer",
+        "com.epam.aidial.cfg.service.normalizer",
         "com.epam.aidial.cfg.transaction",
 })
 @Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class})
@@ -106,6 +108,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public AnonymousCoreConfigClient coreConfigClient() {
         return Mockito.mock(AnonymousCoreConfigClient.class);
+    }
+
+    @Bean
+    public CustomApplicationConformToTypeSchemaValidator customApplicationConformToTypeSchemaValidator() {
+        return new CustomApplicationConformToTypeSchemaValidator();
     }
 
 }
