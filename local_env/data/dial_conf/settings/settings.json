@@ -1,0 +1,18 @@
+{
+  "server": {
+    "port": 8080
+  },
+  "identityProviders": {
+    "test": {
+      "rolePath": "roles",
+      "disableJwtVerification": true
+    }
+  },
+  "encryption": {
+    "key": "salt",
+    "secret": "password"
+  },
+  "config": {
+	"reload": 5000
+  }
+}
