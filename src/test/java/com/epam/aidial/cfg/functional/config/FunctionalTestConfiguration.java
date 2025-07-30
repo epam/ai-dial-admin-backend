@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
 import com.epam.aidial.cfg.configuration.JpaConfiguration;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.configuration.ValidationConfig;
 import com.epam.aidial.cfg.domain.mapper.AddonCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
@@ -42,9 +43,10 @@ import org.springframework.context.annotation.Import;
         "com.epam.aidial.cfg.domain",
         "com.epam.aidial.cfg.web.facade",
         "com.epam.aidial.cfg.service.transfer",
+        "com.epam.aidial.cfg.service.normalizer",
         "com.epam.aidial.cfg.transaction",
 })
-@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class})
+@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, ValidationConfig.class})
 @EnableAspectJAutoProxy
 public class FunctionalTestConfiguration {
 
