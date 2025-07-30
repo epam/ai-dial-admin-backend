@@ -1,11 +1,15 @@
 package com.epam.aidial.cfg.service.transfer.importer;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
+import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreInterceptor;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,7 @@ public class InterceptorImporter {
 
     private final InterceptorService interceptorService;
     private final InterceptorCoreMapper interceptorCoreMapper;
+    private final DeploymentManagerService deploymentManagerService;
 
     public Collection<ImportComponent<Interceptor>> importInterceptors(Map<String, CoreInterceptor> coreInterceptors,
                                                                        ConflictResolutionPolicy resolutionPolicy,
@@ -63,10 +68,31 @@ public class InterceptorImporter {
                                             Interceptor newInterceptor,
                                             ConflictResolutionPolicy resolutionPolicy,
                                             boolean isPreview) {
+        removeContainerSourceDependencyIfContainerIsAbsent(newInterceptor);
         if (interceptorService.exists(interceptorName)) {
             return handleExisting(newInterceptor, resolutionPolicy, interceptorName, isPreview);
         } else {
             return create(newInterceptor, isPreview);
+        }
+    }
+
+    private void removeContainerSourceDependencyIfContainerIsAbsent(Interceptor newInterceptor) {
+        if (!(newInterceptor.getSource() instanceof InterceptorContainerSource containerSource)) {
+            return;
+        }
+
+        String containerId = containerSource.getContainerId();
+
+        DeploymentInfoDto deploymentInfo = null;
+        try {
+            deploymentInfo = deploymentManagerService.getById(containerId);
+        } catch (DeploymentClientNotExistsException e) {
+            log.warn("Failed to get deployment by ID '%s' on Interceptor '%s' import"
+                    .formatted(containerId, newInterceptor.getName()), e);
+        }
+
+        if (deploymentInfo == null) {
+            newInterceptor.setSource(null);
         }
     }
 

@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
@@ -25,6 +26,7 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.RouteDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -50,6 +52,7 @@ import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -136,18 +139,22 @@ public abstract class ConfigTransferFunctionalTest {
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
-            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
+            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole3", "default");
             Assertions.assertThat(modelDto.getRoleLimits().get("testRole1")).satisfies(limit1 -> {
                 Assertions.assertThat(limit1.isEnabled()).isTrue();
                 Assertions.assertThat(limit1.getDay()).isEqualTo(1);
                 Assertions.assertThat(limit1.getMinute()).isNull();
             });
-            Assertions.assertThat(modelDto.getRoleLimits().get("testRole2"))
-                    .satisfies(limit2 -> Assertions.assertThat(limit2.isEnabled()).isFalse());
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole2")).isNull();
             Assertions.assertThat(modelDto.getRoleLimits().get("testRole3")).satisfies(limit3 -> {
                 Assertions.assertThat(limit3.isEnabled()).isTrue();
                 Assertions.assertThat(limit3.getDay()).isNull();
                 Assertions.assertThat(limit3.getMinute()).isNull();
+            });
+            Assertions.assertThat(modelDto.getRoleLimits().get("default")).satisfies(limitDefault -> {
+                Assertions.assertThat(limitDefault.isEnabled()).isFalse();
+                Assertions.assertThat(limitDefault.getDay()).isEqualTo(3);
+                Assertions.assertThat(limitDefault.getMinute()).isNull();
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
@@ -269,7 +276,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew()))
                 // then
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Deployment with name testApplication1 does not exist");
+                .hasMessageContaining("unable to find deployments: [testApplication1]");
     }
 
     @Test
@@ -297,6 +304,17 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app ->
                 Assertions.assertThat(app.getDefaultRoleLimit()).isNotNull().satisfies(defaultRoleLimit -> {
+                    Assertions.assertThat(defaultRoleLimit.isEnabled()).isTrue();
+                    Assertions.assertThat(defaultRoleLimit.getMinute()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getDay()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getWeek()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getMonth()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getRequestHour()).isEqualTo(null);
+                    Assertions.assertThat(defaultRoleLimit.getRequestDay()).isEqualTo(null);
+                })
+        );
+        Assertions.assertThat(applicationDto.getRoleLimits()).isNotEmpty().satisfies(roleLimits ->
+                Assertions.assertThat(roleLimits.get("default")).isNotNull().satisfies(defaultRoleLimit -> {
                     Assertions.assertThat(defaultRoleLimit.getMinute()).isEqualTo(100000000L);
                     Assertions.assertThat(defaultRoleLimit.getDay()).isEqualTo(100000000L);
                 })
@@ -348,9 +366,6 @@ public abstract class ConfigTransferFunctionalTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
-        var dto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
-        });
-        applicationTypeSchemaFacade.create(dto);
         interceptorFacade.createInterceptor(interceptorDto);
         modelFacade.createModel(modelDto);
         // when
@@ -550,8 +565,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
             Assertions.assertThat(config.getRoutes()).isNotEmpty()
                     .containsOnlyKeys("routeName")
-                    .satisfies(routes ->
-                            Assertions.assertThat(routes.get("routeName").getDeployment().getRoleLimits()).isNull());
+                    .satisfies(routes -> Assertions.assertThat(routes.get("routeName").getDeployment().getRoleLimits()).isNull());
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
             Assertions.assertThat(config.getRoles().get("testRole").getLimits()).isNotEmpty().hasSize(1).first()
                     .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("routeName"));
@@ -601,6 +615,70 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExport_CoreFormatAppDoesNotConformToAppRunner_FullRequest() throws IOException, URISyntaxException {
+        // given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(
+                ExportConfigComponentType.APPLICATION,
+                ExportConfigComponentType.APPLICATION_TYPE_SCHEMA
+        ));
+
+        URI customAppSchemaId = new URI("https://test-schema-id.example");
+        ApplicationDto applicationDto = new ApplicationDto();
+        applicationDto.setName("applicationName");
+        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+
+        ApplicationTypeSchemaDto schemaDto = jsonMapper.readValue(
+                getAppRunnerDtoWithRequiredFields(List.of("external_url")),
+                new TypeReference<>() {
+                }
+        );
+
+        applicationTypeSchemaFacade.create(schemaDto);
+        applicationFacade.createApplication(applicationDto);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplications()).isEmpty();
+            Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatKeyWithoutRoles_FullRequest() throws IOException, URISyntaxException {
+        // given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.KEY));
+
+        KeyDto keyDto = new KeyDto();
+        keyDto.setName("testKey");
+        keyDto.setKey("testKeyValue");
+
+        keyFacade.createKey(keyDto);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getKeys()).isEmpty();
+        });
+    }
+
+    @Test
     void testExport_AdminFormatInterceptorRunnerWithInterceptors_FullRequest() throws IOException {
         // given
         Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.INTERCEPTOR_RUNNER,
@@ -608,7 +686,7 @@ public abstract class ConfigTransferFunctionalTest {
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.ADMIN);
         request.setComponentTypes(componentTypes);
-        
+
         // Create interceptor runner
         InterceptorRunnerDto runnerDto = new InterceptorRunnerDto();
         runnerDto.setName("testRunner");
@@ -617,24 +695,22 @@ public abstract class ConfigTransferFunctionalTest {
         runnerDto.setCompletionEndpoint("https://test.com/completion");
         runnerDto.setConfigurationEndpoint("https://test.com/configuration");
         interceptorRunnerFacade.createInterceptorRunner(runnerDto);
-        
+
         // Create interceptors associated with the runner
         InterceptorDto interceptor1 = new InterceptorDto();
         interceptor1.setName("testInterceptor1");
         interceptor1.setDescription("Test interceptor 1");
-        interceptor1.setInterceptorRunner("testRunner");
-        
+        interceptor1.setSource(new InterceptorRunnerSourceDto("testRunner"));
         InterceptorDto interceptor2 = new InterceptorDto();
         interceptor2.setName("testInterceptor2");
         interceptor2.setDescription("Test interceptor 2");
-        interceptor2.setInterceptorRunner("testRunner");
-        
+        interceptor2.setSource(new InterceptorRunnerSourceDto("testRunner"));
         interceptorFacade.createInterceptor(interceptor1);
         interceptorFacade.createInterceptor(interceptor2);
-        
+
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
-        
+
         // then
         ExportConfig result = extractConfigFromZip(streamingResponseBody);
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
@@ -648,12 +724,12 @@ public abstract class ConfigTransferFunctionalTest {
                         // Verify interceptors are not included in the runner (they're exported separately)
                         Assertions.assertThat(runners.get("testRunner").getInterceptors()).isNull();
                     });
-            
+
             Assertions.assertThat(config.getInterceptors()).isNotEmpty()
                     .containsOnlyKeys("testInterceptor1", "testInterceptor2")
                     .satisfies(interceptors -> {
-                        Assertions.assertThat(interceptors.get("testInterceptor1").getInterceptorRunner()).isEqualTo("testRunner");
-                        Assertions.assertThat(interceptors.get("testInterceptor2").getInterceptorRunner()).isEqualTo("testRunner");
+                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor1").getSource()).getRunnerName()).isEqualTo("testRunner");
+                        Assertions.assertThat(((InterceptorRunnerSource) interceptors.get("testInterceptor2").getSource()).getRunnerName()).isEqualTo("testRunner");
                     });
         });
     }
@@ -689,7 +765,6 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getApplications()).isNotEmpty()
                     .containsOnlyKeys("applicationName")
                     .satisfies(apps -> {
-
                         Assertions.assertThat(apps.get("applicationName").getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
                         Assertions.assertThat(apps.get("applicationName").getDeployment().getRoleLimits()).isNull();
                     });
@@ -915,9 +990,18 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
         Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
-        Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
-        Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
+        Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
+        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
+                Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
+        );
+        Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
+        Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {
+            Assertions.assertThat(r.getName()).isEqualTo("testRunner1");
+            Assertions.assertThat(r.getCompletionEndpoint()).isEqualTo("https://template.test.com/api");
+            Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
+        });
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
         Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
 
@@ -1312,8 +1396,16 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     private String getAppRunnerDto() {
+        return getAppRunnerDtoWithRequiredFields(null);
+    }
+
+    private String getAppRunnerDtoWithRequiredFields(List<String> requiredFields) {
+        String requiredFieldsString = CollectionUtils.emptyIfNull(requiredFields).stream()
+                .map(field -> "\"" + field + "\"")
+                .collect(Collectors.joining(", "));
         return """
-            {"$id": "https://test-schema-id.example",
+                {
+                    "$id": "https://test-schema-id.example",
                     "dial:applicationTypeEditorUrl": "https://test.com/billings",
                     "dial:applicationTypeViewerUrl": "https://test.com/claims",
                     "dial:applicationTypeDisplayName": "runner display name",
@@ -1325,8 +1417,8 @@ public abstract class ConfigTransferFunctionalTest {
                     "dial:appendApplicationPropertiesHeader": false,
                     "$defs": {},
                     "properties": {},
-                    "required": []
-                  }""";
+                    "required": [%s]
+                }""".formatted(requiredFieldsString);
     }
 
     private static ConfigImportOptions overrideAndCreateRoleAndCreateNew() {

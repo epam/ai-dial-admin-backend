@@ -13,4 +13,7 @@ public interface InterceptorJpaRepository extends JpaRepository<InterceptorEntit
     @Query("DELETE FROM InterceptorEntity i WHERE i.name NOT IN :ids")
     @Modifying
     void deleteAllExcept(@Param("ids") List<String> ids);
+
+    @Query("SELECT i FROM InterceptorEntity i WHERE i.interceptorContainer IS NOT NULL")
+    List<InterceptorEntity> findByContainerIdIsNotNull();
 }

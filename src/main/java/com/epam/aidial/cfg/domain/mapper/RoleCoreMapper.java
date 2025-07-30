@@ -10,39 +10,32 @@ import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreShareResourceLimit;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.mapstruct.AfterMapping;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.aidial.core.config.CoreRole.DEFAULT_ROLE_NAME;
-
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = RoleLimitMapper.class)
 public interface RoleCoreMapper {
 
-    CoreRole mapRole(Role role, Collection<Deployment> deployments);
-
-    @AfterMapping
-    default void mapDefaultLimits(@MappingTarget CoreRole coreRole, Role role, Collection<Deployment> deployments) {
-        if (!Objects.equals(role.getName(), CoreRole.DEFAULT_ROLE_NAME) || CollectionUtils.isEmpty(deployments)) {
-            return;
-        }
-        Map<String, CoreLimit> limits = deployments.stream()
-                .filter(d -> !isUnlimited(d.getDefaultRoleLimit()))
-                .collect(Collectors.toMap(Deployment::getName, d -> mapLimit(d.getDefaultRoleLimit())
-                ));
-        coreRole.setLimits(limits);
-    }
+    @Mapping(target = "limits", qualifiedByName = "mapToCoreLimits")
+    CoreRole mapRole(Role role, @Context Collection<Deployment> deployments);
 
     @Mapping(target = "keys", ignore = true)
     @Mapping(target = "limits", ignore = true)
@@ -52,30 +45,29 @@ public interface RoleCoreMapper {
                    Map<String, CoreLimit> limits,
                    Map<String, CoreShareResourceLimit> shareResourceLimits,
                    List<RoleLimit> roleLimitsToMergeWithCoreLimits,
-                   List<RoleShareResourceLimit> existingShareResourceLimitsNotPresentInConfig);
+                   List<RoleShareResourceLimit> roleShareResourceLimitsToMergeWithCoreShareResourceLimits,
+                   Map<String, Set<String>> userRolesByDeploymentName);
 
     @AfterMapping
     default void afterMapping(@MappingTarget Role role,
-                              CoreRole coreRole,
                               Map<String, CoreLimit> limits,
                               Map<String, CoreShareResourceLimit> shareResourceLimits,
                               List<RoleLimit> roleLimitsToMergeWithCoreLimits,
-                              List<RoleShareResourceLimit> roleShareResourceLimitsToMergeWithCoreShareResourceLimits) {
-        if (!Objects.equals(coreRole.getName(), DEFAULT_ROLE_NAME)) {
-            List<RoleLimit> coreRoleLimits = map(limits);
-            List<RoleShareResourceLimit> coreRoleShareResourceLimits = mapShareResourceLimitsToList(shareResourceLimits);
+                              List<RoleShareResourceLimit> roleShareResourceLimitsToMergeWithCoreShareResourceLimits,
+                              Map<String, Set<String>> userRolesByDeploymentName) {
+        List<RoleLimit> coreRoleLimits = map(role.getName(), limits, userRolesByDeploymentName);
+        List<RoleShareResourceLimit> coreRoleShareResourceLimits = mapShareResourceLimitsToList(shareResourceLimits);
 
-            if (coreRoleLimits == null && CollectionUtils.isEmpty(roleLimitsToMergeWithCoreLimits)) {
-                role.setLimits(null);
-            } else {
-                role.setLimits(mergeLimits(coreRoleLimits, roleLimitsToMergeWithCoreLimits));
-            }
+        if (coreRoleLimits == null && CollectionUtils.isEmpty(roleLimitsToMergeWithCoreLimits)) {
+            role.setLimits(null);
+        } else {
+            role.setLimits(mergeLimits(coreRoleLimits, roleLimitsToMergeWithCoreLimits));
+        }
 
-            if (coreRoleShareResourceLimits == null && CollectionUtils.isEmpty(roleShareResourceLimitsToMergeWithCoreShareResourceLimits)) {
-                role.setShare(null);
-            } else {
-                role.setShare(mergeShareResourceLimits(coreRoleShareResourceLimits, roleShareResourceLimitsToMergeWithCoreShareResourceLimits));
-            }
+        if (coreRoleShareResourceLimits == null && CollectionUtils.isEmpty(roleShareResourceLimitsToMergeWithCoreShareResourceLimits)) {
+            role.setShare(null);
+        } else {
+            role.setShare(mergeShareResourceLimits(coreRoleShareResourceLimits, roleShareResourceLimitsToMergeWithCoreShareResourceLimits));
         }
     }
 
@@ -100,14 +92,19 @@ public interface RoleCoreMapper {
         return limitsByDeploymentName.values().stream().toList();
     }
 
-    default Map<String, CoreLimit> mapLimits(List<RoleLimit> roleLimits) {
+    @Named("mapToCoreLimits")
+    default Map<String, CoreLimit> mapLimits(List<RoleLimit> roleLimits, @Context Collection<Deployment> deployments) {
         if (roleLimits == null) {
             return Map.of();
         }
 
+        Map<String, Deployment> deploymentsByName = CollectionUtils.emptyIfNull(deployments).stream()
+                .collect(Collectors.toMap(Deployment::getName, Function.identity()));
+
         return roleLimits.stream()
                 .map(roleLimit -> {
-                    CoreLimit mappedLimit = mapLimit(roleLimit.getLimit());
+                    Deployment deployment = deploymentsByName.get(roleLimit.getDeploymentName());
+                    CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
                     return mappedLimit != null ? new AbstractMap.SimpleEntry<>(roleLimit.getDeploymentName(), mappedLimit) : null;
                 })
                 .filter(Objects::nonNull)
@@ -128,17 +125,23 @@ public interface RoleCoreMapper {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    default CoreLimit mapLimit(Limit limit) {
-        if (limit == null || isUnlimited(limit)) {
+    default CoreLimit mapLimit(Limit limit, Deployment deployment) {
+        if (limit == null || deployment == null) {
             return null;
         }
+
+        Limit defaultLimit = Optional.ofNullable(deployment.getDefaultRoleLimit()).orElse(new Limit());
+        if (isUnlimited(limit) && defaultLimit.isEmpty()) {
+            return null;
+        }
+
         CoreLimit coreLimit = new CoreLimit();
-        setIfNotNull(coreLimit::setMinute, limit.getMinute());
-        setIfNotNull(coreLimit::setDay, limit.getDay());
-        setIfNotNull(coreLimit::setWeek, limit.getWeek());
-        setIfNotNull(coreLimit::setMonth, limit.getMonth());
-        setIfNotNull(coreLimit::setRequestHour, limit.getRequestHour());
-        setIfNotNull(coreLimit::setRequestDay, limit.getRequestDay());
+        setIfNotNull(coreLimit::setMinute, getLimitOrDefault(limit, defaultLimit, Limit::getMinute));
+        setIfNotNull(coreLimit::setDay, getLimitOrDefault(limit, defaultLimit, Limit::getDay));
+        setIfNotNull(coreLimit::setWeek, getLimitOrDefault(limit, defaultLimit, Limit::getWeek));
+        setIfNotNull(coreLimit::setMonth, getLimitOrDefault(limit, defaultLimit, Limit::getMonth));
+        setIfNotNull(coreLimit::setRequestHour, getLimitOrDefault(limit, defaultLimit, Limit::getRequestHour));
+        setIfNotNull(coreLimit::setRequestDay, getLimitOrDefault(limit, defaultLimit, Limit::getRequestDay));
         return coreLimit;
     }
 
@@ -168,24 +171,25 @@ public interface RoleCoreMapper {
     }
 
     private boolean isUnlimited(Limit limit) {
-        return (limit.getMinute() == null || limit.getMinute() == Long.MAX_VALUE)
-                && (limit.getDay() == null || limit.getDay() == Long.MAX_VALUE)
-                && (limit.getWeek() == null || limit.getWeek() == Long.MAX_VALUE)
-                && (limit.getMonth() == null || limit.getMonth() == Long.MAX_VALUE)
-                && (limit.getRequestHour() == null || limit.getRequestHour() == Long.MAX_VALUE)
-                && (limit.getRequestDay() == null || limit.getRequestDay() == Long.MAX_VALUE);
+        return isUnlimited(limit.getMinute())
+                && isUnlimited(limit.getDay())
+                && isUnlimited(limit.getWeek())
+                && isUnlimited(limit.getMonth())
+                && isUnlimited(limit.getRequestHour())
+                && isUnlimited(limit.getRequestDay());
+    }
+
+    private boolean isUnlimited(Long value) {
+        return value == null || value == Long.MAX_VALUE;
+    }
+
+    private Long getLimitOrDefault(Limit limit, Limit defaultLimit, Function<Limit, Long> limitValueGetter) {
+        Long limitValue = limitValueGetter.apply(limit);
+        return isUnlimited(limitValue) ? limitValueGetter.apply(defaultLimit) : limitValue;
     }
 
     @Mapping(target = "role", ignore = true)
-    @Mapping(target = "deploymentName", ignore = true)
-    @Mapping(target = "enabled", ignore = true)
-    @Mapping(target = "limit.minute", source = "minute")
-    @Mapping(target = "limit.day", source = "day")
-    @Mapping(target = "limit.week", source = "week")
-    @Mapping(target = "limit.month", source = "month")
-    @Mapping(target = "limit.requestHour", source = "requestHour")
-    @Mapping(target = "limit.requestDay", source = "requestDay")
-    RoleLimit toLimit(CoreLimit limit);
+    RoleLimit toLimit(CoreLimit limit, String deploymentName, boolean enabled);
 
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "deploymentName", ignore = true)
@@ -193,18 +197,34 @@ public interface RoleCoreMapper {
     @Mapping(target = "limit.invitationTtl", source = "invitationTtl")
     RoleShareResourceLimit toShareResourceLimit(CoreShareResourceLimit shareResourceLimit);
 
-    default List<RoleLimit> map(Map<String, CoreLimit> value) {
+    default List<RoleLimit> map(String roleName, Map<String, CoreLimit> value, Map<String, Set<String>> userRolesByDeploymentName) {
         if (MapUtils.isEmpty(value)) {
             return null;
         }
-        return value.entrySet()
+
+        List<RoleLimit> roleLimits = value.entrySet()
                 .stream()
                 .map(e -> {
-                    RoleLimit roleLimit = toLimit(e.getValue());
-                    roleLimit.setDeploymentName(e.getKey());
-                    return roleLimit;
+                    String deploymentName = e.getKey();
+                    Set<String> userRoles = userRolesByDeploymentName.get(deploymentName);
+                    boolean enabled = SetUtils.emptyIfNull(userRoles).contains(roleName);
+                    RoleLimit roleLimit = toLimit(e.getValue(), deploymentName, enabled);
+                    Limit limit = roleLimit.getLimit();
+                    boolean isDisabledEmptyLimit = !roleLimit.isEnabled() && limit.isEmpty();
+                    return isDisabledEmptyLimit ? null : roleLimit;
                 })
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .toList();
+        Set<String> deploymentNamesOfAlreadyAddedRoleLimits = roleLimits.stream()
+                .map(RoleLimit::getDeploymentName)
+                .collect(Collectors.toSet());
+
+        List<RoleLimit> userRoleLimits = userRolesByDeploymentName.entrySet().stream()
+                .filter(entry -> !deploymentNamesOfAlreadyAddedRoleLimits.contains(entry.getKey()) && entry.getValue().contains(roleName))
+                .map(entry -> toLimit(new CoreLimit(), entry.getKey(), true))
+                .toList();
+
+        return ListUtils.union(roleLimits, userRoleLimits);
     }
 
     default List<RoleShareResourceLimit> mapShareResourceLimitsToList(Map<String, CoreShareResourceLimit> value) {

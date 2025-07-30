@@ -1,18 +1,23 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -22,6 +27,8 @@ public abstract class InterceptorFunctionalTest {
     private InterceptorFacade interceptorFacade;
     @Autowired
     private ApplicationFacade applicationFacade;
+    @Autowired
+    private DeploymentManagerService deploymentManagerService;
 
     @Test
     public void shouldSuccessfullyCreateAndGetInterceptors() {
@@ -173,5 +180,96 @@ public abstract class InterceptorFunctionalTest {
         }
     }
 
+    @Test
+    public void shouldResolveEndpointsForContainerSource() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerUrl = "https://container-url.com";
+        String completionPath = "/api/completion";
+        String configPath = "/api/config";
 
+        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        deploymentInfoDto.setId(UUID.fromString(containerId));
+        deploymentInfoDto.setName("Test Container");
+        deploymentInfoDto.setUrl(containerUrl);
+        
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+        
+        InterceptorDto interceptorDto = new InterceptorDto();
+        interceptorDto.setName("container-interceptor");
+        interceptorDto.setDescription("Container interceptor");
+        
+        InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
+                containerId,
+                completionPath,
+                configPath
+        );
+        
+        interceptorDto.setSource(sourceDto);
+        
+        // When
+        interceptorFacade.createInterceptor(interceptorDto);
+        
+        // Then
+        InterceptorDto result = interceptorFacade.getInterceptor("container-interceptor");
+        
+        Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
+        Assertions.assertEquals(containerUrl + configPath, result.getConfigurationEndpoint());
+        
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+    }
+
+    @Test
+    public void shouldRefreshEndpointsForContainerSource() {
+        // Given
+        String deploymentName = "Test Container";
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String initialUrl = "https://initial-url.com";
+        String updatedUrl = "https://updated-url.com";
+        String completionPath = "/api/completion";
+        String configPath = "/api/config";
+
+        DeploymentInfoDto initialDeploymentInfo = new DeploymentInfoDto();
+        initialDeploymentInfo.setId(UUID.fromString(containerId));
+        initialDeploymentInfo.setName(deploymentName);
+        initialDeploymentInfo.setUrl(initialUrl);
+
+        DeploymentInfoDto updatedDeploymentInfo = new DeploymentInfoDto();
+        updatedDeploymentInfo.setId(UUID.fromString(containerId));
+        updatedDeploymentInfo.setName(deploymentName);
+        updatedDeploymentInfo.setUrl(updatedUrl);
+        
+        Mockito.when(deploymentManagerService.getById(containerId))
+                .thenReturn(initialDeploymentInfo)
+                .thenReturn(initialDeploymentInfo)
+                .thenReturn(updatedDeploymentInfo)
+                .thenReturn(updatedDeploymentInfo);
+
+        InterceptorDto interceptorDto = new InterceptorDto();
+        interceptorDto.setName("refresh-interceptor");
+        interceptorDto.setDescription("Refresh interceptor");
+        
+        InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
+                containerId,
+                completionPath,
+                configPath
+        );
+        
+        interceptorDto.setSource(sourceDto);
+        interceptorFacade.createInterceptor(interceptorDto);
+        
+        InterceptorDto initialResult = interceptorFacade.getInterceptor("refresh-interceptor");
+        Assertions.assertEquals(initialUrl + completionPath, initialResult.getEndpoint());
+        Assertions.assertEquals(initialUrl + configPath, initialResult.getConfigurationEndpoint());
+
+        // When
+        interceptorFacade.refreshEndpoints();
+
+        // Then
+        InterceptorDto refreshedResult = interceptorFacade.getInterceptor("refresh-interceptor");
+        Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
+        Assertions.assertEquals(updatedUrl + configPath, refreshedResult.getConfigurationEndpoint());
+
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+    }
 }

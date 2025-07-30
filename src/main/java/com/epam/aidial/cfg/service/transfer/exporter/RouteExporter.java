@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.transfer.exporter;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.service.RouteService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,7 +37,7 @@ public class RouteExporter {
                             (existing, newRoute) -> newRoute, LinkedHashMap::new))
                     : new LinkedHashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getRoutes(selectedItemsExportRequest.getComponents(), request.isAddSecrets()).stream()
+            return getRoutes(selectedItemsExportRequest, request.isAddSecrets()).stream()
                     .collect(Collectors.toMap(
                             route -> route.getDeployment().getName(), Function.identity(),
                             (existing, replacement) -> {
@@ -51,7 +53,8 @@ public class RouteExporter {
         return routeService.getAll();
     }
 
-    private List<Route> getRoutes(List<ExportConfigComponent> elements, boolean addSecrets) {
+    private List<Route> getRoutes(SelectedItemsExportRequest selectedItemsExportRequest, boolean addSecrets) {
+        List<ExportConfigComponent> elements = selectedItemsExportRequest.getComponents();
         return elements.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.ROUTE)
                 .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
@@ -62,16 +65,18 @@ public class RouteExporter {
                 ))
                 .values()
                 .stream()
-                .map(component -> routeService.get(component.getName()))
+                .map(component -> {
+                    Route route = routeService.get(component.getName());
+                    return removeDependency(route, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
+                })
                 .map(route -> removeUpstreamKey(route, addSecrets))
-                .map(this::removeDependency)
                 .toList();
     }
 
     private Collection<Route> getRoutes(FullExportRequest fullExportRequest) {
         return getRoutes().stream()
                 .map(route -> removeUpstreamKey(route, fullExportRequest.isAddSecrets()))
-                .map(this::removeDependency)
+                .map(route -> removeDependency(route, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
 
@@ -85,8 +90,12 @@ public class RouteExporter {
                 .collect(Collectors.toList());
     }
 
-    private Route removeDependency(Route route) {
-        route.getDeployment().setRoleLimits(null);
+    private Route removeDependency(Route route, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
+        // Exclude role limits from deployment for Admin export format in order to have unidirectional association
+        // between deployments and roles, so it means that role with its limits will be defined only under "roles" section
+        if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
+            route.getDeployment().setRoleLimits(null);
+        }
         return route;
     }
 

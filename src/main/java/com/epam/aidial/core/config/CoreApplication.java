@@ -107,26 +107,4 @@ public class CoreApplication extends Deployment {
     public CoreApplication() {
         super();
     }
-
-    public CoreApplication(CoreApplication source) {
-        super();
-        this.setName(source.getName());
-        this.setEndpoint(source.getEndpoint());
-        this.setDisplayName(source.getDisplayName());
-        this.setDisplayVersion(source.getDisplayVersion());
-        this.setIconUrl(source.getIconUrl());
-        this.setDescription(source.getDescription());
-        this.setReference(source.getReference());
-        this.setUserRoles(source.getUserRoles());
-        this.setForwardAuthToken(source.isForwardAuthToken());
-        this.setFeatures(source.getFeatures());
-        this.setInputAttachmentTypes(source.getInputAttachmentTypes());
-        this.setMaxInputAttachments(source.getMaxInputAttachments());
-        this.setDefaults(source.getDefaults());
-        this.setInterceptors(source.getInterceptors());
-        this.setDescriptionKeywords(source.getDescriptionKeywords());
-        this.setFunction(source.getFunction());
-        this.setApplicationProperties(source.getApplicationProperties());
-        this.setApplicationTypeSchemaId(source.getApplicationTypeSchemaId());
-    }
 }

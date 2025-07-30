@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import lombok.Data;
 
 import java.util.List;
@@ -18,6 +19,6 @@ public class Interceptor {
     private Long updatedAt;
     private List<String> dependencies;
     private List<String> entities;
-    private String interceptorRunner;
+    private InterceptorSource source;
     private String configurationEndpoint;
 }

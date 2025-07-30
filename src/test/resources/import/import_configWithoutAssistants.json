@@ -19,7 +19,12 @@
       "createdAt": 12345,
       "updatedAt": 12345,
       "dependencies": [],
-      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+      "fieldsHashingOrder": [
+        "prompt",
+        "temperature",
+        "seed",
+        "system"
+      ]
     },
     "testModel2": {
       "type": "embedding",
@@ -29,8 +34,16 @@
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
-      "dependencies": ["dep1", "dep2"],
-      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+      "dependencies": [
+        "dep1",
+        "dep2"
+      ],
+      "fieldsHashingOrder": [
+        "prompt",
+        "temperature",
+        "seed",
+        "system"
+      ]
     }
   },
   "applications": {
@@ -50,7 +63,10 @@
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
-      "dependencies": ["dep1", "dep2"]
+      "dependencies": [
+        "dep1",
+        "dep2"
+      ]
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -69,7 +85,9 @@
     "testRole1": {
       "description": "test role 1 description",
       "limits": {
-        "testModel1": {"day": "1"},
+        "testModel1": {
+          "day": "1"
+        },
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
@@ -102,7 +120,9 @@
     "default": {
       "description": "test role 1 description",
       "limits": {
-        "testModel1": {"day": "3"},
+        "testModel1": {
+          "day": "3"
+        },
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
@@ -161,64 +181,64 @@
     }
   },
   "applicationTypeSchemas": [
-      {
-        "$id": "https://test-schema-id.example",
-        "dial:applicationTypeEditorUrl": "https://test.com/billings",
-        "dial:applicationTypeViewerUrl": "https://test.com/claims",
-        "dial:applicationTypeDisplayName": "runner display name",
-        "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
-        "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
-        "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
-        "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
-        "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
-        "dial:appendApplicationPropertiesHeader": true,
-        "$defs": {},
-        "properties": {},
-        "required": []
-      }
-	],
+    {
+      "$id": "https://test-schema-id.example",
+      "dial:applicationTypeEditorUrl": "https://test.com/billings",
+      "dial:applicationTypeViewerUrl": "https://test.com/claims",
+      "dial:applicationTypeDisplayName": "runner display name",
+      "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+      "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+      "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+      "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+      "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+      "dial:appendApplicationPropertiesHeader": true,
+      "$defs": {},
+      "properties": {},
+      "required": []
+    }
+  ],
   "routes": {
-		"test_route1": {
-			"name": "test_route1",
-			"response": {
-				"status": 200,
-				"body": "OK"
-			},
-			"rewritePath": true,
-			"paths": [
-				"/api/v1/",
-				"/service/"
-			],
-			"methods": [
-				"GET",
-				"POST"
-			],
-			"upstreams": [
-				{
-					"endpoint": "http://upstream1.example.com",
-					"key": "upstream-key-1",
-					"extraData": {
-						"custom": "data1"
-					},
-					"weight": 1,
-					"tier": 0
-				},
-				{
-					"endpoint": "http://upstream2.example.com",
-					"key": "upstream-key-2",
-					"extraData": {
-						"custom": "data2"
-					},
-					"weight": 2,
-					"tier": 1
-				}
-			],
-			"maxRetryAttempts": 3,
-			"userRoles": [
-				"testRole1"
-			]
-		}
-	},
+    "test_route1": {
+      "name": "test_route1",
+      "response": {
+        "status": 200,
+        "body": "OK"
+      },
+      "rewritePath": true,
+      "paths": [
+        "/api/v1/",
+        "/service/"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "upstreams": [
+        {
+          "endpoint": "http://upstream1.example.com",
+          "key": "upstream-key-1",
+          "extraData": {
+            "custom": "data1"
+          },
+          "weight": 1,
+          "tier": 0
+        },
+        {
+          "endpoint": "http://upstream2.example.com",
+          "key": "upstream-key-2",
+          "extraData": {
+            "custom": "data2"
+          },
+          "weight": 2,
+          "tier": 1
+        }
+      ],
+      "maxRetryAttempts": 3,
+      "userRoles": [
+        "testRole1"
+      ]
+    }
+  },
   "adapters": {
     "adapter1": {
       "name": "adapter1",
