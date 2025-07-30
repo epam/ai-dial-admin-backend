@@ -53,6 +53,7 @@ import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -369,9 +370,6 @@ public abstract class ConfigTransferFunctionalTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
-        var dto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
-        });
-        applicationTypeSchemaFacade.create(dto);
         interceptorFacade.createInterceptor(interceptorDto);
         modelFacade.createModel(modelDto);
         // when
@@ -617,6 +615,70 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
             Assertions.assertThat(result.getModels()).isEmpty();
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatAppDoesNotConformToAppRunner_FullRequest() throws IOException, URISyntaxException {
+        // given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(
+                ExportConfigComponentType.APPLICATION,
+                ExportConfigComponentType.APPLICATION_TYPE_SCHEMA
+        ));
+
+        URI customAppSchemaId = new URI("https://test-schema-id.example");
+        ApplicationDto applicationDto = new ApplicationDto();
+        applicationDto.setName("applicationName");
+        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+
+        ApplicationTypeSchemaDto schemaDto = jsonMapper.readValue(
+                getAppRunnerDtoWithRequiredFields(List.of("external_url")),
+                new TypeReference<>() {
+                }
+        );
+
+        applicationTypeSchemaFacade.create(schemaDto);
+        applicationFacade.createApplication(applicationDto);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplications()).isEmpty();
+            Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatKeyWithoutRoles_FullRequest() throws IOException, URISyntaxException {
+        // given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.KEY));
+
+        KeyDto keyDto = new KeyDto();
+        keyDto.setName("testKey");
+        keyDto.setKey("testKeyValue");
+
+        keyFacade.createKey(keyDto);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getKeys()).isEmpty();
         });
     }
 
@@ -1342,21 +1404,29 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     private String getAppRunnerDto() {
+        return getAppRunnerDtoWithRequiredFields(null);
+    }
+
+    private String getAppRunnerDtoWithRequiredFields(List<String> requiredFields) {
+        String requiredFieldsString = CollectionUtils.emptyIfNull(requiredFields).stream()
+                .map(field -> "\"" + field + "\"")
+                .collect(Collectors.joining(", "));
         return """
-                {"$id": "https://test-schema-id.example",
-                        "dial:applicationTypeEditorUrl": "https://test.com/billings",
-                        "dial:applicationTypeViewerUrl": "https://test.com/claims",
-                        "dial:applicationTypeDisplayName": "runner display name",
-                        "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
-                        "dial:applicationTypeConfigurationEndpoint": "https://test.com/conf",
-                        "dial:applicationTypeRateEndpoint": "https://test.com/rate",
-                        "dial:applicationTypeTokenizeEndpoint": "https://test.com/tokenize",
-                        "dial:applicationTypeTruncatePromptEndpoint": "https://test.com/truncate-prompt",
-                        "dial:appendApplicationPropertiesHeader": false,
-                        "$defs": {},
-                        "properties": {},
-                        "required": []
-                      }""";
+                {
+                    "$id": "https://test-schema-id.example",
+                    "dial:applicationTypeEditorUrl": "https://test.com/billings",
+                    "dial:applicationTypeViewerUrl": "https://test.com/claims",
+                    "dial:applicationTypeDisplayName": "runner display name",
+                    "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+                    "dial:applicationTypeConfigurationEndpoint": "https://test.com/conf",
+                    "dial:applicationTypeRateEndpoint": "https://test.com/rate",
+                    "dial:applicationTypeTokenizeEndpoint": "https://test.com/tokenize",
+                    "dial:applicationTypeTruncatePromptEndpoint": "https://test.com/truncate-prompt",
+                    "dial:appendApplicationPropertiesHeader": false,
+                    "$defs": {},
+                    "properties": {},
+                    "required": [%s]
+                }""".formatted(requiredFieldsString);
     }
 
     private static ConfigImportOptions overrideAndCreateRoleAndCreateNew() {
