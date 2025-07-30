@@ -214,8 +214,10 @@ docker-compose down
 
 >📝 **Note:**
 > 
-> If there is need to start local env with latest published image, image tag should be changed 
-> from `local` to `latest` in [docker-compose.yml](local_env/docker-compose.yml) for `admin-back` container
+> If there is need to start local env with published image, `local` image tag should be changed to preferred one 
+> in [docker-compose.yml](local_env/docker-compose.yml) for `admin-back` container.
+> 
+> See all published images [here](https://hub.docker.com/r/epam/ai-dial-admin-backend).
 
 ### Components diagramm
 
