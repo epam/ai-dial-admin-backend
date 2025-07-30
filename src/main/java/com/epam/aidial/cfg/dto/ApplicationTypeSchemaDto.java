@@ -16,7 +16,6 @@ import java.util.Set;
 
 @Data
 @ApplicationTypeSchema
-@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class ApplicationTypeSchemaDto {
 
     @JsonProperty("$schema")
@@ -66,6 +65,8 @@ public class ApplicationTypeSchemaDto {
     private List<String> required;
     private List<String> applications;
     private Set<String> topics;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
 }

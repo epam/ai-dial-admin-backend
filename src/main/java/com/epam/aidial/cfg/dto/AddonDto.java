@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true, exclude = {"createdAt", "updatedAt"})
+@EqualsAndHashCode(callSuper = true)
 public class AddonDto extends RoleBasedDto {
     @NotBlank(message = "Name is required")
     private String name;
@@ -23,7 +23,9 @@ public class AddonDto extends RoleBasedDto {
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private String author;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
 }

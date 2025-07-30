@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class AdapterDto {
 
     @NotEmpty
@@ -18,7 +17,9 @@ public class AdapterDto {
     @NotEmpty
     private String baseEndpoint;
     private String description;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> models = new ArrayList<>();
 }

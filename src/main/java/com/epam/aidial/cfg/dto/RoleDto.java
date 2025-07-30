@@ -10,13 +10,14 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class RoleDto {
 
     @NotBlank(message = "Name is required")
     private String name;
     private String description;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     @Valid
     private Map<@NotBlank(message = "Deployment name is required") String, @Valid LimitDto> limits;

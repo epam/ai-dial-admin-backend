@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class KeyDto {
 
     @NotBlank(message = "Name is required")
@@ -21,7 +20,9 @@ public class KeyDto {
     private List<String> roles;
     private String description;
     private String projectContactPoint;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private Instant expiresAt;
     private Instant keyGeneratedAt;

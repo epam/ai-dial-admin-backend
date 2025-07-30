@@ -12,7 +12,7 @@ import java.util.Map;
  * Created by Aliaksei Kurnosau on 9/11/24.
  */
 @Data
-@EqualsAndHashCode(callSuper = true, exclude = {"createdAt", "updatedAt"})
+@EqualsAndHashCode(callSuper = true)
 public class ModelDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
@@ -33,7 +33,9 @@ public class ModelDto extends RoleBasedDto {
     private List<String> topics;
     private Integer maxRetryAttempts;
     private String author;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
 

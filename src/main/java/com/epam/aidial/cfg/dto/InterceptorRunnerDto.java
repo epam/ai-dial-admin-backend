@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(exclude = {"createdAt", "updatedAt"})
 public class InterceptorRunnerDto {
 
     @NotBlank(message = "Name is required")
@@ -17,7 +16,9 @@ public class InterceptorRunnerDto {
     private String description;
     private String completionEndpoint;
     private String configurationEndpoint;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> interceptors;
 }

@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Data
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true, exclude = {"createdAt", "updatedAt"})
+@EqualsAndHashCode(callSuper = true)
 public class AssistantDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
@@ -25,7 +25,9 @@ public class AssistantDto extends RoleBasedDto {
     private List<String> topics;
     private Map<String, String> defaults;
     private String author;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
 }

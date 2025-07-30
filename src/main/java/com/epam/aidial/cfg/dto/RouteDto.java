@@ -15,7 +15,7 @@ import java.util.Set;
 
 @Data
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true, exclude = {"createdAt", "updatedAt"})
+@EqualsAndHashCode(callSuper = true)
 public class RouteDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
@@ -30,6 +30,8 @@ public class RouteDto extends RoleBasedDto {
     @Valid
     private List<UpstreamDto> upstreams;
     private int maxRetryAttempts;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
 }
