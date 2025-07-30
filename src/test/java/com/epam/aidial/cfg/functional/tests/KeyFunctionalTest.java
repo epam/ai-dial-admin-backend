@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
 
 public abstract class KeyFunctionalTest {
@@ -60,7 +61,6 @@ public abstract class KeyFunctionalTest {
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
 
-        keyDto.setCreatedAt(Instant.ofEpochMilli(1L));
         keyDto.setKeyGeneratedAt(Instant.ofEpochMilli(1L));
         assertKey(actual, keyDto);
 
@@ -70,9 +70,17 @@ public abstract class KeyFunctionalTest {
 
         Collection<KeyDto> actualKeys = keyFacade.getAllKeys();
 
-        keyDto2.setCreatedAt(Instant.ofEpochMilli(2L));
         keyDto2.setKeyGeneratedAt(Instant.ofEpochMilli(2L));
         assertKeys(actualKeys, List.of(keyDto, keyDto2), false);
+
+        List<KeyDto> actualKeysList = actualKeys.stream().toList();
+        KeyDto actualKeyDto1 = actualKeysList.get(0);
+        KeyDto actualKeyDto2 = actualKeysList.get(1);
+
+        assertEquals(actualKeyDto1.getCreatedAt(), Instant.ofEpochMilli(1L));
+        assertEquals(actualKeyDto1.getUpdatedAt(), Instant.ofEpochMilli(1L));
+        assertEquals(actualKeyDto2.getCreatedAt(), Instant.ofEpochMilli(2L));
+        assertEquals(actualKeyDto2.getUpdatedAt(), Instant.ofEpochMilli(2L));
     }
 
     @Test
@@ -130,7 +138,7 @@ public abstract class KeyFunctionalTest {
                 IllegalArgumentException.class,
                 () -> keyFacade.updateKey(keyDto.getName(), updatedKey)
         );
-        Assertions.assertEquals("Key with name: 'key1' can not be renamed. New key name: 'key2'", exception.getMessage());
+        assertEquals("Key with name: 'key1' can not be renamed. New key name: 'key2'", exception.getMessage());
     }
 
     @Test
@@ -144,7 +152,7 @@ public abstract class KeyFunctionalTest {
                 EntityAlreadyExistsException.class,
                 () -> keyFacade.createKey(keyDto2)
         );
-        Assertions.assertEquals("Key with value keyValue1 already exists", exception.getMessage());
+        assertEquals("Key with value keyValue1 already exists", exception.getMessage());
     }
 
     @Test
@@ -177,11 +185,11 @@ public abstract class KeyFunctionalTest {
 
         // check role1: keys=[key1, key2]; role2: keys=[key1]; role3: keys=[key2]
         RoleDto role1 = roleFacade.getRole("role1");
-        Assertions.assertEquals(List.of("key1", "key2"), role1.getGrantedKeys());
+        assertEquals(List.of("key1", "key2"), role1.getGrantedKeys());
         RoleDto role2 = roleFacade.getRole("role2");
-        Assertions.assertEquals(List.of("key1"), role2.getGrantedKeys());
+        assertEquals(List.of("key1"), role2.getGrantedKeys());
         RoleDto role3 = roleFacade.getRole("role3");
-        Assertions.assertEquals(List.of("key2"), role3.getGrantedKeys());
+        assertEquals(List.of("key2"), role3.getGrantedKeys());
 
         // update key1: roles=[role2, role3]
         KeyDto updatedKeyDto = createDto("1", List.of("role2", "role3"));
@@ -193,9 +201,9 @@ public abstract class KeyFunctionalTest {
 
         // check role1: keys=[key2]; role2: keys=[key1]; role3: keys=[key2, key1]
         role1 = roleFacade.getRole("role1");
-        Assertions.assertEquals(List.of("key2"), role1.getGrantedKeys());
+        assertEquals(List.of("key2"), role1.getGrantedKeys());
         role2 = roleFacade.getRole("role2");
-        Assertions.assertEquals(List.of("key1"), role2.getGrantedKeys());
+        assertEquals(List.of("key1"), role2.getGrantedKeys());
         role3 = roleFacade.getRole("role3");
         org.assertj.core.api.Assertions.assertThat(role3.getGrantedKeys())
                 .containsExactlyInAnyOrderElementsOf(List.of("key1", "key2"));
@@ -209,7 +217,7 @@ public abstract class KeyFunctionalTest {
                 () -> keyFacade.createKey(keyDto)
         );
 
-        Assertions.assertEquals("unable to find roles: [role4, role5]", exception.getMessage());
+        assertEquals("unable to find roles: [role4, role5]", exception.getMessage());
     }
 
     @Test
@@ -223,7 +231,7 @@ public abstract class KeyFunctionalTest {
                 () -> keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto)
         );
 
-        Assertions.assertEquals("unable to find roles: [role4, role5]", exception.getMessage());
+        assertEquals("unable to find roles: [role4, role5]", exception.getMessage());
     }
 
     @Test
@@ -236,11 +244,11 @@ public abstract class KeyFunctionalTest {
 
         // check role1: keys=[key1, key2]; role2: keys=[key1]; role3: keys=[key2]
         RoleDto role1 = roleFacade.getRole("role1");
-        Assertions.assertEquals(List.of("key1", "key2"), role1.getGrantedKeys());
+        assertEquals(List.of("key1", "key2"), role1.getGrantedKeys());
         RoleDto role2 = roleFacade.getRole("role2");
-        Assertions.assertEquals(List.of("key1"), role2.getGrantedKeys());
+        assertEquals(List.of("key1"), role2.getGrantedKeys());
         RoleDto role3 = roleFacade.getRole("role3");
-        Assertions.assertEquals(List.of("key2"), role3.getGrantedKeys());
+        assertEquals(List.of("key2"), role3.getGrantedKeys());
 
         // delete role1
         roleFacade.deleteRole("role1");
@@ -264,22 +272,22 @@ public abstract class KeyFunctionalTest {
 
         // check role1: keys=[key1, key2]; role2: keys=[key1]; role3: keys=[key2]
         RoleDto role1 = roleFacade.getRole("role1");
-        Assertions.assertEquals(List.of("key1", "key2"), role1.getGrantedKeys());
+        assertEquals(List.of("key1", "key2"), role1.getGrantedKeys());
         RoleDto role2 = roleFacade.getRole("role2");
-        Assertions.assertEquals(List.of("key1"), role2.getGrantedKeys());
+        assertEquals(List.of("key1"), role2.getGrantedKeys());
         RoleDto role3 = roleFacade.getRole("role3");
-        Assertions.assertEquals(List.of("key2"), role3.getGrantedKeys());
+        assertEquals(List.of("key2"), role3.getGrantedKeys());
 
         // delete key1
         keyFacade.deleteKey("key1");
 
         // check role1: keys=[key1]; role2: keys=[]; role3: keys=[key2]
         role1 = roleFacade.getRole("role1");
-        Assertions.assertEquals(List.of("key2"), role1.getGrantedKeys());
+        assertEquals(List.of("key2"), role1.getGrantedKeys());
         role2 = roleFacade.getRole("role2");
-        Assertions.assertEquals(List.of(), role2.getGrantedKeys());
+        assertEquals(List.of(), role2.getGrantedKeys());
         role3 = roleFacade.getRole("role3");
-        Assertions.assertEquals(List.of("key2"), role3.getGrantedKeys());
+        assertEquals(List.of("key2"), role3.getGrantedKeys());
     }
 
     @Test
@@ -292,7 +300,7 @@ public abstract class KeyFunctionalTest {
                 () -> keyFacade.createKey(createDto("1"))
         );
 
-        Assertions.assertEquals("Key with name key1 already exists", exception.getMessage());
+        assertEquals("Key with name key1 already exists", exception.getMessage());
     }
 
     @Test
@@ -310,14 +318,14 @@ public abstract class KeyFunctionalTest {
                 () -> keyFacade.updateKey("key1", keyDto)
         );
 
-        Assertions.assertEquals("Key with name: 'key1' can not be renamed. New key name: 'key2'", exception.getMessage());
+        assertEquals("Key with name: 'key1' can not be renamed. New key name: 'key2'", exception.getMessage());
     }
 
     private void assertKeys(Collection<KeyDto> actual, Collection<KeyDto> expected, boolean excludeGeneratedFields) {
         expected.forEach(keyDto -> keyDto.setKey(null));
         Map<String, KeyDto> actualMap = toMap(actual);
         Map<String, KeyDto> expectedMap = toMap(expected);
-        Assertions.assertEquals(expectedMap.keySet(), actualMap.keySet());
+        assertEquals(expectedMap.keySet(), actualMap.keySet());
         for (String name : actualMap.keySet()) {
             if (excludeGeneratedFields) {
                 assertKeyExcludingGeneratedFields(actualMap.get(name), expectedMap.get(name));
