@@ -12,7 +12,5 @@ public interface AdapterDtoMapper {
     @Mapping(target = "updatedAt", ignore = true)
     Adapter toDomain(AdapterDto entity);
 
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     AdapterDto toDto(Adapter domain);
 }

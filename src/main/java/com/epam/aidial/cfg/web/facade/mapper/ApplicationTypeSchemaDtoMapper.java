@@ -14,7 +14,5 @@ public interface ApplicationTypeSchemaDtoMapper {
     ApplicationTypeSchema toDomain(ApplicationTypeSchemaDto dto);
 
     @Mapping(target = "id", source = "schemaId")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     ApplicationTypeSchemaDto toDto(ApplicationTypeSchema domain);
 }

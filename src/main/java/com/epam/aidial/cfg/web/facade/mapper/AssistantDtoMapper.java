@@ -17,8 +17,6 @@ public interface AssistantDtoMapper {
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "defaults", source = "defaults", qualifiedByName = "mapDefaults")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     AssistantDto toDto(Assistant domain);
 
 }

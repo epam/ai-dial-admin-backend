@@ -26,8 +26,6 @@ public abstract class ModelDtoMapper {
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "adapter", source = "adapter.name")
     @Mapping(target = "endpoint", source = "domain", qualifiedByName = "mapEndpointFromModel")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     public abstract ModelDto toDto(Model domain);
 
     public Map<String, String> mapMap(Map<String, Object> value) {

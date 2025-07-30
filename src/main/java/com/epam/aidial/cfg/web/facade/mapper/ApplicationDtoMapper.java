@@ -22,14 +22,10 @@ public interface ApplicationDtoMapper {
     @Mapping(target = "customAppSchemaId", source = "applicationTypeSchemaId")
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     ApplicationDto toDto(Application domain);
 
     @Mapping(target = "topics", source = "descriptionKeywords")
     @Mapping(target = "name", source = "deployment.name")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     ApplicationInfoDto toApplicationInfoDto(Application application);
 
 }

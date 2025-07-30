@@ -12,7 +12,5 @@ public interface InterceptorRunnerDtoMapper {
     @Mapping(target = "updatedAt", ignore = true)
     InterceptorRunner toDomain(InterceptorRunnerDto entity);
 
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     InterceptorRunnerDto toDto(InterceptorRunner domain);
 }
