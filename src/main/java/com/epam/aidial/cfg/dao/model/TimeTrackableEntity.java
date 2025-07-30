@@ -16,8 +16,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public abstract class TimeTrackableEntity<ID> extends AbstractEntity<ID> {
     @CreatedDate
     @Column(name = "created_at_ms")
-    private Long createdAt;
+    private long createdAt;
     @LastModifiedDate
     @Column(name = "updated_at_ms")
-    private Long updatedAt;
+    private long updatedAt;
 }

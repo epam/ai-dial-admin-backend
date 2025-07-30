@@ -114,10 +114,18 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateKey() {
+        doReturn(1L).when(transactionTimestampContext).getTimestamp();
+
         KeyDto keyDto = createDto("1");
         keyFacade.createKey(keyDto);
         KeyDto updatedKey = createDto("1");
         updatedKey.setDescription("new key description");
+
+        KeyDto createdKey = keyFacade.getKey(keyDto.getName());
+        assertEquals(createdKey.getCreatedAt(), Instant.ofEpochMilli(1L));
+        assertEquals(createdKey.getUpdatedAt(), Instant.ofEpochMilli(1L));
+
+        doReturn(2L).when(transactionTimestampContext).getTimestamp();
 
         keyFacade.updateKey(keyDto.getName(), updatedKey);
 
@@ -125,6 +133,9 @@ public abstract class KeyFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("new key description");
         assertKeyExcludingGeneratedFields(actual, expected);
+
+        assertEquals(actual.getCreatedAt(), Instant.ofEpochMilli(1L));
+        assertEquals(actual.getUpdatedAt(), Instant.ofEpochMilli(2L));
     }
 
     @Test
