@@ -6,7 +6,7 @@ UPDATE model_entity m SET created_at_ms = (
     SELECT r.timestamp FROM model_entity_aud ma
     JOIN revinfo r ON ma.rev = r.id
     WHERE ma.deployment_name = m.deployment_name AND ma.revtype = 0
-    ORDER BY r.id ASC
+    ORDER BY r.id DESC
     LIMIT 1
 ) WHERE m.created_at_ms IS NULL;
 
@@ -25,7 +25,7 @@ UPDATE role_entity e SET created_at_ms = (
     SELECT r.timestamp FROM role_entity_aud ea
     JOIN revinfo r ON ea.rev = r.id
     WHERE ea.name = e.name AND ea.revtype = 0
-    ORDER BY r.id ASC
+    ORDER BY r.id DESC
     LIMIT 1
 ) WHERE e.created_at_ms IS NULL;
 
@@ -44,7 +44,7 @@ UPDATE application_entity e SET created_at_ms = (
     SELECT r.timestamp FROM application_entity_aud ea
     JOIN revinfo r ON ea.rev = r.id
     WHERE ea.deployment_name = e.deployment_name AND ea.revtype = 0
-    ORDER BY r.id ASC
+    ORDER BY r.id DESC
     LIMIT 1
 ) WHERE e.created_at_ms IS NULL;
 
@@ -63,7 +63,7 @@ UPDATE addon_entity e SET created_at_ms = (
     SELECT r.timestamp FROM addon_entity_aud ea
     JOIN revinfo r ON ea.rev = r.id
     WHERE ea.deployment_name = e.deployment_name AND ea.revtype = 0
-    ORDER BY r.id ASC
+    ORDER BY r.id DESC
     LIMIT 1
 ) WHERE e.created_at_ms IS NULL;
 
@@ -82,7 +82,7 @@ UPDATE assistant_entity e SET created_at_ms = (
     SELECT r.timestamp FROM assistant_entity_aud ea
     JOIN revinfo r ON ea.rev = r.id
     WHERE ea.deployment_name = e.deployment_name AND ea.revtype = 0
-    ORDER BY r.id ASC
+    ORDER BY r.id DESC
     LIMIT 1
 ) WHERE e.created_at_ms IS NULL;
 
@@ -101,7 +101,7 @@ UPDATE interceptor_entity e SET created_at_ms = (
     SELECT r.timestamp FROM interceptor_entity_aud ea
     JOIN revinfo r ON ea.rev = r.id
     WHERE ea.name = e.name AND ea.revtype = 0
-    ORDER BY r.id ASC
+    ORDER BY r.id DESC
     LIMIT 1
 ) WHERE e.created_at_ms IS NULL;
 
