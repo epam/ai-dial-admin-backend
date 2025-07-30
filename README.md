@@ -176,7 +176,7 @@ Execute
 #### Build Docker Image
 
 ```bash
-docker build . -t aidial/ai-dial-admin-backend:latest
+docker build . -t epam/ai-dial-admin-backend:local
 ```
 
 #### Run Container
@@ -202,9 +202,20 @@ Expected response:
 
 Use the predefined setup in [docker-compose.yml](local_env/docker-compose.yml)
 
+#### Start local env
 ```bash
 docker-compose up
 ```
+
+#### Stop local env
+```bash
+docker-compose down
+```
+
+>📝 **Note:**
+> 
+> If there is need to start local env with latest published image, image tag should be changed 
+> from `local` to `latest` in [docker-compose.yml](local_env/docker-compose.yml) for `admin-back` container
 
 ### Components diagramm
 

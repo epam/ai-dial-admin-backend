@@ -1,7 +1,16 @@
 services:
+  init-container:
+    container_name: init-container
+    image: busybox
+    volumes:
+      - ./data:/data
+    command: sh -c "mkdir -p /data/export && echo '{}' > /data/export/out.json && chmod -R 777 /data"
+
   admin-back:
     container_name: ai-dial-admin-backend
-    image: aidial/ai-dial-admin-backend:latest
+    image: epam/ai-dial-admin-backend:local
+    depends_on:
+      - init-container
     ports:
       - "8080:8080"
       - "15006:5006"
@@ -105,6 +114,7 @@ services:
       'aidial.access.admin.rules': '[{"source": "roles", "function": "TRUE"}]'
     depends_on:
       - redis
+      - init-container
     volumes:
       - ./data/dial_conf/settings:/opt/settings
       - ./data/export:/opt/config
