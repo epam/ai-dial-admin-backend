@@ -44,3 +44,6 @@ bin/
 
 ### App output ###
 data/
+
+!local_env/data/dial_conf/settings/gflog.xml
+!local_env/data/dial_conf/settings/settings.json
