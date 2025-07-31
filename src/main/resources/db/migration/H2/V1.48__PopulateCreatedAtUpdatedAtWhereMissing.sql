@@ -1,6 +1,7 @@
 -- ========== ENTITY TABLES ==========
 
 -- MODEL_ENTITY
+
 -- Update created_at_ms for model_entity
 UPDATE model_entity m SET created_at_ms = (
     SELECT r.timestamp FROM model_entity_aud ma
@@ -20,6 +21,7 @@ UPDATE model_entity m SET updated_at_ms = (
 ) WHERE m.updated_at_ms IS NULL;
 
 -- ROLE_ENTITY
+
 -- Update created_at_ms for role_entity
 UPDATE role_entity e SET created_at_ms = (
     SELECT r.timestamp FROM role_entity_aud ea
@@ -39,6 +41,7 @@ UPDATE role_entity e SET updated_at_ms = (
 ) WHERE e.updated_at_ms IS NULL;
 
 -- APPLICATION_ENTITY
+
 -- Update created_at_ms for application_entity
 UPDATE application_entity e SET created_at_ms = (
     SELECT r.timestamp FROM application_entity_aud ea
@@ -58,6 +61,7 @@ UPDATE application_entity e SET updated_at_ms = (
 ) WHERE e.updated_at_ms IS NULL;
 
 -- ADDON_ENTITY
+
 -- Update created_at_ms for addon_entity
 UPDATE addon_entity e SET created_at_ms = (
     SELECT r.timestamp FROM addon_entity_aud ea
@@ -77,6 +81,7 @@ UPDATE addon_entity e SET updated_at_ms = (
 ) WHERE e.updated_at_ms IS NULL;
 
 -- ASSISTANT_ENTITY
+
 -- Update created_at_ms for assistant_entity
 UPDATE assistant_entity e SET created_at_ms = (
     SELECT r.timestamp FROM assistant_entity_aud ea
@@ -96,6 +101,7 @@ UPDATE assistant_entity e SET updated_at_ms = (
 ) WHERE e.updated_at_ms IS NULL;
 
 -- INTERCEPTOR_ENTITY
+
 -- Update created_at_ms for interceptor_entity
 UPDATE interceptor_entity e SET created_at_ms = (
     SELECT r.timestamp FROM interceptor_entity_aud ea
