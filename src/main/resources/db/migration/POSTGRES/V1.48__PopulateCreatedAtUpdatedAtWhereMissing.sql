@@ -138,12 +138,12 @@ UPDATE model_entity_aud a SET created_at_ms = (
             WHERE a2.deployment_name = a.deployment_name AND a2.revtype = 0 AND a2.rev <= a.rev
         )
     END
-) WHERE a.created_at_ms IS NULL;
+) WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for model_entity_aud
 UPDATE model_entity_aud a SET updated_at_ms = (
     SELECT r.timestamp FROM revinfo r WHERE r.id = a.rev
-) WHERE a.updated_at_ms IS NULL;
+) WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- ROLE_ENTITY_AUD
 
@@ -160,12 +160,12 @@ UPDATE role_entity_aud a SET created_at_ms = (
             WHERE a2.name = a.name AND a2.revtype = 0 AND a2.rev <= a.rev
         )
     END
-) WHERE a.created_at_ms IS NULL;
+) WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for role_entity_aud
 UPDATE role_entity_aud a SET updated_at_ms = (
     SELECT r.timestamp FROM revinfo r WHERE r.id = a.rev
-) WHERE a.updated_at_ms IS NULL;
+) WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- APPLICATION_ENTITY_AUD
 
@@ -182,12 +182,12 @@ UPDATE application_entity_aud a SET created_at_ms = (
             WHERE a2.deployment_name = a.deployment_name AND a2.revtype = 0 AND a2.rev <= a.rev
         )
     END
-) WHERE a.created_at_ms IS NULL;
+) WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for application_entity_aud
 UPDATE application_entity_aud a SET updated_at_ms = (
     SELECT r.timestamp FROM revinfo r WHERE r.id = a.rev
-) WHERE a.updated_at_ms IS NULL;
+) WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- ADDON_ENTITY_AUD
 
@@ -204,12 +204,12 @@ UPDATE addon_entity_aud a SET created_at_ms = (
             WHERE a2.deployment_name = a.deployment_name AND a2.revtype = 0 AND a2.rev <= a.rev
         )
     END
-) WHERE a.created_at_ms IS NULL;
+) WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for addon_entity_aud
 UPDATE addon_entity_aud a SET updated_at_ms = (
     SELECT r.timestamp FROM revinfo r WHERE r.id = a.rev
-) WHERE a.updated_at_ms IS NULL;
+) WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- ASSISTANT_ENTITY_AUD
 
@@ -226,12 +226,12 @@ UPDATE assistant_entity_aud a SET created_at_ms = (
             WHERE a2.deployment_name = a.deployment_name AND a2.revtype = 0 AND a2.rev <= a.rev
         )
     END
-) WHERE a.created_at_ms IS NULL;
+) WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for assistant_entity_aud
 UPDATE assistant_entity_aud a SET updated_at_ms = (
     SELECT r.timestamp FROM revinfo r WHERE r.id = a.rev
-) WHERE a.updated_at_ms IS NULL;
+) WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- INTERCEPTOR_ENTITY_AUD
 
@@ -248,9 +248,9 @@ UPDATE interceptor_entity_aud a SET created_at_ms = (
             WHERE a2.name = a.name AND a2.revtype = 0 AND a2.rev <= a.rev
         )
     END
-) WHERE a.created_at_ms IS NULL;
+) WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for interceptor_entity_aud
 UPDATE interceptor_entity_aud a SET updated_at_ms = (
     SELECT r.timestamp FROM revinfo r WHERE r.id = a.rev
-) WHERE a.updated_at_ms IS NULL;
+) WHERE a.updated_at_ms IS NULL AND a.revtype != 2;

@@ -189,14 +189,14 @@ OUTER APPLY (
       AND a2.revtype = 0 
       AND a2.rev <= a.rev
 ) r2
-WHERE a.created_at_ms IS NULL;
+WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for model_entity_aud
 UPDATE a
 SET updated_at_ms = r.timestamp
 FROM model_entity_aud a
 JOIN revinfo r ON r.id = a.rev
-WHERE a.updated_at_ms IS NULL;
+WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- ROLE_ENTITY_AUD
 
@@ -216,14 +216,14 @@ OUTER APPLY (
       AND a2.revtype = 0 
       AND a2.rev <= a.rev
 ) r2
-WHERE a.created_at_ms IS NULL;
+WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for role_entity_aud
 UPDATE a
 SET updated_at_ms = r.timestamp
 FROM role_entity_aud a
 JOIN revinfo r ON r.id = a.rev
-WHERE a.updated_at_ms IS NULL;
+WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- APPLICATION_ENTITY_AUD
 
@@ -243,14 +243,14 @@ OUTER APPLY (
       AND a2.revtype = 0 
       AND a2.rev <= a.rev
 ) r2
-WHERE a.created_at_ms IS NULL;
+WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for application_entity_aud
 UPDATE a
 SET updated_at_ms = r.timestamp
 FROM application_entity_aud a
 JOIN revinfo r ON r.id = a.rev
-WHERE a.updated_at_ms IS NULL;
+WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- ADDON_ENTITY_AUD
 
@@ -270,14 +270,14 @@ OUTER APPLY (
       AND a2.revtype = 0 
       AND a2.rev <= a.rev
 ) r2
-WHERE a.created_at_ms IS NULL;
+WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for addon_entity_aud
 UPDATE a
 SET updated_at_ms = r.timestamp
 FROM addon_entity_aud a
 JOIN revinfo r ON r.id = a.rev
-WHERE a.updated_at_ms IS NULL;
+WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- ASSISTANT_ENTITY_AUD
 
@@ -297,14 +297,14 @@ OUTER APPLY (
       AND a2.revtype = 0 
       AND a2.rev <= a.rev
 ) r2
-WHERE a.created_at_ms IS NULL;
+WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for assistant_entity_aud
 UPDATE a
 SET updated_at_ms = r.timestamp
 FROM assistant_entity_aud a
 JOIN revinfo r ON r.id = a.rev
-WHERE a.updated_at_ms IS NULL;
+WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
 -- INTERCEPTOR_ENTITY_AUD
 
@@ -324,11 +324,11 @@ OUTER APPLY (
       AND a2.revtype = 0 
       AND a2.rev <= a.rev
 ) r2
-WHERE a.created_at_ms IS NULL;
+WHERE a.created_at_ms IS NULL AND a.revtype != 2;
 
 -- Update updated_at_ms for interceptor_entity_aud
 UPDATE a
 SET updated_at_ms = r.timestamp
 FROM interceptor_entity_aud a
 JOIN revinfo r ON r.id = a.rev
-WHERE a.updated_at_ms IS NULL;
+WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
