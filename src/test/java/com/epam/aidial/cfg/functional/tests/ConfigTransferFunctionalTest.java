@@ -858,7 +858,6 @@ public abstract class ConfigTransferFunctionalTest {
                 importConfig.getBytes()
         );
 
-        // when
         configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         String testKey1Name = findKeyNameByProject("testProject1");
 
@@ -1043,7 +1042,6 @@ public abstract class ConfigTransferFunctionalTest {
                 importConfig.getBytes()
         );
 
-        // when
         configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
         String testKey1Name = findKeyNameByProject("testProject1");
 
@@ -1060,8 +1058,10 @@ public abstract class ConfigTransferFunctionalTest {
                         ExportConfigComponentType.INTERCEPTOR,
                         ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
         )));
+
         // when
         ExportConfigPreview configPreview = configTransfer.exportPreview(request);
+
         // then
         Assertions.assertThat(configPreview).isNotNull()
                 .satisfies(preview -> {
