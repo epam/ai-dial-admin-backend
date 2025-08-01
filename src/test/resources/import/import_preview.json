@@ -84,8 +84,8 @@
     {
       "importAction": "create",
       "value": {
-        "name": "testKey2",
-        "key": "testKey2",
+        "name": "<will be defined during import>",
+        "key": "testKey1",
         "project": "testProject1",
         "secured": true,
         "roles": [
@@ -96,8 +96,8 @@
     {
       "importAction": "create",
       "value": {
-        "name": "testKey1",
-        "key": "testKey1",
+        "name": "<will be defined during import>",
+        "key": "testKey2",
         "project": "testProject1",
         "secured": true,
         "roles": [
