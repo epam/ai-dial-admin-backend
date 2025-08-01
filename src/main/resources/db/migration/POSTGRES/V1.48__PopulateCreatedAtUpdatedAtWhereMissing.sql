@@ -274,7 +274,7 @@ UPDATE adapter_entity_aud a SET updated_at_ms = (
     SELECT r.timestamp FROM revinfo r WHERE r.id = a.rev
 ) WHERE a.updated_at_ms IS NULL AND a.revtype != 2;
 
-UPDATE adapter_entity_aud SET created_at_ms = 0 WHERE created_at_ms IS NULL AND updated_at_ms IS NOT NULL;
+UPDATE adapter_entity_aud SET created_at_ms = 0 WHERE created_at_ms IS NULL AND revtype != 2;
 
 -- ROUTE_ENTITY_AUD
 
