@@ -180,8 +180,8 @@ public abstract class KeyFunctionalTest {
 
         var expected = createDto("1");
         expected.setKey("new keyValue");
-        expected.setCreatedAt(Instant.ofEpochMilli((1L)));
-        expected.setKeyGeneratedAt(Instant.ofEpochMilli((2L)));
+        expected.setCreatedAt(Instant.ofEpochMilli(1L));
+        expected.setKeyGeneratedAt(Instant.ofEpochMilli(2L));
 
         assertKey(actual, expected);
     }
