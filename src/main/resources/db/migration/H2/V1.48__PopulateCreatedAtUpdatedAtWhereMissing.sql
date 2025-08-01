@@ -175,6 +175,8 @@ UPDATE addon_entity e SET updated_at_ms = (
     LIMIT 1
 ) WHERE e.updated_at_ms IS NULL;
 
+UPDATE adapter_entity_aud SET created_at_ms = 0 WHERE created_at_ms IS NULL AND updated_at_ms IS NOT NULL;
+
 -- ASSISTANT_ENTITY
 
 -- Update created_at_ms for assistant_entity
