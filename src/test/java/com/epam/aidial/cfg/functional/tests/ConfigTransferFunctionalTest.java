@@ -58,6 +58,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
@@ -76,6 +77,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -172,7 +174,9 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
-        Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
+        Assertions.assertThat(allKeys).hasSize(2).allSatisfy(key ->
+                Assertions.assertThatCode(() -> UUID.fromString(key)).doesNotThrowAnyException()
+        );
     }
 
     @Test
@@ -794,11 +798,13 @@ public abstract class ConfigTransferFunctionalTest {
 
         // when
         configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+        String testKey1Name = findKeyNameByProject("testProject1");
+
         SelectedItemsExportRequest request = new SelectedItemsExportRequest();
         request.setAddSecrets(addSecrets);
         request.setExportFormat(ExportFormat.CORE);
         request.setComponents(List.of(new ExportConfigComponent(
-                "testKey1",
+                testKey1Name,
                 ExportConfigComponentType.KEY,
                 Set.of(ExportConfigComponentType.APPLICATION,
                         ExportConfigComponentType.MODEL,
@@ -815,11 +821,15 @@ public abstract class ConfigTransferFunctionalTest {
 
         Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
-            Assertions.assertThat(config.getKeys()).containsOnlyKeys("testKey1")
-                    .satisfies(keys -> {
-                        Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
-                        Assertions.assertThat(keys.get("testKey1").getKey()).isEqualTo(expectedKey);
-                    });
+            if (addSecrets) {
+                Assertions.assertThat(config.getKeys()).containsOnlyKeys("testKey1")
+                        .satisfies(keys -> {
+                            Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
+                            Assertions.assertThat(keys.get("testKey1").getKey()).isEqualTo(expectedKey);
+                        });
+            } else {
+                Assertions.assertThat(config.getKeys()).isEmpty();
+            }
             Assertions.assertThat(config.getRoles()).containsOnlyKeys("default");
             Assertions.assertThat(config.getApplications()).isNotEmpty().containsOnlyKeys("testApplication1")
                     .satisfies(apps -> {
@@ -832,6 +842,60 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1");
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1");
             Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
+        });
+    }
+
+    @ParameterizedTest
+    @MethodSource("addSecrets")
+    void testExport_AdminFormatKeyWithAllDependencies_SelectedItemsExportRequest(boolean addSecrets, String expectedKey) throws IOException {
+        // given
+        String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+        String testKey1Name = findKeyNameByProject("testProject1");
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setAddSecrets(addSecrets);
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponents(List.of(new ExportConfigComponent(
+                testKey1Name,
+                ExportConfigComponentType.KEY,
+                Set.of(ExportConfigComponentType.APPLICATION,
+                        ExportConfigComponentType.MODEL,
+                        ExportConfigComponentType.ROUTE,
+                        ExportConfigComponentType.ROLE,
+                        ExportConfigComponentType.INTERCEPTOR,
+                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
+        )));
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        // then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getKeys()).containsOnlyKeys(testKey1Name)
+                    .satisfies(keys -> {
+                        Assertions.assertThat(keys.get(testKey1Name).getRoles()).containsExactly("default");
+                        Assertions.assertThat(keys.get(testKey1Name).getKey()).isEqualTo(expectedKey);
+                    });
+            Assertions.assertThat(config.getRoles()).containsOnlyKeys("default");
+            Assertions.assertThat(config.getApplications()).isNotEmpty().containsOnlyKeys("testApplication1")
+                    .satisfies(apps -> {
+                        Assertions.assertThat(apps.get("testApplication1").getInterceptors()).containsExactlyInAnyOrder("testInterceptor1");
+                        Assertions.assertThat(apps.get("testApplication1").getApplicationTypeSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
+                    });
+            Assertions.assertThat(config.getModels()).isNotEmpty().containsOnlyKeys("testModel1")
+                    .satisfies(models ->
+                            Assertions.assertThat(models.get("testModel1").getInterceptors()).containsExactlyInAnyOrder("testInterceptor1"));
+            Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1");
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1");
+            Assertions.assertThat(config.getApplicationRunners()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
         });
     }
 
@@ -904,8 +968,9 @@ public abstract class ConfigTransferFunctionalTest {
         );
     }
 
-    @Test
-    void testExportPreview_CoreFormatKeyWithAllDependencies_SelectedItemsExportRequest() throws IOException {
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExportPreview_CoreFormatKeyWithAllDependencies_SelectedItemsExportRequest(boolean addSecrets) throws IOException {
         // given
         String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export.json"),
                 StandardCharsets.UTF_8);
@@ -918,10 +983,13 @@ public abstract class ConfigTransferFunctionalTest {
 
         // when
         configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+        String testKey1Name = findKeyNameByProject("testProject1");
+
         SelectedItemsExportRequest request = new SelectedItemsExportRequest();
         request.setExportFormat(ExportFormat.CORE);
+        request.setAddSecrets(addSecrets);
         request.setComponents(List.of(new ExportConfigComponent(
-                "testKey1",
+                testKey1Name,
                 ExportConfigComponentType.KEY,
                 Set.of(ExportConfigComponentType.APPLICATION,
                         ExportConfigComponentType.MODEL,
@@ -935,10 +1003,72 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         Assertions.assertThat(configPreview).isNotNull()
                 .satisfies(preview -> {
+                    if (addSecrets) {
+                        Assertions.assertThat(preview.getKeys()).hasSize(1).first()
+                                .isInstanceOfSatisfying(ExportKeyInfo.class,
+                                        key -> {
+                                            Assertions.assertThatCode(() -> UUID.fromString(key.getName())).doesNotThrowAnyException();
+                                            Assertions.assertThat(key.getRoles()).containsExactly("default");
+                                        });
+                    } else {
+                        Assertions.assertThat(preview.getKeys()).isEmpty();
+                    }
+                    Assertions.assertThat(preview.getRoles()).hasSize(1).first()
+                            .satisfies(role -> Assertions.assertThat(role.getName()).isEqualTo("default"));
+                    Assertions.assertThat(preview.getModels()).hasSize(1).first()
+                            .satisfies(model -> Assertions.assertThat(model.getName()).isEqualTo("testModel1"));
+                    Assertions.assertThat(preview.getApplications()).hasSize(1).first()
+                            .satisfies(app -> Assertions.assertThat(app.getName()).isEqualTo("testApplication1"));
+                    Assertions.assertThat(preview.getRoutes()).hasSize(1).first()
+                            .satisfies(route -> Assertions.assertThat(route.getName()).isEqualTo("test_route1"));
+                    Assertions.assertThat(preview.getInterceptors()).hasSize(1).first()
+                            .satisfies(interceptor -> Assertions.assertThat(interceptor.getName()).isEqualTo("testInterceptor1"));
+                    Assertions.assertThat(preview.getApplicationRunners()).hasSize(1).first()
+                            .isInstanceOfSatisfying(ExportApplicationTypeSchemaInfo.class,
+                                    appRunner -> Assertions.assertThat(appRunner.getId()).isEqualTo("https://test-schema-id.example"));
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExportPreview_AdminFormatKeyWithAllDependencies_SelectedItemsExportRequest(boolean addSecrets) throws IOException {
+        // given
+        String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+        String testKey1Name = findKeyNameByProject("testProject1");
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(addSecrets);
+        request.setComponents(List.of(new ExportConfigComponent(
+                testKey1Name,
+                ExportConfigComponentType.KEY,
+                Set.of(ExportConfigComponentType.APPLICATION,
+                        ExportConfigComponentType.MODEL,
+                        ExportConfigComponentType.ROUTE,
+                        ExportConfigComponentType.ROLE,
+                        ExportConfigComponentType.INTERCEPTOR,
+                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
+        )));
+
+        // when
+        ExportConfigPreview configPreview = configTransfer.exportPreview(request);
+
+        // then
+        Assertions.assertThat(configPreview).isNotNull()
+                .satisfies(preview -> {
                     Assertions.assertThat(preview.getKeys()).hasSize(1).first()
                             .isInstanceOfSatisfying(ExportKeyInfo.class,
                                     key -> {
-                                        Assertions.assertThat(key.getName()).isEqualTo("testKey1");
+                                        Assertions.assertThatCode(() -> UUID.fromString(key.getName())).doesNotThrowAnyException();
                                         Assertions.assertThat(key.getRoles()).containsExactly("default");
                                     });
                     Assertions.assertThat(preview.getRoles()).hasSize(1).first()
@@ -1419,6 +1549,14 @@ public abstract class ConfigTransferFunctionalTest {
                     "properties": {},
                     "required": [%s]
                 }""".formatted(requiredFieldsString);
+    }
+
+    private String findKeyNameByProject(String project) {
+        return keyFacade.getAllKeys().stream()
+                .filter(key -> key.getProject().equals(project))
+                .map(KeyDto::getName)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Test failed. Key with project: '" + project + "' doesn't exist"));
     }
 
     private static ConfigImportOptions overrideAndCreateRoleAndCreateNew() {
