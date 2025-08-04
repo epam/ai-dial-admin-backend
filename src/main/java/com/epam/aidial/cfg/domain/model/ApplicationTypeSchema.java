@@ -39,4 +39,6 @@ public class ApplicationTypeSchema {
     private List<String> required;
     private List<String> applications;
     private Set<String> topics;
+    private Long createdAt;
+    private Long updatedAt;
 }

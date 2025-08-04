@@ -24,7 +24,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class ModelEntity extends AbstractEntity<String> {
+public class ModelEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -55,8 +55,6 @@ public class ModelEntity extends AbstractEntity<String> {
     private List<String> topics;
     private Integer maxRetryAttempts;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
     private List<String> dependencies;
     private ModelTypeEntity type;
     private String tokenizerModel;

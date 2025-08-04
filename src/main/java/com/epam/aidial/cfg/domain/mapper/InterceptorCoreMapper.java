@@ -22,6 +22,8 @@ public interface InterceptorCoreMapper {
 
     @Mapping(target = "entities", ignore = true)
     @Mapping(target = "source", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Interceptor mapInterceptor(CoreInterceptor interceptor);
 
 }

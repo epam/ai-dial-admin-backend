@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
@@ -18,7 +19,9 @@ public class ApplicationInfoDto {
     private Integer maxInputAttachments;
     private List<String> topics;
     private String author;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
 

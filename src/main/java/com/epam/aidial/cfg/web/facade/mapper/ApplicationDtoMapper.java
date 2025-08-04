@@ -13,8 +13,8 @@ public interface ApplicationDtoMapper {
     @Mapping(target = "applicationTypeSchemaId", source = "customAppSchemaId")
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "instantToLong")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "instantToLong")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Application toDomain(ApplicationDto dto);
 
     @Mapping(target = "function", ignore = true)
@@ -22,14 +22,10 @@ public interface ApplicationDtoMapper {
     @Mapping(target = "customAppSchemaId", source = "applicationTypeSchemaId")
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     ApplicationDto toDto(Application domain);
 
     @Mapping(target = "topics", source = "descriptionKeywords")
     @Mapping(target = "name", source = "deployment.name")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     ApplicationInfoDto toApplicationInfoDto(Application application);
 
 }

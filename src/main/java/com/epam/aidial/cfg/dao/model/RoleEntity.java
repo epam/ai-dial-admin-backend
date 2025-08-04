@@ -19,7 +19,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class RoleEntity extends AbstractEntity<String> {
+public class RoleEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include

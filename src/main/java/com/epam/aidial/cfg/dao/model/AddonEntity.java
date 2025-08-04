@@ -17,7 +17,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class AddonEntity extends AbstractEntity<String> {
+public class AddonEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -36,8 +36,6 @@ public class AddonEntity extends AbstractEntity<String> {
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
     private List<String> dependencies;
 
     @Override

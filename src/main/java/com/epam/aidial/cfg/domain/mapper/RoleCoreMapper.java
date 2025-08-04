@@ -41,6 +41,8 @@ public interface RoleCoreMapper {
     @Mapping(target = "limits", ignore = true)
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "share", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Role mapToRole(CoreRole role,
                    Map<String, CoreLimit> limits,
                    Map<String, CoreShareResourceLimit> shareResourceLimits,

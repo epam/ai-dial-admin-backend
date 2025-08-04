@@ -5,10 +5,11 @@ import com.epam.aidial.cfg.dto.KeyDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = InstantMapper.class)
 public interface KeyDtoMapper {
 
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "keyGeneratedAt", ignore = true)
     Key toDomain(KeyDto entity);
 

@@ -44,6 +44,7 @@ public abstract class KeyEntityMapper {
     }
 
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "keyGeneratedAt", source = "keyGeneratedAt")
     protected abstract KeyEntity update(Key domain, long keyGeneratedAt, @MappingTarget KeyEntity keyEntity);

@@ -34,6 +34,8 @@ public abstract class AssistantEntityMapper {
     }
 
     @Mapping(target = "deploymentName", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "descriptionKeywords", source = "topics")
     public abstract AssistantEntity update(Assistant domain, @MappingTarget AssistantEntity entity);
 }

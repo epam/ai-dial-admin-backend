@@ -137,6 +137,8 @@ public abstract class InterceptorEntityMapper {
     @Mapping(target = "models", ignore = true)
     @Mapping(target = "interceptorRunner", ignore = true)
     @Mapping(target = "interceptorContainer", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract InterceptorEntity update(Interceptor domain, @MappingTarget InterceptorEntity entity);
 
     private Pair<List<ApplicationEntity>, List<ModelEntity>> findApplicationsAndModelsByNames(List<String> names) {

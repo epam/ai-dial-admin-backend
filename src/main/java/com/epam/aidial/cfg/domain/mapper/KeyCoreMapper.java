@@ -20,6 +20,7 @@ public interface KeyCoreMapper {
 
     @Mapping(target = "projectContactPoint", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "keyGeneratedAt", ignore = true)
     @Mapping(target = "description", ignore = true)

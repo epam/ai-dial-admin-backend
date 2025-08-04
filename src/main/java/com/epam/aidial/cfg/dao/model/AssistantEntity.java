@@ -18,7 +18,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class AssistantEntity extends AbstractEntity<String> {
+public class AssistantEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -39,8 +39,6 @@ public class AssistantEntity extends AbstractEntity<String> {
     @Column(columnDefinition = "CLOB")
     private String defaults;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
     private List<String> dependencies;
 
     @Override

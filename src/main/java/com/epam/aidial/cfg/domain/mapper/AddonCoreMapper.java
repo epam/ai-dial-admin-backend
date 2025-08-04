@@ -35,6 +35,8 @@ public abstract class AddonCoreMapper {
     public abstract CoreAddon mapAddon(Addon addon);
 
     @Mapping(target = "deployment.name", source = "addon.name")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract Addon mapAddon(CoreAddon addon, Map<String, CoreRole> roles);
 
     @AfterMapping

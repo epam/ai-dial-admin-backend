@@ -33,7 +33,9 @@ public class ModelDto extends RoleBasedDto {
     private List<String> topics;
     private Integer maxRetryAttempts;
     private String author;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
 

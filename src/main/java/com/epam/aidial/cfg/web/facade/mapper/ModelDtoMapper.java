@@ -18,16 +18,14 @@ public abstract class ModelDtoMapper {
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "adapter", source = "entity", qualifiedByName = "mapToAdapter")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "instantToLong")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "instantToLong")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract Model toDomain(ModelDto entity);
 
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "adapter", source = "adapter.name")
     @Mapping(target = "endpoint", source = "domain", qualifiedByName = "mapEndpointFromModel")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     public abstract ModelDto toDto(Model domain);
 
     public Map<String, String> mapMap(Map<String, Object> value) {

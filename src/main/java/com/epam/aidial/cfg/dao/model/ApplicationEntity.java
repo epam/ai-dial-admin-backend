@@ -24,7 +24,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class ApplicationEntity extends AbstractEntity<String> {
+public class ApplicationEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -52,8 +52,6 @@ public class ApplicationEntity extends AbstractEntity<String> {
     @ManyToMany(mappedBy = "applications")
     private List<InterceptorEntity> interceptors = new ArrayList<>();
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
     private List<String> dependencies;
     @Embedded
     private FeaturesEntity features;

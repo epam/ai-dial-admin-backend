@@ -30,6 +30,8 @@ public abstract class ApplicationCoreMapper {
 
     @Mapping(target = "deployment.name", source = "application.name")
     @Mapping(target = "features", source = "application.features", qualifiedByName = "toFeaturesDto")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract Application mapApplication(CoreApplication application, Map<String, CoreRole> roles);
 
     @AfterMapping
