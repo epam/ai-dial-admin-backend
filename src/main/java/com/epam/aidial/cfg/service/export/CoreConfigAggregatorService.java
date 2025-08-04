@@ -20,7 +20,6 @@ import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.core.config.Config;
-import com.epam.aidial.core.config.CoreAddon;
 import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.CoreInterceptor;
 import com.epam.aidial.core.config.CoreKey;
@@ -66,7 +65,6 @@ public class CoreConfigAggregatorService {
         Config config = new Config();
         config.setRoutes(getRoutes());
         config.setModels(getModels());
-        config.setAddons(getAddons());
         config.setApplications(getApplications());
         config.setKeys(getKeys());
         config.setRoles(getRoles());
@@ -92,12 +90,6 @@ public class CoreConfigAggregatorService {
     private Map<String, CoreModel> getModels() {
         return modelService.getAll().stream()
                 .map(modelMapper::mapModel)
-                .collect(Collectors.toMap(RoleBasedEntity::getName, model -> model));
-    }
-
-    private Map<String, CoreAddon> getAddons() {
-        return addonService.getAllAddons().stream()
-                .map(addonMapper::mapAddon)
                 .collect(Collectors.toMap(RoleBasedEntity::getName, model -> model));
     }
 
