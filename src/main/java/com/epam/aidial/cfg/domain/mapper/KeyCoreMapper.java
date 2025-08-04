@@ -18,14 +18,13 @@ public interface KeyCoreMapper {
     @Mapping(target = "role", ignore = true)
     CoreKey mapKey(Key key);
 
-    @Mapping(target = "name", source = "key")
     @Mapping(target = "projectContactPoint", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "keyGeneratedAt", ignore = true)
     @Mapping(target = "description", ignore = true)
-    Key mapKey(CoreKey key);
+    Key mapKey(CoreKey key, String name);
 
     @AfterMapping
     default void addRole(@MappingTarget Key key, CoreKey coreKey) {
