@@ -15,7 +15,6 @@ import com.epam.aidial.cfg.domain.mapper.KeyCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
-import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -62,7 +61,7 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
-    public CoreConfigAggregatorService configAggregatorService(AddonService addonService, ApplicationService applicationService,
+    public CoreConfigAggregatorService configAggregatorService(ApplicationService applicationService,
                                                                ApplicationTypeSchemaService applicationTypeSchemaService,
                                                                InterceptorService interceptorService,
                                                                KeyService keyService,
@@ -74,7 +73,7 @@ public class FunctionalTestConfiguration {
                                                                KeyCoreMapper keyMapper,
                                                                ModelCoreMapper modelMapper, RoleCoreMapper roleMapper,
                                                                RouteCoreMapper routeMapper) {
-        return new CoreConfigAggregatorService(addonService, applicationService, applicationTypeSchemaService, interceptorService,
+        return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService,
                 keyService, modelService, roleService, routeService, deploymentService, addonMapper, applicationMapper, schemaMapper, interceptorMapper,
                 keyMapper, modelMapper, roleMapper, routeMapper);
     }

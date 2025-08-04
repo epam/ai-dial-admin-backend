@@ -10,7 +10,6 @@ import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
@@ -41,7 +40,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CoreConfigAggregatorService {
 
-    private final AddonService addonService;
     private final ApplicationService applicationService;
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
     private final InterceptorService interceptorService;
