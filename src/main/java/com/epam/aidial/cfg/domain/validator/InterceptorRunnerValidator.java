@@ -13,8 +13,15 @@ import java.util.regex.Pattern;
 @Component
 public class InterceptorRunnerValidator {
 
-    @Value("${validation.interceptorRunner.name:}")
-    private String interceptorRunnerNameValidationPattern;
+    private final IdFieldValidator idFieldValidator;
+
+    private final String interceptorRunnerNameValidationPattern;
+
+    public InterceptorRunnerValidator(IdFieldValidator idFieldValidator,
+                                      @Value("${validation.interceptorRunner.name:}") String interceptorRunnerNameValidationPattern) {
+        this.idFieldValidator = idFieldValidator;
+        this.interceptorRunnerNameValidationPattern = interceptorRunnerNameValidationPattern;
+    }
 
     public void validateCreation(InterceptorRunner interceptorRunner) {
         validateInterceptorRunnerName(interceptorRunner);
@@ -24,13 +31,15 @@ public class InterceptorRunnerValidator {
     public void validateUpdate(String interceptorRunnerName, InterceptorRunner interceptorRunner) {
         if (!Objects.equals(interceptorRunnerName, interceptorRunner.getName())) {
             throw new IllegalArgumentException("InterceptorRunner with name: '%s' can not be renamed. New interceptor runner name: '%s'"
-                .formatted(interceptorRunnerName, interceptorRunner.getName()));
+                    .formatted(interceptorRunnerName, interceptorRunner.getName()));
         }
         validateEndpoints(interceptorRunner.getCompletionEndpoint(), interceptorRunner.getConfigurationEndpoint());
     }
-    
+
     private void validateInterceptorRunnerName(InterceptorRunner interceptorRunner) {
         final String interceptorRunnerName = interceptorRunner.getName();
+
+        idFieldValidator.validateName(interceptorRunnerName);
 
         if (StringUtils.isEmpty(interceptorRunnerNameValidationPattern)) {
             log.debug("InterceptorRunner name validation pattern is empty, skipping validation for interceptor runner: {}", interceptorRunnerName);
@@ -39,7 +48,7 @@ public class InterceptorRunnerValidator {
 
         if (!Pattern.matches(interceptorRunnerNameValidationPattern, interceptorRunnerName)) {
             throw new IllegalArgumentException("InterceptorRunner name '" + interceptorRunnerName
-                + "' does not match the required pattern: " + interceptorRunnerNameValidationPattern);
+                    + "' does not match the required pattern: " + interceptorRunnerNameValidationPattern);
         }
     }
 

@@ -1,20 +1,27 @@
-package com.epam.aidial.cfg.dao.validator;
+package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.validator.DeploymentValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class DeploymentValidatorTest {
+
+    @Mock
+    private IdFieldValidator idFieldValidator;
 
     private DeploymentValidator deploymentValidator;
 
     @BeforeEach
     void setUp() {
-        deploymentValidator = new DeploymentValidator();
+        deploymentValidator = new DeploymentValidator(idFieldValidator);
     }
 
     @Test
@@ -31,6 +38,13 @@ class DeploymentValidatorTest {
         Deployment deployment = new Deployment("deployment_name");
 
         assertThatNoException().isThrownBy(() -> deploymentValidator.validateUpdate("deployment_name", deployment, "Some deployment"));
+    }
+
+    @Test
+    void validateCreation_shouldDelegateToIdFieldValidator() {
+        deploymentValidator.validateCreation("deployment_name");
+
+        verify(idFieldValidator).validateName("deployment_name");
     }
 
 }

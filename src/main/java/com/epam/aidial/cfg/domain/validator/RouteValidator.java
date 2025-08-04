@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Route;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,16 +10,22 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class RouteValidator {
 
     private final DeploymentValidator deploymentValidator;
-    
-    @Value("${validation.route.name:}")
-    private String routeNameValidationPattern;
-    
+
+    private final String routeNameValidationPattern;
+
+    public RouteValidator(DeploymentValidator deploymentValidator,
+                          @Value("${validation.route.name:}") String routeNameValidationPattern) {
+        this.deploymentValidator = deploymentValidator;
+        this.routeNameValidationPattern = routeNameValidationPattern;
+    }
+
     public void validateRouteCreation(Route route) {
         final String routeName = route.getDeployment().getName();
+
+        deploymentValidator.validateCreation(routeName);
 
         if (StringUtils.isEmpty(routeNameValidationPattern)) {
             log.debug("Route name validation pattern is empty, skipping validation for route: {}", routeName);
@@ -29,7 +34,7 @@ public class RouteValidator {
 
         if (!Pattern.matches(routeNameValidationPattern, routeName)) {
             throw new IllegalArgumentException("Route name '" + routeName
-                + "' does not match the required pattern: " + routeNameValidationPattern);
+                    + "' does not match the required pattern: " + routeNameValidationPattern);
         }
     }
 

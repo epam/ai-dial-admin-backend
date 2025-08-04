@@ -1,23 +1,21 @@
-package com.epam.aidial.cfg.dao.validator;
+package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
-import com.epam.aidial.cfg.domain.validator.DeploymentValidator;
-import com.epam.aidial.cfg.domain.validator.DisplayFieldsValidator;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URI;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,8 +28,12 @@ class ApplicationValidatorTest {
     @Mock
     private DeploymentValidator deploymentValidator;
 
-    @InjectMocks
     private ApplicationValidator applicationValidator;
+
+    @BeforeEach
+    void setUp() {
+        applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, null);
+    }
 
     @Test
     void validateCreation_shouldDelegateToDisplayFieldsValidator() {
@@ -184,7 +186,7 @@ class ApplicationValidatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. Only one of them should be specified");
     }
-    
+
     @ParameterizedTest
     @ValueSource(strings = {"valid-name", "valid_name", "ValidName123", "name-123_456", "name.with.dots"})
     void validateCreation_shouldNotThrowExceptionForValidName(String name) {
@@ -201,7 +203,7 @@ class ApplicationValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name", 
+    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name",
             "name-that-is-way-too-long-for-validation-pattern"})
     void validateCreation_shouldThrowExceptionForInvalidName(String name) {
         // given
@@ -216,5 +218,22 @@ class ApplicationValidatorTest {
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match the required pattern");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenDeploymentValidatorThrows() {
+        // given
+        String deploymentName = "deploymentName";
+
+        Deployment deployment = new Deployment(deploymentName);
+
+        Application application = new Application();
+        application.setDeployment(deployment);
+
+        doThrow(IllegalArgumentException.class).when(deploymentValidator).validateCreation(deploymentName);
+
+        // when/then
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

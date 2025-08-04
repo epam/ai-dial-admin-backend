@@ -15,11 +15,20 @@ public class RoleValidator {
 
     private static final String DEFAULT_ROLE_NAME = "default";
 
-    @Value("${validation.role.name:}")
-    private String roleNameValidationPattern;
+    private final IdFieldValidator idFieldValidator;
+
+    private final String roleNameValidationPattern;
+
+    public RoleValidator(IdFieldValidator idFieldValidator,
+                         @Value("${validation.role.name:}") String roleNameValidationPattern) {
+        this.idFieldValidator = idFieldValidator;
+        this.roleNameValidationPattern = roleNameValidationPattern;
+    }
 
     public void validateRoleCreation(Role role) {
         final String roleName = role.getName();
+
+        idFieldValidator.validateName(roleName);
 
         if (StringUtils.isEmpty(roleNameValidationPattern)) {
             log.debug("Role name validation pattern is empty, skipping validation for role: {}", roleName);

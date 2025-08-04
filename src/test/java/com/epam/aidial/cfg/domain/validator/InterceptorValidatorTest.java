@@ -1,4 +1,4 @@
-package com.epam.aidial.cfg.dao.validator;
+package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Interceptor;
@@ -6,20 +6,23 @@ import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
-import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class InterceptorValidatorTest {
 
     private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
@@ -32,11 +35,18 @@ class InterceptorValidatorTest {
 
     @Mock
     private DeploymentManagerService deploymentManagerService;
+    @Mock
+    private IdFieldValidator idFieldValidator;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        interceptorValidator = new InterceptorValidator(deploymentManagerService, new DeploymentInfoValidator());
+        interceptorValidator = new InterceptorValidator(
+                deploymentManagerService,
+                new DeploymentInfoValidator(),
+                idFieldValidator,
+                null
+        );
     }
 
     @ParameterizedTest
@@ -54,7 +64,7 @@ class InterceptorValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name", 
+    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name",
             "name-that-is-way-too-long-for-validation-pattern"})
     void validateCreation_shouldThrowExceptionForInvalidName(String name) {
         // given
@@ -252,5 +262,18 @@ class InterceptorValidatorTest {
 
         // when/then
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenIdFieldValidatorThrows() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+
+        doThrow(IllegalArgumentException.class).when(idFieldValidator).validateName("test-interceptor");
+
+        // when/then
+        Assertions.assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

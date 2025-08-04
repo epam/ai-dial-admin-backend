@@ -1,8 +1,7 @@
-package com.epam.aidial.cfg.dao.resolver.key;
+package com.epam.aidial.cfg.domain.resolver.key;
 
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Key;
-import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
