@@ -111,7 +111,8 @@ class ModelValidatorTest {
         Model model = new Model();
         model.setDeployment(deployment);
 
-        doThrow(IllegalArgumentException.class).when(deploymentValidator).validateCreation(deploymentName);
+        doThrow(IllegalArgumentException.class).when(deploymentValidator)
+                .validateCreation("Model", deploymentName);
 
         // when/then
         Assertions.assertThatThrownBy(() -> modelValidator.validateCreation(model))

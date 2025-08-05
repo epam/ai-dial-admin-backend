@@ -42,9 +42,9 @@ class DeploymentValidatorTest {
 
     @Test
     void validateCreation_shouldDelegateToIdFieldValidator() {
-        deploymentValidator.validateCreation("deployment_name");
+        deploymentValidator.validateCreation("Deployment", "deployment_name");
 
-        verify(idFieldValidator).validateName("deployment_name");
+        verify(idFieldValidator).validateName("Deployment", "deployment_name");
     }
 
 }

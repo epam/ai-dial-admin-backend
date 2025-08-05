@@ -25,7 +25,7 @@ public class AssistantValidator {
     public void validateAssistantCreation(Assistant assistant) {
         final String assistantName = assistant.getDeployment().getName();
 
-        deploymentValidator.validateCreation(assistantName);
+        deploymentValidator.validateCreation("Assistant", assistantName);
 
         if (StringUtils.isEmpty(assistantNameValidationPattern)) {
             log.debug("Assistant name validation pattern is empty, skipping validation for assistant: {}", assistantName);

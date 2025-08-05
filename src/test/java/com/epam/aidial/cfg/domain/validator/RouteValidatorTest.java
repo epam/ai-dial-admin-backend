@@ -90,7 +90,8 @@ class RouteValidatorTest {
         Route route = new Route();
         route.setDeployment(deployment);
 
-        doThrow(IllegalArgumentException.class).when(deploymentValidator).validateCreation(deploymentName);
+        doThrow(IllegalArgumentException.class).when(deploymentValidator)
+                .validateCreation("Route", deploymentName);
 
         // when/then
         Assertions.assertThatThrownBy(() -> routeValidator.validateRouteCreation(route))

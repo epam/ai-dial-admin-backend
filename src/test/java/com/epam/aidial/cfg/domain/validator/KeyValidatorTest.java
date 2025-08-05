@@ -136,7 +136,8 @@ class KeyValidatorTest {
         Key key = new Key();
         key.setName("key_name");
 
-        doThrow(IllegalArgumentException.class).when(idFieldValidator).validateName("key_name");
+        doThrow(IllegalArgumentException.class).when(idFieldValidator)
+                .validateName("Key", "key_name");
 
         // when/then
         Assertions.assertThatThrownBy(() -> keyValidator.validateCreation(key))

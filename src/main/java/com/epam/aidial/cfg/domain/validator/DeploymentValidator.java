@@ -12,8 +12,8 @@ public class DeploymentValidator {
 
     private final IdFieldValidator idFieldValidator;
 
-    public void validateCreation(String deploymentName) {
-        idFieldValidator.validateName(deploymentName);
+    public void validateCreation(String domainObjectType, String deploymentName) {
+        idFieldValidator.validateName(domainObjectType, deploymentName);
     }
 
     public void validateUpdate(String deploymentName, Deployment deployment, String deploymentType) {

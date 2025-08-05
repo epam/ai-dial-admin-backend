@@ -25,7 +25,7 @@ public class AddonValidator {
     public void validateAddonCreation(Addon addon) {
         final String addonName = addon.getDeployment().getName();
 
-        deploymentValidator.validateCreation(addonName);
+        deploymentValidator.validateCreation("Addon", addonName);
 
         if (StringUtils.isEmpty(addonNameValidationPattern)) {
             log.debug("Addon name validation pattern is empty, skipping validation for addon: {}", addonName);

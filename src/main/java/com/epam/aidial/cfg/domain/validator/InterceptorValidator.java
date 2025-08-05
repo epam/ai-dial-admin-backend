@@ -54,7 +54,7 @@ public class InterceptorValidator {
     private void validateInterceptorName(Interceptor interceptor) {
         final String interceptorName = interceptor.getName();
 
-        idFieldValidator.validateName(interceptorName);
+        idFieldValidator.validateName("Interceptor", interceptorName);
 
         if (StringUtils.isEmpty(interceptorNameValidationPattern)) {
             log.debug("Interceptor name validation pattern is empty, skipping validation for interceptor: {}", interceptorName);

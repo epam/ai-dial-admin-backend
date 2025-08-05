@@ -131,7 +131,7 @@ public abstract class RolesFunctionalTest {
                 IllegalArgumentException.class,
                 () -> roleFacade.createRole(roleDto)
         );
-        Assertions.assertEquals("name must not be empty", exception.getMessage());
+        Assertions.assertEquals("Role name must not be empty", exception.getMessage());
     }
 
     @Test

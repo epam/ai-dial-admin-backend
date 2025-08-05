@@ -26,7 +26,7 @@ public class AdapterValidator {
     public void validateAdapterCreation(Adapter adapter) {
         final String adapterName = adapter.getName();
 
-        idFieldValidator.validateName(adapterName);
+        idFieldValidator.validateName("Adapter", adapterName);
 
         if (StringUtils.isEmpty(adapterNameValidationPattern)) {
             log.debug("Adapter name validation pattern is empty, skipping validation for adapter: {}", adapterName);

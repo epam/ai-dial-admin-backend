@@ -21,36 +21,36 @@ class IdFieldValidatorTest {
     @ParameterizedTest
     @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
     void validateName_shouldThrowExceptionWhenEmptyName(String name) {
-        assertThatThrownBy(() -> idFieldValidator.validateName(name))
+        assertThatThrownBy(() -> idFieldValidator.validateName("DomainObjectType", name))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("name must not be empty");
+                .hasMessage("DomainObjectType name must not be empty");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"nameWith%", "nameWith;", "nameWith/", "nameWith\\"})
     void validateName_shouldThrowExceptionWhenNameWithIllegalCharacters(String name) {
-        assertThatThrownBy(() -> idFieldValidator.validateName(name))
+        assertThatThrownBy(() -> idFieldValidator.validateName("DomainObjectType", name))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Illegal character")
-                .hasMessageContaining("found in name");
+                .hasMessageContaining("found in DomainObjectType name: " + name);
     }
 
     @Test
     void validateName_shouldNotThrowExceptionWhenNameWithLegalCharacters() {
-        assertThatCode(() -> idFieldValidator.validateName("name With ~!@#$^&*()-_=+[]{}:'\",<.>?| and some unicode 😇 Ą Ŏ"))
+        assertThatCode(() -> idFieldValidator.validateName("DomainObjectType", "name With ~!@#$^&*()-_=+[]{}:'\",<.>?| and some unicode 😇 Ą Ŏ"))
                 .doesNotThrowAnyException();
     }
 
     @Test
     void validateId_shouldThrowExceptionWhenNullId() {
-        assertThatThrownBy(() -> idFieldValidator.validateId(null, "idField"))
+        assertThatThrownBy(() -> idFieldValidator.validateId("DomainObjectType", null, "idField"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("idField must not be empty");
+                .hasMessage("DomainObjectType idField must not be empty");
     }
 
     @Test
     void validateName_shouldNotThrowExceptionWhenValidId() {
-        assertThatCode(() -> idFieldValidator.validateId(new Object(), "idField"))
+        assertThatCode(() -> idFieldValidator.validateId("DomainObjectType", new Object(), "idField"))
                 .doesNotThrowAnyException();
     }
 }

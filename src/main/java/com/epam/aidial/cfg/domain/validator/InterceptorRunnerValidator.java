@@ -39,7 +39,7 @@ public class InterceptorRunnerValidator {
     private void validateInterceptorRunnerName(InterceptorRunner interceptorRunner) {
         final String interceptorRunnerName = interceptorRunner.getName();
 
-        idFieldValidator.validateName(interceptorRunnerName);
+        idFieldValidator.validateName("InterceptorRunner", interceptorRunnerName);
 
         if (StringUtils.isEmpty(interceptorRunnerNameValidationPattern)) {
             log.debug("InterceptorRunner name validation pattern is empty, skipping validation for interceptor runner: {}", interceptorRunnerName);

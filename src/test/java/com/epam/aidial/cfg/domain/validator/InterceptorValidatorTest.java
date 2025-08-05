@@ -270,7 +270,8 @@ class InterceptorValidatorTest {
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
 
-        doThrow(IllegalArgumentException.class).when(idFieldValidator).validateName("test-interceptor");
+        doThrow(IllegalArgumentException.class).when(idFieldValidator)
+                .validateName("Interceptor", "test-interceptor");
 
         // when/then
         Assertions.assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))

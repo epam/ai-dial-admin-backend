@@ -54,7 +54,8 @@ class AssistantValidatorTest {
         Assistant assistant = new Assistant();
         assistant.setDeployment(deployment);
 
-        doThrow(IllegalArgumentException.class).when(deploymentValidator).validateCreation(deploymentName);
+        doThrow(IllegalArgumentException.class).when(deploymentValidator)
+                .validateCreation("Assistant", deploymentName);
 
         // when/then
         Assertions.assertThatThrownBy(() -> assistantValidator.validateAssistantCreation(assistant))

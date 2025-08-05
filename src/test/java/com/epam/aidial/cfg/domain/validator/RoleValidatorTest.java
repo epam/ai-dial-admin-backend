@@ -95,7 +95,8 @@ class RoleValidatorTest {
         Role role = new Role();
         role.setName("role_name");
 
-        doThrow(IllegalArgumentException.class).when(idFieldValidator).validateName("role_name");
+        doThrow(IllegalArgumentException.class).when(idFieldValidator)
+                .validateName("Role", "role_name");
 
         // when/then
         Assertions.assertThatThrownBy(() -> roleValidator.validateRoleCreation(role))

@@ -25,7 +25,7 @@ public class RouteValidator {
     public void validateRouteCreation(Route route) {
         final String routeName = route.getDeployment().getName();
 
-        deploymentValidator.validateCreation(routeName);
+        deploymentValidator.validateCreation("Route", routeName);
 
         if (StringUtils.isEmpty(routeNameValidationPattern)) {
             log.debug("Route name validation pattern is empty, skipping validation for route: {}", routeName);

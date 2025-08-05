@@ -38,7 +38,7 @@ public class ModelValidator {
     private void validateModelName(Model model) {
         final String modelName = model.getDeployment().getName();
 
-        deploymentValidator.validateCreation(modelName);
+        deploymentValidator.validateCreation("Model", modelName);
 
         if (StringUtils.isEmpty(modelNameValidationPattern)) {
             log.debug("Model name validation pattern is empty, skipping validation for model: {}", modelName);

@@ -41,7 +41,7 @@ public class KeyValidator {
     private void validateKeyName(Key key) {
         final String keyName = key.getName();
 
-        idFieldValidator.validateName(keyName);
+        idFieldValidator.validateName("Key", keyName);
 
         if (StringUtils.isEmpty(keyNameValidationPattern)) {
             log.debug("Key name validation pattern is empty, skipping validation for key: {}", keyName);

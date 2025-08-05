@@ -28,7 +28,7 @@ public class RoleValidator {
     public void validateRoleCreation(Role role) {
         final String roleName = role.getName();
 
-        idFieldValidator.validateName(roleName);
+        idFieldValidator.validateName("Role", roleName);
 
         if (StringUtils.isEmpty(roleNameValidationPattern)) {
             log.debug("Role name validation pattern is empty, skipping validation for role: {}", roleName);

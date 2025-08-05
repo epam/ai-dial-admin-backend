@@ -83,7 +83,8 @@ class ApplicationTypeSchemaValidatorTest {
         ApplicationTypeSchema applicationTypeSchema = new ApplicationTypeSchema();
         applicationTypeSchema.setSchemaId("schema_id");
 
-        doThrow(IllegalArgumentException.class).when(idFieldValidator).validateId("schema_id", "schemaId");
+        doThrow(IllegalArgumentException.class).when(idFieldValidator)
+                .validateId("ApplicationTypeSchema", "schema_id", "schemaId");
 
         // when/then
         Assertions.assertThatThrownBy(() -> applicationTypeSchemaValidator.validateCreation(applicationTypeSchema))

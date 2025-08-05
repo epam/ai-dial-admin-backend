@@ -26,7 +26,7 @@ public class ApplicationTypeSchemaValidator {
     public void validateCreation(ApplicationTypeSchema applicationTypeSchema) {
         final String schemaId = applicationTypeSchema.getSchemaId();
 
-        idFieldValidator.validateId(schemaId, "schemaId");
+        idFieldValidator.validateId("ApplicationTypeSchema", schemaId, "schemaId");
 
         if (StringUtils.isEmpty(applicationTypeSchemaIdValidationPattern)) {
             log.debug("ApplicationTypeSchema id validation pattern is empty, skipping validation for schema id: {}", schemaId);

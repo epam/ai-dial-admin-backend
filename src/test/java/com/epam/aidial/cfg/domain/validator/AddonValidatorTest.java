@@ -88,7 +88,8 @@ class AddonValidatorTest {
         Addon addon = new Addon();
         addon.setDeployment(deployment);
 
-        doThrow(IllegalArgumentException.class).when(deploymentValidator).validateCreation(deploymentName);
+        doThrow(IllegalArgumentException.class).when(deploymentValidator)
+                .validateCreation("Addon", deploymentName);
 
         // when/then
         Assertions.assertThatThrownBy(() -> addonValidator.validateAddonCreation(addon))

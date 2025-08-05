@@ -41,7 +41,7 @@ public class ApplicationValidator {
     private void validateApplicationName(Application application) {
         final String applicationName = application.getDeployment().getName();
 
-        deploymentValidator.validateCreation(applicationName);
+        deploymentValidator.validateCreation("Application", applicationName);
 
         if (StringUtils.isEmpty(applicationNameValidationPattern)) {
             log.debug("Application name validation pattern is empty, skipping validation for application: {}", applicationName);

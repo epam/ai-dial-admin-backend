@@ -230,7 +230,8 @@ class ApplicationValidatorTest {
         Application application = new Application();
         application.setDeployment(deployment);
 
-        doThrow(IllegalArgumentException.class).when(deploymentValidator).validateCreation(deploymentName);
+        doThrow(IllegalArgumentException.class).when(deploymentValidator)
+                .validateCreation("Application", deploymentName);
 
         // when/then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
