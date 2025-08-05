@@ -12,6 +12,7 @@ import static org.apache.commons.validator.routines.UrlValidator.ALLOW_LOCAL_URL
 public class EndpointValidator {
 
     private static final Pattern VALID_URL_PATTERN = Pattern.compile("^[a-zA-Z0-9-.:/\\\\]+$");
+    private static final UrlValidator VALIDATOR = new CustomUrlValidator(new String[]{"http", "https"}, ALLOW_LOCAL_URLS);
 
     public static boolean isInvalidUrl(String url) {
         return !isValidUrl(url);
@@ -21,9 +22,7 @@ public class EndpointValidator {
         if (!VALID_URL_PATTERN.matcher(url).matches()) {
             return false;
         }
-        String[] schemes = {"http", "https"};
-        var validator = new CustomUrlValidator(schemes, ALLOW_LOCAL_URLS);
-        return validator.isValid(url);
+        return VALIDATOR.isValid(url);
     }
 
     public static boolean isInvalidUrlPath(String urlPath) {
