@@ -40,7 +40,7 @@ class EndpointValidatorTest {
             "http://example.com:-80"
     })
     void isInvalidUrl_shouldReturnTrue(String url) {
-        assertFalse(EndpointValidator.isValidUrl(url), "Expected URL to be invalid: " + url);
+        assertTrue(EndpointValidator.isInvalidUrl(url), "Expected URL to be invalid: " + url);
     }
 
     @Test
