@@ -37,7 +37,7 @@ class IdFieldValidatorTest {
 
     @Test
     void validateName_shouldNotThrowExceptionWhenNameWithLegalCharacters() {
-        assertThatCode(() -> idFieldValidator.validateName("name With ~!@#$^&*()-_=+[]{}:'\",<.>?| and some unicode \uD83D\uDE07 Ą Ŏ"))
+        assertThatCode(() -> idFieldValidator.validateName("name With ~!@#$^&*()-_=+[]{}:'\",<.>?| and some unicode 😇 Ą Ŏ"))
                 .doesNotThrowAnyException();
     }
 
