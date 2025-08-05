@@ -4,9 +4,9 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 
-import static org.apache.commons.validator.routines.UrlValidator.ALLOW_LOCAL_URLS;
-
 import java.util.regex.Pattern;
+
+import static org.apache.commons.validator.routines.UrlValidator.ALLOW_LOCAL_URLS;
 
 @UtilityClass
 public class EndpointValidator {
