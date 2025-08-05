@@ -6,16 +6,23 @@ import org.apache.commons.validator.routines.UrlValidator;
 
 import static org.apache.commons.validator.routines.UrlValidator.ALLOW_LOCAL_URLS;
 
+import java.util.regex.Pattern;
+
 @UtilityClass
 public class EndpointValidator {
+
+    private static final Pattern VALID_URL_PATTERN = Pattern.compile("^[a-zA-Z0-9-.:/\\\\]+$");
 
     public static boolean isInvalidUrl(String url) {
         return !isValidUrl(url);
     }
 
     public static boolean isValidUrl(String url) {
+        if (!VALID_URL_PATTERN.matcher(url).matches()) {
+            return false;
+        }
         String[] schemes = {"http", "https"};
-        var validator = new UrlValidator(schemes, ALLOW_LOCAL_URLS);
+        var validator = new CustomUrlValidator(schemes, ALLOW_LOCAL_URLS);
         return validator.isValid(url);
     }
 
@@ -34,5 +41,19 @@ public class EndpointValidator {
         }
 
         return path.matches("^/?[\\w\\-./]*$");
+    }
+
+    private class CustomUrlValidator extends UrlValidator {
+
+        private static final Pattern VALID_AUTHORITY_PATTERN = Pattern.compile("^[a-zA-Z0-9.-]+(:[0-9]{1,5})?$");
+
+        public CustomUrlValidator(String[] schemes, long options) {
+            super(schemes, options);
+        }
+
+        @Override
+        protected boolean isValidAuthority(String authority) {
+            return authority != null && VALID_AUTHORITY_PATTERN.matcher(authority).matches();
+        }
     }
 }
