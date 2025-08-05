@@ -64,6 +64,7 @@ public class ApplicationTypeSchemaExporter {
 
     private ApplicationTypeSchema removeDependency(ApplicationTypeSchema applicationTypeSchema) {
         applicationTypeSchema.setApplications(null);
+        applicationTypeSchema.setRoutes(null);
         return applicationTypeSchema;
     }
 

@@ -188,6 +188,7 @@ public class ConfigExporter {
             Application application = applicationExporter.getApplication(component.getName());
             processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
             processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
+            // TODO [VPA]: process Route dependencies
         }
     }
 

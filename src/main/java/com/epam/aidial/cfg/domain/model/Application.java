@@ -36,5 +36,6 @@ public class Application extends RoleBased {
     private URI applicationTypeSchemaId;
     private String viewerUrl;
     private String editorUrl;
+    private List<String> routes;
 
 }

@@ -41,4 +41,5 @@ public class ApplicationTypeSchema {
     private Set<String> topics;
     private Long createdAt;
     private Long updatedAt;
+    private List<String> routes;
 }

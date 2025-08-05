@@ -12,7 +12,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Slf4j
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = RouteCoreMapper.class)
 public abstract class ApplicationTypeSchemaCoreMapper {
 
     private final ObjectMapper objectMapper;

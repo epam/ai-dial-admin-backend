@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PreRemove;
 import lombok.Data;
@@ -62,6 +63,11 @@ public class ApplicationEntity extends TimeTrackableEntity<String> {
     private ApplicationTypeSchemaEntity applicationTypeSchema;
     private String viewerUrl;
     private String editorUrl;
+
+    // TODO [VPA]: on delete, remove these routes only if they are not connected to application type schema
+    @ToString.Exclude
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RouteEntity> routes = new ArrayList<>();
 
     @PreRemove
     public void preRemove() {

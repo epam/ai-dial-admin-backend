@@ -47,6 +47,7 @@ public class ApplicationValidator {
         }
     }
 
+    // TODO [VPA]: applicationTypeRoutes & applicationTypeSchemaId should not be combined
     private void validateEndpointAndApplicationTypeSchemaId(String endpoint, URI applicationTypeSchemaId) {
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint: '" + endpoint + "'");

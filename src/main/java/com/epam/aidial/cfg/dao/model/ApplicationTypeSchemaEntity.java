@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dao.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -49,6 +50,11 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private List<ApplicationEntity> applications = new ArrayList<>();
 
     private Set<String> topics;
+
+    // TODO [VPA]: on delete, remove these routes only if they are not connected to application
+    @ToString.Exclude
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RouteEntity> applicationTypeRoutes = new ArrayList<>();
 
     @Override
     public String getId() {

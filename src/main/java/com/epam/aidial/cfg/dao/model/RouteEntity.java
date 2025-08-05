@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import lombok.Data;
@@ -38,6 +39,14 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     private Set<String> methods;
     private String upstreams;
     private int maxRetryAttempts;
+    private int order;
+    private Set<ResourceAccessType> permissions;
+    @Embedded
+    private AttachmentPathEntity attachmentPaths;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false)
+    private ApplicationEntity application;
 
     @Override
     public String getId() {

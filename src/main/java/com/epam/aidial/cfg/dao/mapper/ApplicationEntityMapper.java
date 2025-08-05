@@ -2,11 +2,13 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -21,7 +23,6 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,8 +36,12 @@ public abstract class ApplicationEntityMapper {
 
     @Autowired
     private ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
+
     @Autowired
     private InterceptorJpaRepository interceptorJpaRepository;
+
+    @Autowired
+    private RouteJpaRepository routeJpaRepository;
 
     @Mapping(target = "applicationTypeSchemaId", source = "applicationTypeSchema.schemaId")
     public abstract Application toDomain(ApplicationEntity entity);
@@ -45,16 +50,13 @@ public abstract class ApplicationEntityMapper {
         return interceptorEntity.getName();
     }
 
-    protected URI mapStringToUri(String uriString) {
-        try {
-            return uriString == null ? null : new URI(uriString);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid application applicationTypeSchemaId: " + uriString);
-        }
+    protected String mapRouteToString(RouteEntity routeEntity) {
+        return routeEntity.getDeploymentName();
     }
 
     public ApplicationEntity toEntity(Application domain, ApplicationEntity entity) {
         List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+        List<RouteEntity> routes = findRoutesByDeploymentNames(domain.getRoutes());
 
         ApplicationTypeSchemaEntity applicationTypeSchema = findApplicationTypeSchemaById(domain.getApplicationTypeSchemaId());
 
@@ -77,6 +79,11 @@ public abstract class ApplicationEntityMapper {
         }
         updatedEntity.setApplicationTypeSchema(applicationTypeSchema);
 
+        updatedEntity.getRoutes().forEach(route -> route.setApplication(null));
+        routes.forEach(route -> route.setApplication(updatedEntity));
+        updatedEntity.getRoutes().clear();
+        updatedEntity.getRoutes().addAll(routes);
+
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.APPLICATION);
 
@@ -86,6 +93,7 @@ public abstract class ApplicationEntityMapper {
     @Mapping(target = "deploymentName", ignore = true)
     @Mapping(target = "applicationTypeSchema", ignore = true)
     @Mapping(target = "interceptors", ignore = true)
+    @Mapping(target = "routes", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     protected abstract ApplicationEntity update(Application domain, @MappingTarget ApplicationEntity entity);
@@ -100,10 +108,26 @@ public abstract class ApplicationEntityMapper {
 
         Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptors);
         if (!namesDiff.isEmpty()) {
-            throw new EntityNotFoundException("unable to find interceptors: " + namesDiff);
+            throw new EntityNotFoundException("Unable to find interceptors: " + namesDiff);
         }
 
         return interceptors;
+    }
+
+    private List<RouteEntity> findRoutesByDeploymentNames(List<String> deploymentNames) {
+        if (CollectionUtils.isEmpty(deploymentNames)) {
+            return List.of();
+        }
+
+        List<RouteEntity> routes = Lists.newArrayList(routeJpaRepository.findAllById(deploymentNames));
+        Set<String> existingRoutes = routes.stream().map(RouteEntity::getDeploymentName).collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(deploymentNames), existingRoutes);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find routes: " + namesDiff);
+        }
+
+        return routes;
     }
 
     private ApplicationTypeSchemaEntity findApplicationTypeSchemaById(URI applicationTypeSchemaId) {
@@ -114,6 +138,6 @@ public abstract class ApplicationEntityMapper {
         }
 
         return applicationTypeSchemaJpaRepository.findById(schemaId)
-                .orElseThrow(() -> new EntityNotFoundException("unable to find application type schema with schema id: " + schemaId));
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find application type schema with schema id: " + schemaId));
     }
 }

@@ -34,6 +34,7 @@ public abstract class RouteCoreMapper {
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "applicationName", ignore = true)
     public abstract Route mapRoute(CoreRoute route, Map<String, CoreRole> roles);
 
     @Mapping(target = "id", ignore = true)

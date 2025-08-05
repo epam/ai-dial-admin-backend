@@ -92,6 +92,9 @@ public class ApplicationExporter {
         if (!componentTypes.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)) {
             app.setApplicationTypeSchemaId(null);
         }
+        if (!componentTypes.contains(ExportConfigComponentType.ROUTE)) {
+            app.setRoutes(null);
+        }
         // Exclude role limits from deployment for Admin export format in order to have unidirectional association
         // between deployments and roles, so it means that role with its limits will be defined only under "roles" section
         if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {

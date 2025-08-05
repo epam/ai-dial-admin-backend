@@ -18,6 +18,8 @@ public class RouteValidator {
     
     @Value("${validation.route.name:}")
     private String routeNameValidationPattern;
+
+    // TODO [VPA]: validate that if permissions/attachmentPaths are present - applicationName must be present also
     
     public void validateRouteCreation(Route route) {
         final String routeName = route.getDeployment().getName();

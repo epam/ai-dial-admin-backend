@@ -14,7 +14,7 @@ import java.util.Map;
 @Mapper(
         componentModel = "spring",
         uses = {
-                RoleLimitMapper.class, FeatureCoreMapper.class
+                RoleLimitMapper.class, FeatureCoreMapper.class, RouteCoreMapper.class
         }
 )
 public abstract class ApplicationCoreMapper {

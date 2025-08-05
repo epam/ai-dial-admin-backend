@@ -44,6 +44,8 @@ public class ApplicationDto extends RoleBasedDto {
     private String viewerUrl;
     private String editorUrl;
 
+    private List<String> routes;
+
     private FunctionDto function;
 
     @JsonIgnore

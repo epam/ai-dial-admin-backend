@@ -69,4 +69,5 @@ public class ApplicationTypeSchemaDto {
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
+    private List<String> routes;
 }
