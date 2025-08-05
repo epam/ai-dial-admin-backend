@@ -17,6 +17,7 @@ services:
     volumes:
       - ./data:/app/data
     environment:
+      SPRING_PROFILES_ACTIVE: local
       CONFIG_REST_SECURITY_MODE: "none"
       SECURITY_JWT_ACCEPTED_ISSUERS: "local_issuer"
       DIAL_ADMIN_CLIENT_ID: "client_id"
@@ -33,6 +34,12 @@ services:
       POSTGRES_HOST: postgres
       MS_SQL_SERVER_HOST: sqlserver
       MS_SQL_SERVER_OPS: encrypt=false;
+      ENABLE_PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH: false
+      # Define to enable service-to-service calls (use LOCAL app registration)
+#      AUTH_AZURE_CLIENT_ID: ${AUTH_AZURE_CLIENT_ID}
+#      AUTH_AZURE_TENANT_ID: ${AUTH_AZURE_TENANT_ID}
+#      AUTH_AZURE_CLIENT_SECRET: ${AUTH_AZURE_CLIENT_SECRET}
+#      AZURE_DEPLOYMENT_MANAGER_SCOPE: ${AZURE_DEPLOYMENT_MANAGER_SCOPE}
 
   redis:
     container_name: ai-dial-redis

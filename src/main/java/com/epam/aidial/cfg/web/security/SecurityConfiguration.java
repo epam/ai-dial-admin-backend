@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
@@ -34,6 +36,11 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter(final JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory) {
+        return jwtAuthenticationConverterFactory.create();
+    }
+
+    @Bean
     public IssuerToDecoderMapFactory issuerToDecoderMapFactory(@Value("${config.rest.security.accepted-issuers}") String[] acceptedIssuers,
                                                                @Value("${config.rest.security.accepted-audiences}") String[] acceptedAudiences,
                                                                @Value("${config.rest.security.accepted-issuers-aliases}") String[] acceptedIssuersAliases) {
@@ -47,9 +54,14 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    public JwtDecoder jwtDecoder(final TokenDecoderFactory tokenDecoderFactory) {
+        return tokenDecoderFactory.createJwtDecoder();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   TokenDecoderFactory tokenDecoderFactory,
-                                                   JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory) throws Exception {
+                                                   JwtDecoder jwtDecoder,
+                                                   JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                     .requestMatchers(publicPathPatterns()).permitAll()
@@ -57,8 +69,8 @@ public class SecurityConfiguration {
                     .anyRequest().denyAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
-                    .jwt(jwt -> jwt.decoder(tokenDecoderFactory.createJwtDecoder())
-                        .jwtAuthenticationConverter(jwtAuthenticationConverterFactory.create())));
+                    .jwt(jwt -> jwt.decoder(jwtDecoder)
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter)));
         return http.build();
     }
 
