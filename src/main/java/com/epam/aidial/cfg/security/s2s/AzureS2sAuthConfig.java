@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
 
 @Configuration
-public class AzureS2SAuthConfig {
+public class AzureS2sAuthConfig {
 
     @Bean
     @Validated

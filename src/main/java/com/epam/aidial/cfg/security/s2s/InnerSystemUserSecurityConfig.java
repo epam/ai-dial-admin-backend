@@ -16,9 +16,8 @@ public class InnerSystemUserSecurityConfig {
 
     @Bean
     public SimpleTokenCache thisServiceToDeploymentManagerScopeToken(
-        @Value("${plugins.deployment.manager.scope}") final String deploymentManagerScope,
-        final TokenCredential tokenCredential) {
-
+            @Value("${plugins.deployment.manager.scope}") final String deploymentManagerScope,
+            final TokenCredential tokenCredential) {
         final var tokenRequest = new TokenRequestContext().addScopes(deploymentManagerScope);
         return new SimpleTokenCache(() -> getTokenMono(tokenCredential, tokenRequest));
     }

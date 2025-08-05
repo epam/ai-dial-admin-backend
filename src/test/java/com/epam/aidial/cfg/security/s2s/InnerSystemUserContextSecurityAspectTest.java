@@ -1,15 +1,8 @@
 package com.epam.aidial.cfg.security.s2s;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.EndpointsRefresherScheduledService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +15,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(SpringExtension.class)
@@ -38,7 +37,7 @@ class InnerSystemUserContextSecurityAspectTest {
     private EndpointsRefresherScheduledService endpointsRefresherScheduledService;
 
     @MockitoBean
-    private S2STokenService s2STokenService;
+    private S2sTokenService s2sTokenService;
 
     @MockitoBean
     private InterceptorService interceptorService;
@@ -60,7 +59,7 @@ class InnerSystemUserContextSecurityAspectTest {
         when(authentication.getToken()).thenReturn(jwt);
         final var context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
-        Mockito.when(s2STokenService.getSecurityContext()).thenReturn(context);
+        Mockito.when(s2sTokenService.getSecurityContext()).thenReturn(context);
 
         doAnswer(invocation -> {
             final var delegatedContext = SecurityContextHolder.getContext();

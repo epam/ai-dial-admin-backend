@@ -1,7 +1,5 @@
 package com.epam.aidial.cfg.security.s2s;
 
-import static com.epam.aidial.cfg.security.s2s.InnerSystemUserContextSecurityAspect.ORDER;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +12,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
 import org.springframework.stereotype.Component;
 
+import static com.epam.aidial.cfg.security.s2s.InnerSystemUserContextSecurityAspect.ORDER;
+
 @Aspect
 @Order(ORDER)
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class InnerSystemUserContextSecurityAspect {
 
     public static final int ORDER = Ordered.HIGHEST_PRECEDENCE;
 
-    private final S2STokenService s2STokenService;
+    private final S2sTokenService s2sTokenService;
 
     @SneakyThrows
     private static void proceed(final ProceedingJoinPoint joinPoint) {
@@ -33,7 +33,7 @@ public class InnerSystemUserContextSecurityAspect {
     @Around("annotatedWithInnerSystemUserSecurityContext()")
     public void aspectAround(final ProceedingJoinPoint joinPoint) {
         log.debug("Start getting service context.");
-        new DelegatingSecurityContextRunnable(() -> proceed(joinPoint), s2STokenService.getSecurityContext()).run();
+        new DelegatingSecurityContextRunnable(() -> proceed(joinPoint), s2sTokenService.getSecurityContext()).run();
     }
 
     @Pointcut("@annotation(InnerSystemUserSecurityContext)")

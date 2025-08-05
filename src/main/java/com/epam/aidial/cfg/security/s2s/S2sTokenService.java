@@ -1,8 +1,5 @@
 package com.epam.aidial.cfg.security.s2s;
 
-import java.time.Duration;
-import java.util.Objects;
-
 import com.azure.core.credential.SimpleTokenCache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +10,13 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class S2STokenService {
+public class S2sTokenService {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
@@ -39,7 +39,7 @@ public class S2STokenService {
     }
 
     private Authentication convertToAuthentication(final String token) {
-        var jwt = jwtDecoder.decode(token);
+        final var jwt = jwtDecoder.decode(token);
         return jwtAuthenticationConverter.convert(jwt);
     }
 }
