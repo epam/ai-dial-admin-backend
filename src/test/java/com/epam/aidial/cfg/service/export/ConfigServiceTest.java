@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service.export;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.mapper.MapperPackage;
-import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
@@ -11,7 +10,6 @@ import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.Route;
-import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
@@ -56,8 +54,6 @@ class ConfigServiceTest {
     }
 
     @MockitoBean
-    private AddonService addonService;
-    @MockitoBean
     private ApplicationService applicationService;
     @MockitoBean
     private ApplicationTypeSchemaService applicationTypeSchemaService;
@@ -84,7 +80,6 @@ class ConfigServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(addonService.getAllAddons()).thenReturn(List.of());
         when(applicationService.getAllApplications()).thenReturn(List.of());
         when(applicationTypeSchemaService.getAll()).thenReturn(List.of());
         when(interceptorService.getAll()).thenReturn(List.of());
@@ -92,20 +87,6 @@ class ConfigServiceTest {
         when(modelService.getAll()).thenReturn(List.of());
         when(roleService.getAllRoles()).thenReturn(List.of());
         when(routeService.getAll()).thenReturn(List.of());
-    }
-
-    @Test
-    void getConfig_OnlyAddons() throws JsonProcessingException {
-        var rawAddons = ResourceUtils.readResource("/domain/model/addons.json");
-        var addons = objectMapper.readValue(rawAddons, new TypeReference<List<Addon>>() {
-        });
-        when(addonService.getAllAddons()).thenReturn(addons);
-
-        var actualConfig = configService.getConfig();
-
-        var actualRawConfig = objectMapper.writeValueAsString(actualConfig);
-        var expectedRawConfig = ResourceUtils.readResource("/domain/config/config_only_addons.json");
-        assertThatJson(actualRawConfig).isEqualTo(expectedRawConfig);
     }
 
     @Test

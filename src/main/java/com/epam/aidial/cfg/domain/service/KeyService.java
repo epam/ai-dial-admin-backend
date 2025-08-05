@@ -4,9 +4,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.KeyJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.KeyEntityMapper;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
-import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.Key;
-import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
 import com.epam.aidial.cfg.domain.validator.KeyValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -45,6 +43,12 @@ public class KeyService {
         return keyJpaRepository.findById(keyName)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(keyName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Key> tryGetKeyByKeyValue(String keyValue) {
+        return keyJpaRepository.findByKey(keyValue)
+                .map(mapper::toDomain);
     }
 
     @Transactional

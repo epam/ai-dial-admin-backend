@@ -22,18 +22,6 @@ public abstract class AddonCoreMapper {
     @Autowired
     private RoleLimitMapper roleLimitMapper;
 
-    @Mapping(target = "displayVersion", ignore = true)
-    @Mapping(target = "reference", ignore = true)
-    @Mapping(target = "features", ignore = true)
-    @Mapping(target = "defaults", ignore = true)
-    @Mapping(target = "interceptors", ignore = true)
-    @Mapping(target = "descriptionKeywords", ignore = true)
-    @Mapping(target = "maxRetryAttempts", ignore = true)
-    @Mapping(target = "token", ignore = true)
-    @Mapping(target = "name", source = "deployment.name")
-    @Mapping(target = "userRoles", source = "deployment")
-    public abstract CoreAddon mapAddon(Addon addon);
-
     @Mapping(target = "deployment.name", source = "addon.name")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

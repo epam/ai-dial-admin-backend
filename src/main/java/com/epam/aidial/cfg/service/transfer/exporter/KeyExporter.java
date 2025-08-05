@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.transfer.exporter;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -16,6 +17,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,26 +30,32 @@ public class KeyExporter {
     private final KeyService keyService;
 
     protected Map<String, Key> getKeys(ExportRequest request) {
+        Function<Key, String> keyMapper = switch (request.getExportFormat()) {
+            case CORE -> Key::getKey;
+            case ADMIN -> Key::getName;
+        };
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.KEY)
                     ? getKeys(fullExportRequest).stream()
-                    .collect(Collectors.toMap(Key::getName, Function.identity()))
+                    .collect(Collectors.toMap(keyMapper, Function.identity()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getKeys(selectedItemsExportRequest.getComponents(), request.isAddSecrets()).stream()
-                    .collect(Collectors.toMap(Key::getName, Function.identity()));
+            return getKeys(selectedItemsExportRequest).stream()
+                    .collect(Collectors.toMap(keyMapper, Function.identity()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     private Collection<Key> getKeys(FullExportRequest fullExportRequest) {
         return keyService.getAllKeys().stream()
-                .map(key -> removeKey(key, fullExportRequest.isAddSecrets()))
+                .map(key -> removeKey(key, fullExportRequest))
+                .filter(Objects::nonNull)
                 .map(key -> removeDependency(key, fullExportRequest.getComponentTypes()))
                 .toList();
     }
 
-    private List<Key> getKeys(List<ExportConfigComponent> elements, boolean addSecrets) {
+    private List<Key> getKeys(SelectedItemsExportRequest selectedItemsExportRequest) {
+        List<ExportConfigComponent> elements = selectedItemsExportRequest.getComponents();
         return elements.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.KEY)
                 .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
@@ -59,7 +67,8 @@ public class KeyExporter {
                 .values()
                 .stream()
                 .map(component -> keyService.getKey(component.getName()))
-                .map(key -> removeKey(key, addSecrets))
+                .map(key -> removeKey(key, selectedItemsExportRequest))
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -83,10 +92,17 @@ public class KeyExporter {
         return key;
     }
 
-    private Key removeKey(Key key, boolean addSecrets) {
-        if (!addSecrets) {
-            key.setKey(null);
+    private Key removeKey(Key key, ExportRequest exportRequest) {
+        if (exportRequest.isAddSecrets()) {
+            return key;
         }
-        return key;
+
+        return switch (exportRequest.getExportFormat()) {
+            case CORE -> null;
+            case ADMIN -> {
+                key.setKey(null);
+                yield key;
+            }
+        };
     }
 }
