@@ -23,21 +23,21 @@ class IdFieldValidatorTest {
     void validateName_shouldThrowExceptionWhenEmptyName(String name) {
         assertThatThrownBy(() -> idFieldValidator.validateName(name))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("name must not be empty");
+                .hasMessage("name must not be empty");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"nameWith!", "nameWith@", "nameWith#", "nameWith$", "nameWith%", "nameWith^",
-            "nameWith&", "nameWith*", "nameWith\\", "nameWith|", "nameWith/", "nameWith?"})
+    @ValueSource(strings = {"nameWith%", "nameWith;", "nameWith/", "nameWith\\"})
     void validateName_shouldThrowExceptionWhenNameWithIllegalCharacters(String name) {
         assertThatThrownBy(() -> idFieldValidator.validateName(name))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Illegal characters found in name");
+                .hasMessageContaining("Illegal character")
+                .hasMessageContaining("found in name");
     }
 
     @Test
-    void validateName_shouldNotThrowExceptionWhenValidName() {
-        assertThatCode(() -> idFieldValidator.validateName("name With A-Za-z0-9-_.,:;<>(){}[]"))
+    void validateName_shouldNotThrowExceptionWhenNameWithLegalCharacters() {
+        assertThatCode(() -> idFieldValidator.validateName("name With ~!@#$^&*()-_=+[]{}:'\",<.>?| and some unicode \uD83D\uDE07 Ą Ŏ"))
                 .doesNotThrowAnyException();
     }
 
@@ -45,7 +45,7 @@ class IdFieldValidatorTest {
     void validateId_shouldThrowExceptionWhenNullId() {
         assertThatThrownBy(() -> idFieldValidator.validateId(null, "idField"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("idField must not be empty");
+                .hasMessage("idField must not be empty");
     }
 
     @Test
