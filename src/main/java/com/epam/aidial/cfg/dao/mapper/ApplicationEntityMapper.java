@@ -23,6 +23,7 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,16 +47,20 @@ public abstract class ApplicationEntityMapper {
     @Mapping(target = "applicationTypeSchemaId", source = "applicationTypeSchema.schemaId")
     public abstract Application toDomain(ApplicationEntity entity);
 
-    protected URI map(String value) {
-        return value != null ? URI.create(value) : null;
-    }
-
     protected String mapInterceptorToString(InterceptorEntity interceptorEntity) {
         return interceptorEntity.getName();
     }
 
     protected String mapRouteToString(RouteEntity routeEntity) {
         return routeEntity.getDeploymentName();
+    }
+
+    protected URI mapStringToUri(String uriString) {
+        try {
+            return uriString == null ? null : new URI(uriString);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid application applicationTypeSchemaId: " + uriString);
+        }
     }
 
     public ApplicationEntity toEntity(Application domain, ApplicationEntity entity) {
