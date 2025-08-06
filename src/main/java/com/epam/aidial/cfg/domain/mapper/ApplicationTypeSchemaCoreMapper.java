@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Pair;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -28,10 +29,14 @@ public abstract class ApplicationTypeSchemaCoreMapper {
     @Autowired
     private RouteService routeService;
 
-    public String mapToCoreString(ApplicationTypeSchema applicationTypeSchema, List<Route> routes) {
+    public String mapToCoreString(ApplicationTypeSchema applicationTypeSchema) {
         if (applicationTypeSchema == null) {
             return null;
         }
+
+        List<Route> routes = CollectionUtils.isNotEmpty(applicationTypeSchema.getRoutes())
+                ? (List<Route>) routeService.getAllById(applicationTypeSchema.getRoutes())
+                : null;
 
         var typeSchema = mapToCoreApplicationTypeSchema(applicationTypeSchema, routes);
         return toApplicationTypeSchemaAsString(typeSchema);
@@ -39,12 +44,7 @@ public abstract class ApplicationTypeSchemaCoreMapper {
 
     protected Map<String, String> map(Map<String, ApplicationTypeSchema> schemas) {
         return schemas.entrySet().stream()
-            .map(entry -> {
-                ApplicationTypeSchema schema = entry.getValue();
-                List<Route> routes = (List<Route>) routeService.getAllById(schema.getRoutes());
-                String schemaStr = mapToCoreString(schema, routes);
-                return Pair.of(entry.getKey(), schemaStr);
-            })
+            .map(entry -> Pair.of(entry.getKey(), mapToCoreString(entry.getValue())))
             .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     }
 

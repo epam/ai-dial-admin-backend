@@ -68,6 +68,7 @@ public abstract class ApplicationEntityMapper {
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         ApplicationEntity updatedEntity = update(domain, entity);
+        validateUpdatedApplicationTowardsDependencies(routes, domain.getApplicationTypeSchemaId());
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getApplications().remove(updatedEntity));
         interceptors.forEach(interceptor -> interceptor.getApplications().add(updatedEntity));
@@ -143,5 +144,16 @@ public abstract class ApplicationEntityMapper {
 
         return applicationTypeSchemaJpaRepository.findById(schemaId)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find application type schema with schema id: " + schemaId));
+    }
+
+    private void validateUpdatedApplicationTowardsDependencies(List<RouteEntity> routes, URI applicationTypeSchemaId) {
+        if (CollectionUtils.isNotEmpty(routes) && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
+            throw new IllegalArgumentException("Both routes: '" + routes + "' and application type schema id: '" + applicationTypeSchemaId + "' are specified."
+                + " Only one of them should be specified");
+        }
+    }
+
+    private boolean isBlankApplicationTypeSchemaId(URI applicationTypeSchemaId) {
+        return applicationTypeSchemaId == null || StringUtils.isBlank(applicationTypeSchemaId.toString());
     }
 }

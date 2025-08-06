@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreUpstream;
+import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -45,6 +46,9 @@ public abstract class RouteCoreMapper {
 
     public LinkedHashMap<String, CoreRoute> mapRoutes(List<Route> routes) {
         LinkedHashMap<String, CoreRoute> coreRoutes = new LinkedHashMap<>();
+        if (CollectionUtils.isEmpty(routes)) {
+            return null;
+        }
         for (Route route : routes) {
             var coreRoute = mapRoute(route);
             coreRoutes.put(coreRoute.getName(), coreRoute);
@@ -58,6 +62,9 @@ public abstract class RouteCoreMapper {
 
     public LinkedHashMap<String, CoreRoute> map(List<String> routes) {
         LinkedHashMap<String, CoreRoute> coreRoutes = new LinkedHashMap<>();
+        if (CollectionUtils.isEmpty(routes)) {
+            return null;
+        }
         for (String routeName : routes) {
             var route = routeService.get(routeName);
             var coreRoute = mapRoute(route);
