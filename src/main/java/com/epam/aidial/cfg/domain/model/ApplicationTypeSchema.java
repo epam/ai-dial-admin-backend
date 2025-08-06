@@ -26,6 +26,8 @@ public class ApplicationTypeSchema {
     private String applicationTypeTokenizeEndpoint;
     private String applicationTypeTruncatePromptEndpoint;
     private Boolean appendApplicationPropertiesHeader;
+    private String applicationTypeIconUrl;
+    private Boolean applicationTypePlaybackSupport;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

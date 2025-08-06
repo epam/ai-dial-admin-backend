@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.domain.model.Route;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,6 @@ public class RouteValidator {
     @Value("${validation.route.name:}")
     private String routeNameValidationPattern;
 
-    // TODO [VPA]: validate that if permissions/attachmentPaths are present - applicationName must be present also
-    
     public void validateRouteCreation(Route route) {
         final String routeName = route.getDeployment().getName();
 
@@ -32,6 +31,18 @@ public class RouteValidator {
         if (!Pattern.matches(routeNameValidationPattern, routeName)) {
             throw new IllegalArgumentException("Route name '" + routeName
                 + "' does not match the required pattern: " + routeNameValidationPattern);
+        }
+
+        String applicationName = route.getApplicationName();
+        String applicationTypeSchemaId = route.getApplicationTypeSchemaId();
+        var permissions = route.getPermissions();
+        var attachmentPaths = route.getAttachmentPaths();
+
+        if ((CollectionUtils.isNotEmpty(permissions) || attachmentPaths != null)
+                && (StringUtils.isEmpty(applicationName) && StringUtils.isEmpty(applicationTypeSchemaId))) {
+            throw new IllegalArgumentException(
+                "Application name or Application type schema ID must be present if permissions and/or attachmentPaths are provided"
+            );
         }
     }
 

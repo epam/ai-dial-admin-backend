@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -36,6 +37,8 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private String applicationTypeTokenizeEndpoint;
     private String applicationTypeTruncatePromptEndpoint;
     private Boolean appendApplicationPropertiesHeader;
+    private String applicationTypeIconUrl;
+    private Boolean applicationTypePlaybackSupport;
 
     @Column(columnDefinition = "CLOB")
     private String defs;
@@ -51,10 +54,15 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
 
     private Set<String> topics;
 
-    // TODO [VPA]: on delete, remove these routes only if they are not connected to application
     @ToString.Exclude
-    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "applicationTypeSchema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RouteEntity> applicationTypeRoutes = new ArrayList<>();
+
+    @PreRemove
+    public void preRemove() {
+        // Only delete routes that are not associated with an application
+        applicationTypeRoutes.removeIf(route -> route.getApplication() != null);
+    }
 
     @Override
     public String getId() {

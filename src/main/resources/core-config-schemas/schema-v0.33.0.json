@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Core Config Schema v0.29.0",
+  "title": "Core Config Schema v0.30.0",
   "type": "object",
   "properties": {
     "models": {
@@ -166,7 +166,8 @@
             "applicationProperties": {"type": "object"},
             "applicationTypeSchemaId": {"type": "string", "format": "uri"},
             "viewerUrl": {"type": "string"},
-            "editorUrl": {"type": "string"}
+            "editorUrl": {"type": "string"},
+            "routes": {"type": "object"}
           }
         }
       ]
@@ -243,7 +244,8 @@
       "type": "object",
       "properties": {
         "name": {"type": "string"},
-        "limits": {"type": "object"}
+        "limits": {"type": "object"},
+        "share": {"type": "object"}
       }
     },
     "Key": {
@@ -284,6 +286,7 @@
             "applicationTypeTruncatePromptEndpoint": {"type": "string"},
             "appendApplicationPropertiesHeader": {"type": "boolean"},
             "applicationTypeIconUrl": {"type": "string"},
+            "applicationTypeRoutes": {"type": "object"},
             "defs": {"type": "object"},
             "properties": {"type": "object"},
             "required": {
@@ -330,7 +333,16 @@
               "type": "array",
               "items": {"$ref": "#/definitions/Upstream"}
             },
-            "maxRetryAttempts": {"type": "integer"}
+            "maxRetryAttempts": {"type": "integer"},
+            "order": {"type": "integer"},
+            "permissions": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "attachmentPaths": {
+              "type": "array",
+              "items": {"$ref": "#/definitions/AttachmentPath"}
+            }
           }
         }
       ]
@@ -350,6 +362,19 @@
         "extraData": {"type": "string"},
         "weight": {"type": "integer"},
         "tier": {"type": "integer"}
+      }
+    },
+    "AttachmentPath": {
+      "type": "object",
+      "properties": {
+        "requestBody": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "responseBody": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
       }
     },
     "CoreFeatures": {

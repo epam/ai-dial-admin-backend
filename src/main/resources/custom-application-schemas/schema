@@ -52,9 +52,18 @@
           "type": "string",
           "description": "Display name of the custom application of given type"
         },
+        "dial:applicationTypeIconUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the icon of the custom application of given type"
+        },
         "dial:appendApplicationPropertiesHeader": {
           "type": "boolean",
           "description": "If this flag is set to true, the header with properties will augment the request while proxying"
+        },
+        "dial:applicationTypePlaybackSupport": {
+          "type": "boolean",
+          "description": "The flag is an indicator that the viewer supports playback."
         },
         "dial:applicationTypeRoutes": {
           "type": "object",

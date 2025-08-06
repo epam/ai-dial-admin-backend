@@ -188,7 +188,7 @@ public class ConfigExporter {
             Application application = applicationExporter.getApplication(component.getName());
             processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
             processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
-            // TODO [VPA]: process Route dependencies
+            processRouteDependencies(application.getRoutes(), dependencies, updatedComponents);
         }
     }
 
@@ -206,11 +206,16 @@ public class ConfigExporter {
     }
 
     private void processInterceptorDependencies(List<String> interceptors, Set<ExportConfigComponentType> dependencies, List<ExportConfigComponent> updatedComponents) {
-        if (dependencies.contains(ExportConfigComponentType.INTERCEPTOR)) {
-            if (CollectionUtils.isNotEmpty(interceptors)) {
-                interceptors.forEach(interceptor ->
-                        updatedComponents.add(new ExportConfigComponent(interceptor, ExportConfigComponentType.INTERCEPTOR)));
-            }
+        if (dependencies.contains(ExportConfigComponentType.INTERCEPTOR) && CollectionUtils.isNotEmpty(interceptors)) {
+            interceptors.forEach(interceptor ->
+                    updatedComponents.add(new ExportConfigComponent(interceptor, ExportConfigComponentType.INTERCEPTOR)));
+        }
+    }
+
+    private void processRouteDependencies(List<String> routes, Set<ExportConfigComponentType> dependencies, List<ExportConfigComponent> updatedComponents) {
+        if (dependencies.contains(ExportConfigComponentType.ROUTE) && CollectionUtils.isNotEmpty(routes)) {
+            routes.forEach(route ->
+                    updatedComponents.add(new ExportConfigComponent(route, ExportConfigComponentType.ROUTE)));
         }
     }
 

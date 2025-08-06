@@ -53,6 +53,12 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:appendApplicationPropertiesHeader")
     private Boolean appendApplicationPropertiesHeader;
 
+    @JsonProperty("dial:applicationTypeIconUrl")
+    private String applicationTypeIconUrl;
+
+    @JsonProperty("dial:applicationTypePlaybackSupport")
+    private Boolean applicationTypePlaybackSupport;
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)

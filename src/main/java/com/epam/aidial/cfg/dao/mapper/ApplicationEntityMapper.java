@@ -46,6 +46,10 @@ public abstract class ApplicationEntityMapper {
     @Mapping(target = "applicationTypeSchemaId", source = "applicationTypeSchema.schemaId")
     public abstract Application toDomain(ApplicationEntity entity);
 
+    protected URI map(String value) {
+        return URI.create(value);
+    }
+
     protected String mapInterceptorToString(InterceptorEntity interceptorEntity) {
         return interceptorEntity.getName();
     }

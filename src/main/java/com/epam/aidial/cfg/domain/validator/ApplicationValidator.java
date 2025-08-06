@@ -3,11 +3,13 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.domain.model.Application;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -24,13 +26,13 @@ public class ApplicationValidator {
     public void validateCreation(Application application) {
         validateApplicationName(application);
         displayFieldsValidator.validateDisplayNameDisplayVersion(application.getDisplayName(), application.getDisplayVersion());
-        validateEndpointAndApplicationTypeSchemaId(application.getEndpoint(), application.getApplicationTypeSchemaId());
+        validateApplicationFields(application);
     }
 
     public void validateUpdate(String applicationName, Application application) {
         deploymentValidator.validateUpdate(applicationName, application.getDeployment(), "Application");
         displayFieldsValidator.validateDisplayNameDisplayVersion(application.getDisplayName(), application.getDisplayVersion());
-        validateEndpointAndApplicationTypeSchemaId(application.getEndpoint(), application.getApplicationTypeSchemaId());
+        validateApplicationFields(application);
     }
 
     private void validateApplicationName(Application application) {
@@ -47,8 +49,11 @@ public class ApplicationValidator {
         }
     }
 
-    // TODO [VPA]: applicationTypeRoutes & applicationTypeSchemaId should not be combined
-    private void validateEndpointAndApplicationTypeSchemaId(String endpoint, URI applicationTypeSchemaId) {
+    private void validateApplicationFields(Application application) {
+        String endpoint = application.getEndpoint();
+        URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
+        List<String> routes = application.getRoutes();
+
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint: '" + endpoint + "'");
         }
@@ -60,6 +65,11 @@ public class ApplicationValidator {
         if (endpoint != null && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
             throw new IllegalArgumentException("Both endpoint: '" + endpoint + "' and application type schema id: '" + applicationTypeSchemaId + "' are specified."
                     + " Only one of them should be specified");
+        }
+
+        if (CollectionUtils.isNotEmpty(routes) && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
+            throw new IllegalArgumentException("Both routes: '" + routes + "' and application type schema id: '" + applicationTypeSchemaId + "' are specified."
+                + " Only one of them should be specified");
         }
     }
 

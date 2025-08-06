@@ -45,8 +45,12 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     private AttachmentPathEntity attachmentPaths;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
+    @JoinColumn(name = "application_id")
     private ApplicationEntity application;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_type_schema_id")
+    private ApplicationTypeSchemaEntity applicationTypeSchema;
 
     @Override
     public String getId() {

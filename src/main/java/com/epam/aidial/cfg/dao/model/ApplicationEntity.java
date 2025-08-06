@@ -64,7 +64,6 @@ public class ApplicationEntity extends TimeTrackableEntity<String> {
     private String viewerUrl;
     private String editorUrl;
 
-    // TODO [VPA]: on delete, remove these routes only if they are not connected to application type schema
     @ToString.Exclude
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RouteEntity> routes = new ArrayList<>();
@@ -74,6 +73,9 @@ public class ApplicationEntity extends TimeTrackableEntity<String> {
         for (InterceptorEntity interceptor : interceptors) {
             interceptor.getApplications().remove(this);
         }
+
+        // Only delete routes that are not associated with an application type schema
+        routes.removeIf(route -> route.getApplicationTypeSchema() != null);
     }
 
     @Override

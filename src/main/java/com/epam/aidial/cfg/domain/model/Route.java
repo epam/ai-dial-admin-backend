@@ -33,5 +33,6 @@ public class Route extends RoleBased {
     private Set<ResourceAccessType> permissions;
     private AttachmentPath attachmentPaths;
     private String applicationName;
+    private String applicationTypeSchemaId;
 
 }

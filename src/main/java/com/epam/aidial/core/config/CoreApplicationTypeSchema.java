@@ -50,9 +50,15 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("dial:appendApplicationPropertiesHeader")
     private Boolean appendApplicationPropertiesHeader; // 0.26.0
 
-    // TODO [VPA]: create 'schema-v0.33.0.json' and include this field
+    @JsonProperty("dial:applicationTypeIconUrl")
+    private String applicationTypeIconUrl; // 0.29.0
+
     @JsonProperty("dial:applicationTypeRoutes")
     private Map<String, CoreRoute> applicationTypeRoutes; // 0.33.0
+
+    // TODO [VPA]: create schema 0.34.0 after it's release
+    @JsonProperty("dial:applicationTypePlaybackSupport")
+    private Boolean applicationTypePlaybackSupport; // 0.34.0
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

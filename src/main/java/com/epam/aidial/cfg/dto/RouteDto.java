@@ -41,4 +41,5 @@ public class RouteDto extends RoleBasedDto {
     private Set<ResourceAccessType> permissions;
     private AttachmentPathDto attachmentPaths;
     private String applicationName;
+    private String applicationTypeSchemaId;
 }

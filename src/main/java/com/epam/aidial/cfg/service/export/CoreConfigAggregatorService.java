@@ -8,8 +8,8 @@ import com.epam.aidial.cfg.domain.mapper.KeyCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
-import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
@@ -26,6 +26,7 @@ import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.RoleBasedEntity;
+import com.nimbusds.jose.util.Pair;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -118,7 +120,11 @@ public class CoreConfigAggregatorService {
 
     private Map<String, String> getApplicationTypeSchemas() {
         return applicationTypeSchemaService.getAll().stream()
-                .collect(Collectors.toMap(ApplicationTypeSchema::getSchemaId, schemaMapper::mapToCoreString));
+                .map(appSchema -> {
+                    List<Route> routes = (List<Route>) routeService.getAllById(appSchema.getRoutes());
+                    return Pair.of(appSchema.getSchemaId(), schemaMapper.mapToCoreString(appSchema, routes));
+                })
+                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     }
 
 }
