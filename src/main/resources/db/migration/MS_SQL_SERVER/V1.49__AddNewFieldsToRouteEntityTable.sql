@@ -2,7 +2,7 @@
 alter table route_entity add application_id nvarchar(255);
 alter table route_entity add application_type_schema_id nvarchar(255);
 alter table route_entity add order_value integer;
-alter table route_entity add permissions varbinary(max);
+alter table route_entity add permissions text;
 alter table route_entity add request_body_paths varbinary(max);
 alter table route_entity add response_body_paths varbinary(max);
 
@@ -14,7 +14,7 @@ alter table route_entity add constraint FK_ROUTE_ENTITY_APPLICATION_TYPE_SCHEMA_
 alter table route_entity_aud add application_id nvarchar(255);
 alter table route_entity_aud add application_type_schema_id nvarchar(255);
 alter table route_entity_aud add order_value integer;
-alter table route_entity_aud add permissions varbinary(max);
+alter table route_entity_aud add permissions text;
 alter table route_entity_aud add request_body_paths varbinary(max);
 alter table route_entity_aud add response_body_paths varbinary(max);
 

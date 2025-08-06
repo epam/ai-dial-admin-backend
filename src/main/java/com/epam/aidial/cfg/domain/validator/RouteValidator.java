@@ -24,17 +24,23 @@ public class RouteValidator {
         final String routeName = route.getDeployment().getName();
 
         if (StringUtils.isEmpty(routeNameValidationPattern)) {
-            log.debug("Route name validation pattern is empty, skipping validation for route: {}", routeName);
-            return;
-        }
-
-        if (!Pattern.matches(routeNameValidationPattern, routeName)) {
+            log.debug("Route name validation pattern is empty, skipping name pattern validation for route: {}", routeName);
+        } else if (!Pattern.matches(routeNameValidationPattern, routeName)) {
             throw new IllegalArgumentException("Route name '" + routeName
                 + "' does not match the required pattern: " + routeNameValidationPattern);
         }
 
-        String applicationName = route.getApplicationName();
-        String applicationTypeSchemaId = route.getApplicationTypeSchemaId();
+        validateLinkedDependencies(route);
+    }
+
+    public void validateUpdate(String routeName, Route route) {
+        deploymentValidator.validateUpdate(routeName, route.getDeployment(), "Route");
+        validateLinkedDependencies(route);
+    }
+
+    private void validateLinkedDependencies(Route route) {
+        var applicationName = route.getApplicationName();
+        var applicationTypeSchemaId = route.getApplicationTypeSchemaId();
         var permissions = route.getPermissions();
         var attachmentPaths = route.getAttachmentPaths();
 
@@ -45,9 +51,4 @@ public class RouteValidator {
             );
         }
     }
-
-    public void validateUpdate(String routeName, Route route) {
-        deploymentValidator.validateUpdate(routeName, route.getDeployment(), "Route");
-    }
-
 }

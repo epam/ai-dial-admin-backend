@@ -18,7 +18,6 @@ import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Optional;
 
 @Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, UpstreamEntityMapper.class})
 public abstract class RouteEntityMapper {
@@ -65,16 +64,20 @@ public abstract class RouteEntityMapper {
     @Named("getApplication")
     protected ApplicationEntity getApplication(Route domain) {
         final String applicationName = domain.getApplicationName();
-        return Optional.ofNullable(applicationName)
-                .flatMap(applicationJpaRepository::findById)
-                .orElseThrow(() -> new EntityNotFoundException("Application with name %s does not exist".formatted(applicationName)));
+        if (applicationName == null) {
+            return null;
+        }
+        return applicationJpaRepository.findById(applicationName)
+                    .orElseThrow(() -> new EntityNotFoundException("Application with name %s does not exist".formatted(applicationName)));
     }
 
     @Named("getApplicationTypeSchema")
     protected ApplicationTypeSchemaEntity getApplicationTypeSchema(Route domain) {
-        final String schemaName = domain.getApplicationName();
-        return Optional.ofNullable(schemaName)
-                .flatMap(applicationTypeSchemaJpaRepository::findById)
-                .orElseThrow(() -> new EntityNotFoundException("Application Type Schema with name %s does not exist".formatted(schemaName)));
+        final String schemaName = domain.getApplicationTypeSchemaId();
+        if (schemaName == null) {
+            return null;
+        }
+        return applicationTypeSchemaJpaRepository.findById(schemaName)
+                    .orElseThrow(() -> new EntityNotFoundException("Application Type Schema with name %s does not exist".formatted(schemaName)));
     }
 }

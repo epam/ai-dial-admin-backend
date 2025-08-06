@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -42,6 +43,7 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     private int maxRetryAttempts;
     @Column(name = "order_value")
     private int order;
+    @Convert(converter = ResourceAccessTypeConverter.class)
     private Set<ResourceAccessType> permissions;
     @Embedded
     private AttachmentPathEntity attachmentPaths;

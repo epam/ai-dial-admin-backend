@@ -2,7 +2,7 @@
 alter table if exists route_entity add column if not exists application_id varchar(255);
 alter table if exists route_entity add column if not exists application_type_schema_id varchar(255);
 alter table if exists route_entity add column if not exists order_value integer;
-alter table if exists route_entity add column if not exists permissions text array;
+alter table if exists route_entity add column if not exists permissions text;
 alter table if exists route_entity add column if not exists request_body_paths text array;
 alter table if exists route_entity add column if not exists response_body_paths text array;
 
@@ -14,7 +14,7 @@ alter table if exists route_entity add constraint FK_ROUTE_ENTITY_APPLICATION_TY
 alter table if exists route_entity_aud add column if not exists application_id varchar(255);
 alter table if exists route_entity_aud add column if not exists application_type_schema_id varchar(255);
 alter table if exists route_entity_aud add column if not exists order_value integer;
-alter table if exists route_entity_aud add column if not exists permissions text array;
+alter table if exists route_entity_aud add column if not exists permissions text;
 alter table if exists route_entity_aud add column if not exists request_body_paths text array;
 alter table if exists route_entity_aud add column if not exists response_body_paths text array;
 
