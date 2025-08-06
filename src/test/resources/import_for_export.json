@@ -102,7 +102,7 @@
     },
     "testKey2": {
       "key": "key2",
-      "project": "testProject1",
+      "project": "testProject2",
       "role": "testRole1",
       "secured": true,
       "description": "key 2 description",

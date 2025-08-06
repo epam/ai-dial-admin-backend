@@ -66,6 +66,10 @@ class ModelEndpointUtilsTest {
         modelWithAdapterAndEndpointDeploymentName.setAdapter(adapter);
         modelWithAdapterAndEndpointDeploymentName.setEndpointDeploymentName("endpoint-deployment-name");
 
+        Model modelWithAdapterAndEmptyEndpointDeploymentName = new Model();
+        modelWithAdapterAndEmptyEndpointDeploymentName.setAdapter(adapter);
+        modelWithAdapterAndEmptyEndpointDeploymentName.setEndpointDeploymentName("");
+
         Model modelWithAdapter = new Model();
         modelWithAdapter.setAdapter(adapter);
 
@@ -90,6 +94,7 @@ class ModelEndpointUtilsTest {
         return Stream.of(
                 Arguments.of(modelWithoutAdapter, null),
                 Arguments.of(modelWithAdapterAndEndpointDeploymentName, "http://host/openai/deployments/endpoint-deployment-name/chat/completions"),
+                Arguments.of(modelWithAdapterAndEmptyEndpointDeploymentName, "http://host/openai/deployments/chat/completions"),
                 Arguments.of(modelWithAdapter, "http://host/openai/deployments/chat/completions"),
                 Arguments.of(chatModelWithAdapterAndEndpointDeploymentName, "http://host/openai/deployments/endpoint-deployment-name/chat/completions"),
                 Arguments.of(chatModelWithAdapter, "http://host/openai/deployments/chat/completions"),
