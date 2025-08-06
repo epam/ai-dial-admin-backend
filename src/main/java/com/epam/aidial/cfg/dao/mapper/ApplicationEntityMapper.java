@@ -47,7 +47,7 @@ public abstract class ApplicationEntityMapper {
     public abstract Application toDomain(ApplicationEntity entity);
 
     protected URI map(String value) {
-        return URI.create(value);
+        return value != null ? URI.create(value) : null;
     }
 
     protected String mapInterceptorToString(InterceptorEntity interceptorEntity) {
