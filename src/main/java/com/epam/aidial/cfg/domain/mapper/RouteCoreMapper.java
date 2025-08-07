@@ -1,8 +1,10 @@
 package com.epam.aidial.cfg.domain.mapper;
 
+import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
 import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.model.Upstream;
-import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreUpstream;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Mapper(
@@ -30,7 +33,9 @@ public abstract class RouteCoreMapper {
     @Autowired
     private RoleLimitMapper roleLimitMapper;
     @Autowired
-    private RouteService routeService;
+    private RouteEntityMapper mapper;
+    @Autowired
+    private RouteJpaRepository routeJpaRepository;
 
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "userRoles", source = "deployment")
@@ -66,11 +71,17 @@ public abstract class RouteCoreMapper {
             return null;
         }
         for (String routeName : routes) {
-            var route = routeService.get(routeName);
-            var coreRoute = mapRoute(route);
+            var coreRoute = findRoute(routeName);
             coreRoutes.put(routeName, coreRoute);
         }
         return coreRoutes;
+    }
+
+    private CoreRoute findRoute(String routeName) {
+        return Optional.ofNullable(routeName)
+                .flatMap(routeJpaRepository::findById)
+                .map(mapper::toCoreRoute)
+                .orElseThrow(() -> new EntityNotFoundException("Route with name %s does not exist".formatted(routeName)));
     }
 
     @Mapping(target = "id", ignore = true)

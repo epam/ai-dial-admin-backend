@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
-import com.epam.aidial.cfg.dao.model.ResourceAccessType;
+import com.epam.aidial.cfg.dao.model.ResourceAccessTypeEntity;
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -30,7 +30,7 @@ public class Route extends RoleBased {
     private Long createdAt;
     private Long updatedAt;
     private int order;
-    private Set<ResourceAccessType> permissions;
+    private Set<ResourceAccessTypeEntity> permissions;
     private AttachmentPath attachmentPaths;
     private String applicationName;
     private String applicationTypeSchemaId;

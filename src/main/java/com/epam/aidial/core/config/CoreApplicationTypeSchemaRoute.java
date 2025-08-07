@@ -42,6 +42,10 @@ public class CoreApplicationTypeSchemaRoute {
     @JsonProperty("dial:upstreams")
     private List<CoreApplicationTypeSchemaUpstream> upstreams = List.of();
 
+    @JsonAlias({"maxRetryAttempts", "dial:maxRetryAttempts"})
+    @JsonProperty("dial:maxRetryAttempts")
+    private int maxRetryAttempts = 1;
+
     @Min(value = 0, message = "Order can't be negative")
     @JsonAlias({"order", "dial:order"})
     @JsonProperty("dial:order")

@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.dao.model.ResourceAccessType;
+import com.epam.aidial.cfg.dao.model.ResourceAccessTypeEntity;
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -38,7 +38,7 @@ public class RouteDto extends RoleBasedDto {
     private Instant updatedAt;
     @Min(value = 0, message = "Order can't be negative")
     private int order;
-    private Set<ResourceAccessType> permissions;
+    private Set<ResourceAccessTypeEntity> permissions;
     private AttachmentPathDto attachmentPaths;
     private String applicationName;
     private String applicationTypeSchemaId;

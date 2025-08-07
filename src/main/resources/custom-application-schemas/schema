@@ -121,21 +121,24 @@
                 "dial:order": {
                   "type": "integer"
                 },
+                "dial:maxRetryAttempts" : {
+                  "type": "integer"
+                },
                 "dial:permissions": {
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": ["READ", "WRITE", "SHARE"]
+                    "enum": ["READ", "WRITE"]
                   }
                 },
                 "dial:attachmentPaths": {
                   "type": "object",
                   "properties": {
                     "dial:requestBody": {
-                       "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     },
                     "dial:responseBody": {
                       "type": "array",

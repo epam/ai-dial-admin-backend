@@ -65,7 +65,7 @@ public abstract class ApplicationEntityMapper {
 
     public ApplicationEntity toEntity(Application domain, ApplicationEntity entity) {
         List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
-        List<RouteEntity> routes = findRoutesByDeploymentNames(domain.getRoutes());
+        List<RouteEntity> routes = findRoutesByNames(domain.getRoutes());
 
         ApplicationTypeSchemaEntity applicationTypeSchema = findApplicationTypeSchemaById(domain.getApplicationTypeSchemaId());
 
@@ -123,15 +123,15 @@ public abstract class ApplicationEntityMapper {
         return interceptors;
     }
 
-    private List<RouteEntity> findRoutesByDeploymentNames(List<String> deploymentNames) {
-        if (CollectionUtils.isEmpty(deploymentNames)) {
+    private List<RouteEntity> findRoutesByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
             return List.of();
         }
 
-        List<RouteEntity> routes = Lists.newArrayList(routeJpaRepository.findAllById(deploymentNames));
+        List<RouteEntity> routes = Lists.newArrayList(routeJpaRepository.findAllById(names));
         Set<String> existingRoutes = routes.stream().map(RouteEntity::getDeploymentName).collect(Collectors.toSet());
 
-        Set<String> namesDiff = SetUtils.difference(new HashSet<>(deploymentNames), existingRoutes);
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingRoutes);
         if (!namesDiff.isEmpty()) {
             throw new EntityNotFoundException("Unable to find routes: " + namesDiff);
         }

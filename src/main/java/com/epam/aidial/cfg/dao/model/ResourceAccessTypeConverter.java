@@ -9,12 +9,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Converter
-public class ResourceAccessTypeConverter implements AttributeConverter<Set<ResourceAccessType>, String> {
+public class ResourceAccessTypeConverter implements AttributeConverter<Set<ResourceAccessTypeEntity>, String> {
 
     private static final String DELIMITER = ",";
 
     @Override
-    public String convertToDatabaseColumn(Set<ResourceAccessType> attribute) {
+    public String convertToDatabaseColumn(Set<ResourceAccessTypeEntity> attribute) {
         if (attribute == null || attribute.isEmpty()) {
             return null;
         }
@@ -24,12 +24,12 @@ public class ResourceAccessTypeConverter implements AttributeConverter<Set<Resou
     }
 
     @Override
-    public Set<ResourceAccessType> convertToEntityAttribute(String dbData) {
+    public Set<ResourceAccessTypeEntity> convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.isEmpty()) {
             return new HashSet<>();
         }
         return Arrays.stream(dbData.split(DELIMITER))
-                .map(ResourceAccessType::valueOf)
+                .map(ResourceAccessTypeEntity::valueOf)
                 .collect(Collectors.toSet());
     }
 }

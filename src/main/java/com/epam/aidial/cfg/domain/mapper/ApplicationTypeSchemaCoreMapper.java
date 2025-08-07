@@ -2,42 +2,36 @@ package com.epam.aidial.cfg.domain.mapper;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
-import com.epam.aidial.cfg.domain.model.Route;
-import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
+import com.epam.aidial.core.config.CoreApplicationTypeSchemaRoute;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Pair;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Mapper(componentModel = "spring", uses = {ApplicationTypeSchemaRouteCoreMapper.class, RouteService.class})
+@Mapper(componentModel = "spring", uses = ApplicationTypeSchemaRouteCoreMapper.class)
 public abstract class ApplicationTypeSchemaCoreMapper {
 
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
-    private RouteService routeService;
+    private ApplicationTypeSchemaRouteCoreMapper applicationTypeSchemaRouteCoreMapper;
 
     public String mapToCoreString(ApplicationTypeSchema applicationTypeSchema) {
         if (applicationTypeSchema == null) {
             return null;
         }
-
-        List<Route> routes = CollectionUtils.isNotEmpty(applicationTypeSchema.getApplicationTypeRoutes())
-                ? (List<Route>) routeService.getAllById(applicationTypeSchema.getApplicationTypeRoutes())
-                : null;
-
+        var routes = applicationTypeSchemaRouteCoreMapper.map(applicationTypeSchema.getApplicationTypeRoutes());
         var typeSchema = mapToCoreApplicationTypeSchema(applicationTypeSchema, routes);
         return toApplicationTypeSchemaAsString(typeSchema);
     }
@@ -50,7 +44,8 @@ public abstract class ApplicationTypeSchemaCoreMapper {
 
     @Mapping(target = "id", source = "applicationTypeSchema.schemaId")
     @Mapping(target = "applicationTypeRoutes", source = "routes")
-    abstract CoreApplicationTypeSchema mapToCoreApplicationTypeSchema(ApplicationTypeSchema applicationTypeSchema, List<Route> routes);
+    abstract CoreApplicationTypeSchema mapToCoreApplicationTypeSchema(ApplicationTypeSchema applicationTypeSchema,
+                                                                      LinkedHashMap<String, CoreApplicationTypeSchemaRoute> routes);
 
     public ApplicationTypeSchema mapToSchema(String applicationTypeSchema) {
         if (StringUtils.isEmpty(applicationTypeSchema)) {

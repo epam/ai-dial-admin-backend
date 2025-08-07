@@ -54,10 +54,7 @@ public class CoreRoute extends RoleBasedEntity {
         READ,
         @JsonAlias({"write", "WRITE"})
         @JsonProperty("WRITE")
-        WRITE,
-        @JsonAlias({"share", "SHARE"})
-        @JsonProperty("SHARE")
-        SHARE
+        WRITE
     }
 
     /**

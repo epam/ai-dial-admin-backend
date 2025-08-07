@@ -44,7 +44,7 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     @Column(name = "order_value")
     private int order;
     @Convert(converter = ResourceAccessTypeConverter.class)
-    private Set<ResourceAccessType> permissions;
+    private Set<ResourceAccessTypeEntity> permissions;
     @Embedded
     private AttachmentPathEntity attachmentPaths;
 
