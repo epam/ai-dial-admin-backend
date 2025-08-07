@@ -56,6 +56,9 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypeIconUrl")
     private String applicationTypeIconUrl;
 
+    @JsonProperty("dial:applicationTypeRoutes")
+    private List<String> applicationTypeRoutes;
+
     @JsonProperty("dial:applicationTypePlaybackSupport")
     private Boolean applicationTypePlaybackSupport;
 
@@ -75,5 +78,4 @@ public class ApplicationTypeSchemaDto {
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
-    private List<String> routes;
 }

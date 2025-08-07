@@ -28,7 +28,6 @@ public abstract class ApplicationTypeSchemaEntityMapper {
     @Autowired
     private RouteJpaRepository routeJpaRepository;
 
-    @Mapping(target = "routes", source = "applicationTypeRoutes")
     public abstract ApplicationTypeSchema toDomain(ApplicationTypeSchemaEntity entity);
 
     protected String mapRouteToString(RouteEntity value) {
@@ -45,7 +44,7 @@ public abstract class ApplicationTypeSchemaEntityMapper {
         List<ApplicationEntity> applications = shouldUpdateApplications
                 ? findApplicationsByNames(domain.getApplications())
                 : entity.getApplications();
-        List<RouteEntity> routes = findRoutesByNames(domain.getRoutes());
+        List<RouteEntity> routes = findRoutesByNames(domain.getApplicationTypeRoutes());
 
         ApplicationTypeSchemaEntity updatedEntity = update(domain, entity, routes);
 

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public class CoreApplicationTypeSchema {
     private String applicationTypeIconUrl; // 0.29.0
 
     @JsonProperty("dial:applicationTypeRoutes")
-    private Map<String, CoreRoute> applicationTypeRoutes; // 0.33.0
+    private LinkedHashMap<String, CoreApplicationTypeSchemaRoute> applicationTypeRoutes; // 0.33.0
 
     // TODO [VPA]: create schema 0.34.0 after it's release
     @JsonProperty("dial:applicationTypePlaybackSupport")

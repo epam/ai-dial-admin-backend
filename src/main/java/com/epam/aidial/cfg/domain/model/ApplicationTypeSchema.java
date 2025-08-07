@@ -28,6 +28,7 @@ public class ApplicationTypeSchema {
     private Boolean appendApplicationPropertiesHeader;
     private String applicationTypeIconUrl;
     private Boolean applicationTypePlaybackSupport;
+    private List<String> applicationTypeRoutes;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
@@ -43,5 +44,4 @@ public class ApplicationTypeSchema {
     private Set<String> topics;
     private Long createdAt;
     private Long updatedAt;
-    private List<String> routes;
 }

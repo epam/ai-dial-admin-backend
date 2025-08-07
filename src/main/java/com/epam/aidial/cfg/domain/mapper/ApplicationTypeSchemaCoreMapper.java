@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Mapper(componentModel = "spring", uses = {RouteCoreMapper.class, RouteService.class})
+@Mapper(componentModel = "spring", uses = {ApplicationTypeSchemaRouteCoreMapper.class, RouteService.class})
 public abstract class ApplicationTypeSchemaCoreMapper {
 
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
@@ -34,8 +34,8 @@ public abstract class ApplicationTypeSchemaCoreMapper {
             return null;
         }
 
-        List<Route> routes = CollectionUtils.isNotEmpty(applicationTypeSchema.getRoutes())
-                ? (List<Route>) routeService.getAllById(applicationTypeSchema.getRoutes())
+        List<Route> routes = CollectionUtils.isNotEmpty(applicationTypeSchema.getApplicationTypeRoutes())
+                ? (List<Route>) routeService.getAllById(applicationTypeSchema.getApplicationTypeRoutes())
                 : null;
 
         var typeSchema = mapToCoreApplicationTypeSchema(applicationTypeSchema, routes);
