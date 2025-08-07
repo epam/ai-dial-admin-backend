@@ -13,11 +13,20 @@ import java.util.regex.Pattern;
 @Component
 public class ApplicationTypeSchemaValidator {
 
-    @Value("${validation.applicationTypeSchema.id:}")
-    private String applicationTypeSchemaIdValidationPattern;
+    private final IdFieldValidator idFieldValidator;
+
+    private final String applicationTypeSchemaIdValidationPattern;
+
+    public ApplicationTypeSchemaValidator(IdFieldValidator idFieldValidator,
+                                          @Value("${validation.applicationTypeSchema.id:}") String applicationTypeSchemaIdValidationPattern) {
+        this.idFieldValidator = idFieldValidator;
+        this.applicationTypeSchemaIdValidationPattern = applicationTypeSchemaIdValidationPattern;
+    }
 
     public void validateCreation(ApplicationTypeSchema applicationTypeSchema) {
         final String schemaId = applicationTypeSchema.getSchemaId();
+
+        idFieldValidator.validateId("ApplicationTypeSchema", schemaId, "schemaId");
 
         if (StringUtils.isEmpty(applicationTypeSchemaIdValidationPattern)) {
             log.debug("ApplicationTypeSchema id validation pattern is empty, skipping validation for schema id: {}", schemaId);
@@ -26,7 +35,7 @@ public class ApplicationTypeSchemaValidator {
 
         if (!Pattern.matches(applicationTypeSchemaIdValidationPattern, schemaId)) {
             throw new IllegalArgumentException("ApplicationTypeSchema ID '" + schemaId
-                + "' does not match the required pattern: " + applicationTypeSchemaIdValidationPattern);
+                    + "' does not match the required pattern: " + applicationTypeSchemaIdValidationPattern);
         }
     }
 
