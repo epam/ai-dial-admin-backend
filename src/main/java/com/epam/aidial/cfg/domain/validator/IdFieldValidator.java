@@ -3,20 +3,21 @@ package com.epam.aidial.cfg.domain.validator;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class IdFieldValidator {
 
-    private static final Set<Character> NAME_ILLEGAL_CHARACTERS = Set.of('%', ';', '/', '\\');
+    private static final Pattern NAME_ILLEGAL_CHARACTERS_PATTERN = Pattern.compile("^[^%;/\\\\]*$");
 
     public void validateName(String domainObjectType, String name) {
         validateId(domainObjectType, name, "name");
 
-        for (var character : name.toCharArray()) {
-            if (NAME_ILLEGAL_CHARACTERS.contains(character)) {
-                throw new IllegalArgumentException("Illegal character '%s' found in %s name: %s".formatted(character, domainObjectType, name));
-            }
+        Matcher matcher = NAME_ILLEGAL_CHARACTERS_PATTERN.matcher(name);
+
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Illegal characters found in %s name: %s".formatted(domainObjectType, name));
         }
     }
 

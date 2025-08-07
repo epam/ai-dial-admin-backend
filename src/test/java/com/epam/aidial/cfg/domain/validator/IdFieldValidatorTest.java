@@ -31,8 +31,7 @@ class IdFieldValidatorTest {
     void validateName_shouldThrowExceptionWhenNameWithIllegalCharacters(String name) {
         assertThatThrownBy(() -> idFieldValidator.validateName("DomainObjectType", name))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Illegal character")
-                .hasMessageContaining("found in DomainObjectType name: " + name);
+                .hasMessage("Illegal characters found in DomainObjectType name: " + name);
     }
 
     @Test
