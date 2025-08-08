@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.dto.validation.validator;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
+import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.epam.aidial.core.metaschemas.MetaSchemaHolder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class ConformToCoreMetaSchemaValidator implements ConstraintValidator<ApplicationTypeSchema, ApplicationTypeSchemaDto> {
+public class ConformToCoreMetaSchemaValidator implements ConstraintValidator<ApplicationTypeSchema, CoreApplicationTypeSchema> {
 
     private static final JsonSchemaFactory SCHEMA_FACTORY = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
     private static final JsonSchema SCHEMA = SCHEMA_FACTORY.getSchema(MetaSchemaHolder.getCustomApplicationMetaSchema());
@@ -31,7 +31,7 @@ public class ConformToCoreMetaSchemaValidator implements ConstraintValidator<App
 
     @SneakyThrows
     @Override
-    public boolean isValid(ApplicationTypeSchemaDto dto, ConstraintValidatorContext context) {
+    public boolean isValid(CoreApplicationTypeSchema dto, ConstraintValidatorContext context) {
         if (!isValidUri(dto.getId())) {
             return false;
         }

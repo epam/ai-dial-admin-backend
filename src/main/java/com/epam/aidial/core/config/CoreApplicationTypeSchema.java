@@ -22,6 +22,8 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("$id")
     private String id;
 
+    private String title;
+
     private String description;
 
     @JsonProperty("dial:applicationTypeEditorUrl")

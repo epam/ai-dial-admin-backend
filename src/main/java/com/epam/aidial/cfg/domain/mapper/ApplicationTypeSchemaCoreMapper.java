@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.domain.mapper;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
-import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.epam.aidial.core.config.CoreApplicationTypeSchemaRoute;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,14 +50,16 @@ public abstract class ApplicationTypeSchemaCoreMapper {
         if (StringUtils.isEmpty(applicationTypeSchema)) {
             return null;
         }
-        ApplicationTypeSchemaDto dto = toDto(applicationTypeSchema);
-        return mapToApplicationTypeSchema(dto);
+        CoreApplicationTypeSchema coreApplicationTypeSchema = toCoreApplicationTypeSchema(applicationTypeSchema);
+        return mapToApplicationTypeSchema(coreApplicationTypeSchema);
     }
 
     @Mapping(target = "schemaId", source = "id")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    abstract ApplicationTypeSchema mapToApplicationTypeSchema(ApplicationTypeSchemaDto dto);
+    @Mapping(target = "applications", ignore = true)
+    @Mapping(target = "topics", ignore = true)
+    abstract ApplicationTypeSchema mapToApplicationTypeSchema(CoreApplicationTypeSchema coreApplicationTypeSchema);
 
     private String toApplicationTypeSchemaAsString(CoreApplicationTypeSchema applicationTypeSchema) {
         if (applicationTypeSchema == null) {
@@ -72,15 +73,15 @@ public abstract class ApplicationTypeSchemaCoreMapper {
         }
     }
 
-    private ApplicationTypeSchemaDto toDto(String applicationTypeSchema) {
+    private CoreApplicationTypeSchema toCoreApplicationTypeSchema(String applicationTypeSchema) {
         if (StringUtils.isEmpty(applicationTypeSchema)) {
             return null;
         }
         try {
-            return objectMapper.readValue(applicationTypeSchema, ApplicationTypeSchemaDto.class);
+            return objectMapper.readValue(applicationTypeSchema, CoreApplicationTypeSchema.class);
         } catch (JsonProcessingException e) {
-            log.warn("Error converting JSON to ApplicationTypeSchemaDto: {}", applicationTypeSchema, e);
-            throw new RuntimeException("Error converting JSON to ApplicationTypeSchemaDto", e);
+            log.warn("Error converting JSON to CoreApplicationTypeSchema: {}", applicationTypeSchema, e);
+            throw new RuntimeException("Error converting JSON to CoreApplicationTypeSchema", e);
         }
     }
 

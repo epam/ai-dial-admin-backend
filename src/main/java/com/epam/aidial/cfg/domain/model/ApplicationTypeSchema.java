@@ -16,6 +16,7 @@ public class ApplicationTypeSchema {
 
     private String schemaId;
     private String schema;
+    private String title;
     private String description;
     private String applicationTypeEditorUrl;
     private String applicationTypeViewerUrl;
@@ -27,8 +28,8 @@ public class ApplicationTypeSchema {
     private String applicationTypeTruncatePromptEndpoint;
     private Boolean appendApplicationPropertiesHeader;
     private String applicationTypeIconUrl;
-    private Boolean applicationTypePlaybackSupport;
     private List<String> applicationTypeRoutes;
+    private Boolean applicationTypePlaybackSupport;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

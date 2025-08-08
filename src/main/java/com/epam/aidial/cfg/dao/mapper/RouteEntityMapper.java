@@ -94,7 +94,7 @@ public abstract class RouteEntityMapper {
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         ApplicationEntity applicationEntity = findApplication(domain.getApplicationName());
-        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = findApplicationTypeSchema(domain.getApplicationName());
+        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = findApplicationTypeSchema(domain.getApplicationTypeSchemaId());
 
         RouteEntity updatedEntity = update(domain, entity);
 

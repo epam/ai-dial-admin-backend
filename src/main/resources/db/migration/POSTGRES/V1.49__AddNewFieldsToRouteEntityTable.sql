@@ -19,9 +19,11 @@ alter table if exists route_entity_aud add column if not exists request_body_pat
 alter table if exists route_entity_aud add column if not exists response_body_paths text array;
 
 -- Add new column to application_type_schema_entity table
+alter table if exists application_type_schema_entity add column if not exists title text;
 alter table if exists application_type_schema_entity add column if not exists application_type_icon_url text;
 alter table if exists application_type_schema_entity add column if not exists application_type_playback_support boolean;
 
 -- Add new column to application_type_schema_entity_aud table
+alter table if exists application_type_schema_entity_aud add column if not exists title text;
 alter table if exists application_type_schema_entity_aud add column if not exists application_type_icon_url text;
 alter table if exists application_type_schema_entity_aud add column if not exists application_type_playback_support boolean;

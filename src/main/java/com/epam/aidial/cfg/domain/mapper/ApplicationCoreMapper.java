@@ -21,8 +21,6 @@ public abstract class ApplicationCoreMapper {
 
     @Autowired
     private RoleLimitMapper roleLimitMapper;
-    @Autowired
-    private RouteCoreMapper routeCoreMapper;
 
     @Mapping(target = "function", ignore = true)
     @Mapping(target = "name", source = "deployment.name")

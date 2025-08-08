@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.transfer.importer;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
@@ -36,7 +37,7 @@ public class ApplicationTypeSchemaImporter {
         if (MapUtils.isNotEmpty(schemas)) {
             Map<String, ApplicationTypeSchema> applicationTypeSchemas = schemas.entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getValue())));
-            return importAdminSchemas(applicationTypeSchemas, resolutionPolicy, isPreview);
+            return importSchemas(applicationTypeSchemas, resolutionPolicy, isPreview, ExportFormat.CORE);
         }
         return Collections.emptyList();
     }
@@ -44,11 +45,18 @@ public class ApplicationTypeSchemaImporter {
     public Collection<ImportComponent<ApplicationTypeSchema>> importAdminSchemas(Map<String, ApplicationTypeSchema> schemas,
                                                                                  ConflictResolutionPolicy resolutionPolicy,
                                                                                  boolean isPreview) {
+        return importSchemas(schemas, resolutionPolicy, isPreview, ExportFormat.ADMIN);
+    }
+
+    private Collection<ImportComponent<ApplicationTypeSchema>> importSchemas(Map<String, ApplicationTypeSchema> schemas,
+                                                                             ConflictResolutionPolicy resolutionPolicy,
+                                                                             boolean isPreview,
+                                                                             ExportFormat exportFormat) {
         if (MapUtils.isNotEmpty(schemas)) {
             return schemas.entrySet().stream()
                     .map((schemaEntry) -> {
                         var schema = schemaEntry.getValue();
-                        var importAction = process(schemaEntry.getKey(), schema, resolutionPolicy, isPreview);
+                        var importAction = process(schemaEntry.getKey(), schema, resolutionPolicy, isPreview, exportFormat);
                         return new ImportComponent<>(importAction, schema);
                     })
                     .toList();
@@ -56,7 +64,15 @@ public class ApplicationTypeSchemaImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction process(String schemaId, ApplicationTypeSchema schema, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
+    private ImportAction process(String schemaId,
+                                 ApplicationTypeSchema schema,
+                                 ConflictResolutionPolicy resolutionPolicy,
+                                 boolean isPreview,
+                                 ExportFormat exportFormat) {
+        if (exportFormat == ExportFormat.ADMIN) {
+            // Routes are imported & linked to schema separately. Dropping them on import instead of export to conform with meta schema
+            schema.setApplicationTypeRoutes(null);
+        }
         if (service.exists(schemaId)) {
             return handleExisting(schema, resolutionPolicy, schemaId, isPreview);
         } else {

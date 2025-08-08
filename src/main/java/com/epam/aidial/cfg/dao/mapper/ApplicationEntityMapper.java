@@ -89,7 +89,10 @@ public abstract class ApplicationEntityMapper {
         updatedEntity.setApplicationTypeSchema(applicationTypeSchema);
 
         updatedEntity.getRoutes().forEach(route -> route.setApplication(null));
-        routes.forEach(route -> route.setApplication(updatedEntity));
+        for (RouteEntity route : routes) {
+            validateRouteDependencies(route.getApplicationTypeSchema(), route.getDeploymentName(), updatedEntity.getDeploymentName());
+            route.setApplication(updatedEntity);
+        }
         updatedEntity.getRoutes().clear();
         updatedEntity.getRoutes().addAll(routes);
 
@@ -148,6 +151,15 @@ public abstract class ApplicationEntityMapper {
 
         return applicationTypeSchemaJpaRepository.findById(schemaId)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find application type schema with schema id: " + schemaId));
+    }
+
+    private void validateRouteDependencies(ApplicationTypeSchemaEntity linkedAppTypeSchema, String routeName, String applicationName) {
+        if (linkedAppTypeSchema != null) {
+            throw new IllegalArgumentException(
+                "Route '%s' cannot be linked to Application '%s' since it is already linked to Application Type Schema '%s'"
+                        .formatted(routeName, applicationName, linkedAppTypeSchema.getSchemaId())
+            );
+        }
     }
 
 }

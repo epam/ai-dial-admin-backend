@@ -5,7 +5,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -27,6 +26,7 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private String schemaId;
 
     private String schema;
+    private String title;
     private String description;
     private String applicationTypeEditorUrl;
     private String applicationTypeViewerUrl;
@@ -57,12 +57,6 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     @ToString.Exclude
     @OneToMany(mappedBy = "applicationTypeSchema", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RouteEntity> applicationTypeRoutes = new ArrayList<>();
-
-    @PreRemove
-    public void preRemove() {
-        // Only delete routes that are not associated with an application
-        applicationTypeRoutes.removeIf(route -> route.getApplication() != null);
-    }
 
     @Override
     public String getId() {

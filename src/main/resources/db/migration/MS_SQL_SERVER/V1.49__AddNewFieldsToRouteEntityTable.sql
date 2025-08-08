@@ -19,9 +19,11 @@ alter table route_entity_aud add request_body_paths varbinary(max);
 alter table route_entity_aud add response_body_paths varbinary(max);
 
 -- Add new column to application_type_schema_entity table
+alter table application_type_schema_entity add title text;
 alter table application_type_schema_entity add application_type_icon_url text;
 alter table application_type_schema_entity add application_type_playback_support bit;
 
 -- Add new column to application_type_schema_entity_aud table
+alter table application_type_schema_entity_aud add title text;
 alter table application_type_schema_entity_aud add application_type_icon_url text;
 alter table application_type_schema_entity_aud add application_type_playback_support bit;

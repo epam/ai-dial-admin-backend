@@ -10,6 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,10 @@ public abstract class ApplicationTypeSchemaRouteCoreMapper {
 
     @Mapping(target = "userRoles", source = "deployment")
     public abstract CoreApplicationTypeSchemaRoute mapRoute(Route route);
+
+    public List<String> map(LinkedHashMap<String, CoreApplicationTypeSchemaRoute> routes) {
+        return new ArrayList<>(routes.keySet());
+    }
 
     public LinkedHashMap<String, CoreApplicationTypeSchemaRoute> map(List<String> routes) {
         LinkedHashMap<String, CoreApplicationTypeSchemaRoute> coreRoutes = new LinkedHashMap<>();

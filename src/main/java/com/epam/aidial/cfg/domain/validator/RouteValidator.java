@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.domain.model.Route;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,13 +40,11 @@ public class RouteValidator {
     private void validateLinkedDependencies(Route route) {
         var applicationName = route.getApplicationName();
         var applicationTypeSchemaId = route.getApplicationTypeSchemaId();
-        var permissions = route.getPermissions();
-        var attachmentPaths = route.getAttachmentPaths();
 
-        if ((CollectionUtils.isNotEmpty(permissions) || attachmentPaths != null)
-                && (StringUtils.isEmpty(applicationName) && StringUtils.isEmpty(applicationTypeSchemaId))) {
+        if (StringUtils.isNotEmpty(applicationName) && StringUtils.isNotEmpty(applicationTypeSchemaId)) {
             throw new IllegalArgumentException(
-                "Application name or Application type schema ID must be present if permissions and/or attachmentPaths are provided"
+                "Both application name '%s' and application type schema ID '%s' are specified. Only one of them can be provided"
+                        .formatted(applicationName, applicationTypeSchemaId)
             );
         }
     }

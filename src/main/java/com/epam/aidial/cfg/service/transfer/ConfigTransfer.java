@@ -209,16 +209,16 @@ public class ConfigTransfer {
     }
 
     private ImportConfigPreview importPreviewAdminConfig(ExportConfig config, ConflictResolutionPolicy resolutionPolicy) {
-        ConfigImportOptions importOptions = createConfigImportOptions(resolutionPolicy);
-        var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, true);
-        var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, true);
-        var routes = routeImporter.importAdminRoutes(config.getRoutes(), importOptions, true);
         var interceptorRunners = interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, true);
         var interceptors = interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, true);
         var applicationRunners = applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, true);
+        ConfigImportOptions importOptions = createConfigImportOptions(resolutionPolicy);
         var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, true);
         var models = modelImporter.importAdminModels(config.getModels(), importOptions, true);
         var applications = applicationImporter.importAdminApplications(config.getApplications(), importOptions, true);
+        var routes = routeImporter.importAdminRoutes(config.getRoutes(), importOptions, true);
+        var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, true);
+        var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, true);
 
         return ImportConfigPreview.builder()
                 .roles(roles)
@@ -280,15 +280,15 @@ public class ConfigTransfer {
     private void importAdminConfig(ExportConfig config,
                                    ConfigImportOptions importOptions) {
         var resolutionPolicy = importOptions.conflictResolutionPolicy();
-        roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, false);
-        keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, false);
-        routeImporter.importAdminRoutes(config.getRoutes(), importOptions, false);
         interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, false);
         interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, false);
         applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, false);
         adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, false);
         modelImporter.importAdminModels(config.getModels(), importOptions, false);
         applicationImporter.importAdminApplications(config.getApplications(), importOptions, false);
+        routeImporter.importAdminRoutes(config.getRoutes(), importOptions, false);
+        roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, false);
+        keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, false);
     }
 
     private ConfigImportOptions createConfigImportOptions(ConflictResolutionPolicy resolutionPolicy) {

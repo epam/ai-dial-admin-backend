@@ -46,7 +46,7 @@ public abstract class ApplicationTypeSchemaEntityMapper {
                 : entity.getApplications();
         List<RouteEntity> routes = findRoutesByNames(domain.getApplicationTypeRoutes());
 
-        ApplicationTypeSchemaEntity updatedEntity = update(domain, entity, routes);
+        ApplicationTypeSchemaEntity updatedEntity = update(domain, entity);
 
         if (shouldUpdateApplications) {
             updatedEntity.getApplications().forEach(app -> {
@@ -61,14 +61,22 @@ public abstract class ApplicationTypeSchemaEntityMapper {
             updatedEntity.getApplications().addAll(applications);
         }
 
+        updatedEntity.getApplicationTypeRoutes().forEach(route -> route.setApplicationTypeSchema(null));
+        for (RouteEntity route : routes) {
+            validateRouteDependencies(route.getApplication(), route.getDeploymentName(), updatedEntity.getSchemaId());
+            route.setApplicationTypeSchema(updatedEntity);
+        }
+        updatedEntity.getApplicationTypeRoutes().clear();
+        updatedEntity.getApplicationTypeRoutes().addAll(routes);
+
         return updatedEntity;
     }
 
+    @Mapping(target = "applicationTypeRoutes", ignore = true)
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "applicationTypeRoutes", source = "routes")
-    abstract ApplicationTypeSchemaEntity update(ApplicationTypeSchema domain, @MappingTarget ApplicationTypeSchemaEntity entity, List<RouteEntity> routes);
+    abstract ApplicationTypeSchemaEntity update(ApplicationTypeSchema domain, @MappingTarget ApplicationTypeSchemaEntity entity);
 
     private List<ApplicationEntity> findApplicationsByNames(List<String> names) {
         if (CollectionUtils.isEmpty(names)) {
@@ -104,5 +112,14 @@ public abstract class ApplicationTypeSchemaEntityMapper {
         }
 
         return existingRoutes;
+    }
+
+    private void validateRouteDependencies(ApplicationEntity linkedApp, String routeName, String applicationTypeSchemaId) {
+        if (linkedApp != null) {
+            throw new IllegalArgumentException(
+                "Route '%s' cannot be linked to Application Type Schema '%s' since it is already linked to Application '%s'"
+                        .formatted(routeName, applicationTypeSchemaId, linkedApp.getDeploymentName())
+            );
+        }
     }
 }

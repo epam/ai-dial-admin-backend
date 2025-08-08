@@ -73,9 +73,6 @@ public class ApplicationEntity extends TimeTrackableEntity<String> {
         for (InterceptorEntity interceptor : interceptors) {
             interceptor.getApplications().remove(this);
         }
-
-        // Only delete routes that are not associated with an application type schema
-        routes.removeIf(route -> route.getApplicationTypeSchema() != null);
     }
 
     @Override
