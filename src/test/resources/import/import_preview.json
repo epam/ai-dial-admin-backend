@@ -213,11 +213,11 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "defaults": {},
@@ -277,11 +277,11 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "defaults": {
@@ -338,11 +338,11 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "applicationTypeSchemaId": "https://test-schema-id.example",
@@ -384,11 +384,11 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         }
       }

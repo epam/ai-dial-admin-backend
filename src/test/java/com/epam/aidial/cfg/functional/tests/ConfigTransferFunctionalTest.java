@@ -18,6 +18,7 @@ import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
+import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
@@ -166,6 +167,7 @@ public abstract class ConfigTransferFunctionalTest {
                     .hasSize(1).first().isEqualTo("testInterceptor1");
             Assertions.assertThat(modelDto.getDefaults())
                     .containsExactlyInAnyOrderEntriesOf(Map.of("max_tokens", 8000));
+            Assertions.assertThat(modelDto.getFeatures()).isEqualTo(new FeaturesDto());
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());

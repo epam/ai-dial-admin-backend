@@ -1,20 +1,14 @@
 package com.epam.aidial.cfg.domain.mapper;
 
-import com.epam.aidial.cfg.dao.model.FeaturesEntity;
+import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.core.config.CoreFeatures;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.Named;
+import org.mapstruct.NullValueMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface FeatureCoreMapper {
 
-    FeaturesEntity toDto(CoreFeatures features);
-
-    @Named("toFeaturesDto")
-    default FeaturesEntity toFeaturesDto(CoreFeatures features) {
-        if (features == null) {
-            return new FeaturesEntity();
-        }
-        return toDto(features);
-    }
+    @BeanMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
+    Features toDomain(CoreFeatures features);
 }
