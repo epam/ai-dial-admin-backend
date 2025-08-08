@@ -18,7 +18,7 @@ if @pkName is not null
 begin
     set @sql = 'alter table interceptor_model_aud drop constraint [' + @pkName + ']';
     exec sp_executesql @sql;
-END
+end
 
 alter table interceptor_model add constraint PK_INTERCEPTOR_MODEL primary key nonclustered (model_name, interceptor_name, interceptors_order);
 alter table interceptor_model_aud add constraint PK_INTERCEPTOR_MODEL_AUD primary key nonclustered (model_name, rev, interceptor_name, interceptors_order);
