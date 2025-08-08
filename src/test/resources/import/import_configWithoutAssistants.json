@@ -183,6 +183,7 @@
   "applicationTypeSchemas": [
     {
       "$id": "https://test-schema-id.example",
+      "$schema": "https://dial.epam.com/application_type_schemas/schema#",
       "dial:applicationTypeEditorUrl": "https://test.com/billings",
       "dial:applicationTypeViewerUrl": "https://test.com/claims",
       "dial:applicationTypeDisplayName": "runner display name",
@@ -194,7 +195,8 @@
       "dial:appendApplicationPropertiesHeader": true,
       "$defs": {},
       "properties": {},
-      "required": []
+      "required": [],
+      "applicationTypeRoutes": []
     }
   ],
   "routes": {
@@ -236,7 +238,18 @@
       "maxRetryAttempts": 3,
       "userRoles": [
         "testRole1"
-      ]
+      ],
+      "order": 3,
+      "permissions": ["WRITE"],
+      "attachmentPaths": {
+        "requestBody": [
+          "/first",
+          "/second"
+        ],
+        "responseBody": [
+          "/third"
+        ]
+      }
     }
   },
   "adapters": {

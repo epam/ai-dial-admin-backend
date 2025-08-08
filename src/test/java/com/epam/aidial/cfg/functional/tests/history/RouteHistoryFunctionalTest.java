@@ -15,6 +15,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class RouteHistoryFunctionalTest {
 
@@ -62,12 +63,14 @@ public abstract class RouteHistoryFunctionalTest {
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setUpstreams(List.of());
+        expected.setPermissions(Set.of());
         assertRoute(actual, expected);
 
         // 3 add roles to route1
         updatedRoute.setDefaultRoleLimit(new LimitDto());
         updatedRoute.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         updatedRoute.setUpstreams(List.of());
+        updatedRoute.setPermissions(Set.of());
         routeFacade.updateRoute(routeDto.getName(), updatedRoute);
         actual = routeFacade.getRoute(routeDto.getName());
         assertRoute(actual, updatedRoute);

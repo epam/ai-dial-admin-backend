@@ -1,6 +1,15 @@
 package com.epam.aidial.cfg.service.export;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.RouteEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.UpstreamEntityMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.MapperPackage;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
@@ -43,7 +52,12 @@ import static org.mockito.Mockito.when;
         ConfigServiceTest.ComponentScanConfig.class,
         CoreConfigAggregatorService.class,
         JsonMapperConfiguration.class,
-        ModelEndpointUtils.class
+        ModelEndpointUtils.class,
+        RouteEntityMapperImpl.class,
+        RoleLimitEntityMapperImpl.class,
+        DeploymentEntityMapperImpl.class,
+        UpstreamEntityMapperImpl.class,
+        LimitEntityMapperImpl.class
 })
 class ConfigServiceTest {
 
@@ -71,6 +85,14 @@ class ConfigServiceTest {
     private RouteService routeService;
     @MockitoBean
     private DeploymentService deploymentService;
+    @MockitoBean
+    private RoleJpaRepository roleJpaRepository;
+    @MockitoBean
+    private ApplicationJpaRepository applicationJpaRepository;
+    @MockitoBean
+    private ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
+    @MockitoBean
+    private RouteJpaRepository routeJpaRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

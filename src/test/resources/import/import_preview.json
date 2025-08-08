@@ -134,6 +134,7 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
+        "applicationTypeRoutes": [],
         "$defs": {},
         "properties": {},
         "required": []
@@ -189,7 +190,18 @@
             "tier": 1
           }
         ],
-        "maxRetryAttempts": 3
+        "maxRetryAttempts": 3,
+        "order": 3,
+        "permissions": ["WRITE"],
+        "attachmentPaths": {
+          "requestBody": [
+            "/first",
+            "/second"
+          ],
+          "responseBody": [
+            "/third"
+          ]
+        }
       }
     }
   ],
@@ -350,7 +362,8 @@
         "dependencies": [
           "dep1",
           "dep2"
-        ]
+        ],
+        "routes": []
       }
     },
     {
@@ -390,7 +403,8 @@
           "temperatureSupported": true,
           "addonsSupported": false,
           "parallelToolCallsSupported": true
-        }
+        },
+        "routes": []
       }
     }
   ],
