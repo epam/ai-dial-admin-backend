@@ -27,7 +27,7 @@ public class ApplicationTypeSchemaDto {
     private String description;
 
     @JsonProperty("dial:applicationTypeEditorUrl")
-    private String applicationTypeEditorUrl = "https://app_editor_url";
+    private String applicationTypeEditorUrl;
 
     @JsonProperty("dial:applicationTypeViewerUrl")
     private String applicationTypeViewerUrl;
