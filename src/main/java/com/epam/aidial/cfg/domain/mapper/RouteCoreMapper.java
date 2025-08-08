@@ -62,7 +62,7 @@ public abstract class RouteCoreMapper {
     }
 
     public List<String> mapRoutes(LinkedHashMap<String, CoreRoute> routes) {
-        return new ArrayList<>(routes.keySet());
+        return routes != null ? new ArrayList<>(routes.keySet()) : new ArrayList<>();
     }
 
     public LinkedHashMap<String, CoreRoute> map(List<String> routes) {

@@ -31,7 +31,7 @@ public abstract class ApplicationTypeSchemaRouteCoreMapper {
     public abstract CoreApplicationTypeSchemaRoute mapRoute(Route route);
 
     public List<String> map(LinkedHashMap<String, CoreApplicationTypeSchemaRoute> routes) {
-        return new ArrayList<>(routes.keySet());
+        return routes != null ? new ArrayList<>(routes.keySet()) : new ArrayList<>();
     }
 
     public LinkedHashMap<String, CoreApplicationTypeSchemaRoute> map(List<String> routes) {
