@@ -31,6 +31,12 @@ public class ApplicationTypeSchemaImporter {
     private final ApplicationTypeSchemaService service;
     private final ApplicationTypeSchemaCoreMapper mapper;
 
+    public Collection<ImportComponent<ApplicationTypeSchema>> importAdminSchemas(Map<String, ApplicationTypeSchema> schemas,
+                                                                                 ConflictResolutionPolicy resolutionPolicy,
+                                                                                 boolean isPreview) {
+        return importSchemas(schemas, resolutionPolicy, isPreview, ExportFormat.ADMIN);
+    }
+
     public Collection<ImportComponent<ApplicationTypeSchema>> importSchemas(Map<String, String> schemas,
                                                                             ConflictResolutionPolicy resolutionPolicy,
                                                                             boolean isPreview) {
@@ -40,12 +46,6 @@ public class ApplicationTypeSchemaImporter {
             return importSchemas(applicationTypeSchemas, resolutionPolicy, isPreview, ExportFormat.CORE);
         }
         return Collections.emptyList();
-    }
-
-    public Collection<ImportComponent<ApplicationTypeSchema>> importAdminSchemas(Map<String, ApplicationTypeSchema> schemas,
-                                                                                 ConflictResolutionPolicy resolutionPolicy,
-                                                                                 boolean isPreview) {
-        return importSchemas(schemas, resolutionPolicy, isPreview, ExportFormat.ADMIN);
     }
 
     private Collection<ImportComponent<ApplicationTypeSchema>> importSchemas(Map<String, ApplicationTypeSchema> schemas,
