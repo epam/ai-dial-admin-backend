@@ -154,7 +154,9 @@
         "dial:appendApplicationPropertiesHeader": true,
         "$defs": {},
         "properties": {},
-        "required": []
+        "required": [],
+        "title": "Sample Schema",
+        "type": "object"
       }
 	],
 	"routes": {

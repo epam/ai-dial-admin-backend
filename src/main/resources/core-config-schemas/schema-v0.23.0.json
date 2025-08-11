@@ -260,6 +260,8 @@
           "properties": {
             "schema": {"type": "string"},
             "id": {"type": "string"},
+            "type": {"type": "string", "enum": ["OBJECT", "BOOLEAN"]},
+            "title": {"type": "string"},
             "description": {"type": "string"},
             "applicationTypeEditorUrl": {"type": "string"},
             "applicationTypeViewerUrl": {"type": "string"},
