@@ -1,25 +1,33 @@
-package com.epam.aidial.cfg.dao.validator;
+package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
-import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 
+@ExtendWith(MockitoExtension.class)
 class ApplicationTypeSchemaValidatorTest {
 
     private static final String ID_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
+
+    @Mock
+    private IdFieldValidator idFieldValidator;
 
     private ApplicationTypeSchemaValidator applicationTypeSchemaValidator;
 
     @BeforeEach
     void setUp() {
-        applicationTypeSchemaValidator = new ApplicationTypeSchemaValidator();
+        applicationTypeSchemaValidator = new ApplicationTypeSchemaValidator(idFieldValidator, null);
     }
 
     @Test
@@ -54,7 +62,7 @@ class ApplicationTypeSchemaValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"invalid id with spaces", "invalid@id", "invalid#id", "invalid$id", 
+    @ValueSource(strings = {"invalid id with spaces", "invalid@id", "invalid#id", "invalid$id",
             "id-that-is-way-too-long-for-validation-pattern"})
     void validateCreation_shouldThrowExceptionForInvalidId(String id) {
         // given
@@ -67,6 +75,20 @@ class ApplicationTypeSchemaValidatorTest {
         assertThatThrownBy(() -> applicationTypeSchemaValidator.validateCreation(schema))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match the required pattern");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenIdFieldValidatorThrows() {
+        // given
+        ApplicationTypeSchema applicationTypeSchema = new ApplicationTypeSchema();
+        applicationTypeSchema.setSchemaId("schema_id");
+
+        doThrow(IllegalArgumentException.class).when(idFieldValidator)
+                .validateId("ApplicationTypeSchema", "schema_id", "schemaId");
+
+        // when/then
+        Assertions.assertThatThrownBy(() -> applicationTypeSchemaValidator.validateCreation(applicationTypeSchema))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
 }

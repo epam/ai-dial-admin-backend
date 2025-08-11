@@ -63,5 +63,7 @@
 		"model",
 		"web_api_toolset"
 	],
-    "description": "testDescription"
+    "description": "testDescription",
+    "type": "object",
+    "title": "Sample Schema"
 }

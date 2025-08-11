@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class InterceptorValidator {
 
     private static final String COMPLETION_ENDPOINT_LOG_NAME = "completion";
@@ -26,9 +24,19 @@ public class InterceptorValidator {
 
     private final DeploymentManagerService deploymentManagerService;
     private final DeploymentInfoValidator deploymentInfoValidator;
+    private final IdFieldValidator idFieldValidator;
 
-    @Value("${validation.interceptor.name:}")
-    private String interceptorNameValidationPattern;
+    private final String interceptorNameValidationPattern;
+
+    public InterceptorValidator(DeploymentManagerService deploymentManagerService,
+                                DeploymentInfoValidator deploymentInfoValidator,
+                                IdFieldValidator idFieldValidator,
+                                @Value("${validation.interceptor.name:}") String interceptorNameValidationPattern) {
+        this.deploymentManagerService = deploymentManagerService;
+        this.deploymentInfoValidator = deploymentInfoValidator;
+        this.idFieldValidator = idFieldValidator;
+        this.interceptorNameValidationPattern = interceptorNameValidationPattern;
+    }
 
     public void validateCreation(Interceptor interceptor) {
         validateInterceptorName(interceptor);
@@ -38,13 +46,15 @@ public class InterceptorValidator {
     public void validateUpdate(String interceptorName, Interceptor interceptor) {
         if (!Objects.equals(interceptorName, interceptor.getName())) {
             throw new IllegalArgumentException("Interceptor with name: '%s' can not be renamed. New interceptor name: '%s'"
-                .formatted(interceptorName, interceptor.getName()));
+                    .formatted(interceptorName, interceptor.getName()));
         }
         validateInterceptorSource(interceptor);
     }
-    
+
     private void validateInterceptorName(Interceptor interceptor) {
         final String interceptorName = interceptor.getName();
+
+        idFieldValidator.validateName("Interceptor", interceptorName);
 
         if (StringUtils.isEmpty(interceptorNameValidationPattern)) {
             log.debug("Interceptor name validation pattern is empty, skipping validation for interceptor: {}", interceptorName);
@@ -53,7 +63,7 @@ public class InterceptorValidator {
 
         if (!Pattern.matches(interceptorNameValidationPattern, interceptorName)) {
             throw new IllegalArgumentException("Interceptor name '" + interceptorName
-                + "' does not match the required pattern: " + interceptorNameValidationPattern);
+                    + "' does not match the required pattern: " + interceptorNameValidationPattern);
         }
     }
 
@@ -71,7 +81,7 @@ public class InterceptorValidator {
                 validateContainerSource(containerSource);
             } else {
                 throw new IllegalArgumentException(
-                    "Unsupported interceptor source: %s. Interceptor: %s".formatted(source, interceptor.getName())
+                        "Unsupported interceptor source: %s. Interceptor: %s".formatted(source, interceptor.getName())
                 );
             }
             return;

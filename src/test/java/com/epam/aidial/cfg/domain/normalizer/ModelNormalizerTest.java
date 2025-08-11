@@ -1,7 +1,6 @@
-package com.epam.aidial.cfg.dao.normalizer;
+package com.epam.aidial.cfg.domain.normalizer;
 
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

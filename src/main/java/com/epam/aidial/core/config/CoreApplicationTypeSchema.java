@@ -3,6 +3,8 @@ package com.epam.aidial.core.config;
 import com.epam.aidial.cfg.dto.databind.JsonMapDeserializer;
 import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
 import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -22,8 +24,8 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("$id")
     private String id;
 
+    private CoreType type;
     private String title;
-
     private String description;
 
     @JsonProperty("dial:applicationTypeEditorUrl")
@@ -73,4 +75,11 @@ public class CoreApplicationTypeSchema {
     private Map<String, String> properties;
 
     private List<String> required;
+
+    public enum CoreType {
+        @JsonAlias("OBJECT")
+        OBJECT,
+        @JsonAlias("BOOLEAN")
+        BOOLEAN,
+    }
 }

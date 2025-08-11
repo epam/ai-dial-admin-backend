@@ -196,7 +196,10 @@
       "$defs": {},
       "properties": {},
       "required": [],
-      "applicationTypeRoutes": []
+      "applicationTypeRoutes": [],
+      "required": [],
+      "title": "Sample Schema",
+      "type": "object"
     }
   ],
   "routes": {

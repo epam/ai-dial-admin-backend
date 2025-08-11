@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -14,14 +13,20 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ApplicationValidator {
 
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
 
-    @Value("${validation.application.name:}")
-    private String applicationNameValidationPattern;
+    private final String applicationNameValidationPattern;
+
+    public ApplicationValidator(DisplayFieldsValidator displayFieldsValidator,
+                                DeploymentValidator deploymentValidator,
+                                @Value("${validation.application.name:}") String applicationNameValidationPattern) {
+        this.displayFieldsValidator = displayFieldsValidator;
+        this.deploymentValidator = deploymentValidator;
+        this.applicationNameValidationPattern = applicationNameValidationPattern;
+    }
 
     public void validateCreation(Application application) {
         validateApplicationName(application);
@@ -38,6 +43,8 @@ public class ApplicationValidator {
     private void validateApplicationName(Application application) {
         final String applicationName = application.getDeployment().getName();
 
+        deploymentValidator.validateCreation("Application", applicationName);
+
         if (StringUtils.isEmpty(applicationNameValidationPattern)) {
             log.debug("Application name validation pattern is empty, skipping validation for application: {}", applicationName);
             return;
@@ -45,7 +52,7 @@ public class ApplicationValidator {
 
         if (!Pattern.matches(applicationNameValidationPattern, applicationName)) {
             throw new IllegalArgumentException("Application name '" + applicationName
-                + "' does not match the required pattern: " + applicationNameValidationPattern);
+                    + "' does not match the required pattern: " + applicationNameValidationPattern);
         }
     }
 

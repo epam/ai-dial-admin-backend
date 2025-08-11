@@ -1,21 +1,20 @@
-package com.epam.aidial.cfg.dao.validator;
+package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.validator.DeploymentValidator;
-import com.epam.aidial.cfg.domain.validator.DisplayFieldsValidator;
-import com.epam.aidial.cfg.domain.validator.ModelValidator;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,8 +27,12 @@ class ModelValidatorTest {
     @Mock
     private DeploymentValidator deploymentValidator;
 
-    @InjectMocks
     private ModelValidator modelValidator;
+
+    @BeforeEach
+    void setUp() {
+        modelValidator = new ModelValidator(displayFieldsValidator, deploymentValidator, null);
+    }
 
     @Test
     void validateCreation_shouldDelegateToDisplayFieldsValidator() {
@@ -96,6 +99,24 @@ class ModelValidatorTest {
         assertThatThrownBy(() -> modelValidator.validateCreation(model))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match the required pattern");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenDeploymentValidatorThrows() {
+        // given
+        String deploymentName = "deploymentName";
+
+        Deployment deployment = new Deployment(deploymentName);
+
+        Model model = new Model();
+        model.setDeployment(deployment);
+
+        doThrow(IllegalArgumentException.class).when(deploymentValidator)
+                .validateCreation("Model", deploymentName);
+
+        // when/then
+        Assertions.assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
 }

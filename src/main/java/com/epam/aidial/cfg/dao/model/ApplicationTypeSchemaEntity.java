@@ -3,6 +3,8 @@ package com.epam.aidial.cfg.dao.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
@@ -26,6 +28,8 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private String schemaId;
 
     private String schema;
+    @Enumerated(EnumType.STRING)
+    private TypeEntity type;
     private String title;
     private String description;
     private String applicationTypeEditorUrl;
@@ -61,5 +65,10 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     @Override
     public String getId() {
         return schemaId;
+    }
+
+    public enum TypeEntity {
+        OBJECT,
+        BOOLEAN,
     }
 }
