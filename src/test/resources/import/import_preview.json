@@ -136,7 +136,9 @@
         "appendApplicationPropertiesHeader": true,
         "$defs": {},
         "properties": {},
-        "required": []
+        "required": [],
+        "type": "object",
+        "title": "Sample Schema"
       }
     }
   ],

@@ -16,6 +16,8 @@ public class ApplicationTypeSchema {
 
     private String schemaId;
     private String schema;
+    private Type type;
+    private String title;
     private String description;
     private String applicationTypeEditorUrl;
     private String applicationTypeViewerUrl;
@@ -41,4 +43,9 @@ public class ApplicationTypeSchema {
     private Set<String> topics;
     private Long createdAt;
     private Long updatedAt;
+
+    public enum Type {
+        OBJECT,
+        BOOLEAN,
+    }
 }

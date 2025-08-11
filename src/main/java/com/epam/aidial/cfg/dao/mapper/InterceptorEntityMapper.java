@@ -86,7 +86,7 @@ public abstract class InterceptorEntityMapper {
     }
 
     private <T> Stream<String> getNames(Collection<T> entities, Function<T, String> modelEntityStringFunction) {
-        return entities.stream().map(modelEntityStringFunction);
+        return entities.stream().map(modelEntityStringFunction).distinct();
     }
 
     public InterceptorEntity toEntity(Interceptor domain, InterceptorEntity entity) {
@@ -109,14 +109,22 @@ public abstract class InterceptorEntityMapper {
         InterceptorEntity updatedEntity = update(domain, entity);
 
         List<ApplicationEntity> applications = applicationsAndModels.getLeft();
-        updatedEntity.getApplications().forEach(application -> application.getInterceptors().remove(updatedEntity));
-        applications.forEach(application -> application.getInterceptors().add(updatedEntity));
+        updatedEntity.getApplications().stream()
+                .filter(a -> !applications.contains(a))
+                .forEach(application -> application.getInterceptors().remove(updatedEntity));
+        applications.stream()
+                .filter(a -> !updatedEntity.getApplications().contains(a))
+                .forEach(application -> application.getInterceptors().add(updatedEntity));
         updatedEntity.getApplications().clear();
         updatedEntity.getApplications().addAll(applications);
 
         List<ModelEntity> models = applicationsAndModels.getRight();
-        updatedEntity.getModels().forEach(model -> model.getInterceptors().remove(updatedEntity));
-        models.forEach(model -> model.getInterceptors().add(updatedEntity));
+        updatedEntity.getModels().stream()
+                .filter(m -> !models.contains(m))
+                .forEach(model -> model.getInterceptors().remove(updatedEntity));
+        models.stream()
+                .filter(m -> !updatedEntity.getModels().contains(m))
+                .forEach(model -> model.getInterceptors().add(updatedEntity));
         updatedEntity.getModels().clear();
         updatedEntity.getModels().addAll(models);
 

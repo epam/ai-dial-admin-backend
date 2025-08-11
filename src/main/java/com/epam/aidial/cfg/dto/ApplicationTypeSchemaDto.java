@@ -24,6 +24,8 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("$id")
     private String id;
 
+    private TypeDto type;
+    private String title;
     private String description;
 
     @JsonProperty("dial:applicationTypeEditorUrl")
@@ -69,4 +71,9 @@ public class ApplicationTypeSchemaDto {
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
+
+    public enum TypeDto {
+        OBJECT,
+        BOOLEAN,
+    }
 }

@@ -173,22 +173,123 @@ public abstract class ModelFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyCreateWithInterceptor() {
+    public void shouldSuccessfullyCreateAndUpdateWithInterceptors() {
         initRoles();
 
-        InterceptorDto interceptorDto = new InterceptorDto();
-        interceptorDto.setName("int1");
-        interceptorDto.setDescription("int1_dsc");
-        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
-        interceptorFacade.createInterceptor(interceptorDto);
+        InterceptorDto interceptorDto1 = interceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = interceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
 
         ModelDto modelDto = createDto("1");
-        modelDto.setInterceptors(List.of("int1"));
+        modelDto.setInterceptors(List.of("int1", "int2", "int1", "int1", "int2"));
         modelFacade.createModel(modelDto);
 
-        ModelDto actual = modelFacade.getModel(modelDto.getName());
+        ModelDto actualModel = modelFacade.getModel(modelDto.getName());
+        Assertions.assertEquals(List.of("int1", "int2", "int1", "int1", "int2"), actualModel.getInterceptors());
 
-        Assertions.assertTrue(actual.getInterceptors().contains("int1"));
+        modelDto.setInterceptors(List.of("int2", "int2", "int1", "int1"));
+        modelFacade.updateModel(modelDto.getName(), modelDto);
+
+        actualModel = modelFacade.getModel(modelDto.getName());
+        Assertions.assertEquals(List.of("int2", "int2", "int1", "int1"), actualModel.getInterceptors());
+    }
+
+    @Test
+    public void shouldSuccessfullyAddNewInterceptorToTheEndOfTheInterceptorsList() {
+        initRoles();
+
+        InterceptorDto interceptorDto1 = interceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = interceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        ModelDto modelDto1 = createDto("1");
+        modelDto1.setInterceptors(List.of("int2", "int2", "int1", "int1"));
+        modelFacade.createModel(modelDto1);
+
+        ModelDto modelDto2 = createDto("2");
+        modelDto2.setInterceptors(List.of("int1", "int2", "int2"));
+        modelFacade.createModel(modelDto2);
+
+        InterceptorDto interceptorDto3 = interceptorDto("3");
+        interceptorDto3.setEntities(List.of("model1", "model2", "model1"));
+        interceptorFacade.createInterceptor(interceptorDto3);
+
+        ModelDto actualModel1 = modelFacade.getModel(modelDto1.getName());
+        Assertions.assertEquals(List.of("int2", "int2", "int1", "int1", "int3"), actualModel1.getInterceptors());
+
+        ModelDto actualModel2 = modelFacade.getModel(modelDto2.getName());
+        Assertions.assertEquals(List.of("int1", "int2", "int2", "int3"), actualModel2.getInterceptors());
+    }
+
+    @Test
+    public void shouldSuccessfullyRemoveDeletedInterceptorFromTheInterceptorsList() {
+        initRoles();
+
+        InterceptorDto interceptorDto1 = interceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = interceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        InterceptorDto interceptorDto3 = interceptorDto("3");
+        interceptorFacade.createInterceptor(interceptorDto3);
+
+        ModelDto modelDto1 = createDto("1");
+        modelDto1.setInterceptors(List.of("int2", "int2", "int1", "int1", "int3"));
+        modelFacade.createModel(modelDto1);
+
+        ModelDto modelDto2 = createDto("2");
+        modelDto2.setInterceptors(List.of("int1", "int2", "int2", "int3"));
+        modelFacade.createModel(modelDto2);
+
+        interceptorFacade.deleteInterceptor("int1");
+
+        ModelDto actualModel1 = modelFacade.getModel(modelDto1.getName());
+        Assertions.assertEquals(List.of("int2", "int2", "int3"), actualModel1.getInterceptors());
+
+        ModelDto actualModel2 = modelFacade.getModel(modelDto2.getName());
+        Assertions.assertEquals(List.of("int2", "int2", "int3"), actualModel2.getInterceptors());
+    }
+
+    @Test
+    public void shouldSuccessfullyRemoveUpdatedInterceptorFromTheInterceptorsList() {
+        initRoles();
+
+        InterceptorDto interceptorDto1 = interceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = interceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        ModelDto modelDto1 = createDto("1");
+        modelDto1.setInterceptors(List.of("int1", "int1", "int2"));
+        modelFacade.createModel(modelDto1);
+
+        ModelDto modelDto2 = createDto("2");
+        modelDto2.setInterceptors(List.of("int1", "int1", "int2"));
+        modelFacade.createModel(modelDto2);
+
+        interceptorDto1.setEntities(List.of("model2"));
+        interceptorFacade.updateInterceptor(interceptorDto1.getName(), interceptorDto1);
+
+        ModelDto actualModel1 = modelFacade.getModel(modelDto1.getName());
+        Assertions.assertEquals(List.of("int2"), actualModel1.getInterceptors());
+
+        ModelDto actualModel2 = modelFacade.getModel(modelDto2.getName());
+        Assertions.assertEquals(List.of("int1", "int1", "int2"), actualModel2.getInterceptors());
+
+        interceptorDto2.setEntities(null);
+        interceptorFacade.updateInterceptor(interceptorDto2.getName(), interceptorDto2);
+
+        actualModel1 = modelFacade.getModel(modelDto1.getName());
+        Assertions.assertNull(actualModel1.getInterceptors());
+
+        actualModel2 = modelFacade.getModel(modelDto2.getName());
+        Assertions.assertEquals(List.of("int1", "int1"), actualModel2.getInterceptors());
     }
 
     @Test
@@ -311,5 +412,13 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createDto(suffix);
         modelDto.setDefaults(Map.of("max_tokens", 8000));
         return modelDto;
+    }
+
+    private InterceptorDto interceptorDto(String suffix) {
+        InterceptorDto interceptorDto = new InterceptorDto();
+        interceptorDto.setName("int" + suffix);
+        interceptorDto.setDescription("int" + suffix + "_dsc");
+        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
+        return interceptorDto;
     }
 }
