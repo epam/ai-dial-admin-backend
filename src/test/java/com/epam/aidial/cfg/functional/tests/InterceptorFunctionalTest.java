@@ -4,11 +4,13 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
+import com.epam.aidial.cfg.web.facade.ModelFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -27,6 +29,8 @@ public abstract class InterceptorFunctionalTest {
     private InterceptorFacade interceptorFacade;
     @Autowired
     private ApplicationFacade applicationFacade;
+    @Autowired
+    private ModelFacade modelFacade;
     @Autowired
     private DeploymentManagerService deploymentManagerService;
 
@@ -110,6 +114,29 @@ public abstract class InterceptorFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyCreateAndUpdateInterceptorWithModels() {
+        ModelDto modelDto1 = createModelDto("1");
+        modelFacade.createModel(modelDto1);
+        ModelDto modelDto2 = createModelDto("2");
+        modelFacade.createModel(modelDto2);
+
+        InterceptorDto interceptorDto = createDto("1");
+        interceptorDto.setEntities(List.of("model1", "model2"));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        InterceptorDto actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
+        org.assertj.core.api.Assertions.assertThat(actualInterceptor.getEntities())
+                .containsExactlyInAnyOrderElementsOf(List.of("model1", "model2"));
+
+        modelDto1.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor1"));
+        modelFacade.updateModel(modelDto1.getName(), modelDto1);
+
+        actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
+        org.assertj.core.api.Assertions.assertThat(actualInterceptor.getEntities())
+                .containsExactlyInAnyOrderElementsOf(List.of("model1", "model2"));
+    }
+
+    @Test
     public void shouldThrowExceptionWhenCreateInterceptorWithExistingName() {
         applicationFacade.createApplication(createApplicationDto("1"));
 
@@ -150,6 +177,13 @@ public abstract class InterceptorFunctionalTest {
         application.setName("application" + suffix);
         application.setEndpoint("endpoint");
         return application;
+    }
+
+    private ModelDto createModelDto(String suffix) {
+        ModelDto model = new ModelDto();
+        model.setName("model" + suffix);
+        model.setEndpoint("endpoint");
+        return model;
     }
 
     private InterceptorDto createDto(String suffix) {

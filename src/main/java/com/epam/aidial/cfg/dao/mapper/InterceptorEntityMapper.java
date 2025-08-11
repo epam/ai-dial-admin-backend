@@ -62,6 +62,7 @@ public abstract class InterceptorEntityMapper {
                         getNames(entity.getApplications(), a -> a.getDeployment().getName()),
                         getNames(entity.getModels(), m -> m.getDeployment().getName())
                 )
+                .distinct()
                 .collect(Collectors.toList());
     }
 
@@ -115,8 +116,12 @@ public abstract class InterceptorEntityMapper {
         updatedEntity.getApplications().addAll(applications);
 
         List<ModelEntity> models = applicationsAndModels.getRight();
-        updatedEntity.getModels().forEach(model -> model.getInterceptors().remove(updatedEntity));
-        models.forEach(model -> model.getInterceptors().add(updatedEntity));
+        updatedEntity.getModels().stream()
+                .filter(m -> !models.contains(m))
+                .forEach(model -> model.getInterceptors().remove(updatedEntity));
+        models.stream()
+                .filter(m -> !updatedEntity.getModels().contains(m))
+                .forEach(model -> model.getInterceptors().add(updatedEntity));
         updatedEntity.getModels().clear();
         updatedEntity.getModels().addAll(models);
 
