@@ -7,11 +7,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, UpstreamDtoMapper.class, RoleBasedDtoMapper.class, ModelEndpointDtoMapper.class, InstantMapper.class})
+@Mapper(
+        componentModel = "spring",
+        uses = {
+                LimitDtoMapper.class, UpstreamDtoMapper.class, RoleBasedDtoMapper.class,
+                ModelEndpointDtoMapper.class, InstantMapper.class, FeaturesMapper.class
+        }
+)
 public abstract class ModelDtoMapper {
 
     @Mapping(target = "upstreams.id", ignore = true)
@@ -27,15 +29,6 @@ public abstract class ModelDtoMapper {
     @Mapping(target = "adapter", source = "adapter.name")
     @Mapping(target = "endpoint", source = "domain", qualifiedByName = "mapEndpointFromModel")
     public abstract ModelDto toDto(Model domain);
-
-    public Map<String, String> mapMap(Map<String, Object> value) {
-        if (value == null) {
-            return null;
-        }
-        return value.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Objects::toString));
-    }
 
     @Named("mapToAdapter")
     public Adapter mapToAdapter(ModelDto dto) {
