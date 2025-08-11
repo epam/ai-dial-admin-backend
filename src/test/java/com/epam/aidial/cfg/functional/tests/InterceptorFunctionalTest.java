@@ -134,6 +134,35 @@ public abstract class InterceptorFunctionalTest {
         actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
         org.assertj.core.api.Assertions.assertThat(actualInterceptor.getEntities())
                 .containsExactlyInAnyOrderElementsOf(List.of("model1", "model2"));
+
+        ModelDto actualModel1 = modelFacade.getModel(modelDto1.getName());
+        Assertions.assertEquals(actualModel1.getInterceptors(), List.of("interceptor1", "interceptor1", "interceptor1"));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndUpdateInterceptorWithApplications() {
+        ApplicationDto applicationDto1 = createApplicationDto("1");
+        applicationFacade.createApplication(applicationDto1);
+        ApplicationDto applicationDto2 = createApplicationDto("2");
+        applicationFacade.createApplication(applicationDto2);
+
+        InterceptorDto interceptorDto = createDto("1");
+        interceptorDto.setEntities(List.of("application1", "application2"));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        InterceptorDto actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
+        org.assertj.core.api.Assertions.assertThat(actualInterceptor.getEntities())
+                .containsExactlyInAnyOrderElementsOf(List.of("application1", "application2"));
+
+        applicationDto1.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor1"));
+        applicationFacade.updateApplication(applicationDto1.getName(), applicationDto1);
+
+        actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
+        org.assertj.core.api.Assertions.assertThat(actualInterceptor.getEntities())
+                .containsExactlyInAnyOrderElementsOf(List.of("application1", "application2"));
+
+        ApplicationDto actualApplication1 = applicationFacade.getApplication(applicationDto1.getName());
+        Assertions.assertEquals(actualApplication1.getInterceptors(), List.of("interceptor1", "interceptor1", "interceptor1"));
     }
 
     @Test
@@ -226,30 +255,30 @@ public abstract class InterceptorFunctionalTest {
         deploymentInfoDto.setId(UUID.fromString(containerId));
         deploymentInfoDto.setName("Test Container");
         deploymentInfoDto.setUrl(containerUrl);
-        
+
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
-        
+
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("container-interceptor");
         interceptorDto.setDescription("Container interceptor");
-        
+
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
                 containerId,
                 completionPath,
                 configPath
         );
-        
+
         interceptorDto.setSource(sourceDto);
-        
+
         // When
         interceptorFacade.createInterceptor(interceptorDto);
-        
+
         // Then
         InterceptorDto result = interceptorFacade.getInterceptor("container-interceptor");
-        
+
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
         Assertions.assertEquals(containerUrl + configPath, result.getConfigurationEndpoint());
-        
+
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
@@ -272,7 +301,7 @@ public abstract class InterceptorFunctionalTest {
         updatedDeploymentInfo.setId(UUID.fromString(containerId));
         updatedDeploymentInfo.setName(deploymentName);
         updatedDeploymentInfo.setUrl(updatedUrl);
-        
+
         Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
                 .thenReturn(initialDeploymentInfo)
@@ -282,16 +311,16 @@ public abstract class InterceptorFunctionalTest {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("refresh-interceptor");
         interceptorDto.setDescription("Refresh interceptor");
-        
+
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
                 containerId,
                 completionPath,
                 configPath
         );
-        
+
         interceptorDto.setSource(sourceDto);
         interceptorFacade.createInterceptor(interceptorDto);
-        
+
         InterceptorDto initialResult = interceptorFacade.getInterceptor("refresh-interceptor");
         Assertions.assertEquals(initialUrl + completionPath, initialResult.getEndpoint());
         Assertions.assertEquals(initialUrl + configPath, initialResult.getConfigurationEndpoint());
