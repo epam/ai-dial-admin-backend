@@ -59,4 +59,9 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     public String getId() {
         return schemaId;
     }
+
+    public enum TypeEntity {
+        OBJECT,
+        BOOLEAN,
+    }
 }
