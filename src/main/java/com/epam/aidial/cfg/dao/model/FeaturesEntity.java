@@ -15,7 +15,7 @@ import lombok.Data;
  *       from {@link com.epam.aidial.core.config.CoreFeatures} or when deserializing Admin config during import
  *   </li>
  *   <li>
- *      {@link com.epam.aidial.cfg.dto.FeaturesDto}, since it's created during serialization of web request body
+ *      {@link com.epam.aidial.cfg.dto.FeaturesDto}, since it's created during deserialization of web request body
  *   </li>
  * </ul>
  */
