@@ -44,12 +44,7 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     private InterceptorRunnerEntity interceptorRunner;
 
     @ToString.Exclude
-    @ManyToMany
-    @JoinTable(
-            name = "interceptor_application",
-            joinColumns = @JoinColumn(name = "interceptor_name"),
-            inverseJoinColumns = @JoinColumn(name = "application_name")
-    )
+    @ManyToMany(mappedBy = "interceptors")
     private List<ApplicationEntity> applications = new ArrayList<>();
 
     @ToString.Exclude

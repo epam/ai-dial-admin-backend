@@ -24,7 +24,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {
@@ -58,6 +60,12 @@ public abstract class ApplicationEntityMapper {
 
     public ApplicationEntity toEntity(Application domain, ApplicationEntity entity) {
         List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+        Map<String, InterceptorEntity> interceptorsByName = interceptors.stream()
+                .collect(Collectors.toMap(InterceptorEntity::getName, Function.identity()));
+        List<InterceptorEntity> duplicatedInterceptors = CollectionUtils.emptyIfNull(domain.getInterceptors())
+                .stream()
+                .map(interceptorsByName::get)
+                .toList();
 
         ApplicationTypeSchemaEntity applicationTypeSchema = findApplicationTypeSchemaById(domain.getApplicationTypeSchemaId());
 
@@ -67,9 +75,9 @@ public abstract class ApplicationEntityMapper {
         ApplicationEntity updatedEntity = update(domain, entity);
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getApplications().remove(updatedEntity));
-        interceptors.forEach(interceptor -> interceptor.getApplications().add(updatedEntity));
+        duplicatedInterceptors.forEach(interceptor -> interceptor.getApplications().add(updatedEntity));
         updatedEntity.getInterceptors().clear();
-        updatedEntity.getInterceptors().addAll(interceptors);
+        updatedEntity.getInterceptors().addAll(duplicatedInterceptors);
 
         ApplicationTypeSchemaEntity currentApplicationSchema = updatedEntity.getApplicationTypeSchema();
         if (currentApplicationSchema != null) {

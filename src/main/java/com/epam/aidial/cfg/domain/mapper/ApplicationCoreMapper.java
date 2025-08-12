@@ -28,7 +28,7 @@ public abstract class ApplicationCoreMapper {
     public abstract CoreApplication mapApplication(Application model);
 
     @Mapping(target = "deployment.name", source = "application.name")
-    @Mapping(target = "features", source = "application.features", qualifiedByName = "toFeaturesDto")
+    @Mapping(target = "features", source = "application.features")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "routes", source = "application.routes")
