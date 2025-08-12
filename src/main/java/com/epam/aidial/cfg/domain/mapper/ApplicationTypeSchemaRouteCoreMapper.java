@@ -1,19 +1,17 @@
 package com.epam.aidial.cfg.domain.mapper;
 
-import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
-import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
-import com.epam.aidial.cfg.domain.model.Route;
-import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.domain.model.Upstream;
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.core.config.CoreApplicationTypeSchemaRoute;
+import com.epam.aidial.core.config.CoreApplicationTypeSchemaUpstream;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Mapper(
@@ -22,41 +20,55 @@ import java.util.regex.Pattern;
 )
 public abstract class ApplicationTypeSchemaRouteCoreMapper {
 
-    @Autowired
-    private RouteEntityMapper mapper;
-    @Autowired
-    private RouteJpaRepository routeJpaRepository;
-
     @Mapping(target = "userRoles", source = "deployment")
-    public abstract CoreApplicationTypeSchemaRoute mapRoute(Route route);
+    public abstract CoreApplicationTypeSchemaRoute mapRoute(DependentRoute route);
 
-    public List<String> map(LinkedHashMap<String, CoreApplicationTypeSchemaRoute> routes) {
-        return routes != null ? new ArrayList<>(routes.keySet()) : new ArrayList<>();
+    @Mapping(target = "deployment.name", source = "name")
+    @Mapping(target = "description", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    public abstract DependentRoute mapDependentRoute(String name, CoreApplicationTypeSchemaRoute route);
+
+    @Mapping(target = "id", ignore = true)
+    public abstract Upstream mapUpstream(CoreApplicationTypeSchemaUpstream upstream);
+
+    public List<DependentRoute> map(LinkedHashMap<String, CoreApplicationTypeSchemaRoute> coreRoutes) {
+        List<DependentRoute> routes = new ArrayList<>();
+        if (MapUtils.isEmpty(coreRoutes)) {
+            return null;
+        }
+        for (var entry : coreRoutes.entrySet()) {
+            var route = mapDependentRoute(entry.getKey(), entry.getValue());
+            routes.add(route);
+        }
+        return routes;
     }
 
-    public LinkedHashMap<String, CoreApplicationTypeSchemaRoute> map(List<String> routes) {
+    public LinkedHashMap<String, CoreApplicationTypeSchemaRoute> map(List<DependentRoute> routes) {
         LinkedHashMap<String, CoreApplicationTypeSchemaRoute> coreRoutes = new LinkedHashMap<>();
         if (CollectionUtils.isEmpty(routes)) {
             return null;
         }
-        for (String routeName : routes) {
-            var coreRoute = findRoute(routeName);
-            coreRoutes.put(routeName, coreRoute);
+        for (DependentRoute route : routes) {
+            CoreApplicationTypeSchemaRoute coreRoute = mapRoute(route);
+            coreRoutes.put(route.getDeployment().getName(), coreRoute);
         }
         return coreRoutes;
     }
 
-    private CoreApplicationTypeSchemaRoute findRoute(String routeName) {
-        return Optional.ofNullable(routeName)
-                .flatMap(routeJpaRepository::findById)
-                .map(mapper::toCoreApplicationTypeSchemaRoute)
-                .orElseThrow(() -> new EntityNotFoundException("Route with name %s does not exist".formatted(routeName)));
-    }
+    public abstract List<String> mapPathsToString(List<Pattern> value);
 
-    public abstract List<Pattern> mapPaths(List<String> paths);
+    public abstract List<Pattern> mapStingsToPaths(List<String> paths);
 
     public Pattern mapPath(String path) {
         return Pattern.compile(path);
+    }
+
+    public String mapToString(Pattern path) {
+        if (path == null) {
+            return null;
+        }
+        return path.pattern();
     }
 
 }

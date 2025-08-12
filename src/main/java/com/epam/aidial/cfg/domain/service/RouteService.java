@@ -1,17 +1,12 @@
 package com.epam.aidial.cfg.domain.service;
 
-import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
-import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
-import com.epam.aidial.cfg.dao.model.ApplicationEntity;
-import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +22,6 @@ public class RouteService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Route with name %s does not exist";
 
     private final RouteJpaRepository routeJpaRepository;
-    private final ApplicationJpaRepository applicationJpaRepository;
-    private final ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
     private final RouteEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final RouteValidator routeValidator;
@@ -53,21 +46,21 @@ public class RouteService {
     public void create(Route route) {
         routeValidator.validateRouteCreation(route);
         deploymentService.assertDeploymentNotExists(route.getDeployment().getName());
-
-        RouteEntity routeEntity = mapper.toEntity(route, new RouteEntity());
-        setApplicationAndApplicationTypeSchemaToEntity(routeEntity, route.getApplicationName(), route.getApplicationTypeSchemaId());
-        routeJpaRepository.save(routeEntity);
+        Optional.of(route)
+                .map(domainModel -> mapper.toEntity(domainModel, new RouteEntity()))
+                .map(routeJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to create route " + route.getDeployment().getName()));
     }
 
     @Transactional
-    public void update(String routeName, Route route) {
-        routeValidator.validateUpdate(routeName, route);
-        RouteEntity existingRouteEntity = routeJpaRepository.findById(routeName)
+    public void update(String routeName, Route value) {
+        routeValidator.validateUpdate(routeName, value);
+        RouteEntity routeEntity = routeJpaRepository.findById(routeName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
-
-        RouteEntity routeEntity = mapper.toEntity(route, existingRouteEntity);
-        setApplicationAndApplicationTypeSchemaToEntity(routeEntity, route.getApplicationName(), route.getApplicationTypeSchemaId());
-        routeJpaRepository.save(routeEntity);
+        Optional.of(value)
+                .map(domainModel -> mapper.toEntity(domainModel, routeEntity))
+                .map(routeJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to update route " + value.getDeployment().getName()));
     }
 
     @Transactional
@@ -102,21 +95,4 @@ public class RouteService {
                 .collect(Collectors.toList());
     }
 
-    private void setApplicationAndApplicationTypeSchemaToEntity(RouteEntity routeEntity, String applicationName, String applicationTypeSchemaId) {
-        if (StringUtils.isNotEmpty(applicationName)) {
-            ApplicationEntity applicationEntity = applicationJpaRepository.findById(applicationName)
-                    .orElseThrow(() -> new EntityNotFoundException("Application with name '%s' does not exist".formatted(applicationName)));
-            routeEntity.setApplication(applicationEntity);
-        } else {
-            routeEntity.setApplication(null);
-        }
-
-        if (StringUtils.isNotEmpty(applicationTypeSchemaId)) {
-            ApplicationTypeSchemaEntity schemaEntity = applicationTypeSchemaJpaRepository.findById(applicationTypeSchemaId)
-                    .orElseThrow(() -> new EntityNotFoundException("Application type schema with ID '%s' does not exist".formatted(applicationTypeSchemaId)));
-            routeEntity.setApplicationTypeSchema(schemaEntity);
-        } else {
-            routeEntity.setApplicationTypeSchema(null);
-        }
-    }
 }

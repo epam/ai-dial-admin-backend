@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,24 +33,10 @@ public class RouteValidator {
             throw new IllegalArgumentException("Route name '" + routeName
                     + "' does not match the required pattern: " + routeNameValidationPattern);
         }
-
-        validateLinkedDependencies(route);
     }
 
     public void validateUpdate(String routeName, Route route) {
         deploymentValidator.validateUpdate(routeName, route.getDeployment(), "Route");
-        validateLinkedDependencies(route);
     }
 
-    private void validateLinkedDependencies(Route route) {
-        var applicationName = route.getApplicationName();
-        var applicationTypeSchemaId = route.getApplicationTypeSchemaId();
-
-        if (StringUtils.isNotEmpty(applicationName) && StringUtils.isNotEmpty(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException(
-                "Both application name '%s' and application type schema ID '%s' are specified. Only one of them can be provided"
-                        .formatted(applicationName, applicationTypeSchemaId)
-            );
-        }
-    }
 }

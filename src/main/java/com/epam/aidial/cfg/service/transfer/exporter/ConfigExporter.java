@@ -12,7 +12,7 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleBased;
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
@@ -188,7 +188,6 @@ public class ConfigExporter {
             Application application = applicationExporter.getApplication(component.getName());
             processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
             processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
-            processRouteDependencies(application.getRoutes(), dependencies, updatedComponents);
         }
     }
 
@@ -209,13 +208,6 @@ public class ConfigExporter {
         if (dependencies.contains(ExportConfigComponentType.INTERCEPTOR) && CollectionUtils.isNotEmpty(interceptors)) {
             interceptors.forEach(interceptor ->
                     updatedComponents.add(new ExportConfigComponent(interceptor, ExportConfigComponentType.INTERCEPTOR)));
-        }
-    }
-
-    private void processRouteDependencies(List<String> routes, Set<ExportConfigComponentType> dependencies, List<ExportConfigComponent> updatedComponents) {
-        if (dependencies.contains(ExportConfigComponentType.ROUTE) && CollectionUtils.isNotEmpty(routes)) {
-            routes.forEach(route ->
-                    updatedComponents.add(new ExportConfigComponent(route, ExportConfigComponentType.ROUTE)));
         }
     }
 

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dao.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -58,9 +57,8 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
 
     private Set<String> topics;
 
-    @ToString.Exclude
-    @OneToMany(mappedBy = "applicationTypeSchema", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RouteEntity> applicationTypeRoutes = new ArrayList<>();
+    @Column(columnDefinition = "CLOB")
+    private String applicationTypeRoutes;
 
     @Override
     public String getId() {

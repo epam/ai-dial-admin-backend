@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -36,6 +37,6 @@ public class Application extends RoleBased {
     private URI applicationTypeSchemaId;
     private String viewerUrl;
     private String editorUrl;
-    private List<String> routes;
+    private List<DependentRoute> routes;
 
 }

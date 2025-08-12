@@ -2,13 +2,11 @@ package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import lombok.Data;
@@ -43,18 +41,6 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     private int maxRetryAttempts;
     @Column(name = "order_value")
     private int order;
-    @Convert(converter = ResourceAccessTypeConverter.class)
-    private Set<ResourceAccessTypeEntity> permissions;
-    @Embedded
-    private AttachmentPathEntity attachmentPaths;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id")
-    private ApplicationEntity application;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_type_schema_id")
-    private ApplicationTypeSchemaEntity applicationTypeSchema;
 
     @Override
     public String getId() {

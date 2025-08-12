@@ -1,6 +1,8 @@
-package com.epam.aidial.cfg.dto;
+package com.epam.aidial.cfg.dto.route;
 
-import com.epam.aidial.cfg.dao.model.ResourceAccessTypeEntity;
+import com.epam.aidial.cfg.dto.ResponseDto;
+import com.epam.aidial.cfg.dto.RoleBasedDto;
+import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -18,7 +20,7 @@ import java.util.Set;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class RouteDto extends RoleBasedDto {
+public abstract class BaseRouteDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
@@ -38,8 +40,4 @@ public class RouteDto extends RoleBasedDto {
     private Instant updatedAt;
     @Min(value = 0, message = "Order can't be negative")
     private int order;
-    private Set<ResourceAccessTypeEntity> permissions;
-    private AttachmentPathDto attachmentPaths;
-    private String applicationName;
-    private String applicationTypeSchemaId;
 }

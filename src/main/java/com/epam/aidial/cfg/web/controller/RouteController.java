@@ -1,9 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.RouteDto;
+import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

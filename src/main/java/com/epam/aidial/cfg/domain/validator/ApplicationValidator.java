@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +60,7 @@ public class ApplicationValidator {
     private void validateApplicationFields(Application application) {
         String endpoint = application.getEndpoint();
         URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
-        List<String> routes = application.getRoutes();
+        List<DependentRoute> routes = application.getRoutes();
 
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint: '" + endpoint + "'");

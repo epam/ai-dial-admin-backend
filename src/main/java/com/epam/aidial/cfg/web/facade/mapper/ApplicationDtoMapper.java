@@ -6,7 +6,9 @@ import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class})
+@Mapper(componentModel = "spring", uses = {
+        LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class, RouteDtoMapper.class
+})
 public interface ApplicationDtoMapper {
 
     @Mapping(target = "descriptionKeywords", source = "topics")

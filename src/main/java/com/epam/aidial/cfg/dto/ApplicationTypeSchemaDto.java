@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.databind.JsonMapDeserializer;
 import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
+import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -59,7 +60,7 @@ public class ApplicationTypeSchemaDto {
     private String applicationTypeIconUrl;
 
     @JsonProperty("dial:applicationTypeRoutes")
-    private List<String> applicationTypeRoutes;
+    private List<DependentRouteDto> applicationTypeRoutes;
 
     @JsonProperty("dial:applicationTypePlaybackSupport")
     private Boolean applicationTypePlaybackSupport;

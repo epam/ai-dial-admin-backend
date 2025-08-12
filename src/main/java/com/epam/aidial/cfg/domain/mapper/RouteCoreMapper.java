@@ -1,14 +1,13 @@
 package com.epam.aidial.cfg.domain.mapper;
 
-import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
-import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
-import com.epam.aidial.cfg.domain.model.Route;
 import com.epam.aidial.cfg.domain.model.Upstream;
-import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreUpstream;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Mapper(
@@ -32,56 +30,52 @@ public abstract class RouteCoreMapper {
 
     @Autowired
     private RoleLimitMapper roleLimitMapper;
-    @Autowired
-    private RouteEntityMapper mapper;
-    @Autowired
-    private RouteJpaRepository routeJpaRepository;
 
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "userRoles", source = "deployment")
+    @Mapping(target = "permissions", ignore = true)
+    @Mapping(target = "attachmentPaths", ignore = true)
     public abstract CoreRoute mapRoute(Route route);
+
+    @Mapping(target = "name", source = "deployment.name")
+    @Mapping(target = "userRoles", source = "deployment")
+    public abstract CoreRoute mapRoute(DependentRoute route);
 
     @Mapping(target = "deployment.name", source = "route.name")
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "applicationName", ignore = true)
-    @Mapping(target = "applicationTypeSchemaId", ignore = true)
     public abstract Route mapRoute(CoreRoute route, Map<String, CoreRole> roles);
 
-    public LinkedHashMap<String, CoreRoute> mapRoutes(List<Route> routes) {
+    // TODO [VPA]: roles are not mapped
+    @Mapping(target = "deployment.name", source = "name")
+    @Mapping(target = "description", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    public abstract DependentRoute mapDependentRoute(CoreRoute route);
+
+    public LinkedHashMap<String, CoreRoute> mapRoutes(List<DependentRoute> routes) {
         LinkedHashMap<String, CoreRoute> coreRoutes = new LinkedHashMap<>();
         if (CollectionUtils.isEmpty(routes)) {
             return null;
         }
-        for (Route route : routes) {
+        for (DependentRoute route : routes) {
             var coreRoute = mapRoute(route);
             coreRoutes.put(coreRoute.getName(), coreRoute);
         }
         return coreRoutes;
     }
 
-    public List<String> mapRoutes(LinkedHashMap<String, CoreRoute> routes) {
-        return routes != null ? new ArrayList<>(routes.keySet()) : new ArrayList<>();
-    }
-
-    public LinkedHashMap<String, CoreRoute> map(List<String> routes) {
-        LinkedHashMap<String, CoreRoute> coreRoutes = new LinkedHashMap<>();
-        if (CollectionUtils.isEmpty(routes)) {
+    public List<DependentRoute> mapRoutes(LinkedHashMap<String, CoreRoute> coreRoutes) {
+        List<DependentRoute> routes = new ArrayList<>();
+        if (MapUtils.isEmpty(coreRoutes)) {
             return null;
         }
-        for (String routeName : routes) {
-            var coreRoute = findRoute(routeName);
-            coreRoutes.put(routeName, coreRoute);
+        for (CoreRoute coreRoute : coreRoutes.values()) {
+            var route = mapDependentRoute(coreRoute);
+            routes.add(route);
         }
-        return coreRoutes;
-    }
-
-    private CoreRoute findRoute(String routeName) {
-        return Optional.ofNullable(routeName)
-                .flatMap(routeJpaRepository::findById)
-                .map(mapper::toCoreRoute)
-                .orElseThrow(() -> new EntityNotFoundException("Route with name %s does not exist".formatted(routeName)));
+        return routes;
     }
 
     @Mapping(target = "id", ignore = true)
