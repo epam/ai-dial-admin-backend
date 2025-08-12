@@ -196,8 +196,53 @@
       "$defs": {},
       "properties": {},
       "required": [],
-      "applicationTypeRoutes": [],
-      "required": [],
+      "dial:applicationTypeRoutes": {
+        "test_route1": {
+          "dial:response": {
+            "dial:status": 200,
+            "dial:body": "OK"
+          },
+          "dial:rewritePath": true,
+          "dial:paths": [
+            "/api/v1/",
+            "/service/"
+          ],
+          "dial:methods": [
+            "POST",
+            "GET"
+          ],
+          "dial:upstreams": [
+            {
+              "dial:endpoint": "http://upstream1.example.com",
+              "dial:key": "upstream-key-1",
+              "dial:extraData": "{\"custom\":\"data1\"}",
+              "dial:weight": 1,
+              "dial:tier": 0
+            },
+            {
+              "dial:endpoint": "http://upstream2.example.com",
+              "dial:key": "upstream-key-2",
+              "dial:extraData": "{\"custom\":\"data2\"}",
+              "dial:weight": 2,
+              "dial:tier": 1
+            }
+          ],
+          "dial:maxRetryAttempts": 3,
+          "dial:order": 1,
+          "dial:permissions": [
+            "WRITE"
+          ],
+          "dial:attachmentPaths": {
+            "dial:requestBody": [
+              "/first",
+              "/second"
+            ],
+            "dial:responseBody": [
+              "/third"
+            ]
+          }
+        }
+      },
       "title": "Sample Schema",
       "type": "object"
     }
@@ -242,17 +287,7 @@
       "userRoles": [
         "testRole1"
       ],
-      "order": 3,
-      "permissions": ["WRITE"],
-      "attachmentPaths": {
-        "requestBody": [
-          "/first",
-          "/second"
-        ],
-        "responseBody": [
-          "/third"
-        ]
-      }
+      "order": 2
     }
   },
   "adapters": {

@@ -47,11 +47,12 @@ public abstract class RouteCoreMapper {
     @Mapping(target = "updatedAt", ignore = true)
     public abstract Route mapRoute(CoreRoute route, Map<String, CoreRole> roles);
 
-    // TODO [VPA]: roles are not mapped
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deployment.roleLimits", ignore = true)
+    @Mapping(target = "deployment.defaultRoleLimit", ignore = true)
     public abstract DependentRoute mapDependentRoute(CoreRoute route);
 
     public LinkedHashMap<String, CoreRoute> mapRoutes(List<DependentRoute> routes) {

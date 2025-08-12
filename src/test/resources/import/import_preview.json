@@ -134,7 +134,59 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
-        "applicationTypeRoutes": [],
+        "applicationTypeRoutes": [
+          {
+            "deployment": {
+              "name": "test_route1",
+              "isPublic": false
+            },
+            "response": {
+              "status": 200,
+              "body": "OK"
+            },
+            "rewritePath": true,
+            "paths": [
+              "/api/v1/",
+              "/service/"
+            ],
+            "methods": [
+              "POST",
+              "GET"
+            ],
+            "upstreams": [
+              {
+                "endpoint": "http://upstream1.example.com",
+                "key": "upstream-key-1",
+                "extraData": {
+                  "custom": "data1"
+                },
+                "weight": 1,
+                "tier": 0
+              },
+              {
+                "endpoint": "http://upstream2.example.com",
+                "key": "upstream-key-2",
+                "extraData": {
+                  "custom": "data2"
+                },
+                "weight": 2,
+                "tier": 1
+              }
+            ],
+            "maxRetryAttempts": 3,
+            "order": 1,
+            "permissions": ["WRITE"],
+            "attachmentPaths": {
+              "requestBody": [
+                "/first",
+                "/second"
+              ],
+              "responseBody": [
+                "/third"
+              ]
+            }
+          }
+        ],
         "$defs": {},
         "properties": {},
         "required": [],
@@ -193,17 +245,7 @@
           }
         ],
         "maxRetryAttempts": 3,
-        "order": 3,
-        "permissions": ["WRITE"],
-        "attachmentPaths": {
-          "requestBody": [
-            "/first",
-            "/second"
-          ],
-          "responseBody": [
-            "/third"
-          ]
-        }
+        "order": 2
       }
     }
   ],
@@ -364,8 +406,7 @@
         "dependencies": [
           "dep1",
           "dep2"
-        ],
-        "routes": []
+        ]
       }
     },
     {
@@ -405,8 +446,7 @@
           "temperatureSupported": true,
           "addonsSupported": false,
           "parallelToolCallsSupported": true
-        },
-        "routes": []
+        }
       }
     }
   ],

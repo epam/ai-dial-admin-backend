@@ -57,7 +57,7 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
 
     private Set<String> topics;
 
-    @Column(columnDefinition = "CLOB")
+    @Column(columnDefinition = "CLOB", name = "routes")
     private String applicationTypeRoutes;
 
     @Override

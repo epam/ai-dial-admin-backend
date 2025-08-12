@@ -27,6 +27,8 @@ public abstract class ApplicationTypeSchemaRouteCoreMapper {
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deployment.roleLimits", ignore = true)
+    @Mapping(target = "deployment.defaultRoleLimit", ignore = true)
     public abstract DependentRoute mapDependentRoute(String name, CoreApplicationTypeSchemaRoute route);
 
     @Mapping(target = "id", ignore = true)
