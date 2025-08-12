@@ -55,7 +55,6 @@ public abstract class ApplicationTypeSchemaEntityMapper {
         return updatedEntity;
     }
 
-    @Mapping(target = "applicationTypeRoutes", ignore = true)
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

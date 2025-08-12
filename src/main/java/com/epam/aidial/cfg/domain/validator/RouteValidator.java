@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +12,8 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public class RouteValidator {
+
+    private static final String MUST_CONFORM_ERROR_MESSAGE = "Route '%s' must have '%s' specified to conform with meta schema";
 
     private final DeploymentValidator deploymentValidator;
 
@@ -37,6 +40,21 @@ public class RouteValidator {
 
     public void validateUpdate(String routeName, Route route) {
         deploymentValidator.validateUpdate(routeName, route.getDeployment(), "Route");
+    }
+
+    public void validateDependentRoute(DependentRoute dependentRoute) {
+        String routeName = dependentRoute.getDeployment().getName();
+        deploymentValidator.validateCreation("Route", routeName);
+
+        if (dependentRoute.getPaths() == null) {
+            throw new IllegalArgumentException(MUST_CONFORM_ERROR_MESSAGE.formatted(routeName, "paths"));
+        }
+        if (dependentRoute.getMethods() == null) {
+            throw new IllegalArgumentException(MUST_CONFORM_ERROR_MESSAGE.formatted(routeName, "methods"));
+        }
+        if (dependentRoute.getUpstreams() == null) {
+            throw new IllegalArgumentException(MUST_CONFORM_ERROR_MESSAGE.formatted(routeName, "upstreams"));
+        }
     }
 
 }

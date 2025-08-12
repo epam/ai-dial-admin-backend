@@ -11,6 +11,8 @@ public class ConformToCoreMetaSchemaDtoValidator extends AbstractConformToCoreMe
     @SneakyThrows
     @Override
     public boolean isValid(ApplicationTypeSchemaDto dto, ConstraintValidatorContext context) {
-        return super.isValid(dto, dto.getId(), context);
+        ApplicationTypeSchemaDto copy = new ApplicationTypeSchemaDto(dto);
+        copy.setApplicationTypeRoutes(null); // meta schema has other format for routes
+        return super.isValid(copy, copy.getId(), context);
     }
 }

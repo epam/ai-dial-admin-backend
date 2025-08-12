@@ -18,14 +18,17 @@ public class ApplicationValidator {
 
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
+    private final RouteValidator routeValidator;
 
     private final String applicationNameValidationPattern;
 
     public ApplicationValidator(DisplayFieldsValidator displayFieldsValidator,
                                 DeploymentValidator deploymentValidator,
+                                RouteValidator routeValidator,
                                 @Value("${validation.application.name:}") String applicationNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
+        this.routeValidator = routeValidator;
         this.applicationNameValidationPattern = applicationNameValidationPattern;
     }
 
@@ -76,8 +79,11 @@ public class ApplicationValidator {
         }
 
         if (CollectionUtils.isNotEmpty(routes) && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException("Both routes: '" + routes + "' and application type schema id: '" + applicationTypeSchemaId + "' are specified."
-                + " Only one of them should be specified");
+            throw new IllegalArgumentException("Both routes and application type schema id are specified. Only one of them should be specified");
+        }
+
+        if (CollectionUtils.isNotEmpty(routes)) {
+            routes.forEach(routeValidator::validateDependentRoute);
         }
     }
 

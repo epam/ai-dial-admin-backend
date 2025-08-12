@@ -27,12 +27,14 @@ class ApplicationValidatorTest {
     private DisplayFieldsValidator displayFieldsValidator;
     @Mock
     private DeploymentValidator deploymentValidator;
+    @Mock
+    private RouteValidator routeValidator;
 
     private ApplicationValidator applicationValidator;
 
     @BeforeEach
     void setUp() {
-        applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, null);
+        applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, routeValidator, null);
     }
 
     @Test
