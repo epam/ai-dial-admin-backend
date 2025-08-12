@@ -13,6 +13,8 @@ import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.left;
 
+import com.epam.aidial.cfg.utils.SecretUtils;
+
 @Slf4j
 @RequiredArgsConstructor
 public class MultiIssuerJwtDecoder implements JwtDecoder {
@@ -21,6 +23,12 @@ public class MultiIssuerJwtDecoder implements JwtDecoder {
 
     @Override
     public Jwt decode(final String token) throws JwtException {
+        if (log.isTraceEnabled()) {
+            log.trace("decode. token: {}", token);
+        } else {
+            log.debug("decode. token: {}", SecretUtils.mask(token));
+        }
+
         final var issuer = getIssuer(token);
         final var jwtDecoder = issuerToDecoderMap.get(issuer);
 
