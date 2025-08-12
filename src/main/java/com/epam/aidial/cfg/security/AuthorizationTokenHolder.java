@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.security;
 
 import com.epam.aidial.cfg.utils.SecretUtils;
-
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 

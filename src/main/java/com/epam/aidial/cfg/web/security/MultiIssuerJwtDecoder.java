@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
+import com.epam.aidial.cfg.utils.SecretUtils;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +13,6 @@ import java.text.ParseException;
 import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.left;
-
-import com.epam.aidial.cfg.utils.SecretUtils;
 
 @Slf4j
 @RequiredArgsConstructor
