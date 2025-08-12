@@ -54,3 +54,27 @@ Replace `{client_secret}` with client secret that you copied from "Client Secret
 ```
 Now you are ready to user Authorization based on JWT token. Well done!
 
+
+## Obtaining a Token from Keycloak
+
+To easily obtain tokens from Keycloak for testing or troubleshooting, you can use the provided Postman collection: [`docs/sample/http-requests/Keycloak.postman_collection.json`](sample/http-requests/Keycloak.postman_collection.json).
+
+**Follow these steps:**
+
+1. **Configure Environment Variables**  
+   Set the `KEYCLOAK_HOST` and `REALM` variables in your Postman environment to match your Keycloak instance.
+
+2. **Initiate the Authorization Flow**  
+   Open the `auth` request from the Postman collection in your browser. Complete the authentication process as prompted.
+
+3. **Retrieve the Authorization Code**  
+   After successful authentication, you will be redirected. Copy the `code` parameter from your browser's address bar.
+
+4. **Set Up the Token Request**  
+   - Paste the copied `code` value into the `AUTH_CODE` variable in the `token` request within Postman.
+   - Set the `KEYCLOAK_SECRET_DIAL_ADMIN` variable to the client secret you obtained from the Keycloak admin console.
+
+5. **Request the Token**  
+   Execute the `token` request in Postman. You should receive an access token in the response.
+
+This process will help you quickly obtain and test JWT tokens from your Keycloak setup.
