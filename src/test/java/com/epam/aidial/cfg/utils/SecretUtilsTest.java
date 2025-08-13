@@ -20,19 +20,19 @@ class SecretUtilsTest {
     @ValueSource(strings = {"q1w2e3r4t5", "a", "bc"})
     void testMask_LengthLessFifteen(String value) {
         // given
-        String expected = "**********";
+        String expected = "**********. (hash: ";
         // when
         String masked = SecretUtils.mask(value);
         // then
         Assertions.assertThat(masked).isNotNull()
-                .isEqualTo(expected);
+                .startsWith(expected);
     }
 
     @Test
     void testMask_LengthMoreFifteen() {
         // given
         String value = "q1w2e3r4t5y6u7i8";
-        String expected = "q1w*******";
+        String expected = "q1w2e3*******. (hash: -928053350)";
         // when
         String masked = SecretUtils.mask(value);
         // then
