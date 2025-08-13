@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
@@ -18,14 +19,19 @@ import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
+import com.epam.aidial.cfg.dto.AttachmentPathDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.UpstreamDto;
+import com.epam.aidial.cfg.dto.route.DependentRouteDto;
+import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -75,6 +81,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +94,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -465,6 +473,126 @@ public abstract class ConfigTransferFunctionalTest {
                     });
             Assertions.assertThat(config.getApplications()).isEmpty();
             Assertions.assertThat(config.getAdapters()).isEmpty();
+        });
+    }
+
+    @Test
+    void testExport_AdminFormatApplicationAndAppTypeSchemaWithRoutes() throws IOException {
+        // Given
+        Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.APPLICATION, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA);
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(componentTypes);
+
+        // Routes
+        var route1 = getDependentRouteDto("route1");
+        var route2 = getDependentRouteDto("route2");
+        List<DependentRouteDto> routeDtos = List.of(route1, route2);
+
+        // Application
+        final String appName = "application1";
+        ApplicationDto applicationDto = new ApplicationDto();
+        applicationDto.setName(appName);
+        applicationDto.setEndpoint("http://sample.com/app");
+        applicationDto.setRoutes(routeDtos);
+
+        applicationFacade.createApplication(applicationDto);
+
+        // Application Type Schema
+        ApplicationTypeSchemaDto typeSchemaDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<>() {});
+        typeSchemaDto.setApplicationTypeRoutes(routeDtos);
+
+        applicationTypeSchemaFacade.create(typeSchemaDto);
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // Then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplications()).isNotEmpty()
+                    .containsOnlyKeys(appName)
+                    .satisfies(apps -> {
+                        List<DependentRoute> routes = apps.get(appName).getRoutes();
+                        Assertions.assertThat(routes).isNotEmpty();
+                        Assertions.assertThat(routes.size()).isEqualTo(2);
+
+                        DependentRoute route = routes.get(0);
+                        Assertions.assertThat(route.getDescription()).isEqualTo(route1.getDescription());
+                        Assertions.assertThat(route.getOrder()).isEqualTo(route1.getOrder());
+                        Assertions.assertThat(route.getMaxRetryAttempts()).isEqualTo(route1.getMaxRetryAttempts());
+                        Assertions.assertThat(route.getPaths()).isEqualTo(route1.getPaths());
+                        Assertions.assertThat(route.getMethods()).isEqualTo(route1.getMethods());
+                        Assertions.assertThat(route.getResponse())
+                                .satisfies(response -> {
+                                    Assertions.assertThat(response).isNotNull();
+                                    Assertions.assertThat(response.getStatus()).isEqualTo(route1.getResponse().getStatus());
+                                    Assertions.assertThat(response.getBody()).isEqualTo(route1.getResponse().getBody());
+                                });
+                        Assertions.assertThat(route.getPermissions())
+                                .satisfies(permissions -> {
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.READ));
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.WRITE));
+                                });
+                        Assertions.assertThat(route.getAttachmentPaths())
+                                .satisfies(attachmentPaths -> {
+                                    Assertions.assertThat(attachmentPaths).isNotNull();
+                                    Assertions.assertThat(attachmentPaths.getRequestBody()).isEqualTo(route1.getAttachmentPaths().getRequestBody());
+                                    Assertions.assertThat(attachmentPaths.getResponseBody()).isEqualTo(route1.getAttachmentPaths().getResponseBody());
+                                });
+                        Assertions.assertThat(route.getUpstreams())
+                                .satisfies(upstreams -> {
+                                    Assertions.assertThat(upstreams).isNotEmpty();
+                                    var upstream = upstreams.get(0);
+                                    var expectedUpstream = route1.getUpstreams().get(0);
+                                    Assertions.assertThat(upstream.getEndpoint()).isEqualTo(expectedUpstream.getEndpoint());
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
+                                    Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
+                                });
+                    });
+
+            final String schemaId = "https://test-schema-id.example";
+            Assertions.assertThat(config.getApplicationRunners()).isNotEmpty()
+                    .containsOnlyKeys(schemaId)
+                    .satisfies(runner -> {
+                        List<DependentRoute> routes = runner.get(schemaId).getApplicationTypeRoutes();
+                        Assertions.assertThat(routes).isNotEmpty();
+                        Assertions.assertThat(routes.size()).isEqualTo(2);
+
+                        DependentRoute route = routes.get(0);
+                        Assertions.assertThat(route.getDescription()).isEqualTo(route1.getDescription());
+                        Assertions.assertThat(route.getOrder()).isEqualTo(route1.getOrder());
+                        Assertions.assertThat(route.getMaxRetryAttempts()).isEqualTo(route1.getMaxRetryAttempts());
+                        Assertions.assertThat(route.getPaths()).isEqualTo(route1.getPaths());
+                        Assertions.assertThat(route.getMethods()).isEqualTo(route1.getMethods());
+                        Assertions.assertThat(route.getResponse())
+                                .satisfies(response -> {
+                                    Assertions.assertThat(response).isNotNull();
+                                    Assertions.assertThat(response.getStatus()).isEqualTo(route1.getResponse().getStatus());
+                                    Assertions.assertThat(response.getBody()).isEqualTo(route1.getResponse().getBody());
+                                });
+                        Assertions.assertThat(route.getPermissions())
+                                .satisfies(permissions -> {
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.READ));
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.WRITE));
+                                });
+                        Assertions.assertThat(route.getAttachmentPaths())
+                                .satisfies(attachmentPaths -> {
+                                    Assertions.assertThat(attachmentPaths).isNotNull();
+                                    Assertions.assertThat(attachmentPaths.getRequestBody()).isEqualTo(route1.getAttachmentPaths().getRequestBody());
+                                    Assertions.assertThat(attachmentPaths.getResponseBody()).isEqualTo(route1.getAttachmentPaths().getResponseBody());
+                                });
+                        Assertions.assertThat(route.getUpstreams())
+                                .satisfies(upstreams -> {
+                                    Assertions.assertThat(upstreams).isNotEmpty();
+                                    var upstream = upstreams.get(0);
+                                    var expectedUpstream = route1.getUpstreams().get(0);
+                                    Assertions.assertThat(upstream.getEndpoint()).isEqualTo(expectedUpstream.getEndpoint());
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
+                                    Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
+                                });
+                    });
         });
     }
 
@@ -1533,6 +1661,37 @@ public abstract class ConfigTransferFunctionalTest {
             // Restore original version setting
             versionProperties.setTarget(originalVersion);
         }
+    }
+
+    private static DependentRouteDto getDependentRouteDto(String routeName) {
+        var routeDto = new DependentRouteDto();
+        routeDto.setName(routeName);
+        routeDto.setDescription("some desc");
+        routeDto.setPaths(List.of("/first", "/second"));
+        routeDto.setMethods(Set.of("GET", "POST"));
+        routeDto.setMaxRetryAttempts(5);
+        routeDto.setOrder(1);
+        routeDto.setPermissions(Set.of(ResourceAccessType.WRITE, ResourceAccessType.READ));
+
+        var response = new ResponseDto();
+        response.setStatus(200);
+        response.setBody("success");
+        routeDto.setResponse(response);
+
+        var attachmentPath = new AttachmentPathDto();
+        attachmentPath.setRequestBody(List.of("/one", "/two"));
+        attachmentPath.setResponseBody(List.of("/three"));
+        routeDto.setAttachmentPaths(attachmentPath);
+
+        List<UpstreamDto> upstreams = new ArrayList<>();
+        var upstream = new UpstreamDto();
+        upstream.setEndpoint("http://sample.com");
+        upstream.setKey("someKey");
+        upstream.setExtraData("{\"key1\":\"val1\"}");
+        upstreams.add(upstream);
+        routeDto.setUpstreams(upstreams);
+
+        return routeDto;
     }
 
     private String getAppRunnerDto() {
