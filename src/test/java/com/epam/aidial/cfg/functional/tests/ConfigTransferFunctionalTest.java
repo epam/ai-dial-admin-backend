@@ -57,6 +57,7 @@ import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -68,6 +69,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -914,6 +916,91 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getRoles().get("testRole").getLimits()).isNotEmpty().hasSize(1).first()
                     .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("applicationName"));
             Assertions.assertThat(result.getModels()).isEmpty();
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatApplicationAndAppTypeSchemaWithRoutes() throws IOException {
+        // Given
+        String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export_dependent_routes.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        String expectedSchemaJson = FileUtils.readFileToString(new File("src/test/resources/app_type_schema_with_routes.json"),
+                StandardCharsets.UTF_8);
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        Set<ExportConfigComponentType> componentTypes = Set.of(
+                ExportConfigComponentType.APPLICATION, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA
+        );
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(componentTypes);
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+        // Then
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplications()).isNotEmpty()
+                    .containsOnlyKeys("app-1")
+                    .satisfies(apps -> {
+                        var routes = apps.get("app-1").getRoutes();
+                        Assertions.assertThat(routes).isNotEmpty();
+                        Assertions.assertThat(routes.size()).isEqualTo(2);
+
+                        CoreRoute route = routes.get("route1");
+                        Assertions.assertThat(route.getName()).isEqualTo("route1");
+                        Assertions.assertThat(route.getOrder()).isEqualTo(3);
+                        Assertions.assertThat(route.getMaxRetryAttempts()).isEqualTo(0);
+                        Assertions.assertThat(route.getPaths()).isNotEmpty();
+                        Assertions.assertThat(route.getMethods()).isEqualTo(Set.of("POST", "GET"));
+                        Assertions.assertThat(route.getResponse())
+                                .satisfies(response -> {
+                                    Assertions.assertThat(response).isNotNull();
+                                    Assertions.assertThat(response.getStatus()).isEqualTo(200);
+                                    Assertions.assertThat(response.getBody()).isEqualTo("success");
+                                });
+                        Assertions.assertThat(route.getPermissions())
+                                .satisfies(permissions -> {
+                                    assertTrue(permissions.contains(CoreRoute.ResourceAccessType.READ));
+                                    assertTrue(permissions.contains(CoreRoute.ResourceAccessType.WRITE));
+                                });
+                        Assertions.assertThat(route.getAttachmentPaths())
+                                .satisfies(attachmentPaths -> {
+                                    Assertions.assertThat(attachmentPaths).isNotNull();
+                                    Assertions.assertThat(attachmentPaths.getRequestBody()).isEqualTo(List.of("/first", "/second"));
+                                    Assertions.assertThat(attachmentPaths.getResponseBody()).isEqualTo(List.of("/third"));
+                                });
+                        Assertions.assertThat(route.getUpstreams())
+                                .satisfies(upstreams -> {
+                                    Assertions.assertThat(upstreams).isNotEmpty();
+                                    var upstream = upstreams.get(0);
+                                    Assertions.assertThat(upstream.getEndpoint()).isEqualTo("http://upstream.com/api");
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo("123");
+                                    Assertions.assertThat(upstream.getExtraData()).isEqualTo("{\"field1\":\"val1\"}");
+                                });
+                    });
+
+            final String schemaId = "https://schema2";
+            Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty()
+                    .containsOnlyKeys(schemaId)
+                    .satisfies(runner -> {
+                        String schemaJson = runner.get(schemaId);
+                        Assertions.assertThat(schemaJson).isNotEmpty();
+                        JSONAssert.assertEquals(expectedSchemaJson, schemaJson, true);
+                    });
         });
     }
 
