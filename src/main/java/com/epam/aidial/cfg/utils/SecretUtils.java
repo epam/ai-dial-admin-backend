@@ -10,6 +10,8 @@ public final class SecretUtils {
         if (value == null) {
             return null;
         }
-        return (StringUtils.length(value) > 15) ? value.substring(0, 3) + "*******" : "**********";
+        String result = (StringUtils.length(value) > 15) ? value.substring(0, 6) + "*******" : "**********";
+        result += ". (hash: " + value.hashCode() + ")";
+        return result;
     }
 }
