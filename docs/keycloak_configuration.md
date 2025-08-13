@@ -77,4 +77,11 @@ To easily obtain tokens from Keycloak for testing or troubleshooting, you can us
 5. **Request the Token**  
    Execute the `token` request in Postman. You should receive an access token in the response.
 
+> **Note on PKCE (Proof Key for Code Exchange):**  
+> If your client is configured to use PKCE, the authorization request may require two additional parameters: `code_challenge` and `code_challenge_method`.  
+> - You can generate a `code_verifier` and its corresponding `code_challenge` using an online tool such as [PKCE Generator](https://tonyxu-io.github.io/pkce-generator/).
+> - During the authorization request, include the generated `code_challenge` and `code_challenge_method` parameters.
+> - When making the token request, include the original `code_verifier` parameter.
+> - These PKCE-related parameters are available as optional fields in the provided Postman collection.
+
 This process will help you quickly obtain and test JWT tokens from your Keycloak setup.
