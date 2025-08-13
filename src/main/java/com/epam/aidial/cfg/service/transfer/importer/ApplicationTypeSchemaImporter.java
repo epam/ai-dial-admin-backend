@@ -42,8 +42,8 @@ public class ApplicationTypeSchemaImporter {
     }
 
     public Collection<ImportComponent<ApplicationTypeSchema>> importAdminSchemas(Map<String, ApplicationTypeSchema> schemas,
-                                                                             ConflictResolutionPolicy resolutionPolicy,
-                                                                             boolean isPreview) {
+                                                                                 ConflictResolutionPolicy resolutionPolicy,
+                                                                                 boolean isPreview) {
         if (MapUtils.isNotEmpty(schemas)) {
             return schemas.entrySet().stream()
                     .map((schemaEntry) -> {

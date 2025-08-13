@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,8 +18,6 @@ public abstract class RouteEntityMapper {
 
     @Autowired
     private DeploymentEntityMapper deploymentEntityMapper;
-    @Autowired
-    protected ObjectMapper objectMapper;
 
     public abstract Route toDomain(RouteEntity entity);
 
@@ -40,5 +37,4 @@ public abstract class RouteEntityMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     public abstract RouteEntity update(Route domain, @MappingTarget RouteEntity entity);
-
 }
