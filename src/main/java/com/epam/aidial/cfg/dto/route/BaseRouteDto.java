@@ -39,5 +39,5 @@ public abstract class BaseRouteDto extends RoleBasedDto {
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     @Min(value = 0, message = "Order can't be negative")
-    private int order;
+    private int order = Integer.MAX_VALUE;
 }
