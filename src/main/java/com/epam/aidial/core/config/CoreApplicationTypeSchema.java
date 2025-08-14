@@ -61,7 +61,6 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("dial:applicationTypeRoutes")
     private LinkedHashMap<String, CoreApplicationTypeSchemaRoute> applicationTypeRoutes; // 0.33.0
 
-    // TODO [VPA]: create schema 0.34.0 after it's release
     @JsonProperty("dial:applicationTypePlaybackSupport")
     private Boolean applicationTypePlaybackSupport; // 0.34.0
 
