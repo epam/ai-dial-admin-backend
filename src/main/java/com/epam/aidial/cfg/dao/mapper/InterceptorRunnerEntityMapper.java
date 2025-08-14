@@ -57,6 +57,8 @@ public abstract class InterceptorRunnerEntityMapper {
     }
 
     @Mapping(target = "interceptors", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     abstract InterceptorRunnerEntity update(InterceptorRunner domain, @MappingTarget InterceptorRunnerEntity entity);
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {

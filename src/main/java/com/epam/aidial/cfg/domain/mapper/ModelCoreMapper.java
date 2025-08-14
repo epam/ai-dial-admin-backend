@@ -38,8 +38,10 @@ public abstract class ModelCoreMapper {
     @Mapping(target = "displayName", source = "model.displayName")
     @Mapping(target = "description", source = "model.description")
     @Mapping(target = "topics", source = "model.descriptionKeywords")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deployment", ignore = true)
-    @Mapping(target = "features", source = "model.features", qualifiedByName = "toFeaturesDto")
+    @Mapping(target = "features", source = "model.features")
     public abstract Model mapModel(CoreModel model, Map<String, CoreRole> roles, Adapter adapter, String endpointDeploymentName);
 
     @Mapping(target = "id", ignore = true)

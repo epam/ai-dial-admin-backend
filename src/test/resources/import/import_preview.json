@@ -84,8 +84,8 @@
     {
       "importAction": "create",
       "value": {
-        "name": "testKey2",
-        "key": "testKey2",
+        "name": "<will be defined during import>",
+        "key": "testKey1",
         "project": "testProject1",
         "secured": true,
         "roles": [
@@ -96,8 +96,8 @@
     {
       "importAction": "create",
       "value": {
-        "name": "testKey1",
-        "key": "testKey1",
+        "name": "<will be defined during import>",
+        "key": "testKey2",
         "project": "testProject1",
         "secured": true,
         "roles": [
@@ -115,8 +115,6 @@
         "endpoint": "https://endpoint.test.com/interceptor",
         "forwardAuthToken": false,
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": []
       }
     }
@@ -138,7 +136,9 @@
         "appendApplicationPropertiesHeader": true,
         "$defs": {},
         "properties": {},
-        "required": []
+        "required": [],
+        "type": "object",
+        "title": "Sample Schema"
       }
     }
   ],
@@ -215,11 +215,11 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "defaults": {},
@@ -229,8 +229,6 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [
           "dep1",
           "dep2"
@@ -281,11 +279,11 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "defaults": {
@@ -299,8 +297,6 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [],
         "fieldsHashingOrder": [
           "prompt",
@@ -344,17 +340,15 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "applicationTypeSchemaId": "https://test-schema-id.example",
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [
           "dep1",
           "dep2"
@@ -392,11 +386,11 @@
           "seedSupported": false,
           "urlAttachmentsSupported": false,
           "folderAttachmentsSupported": false,
-          "allowResume": false,
+          "allowResume": true,
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
+          "addonsSupported": true,
           "parallelToolCallsSupported": true
         }
       }
@@ -424,8 +418,6 @@
         "displayName": "Test Addon1",
         "forwardAuthToken": false,
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": []
       }
     }

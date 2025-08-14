@@ -23,6 +23,8 @@ public abstract class AssistantCoreMapper {
 
     @Mapping(target = "deployment.name", source = "coreAssistant.name")
     @Mapping(target = "topics", source = "coreAssistant.descriptionKeywords")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract Assistant mapAssistant(CoreAssistant coreAssistant, Map<String, CoreRole> roles);
 
     public abstract AssistantsProperty mapAssistantsProperty(Assistants assistants);

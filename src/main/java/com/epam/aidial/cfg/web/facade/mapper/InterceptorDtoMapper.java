@@ -8,12 +8,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {InstantMapper.class, InterceptorSourceDtoMapper.class})
 public interface InterceptorDtoMapper {
 
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "instantToLong")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "instantToLong")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Interceptor toDomain(InterceptorDto entity);
 
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "longToInstant")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "longToInstant")
     InterceptorDto toDto(Interceptor domain);
 
 }

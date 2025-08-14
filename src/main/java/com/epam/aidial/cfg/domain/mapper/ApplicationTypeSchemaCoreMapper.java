@@ -11,8 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
 @Slf4j
+@Mapper(componentModel = "spring")
 public abstract class ApplicationTypeSchemaCoreMapper {
 
     private final ObjectMapper objectMapper;
@@ -42,6 +42,8 @@ public abstract class ApplicationTypeSchemaCoreMapper {
     }
 
     @Mapping(target = "schemaId", source = "id")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     abstract ApplicationTypeSchema mapToApplicationTypeSchema(ApplicationTypeSchemaDto dto);
 
     private String toApplicationTypeSchemaAsString(CoreApplicationTypeSchema applicationTypeSchema) {

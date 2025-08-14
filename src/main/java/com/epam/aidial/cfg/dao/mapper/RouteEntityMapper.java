@@ -33,5 +33,7 @@ public abstract class RouteEntityMapper {
     }
 
     @Mapping(target = "deploymentName", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract RouteEntity update(Route domain, @MappingTarget RouteEntity entity);
 }

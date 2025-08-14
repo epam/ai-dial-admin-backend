@@ -8,7 +8,6 @@ import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreKey;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -17,7 +16,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
 import static com.epam.aidial.cfg.domain.model.ImportAction.SKIP;
@@ -36,10 +36,14 @@ public class KeyImporter {
                                                        ConflictResolutionPolicy resolutionPolicy,
                                                        boolean isPreview) {
         if (MapUtils.isNotEmpty(coreKeys)) {
-            Map<String, Key> keys = coreKeys.entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, keyEntry -> map(keyEntry.getKey(), keyEntry.getValue())));
-            return importAdminKeys(keys, resolutionPolicy, isPreview);
+            return coreKeys.entrySet().stream()
+                    .map(keyEntry -> {
+                                var coreKey = keyEntry.getValue();
+                                coreKey.setKey(keyEntry.getKey());
+                                return processKey(coreKey, resolutionPolicy, isPreview);
+                            }
+                    )
+                    .toList();
         }
         return Collections.emptyList();
     }
@@ -52,7 +56,7 @@ public class KeyImporter {
                     .map(keyEntry -> {
                                 var key = keyEntry.getValue();
                                 key.setName(keyEntry.getKey());
-                                var importAction = processKey(keyEntry.getKey(), key, resolutionPolicy, isPreview);
+                                var importAction = processKey(key, resolutionPolicy, isPreview);
                                 return new ImportComponent<>(importAction, key);
                             }
                     )
@@ -61,15 +65,29 @@ public class KeyImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processKey(String keyName, Key key, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
-        if (keyService.exists(keyName)) {
-            return handleExisting(key, resolutionPolicy, keyName, isPreview);
+    private ImportAction processKey(Key key, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
+        if (keyService.exists(key.getName())) {
+            return handleExisting(key, resolutionPolicy, isPreview);
         } else {
             return create(key, isPreview);
         }
     }
 
-    private ImportAction handleExisting(Key newKey, ConflictResolutionPolicy resolutionPolicy, String keyName, boolean isPreview) {
+    private ImportComponent<Key> processKey(CoreKey coreKey, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
+        Optional<Key> existingKey = keyService.tryGetKeyByKeyValue(coreKey.getKey());
+        if (existingKey.isPresent()) {
+            Key key = keyCoreMapper.mapKey(coreKey, existingKey.get().getName());
+            ImportAction importAction = handleExisting(key, resolutionPolicy, isPreview);
+            return new ImportComponent<>(importAction, key);
+        } else {
+            String name = isPreview ? "<will be defined during import>" : UUID.randomUUID().toString();
+            Key key = keyCoreMapper.mapKey(coreKey, name);
+            ImportAction importAction = create(key, isPreview);
+            return new ImportComponent<>(importAction, key);
+        }
+    }
+
+    private ImportAction handleExisting(Key newKey, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
         switch (resolutionPolicy) {
             case SKIP -> {
                 // Do nothing, the existing key will remain unchanged.
@@ -77,7 +95,7 @@ public class KeyImporter {
             }
             case OVERRIDE -> {
                 if (!isPreview) {
-                    keyService.updateKey(keyName, newKey);
+                    keyService.updateKey(newKey.getName(), newKey);
                 }
                 return UPDATE;
             }
@@ -90,11 +108,5 @@ public class KeyImporter {
             keyService.createKey(key);
         }
         return CREATE;
-    }
-
-    @VisibleForTesting
-    protected Key map(String key, CoreKey coreKey) {
-        coreKey.setKey(key);
-        return keyCoreMapper.mapKey(coreKey);
     }
 }

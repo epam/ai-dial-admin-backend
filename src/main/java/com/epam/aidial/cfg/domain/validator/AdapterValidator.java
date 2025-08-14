@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Adapter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,14 +11,22 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class AdapterValidator {
 
-    @Value("${validation.adapter.name:}")
-    private String adapterNameValidationPattern;
+    private final IdFieldValidator idFieldValidator;
+
+    private final String adapterNameValidationPattern;
+
+    public AdapterValidator(IdFieldValidator idFieldValidator,
+                            @Value("${validation.adapter.name:}") String adapterNameValidationPattern) {
+        this.idFieldValidator = idFieldValidator;
+        this.adapterNameValidationPattern = adapterNameValidationPattern;
+    }
 
     public void validateAdapterCreation(Adapter adapter) {
         final String adapterName = adapter.getName();
+
+        idFieldValidator.validateName("Adapter", adapterName);
 
         if (StringUtils.isEmpty(adapterNameValidationPattern)) {
             log.debug("Adapter name validation pattern is empty, skipping validation for adapter: {}", adapterName);
@@ -28,7 +35,7 @@ public class AdapterValidator {
 
         if (!Pattern.matches(adapterNameValidationPattern, adapterName)) {
             throw new IllegalArgumentException("Adapter name '" + adapterName
-                + "' does not match the required pattern: " + adapterNameValidationPattern);
+                    + "' does not match the required pattern: " + adapterNameValidationPattern);
         }
     }
 

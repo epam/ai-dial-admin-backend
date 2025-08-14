@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
@@ -18,13 +20,16 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class ApplicationTypeSchemaEntity extends AbstractEntity<String> {
+public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
     private String schemaId;
 
     private String schema;
+    @Enumerated(EnumType.STRING)
+    private TypeEntity type;
+    private String title;
     private String description;
     private String applicationTypeEditorUrl;
     private String applicationTypeViewerUrl;
@@ -53,5 +58,10 @@ public class ApplicationTypeSchemaEntity extends AbstractEntity<String> {
     @Override
     public String getId() {
         return schemaId;
+    }
+
+    public enum TypeEntity {
+        OBJECT,
+        BOOLEAN,
     }
 }

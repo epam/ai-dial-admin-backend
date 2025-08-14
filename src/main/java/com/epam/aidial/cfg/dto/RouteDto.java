@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -29,4 +30,8 @@ public class RouteDto extends RoleBasedDto {
     @Valid
     private List<UpstreamDto> upstreams;
     private int maxRetryAttempts;
+    @EqualsAndHashCode.Exclude
+    private Instant createdAt;
+    @EqualsAndHashCode.Exclude
+    private Instant updatedAt;
 }

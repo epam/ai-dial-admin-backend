@@ -25,7 +25,9 @@ public class AssistantDto extends RoleBasedDto {
     private List<String> topics;
     private Map<String, String> defaults;
     private String author;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
 }

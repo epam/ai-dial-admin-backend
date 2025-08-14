@@ -3,6 +3,8 @@
     "id": 1,
     "schemaId": "schema-123",
     "schema": "{ \"type\": \"object\", \"properties\": { \"name\": { \"type\": \"string\" } } }",
+    "type": "object",
+    "title": "Sample Schema",
     "description": "This is a sample application type schema",
     "applicationTypeEditorUrl": "https://example.com/editor",
     "applicationTypeViewerUrl": "https://example.com/viewer",

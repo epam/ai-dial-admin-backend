@@ -22,8 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, MapPropertiesMapper.class,
@@ -48,6 +50,12 @@ public abstract class ModelEntityMapper {
 
     public ModelEntity toEntity(Model domain, ModelEntity entity) {
         List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+        Map<String, InterceptorEntity> interceptorsByName = interceptors.stream()
+                .collect(Collectors.toMap(InterceptorEntity::getName, Function.identity()));
+        List<InterceptorEntity> duplicatedInterceptors = CollectionUtils.emptyIfNull(domain.getInterceptors())
+                .stream()
+                .map(interceptorsByName::get)
+                .toList();
 
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
@@ -57,9 +65,9 @@ public abstract class ModelEntityMapper {
         ModelEntity updatedEntity = update(domain, entity);
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getModels().remove(updatedEntity));
-        interceptors.forEach(interceptor -> interceptor.getModels().add(updatedEntity));
+        duplicatedInterceptors.forEach(interceptor -> interceptor.getModels().add(updatedEntity));
         updatedEntity.getInterceptors().clear();
-        updatedEntity.getInterceptors().addAll(interceptors);
+        updatedEntity.getInterceptors().addAll(duplicatedInterceptors);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
 
@@ -79,6 +87,8 @@ public abstract class ModelEntityMapper {
     @Mapping(target = "deploymentName", ignore = true)
     @Mapping(target = "interceptors", ignore = true)
     @Mapping(target = "adapter", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract ModelEntity update(Model domain, @MappingTarget ModelEntity entity);
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {

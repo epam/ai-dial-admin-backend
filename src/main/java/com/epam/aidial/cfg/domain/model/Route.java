@@ -26,4 +26,6 @@ public class Route extends RoleBased {
     @Valid
     private List<Upstream> upstreams;
     private int maxRetryAttempts;
+    private Long createdAt;
+    private Long updatedAt;
 }

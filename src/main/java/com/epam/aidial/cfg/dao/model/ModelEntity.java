@@ -7,10 +7,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +26,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class ModelEntity extends AbstractEntity<String> {
+public class ModelEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -50,13 +52,17 @@ public class ModelEntity extends AbstractEntity<String> {
     @Column(columnDefinition = "CLOB")
     private String defaults;
     @ToString.Exclude
-    @ManyToMany(mappedBy = "models")
+    @ManyToMany
+    @JoinTable(
+            name = "interceptor_model",
+            joinColumns = @JoinColumn(name = "model_name"),
+            inverseJoinColumns = @JoinColumn(name = "interceptor_name")
+    )
+    @OrderColumn
     private List<InterceptorEntity> interceptors = new ArrayList<>();
     private List<String> topics;
     private Integer maxRetryAttempts;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
     private List<String> dependencies;
     private ModelTypeEntity type;
     private String tokenizerModel;

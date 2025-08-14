@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,17 +13,24 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class KeyValidator {
 
+    private final IdFieldValidator idFieldValidator;
     private final TransactionTimestampContext transactionTimestampContext;
 
-    @Value("${validation.key.name:}")
-    private String keyNameValidationPattern;
+    private final String keyNameValidationPattern;
+
+    public KeyValidator(IdFieldValidator idFieldValidator,
+                        TransactionTimestampContext transactionTimestampContext,
+                        @Value("${validation.key.name:}") String keyNameValidationPattern) {
+        this.idFieldValidator = idFieldValidator;
+        this.transactionTimestampContext = transactionTimestampContext;
+        this.keyNameValidationPattern = keyNameValidationPattern;
+    }
 
     public void validateCreation(Key key) {
         validateKeyName(key);
-        
+
         long now = transactionTimestampContext.getTimestamp();
         Long expiresAt = key.getExpiresAt();
         if (expiresAt != null && expiresAt <= now) {
@@ -35,6 +41,8 @@ public class KeyValidator {
     private void validateKeyName(Key key) {
         final String keyName = key.getName();
 
+        idFieldValidator.validateName("Key", keyName);
+
         if (StringUtils.isEmpty(keyNameValidationPattern)) {
             log.debug("Key name validation pattern is empty, skipping validation for key: {}", keyName);
             return;
@@ -42,7 +50,7 @@ public class KeyValidator {
 
         if (!Pattern.matches(keyNameValidationPattern, keyName)) {
             throw new IllegalArgumentException("Key name '" + keyName
-                + "' does not match the required pattern: " + keyNameValidationPattern);
+                    + "' does not match the required pattern: " + keyNameValidationPattern);
         }
     }
 

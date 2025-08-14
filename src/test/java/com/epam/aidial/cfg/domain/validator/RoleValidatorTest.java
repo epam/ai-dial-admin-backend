@@ -1,25 +1,33 @@
-package com.epam.aidial.cfg.dao.validator;
+package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Role;
-import com.epam.aidial.cfg.domain.validator.RoleValidator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 
+@ExtendWith(MockitoExtension.class)
 class RoleValidatorTest {
 
     private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
+
+    @Mock
+    private IdFieldValidator idFieldValidator;
 
     private RoleValidator roleValidator;
 
     @BeforeEach
     void setUp() {
-        roleValidator = new RoleValidator();
+        roleValidator = new RoleValidator(idFieldValidator, null);
     }
 
     @Test
@@ -79,5 +87,19 @@ class RoleValidatorTest {
         assertThatThrownBy(() -> roleValidator.validateRoleCreation(role))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match the required pattern");
+    }
+
+    @Test
+    void validateRoleCreation_shouldThrowExceptionWhenIdFieldValidatorThrows() {
+        // given
+        Role role = new Role();
+        role.setName("role_name");
+
+        doThrow(IllegalArgumentException.class).when(idFieldValidator)
+                .validateName("Role", "role_name");
+
+        // when/then
+        Assertions.assertThatThrownBy(() -> roleValidator.validateRoleCreation(role))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

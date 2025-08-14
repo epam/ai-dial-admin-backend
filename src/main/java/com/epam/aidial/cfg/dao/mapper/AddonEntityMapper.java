@@ -33,6 +33,8 @@ public abstract class AddonEntityMapper {
     }
 
     @Mapping(target = "deploymentName", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     protected abstract AddonEntity update(Addon domain, @MappingTarget AddonEntity entity);
 
 }

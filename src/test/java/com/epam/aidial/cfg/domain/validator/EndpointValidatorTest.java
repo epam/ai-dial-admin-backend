@@ -9,6 +9,40 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EndpointValidatorTest {
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "http://dial-interceptor-example.dial-development/openai/deployments/image-watermark/chat/completions",
+            "http://dial-interceptor-example.com/openai/deployments/image-watermark/chat/completions",
+            "http://dial-interceptor-example.ru/openai/deployments/image-watermark/chat/completions",
+            "http://dial-interceptor-example.local/openai/deployments/image-watermark/chat/completions",
+            "http://localhost:8080/test",
+            "http://example.local",
+            "http://127.0.0.1:8080/test",
+            "https://www.google.com",
+            "http://sub.example.local",
+            "http://example.dial-dev"
+    })
+    void isValidUrl_shouldReturnTrue(String url) {
+        assertTrue(EndpointValidator.isValidUrl(url), "Expected URL to be valid: " + url);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "http://dial-interceptor-example.loc$*a=l/openai/deployments/image-watermark/chat/completions",
+            "http://invalid-url=$",
+            "http://invalid-url/==",
+            "http://example.com:invalidport",
+            "http://example.local:999999",
+            "http://dial-interceptor-example.local\\openai",
+            "ftp://example.local",
+            "http://",
+            "http://invalid_domain.com",
+            "http://example.com:-80"
+    })
+    void isInvalidUrl_shouldReturnTrue(String url) {
+        assertTrue(EndpointValidator.isInvalidUrl(url), "Expected URL to be invalid: " + url);
+    }
+
     @Test
     void isValidUrlPath_shouldReturnTrueForSimplePaths() {
         assertTrue(EndpointValidator.isValidUrlPath("/api"));

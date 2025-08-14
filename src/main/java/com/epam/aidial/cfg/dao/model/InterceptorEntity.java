@@ -21,7 +21,7 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
-public class InterceptorEntity extends AbstractEntity<String> {
+public class InterceptorEntity extends TimeTrackableEntity<String> {
 
     @Id
     @EqualsAndHashCode.Include
@@ -32,8 +32,6 @@ public class InterceptorEntity extends AbstractEntity<String> {
     private String displayName;
     private Boolean forwardAuthToken;
     private String author;
-    private Long createdAt;
-    private Long updatedAt;
     private List<String> dependencies;
     private String configurationEndpoint;
 
@@ -46,21 +44,11 @@ public class InterceptorEntity extends AbstractEntity<String> {
     private InterceptorRunnerEntity interceptorRunner;
 
     @ToString.Exclude
-    @ManyToMany
-    @JoinTable(
-            name = "interceptor_application",
-            joinColumns = @JoinColumn(name = "interceptor_name"),
-            inverseJoinColumns = @JoinColumn(name = "application_name")
-    )
+    @ManyToMany(mappedBy = "interceptors")
     private List<ApplicationEntity> applications = new ArrayList<>();
 
     @ToString.Exclude
-    @ManyToMany
-    @JoinTable(
-            name = "interceptor_model",
-            joinColumns = @JoinColumn(name = "interceptor_name"),
-            inverseJoinColumns = @JoinColumn(name = "model_name")
-    )
+    @ManyToMany(mappedBy = "interceptors")
     private List<ModelEntity> models = new ArrayList<>();
 
     @PreRemove

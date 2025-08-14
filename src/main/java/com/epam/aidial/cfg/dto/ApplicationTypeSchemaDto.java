@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,10 +24,12 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("$id")
     private String id;
 
+    private TypeDto type;
+    private String title;
     private String description;
 
     @JsonProperty("dial:applicationTypeEditorUrl")
-    private String applicationTypeEditorUrl = "https://app_editor_url";
+    private String applicationTypeEditorUrl;
 
     @JsonProperty("dial:applicationTypeViewerUrl")
     private String applicationTypeViewerUrl;
@@ -63,4 +67,13 @@ public class ApplicationTypeSchemaDto {
     private List<String> required;
     private List<String> applications;
     private Set<String> topics;
+    @EqualsAndHashCode.Exclude
+    private Instant createdAt;
+    @EqualsAndHashCode.Exclude
+    private Instant updatedAt;
+
+    public enum TypeDto {
+        OBJECT,
+        BOOLEAN,
+    }
 }

@@ -115,6 +115,8 @@ public abstract class RoleEntityMapper {
     @Mapping(target = "limits", ignore = true)
     @Mapping(target = "share", ignore = true)
     @Mapping(target = "keys", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     public abstract RoleEntity update(Role domain, @MappingTarget RoleEntity entity);
 
     private List<KeyEntity> findKeyEntitiesByKeys(List<String> keys) {

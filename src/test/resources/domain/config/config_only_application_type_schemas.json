@@ -13,6 +13,8 @@
   "applicationTypeSchemas": [
     {
       "description": "This is a sample application type schema",
+      "title": "Sample Schema",
+      "type": "object",
       "properties": {
         "id": "123"
       },

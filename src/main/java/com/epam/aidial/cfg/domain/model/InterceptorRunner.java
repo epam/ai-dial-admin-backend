@@ -12,5 +12,7 @@ public class InterceptorRunner {
     private String description;
     private String completionEndpoint;
     private String configurationEndpoint;
+    private Long createdAt;
+    private Long updatedAt;
     private List<String> interceptors;
 }

@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.utils;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
 import jakarta.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
@@ -75,7 +76,7 @@ public class ModelEndpointUtils {
     }
 
     private String modelPath(String endpointDeploymentName, ModelType type) {
-        return endpointDeploymentName != null
+        return StringUtils.isNotBlank(endpointDeploymentName)
                 ? endpointDeploymentName + "/" + getEndpointByType(type)
                 : getEndpointByType(type);
     }

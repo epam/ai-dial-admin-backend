@@ -1,6 +1,5 @@
-package com.epam.aidial.cfg.dao.validator;
+package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.domain.validator.DisplayFieldsValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

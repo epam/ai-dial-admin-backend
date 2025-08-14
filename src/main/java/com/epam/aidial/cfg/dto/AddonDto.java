@@ -23,7 +23,9 @@ public class AddonDto extends RoleBasedDto {
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private String author;
+    @EqualsAndHashCode.Exclude
     private Instant createdAt;
+    @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
 }
