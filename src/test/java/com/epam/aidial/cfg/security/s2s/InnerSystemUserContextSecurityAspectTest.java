@@ -22,7 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
     JsonMapperConfiguration.class,
@@ -50,7 +49,7 @@ class InnerSystemUserContextSecurityAspectTest {
 
     @Test
     void shouldSetTokenInSecurityContext() {
-        //Given
+        // Given
         final var expectedToken = "jwt-token-body";
         final var jwt = mock(Jwt.class);
         when(jwt.getTokenValue()).thenReturn(expectedToken);
@@ -67,10 +66,10 @@ class InnerSystemUserContextSecurityAspectTest {
             return null;
         }).when(interceptorService).refreshEndpoints();
 
-        //When
+        // When
         endpointsRefresherScheduledService.refreshEndpoints();
 
-        //Then
+        // Then
         verify(interceptorService).refreshEndpoints();
     }
 }

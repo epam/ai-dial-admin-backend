@@ -25,7 +25,7 @@ class FeignAuthRequestInterceptorTest {
 
     @Test
     void shouldAddAuthHeaderFromSecurityContext() {
-        //Given
+        // Given
         final var expectedToken = "jwt-token-body";
         final var jwt = mock(Jwt.class);
         when(jwt.getTokenValue()).thenReturn(expectedToken);
@@ -37,10 +37,10 @@ class FeignAuthRequestInterceptorTest {
 
         final var template = new RequestTemplate();
 
-        //When
+        // When
         interceptor.apply(template);
 
-        //Then
+        // Then
         assertTrue(template.headers().containsKey(AUTHORIZATION_HEADER));
         assertEquals("Bearer " + jwt.getTokenValue(), template.headers().get(AUTHORIZATION_HEADER).iterator().next());
     }

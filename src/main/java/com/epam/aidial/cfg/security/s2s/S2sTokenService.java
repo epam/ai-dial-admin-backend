@@ -3,6 +3,8 @@ package com.epam.aidial.cfg.security.s2s;
 import com.azure.core.credential.SimpleTokenCache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,12 +15,14 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@ConditionalOnProperty(value = "plugins.deployment.manager.endpoint.refresh.enabled", havingValue = "true")
 public class S2sTokenService {
 
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
+    @Value("${plugins.deployment.manager.service.token.retrieval.timeout}")
+    private int tokenRetrievalTimeout;
 
     private final SimpleTokenCache tokenCache;
     private final JwtDecoder jwtDecoder;
@@ -26,7 +30,7 @@ public class S2sTokenService {
 
     public SecurityContext getSecurityContext() {
         log.debug("Start getting service token.");
-        final var userToken = Objects.requireNonNull(tokenCache.getToken().block(TIMEOUT)).getToken();
+        final var userToken = Objects.requireNonNull(tokenCache.getToken().block(Duration.ofSeconds(tokenRetrievalTimeout))).getToken();
         log.debug("Finished getting service token.");
         return createSecurityContext(userToken);
     }

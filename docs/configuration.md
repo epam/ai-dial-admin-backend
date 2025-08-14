@@ -16,6 +16,7 @@ This document provides a comprehensive list of all configurable properties in th
 - [Metrics Configuration](#metrics-configuration)
 - [Logging Configuration](#logging-configuration)
 - [Retry Configuration](#retry-configuration)
+- [Plugins Configuration](#plugins-configuration)
 - [Validation Configuration](#validation-configuration)
 
 ## AIDIAL Config File Exporter
@@ -250,6 +251,8 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 | plugins.deployment.manager.cache.expiration.interval | PLUGINS_DEPLOYMENT_MANAGER_CACHE_EXPIRATION_INTERVAL_MS | 300000          | No       | -                                                          | Expiration interval (in ms) of deployment manager cache  |
 | plugins.deployment.manager.endpoint.refresh.enabled  | ENABLE_PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH      | false           | No       | -                                                          | Enable deployment manager endpoint refresh               |
 | plugins.deployment.manager.endpoint.refresh.interval | PLUGINS_DEPLOYMENT_MANAGER_ENDPOINT_REFRESH_INTERVAL_MS | 360000          | No       | plugins.deployment.manager.endpoint.refresh.enabled = true | Refresh interval (in ms) of deployment manager endpoints |
+| plugins.deployment.manager.service.token.retrieval.timeout | PLUGINS_DEPLOYMENT_MANAGER_SERVICE_TOKEN_RETRIEVAL_TIMEOUT_S | 30   | No       | plugins.deployment.manager.endpoint.refresh.enabled = true | Service token retrieval timeout (for s2s)                |
+| plugins.deployment.manager.scope                     | PLUGINS_DEPLOYMENT_MANAGER_SCOPE                        | -               | No       | plugins.deployment.manager.endpoint.refresh.enabled = true | Scope of deployment manager                              |
 
 ## Validation Configuration
 
