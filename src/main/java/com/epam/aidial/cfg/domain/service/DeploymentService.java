@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -35,11 +34,6 @@ public class DeploymentService {
         if (!deploymentJpaRepository.existsById(deploymentName)) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(deploymentName));
         }
-    }
-
-    @Transactional(readOnly = true)
-    public Set<String> findAllByNames(Set<String> deploymentNames) {
-        return deploymentJpaRepository.findAllByNames(deploymentNames);
     }
 
     public void assertDeploymentNotExists(String name) {

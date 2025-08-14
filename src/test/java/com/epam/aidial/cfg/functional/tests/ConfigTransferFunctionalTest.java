@@ -183,6 +183,11 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(allKeys).hasSize(2).allSatisfy(key ->
                 Assertions.assertThatCode(() -> UUID.fromString(key)).doesNotThrowAnyException()
         );
+        Assertions.assertThat(roleFacade.getRole("testRole1").getShare()).hasSize(1).satisfies(share -> {
+            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+        });
     }
 
     @Test
@@ -222,7 +227,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), overrideAndNotCreateRoleAndCreateNew()))
                 //then
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("unable to find roles: [testRole1]");
+                .hasMessageContaining("Unable to find role: testRole1");
     }
 
     @Test
@@ -663,7 +668,7 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
-    void testExport_CoreFormatKeyWithoutRoles_FullRequest() throws IOException, URISyntaxException {
+    void testExport_CoreFormatKeyWithoutRoles_FullRequest() throws IOException {
         // given
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
@@ -1146,6 +1151,75 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(adapterDto.getName()).isEqualTo("adapter1");
             Assertions.assertThat(adapterDto.getBaseEndpoint()).isEqualTo("http://endpoint1/");
             Assertions.assertThat(adapterDto.getDescription()).isEqualTo("test adapter");
+        });
+        Assertions.assertThat(roleFacade.getRole("testRole3").getShare()).hasSize(1).satisfies(share -> {
+            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+        });
+    }
+
+    @Test
+    void testImportZip_WithConflict() throws IOException {
+        var inputStream = getZipInputStreamWithAdminConfig();
+        var zipFile = new MockMultipartFile("file", inputStream);
+
+        configTransfer.importConfigZip(zipFile, overrideAndCreateRoleAndCreateNew());
+
+        // when
+        configTransfer.importConfigZip(zipFile, overrideAndCreateRoleAndCreateNew());
+
+        // then
+        Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+        Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
+        Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
+            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole1")).satisfies(limit1 -> {
+                Assertions.assertThat(limit1.isEnabled()).isTrue();
+                Assertions.assertThat(limit1.getDay()).isEqualTo(1);
+                Assertions.assertThat(limit1.getMinute()).isNull();
+            });
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole2"))
+                    .satisfies(limit2 -> Assertions.assertThat(limit2.isEnabled()).isFalse());
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole3")).satisfies(limit3 -> {
+                Assertions.assertThat(limit3.isEnabled()).isTrue();
+                Assertions.assertThat(limit3.getDay()).isNull();
+                Assertions.assertThat(limit3.getMinute()).isNull();
+            });
+            Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
+                    .hasSize(1).first().isEqualTo("testInterceptor1");
+            Assertions.assertThat(modelDto.getAdapter()).isEqualTo("adapter1");
+        });
+        Assertions.assertThat(models.get("testModel2"))
+                .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
+        ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
+        Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
+        Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
+        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
+                Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
+                Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
+        );
+        Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
+        Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {
+            Assertions.assertThat(r.getName()).isEqualTo("testRunner1");
+            Assertions.assertThat(r.getCompletionEndpoint()).isEqualTo("https://template.test.com/api");
+            Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
+        });
+        Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
+        Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
+
+        Map<String, AdapterDto> adapters = adapterFacade.getAllAdapters().stream().collect(Collectors.toMap(AdapterDto::getName, a -> a));
+        Assertions.assertThat(adapters.get("adapter1")).satisfies(adapterDto -> {
+            Assertions.assertThat(adapterDto.getName()).isEqualTo("adapter1");
+            Assertions.assertThat(adapterDto.getBaseEndpoint()).isEqualTo("http://endpoint1/");
+            Assertions.assertThat(adapterDto.getDescription()).isEqualTo("test adapter");
+        });
+        Assertions.assertThat(roleFacade.getRole("testRole3").getShare()).hasSize(1).satisfies(share -> {
+            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
     }
 

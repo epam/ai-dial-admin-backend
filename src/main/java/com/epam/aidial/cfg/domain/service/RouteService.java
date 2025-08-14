@@ -36,10 +36,15 @@ public class RouteService {
 
     @Transactional(readOnly = true)
     public Route get(String routeName) {
+        return tryGetRoute(routeName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Route> tryGetRoute(String routeName) {
         return Optional.ofNullable(routeName)
                 .flatMap(routeJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional

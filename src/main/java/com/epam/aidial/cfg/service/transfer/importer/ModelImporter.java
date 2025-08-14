@@ -6,15 +6,15 @@ import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
-import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreModel;
-import com.epam.aidial.core.config.CoreRole;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Strings;
@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -32,6 +34,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Service
 @Slf4j
 @LogExecution
+@RequiredArgsConstructor
 public class ModelImporter extends RoleBasedImporter {
 
     private final ModelService modelService;
@@ -39,16 +42,8 @@ public class ModelImporter extends RoleBasedImporter {
     private final ModelCoreMapper modelMapper;
     private final ModelEndpointUtils modelEndpointUtils;
 
-    public ModelImporter(RoleService roleService, ModelService modelService, AdapterService adapterService, ModelCoreMapper modelMapper, ModelEndpointUtils modelEndpointUtils) {
-        super(roleService);
-        this.modelService = modelService;
-        this.adapterService = adapterService;
-        this.modelMapper = modelMapper;
-        this.modelEndpointUtils = modelEndpointUtils;
-    }
-
     public Collection<ImportComponent<Model>> importModels(Map<String, CoreModel> coreModels,
-                                                           Map<String, CoreRole> roles,
+                                                           Map<String, Role> roles,
                                                            ConfigImportOptions importOptions,
                                                            Collection<ImportComponent<Adapter>> adaptersForPreview,
                                                            boolean isPreview) {
@@ -57,23 +52,23 @@ public class ModelImporter extends RoleBasedImporter {
                     .stream()
                     .collect(Collectors.toMap(
                                     Map.Entry::getKey,
-                                    entry -> map(entry.getKey(), entry.getValue(), roles, adaptersForPreview, isPreview)
+                                    entry -> map(entry.getKey(), entry.getValue(), adaptersForPreview, isPreview)
                             )
                     );
-            return importAdminModels(models, importOptions, isPreview);
+            return importAdminModels(models, roles, importOptions, isPreview);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<Model>> importAdminModels(Map<String, Model> models,
+                                                                Map<String, Role> roles,
                                                                 ConfigImportOptions importOptions,
                                                                 boolean isPreview) {
         if (MapUtils.isNotEmpty(models)) {
             return models.entrySet().stream()
                     .map(modelEntry -> {
                                 var model = modelEntry.getValue();
-                                createRoleIfAbsent(importOptions, model.getDeployment().getRoleLimits());
-                                var importAction = processModel(modelEntry.getKey(), model, importOptions.conflictResolutionPolicy(), isPreview);
+                                var importAction = processModel(modelEntry.getKey(), model, roles, importOptions.conflictResolutionPolicy(), isPreview);
                                 return new ImportComponent<>(importAction, model);
                             }
                     )
@@ -82,12 +77,18 @@ public class ModelImporter extends RoleBasedImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processModel(String modelName, Model newModel,
+    private ImportAction processModel(String modelName,
+                                      Model newModel,
+                                      Map<String, Role> roles,
                                       ConflictResolutionPolicy resolutionPolicy,
                                       boolean isPreview) {
-        if (modelService.exists(modelName)) {
+        Optional<Model> model = modelService.tryGetModel(modelName);
+        if (model.isPresent()) {
+            Model existingModel = model.get();
+            setRoleLimits(modelName, existingModel.getDeployment().getRoleLimits(), roles, newModel.getDeployment(), isPreview);
             return handleExistingModel(newModel, resolutionPolicy, modelName, isPreview);
         } else {
+            setRoleLimits(modelName, List.of(), roles, newModel.getDeployment(), isPreview);
             return createNewModel(newModel, isPreview);
         }
     }
@@ -121,14 +122,13 @@ public class ModelImporter extends RoleBasedImporter {
 
     private Model map(String modelName,
                       CoreModel model,
-                      Map<String, CoreRole> roles,
                       Collection<ImportComponent<Adapter>> adaptersForPreview,
                       boolean isPreview) {
         model.setName(modelName);
         ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
         Adapter adapter = resolveAdapter(adaptersForPreview, isPreview, modelEndpointComponents);
         String endpointDeploymentName = resolveEndpointDeploymentName(modelEndpointComponents);
-        return modelMapper.mapModel(model, roles, adapter, endpointDeploymentName);
+        return modelMapper.mapModel(model, adapter, endpointDeploymentName);
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {

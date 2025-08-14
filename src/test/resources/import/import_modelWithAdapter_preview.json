@@ -20,6 +20,7 @@
       "value": {
         "deployment": {
           "name": "testModel2",
+          "roleLimits": [],
           "isPublic": true,
           "defaultRoleLimit": {}
         },
@@ -64,6 +65,7 @@
       "value": {
         "deployment": {
           "name": "testModel1",
+          "roleLimits": [],
           "isPublic": true,
           "defaultRoleLimit": {}
         },
