@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.dao.audit.repository.KeyHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.ModelHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.RoleHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.RouteHistoryRepository;
+import com.epam.aidial.cfg.dao.audit.repository.ToolSetHistoryRepository;
 import com.epam.aidial.cfg.dao.mapper.ConfigRevisionEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.PageEntityMapper;
 import com.epam.aidial.cfg.domain.model.ConfigRevision;
@@ -60,6 +61,7 @@ public class HistoryService {
     private final AdapterHistoryRepository adapterHistoryRepository;
     private final ConfigRevisionEntityMapper configRevisionEntityMapper;
     private final PageEntityMapper pageEntityMapper;
+    private final ToolSetHistoryRepository toolSetHistoryRepository;
 
     @Transactional(readOnly = true)
     public List<ConfigRevision> getRevisionsList(PageRequestModel pageRequestModel) {
@@ -88,6 +90,7 @@ public class HistoryService {
         interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
         interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
         adapterHistoryRepository.rollbackAdapters(revision, auditReader);
+        toolSetHistoryRepository.rollbackToolSets(revision, auditReader);
     }
 
     @Transactional(readOnly = true)

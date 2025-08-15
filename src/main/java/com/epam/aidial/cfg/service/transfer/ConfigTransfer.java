@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.service.transfer.importer.KeyImporter;
 import com.epam.aidial.cfg.service.transfer.importer.ModelImporter;
 import com.epam.aidial.cfg.service.transfer.importer.RoleImporter;
 import com.epam.aidial.cfg.service.transfer.importer.RouteImporter;
+import com.epam.aidial.cfg.service.transfer.importer.ToolSetImporter;
 import com.epam.aidial.cfg.service.transfer.importer.util.CoreRolesMerger;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -80,6 +81,7 @@ public class ConfigTransfer {
     private final RouteImporter routeImporter;
     private final AssistantImporter assistantImporter;
     private final AdapterImporter adapterImporter;
+    private final ToolSetImporter toolSetImporter;
 
     @Transactional(readOnly = true)
     public StreamingResponseBody exportConfig(ExportRequest request) {
@@ -158,6 +160,7 @@ public class ConfigTransfer {
             var assistants = assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, true);
             var roles = roleImporter.importRoles(configRoles, resolutionPolicy, true);
             var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
+            var toolSets = toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, true);
             return ImportConfigPreview.builder()
                     .roles(roles)
                     .keys(keys)
@@ -169,6 +172,7 @@ public class ConfigTransfer {
                     .applications(applications)
                     .addons(addons)
                     .assistants(assistants)
+                    .toolSets(toolSets)
                     .build();
         } catch (Exception exception) {
             log.warn("Failed to import config. Config import options: {}. Error: {}", importOptions, exception);
@@ -219,6 +223,7 @@ public class ConfigTransfer {
         var applications = applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, true);
         var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, true);
         var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, true);
+        var toolSets = toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, true);
 
         return ImportConfigPreview.builder()
                 .roles(roles)
@@ -230,6 +235,7 @@ public class ConfigTransfer {
                 .adapters(adapters)
                 .models(models)
                 .applications(applications)
+                .toolSets(toolSets)
                 .build();
     }
 
@@ -250,6 +256,7 @@ public class ConfigTransfer {
             assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, false);
             roleImporter.importRoles(configRoles, resolutionPolicy, false);
             keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
+            toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, false);
         } catch (Exception exception) {
             log.warn("Failed to import config. Conflict resolution policy: {}. Error: {}", importOptions.conflictResolutionPolicy(), exception);
             throw exception;
@@ -288,6 +295,7 @@ public class ConfigTransfer {
         applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, false);
         roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, false);
         keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, false);
+        toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, false);
     }
 
     private ConfigImportOptions createConfigImportOptions(ConflictResolutionPolicy resolutionPolicy) {

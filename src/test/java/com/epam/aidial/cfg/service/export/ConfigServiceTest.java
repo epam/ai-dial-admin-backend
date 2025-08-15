@@ -25,6 +25,7 @@ import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -82,6 +83,8 @@ class ConfigServiceTest {
     private RouteService routeService;
     @MockitoBean
     private DeploymentService deploymentService;
+    @MockitoBean
+    private ToolSetService toolSetService;
     @MockitoBean
     private RoleJpaRepository roleJpaRepository;
 

@@ -26,6 +26,7 @@ public class Config {
     private Map<String, CoreModel> models = new HashMap<>();
     private Map<String, CoreAddon> addons = new HashMap<>();
     private Map<String, CoreApplication> applications = new HashMap<>();
+    private Map<String, CoreToolSet> toolsets = Map.of();
     private Assistants assistant = new Assistants();
     private Map<String, CoreKey> keys = new HashMap<>();
     private Map<String, CoreRole> roles = new HashMap<>();

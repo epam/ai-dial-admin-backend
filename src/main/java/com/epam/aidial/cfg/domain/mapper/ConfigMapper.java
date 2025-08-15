@@ -23,7 +23,8 @@ import java.util.Map;
                 ApplicationCoreMapper.class,
                 KeyCoreMapper.class,
                 InterceptorCoreMapper.class,
-                ApplicationTypeSchemaCoreMapper.class
+                ApplicationTypeSchemaCoreMapper.class,
+                ToolSetCoreMapper.class,
         }
 )
 public abstract class ConfigMapper {

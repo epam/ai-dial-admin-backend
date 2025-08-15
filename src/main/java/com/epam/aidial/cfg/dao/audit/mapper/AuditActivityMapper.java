@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
+import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import org.hibernate.envers.RevisionType;
@@ -55,6 +56,8 @@ public class AuditActivityMapper {
             return ActivityResourceType.RoleShareResourceLimit;
         } else if (entityClass == RouteEntity.class) {
             return ActivityResourceType.Route;
+        } else if (entityClass == ToolSetEntity.class) {
+            return ActivityResourceType.ToolSet;
         } else {
             throw new IllegalArgumentException("Unable to find resource type for class " + entityClass);
         }
@@ -82,6 +85,7 @@ public class AuditActivityMapper {
             case ASSISTANT -> ActivityResourceType.Assistant;
             case MODEL -> ActivityResourceType.Model;
             case ROUTE -> ActivityResourceType.Route;
+            case TOOLSET -> ActivityResourceType.ToolSet;
         };
     }
 }
