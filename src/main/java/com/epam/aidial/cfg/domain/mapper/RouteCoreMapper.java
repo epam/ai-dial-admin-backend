@@ -56,10 +56,10 @@ public abstract class RouteCoreMapper {
     public abstract DependentRoute mapDependentRoute(CoreRoute route);
 
     public LinkedHashMap<String, CoreRoute> mapRoutes(List<DependentRoute> routes) {
-        LinkedHashMap<String, CoreRoute> coreRoutes = new LinkedHashMap<>();
         if (CollectionUtils.isEmpty(routes)) {
             return null;
         }
+        LinkedHashMap<String, CoreRoute> coreRoutes = new LinkedHashMap<>();
         for (DependentRoute route : routes) {
             var coreRoute = mapRoute(route);
             coreRoutes.put(coreRoute.getName(), coreRoute);
@@ -68,10 +68,10 @@ public abstract class RouteCoreMapper {
     }
 
     public List<DependentRoute> mapRoutes(LinkedHashMap<String, CoreRoute> coreRoutes) {
-        List<DependentRoute> routes = new ArrayList<>();
         if (MapUtils.isEmpty(coreRoutes)) {
             return null;
         }
+        List<DependentRoute> routes = new ArrayList<>();
         for (CoreRoute coreRoute : coreRoutes.values()) {
             var route = mapDependentRoute(coreRoute);
             routes.add(route);

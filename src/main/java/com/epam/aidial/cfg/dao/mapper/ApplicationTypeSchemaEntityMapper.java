@@ -24,6 +24,7 @@ public abstract class ApplicationTypeSchemaEntityMapper {
     @Autowired
     private ApplicationJpaRepository applicationJpaRepository;
 
+    @Mapping(target = "applicationTypeRoutes", source = "routes")
     public abstract ApplicationTypeSchema toDomain(ApplicationTypeSchemaEntity entity);
 
     protected String mapApplicationToString(ApplicationEntity value) {
@@ -58,6 +59,7 @@ public abstract class ApplicationTypeSchemaEntityMapper {
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "routes", source = "applicationTypeRoutes")
     abstract ApplicationTypeSchemaEntity update(ApplicationTypeSchema domain, @MappingTarget ApplicationTypeSchemaEntity entity);
 
     private List<ApplicationEntity> findApplicationsByNames(List<String> names) {

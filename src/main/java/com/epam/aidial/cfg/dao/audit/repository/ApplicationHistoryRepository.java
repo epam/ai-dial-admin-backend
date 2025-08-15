@@ -26,7 +26,6 @@ public class ApplicationHistoryRepository extends RevisionRepository {
         for (ApplicationEntity application : applications) {
             Application domain = applicationEntityMapper.toDomain(application);
             domain.setInterceptors(List.of());
-            domain.setRoutes(List.of());
             ApplicationEntity entity = applicationJpaRepository.findById(domain.getDeployment().getName()).orElseGet(ApplicationEntity::new);
             ApplicationEntity applicationEntity = applicationEntityMapper.toEntity(domain, entity);
             applicationJpaRepository.save(applicationEntity);
