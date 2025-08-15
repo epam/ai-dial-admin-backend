@@ -1,0 +1,38 @@
+{
+  "models": {
+    "testModel1": {
+      "userRoles": [
+        "userRole",
+        "userRoleInRolesSectionWithEmptyLimit",
+        "userRoleInRolesSectionWithNonEmptyLimit"
+      ]
+    }
+  },
+  "roles": {
+    "userRoleInRolesSectionWithEmptyLimit": {
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    },
+    "userRoleInRolesSectionWithNonEmptyLimit": {
+      "limits": {
+        "testModel1": {
+          "day": 5
+        }
+      }
+    },
+    "roleInRolesSectionWithEmptyLimit": {
+    },
+    "roleInRolesSectionWithNonEmptyLimit": {
+      "limits": {
+        "testModel1": {
+          "week": 120,
+          "month": 500
+        }
+      }
+    }
+  }
+}

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -25,8 +26,8 @@ import com.epam.aidial.cfg.service.transfer.importer.KeyImporter;
 import com.epam.aidial.cfg.service.transfer.importer.ModelImporter;
 import com.epam.aidial.cfg.service.transfer.importer.RoleImporter;
 import com.epam.aidial.cfg.service.transfer.importer.RouteImporter;
+import com.epam.aidial.cfg.service.transfer.importer.util.CoreRolesMerger;
 import com.epam.aidial.core.config.Config;
-import com.epam.aidial.core.config.RoleBasedEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -67,6 +67,7 @@ public class ConfigTransfer {
     private final ConfigExportProperties properties;
     private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final List<CoreConfigNormalizer> normalizers;
+    private final CoreRolesMerger coreRolesMerger;
 
     private final ModelImporter modelImporter;
     private final AddonImporter addonTransfer;
@@ -146,18 +147,17 @@ public class ConfigTransfer {
         try {
             ConflictResolutionPolicy resolutionPolicy = importOptions.conflictResolutionPolicy();
             Config config = readAndMergeConfig(files);
-            Set<String> deploymentNamesInConfig = getDeploymentNamesInConfig(config);
-            Map<String, Set<String>> userRolesByDeploymentName = getUserRolesByDeploymentName(config);
-            var roles = roleImporter.importRoles(deploymentNamesInConfig, userRolesByDeploymentName, config.getRoles(), resolutionPolicy, true);
-            var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
+            Map<String, Role> configRoles = coreRolesMerger.mergeCoreRoles(config, importOptions.createRoleIfAbsent());
             var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, true);
             var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, true);
             var adapters = adapterImporter.importAdapters(config.getModels(), importOptions, true);
-            var models = modelImporter.importModels(config.getModels(), config.getRoles(), importOptions, adapters, true);
-            var addons = addonTransfer.importAddons(config.getAddons(), config.getRoles(), importOptions, true);
-            var applications = applicationImporter.importApplications(config.getApplications(), config.getRoles(), importOptions, true);
-            var routes = routeImporter.importRoutes(config.getRoutes(), config.getRoles(), importOptions, true);
-            var assistants = assistantImporter.importAssistants(config.getAssistant(), config.getRoles(), importOptions, true);
+            var models = modelImporter.importModels(config.getModels(), configRoles, importOptions, adapters, true);
+            var addons = addonTransfer.importAddons(config.getAddons(), configRoles, importOptions, true);
+            var applications = applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, true);
+            var routes = routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, true);
+            var assistants = assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, true);
+            var roles = roleImporter.importRoles(configRoles, resolutionPolicy, true);
+            var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
             return ImportConfigPreview.builder()
                     .roles(roles)
                     .keys(keys)
@@ -213,10 +213,10 @@ public class ConfigTransfer {
         var interceptors = interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, true);
         var applicationRunners = applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, true);
         ConfigImportOptions importOptions = createConfigImportOptions(resolutionPolicy);
-        var routes = routeImporter.importAdminRoutes(config.getRoutes(), importOptions, true);
+        var routes = routeImporter.importAdminRoutes(config.getRoutes(), config.getRoles(), importOptions, true);
         var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, true);
-        var models = modelImporter.importAdminModels(config.getModels(), importOptions, true);
-        var applications = applicationImporter.importAdminApplications(config.getApplications(), importOptions, true);
+        var models = modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, true);
+        var applications = applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, true);
         var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, true);
         var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, true);
 
@@ -239,18 +239,17 @@ public class ConfigTransfer {
         try {
             ConflictResolutionPolicy resolutionPolicy = importOptions.conflictResolutionPolicy();
             Config config = readAndMergeConfig(files);
-            Set<String> deploymentNamesInConfig = getDeploymentNamesInConfig(config);
-            Map<String, Set<String>> userRolesByDeploymentName = getUserRolesByDeploymentName(config);
-            roleImporter.importRoles(deploymentNamesInConfig, userRolesByDeploymentName, config.getRoles(), resolutionPolicy, false);
-            keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
+            Map<String, Role> configRoles = coreRolesMerger.mergeCoreRoles(config, importOptions.createRoleIfAbsent());
             interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, false);
             applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, false);
             adapterImporter.importAdapters(config.getModels(), importOptions, false);
-            modelImporter.importModels(config.getModels(), config.getRoles(), importOptions, List.of(), false);
-            addonTransfer.importAddons(config.getAddons(), config.getRoles(), importOptions, false);
-            applicationImporter.importApplications(config.getApplications(), config.getRoles(), importOptions, false);
-            routeImporter.importRoutes(config.getRoutes(), config.getRoles(), importOptions, false);
-            assistantImporter.importAssistants(config.getAssistant(), config.getRoles(), importOptions, false);
+            modelImporter.importModels(config.getModels(), configRoles, importOptions, List.of(), false);
+            addonTransfer.importAddons(config.getAddons(), configRoles, importOptions, false);
+            applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, false);
+            routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, false);
+            assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, false);
+            roleImporter.importRoles(configRoles, resolutionPolicy, false);
+            keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
         } catch (Exception exception) {
             log.warn("Failed to import config. Conflict resolution policy: {}. Error: {}", importOptions.conflictResolutionPolicy(), exception);
             throw exception;
@@ -283,10 +282,10 @@ public class ConfigTransfer {
         interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, false);
         interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, false);
         applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, false);
-        routeImporter.importAdminRoutes(config.getRoutes(), importOptions, false);
+        routeImporter.importAdminRoutes(config.getRoutes(), config.getRoles(), importOptions, false);
         adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, false);
-        modelImporter.importAdminModels(config.getModels(), importOptions, false);
-        applicationImporter.importAdminApplications(config.getApplications(), importOptions, false);
+        modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, false);
+        applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, false);
         roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, false);
         keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, false);
     }
@@ -310,33 +309,6 @@ public class ConfigTransfer {
         }
 
         return jsonMapper.convertValue(tree, Config.class);
-    }
-
-    private Set<String> getDeploymentNamesInConfig(Config config) {
-        return Stream.of(config.getModels().keySet(), config.getAddons().keySet(),
-                        config.getApplications().keySet(), config.getRoutes().keySet(),
-                        config.getAssistant().getAssistants().keySet())
-                .flatMap(Set::stream)
-                .collect(Collectors.toSet());
-    }
-
-    private Map<String, Set<String>> getUserRolesByDeploymentName(Config config) {
-        return Stream.of(
-                        config.getModels(),
-                        config.getAddons(),
-                        config.getApplications(),
-                        config.getRoutes(),
-                        config.getAssistant().getAssistants()
-                )
-                .map(this::getUserRoles)
-                .flatMap(m -> m.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    private <T extends RoleBasedEntity> Map<String, Set<String>> getUserRoles(Map<String, T> deployments) {
-        return deployments.entrySet().stream()
-                .filter(d -> CollectionUtils.isNotEmpty(d.getValue().getUserRoles()))
-                .collect(Collectors.toMap(Map.Entry::getKey, d -> d.getValue().getUserRoles()));
     }
 
     private Map<String, String> normalizeZipFileNames(Map<String, String> map) {

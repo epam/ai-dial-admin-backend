@@ -6,21 +6,19 @@
         "name": "testRole1",
         "limits": [
           {
-            "deploymentName": "testApplication1",
-            "enabled": true,
-            "limit": {}
-          },
-          {
-            "deploymentName": "testApplication2",
-            "enabled": true,
-            "limit": {}
-          },
-          {
+            "role": "testRole1",
             "deploymentName": "test_route1",
             "enabled": true,
             "limit": {}
           },
           {
+            "role": "testRole1",
+            "deploymentName": "testApplication1",
+            "enabled": true,
+            "limit": {}
+          },
+          {
+            "role": "testRole1",
             "deploymentName": "testModel1",
             "enabled": true,
             "limit": {
@@ -28,6 +26,13 @@
             }
           },
           {
+            "role": "testRole1",
+            "deploymentName": "testApplication2",
+            "enabled": true,
+            "limit": {}
+          },
+          {
+            "role": "testRole1",
             "deploymentName": "testAddon1",
             "enabled": true,
             "limit": {}
@@ -35,6 +40,7 @@
         ],
         "share": [
           {
+            "role": "testRole1",
             "deploymentName": "testModel1",
             "limit": {
               "maxAcceptedUsers": 10,
@@ -48,7 +54,8 @@
       "importAction": "create",
       "value": {
         "name": "testRole2",
-        "limits": []
+        "limits": [],
+        "share": []
       }
     },
     {
@@ -57,11 +64,13 @@
         "name": "testRole3",
         "limits": [
           {
+            "role": "testRole3",
             "deploymentName": "testModel1",
             "enabled": true,
             "limit": {}
           }
-        ]
+        ],
+        "share": []
       }
     },
     {
@@ -70,13 +79,15 @@
         "name": "default",
         "limits": [
           {
+            "role": "default",
             "deploymentName": "testModel1",
             "enabled": false,
             "limit": {
               "day": 3
             }
           }
-        ]
+        ],
+        "share": []
       }
     }
   ],
@@ -204,6 +215,7 @@
           "roleLimits": [
             {
               "role": "testRole1",
+              "deploymentName": "test_route1",
               "enabled": true,
               "limit": {}
             }
@@ -303,6 +315,7 @@
           "roleLimits": [
             {
               "role": "testRole1",
+              "deploymentName": "testModel1",
               "enabled": true,
               "limit": {
                 "day": 1
@@ -310,11 +323,13 @@
             },
             {
               "role": "testRole3",
+              "deploymentName": "testModel1",
               "enabled": true,
               "limit": {}
             },
             {
               "role": "default",
+              "deploymentName": "testModel1",
               "enabled": false,
               "limit": {
                 "day": 3
@@ -370,6 +385,7 @@
           "roleLimits": [
             {
               "role": "testRole1",
+              "deploymentName": "testApplication1",
               "enabled": true,
               "limit": {}
             }
@@ -417,6 +433,7 @@
           "roleLimits": [
             {
               "role": "testRole1",
+              "deploymentName": "testApplication2",
               "enabled": true,
               "limit": {}
             }
@@ -459,6 +476,7 @@
           "roleLimits": [
             {
               "role": "testRole1",
+              "deploymentName": "testAddon1",
               "enabled": true,
               "limit": {}
             }

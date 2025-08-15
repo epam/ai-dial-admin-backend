@@ -3,11 +3,8 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
-import com.epam.aidial.cfg.dao.model.AddonEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
-import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.domain.model.Application;
-import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.normalizer.ApplicationNormalizer;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -44,10 +41,15 @@ public class ApplicationService {
 
     @Transactional(readOnly = true)
     public Application getApplication(String applicationName) {
+        return tryGetApplication(applicationName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(applicationName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Application> tryGetApplication(String applicationName) {
         return Optional.ofNullable(applicationName)
                 .flatMap(applicationJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(applicationName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional

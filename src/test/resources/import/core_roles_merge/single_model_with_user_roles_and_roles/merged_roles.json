@@ -1,0 +1,69 @@
+{
+  "userRoleInRolesSectionWithEmptyLimit": {
+    "name": "userRoleInRolesSectionWithEmptyLimit",
+    "limits": [
+      {
+        "role": "userRoleInRolesSectionWithEmptyLimit",
+        "deploymentName": "testModel1",
+        "enabled": true,
+        "limit": {}
+      }
+    ],
+    "share": [
+      {
+        "role": "userRoleInRolesSectionWithEmptyLimit",
+        "deploymentName": "testModel1",
+        "limit": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    ]
+  },
+  "userRoleInRolesSectionWithNonEmptyLimit": {
+    "name": "userRoleInRolesSectionWithNonEmptyLimit",
+    "limits": [
+      {
+        "role": "userRoleInRolesSectionWithNonEmptyLimit",
+        "deploymentName": "testModel1",
+        "enabled": true,
+        "limit": {
+          "day": 5
+        }
+      }
+    ],
+    "share": []
+  },
+  "roleInRolesSectionWithEmptyLimit": {
+    "name": "roleInRolesSectionWithEmptyLimit",
+    "limits": [],
+    "share": []
+  },
+  "roleInRolesSectionWithNonEmptyLimit": {
+    "name": "roleInRolesSectionWithNonEmptyLimit",
+    "limits": [
+      {
+        "role": "roleInRolesSectionWithNonEmptyLimit",
+        "deploymentName": "testModel1",
+        "enabled": false,
+        "limit": {
+          "week": 120,
+          "month": 500
+        }
+      }
+    ],
+    "share": []
+  },
+  "userRole": {
+    "name": "userRole",
+    "limits": [
+      {
+        "role": "userRole",
+        "deploymentName": "testModel1",
+        "enabled": true,
+        "limit": {}
+      }
+    ],
+    "share": []
+  }
+}

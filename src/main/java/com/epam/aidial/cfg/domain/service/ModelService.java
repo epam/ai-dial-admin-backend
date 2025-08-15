@@ -41,10 +41,15 @@ public class ModelService {
 
     @Transactional(readOnly = true)
     public Model getModel(String modelName) {
+        return tryGetModel(modelName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Model> tryGetModel(String modelName) {
         return Optional.ofNullable(modelName)
                 .flatMap(modelJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional

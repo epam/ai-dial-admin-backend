@@ -37,10 +37,15 @@ public class AssistantService {
 
     @Transactional(readOnly = true)
     public Assistant getAssistant(String assistantName) {
+        return tryGetAssistant(assistantName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(assistantName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Assistant> tryGetAssistant(String assistantName) {
         return Optional.ofNullable(assistantName)
                 .flatMap(assistantJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(assistantName)));
+                .map(mapper::toDomain);
     }
 
     @FeatureFlagGate(featureFlag = "assistantsSupported")

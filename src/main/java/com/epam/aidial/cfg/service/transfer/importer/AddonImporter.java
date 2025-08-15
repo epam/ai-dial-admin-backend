@@ -5,19 +5,21 @@ import com.epam.aidial.cfg.domain.mapper.AddonCoreMapper;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
+import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.service.AddonService;
-import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreAddon;
-import com.epam.aidial.core.config.CoreRole;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -27,39 +29,34 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Service
 @Slf4j
 @LogExecution
+@RequiredArgsConstructor
 public class AddonImporter extends RoleBasedImporter {
 
     private final AddonService addonService;
     private final AddonCoreMapper addonCoreMapper;
 
-    public AddonImporter(RoleService roleService, AddonService addonService, AddonCoreMapper addonCoreMapper) {
-        super(roleService);
-        this.addonService = addonService;
-        this.addonCoreMapper = addonCoreMapper;
-    }
-
     public Collection<ImportComponent<Addon>> importAddons(Map<String, CoreAddon> coreAddons,
-                                                           Map<String, CoreRole> roles,
+                                                           Map<String, Role> roles,
                                                            ConfigImportOptions importOptions,
                                                            boolean isPreview) {
         if (MapUtils.isNotEmpty(coreAddons)) {
             Map<String, Addon> addons = coreAddons.entrySet()
                     .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue(), roles)));
-            return importAdminAddons(addons, importOptions, isPreview);
+                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue())));
+            return importAdminAddons(addons, roles, importOptions, isPreview);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<Addon>> importAdminAddons(Map<String, Addon> addons,
+                                                                Map<String, Role> roles,
                                                                 ConfigImportOptions importOptions,
                                                                 boolean isPreview) {
         if (MapUtils.isNotEmpty(addons)) {
             return addons.entrySet().stream()
                     .map(addonEntry -> {
                                 var addon = addonEntry.getValue();
-                                createRoleIfAbsent(importOptions, addon.getDeployment().getRoleLimits());
-                                var importAction = processAddon(addonEntry.getKey(), addon, importOptions.conflictResolutionPolicy(), isPreview);
+                                var importAction = processAddon(addonEntry.getKey(), addon, roles, importOptions.conflictResolutionPolicy(), isPreview);
                                 return new ImportComponent<>(importAction, addon);
                             }
                     )
@@ -70,11 +67,16 @@ public class AddonImporter extends RoleBasedImporter {
 
     private ImportAction processAddon(String addonName,
                                       Addon newAddon,
+                                      Map<String, Role> roles,
                                       ConflictResolutionPolicy resolutionPolicy,
                                       boolean isPreview) {
-        if (addonService.exists(addonName)) {
+        Optional<Addon> addon = addonService.tryGetAddon(addonName);
+        if (addon.isPresent()) {
+            Addon existingAddon = addon.get();
+            setRoleLimits(addonName, existingAddon.getDeployment().getRoleLimits(), roles, newAddon.getDeployment(), isPreview);
             return handleExisting(newAddon, resolutionPolicy, addonName, isPreview);
         } else {
+            setRoleLimits(addonName, List.of(), roles, newAddon.getDeployment(), isPreview);
             if (!isPreview) {
                 addonService.createAddon(newAddon);
             }
@@ -101,8 +103,8 @@ public class AddonImporter extends RoleBasedImporter {
         }
     }
 
-    private Addon map(String addonName, CoreAddon addon, Map<String, CoreRole> roles) {
+    private Addon map(String addonName, CoreAddon addon) {
         addon.setName(addonName);
-        return addonCoreMapper.mapAddon(addon, roles);
+        return addonCoreMapper.mapAddon(addon);
     }
 }

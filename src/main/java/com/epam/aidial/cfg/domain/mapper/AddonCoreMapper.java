@@ -2,34 +2,19 @@ package com.epam.aidial.cfg.domain.mapper;
 
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.core.config.CoreAddon;
-import com.epam.aidial.core.config.CoreRole;
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Map;
 
 @Mapper(
         componentModel = "spring",
         uses = {
-                RoleLimitMapper.class,
+                DeploymentCoreMapper.class,
         }
 )
 public abstract class AddonCoreMapper {
 
-    @Autowired
-    private RoleLimitMapper roleLimitMapper;
-
-    @Mapping(target = "deployment.name", source = "addon.name")
+    @Mapping(target = "deployment", source = "addon")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    public abstract Addon mapAddon(CoreAddon addon, Map<String, CoreRole> roles);
-
-    @AfterMapping
-    public void mapRoles(@MappingTarget Addon addon, CoreAddon coreEntity, Map<String, CoreRole> roles) {
-        roleLimitMapper.mapRoles(addon.getDeployment(), coreEntity.getUserRoles(), coreEntity.getName(), roles);
-    }
-
+    public abstract Addon mapAddon(CoreAddon addon);
 }
