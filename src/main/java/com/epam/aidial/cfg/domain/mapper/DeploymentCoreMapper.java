@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.core.config.RoleBasedEntity;
 import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,25 +19,19 @@ public interface DeploymentCoreMapper {
         }
         return deployment.getRoleLimits().stream()
                 .filter(RoleLimit::isEnabled)
-                .map(this::mapUserRole)
+                .map(RoleLimit::getRole)
                 .collect(Collectors.toSet());
     }
 
-    private String mapUserRole(RoleLimit limit) {
-        return limit != null ? limit.getRole() : null;
-    }
+    default Deployment toDeployment(RoleBasedEntity roleBasedEntity) {
+        if (roleBasedEntity == null) {
+            return null;
+        }
 
-    @Mapping(target = "name", source = "name")
-    @Mapping(target = "defaultRoleLimit", expression = "java(mapToDefaultRoleLimit())")
-    @Mapping(target = "isPublic", source = "userRoles")
-    @Mapping(target = "roleLimits", ignore = true)
-    Deployment toDeployment(RoleBasedEntity roleBasedEntity);
+        Deployment deployment = new Deployment(roleBasedEntity.getName());
+        deployment.setIsPublic(CollectionUtils.isEmpty(roleBasedEntity.getUserRoles()));
+        deployment.setDefaultRoleLimit(new Limit());
 
-    default Limit mapToDefaultRoleLimit() {
-        return new Limit();
-    }
-
-    default boolean mapToIsPublic(Set<String> userRoles) {
-        return CollectionUtils.isEmpty(userRoles);
+        return deployment;
     }
 }
