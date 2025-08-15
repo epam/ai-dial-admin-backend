@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(
         componentModel = "spring",
         uses = {
-                DeploymentCoreMapper.class, FeatureCoreMapper.class
+                DeploymentCoreMapper.class, FeatureCoreMapper.class, RouteCoreMapper.class
         }
 )
 public abstract class ApplicationCoreMapper {
@@ -18,11 +18,11 @@ public abstract class ApplicationCoreMapper {
     @Mapping(target = "userRoles", source = "deployment")
     public abstract CoreApplication mapApplication(Application model);
 
-
     @Mapping(target = "deployment", source = "application")
     @Mapping(target = "features", source = "application.features")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "routes", source = "application.routes")
     public abstract Application mapApplication(CoreApplication application);
 
 }

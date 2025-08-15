@@ -224,7 +224,55 @@
         "appendApplicationPropertiesHeader": true,
         "defs": {},
         "properties": {},
-        "required": []
+        "required": [],
+        "applicationTypeRoutes": [
+          {
+            "deployment": {
+              "name": "route1",
+              "isPublic": false
+            },
+            "description": "some desc",
+            "response": {
+              "status": 200,
+              "body": "success"
+            },
+            "rewritePath": false,
+            "paths": [
+              "/first",
+              "/second"
+            ],
+            "methods": [
+              "GET",
+              "POST"
+            ],
+            "upstreams": [
+              {
+                "endpoint": "http://sample.com",
+                "key": "someKey",
+                "extraData": {
+                  "key1": "val1"
+                },
+                "weight": 1,
+                "tier": 0
+              }
+            ],
+            "maxRetryAttempts": 5,
+            "order": 1,
+            "permissions": [
+              "write",
+              "read"
+            ],
+            "attachmentPaths": {
+              "requestBody": [
+                "/one",
+                "/two"
+              ],
+              "responseBody": [
+                "/three"
+              ]
+            }
+          }
+        ]
       }
     }
   ],
@@ -554,7 +602,55 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
-        "applicationProperties": {}
+        "applicationProperties": {},
+        "routes": [
+          {
+            "deployment": {
+              "name": "route1",
+              "isPublic": false
+            },
+            "description": "some desc",
+            "response": {
+              "status": 200,
+              "body": "success"
+            },
+            "rewritePath": false,
+            "paths": [
+              "/first",
+              "/second"
+            ],
+            "methods": [
+              "GET",
+              "POST"
+            ],
+            "upstreams": [
+              {
+                "endpoint": "http://sample.com",
+                "key": "someKey",
+                "extraData": {
+                  "key1": "val1"
+                },
+                "weight": 1,
+                "tier": 0
+              }
+            ],
+            "maxRetryAttempts": 5,
+            "order": 1,
+            "permissions": [
+              "write",
+              "read"
+            ],
+            "attachmentPaths": {
+              "requestBody": [
+                "/one",
+                "/two"
+              ],
+              "responseBody": [
+                "/three"
+              ]
+            }
+          }
+        ]
       }
     }
   ]

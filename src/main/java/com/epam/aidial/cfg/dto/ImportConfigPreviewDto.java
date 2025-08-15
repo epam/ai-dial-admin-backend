@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.domain.model.ImportComponent;
+import com.epam.aidial.cfg.dto.route.RouteDto;
 import lombok.Data;
 
 import java.util.Collection;

@@ -40,6 +40,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         expected.setDefs(Map.of());
         expected.setProperties(Map.of());
         expected.setApplications(List.of());
+        expected.setApplicationTypeRoutes(List.of());
         assertApplicationTypeSchema(actual, expected);
 
         var actualAtOldRevision = applicationTypeSchemaFacade.getAll();

@@ -1,7 +1,11 @@
-package com.epam.aidial.cfg.dto;
+package com.epam.aidial.cfg.dto.route;
 
+import com.epam.aidial.cfg.dto.ResponseDto;
+import com.epam.aidial.cfg.dto.RoleBasedDto;
+import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +20,7 @@ import java.util.Set;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class RouteDto extends RoleBasedDto {
+public abstract class BaseRouteDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
@@ -34,4 +38,6 @@ public class RouteDto extends RoleBasedDto {
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
+    @Min(value = 0, message = "Order can't be negative")
+    private int order = Integer.MAX_VALUE;
 }

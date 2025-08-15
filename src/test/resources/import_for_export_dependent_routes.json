@@ -1,0 +1,180 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {
+    "app-1": {
+      "name": "app-1",
+      "endpoint": "http://localhost:8080/api",
+      "display_name": "app-1",
+      "display_version": "1.0",
+      "forward_auth_token": false,
+      "features": {
+        "system_prompt_supported": true,
+        "tools_supported": false,
+        "seed_supported": false,
+        "url_attachments_supported": false,
+        "folder_attachments_supported": false,
+        "allow_resume": false,
+        "accessible_by_per_request_key": true,
+        "content_parts_supported": false,
+        "temperature_supported": true,
+        "addons_supported": false,
+        "parallel_tool_calls_supported": true
+      },
+      "defaults": {},
+      "interceptors": [],
+      "description_keywords": [],
+      "max_retry_attempts": 1,
+      "created_at": 1755000077757,
+      "updated_at": 1755000486051,
+      "application_properties": {},
+      "routes": {
+        "route1": {
+          "name": "route1",
+          "response": {
+            "status": 200,
+            "body": "success"
+          },
+          "rewritePath": false,
+          "paths": [
+            "some-path"
+          ],
+          "methods": [
+            "POST",
+            "GET"
+          ],
+          "upstreams": [
+            {
+              "endpoint": "http://upstream.com/api",
+              "key": "123",
+              "extraData": {
+                "field1": "val1"
+              },
+              "weight": 1,
+              "tier": 0
+            }
+          ],
+          "maxRetryAttempts": 0,
+          "order": 3,
+          "permissions": [
+            "READ",
+            "WRITE"
+          ],
+          "attachmentPaths": {
+            "requestBody": [
+              "/first",
+              "/second"
+            ],
+            "responseBody": [
+              "/third"
+            ]
+          }
+        },
+        "route2": {
+          "name": "route2",
+          "rewritePath": false,
+          "paths": [
+            "some-path"
+          ],
+          "methods": [],
+          "upstreams": [
+            {
+              "endpoint": "http://upstream.com/api",
+              "key": "123",
+              "extraData": {
+                "field1": "val1"
+              },
+              "weight": 1,
+              "tier": 0
+            }
+          ],
+          "maxRetryAttempts": 0,
+          "order": 2,
+          "permissions": [
+            "READ",
+            "WRITE"
+          ],
+          "attachmentPaths": {
+            "requestBody": [],
+            "responseBody": []
+          }
+        }
+      }
+    }
+  },
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {},
+  "retriableErrorCodes": [],
+  "interceptors": {},
+  "applicationTypeSchemas": [
+    {
+      "type": "object",
+      "title": "Some Title",
+      "description": "some desc",
+      "properties": {},
+      "$schema": "https://dial.epam.com/application_type_schemas/schema#",
+      "$id": "https://schema2",
+      "dial:applicationTypeDisplayName": "schema-2",
+      "dial:applicationTypeCompletionEndpoint": "http://ai-dial-test/openai/deployments/gpt-4o/chat/completions",
+      "dial:applicationTypeIconUrl": "http://ai-dial-test/openai/deployments/gpt-4o/chat/icon",
+      "dial:applicationTypeRoutes": {
+        "route1": {
+          "dial:response": {
+            "dial:status": 200,
+            "dial:body": "success"
+          },
+          "dial:rewritePath": false,
+          "dial:paths": [
+            "some-path"
+          ],
+          "dial:methods": [
+            "POST",
+            "GET"
+          ],
+          "dial:upstreams": [],
+          "dial:maxRetryAttempts": 0,
+          "dial:order": 3,
+          "dial:permissions": [
+            "WRITE"
+          ],
+          "dial:attachmentPaths": {
+            "dial:requestBody": [
+              "/first",
+              "/second"
+            ],
+            "dial:responseBody": [
+              "/third"
+            ]
+          }
+        },
+        "route2": {
+          "dial:rewritePath": false,
+          "dial:paths": [
+            "some-path"
+          ],
+          "dial:methods": [],
+          "dial:upstreams": [
+            {
+              "dial:endpoint": "http://upstream.com/api",
+              "dial:key": "123",
+              "dial:extraData": "{\"field1\":\"val1\"}",
+              "dial:weight": 1,
+              "dial:tier": 0
+            }
+          ],
+          "dial:maxRetryAttempts": 0,
+          "dial:order": 2,
+          "dial:permissions": [
+            "READ"
+          ]
+        }
+      },
+      "dial:applicationTypePlaybackSupport": true,
+      "$defs": {}
+    }
+  ]
+}

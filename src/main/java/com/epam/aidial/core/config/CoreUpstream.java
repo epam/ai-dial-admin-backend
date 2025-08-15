@@ -3,6 +3,8 @@ package com.epam.aidial.core.config;
 import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
@@ -14,12 +16,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CoreUpstream {
 
+    @JsonAlias({"endpoint", "dial:endpoint"})
     private String endpoint;
+
+    @JsonAlias({"key", "dial:key"})
     private String key;
+
     @JsonDeserialize(using = JsonToStringDeserializer.class)
     @JsonSerialize(using = StringToJsonSerializer.class)
+    @JsonAlias({"extraData", "dial:extraData"})
     private String extraData;
+
+    @JsonAlias({"weight", "dial:weight"})
     private int weight = 1;
+
+    @JsonAlias({"tier", "dial:tier"})
     private int tier = 0;
 
     public String toString() {
