@@ -2,7 +2,7 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;

@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.dto.RouteDto;
+import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.RouteController;
 import com.epam.aidial.cfg.web.facade.RouteFacade;

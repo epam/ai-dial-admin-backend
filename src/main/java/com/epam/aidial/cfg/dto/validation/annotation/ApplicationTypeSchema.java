@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto.validation.annotation;
 
+import com.epam.aidial.cfg.dto.validation.validator.ConformToCoreMetaSchemaDtoValidator;
 import com.epam.aidial.cfg.dto.validation.validator.ConformToCoreMetaSchemaValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.ReportAsSingleViolation;
@@ -13,7 +14,7 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.FIELD;
 
 @Documented
-@Constraint(validatedBy = {ConformToCoreMetaSchemaValidator.class})
+@Constraint(validatedBy = {ConformToCoreMetaSchemaValidator.class, ConformToCoreMetaSchemaDtoValidator.class})
 @Target({ElementType.TYPE, FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @ReportAsSingleViolation

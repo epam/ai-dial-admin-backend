@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.domain.model.route.Route;
 import lombok.Data;
 
 import java.util.Collection;

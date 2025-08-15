@@ -1,5 +1,8 @@
-package com.epam.aidial.cfg.domain.model;
+package com.epam.aidial.cfg.domain.model.route;
 
+import com.epam.aidial.cfg.domain.model.Response;
+import com.epam.aidial.cfg.domain.model.RoleBased;
+import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -14,7 +17,7 @@ import java.util.Set;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Route extends RoleBased {
+public abstract class BaseRoute extends RoleBased {
 
     private String description;
     @Valid
@@ -28,4 +31,5 @@ public class Route extends RoleBased {
     private int maxRetryAttempts;
     private Long createdAt;
     private Long updatedAt;
+    private int order;
 }

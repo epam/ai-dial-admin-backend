@@ -286,6 +286,7 @@
             "applicationTypeTokenizeEndpoint": {"type": "string"},
             "applicationTypeTruncatePromptEndpoint": {"type": "string"},
             "appendApplicationPropertiesHeader": {"type": "boolean"},
+            "applicationTypeIconUrl": {"type": "string"},
             "defs": {"type": "object"},
             "properties": {"type": "object"},
             "required": {

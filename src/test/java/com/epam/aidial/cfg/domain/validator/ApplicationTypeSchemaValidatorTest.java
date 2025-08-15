@@ -22,12 +22,14 @@ class ApplicationTypeSchemaValidatorTest {
 
     @Mock
     private IdFieldValidator idFieldValidator;
+    @Mock
+    private RouteValidator routeValidator;
 
     private ApplicationTypeSchemaValidator applicationTypeSchemaValidator;
 
     @BeforeEach
     void setUp() {
-        applicationTypeSchemaValidator = new ApplicationTypeSchemaValidator(idFieldValidator, null);
+        applicationTypeSchemaValidator = new ApplicationTypeSchemaValidator(idFieldValidator, routeValidator, null);
     }
 
     @Test

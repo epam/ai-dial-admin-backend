@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Data
@@ -31,6 +32,9 @@ public class CoreApplication extends Deployment {
     private String viewerUrl; // 0.29.0
     @JsonAlias({"editorUrl", "editor_url"})
     private String editorUrl; // 0.29.0
+
+    // maintain the order of routes defined in the app config
+    private LinkedHashMap<String, CoreRoute> routes; // 0.32.0
 
     @Data
     @Accessors(chain = true)

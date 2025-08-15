@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -29,6 +29,7 @@ public abstract class RouteEntityMapper {
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ROUTE);
+
         return updatedEntity;
     }
 

@@ -29,7 +29,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, MapPropertiesMapper.class})
+@Mapper(componentModel = "spring", uses = {
+        DeploymentEntityMapper.class, MapPropertiesMapper.class, DependentRouteEntityMapper.class
+})
 public abstract class ApplicationEntityMapper {
 
     @Autowired
@@ -37,6 +39,7 @@ public abstract class ApplicationEntityMapper {
 
     @Autowired
     private ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
+
     @Autowired
     private InterceptorJpaRepository interceptorJpaRepository;
 
@@ -108,7 +111,7 @@ public abstract class ApplicationEntityMapper {
 
         Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptors);
         if (!namesDiff.isEmpty()) {
-            throw new EntityNotFoundException("unable to find interceptors: " + namesDiff);
+            throw new EntityNotFoundException("Unable to find interceptors: " + namesDiff);
         }
 
         return interceptors;
@@ -122,6 +125,7 @@ public abstract class ApplicationEntityMapper {
         }
 
         return applicationTypeSchemaJpaRepository.findById(schemaId)
-                .orElseThrow(() -> new EntityNotFoundException("unable to find application type schema with schema id: " + schemaId));
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find application type schema with schema id: " + schemaId));
     }
+
 }
