@@ -29,7 +29,7 @@ public interface DeploymentCoreMapper {
         }
 
         Deployment deployment = new Deployment(roleBasedEntity.getName());
-        deployment.setIsPublic(CollectionUtils.isEmpty(roleBasedEntity.getUserRoles()));
+        deployment.setIsPublic(roleBasedEntity.getUserRoles() == null);
         deployment.setDefaultRoleLimit(new Limit());
 
         return deployment;

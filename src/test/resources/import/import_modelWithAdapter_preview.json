@@ -21,7 +21,7 @@
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
-          "isPublic": true,
+          "isPublic": false,
           "defaultRoleLimit": {}
         },
         "adapter": {
@@ -66,7 +66,7 @@
         "deployment": {
           "name": "testModel1",
           "roleLimits": [],
-          "isPublic": true,
+          "isPublic": false,
           "defaultRoleLimit": {}
         },
         "adapter": {
