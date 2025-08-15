@@ -1,9 +1,12 @@
 package com.epam.aidial.cfg.dto;
 
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 @Data
 public class ShareResourceLimitDto {
+    @PositiveOrZero
     private Integer maxAcceptedUsers;
-    private Integer invitationTtl;
+    @PositiveOrZero
+    private Long invitationTtl;
 }

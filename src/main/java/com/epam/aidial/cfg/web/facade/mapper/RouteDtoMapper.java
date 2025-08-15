@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
     LimitDtoMapper.class, RoleBasedDtoMapper.class, UpstreamDtoMapper.class, ResponseDtoMapper.class, InstantMapper.class,
-    AttachmentPathDtoMapper.class
+    AttachmentPathDtoMapper.class, ShareResourceLimitDtoMapper.class
 })
 public interface RouteDtoMapper {
 

@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -127,10 +126,10 @@ public class AssistantImporter extends RoleBasedImporter {
         Optional<Assistant> assistant = assistantService.tryGetAssistant(assistantName);
         if (assistant.isPresent()) {
             Assistant existingAssistant = assistant.get();
-            setRoleLimits(assistantName, existingAssistant.getDeployment().getRoleLimits(), roles, newAssistant.getDeployment(), isPreview);
+            setLimits(assistantName, existingAssistant.getDeployment(), roles, newAssistant.getDeployment(), isPreview);
             return handleExisting(newAssistant, resolutionPolicy, assistantName, isPreview);
         } else {
-            setRoleLimits(assistantName, List.of(), roles, newAssistant.getDeployment(), isPreview);
+            setLimits(assistantName, roles, newAssistant.getDeployment(), isPreview);
             if (!isPreview) {
                 assistantService.createAssistant(newAssistant);
             }

@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -73,10 +72,10 @@ public class ApplicationImporter extends RoleBasedImporter {
         Optional<Application> application = applicationService.tryGetApplication(applicationName);
         if (application.isPresent()) {
             Application existingApplication = application.get();
-            setRoleLimits(applicationName, existingApplication.getDeployment().getRoleLimits(), roles, newApplication.getDeployment(), isPreview);
+            setLimits(applicationName, existingApplication.getDeployment(), roles, newApplication.getDeployment(), isPreview);
             return handleExisting(newApplication, resolutionPolicy, applicationName, isPreview);
         } else {
-            setRoleLimits(applicationName, List.of(), roles, newApplication.getDeployment(), isPreview);
+            setLimits(applicationName, roles, newApplication.getDeployment(), isPreview);
             return create(newApplication, isPreview);
         }
     }

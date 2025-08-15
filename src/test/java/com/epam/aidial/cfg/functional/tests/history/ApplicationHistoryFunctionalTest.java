@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
@@ -69,6 +70,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("new application description");
         expected.setDefaultRoleLimit(new LimitDto());
+        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setDefaults(Map.of());
         expected.setInterceptors(List.of());
         expected.setEndpoint("endpoint2");
@@ -77,9 +79,11 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // 3 add roles to application1
         updatedApplication.setDefaultRoleLimit(new LimitDto());
+        updatedApplication.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedApplication.setDefaults(Map.of());
         updatedApplication.setInterceptors(List.of());
         updatedApplication.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
+        updatedApplication.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         updatedApplication.setRoutes(List.of());
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
         actual = applicationFacade.getApplication(applicationDto.getName());
@@ -88,7 +92,10 @@ public abstract class ApplicationHistoryFunctionalTest {
         // 4 update application1 role limits
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
+        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
+        shareResourceLimitDto.setInvitationTtl(20L);
         updatedApplication.setRoleLimits(Map.of("role3", limitDto));
+        updatedApplication.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
         var actualAtOldRevision = applicationFacade.getAllApplications();
         actual = applicationFacade.getApplication(applicationDto.getName());
@@ -100,6 +107,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
+        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete application 1
         applicationFacade.deleteApplication(applicationDto.getName());
@@ -264,6 +272,9 @@ public abstract class ApplicationHistoryFunctionalTest {
         applicationDto.setDescription("description" + suffix);
         applicationDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
+        ));
+        applicationDto.setRoleShareResourceLimits(Map.of(
+                "role" + suffix, new ShareResourceLimitDto()
         ));
         return applicationDto;
     }

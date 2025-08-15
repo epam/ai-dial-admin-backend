@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -84,11 +83,11 @@ public class RouteImporter extends RoleBasedImporter {
         Optional<Route> route = routeService.tryGetRoute(routeName);
         if (route.isPresent()) {
             Route existingRoute = route.get();
-            setRoleLimits(routeName, existingRoute.getDeployment().getRoleLimits(), roles, newRoute.getDeployment(), isPreview);
+            setLimits(routeName, existingRoute.getDeployment(), roles, newRoute.getDeployment(), isPreview);
             return handleExisting(newRoute, resolutionPolicy, routeName, isPreview);
         } else {
             validate(routeName, newRoute);
-            setRoleLimits(routeName, List.of(), roles, newRoute.getDeployment(), isPreview);
+            setLimits(routeName, roles, newRoute.getDeployment(), isPreview);
             if (!isPreview) {
                 routeService.create(newRoute);
             }

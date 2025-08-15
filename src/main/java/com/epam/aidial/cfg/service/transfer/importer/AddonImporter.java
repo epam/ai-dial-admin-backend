@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -73,10 +72,10 @@ public class AddonImporter extends RoleBasedImporter {
         Optional<Addon> addon = addonService.tryGetAddon(addonName);
         if (addon.isPresent()) {
             Addon existingAddon = addon.get();
-            setRoleLimits(addonName, existingAddon.getDeployment().getRoleLimits(), roles, newAddon.getDeployment(), isPreview);
+            setLimits(addonName, existingAddon.getDeployment(), roles, newAddon.getDeployment(), isPreview);
             return handleExisting(newAddon, resolutionPolicy, addonName, isPreview);
         } else {
-            setRoleLimits(addonName, List.of(), roles, newAddon.getDeployment(), isPreview);
+            setLimits(addonName, roles, newAddon.getDeployment(), isPreview);
             if (!isPreview) {
                 addonService.createAddon(newAddon);
             }

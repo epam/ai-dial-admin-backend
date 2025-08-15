@@ -8,5 +8,5 @@ import lombok.Data;
 public class ShareResourceLimitEntity {
 
     private Integer maxAcceptedUsers;
-    private Integer invitationTtl;
+    private Long invitationTtl;
 }

@@ -4,7 +4,8 @@
 			"deployment": {
 				"name": "test_route1",
 				"isPublic": false,
-				"defaultRoleLimit": {}
+				"defaultRoleLimit": {},
+				"defaultRoleShareResourceLimit": {}
 			},
 			"response": {
 				"status": 200,
@@ -43,7 +44,8 @@
 			"deployment": {
 				"name": "testApplication1",
 				"isPublic": false,
-				"defaultRoleLimit": {}
+				"defaultRoleLimit": {},
+				"defaultRoleShareResourceLimit": {}
 			},
 			"displayName": "Test Application1",
 			"displayVersion": "2.0.0",
@@ -83,7 +85,8 @@
 			"deployment": {
 				"name": "testApplication2",
 				"isPublic": false,
-				"defaultRoleLimit": {}
+				"defaultRoleLimit": {},
+				"defaultRoleShareResourceLimit": {}
 			},
 			"endpoint": "endpoint",
 			"displayName": "Test Application2",
@@ -165,7 +168,8 @@
 			"deployment": {
 				"name": "testModel2",
 				"isPublic": true,
-				"defaultRoleLimit": {}
+				"defaultRoleLimit": {},
+				"defaultRoleShareResourceLimit": {}
 			},
 			"displayName": "Test Model2",
 			"displayVersion": "1.0.0",
@@ -203,6 +207,9 @@
 				"isPublic": false,
 				"defaultRoleLimit": {
 					"day": 3
+				},
+				"defaultRoleShareResourceLimit": {
+					"maxAcceptedUsers": 15
 				}
 			},
 			"displayName": "Test Model1",
@@ -286,6 +293,7 @@
 			],
 			"share": [
 				{
+					"role": "testRole3",
                 	"deploymentName": "testModel1",
                 	"limit": {
                 		"maxAcceptedUsers": 10,

@@ -5,9 +5,13 @@ import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
+import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
+import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitId;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
 import org.apache.commons.collections4.SetUtils;
@@ -24,11 +28,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = RoleLimitEntityMapper.class)
+@Mapper(componentModel = "spring", uses = {RoleLimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class})
 public abstract class DeploymentEntityMapper {
 
     @Autowired
     private RoleLimitEntityMapper roleLimitEntityMapper;
+    @Autowired
+    private RoleShareResourceLimitEntityMapper roleShareResourceLimitEntityMapper;
 
     @Autowired
     private RoleJpaRepository roleJpaRepository;
@@ -36,6 +42,7 @@ public abstract class DeploymentEntityMapper {
     public abstract Deployment toDomain(DeploymentEntity deploymentEntity);
 
     @Mapping(target = "roleLimits", ignore = true)
+    @Mapping(target = "roleShareResourceLimits", ignore = true)
     @Mapping(target = "type", ignore = true)
     public abstract DeploymentEntity toEntity(Deployment deployment, @MappingTarget DeploymentEntity entity);
 
@@ -68,15 +75,38 @@ public abstract class DeploymentEntityMapper {
         deployment.getRoleLimits().addAll(roleLimitEntities);
     }
 
+    public void setRoleShareResourceLimits(DeploymentEntity deployment, List<RoleEntity> roles, List<RoleShareResourceLimit> roleShareResourceLimits) {
+        Map<RoleShareResourceLimitId, RoleShareResourceLimitEntity> existingRoleShareResourceLimitEntitiesById = deployment.getRoleShareResourceLimits().stream()
+                .collect(Collectors.toMap(RoleShareResourceLimitEntity::getId, Function.identity()));
+        Map<String, RoleEntity> rolesByNames = roles.stream()
+                .collect(Collectors.toMap(RoleEntity::getName, Function.identity()));
+        List<RoleShareResourceLimitEntity> roleShareResourceLimitEntities = roleShareResourceLimits.stream()
+                .map(roleShareResourceLimit -> mapToRoleShareResourceLimitEntity(roleShareResourceLimit, deployment, rolesByNames, existingRoleShareResourceLimitEntitiesById))
+                .toList();
+
+        deployment.getRoleShareResourceLimits().clear();
+        deployment.getRoleShareResourceLimits().addAll(roleShareResourceLimitEntities);
+    }
+
     @AfterMapping
     public void afterMapping(@MappingTarget Deployment deployment) {
         if (deployment.getDefaultRoleLimit() == null) {
             deployment.setDefaultRoleLimit(new Limit());
         }
+        if (deployment.getDefaultRoleShareResourceLimit() == null) {
+            deployment.setDefaultRoleShareResourceLimit(new ShareResourceLimit());
+        }
         if (deployment.getRoleLimits() != null) {
             for (RoleLimit roleLimit : deployment.getRoleLimits()) {
                 if (roleLimit.getLimit() == null) {
                     roleLimit.setLimit(new Limit());
+                }
+            }
+        }
+        if (deployment.getRoleShareResourceLimits() != null) {
+            for (RoleShareResourceLimit roleShareResourceLimit : deployment.getRoleShareResourceLimits()) {
+                if (roleShareResourceLimit.getLimit() == null) {
+                    roleShareResourceLimit.setLimit(new ShareResourceLimit());
                 }
             }
         }
@@ -92,5 +122,17 @@ public abstract class DeploymentEntityMapper {
                 new RoleLimitEntity()
         );
         return roleLimitEntityMapper.toEntity(roleLimit, role, deployment, roleLimitEntity);
+    }
+
+    private RoleShareResourceLimitEntity mapToRoleShareResourceLimitEntity(RoleShareResourceLimit roleShareResourceLimit,
+                                                                           DeploymentEntity deployment,
+                                                                           Map<String, RoleEntity> rolesByNames,
+                                                                           Map<RoleShareResourceLimitId, RoleShareResourceLimitEntity> existingRoleShareResourceLimitEntitiesById) {
+        RoleEntity role = rolesByNames.get(roleShareResourceLimit.getRole());
+        RoleShareResourceLimitEntity roleShareResourceLimitEntity = existingRoleShareResourceLimitEntitiesById.getOrDefault(
+                new RoleShareResourceLimitId(deployment.getId(), role.getId()),
+                new RoleShareResourceLimitEntity()
+        );
+        return roleShareResourceLimitEntityMapper.toEntity(roleShareResourceLimit, role, deployment, roleShareResourceLimitEntity);
     }
 }

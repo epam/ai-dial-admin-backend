@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,7 +59,10 @@ public abstract class ModelEntityMapper {
                 .toList();
 
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
-        List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+        List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
+        List<RoleEntity> rolesForResourceShareLimits = deploymentEntityMapper.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
 
         AdapterEntity adapterEntity = findAdapter(domain.getAdapter());
 
@@ -69,7 +73,8 @@ public abstract class ModelEntityMapper {
         updatedEntity.getInterceptors().clear();
         updatedEntity.getInterceptors().addAll(duplicatedInterceptors);
 
-        deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
+        deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
+        deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
 
         AdapterEntity currentAdapter = updatedEntity.getAdapter();
         if (currentAdapter != null) {

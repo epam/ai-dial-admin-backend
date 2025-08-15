@@ -220,8 +220,10 @@
               "limit": {}
             }
           ],
+          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "response": {
           "status": 200,
@@ -269,8 +271,10 @@
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
+          "roleShareResourceLimits": [],
           "isPublic": true,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
@@ -336,8 +340,19 @@
               }
             }
           ],
+          "roleShareResourceLimits": [
+            {
+              "role": "testRole1",
+              "deploymentName": "testModel1",
+              "limit": {
+                "maxAcceptedUsers": 10,
+                "invitationTtl": 120
+              }
+            }
+          ],
           "isPublic": false,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
@@ -390,8 +405,10 @@
               "limit": {}
             }
           ],
+          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
@@ -438,8 +455,10 @@
               "limit": {}
             }
           ],
+          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "endpoint": "endpoint",
         "displayName": "Test Application2",
@@ -481,8 +500,10 @@
               "limit": {}
             }
           ],
+          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "endpoint": "https://endpoint.test.com/embeddings",
         "iconUrl": "https://test.com/icon",

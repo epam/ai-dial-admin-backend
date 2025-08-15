@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class})
+@Mapper(componentModel = "spring", uses = {LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class, ShareResourceLimitDtoMapper.class})
 public interface AddonDtoMapper {
 
     @RoleBasedDtoMapper.ToDomain
