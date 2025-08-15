@@ -34,6 +34,12 @@
       }
     ],
     "maxRetryAttempts": 3,
+    "order": 3,
+    "permissions": [],
+    "attachmentPaths": {
+      "requestBody": [],
+      "responseBody": []
+    },
     "deployment": {
       "id": 100,
       "name": "sampleDeployment",

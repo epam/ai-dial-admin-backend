@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;

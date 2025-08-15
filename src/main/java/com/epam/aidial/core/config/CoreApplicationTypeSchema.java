@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,15 @@ public class CoreApplicationTypeSchema {
 
     @JsonProperty("dial:appendApplicationPropertiesHeader")
     private Boolean appendApplicationPropertiesHeader; // 0.26.0
+
+    @JsonProperty("dial:applicationTypeIconUrl")
+    private String applicationTypeIconUrl; // 0.29.0
+
+    @JsonProperty("dial:applicationTypeRoutes")
+    private LinkedHashMap<String, CoreApplicationTypeSchemaRoute> applicationTypeRoutes; // 0.33.0
+
+    @JsonProperty("dial:applicationTypePlaybackSupport")
+    private Boolean applicationTypePlaybackSupport; // 0.34.0
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

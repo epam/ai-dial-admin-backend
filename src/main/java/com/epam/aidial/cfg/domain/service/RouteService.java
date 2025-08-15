@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class RouteService {
         Optional.of(route)
                 .map(domainModel -> mapper.toEntity(domainModel, new RouteEntity()))
                 .map(routeJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("unable to create route " + route.getDeployment().getName()));
+                .orElseThrow(() -> new RuntimeException("Unable to create route " + route.getDeployment().getName()));
     }
 
     @Transactional
@@ -94,4 +94,5 @@ public class RouteService {
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
+
 }

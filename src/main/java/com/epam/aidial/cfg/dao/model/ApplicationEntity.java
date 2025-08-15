@@ -71,6 +71,9 @@ public class ApplicationEntity extends TimeTrackableEntity<String> {
     private String viewerUrl;
     private String editorUrl;
 
+    @Column(columnDefinition = "CLOB")
+    private String routes;
+
     @PreRemove
     public void preRemove() {
         for (InterceptorEntity interceptor : interceptors) {

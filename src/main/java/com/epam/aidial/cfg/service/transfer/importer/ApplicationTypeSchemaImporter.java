@@ -56,7 +56,10 @@ public class ApplicationTypeSchemaImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction process(String schemaId, ApplicationTypeSchema schema, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
+    private ImportAction process(String schemaId,
+                                 ApplicationTypeSchema schema,
+                                 ConflictResolutionPolicy resolutionPolicy,
+                                 boolean isPreview) {
         if (service.exists(schemaId)) {
             return handleExisting(schema, resolutionPolicy, schemaId, isPreview);
         } else {

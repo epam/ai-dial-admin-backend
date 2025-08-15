@@ -1,12 +1,9 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.model.Role;
-import com.epam.aidial.cfg.domain.model.Route;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
-import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.RouteDto;
+import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

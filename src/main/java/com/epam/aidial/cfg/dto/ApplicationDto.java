@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -43,6 +44,8 @@ public class ApplicationDto extends RoleBasedDto {
 
     private String viewerUrl;
     private String editorUrl;
+
+    private List<DependentRouteDto> routes;
 
     private FunctionDto function;
 

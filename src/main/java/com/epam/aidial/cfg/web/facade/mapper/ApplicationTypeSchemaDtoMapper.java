@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = InstantMapper.class)
+@Mapper(componentModel = "spring", uses = {InstantMapper.class, RouteDtoMapper.class})
 public interface ApplicationTypeSchemaDtoMapper {
 
     @Mapping(target = "schemaId", source = "id")
