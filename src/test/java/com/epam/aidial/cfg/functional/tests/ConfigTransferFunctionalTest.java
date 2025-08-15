@@ -1410,6 +1410,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         // then
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
             Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
@@ -1431,25 +1432,39 @@ public abstract class ConfigTransferFunctionalTest {
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
-        ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
-        Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+
+        ApplicationDto application1 = applicationFacade.getApplication("testApplication1");
+        ApplicationDto application2 = applicationFacade.getApplication("testApplication2");
+
+        Assertions.assertThat(application1.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
+        Assertions.assertThat(application1.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+
+        var appRoute = application2.getRoutes().get(0);
+        var expectedRoute = getDependentRouteDto("route1");
+        Assertions.assertThat(appRoute).isEqualTo(expectedRoute);
+
         Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
+
         Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
                 Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
         );
+
         Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
+
         Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {
             Assertions.assertThat(r.getName()).isEqualTo("testRunner1");
             Assertions.assertThat(r.getCompletionEndpoint()).isEqualTo("https://template.test.com/api");
             Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
         });
+
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
+
         Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
 
         Map<String, AdapterDto> adapters = adapterFacade.getAllAdapters().stream().collect(Collectors.toMap(AdapterDto::getName, a -> a));
+
         Assertions.assertThat(adapters.get("adapter1")).satisfies(adapterDto -> {
             Assertions.assertThat(adapterDto.getName()).isEqualTo("adapter1");
             Assertions.assertThat(adapterDto.getBaseEndpoint()).isEqualTo("http://endpoint1/");

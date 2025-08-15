@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 @Mapper(
         componentModel = "spring",
-        uses = RoleLimitMapper.class
+        uses = DeploymentCoreMapper.class
 )
 public abstract class ApplicationTypeSchemaRouteCoreMapper {
 
