@@ -169,6 +169,9 @@ dependencies {
         implementation ('io.projectreactor.netty:reactor-netty-http:1.2.8') {
             because("previous versions have vulnerabilities")
         }
+        implementation ('io.netty:netty-codec-http2:4.2.4.Final') {
+            because("previous versions have vulnerabilities")
+        }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
         }
