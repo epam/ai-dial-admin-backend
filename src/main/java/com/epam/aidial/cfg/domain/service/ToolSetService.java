@@ -54,7 +54,6 @@ public class ToolSetService {
         toolSetNormalizer.normalize(toolSet);
         toolSetValidator.validateCreation(toolSet);
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
-        // TODO [VPA]: validate toolSet does not exist by displayName?
         Optional.of(toolSet)
                     .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
                     .map(toolSetJpaRepository::save)
@@ -65,7 +64,6 @@ public class ToolSetService {
     public void update(String toolSetName, ToolSet value) {
         toolSetNormalizer.normalize(value);
         toolSetValidator.validateUpdate(toolSetName, value);
-        // TODO [VPA]: validate toolSet does not exist by displayName?
         ToolSetEntity toolSetEntity = toolSetJpaRepository.findById(toolSetName)
                     .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
         Optional.of(value)
