@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-// TODO [VPA]: add DB migrations
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
@@ -31,6 +30,14 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     @JoinColumn(name = "deployment_name", unique = true)
     @OneToOne(targetEntity = DeploymentEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private DeploymentEntity deployment;
+
+    private String endpoint;
+    private String iconUrl;
+    private String description;
+    private String displayName;
+    private List<String> descriptionKeywords;
+    private Integer maxRetryAttempts;
+    private String author;
 
     @Enumerated(EnumType.STRING)
     private TransportEntity transport;

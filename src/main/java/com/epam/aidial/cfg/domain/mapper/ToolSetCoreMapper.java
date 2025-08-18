@@ -15,6 +15,15 @@ public abstract class ToolSetCoreMapper {
 
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "userRoles", source = "deployment")
+    @Mapping(target = "displayVersion", ignore = true)
+    @Mapping(target = "reference", ignore = true)
+    @Mapping(target = "forwardAuthToken", ignore = true)
+    @Mapping(target = "features", ignore = true)
+    @Mapping(target = "inputAttachmentTypes", ignore = true)
+    @Mapping(target = "maxInputAttachments", ignore = true)
+    @Mapping(target = "defaults", ignore = true)
+    @Mapping(target = "interceptors", ignore = true)
+    @Mapping(target = "dependencies", ignore = true)
     public abstract CoreToolSet mapToolSet(ToolSet toolSet);
 
     @Mapping(target = "deployment", source = "toolSet")

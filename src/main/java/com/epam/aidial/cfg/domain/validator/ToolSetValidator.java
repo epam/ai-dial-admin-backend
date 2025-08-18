@@ -22,7 +22,7 @@ public class ToolSetValidator {
         this.toolSetNameValidationPattern = toolSetNameValidationPattern;
     }
 
-    public void validateToolSetCreation(ToolSet toolSet) {
+    public void validateCreation(ToolSet toolSet) {
         final String toolSetName = toolSet.getDeployment().getName();
 
         deploymentValidator.validateCreation("ToolSet", toolSetName);
@@ -33,10 +33,20 @@ public class ToolSetValidator {
             throw new IllegalArgumentException("toolSet name '" + toolSetName
                         + "' does not match the required pattern: " + toolSetNameValidationPattern);
         }
+
+        validateToolSetFields(toolSet);
     }
 
     public void validateUpdate(String toolSetName, ToolSet toolSet) {
         deploymentValidator.validateUpdate(toolSetName, toolSet.getDeployment(), "ToolSet");
+        validateToolSetFields(toolSet);
+    }
+
+    private void validateToolSetFields(ToolSet toolSet) {
+        final String endpoint = toolSet.getEndpoint();
+        if (endpoint != null && StringUtils.isBlank(endpoint)) {
+            throw new IllegalArgumentException("Invalid endpoint: '" + endpoint + "'");
+        }
     }
 
 }

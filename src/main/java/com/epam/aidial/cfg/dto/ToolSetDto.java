@@ -14,14 +14,21 @@ public class ToolSetDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
-    @NotNull
-    private TransportDto transport;
-    private List<String> allowedTools = List.of();
-
+    private String endpoint;
+    private String iconUrl;
+    private String description;
+    private String displayName;
+    private List<String> descriptionKeywords;
+    private Integer maxRetryAttempts;
+    private String author;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
+
+    @NotNull
+    private TransportDto transport;
+    private List<String> allowedTools = List.of();
 
     public enum TransportDto {
         HTTP, SSE

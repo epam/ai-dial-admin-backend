@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class ToolSetService {
     private final ToolSetEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final ToolSetValidator toolSetValidator;
+    private final ToolSetNormalizer toolSetNormalizer;
     private final HistoryService historyService;
 
     @Transactional(readOnly = true)
@@ -49,8 +51,10 @@ public class ToolSetService {
 
     @Transactional
     public void create(ToolSet toolSet) {
-        toolSetValidator.validateToolSetCreation(toolSet);
+        toolSetNormalizer.normalize(toolSet);
+        toolSetValidator.validateCreation(toolSet);
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
+        // TODO [VPA]: validate toolSet does not exist by displayName?
         Optional.of(toolSet)
                     .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
                     .map(toolSetJpaRepository::save)
@@ -59,7 +63,9 @@ public class ToolSetService {
 
     @Transactional
     public void update(String toolSetName, ToolSet value) {
+        toolSetNormalizer.normalize(value);
         toolSetValidator.validateUpdate(toolSetName, value);
+        // TODO [VPA]: validate toolSet does not exist by displayName?
         ToolSetEntity toolSetEntity = toolSetJpaRepository.findById(toolSetName)
                     .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
         Optional.of(value)
@@ -79,13 +85,6 @@ public class ToolSetService {
         return toolSetJpaRepository.existsById(toolSetName);
     }
 
-    private void assertExists(String name) {
-        boolean exists = toolSetJpaRepository.existsById(name);
-        if (!exists) {
-            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
-        }
-    }
-
     @Transactional(readOnly = true)
     public ToolSet getSnapshot(String toolSetName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, toolSetName, ToolSetEntity.class);
@@ -98,6 +97,13 @@ public class ToolSetService {
                     .stream()
                     .map(mapper::toDomain)
                     .collect(Collectors.toList());
+    }
+
+    private void assertExists(String name) {
+        boolean exists = toolSetJpaRepository.existsById(name);
+        if (!exists) {
+            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
+        }
     }
 
 }

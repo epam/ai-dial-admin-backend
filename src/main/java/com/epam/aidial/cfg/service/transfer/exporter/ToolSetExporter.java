@@ -32,13 +32,13 @@ public class ToolSetExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.TOOL_SET)
                     ? getToolSets(fullExportRequest).stream()
-                    .collect(Collectors.toMap(ToolSet -> ToolSet.getDeployment().getName(), Function.identity(),
+                    .collect(Collectors.toMap(toolSet -> toolSet.getDeployment().getName(), Function.identity(),
                             (existing, newToolSet) -> newToolSet, LinkedHashMap::new))
                     : new LinkedHashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getToolSets(selectedItemsExportRequest).stream()
                     .collect(Collectors.toMap(
-                            ToolSet -> ToolSet.getDeployment().getName(), Function.identity(),
+                            toolSet -> toolSet.getDeployment().getName(), Function.identity(),
                             (existing, replacement) -> {
                                 throw new IllegalStateException("Duplicate ToolSets found: %s".formatted(existing));
                             },
@@ -50,15 +50,6 @@ public class ToolSetExporter {
 
     protected Collection<ToolSet> getToolSets() {
         return toolSetService.getAll();
-    }
-
-    protected Collection<ExportComponentInfo> preview(ExportRequest request) {
-        return getToolSets(request).values().stream()
-                .map(component -> ExportComponentInfo.builder()
-                    .name(component.getDeployment().getName())
-                    .type(ExportConfigComponentType.TOOL_SET)
-                    .build())
-                .collect(Collectors.toList());
     }
 
     private List<ToolSet> getToolSets(SelectedItemsExportRequest selectedItemsExportRequest) {
@@ -74,8 +65,8 @@ public class ToolSetExporter {
                 .values()
                 .stream()
                 .map(component -> {
-                    ToolSet ToolSet = toolSetService.get(component.getName());
-                    return removeDependency(ToolSet, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
+                    ToolSet toolSet = toolSetService.get(component.getName());
+                    return removeDependency(toolSet, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
                 .toList();
     }
@@ -84,6 +75,17 @@ public class ToolSetExporter {
         return getToolSets().stream()
                 .map(toolSet -> removeDependency(toolSet, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
+    }
+
+    protected Collection<ExportComponentInfo> preview(ExportRequest request) {
+        return getToolSets(request).values().stream()
+                .map(component -> ExportComponentInfo.builder()
+                    .name(component.getDeployment().getName())
+                    .displayName(component.getDisplayName())
+                    .type(ExportConfigComponentType.TOOL_SET)
+                    .description(component.getDescription())
+                    .build())
+                .collect(Collectors.toList());
     }
 
     private ToolSet removeDependency(ToolSet toolSet, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
