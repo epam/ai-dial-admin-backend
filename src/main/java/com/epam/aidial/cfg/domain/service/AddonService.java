@@ -37,10 +37,15 @@ public class AddonService {
 
     @Transactional(readOnly = true)
     public Addon getAddon(String addonName) {
+        return tryGetAddon(addonName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(addonName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Addon> tryGetAddon(String addonName) {
         return Optional.ofNullable(addonName)
                 .flatMap(addonJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(addonName)));
+                .map(mapper::toDomain);
     }
 
     @FeatureFlagGate(featureFlag = "addonsSupported")

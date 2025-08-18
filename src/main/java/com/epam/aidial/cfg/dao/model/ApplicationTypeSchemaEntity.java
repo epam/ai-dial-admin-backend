@@ -40,6 +40,8 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private String applicationTypeTokenizeEndpoint;
     private String applicationTypeTruncatePromptEndpoint;
     private Boolean appendApplicationPropertiesHeader;
+    private String applicationTypeIconUrl;
+    private Boolean applicationTypePlaybackSupport;
 
     @Column(columnDefinition = "CLOB")
     private String defs;
@@ -54,6 +56,9 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private List<ApplicationEntity> applications = new ArrayList<>();
 
     private Set<String> topics;
+
+    @Column(columnDefinition = "CLOB", name = "routes")
+    private String routes;
 
     @Override
     public String getId() {

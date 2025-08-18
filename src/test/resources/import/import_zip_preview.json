@@ -224,7 +224,55 @@
         "appendApplicationPropertiesHeader": true,
         "defs": {},
         "properties": {},
-        "required": []
+        "required": [],
+        "applicationTypeRoutes": [
+          {
+            "deployment": {
+              "name": "route1",
+              "isPublic": false
+            },
+            "description": "some desc",
+            "response": {
+              "status": 200,
+              "body": "success"
+            },
+            "rewritePath": false,
+            "paths": [
+              "/first",
+              "/second"
+            ],
+            "methods": [
+              "GET",
+              "POST"
+            ],
+            "upstreams": [
+              {
+                "endpoint": "http://sample.com",
+                "key": "someKey",
+                "extraData": {
+                  "key1": "val1"
+                },
+                "weight": 1,
+                "tier": 0
+              }
+            ],
+            "maxRetryAttempts": 5,
+            "order": 1,
+            "permissions": [
+              "write",
+              "read"
+            ],
+            "attachmentPaths": {
+              "requestBody": [
+                "/one",
+                "/two"
+              ],
+              "responseBody": [
+                "/three"
+              ]
+            }
+          }
+        ]
       }
     }
   ],
@@ -234,6 +282,26 @@
       "value": {
         "deployment": {
           "name": "test_route1",
+          "roleLimits": [
+            {
+              "role": "testRole3",
+              "deploymentName": "test_route1",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "test_route1",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole1",
+              "deploymentName": "test_route1",
+              "enabled": true,
+              "limit": {}
+            }
+          ],
           "isPublic": false,
           "defaultRoleLimit": {}
         },
@@ -291,6 +359,26 @@
       "value": {
         "deployment": {
           "name": "testModel2",
+          "roleLimits": [
+            {
+              "role": "testRole3",
+              "deploymentName": "testModel2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testModel2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole1",
+              "deploymentName": "testModel2",
+              "enabled": false,
+              "limit": {}
+            }
+          ],
           "isPublic": true,
           "defaultRoleLimit": {}
         },
@@ -330,6 +418,28 @@
       "value": {
         "deployment": {
           "name": "testModel1",
+          "roleLimits": [
+            {
+              "role": "testRole3",
+              "deploymentName": "testModel1",
+              "enabled": true,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testModel1",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole1",
+              "deploymentName": "testModel1",
+              "enabled": true,
+              "limit": {
+                "day": 1
+              }
+            }
+          ],
           "isPublic": false,
           "defaultRoleLimit": {
             "day": 3
@@ -382,6 +492,26 @@
       "value": {
         "deployment": {
           "name": "testApplication1",
+          "roleLimits": [
+            {
+              "role": "testRole3",
+              "deploymentName": "testApplication1",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testApplication1",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole1",
+              "deploymentName": "testApplication1",
+              "enabled": true,
+              "limit": {}
+            }
+          ],
           "isPublic": false,
           "defaultRoleLimit": {}
         },
@@ -425,6 +555,26 @@
       "value": {
         "deployment": {
           "name": "testApplication2",
+          "roleLimits": [
+            {
+              "role": "testRole3",
+              "deploymentName": "testApplication2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testApplication2",
+              "enabled": false,
+              "limit": {}
+            },
+            {
+              "role": "testRole1",
+              "deploymentName": "testApplication2",
+              "enabled": true,
+              "limit": {}
+            }
+          ],
           "isPublic": false,
           "defaultRoleLimit": {}
         },
@@ -452,7 +602,55 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
-        "applicationProperties": {}
+        "applicationProperties": {},
+        "routes": [
+          {
+            "deployment": {
+              "name": "route1",
+              "isPublic": false
+            },
+            "description": "some desc",
+            "response": {
+              "status": 200,
+              "body": "success"
+            },
+            "rewritePath": false,
+            "paths": [
+              "/first",
+              "/second"
+            ],
+            "methods": [
+              "GET",
+              "POST"
+            ],
+            "upstreams": [
+              {
+                "endpoint": "http://sample.com",
+                "key": "someKey",
+                "extraData": {
+                  "key1": "val1"
+                },
+                "weight": 1,
+                "tier": 0
+              }
+            ],
+            "maxRetryAttempts": 5,
+            "order": 1,
+            "permissions": [
+              "write",
+              "read"
+            ],
+            "attachmentPaths": {
+              "requestBody": [
+                "/one",
+                "/two"
+              ],
+              "responseBody": [
+                "/three"
+              ]
+            }
+          }
+        ]
       }
     }
   ]

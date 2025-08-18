@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.dto.databind.JsonMapDeserializer;
 import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,6 +29,9 @@ public class ApplicationTypeSchema {
     private String applicationTypeTokenizeEndpoint;
     private String applicationTypeTruncatePromptEndpoint;
     private Boolean appendApplicationPropertiesHeader;
+    private String applicationTypeIconUrl;
+    private List<DependentRoute> applicationTypeRoutes;
+    private Boolean applicationTypePlaybackSupport;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

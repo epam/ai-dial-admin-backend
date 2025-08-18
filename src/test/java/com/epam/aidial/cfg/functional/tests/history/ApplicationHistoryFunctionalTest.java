@@ -72,6 +72,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setInterceptors(List.of());
         expected.setEndpoint("endpoint2");
+        expected.setRoutes(List.of());
         assertApplication(actual, expected);
 
         // 3 add roles to application1
@@ -79,6 +80,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         updatedApplication.setDefaults(Map.of());
         updatedApplication.setInterceptors(List.of());
         updatedApplication.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
+        updatedApplication.setRoutes(List.of());
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
         actual = applicationFacade.getApplication(applicationDto.getName());
         assertApplication(actual, updatedApplication);

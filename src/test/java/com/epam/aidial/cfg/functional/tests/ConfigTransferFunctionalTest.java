@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
@@ -18,15 +19,20 @@ import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
+import com.epam.aidial.cfg.dto.AttachmentPathDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.RouteDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.UpstreamDto;
+import com.epam.aidial.cfg.dto.route.DependentRouteDto;
+import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
+import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
@@ -51,6 +57,7 @@ import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -62,6 +69,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -75,6 +83,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +96,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -183,6 +193,11 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(allKeys).hasSize(2).allSatisfy(key ->
                 Assertions.assertThatCode(() -> UUID.fromString(key)).doesNotThrowAnyException()
         );
+        Assertions.assertThat(roleFacade.getRole("testRole1").getShare()).hasSize(1).satisfies(share -> {
+            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+        });
     }
 
     @Test
@@ -222,7 +237,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThatThrownBy(() -> configTransfer.importConfig(List.of(mockFile), overrideAndNotCreateRoleAndCreateNew()))
                 //then
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("unable to find roles: [testRole1]");
+                .hasMessageContaining("Unable to find role: testRole1");
     }
 
     @Test
@@ -469,6 +484,126 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExport_AdminFormatApplicationAndAppTypeSchemaWithRoutes() throws IOException {
+        // Given
+        Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.APPLICATION, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA);
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(componentTypes);
+
+        // Routes
+        var route1 = getDependentRouteDto("route1");
+        var route2 = getDependentRouteDto("route2");
+        List<DependentRouteDto> routeDtos = List.of(route1, route2);
+
+        // Application
+        final String appName = "application1";
+        ApplicationDto applicationDto = new ApplicationDto();
+        applicationDto.setName(appName);
+        applicationDto.setEndpoint("http://sample.com/app");
+        applicationDto.setRoutes(routeDtos);
+
+        applicationFacade.createApplication(applicationDto);
+
+        // Application Type Schema
+        ApplicationTypeSchemaDto typeSchemaDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<>() {});
+        typeSchemaDto.setApplicationTypeRoutes(routeDtos);
+
+        applicationTypeSchemaFacade.create(typeSchemaDto);
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // Then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplications()).isNotEmpty()
+                    .containsOnlyKeys(appName)
+                    .satisfies(apps -> {
+                        List<DependentRoute> routes = apps.get(appName).getRoutes();
+                        Assertions.assertThat(routes).isNotEmpty();
+                        Assertions.assertThat(routes.size()).isEqualTo(2);
+
+                        DependentRoute route = routes.get(0);
+                        Assertions.assertThat(route.getDescription()).isEqualTo(route1.getDescription());
+                        Assertions.assertThat(route.getOrder()).isEqualTo(route1.getOrder());
+                        Assertions.assertThat(route.getMaxRetryAttempts()).isEqualTo(route1.getMaxRetryAttempts());
+                        Assertions.assertThat(route.getPaths()).isEqualTo(route1.getPaths());
+                        Assertions.assertThat(route.getMethods()).isEqualTo(route1.getMethods());
+                        Assertions.assertThat(route.getResponse())
+                                .satisfies(response -> {
+                                    Assertions.assertThat(response).isNotNull();
+                                    Assertions.assertThat(response.getStatus()).isEqualTo(route1.getResponse().getStatus());
+                                    Assertions.assertThat(response.getBody()).isEqualTo(route1.getResponse().getBody());
+                                });
+                        Assertions.assertThat(route.getPermissions())
+                                .satisfies(permissions -> {
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.READ));
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.WRITE));
+                                });
+                        Assertions.assertThat(route.getAttachmentPaths())
+                                .satisfies(attachmentPaths -> {
+                                    Assertions.assertThat(attachmentPaths).isNotNull();
+                                    Assertions.assertThat(attachmentPaths.getRequestBody()).isEqualTo(route1.getAttachmentPaths().getRequestBody());
+                                    Assertions.assertThat(attachmentPaths.getResponseBody()).isEqualTo(route1.getAttachmentPaths().getResponseBody());
+                                });
+                        Assertions.assertThat(route.getUpstreams())
+                                .satisfies(upstreams -> {
+                                    Assertions.assertThat(upstreams).isNotEmpty();
+                                    var upstream = upstreams.get(0);
+                                    var expectedUpstream = route1.getUpstreams().get(0);
+                                    Assertions.assertThat(upstream.getEndpoint()).isEqualTo(expectedUpstream.getEndpoint());
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
+                                    Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
+                                });
+                    });
+
+            final String schemaId = "https://test-schema-id.example";
+            Assertions.assertThat(config.getApplicationRunners()).isNotEmpty()
+                    .containsOnlyKeys(schemaId)
+                    .satisfies(runner -> {
+                        List<DependentRoute> routes = runner.get(schemaId).getApplicationTypeRoutes();
+                        Assertions.assertThat(routes).isNotEmpty();
+                        Assertions.assertThat(routes.size()).isEqualTo(2);
+
+                        DependentRoute route = routes.get(0);
+                        Assertions.assertThat(route.getDescription()).isEqualTo(route1.getDescription());
+                        Assertions.assertThat(route.getOrder()).isEqualTo(route1.getOrder());
+                        Assertions.assertThat(route.getMaxRetryAttempts()).isEqualTo(route1.getMaxRetryAttempts());
+                        Assertions.assertThat(route.getPaths()).isEqualTo(route1.getPaths());
+                        Assertions.assertThat(route.getMethods()).isEqualTo(route1.getMethods());
+                        Assertions.assertThat(route.getResponse())
+                                .satisfies(response -> {
+                                    Assertions.assertThat(response).isNotNull();
+                                    Assertions.assertThat(response.getStatus()).isEqualTo(route1.getResponse().getStatus());
+                                    Assertions.assertThat(response.getBody()).isEqualTo(route1.getResponse().getBody());
+                                });
+                        Assertions.assertThat(route.getPermissions())
+                                .satisfies(permissions -> {
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.READ));
+                                    assertTrue(permissions.contains(DependentRoute.ResourceAccessType.WRITE));
+                                });
+                        Assertions.assertThat(route.getAttachmentPaths())
+                                .satisfies(attachmentPaths -> {
+                                    Assertions.assertThat(attachmentPaths).isNotNull();
+                                    Assertions.assertThat(attachmentPaths.getRequestBody()).isEqualTo(route1.getAttachmentPaths().getRequestBody());
+                                    Assertions.assertThat(attachmentPaths.getResponseBody()).isEqualTo(route1.getAttachmentPaths().getResponseBody());
+                                });
+                        Assertions.assertThat(route.getUpstreams())
+                                .satisfies(upstreams -> {
+                                    Assertions.assertThat(upstreams).isNotEmpty();
+                                    var upstream = upstreams.get(0);
+                                    var expectedUpstream = route1.getUpstreams().get(0);
+                                    Assertions.assertThat(upstream.getEndpoint()).isEqualTo(expectedUpstream.getEndpoint());
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
+                                    Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
+                                });
+                    });
+        });
+    }
+
+    @Test
     void testExport_AdminFormatModelWithInterceptorAndRoleAndAdapter_FullRequest() throws IOException {
         // given
         Set<ExportConfigComponentType> componentTypes = Set.of(
@@ -663,7 +798,7 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
-    void testExport_CoreFormatKeyWithoutRoles_FullRequest() throws IOException, URISyntaxException {
+    void testExport_CoreFormatKeyWithoutRoles_FullRequest() throws IOException {
         // given
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
@@ -786,6 +921,91 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getRoles().get("testRole").getLimits()).isNotEmpty().hasSize(1).first()
                     .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("applicationName"));
             Assertions.assertThat(result.getModels()).isEmpty();
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatApplicationAndAppTypeSchemaWithRoutes() throws IOException {
+        // Given
+        String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export_dependent_routes.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        String expectedSchemaJson = FileUtils.readFileToString(new File("src/test/resources/app_type_schema_with_routes.json"),
+                StandardCharsets.UTF_8);
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        Set<ExportConfigComponentType> componentTypes = Set.of(
+                ExportConfigComponentType.APPLICATION, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA
+        );
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(componentTypes);
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+        // Then
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplications()).isNotEmpty()
+                    .containsOnlyKeys("app-1")
+                    .satisfies(apps -> {
+                        var routes = apps.get("app-1").getRoutes();
+                        Assertions.assertThat(routes).isNotEmpty();
+                        Assertions.assertThat(routes.size()).isEqualTo(2);
+
+                        CoreRoute route = routes.get("route1");
+                        Assertions.assertThat(route.getName()).isEqualTo("route1");
+                        Assertions.assertThat(route.getOrder()).isEqualTo(3);
+                        Assertions.assertThat(route.getMaxRetryAttempts()).isEqualTo(0);
+                        Assertions.assertThat(route.getPaths()).isNotEmpty();
+                        Assertions.assertThat(route.getMethods()).isEqualTo(Set.of("POST", "GET"));
+                        Assertions.assertThat(route.getResponse())
+                                .satisfies(response -> {
+                                    Assertions.assertThat(response).isNotNull();
+                                    Assertions.assertThat(response.getStatus()).isEqualTo(200);
+                                    Assertions.assertThat(response.getBody()).isEqualTo("success");
+                                });
+                        Assertions.assertThat(route.getPermissions())
+                                .satisfies(permissions -> {
+                                    assertTrue(permissions.contains(CoreRoute.ResourceAccessType.READ));
+                                    assertTrue(permissions.contains(CoreRoute.ResourceAccessType.WRITE));
+                                });
+                        Assertions.assertThat(route.getAttachmentPaths())
+                                .satisfies(attachmentPaths -> {
+                                    Assertions.assertThat(attachmentPaths).isNotNull();
+                                    Assertions.assertThat(attachmentPaths.getRequestBody()).isEqualTo(List.of("/first", "/second"));
+                                    Assertions.assertThat(attachmentPaths.getResponseBody()).isEqualTo(List.of("/third"));
+                                });
+                        Assertions.assertThat(route.getUpstreams())
+                                .satisfies(upstreams -> {
+                                    Assertions.assertThat(upstreams).isNotEmpty();
+                                    var upstream = upstreams.get(0);
+                                    Assertions.assertThat(upstream.getEndpoint()).isEqualTo("http://upstream.com/api");
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo("123");
+                                    Assertions.assertThat(upstream.getExtraData()).isEqualTo("{\"field1\":\"val1\"}");
+                                });
+                    });
+
+            final String schemaId = "https://schema2";
+            Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty()
+                    .containsOnlyKeys(schemaId)
+                    .satisfies(runner -> {
+                        String schemaJson = runner.get(schemaId);
+                        Assertions.assertThat(schemaJson).isNotEmpty();
+                        JSONAssert.assertEquals(expectedSchemaJson, schemaJson, true);
+                    });
         });
     }
 
@@ -1098,10 +1318,13 @@ public abstract class ConfigTransferFunctionalTest {
         // given
         var inputStream = getZipInputStreamWithAdminConfig();
         var zipFile = new MockMultipartFile("file", inputStream);
+
         // when
         configTransfer.importConfigZip(zipFile, overrideAndCreateRoleAndCreateNew());
+
         // then
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
             Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
@@ -1123,29 +1346,141 @@ public abstract class ConfigTransferFunctionalTest {
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
-        ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
-        Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+
+        ApplicationDto application1 = applicationFacade.getApplication("testApplication1");
+        ApplicationDto application2 = applicationFacade.getApplication("testApplication2");
+
+        Assertions.assertThat(application1.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
+        Assertions.assertThat(application1.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+
+        var appRoute = application2.getRoutes().get(0);
+        var expectedRoute = getDependentRouteDto("route1");
+        Assertions.assertThat(appRoute).isEqualTo(expectedRoute);
+
         Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
+
         Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
                 Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
         );
+
         Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
+
         Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {
             Assertions.assertThat(r.getName()).isEqualTo("testRunner1");
             Assertions.assertThat(r.getCompletionEndpoint()).isEqualTo("https://template.test.com/api");
             Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
         });
+
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
+
         Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
 
         Map<String, AdapterDto> adapters = adapterFacade.getAllAdapters().stream().collect(Collectors.toMap(AdapterDto::getName, a -> a));
+
         Assertions.assertThat(adapters.get("adapter1")).satisfies(adapterDto -> {
             Assertions.assertThat(adapterDto.getName()).isEqualTo("adapter1");
             Assertions.assertThat(adapterDto.getBaseEndpoint()).isEqualTo("http://endpoint1/");
             Assertions.assertThat(adapterDto.getDescription()).isEqualTo("test adapter");
+        });
+
+        Map<String, ApplicationTypeSchemaDto> appTypeSchemas = applicationTypeSchemaFacade.getAll().stream()
+                .collect(Collectors.toMap(ApplicationTypeSchemaDto::getId, a -> a));
+        var appTypeSchema = appTypeSchemas.get("https://test-schema-id.example");
+        var appTypeSchemaRoute = appTypeSchema.getApplicationTypeRoutes().get(0);
+        Assertions.assertThat(appTypeSchemaRoute).isEqualTo(expectedRoute);
+
+        Assertions.assertThat(roleFacade.getRole("testRole3").getShare()).hasSize(1).satisfies(share -> {
+            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+        });
+    }
+
+    @Test
+    void testImportZip_WithConflict() throws IOException {
+        var inputStream = getZipInputStreamWithAdminConfig();
+        var zipFile = new MockMultipartFile("file", inputStream);
+
+        configTransfer.importConfigZip(zipFile, overrideAndCreateRoleAndCreateNew());
+
+        // when
+        configTransfer.importConfigZip(zipFile, overrideAndCreateRoleAndCreateNew());
+
+        // then
+        Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+
+        Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
+        Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
+            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3");
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole1")).satisfies(limit1 -> {
+                Assertions.assertThat(limit1.isEnabled()).isTrue();
+                Assertions.assertThat(limit1.getDay()).isEqualTo(1);
+                Assertions.assertThat(limit1.getMinute()).isNull();
+            });
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole2"))
+                    .satisfies(limit2 -> Assertions.assertThat(limit2.isEnabled()).isFalse());
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole3")).satisfies(limit3 -> {
+                Assertions.assertThat(limit3.isEnabled()).isTrue();
+                Assertions.assertThat(limit3.getDay()).isNull();
+                Assertions.assertThat(limit3.getMinute()).isNull();
+            });
+            Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
+                    .hasSize(1).first().isEqualTo("testInterceptor1");
+            Assertions.assertThat(modelDto.getAdapter()).isEqualTo("adapter1");
+        });
+        Assertions.assertThat(models.get("testModel2"))
+                .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
+
+        ApplicationDto application1 = applicationFacade.getApplication("testApplication1");
+        ApplicationDto application2 = applicationFacade.getApplication("testApplication2");
+
+        Assertions.assertThat(application1.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
+        Assertions.assertThat(application1.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+
+        var appRoute = application2.getRoutes().get(0);
+        var expectedRoute = getDependentRouteDto("route1");
+        Assertions.assertThat(appRoute).isEqualTo(expectedRoute);
+
+        Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
+
+        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
+                Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
+                Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
+        );
+
+        Collection<InterceptorRunnerDto> interceptorRunners = interceptorRunnerFacade.getAllInterceptorRunners();
+
+        Assertions.assertThat(interceptorRunners).hasSize(1).first().satisfies(r -> {
+            Assertions.assertThat(r.getName()).isEqualTo("testRunner1");
+            Assertions.assertThat(r.getCompletionEndpoint()).isEqualTo("https://template.test.com/api");
+            Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
+        });
+
+        Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
+
+        Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
+
+        Map<String, AdapterDto> adapters = adapterFacade.getAllAdapters().stream().collect(Collectors.toMap(AdapterDto::getName, a -> a));
+
+        Assertions.assertThat(adapters.get("adapter1")).satisfies(adapterDto -> {
+            Assertions.assertThat(adapterDto.getName()).isEqualTo("adapter1");
+            Assertions.assertThat(adapterDto.getBaseEndpoint()).isEqualTo("http://endpoint1/");
+            Assertions.assertThat(adapterDto.getDescription()).isEqualTo("test adapter");
+        });
+
+        Map<String, ApplicationTypeSchemaDto> appTypeSchemas = applicationTypeSchemaFacade.getAll().stream()
+                .collect(Collectors.toMap(ApplicationTypeSchemaDto::getId, a -> a));
+        var appTypeSchema = appTypeSchemas.get("https://test-schema-id.example");
+        var appTypeSchemaRoute = appTypeSchema.getApplicationTypeRoutes().get(0);
+        Assertions.assertThat(appTypeSchemaRoute).isEqualTo(expectedRoute);
+
+        Assertions.assertThat(roleFacade.getRole("testRole3").getShare()).hasSize(1).satisfies(share -> {
+            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
     }
 
@@ -1533,6 +1868,37 @@ public abstract class ConfigTransferFunctionalTest {
             // Restore original version setting
             versionProperties.setTarget(originalVersion);
         }
+    }
+
+    private static DependentRouteDto getDependentRouteDto(String routeName) {
+        var routeDto = new DependentRouteDto();
+        routeDto.setName(routeName);
+        routeDto.setDescription("some desc");
+        routeDto.setPaths(List.of("/first", "/second"));
+        routeDto.setMethods(Set.of("GET", "POST"));
+        routeDto.setMaxRetryAttempts(5);
+        routeDto.setOrder(1);
+        routeDto.setPermissions(Set.of(ResourceAccessType.WRITE, ResourceAccessType.READ));
+
+        var response = new ResponseDto();
+        response.setStatus(200);
+        response.setBody("success");
+        routeDto.setResponse(response);
+
+        var attachmentPath = new AttachmentPathDto();
+        attachmentPath.setRequestBody(List.of("/one", "/two"));
+        attachmentPath.setResponseBody(List.of("/three"));
+        routeDto.setAttachmentPaths(attachmentPath);
+
+        List<UpstreamDto> upstreams = new ArrayList<>();
+        var upstream = new UpstreamDto();
+        upstream.setEndpoint("http://sample.com");
+        upstream.setKey("someKey");
+        upstream.setExtraData("{\"key1\":\"val1\"}");
+        upstreams.add(upstream);
+        routeDto.setUpstreams(upstreams);
+
+        return routeDto;
     }
 
     private String getAppRunnerDto() {

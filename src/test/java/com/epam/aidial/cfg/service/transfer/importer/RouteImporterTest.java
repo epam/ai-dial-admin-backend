@@ -2,8 +2,7 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.model.Route;
-import com.epam.aidial.cfg.domain.service.RoleService;
+import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -21,22 +20,19 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class RouteImporterTest {
 
-    private RouteService routeService;
     private RouteCoreMapper mapper;
     private RouteImporter routeImporter;
 
     @BeforeEach
     void init() {
         mapper = mock(RouteCoreMapper.class);
-        routeService = mock(RouteService.class);
-        RoleService roleService = mock(RoleService.class);
-        routeImporter = new RouteImporter(roleService, routeService, mapper);
+        RouteService routeService = mock(RouteService.class);
+        routeImporter = new RouteImporter(routeService, mapper);
     }
 
     @Test
@@ -48,7 +44,7 @@ class RouteImporterTest {
         Route route = new Route();
         Deployment deployment = new Deployment("routeName");
         route.setDeployment(deployment);
-        when(mapper.mapRoute(any(), anyMap())).thenReturn(route);
+        when(mapper.mapRoute(any(CoreRoute.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
         Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, true))
@@ -68,7 +64,7 @@ class RouteImporterTest {
         Deployment deployment = new Deployment("routeName");
         route.setDeployment(deployment);
         route.setPaths(paths);
-        when(mapper.mapRoute(any(), anyMap())).thenReturn(route);
+        when(mapper.mapRoute(any(CoreRoute.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
         Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, false))

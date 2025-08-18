@@ -23,7 +23,13 @@
         "weight" : 20,
         "tier" : 2
       } ],
-      "maxRetryAttempts" : 3
+      "maxRetryAttempts" : 3,
+      "order": 3,
+      "permissions": [],
+      "attachmentPaths": {
+        "requestBody": [],
+        "responseBody": []
+      }
     }
   },
   "models" : { },
