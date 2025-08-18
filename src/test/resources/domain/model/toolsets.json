@@ -1,0 +1,61 @@
+[
+  {
+    "id": 1,
+    "endpoint": "http://git-mcp-server/call",
+    "iconUrl": "https://example.com/icon.png",
+    "description": "Git remote tool set",
+    "displayName": "Sample ToolSet",
+    "descriptionKeywords": [
+      "MCP",
+      "tool",
+      "git"
+    ],
+    "maxRetryAttempts": 3,
+    "transport": "http",
+    "allowedTools": ["branch", "remote"],
+    "deployment": {
+      "id": 200,
+      "name": "sampleDeployment",
+      "isPublic": false,
+      "defaultRoleLimit": {
+        "minute": 10,
+        "day": 1000,
+        "week": 5000,
+        "month": 20000,
+        "requestHour": 100,
+        "requestDay": 500
+      },
+      "roleLimits": [
+        {
+          "role": "admin",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 50,
+            "day": 5000,
+            "week": 20000,
+            "month": 80000,
+            "requestHour": 500,
+            "requestDay": 2000
+          }
+        },
+        {
+          "role": "user",
+          "deploymentName": "sampleDeployment",
+          "enabled": true,
+          "limit": {
+            "minute": 20,
+            "day": 2000,
+            "week": 10000,
+            "month": 40000,
+            "requestHour": 200,
+            "requestDay": 1000
+          }
+        }
+      ]
+    },
+    "author": "test-author",
+    "createdAt": 12345,
+    "updatedAt": 12345
+  }
+]

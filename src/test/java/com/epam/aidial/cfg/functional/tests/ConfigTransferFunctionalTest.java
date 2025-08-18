@@ -29,6 +29,8 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
@@ -56,6 +58,7 @@ import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
+import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -126,6 +129,8 @@ public abstract class ConfigTransferFunctionalTest {
     @Autowired
     private AssistantFacade assistantFacade;
     @Autowired
+    private ToolSetFacade toolSetFacade;
+    @Autowired
     private AssistantsPropertyFacade assistantsPropertyFacade;
     @Autowired
     private FeatureFlagGateEvaluationAspect featureFlagAspect;
@@ -152,6 +157,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         // when
         configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
         // then
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
@@ -181,22 +187,39 @@ public abstract class ConfigTransferFunctionalTest {
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
+
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
         Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
         ApplicationDto applicationDto2 = applicationFacade.getApplication("testApplication2");
         Assertions.assertThat(applicationDto2.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
+
         Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
         Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
         Assertions.assertThat(allKeys).hasSize(2).allSatisfy(key ->
                 Assertions.assertThatCode(() -> UUID.fromString(key)).doesNotThrowAnyException()
         );
+
         Assertions.assertThat(roleFacade.getRole("testRole1").getShare()).hasSize(1).satisfies(share -> {
             ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
             Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
             Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+        });
+
+        ToolSetDto toolSet1 = toolSetFacade.getToolSet("toolset1");
+        Assertions.assertThat(toolSet1).satisfies(t -> {
+            Assertions.assertThat(t.getEndpoint()).isEqualTo("http://sample-endpoint/api");
+            Assertions.assertThat(t.getTransport()).isEqualTo(TransportDto.SSE);
+            Assertions.assertThat(t.getAllowedTools()).isEqualTo(List.of("branch", "remote"));
+        });
+        ToolSetDto toolSet2 = toolSetFacade.getToolSet("toolset2");
+        Assertions.assertThat(toolSet2).satisfies(t -> {
+            Assertions.assertThat(t.getEndpoint()).isEqualTo("http://other-sample-endpoint/api");
+            Assertions.assertThat(t.getTransport()).isEqualTo(TransportDto.HTTP);
+            Assertions.assertThat(t.getAllowedTools()).isEqualTo(List.of());
         });
     }
 
