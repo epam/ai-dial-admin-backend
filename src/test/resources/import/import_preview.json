@@ -494,5 +494,6 @@
       }
     }
   ],
-  "assistants": []
+  "assistants": [],
+  "toolSets": []
 }
