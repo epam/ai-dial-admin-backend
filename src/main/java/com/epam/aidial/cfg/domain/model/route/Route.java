@@ -8,5 +8,5 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Route extends BaseRoute {
-
+  private String displayName;
 }
