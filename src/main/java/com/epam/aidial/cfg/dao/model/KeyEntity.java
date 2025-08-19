@@ -26,6 +26,7 @@ public class KeyEntity extends TimeTrackableEntity<String> {
     private String name;
     @Column(name = "key_value", unique = true)
     private String key;
+    private String displayName;
     private String project;
     private boolean secured;
     @ToString.Exclude
