@@ -8,7 +8,6 @@ import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

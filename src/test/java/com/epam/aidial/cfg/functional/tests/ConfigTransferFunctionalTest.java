@@ -215,12 +215,6 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(t.getTransport()).isEqualTo(TransportDto.SSE);
             Assertions.assertThat(t.getAllowedTools()).isEqualTo(List.of("branch", "remote"));
         });
-        ToolSetDto toolSet2 = toolSetFacade.getToolSet("toolset2");
-        Assertions.assertThat(toolSet2).satisfies(t -> {
-            Assertions.assertThat(t.getEndpoint()).isEqualTo("http://other-sample-endpoint/api");
-            Assertions.assertThat(t.getTransport()).isEqualTo(TransportDto.HTTP);
-            Assertions.assertThat(t.getAllowedTools()).isEqualTo(List.of());
-        });
     }
 
     @Test

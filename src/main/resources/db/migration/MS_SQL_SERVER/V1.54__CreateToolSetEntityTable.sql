@@ -29,8 +29,8 @@ CREATE TABLE tool_set_entity_aud (
   icon_url NVARCHAR(max),
   max_retry_attempts INTEGER,
   author NVARCHAR(max),
-  created_at_ms BIGINT NOT NULL,
-  updated_at_ms BIGINT NOT NULL,
+  created_at_ms BIGINT,
+  updated_at_ms BIGINT,
   transport NVARCHAR(max),
   allowed_tools VARBINARY(max),
   PRIMARY KEY (rev, deployment_name)
