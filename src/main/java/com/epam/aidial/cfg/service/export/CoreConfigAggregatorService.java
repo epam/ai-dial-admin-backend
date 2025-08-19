@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.export;
 
-import com.epam.aidial.cfg.domain.mapper.AddonCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
@@ -49,7 +48,6 @@ public class CoreConfigAggregatorService {
     private final RouteService routeService;
     private final DeploymentService deploymentService;
 
-    private final AddonCoreMapper addonMapper;
     private final ApplicationCoreMapper applicationMapper;
     private final ApplicationTypeSchemaCoreMapper schemaMapper;
     private final InterceptorCoreMapper interceptorMapper;
