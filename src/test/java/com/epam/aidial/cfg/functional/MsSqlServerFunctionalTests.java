@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.functional.tests.KeyFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ModelFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RolesFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RouteFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.ToolSetFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ActivityAuditFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AdapterHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AddonHistoryFunctionalTest;
@@ -133,6 +134,10 @@ public class MsSqlServerFunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class AdapterTest extends AdapterFunctionalTest {
+    }
+
+    @Nested
+    class ToolSetTests extends ToolSetFunctionalTest {
     }
 
     @Nested
