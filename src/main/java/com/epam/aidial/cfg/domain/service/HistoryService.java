@@ -82,6 +82,7 @@ public class HistoryService {
         keyHistoryRepository.rollbackKeys(revision, auditReader);
         modelHistoryRepository.rollbackModels(revision, auditReader);
         addonHistoryRepository.rollbackAddons(revision, auditReader);
+        toolSetHistoryRepository.rollbackToolSets(revision, auditReader);
         applicationTypeSchemaHistoryRepository.rollbackApplicationTypeSchemas(revision, auditReader);
         applicationHistoryRepository.rollbackApplications(revision, auditReader);
         assistantHistoryRepository.rollbackAssistants(revision, auditReader);
@@ -90,7 +91,6 @@ public class HistoryService {
         interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
         interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
         adapterHistoryRepository.rollbackAdapters(revision, auditReader);
-        toolSetHistoryRepository.rollbackToolSets(revision, auditReader);
     }
 
     @Transactional(readOnly = true)
