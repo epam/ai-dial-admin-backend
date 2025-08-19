@@ -8,6 +8,7 @@ import java.util.List;
 public class Role {
     private String name;
     private String description;
+    private String displayName;
     private Long createdAt;
     private Long updatedAt;
     private List<RoleLimit> limits;

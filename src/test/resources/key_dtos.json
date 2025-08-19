@@ -8,6 +8,7 @@
     ],
     "secured": true,
     "description": "key description",
+    "displayName": "key display name",
     "projectContactPoint": "owner@mail.com",
     "createdAt": "2025-01-12T01:30:00Z",
     "expiresAt": "2025-06-12T01:30:00Z",

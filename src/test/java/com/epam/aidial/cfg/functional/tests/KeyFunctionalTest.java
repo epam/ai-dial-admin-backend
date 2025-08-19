@@ -376,6 +376,7 @@ public abstract class KeyFunctionalTest {
         KeyDto keyDto = new KeyDto();
         keyDto.setName("key" + suffix);
         keyDto.setKey("keyValue" + suffix);
+        keyDto.setDisplayName("displayName" + suffix);
         keyDto.setDescription("description" + suffix);
         keyDto.setRoles(roles);
         keyDto.setProjectContactPoint("test@mail.com");

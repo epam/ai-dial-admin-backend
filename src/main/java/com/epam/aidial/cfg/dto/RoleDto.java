@@ -15,6 +15,7 @@ public class RoleDto {
     @NotBlank(message = "Name is required")
     private String name;
     private String description;
+    private String displayName;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
