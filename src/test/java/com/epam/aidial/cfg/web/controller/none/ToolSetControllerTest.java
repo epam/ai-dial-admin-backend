@@ -1,0 +1,106 @@
+package com.epam.aidial.cfg.web.controller.none;
+
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.utils.ResourceUtils;
+import com.epam.aidial.cfg.web.controller.ToolSetController;
+import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.json.JsonCompareMode;
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(controllers = ToolSetController.class)
+@Import({
+        JsonMapperConfiguration.class,
+})
+class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
+
+    private static final String DTO_JSON_PATH = "/tool_set_dto.json";
+    private static final String TEST_TOOL_SET_NAME = "test_tool_set";
+    private static final String TOOL_SET_BASE_API_PATH = "/api/v1/toolSets";
+    private static final String TOOL_SET_API_PATH = TOOL_SET_BASE_API_PATH + "/{toolSetName}";
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private ToolSetFacade toolSetFacade;
+
+    @Test
+    void testGetAllToolSets() throws Exception {
+        var dtosJson = ResourceUtils.readResource("/tool_set_dtos.json");
+        var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<ToolSetDto>>() {});
+
+        when(toolSetFacade.getAllToolSets()).thenReturn(dtos);
+
+        mockMvc.perform(get(TOOL_SET_BASE_API_PATH))
+                .andExpect(status().isOk())
+                .andExpect(content().json(dtosJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testGetToolSet() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {});
+
+        when(toolSetFacade.getToolSet(eq(TEST_TOOL_SET_NAME))).thenReturn(dto);
+
+        mockMvc.perform(get(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME))
+                .andExpect(status().isOk())
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testCreateToolSet() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {});
+
+        doNothing().when(toolSetFacade).createToolSet(eq(dto));
+
+        mockMvc.perform(post(TOOL_SET_BASE_API_PATH)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testUpdateToolSet() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {});
+
+        doNothing().when(toolSetFacade).updateToolSet(eq(TEST_TOOL_SET_NAME), eq(dto));
+
+        mockMvc.perform(put(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testDeleteToolSet() throws Exception {
+        doNothing().when(toolSetFacade).deleteToolSet(eq(TEST_TOOL_SET_NAME));
+
+        mockMvc.perform(delete(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME))
+                .andExpect(status().isNoContent());
+    }
+
+}

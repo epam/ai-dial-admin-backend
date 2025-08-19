@@ -28,6 +28,7 @@ import com.epam.aidial.cfg.functional.tests.history.KeyHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ModelHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RolesHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RouteHistoryFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.history.ToolSetHistoryFunctionalTest;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Nested;
@@ -190,5 +191,9 @@ public class MsSqlServerFunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class AdapterHistoryTest extends AdapterHistoryFunctionalTest {
+    }
+
+    @Nested
+    class ToolSetHistoryTests extends ToolSetHistoryFunctionalTest {
     }
 }
