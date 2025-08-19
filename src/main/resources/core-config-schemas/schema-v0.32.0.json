@@ -75,6 +75,14 @@
         }
       }
     },
+    "toolsets": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/ToolSet"
+        }
+      }
+    },
     "retriableErrorCodes": {
       "type": "array",
       "items": {
@@ -400,6 +408,21 @@
         "consentRequired": {"type": "boolean"},
         "parallelToolCallsSupported": {"type": "boolean"}
       }
+    },
+    "ToolSet": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/Deployment"},
+        {
+          "properties": {
+            "transport": {"type": "string", "enum": ["HTTP", "SSE"]},
+            "allowedTools": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
     }
   }
 }
