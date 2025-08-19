@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -23,15 +22,15 @@ public class ToolSetService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "ToolSet with name %s does not exist";
 
     private final ToolSetJpaRepository toolSetJpaRepository;
+    private final ToolSetNormalizer toolSetNormalizer;
+    private final ToolSetValidator toolSetValidator;
     private final ToolSetEntityMapper mapper;
     private final DeploymentService deploymentService;
-    private final ToolSetValidator toolSetValidator;
-    private final ToolSetNormalizer toolSetNormalizer;
     private final HistoryService historyService;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
-        return StreamSupport.stream(toolSetJpaRepository.findAll().spliterator(), false)
+        return toolSetJpaRepository.findAll().stream()
                     .map(mapper::toDomain)
                     .collect(Collectors.toList());
     }

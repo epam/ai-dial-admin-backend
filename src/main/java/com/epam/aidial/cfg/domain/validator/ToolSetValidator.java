@@ -17,7 +17,7 @@ public class ToolSetValidator {
     private final String toolSetNameValidationPattern;
 
     public ToolSetValidator(DeploymentValidator deploymentValidator,
-                          @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
+                            @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
         this.deploymentValidator = deploymentValidator;
         this.toolSetNameValidationPattern = toolSetNameValidationPattern;
     }
