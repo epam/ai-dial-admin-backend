@@ -6,5 +6,5 @@ public enum DeploymentTypeEntity {
     ASSISTANT,
     MODEL,
     ROUTE,
-    TOOLSET,
+    TOOL_SET,
 }

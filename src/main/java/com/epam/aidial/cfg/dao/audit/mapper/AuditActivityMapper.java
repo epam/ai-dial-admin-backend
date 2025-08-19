@@ -85,7 +85,7 @@ public class AuditActivityMapper {
             case ASSISTANT -> ActivityResourceType.Assistant;
             case MODEL -> ActivityResourceType.Model;
             case ROUTE -> ActivityResourceType.Route;
-            case TOOLSET -> ActivityResourceType.ToolSet;
+            case TOOL_SET -> ActivityResourceType.ToolSet;
         };
     }
 }
