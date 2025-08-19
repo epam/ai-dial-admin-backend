@@ -25,6 +25,7 @@ public class RoleEntity extends TimeTrackableEntity<String> {
     @EqualsAndHashCode.Include
     private String name;
     private String description;
+    private String displayName;
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "role", orphanRemoval = true)
     @AuditJoinTable

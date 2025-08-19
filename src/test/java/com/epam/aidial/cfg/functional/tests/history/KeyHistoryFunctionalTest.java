@@ -26,12 +26,15 @@ public abstract class KeyHistoryFunctionalTest {
         RoleDto role1 = new RoleDto();
         role1.setName("role1");
         role1.setDescription("role1");
+        role1.setDisplayName("displayNameRole1");
         RoleDto role2 = new RoleDto();
         role2.setName("role2");
         role2.setDescription("role2");
+        role1.setDisplayName("displayNameRole2");
         RoleDto role3 = new RoleDto();
         role3.setName("role3");
         role3.setDescription("role3");
+        role1.setDisplayName("displayNameRole3");
         roleFacade.createRole(role1);
         roleFacade.createRole(role2);
         roleFacade.createRole(role3);

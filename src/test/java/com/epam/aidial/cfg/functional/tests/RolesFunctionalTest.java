@@ -440,6 +440,7 @@ public abstract class RolesFunctionalTest {
     private RoleDto createDtoWithKeysAndLimits(String suffix, List<String> keys, Map<String, LimitDto> limits) {
         RoleDto roleDto = new RoleDto();
         roleDto.setName("role" + suffix);
+        roleDto.setDisplayName("displayName" + suffix);
         roleDto.setDescription("description" + suffix);
         roleDto.setGrantedKeys(keys);
         roleDto.setLimits(limits);
