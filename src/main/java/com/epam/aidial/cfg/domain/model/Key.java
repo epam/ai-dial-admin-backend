@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 public class Key {
     private String name;
+    private String displayName;
     private String key;
     private String project;
     private boolean secured;
