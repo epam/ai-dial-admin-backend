@@ -1,7 +1,7 @@
 -- Create tool_set_entity table
 CREATE TABLE tool_set_entity (
   deployment_name NVARCHAR(255) NOT NULL,
-  display_name NVARCHAR(255),
+  display_name NVARCHAR(max),
   description NVARCHAR(max),
   description_keywords VARBINARY(max),
   endpoint NVARCHAR(max),
@@ -22,7 +22,7 @@ CREATE TABLE tool_set_entity_aud (
   deployment_name NVARCHAR(255) NOT NULL,
   rev INTEGER NOT NULL,
   revtype SMALLINT,
-  display_name NVARCHAR(255),
+  display_name NVARCHAR(max),
   description NVARCHAR(max),
   description_keywords VARBINARY(max),
   endpoint NVARCHAR(max),
