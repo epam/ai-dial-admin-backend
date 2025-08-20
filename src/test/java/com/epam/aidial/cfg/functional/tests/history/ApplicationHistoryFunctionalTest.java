@@ -68,9 +68,11 @@ public abstract class ApplicationHistoryFunctionalTest {
         // verify application1
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createDto("1");
+        ShareResourceLimitDto defaultShareResourceLimitDto = new ShareResourceLimitDto();
+        defaultShareResourceLimitDto.setMaxAcceptedUsers(10);
         expected.setDescription("new application description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
+        expected.setDefaultRoleShareResourceLimit(defaultShareResourceLimitDto);
         expected.setDefaults(Map.of());
         expected.setInterceptors(List.of());
         expected.setEndpoint("endpoint2");
@@ -79,7 +81,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // 3 add roles to application1
         updatedApplication.setDefaultRoleLimit(new LimitDto());
-        updatedApplication.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
+        updatedApplication.setDefaultRoleShareResourceLimit(defaultShareResourceLimitDto);
         updatedApplication.setDefaults(Map.of());
         updatedApplication.setInterceptors(List.of());
         updatedApplication.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));

@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
@@ -127,7 +128,7 @@ public class ModelImporter extends RoleBasedImporter {
         ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
         Adapter adapter = resolveAdapter(adaptersForPreview, isPreview, modelEndpointComponents);
         String endpointDeploymentName = resolveEndpointDeploymentName(modelEndpointComponents);
-        return modelMapper.mapModel(model, adapter, endpointDeploymentName);
+        return modelMapper.mapModel(model, adapter, endpointDeploymentName, new ShareResourceLimit());
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {

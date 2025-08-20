@@ -8,5 +8,5 @@ public class ShareResourceLimitDto {
     @PositiveOrZero
     private Integer maxAcceptedUsers;
     @PositiveOrZero
-    private Long invitationTtl;
+    private Long invitationTtl = 259200L; // seconds in 72 hours
 }

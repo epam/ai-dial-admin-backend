@@ -15,24 +15,24 @@ import org.mapstruct.Named;
                 ShareResourceLimitDtoMapper.class
         }
 )
-public abstract class ModelDtoMapper {
+public interface ModelDtoMapper {
 
-    @Mapping(target = "upstreams.id", ignore = true)
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "adapter", source = "entity", qualifiedByName = "mapToAdapter")
+    @Mapping(target = "upstreams.id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    public abstract Model toDomain(ModelDto entity);
+    Model toDomain(ModelDto entity);
 
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "adapter", source = "adapter.name")
     @Mapping(target = "endpoint", source = "domain", qualifiedByName = "mapEndpointFromModel")
-    public abstract ModelDto toDto(Model domain);
+    ModelDto toDto(Model domain);
 
     @Named("mapToAdapter")
-    public Adapter mapToAdapter(ModelDto dto) {
+    default Adapter mapToAdapter(ModelDto dto) {
         if (dto != null && dto.getAdapter() != null) {
             Adapter adapter = new Adapter();
             adapter.setName(dto.getAdapter());

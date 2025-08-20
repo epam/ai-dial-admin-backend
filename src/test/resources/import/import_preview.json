@@ -223,7 +223,9 @@
           "roleShareResourceLimits": [],
           "isPublic": false,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleShareResourceLimit": {
+            "invitationTtl": 259200
+          }
         },
         "response": {
           "status": 200,
@@ -274,7 +276,9 @@
           "roleShareResourceLimits": [],
           "isPublic": true,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleShareResourceLimit": {
+            "invitationTtl": 259200
+          }
         },
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
@@ -352,7 +356,9 @@
           ],
           "isPublic": false,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleShareResourceLimit": {
+            "invitationTtl": 259200
+          }
         },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
@@ -408,7 +414,10 @@
           "roleShareResourceLimits": [],
           "isPublic": false,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleShareResourceLimit": {
+            "maxAcceptedUsers": 10,
+            "invitationTtl": 259200
+          }
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
@@ -458,7 +467,10 @@
           "roleShareResourceLimits": [],
           "isPublic": false,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleShareResourceLimit": {
+            "maxAcceptedUsers": 10,
+            "invitationTtl": 259200
+          }
         },
         "endpoint": "endpoint",
         "displayName": "Test Application2",
@@ -503,7 +515,9 @@
           "roleShareResourceLimits": [],
           "isPublic": false,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleShareResourceLimit": {
+            "invitationTtl": 259200
+          }
         },
         "endpoint": "https://endpoint.test.com/embeddings",
         "iconUrl": "https://test.com/icon",

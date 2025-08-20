@@ -7,7 +7,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PostLoad;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -47,16 +46,6 @@ public class DeploymentEntity extends AbstractEntity<String> {
 
     public DeploymentEntity(String name) {
         this.name = name;
-    }
-
-    @PostLoad
-    private void postLoad() {
-        if (defaultRoleLimit == null) {
-            defaultRoleLimit = new LimitEntity();
-        }
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitEntity();
-        }
     }
 
     @Override

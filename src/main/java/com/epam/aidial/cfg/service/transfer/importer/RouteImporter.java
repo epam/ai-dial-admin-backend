@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -117,7 +118,7 @@ public class RouteImporter extends RoleBasedImporter {
 
     private Route map(String routeName, CoreRoute route) {
         route.setName(routeName);
-        return routeCoreMapper.mapRoute(route);
+        return routeCoreMapper.mapRoute(route, new ShareResourceLimit());
     }
 
     private void validate(String routeName, Route route) {

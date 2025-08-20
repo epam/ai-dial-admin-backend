@@ -1,12 +1,10 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.domain.service.AssistantService;
-import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
-import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.mapper.AssistantDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,14 +34,14 @@ public class AssistantFacade {
     }
 
     public void createAssistant(AssistantDto assistantDto) {
+        setDefaultRoleShareResourceLimitIfMissing(assistantDto);
         Optional.of(assistantDto)
                 .map(mapper::toDomain)
                 .ifPresent(assistantService::createAssistant);
     }
 
-    public void updateAssistant(String assistantName,
-                            AssistantDto assistantDto) {
-        Assistant value = mapToAssistant(assistantDto);
+    public void updateAssistant(String assistantName, AssistantDto assistantDto) {
+        Assistant value = mapper.toDomain(assistantDto);
         assistantService.updateAssistant(assistantName, value);
     }
 
@@ -63,7 +61,11 @@ public class AssistantFacade {
                 .collect(Collectors.toList());
     }
 
-    private Assistant mapToAssistant(AssistantDto assistantDto) {
-        return mapper.toDomain(assistantDto);
+    private void setDefaultRoleShareResourceLimitIfMissing(AssistantDto assistantDto) {
+        ShareResourceLimitDto defaultRoleShareResourceLimit = assistantDto.getDefaultRoleShareResourceLimit();
+        if (defaultRoleShareResourceLimit == null) {
+            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
+            assistantDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
+        }
     }
 }

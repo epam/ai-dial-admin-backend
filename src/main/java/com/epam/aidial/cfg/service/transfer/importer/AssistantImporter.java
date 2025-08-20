@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.domain.model.AssistantsProperty;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.AssistantService;
 import com.epam.aidial.cfg.domain.service.AssistantsPropertyService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -158,7 +159,7 @@ public class AssistantImporter extends RoleBasedImporter {
 
     private Assistant map(String assistantName, CoreAssistant assistant) {
         assistant.setName(assistantName);
-        return mapper.mapAssistant(assistant);
+        return mapper.mapAssistant(assistant, new ShareResourceLimit());
     }
 
 }

@@ -7,7 +7,7 @@ import lombok.Data;
 public class ShareResourceLimit {
 
     private Integer maxAcceptedUsers;
-    private Long invitationTtl;
+    private Long invitationTtl = 259200L; // seconds in 72 hours
 
     @JsonIgnore
     public boolean isEmpty() {

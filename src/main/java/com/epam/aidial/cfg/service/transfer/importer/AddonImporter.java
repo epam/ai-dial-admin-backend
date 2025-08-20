@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -104,6 +105,6 @@ public class AddonImporter extends RoleBasedImporter {
 
     private Addon map(String addonName, CoreAddon addon) {
         addon.setName(addonName);
-        return addonCoreMapper.mapAddon(addon);
+        return addonCoreMapper.mapAddon(addon, new ShareResourceLimit());
     }
 }

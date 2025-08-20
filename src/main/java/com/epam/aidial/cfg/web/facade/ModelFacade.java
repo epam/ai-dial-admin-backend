@@ -4,10 +4,10 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @LogExecution
-@Transactional
 public class ModelFacade {
 
     private final ModelService modelService;
@@ -35,13 +34,14 @@ public class ModelFacade {
     }
 
     public void createModel(ModelDto modelDto) {
+        setDefaultRoleShareResourceLimitIfMissing(modelDto);
         Optional.of(modelDto)
                 .map(mapper::toDomain)
                 .ifPresent(modelService::createModel);
     }
 
-    public void updateModel(String modelName,
-                            ModelDto modelDto) {
+    public void updateModel(String modelName, ModelDto modelDto) {
+        setDefaultRoleShareResourceLimitIfMissing(modelDto);
         Model value = mapper.toDomain(modelDto);
         modelService.updateModel(modelName, value);
     }
@@ -60,5 +60,13 @@ public class ModelFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    private void setDefaultRoleShareResourceLimitIfMissing(ModelDto modelDto) {
+        ShareResourceLimitDto defaultRoleShareResourceLimit = modelDto.getDefaultRoleShareResourceLimit();
+        if (defaultRoleShareResourceLimit == null) {
+            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
+            modelDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
+        }
     }
 }

@@ -178,14 +178,23 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(modelDto.getDefaults())
                     .containsExactlyInAnyOrderEntriesOf(Map.of("max_tokens", 8000));
             Assertions.assertThat(modelDto.getFeatures()).isEqualTo(new FeaturesDto());
+            Assertions.assertThat(modelDto.getDefaultRoleShareResourceLimit()).isEqualTo(new ShareResourceLimitDto());
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
         Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Assertions.assertThat(applicationDto.getDefaultRoleShareResourceLimit()).satisfies(shareResourceLimitDto -> {
+            Assertions.assertThat(shareResourceLimitDto.getMaxAcceptedUsers()).isEqualTo(10);
+            Assertions.assertThat(shareResourceLimitDto.getInvitationTtl()).isEqualTo(259200L);
+        });
         ApplicationDto applicationDto2 = applicationFacade.getApplication("testApplication2");
         Assertions.assertThat(applicationDto2.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
+        Assertions.assertThat(applicationDto2.getDefaultRoleShareResourceLimit()).satisfies(shareResourceLimitDto -> {
+            Assertions.assertThat(shareResourceLimitDto.getMaxAcceptedUsers()).isEqualTo(10);
+            Assertions.assertThat(shareResourceLimitDto.getInvitationTtl()).isEqualTo(259200L);
+        });
         Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
         Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
                 Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));

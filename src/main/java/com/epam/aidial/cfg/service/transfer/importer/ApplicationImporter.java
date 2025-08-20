@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -108,7 +109,9 @@ public class ApplicationImporter extends RoleBasedImporter {
 
     private Application map(String appName, CoreApplication application) {
         application.setName(appName);
-        return applicationCoreMapper.mapApplication(application);
+        ShareResourceLimit shareResourceLimit = new ShareResourceLimit();
+        shareResourceLimit.setMaxAcceptedUsers(10);
+        return applicationCoreMapper.mapApplication(application, shareResourceLimit);
     }
 
 }
