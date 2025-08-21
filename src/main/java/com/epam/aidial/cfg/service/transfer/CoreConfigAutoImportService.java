@@ -35,11 +35,10 @@ public class CoreConfigAutoImportService {
             } else {
                 log.info("Database is not empty. Skipping auto import of core config");
             }
+            coreConfigAutoImportLock.finishAutoImport();
         } catch (Exception exception) {
             log.error("Auto import of core config failed", exception);
             throw exception;
-        } finally {
-            coreConfigAutoImportLock.finishAutoImport();
         }
     }
 
