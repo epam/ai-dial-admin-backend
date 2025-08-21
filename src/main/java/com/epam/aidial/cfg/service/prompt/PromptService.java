@@ -110,6 +110,10 @@ public class PromptService implements ResourceService {
         return Map.of();
     }
 
+    public void deletePrompts(List<String> paths) {
+        paths.forEach(this::deletePrompt);
+    }
+
     public void deletePrompt(String path) {
         promptClient.deletePrompt(path);
     }

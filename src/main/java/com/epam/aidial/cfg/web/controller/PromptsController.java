@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.dto.PromptDto;
 import com.epam.aidial.cfg.dto.PromptNodeInfoDto;
 import com.epam.aidial.cfg.dto.PromptPathDto;
+import com.epam.aidial.cfg.dto.PromptPathsDto;
 import com.epam.aidial.cfg.dto.PromptVersionsDto;
 import com.epam.aidial.cfg.dto.PromptVersionsRequestDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
@@ -85,6 +86,13 @@ public class PromptsController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deletePrompt(@RequestBody PromptPathDto promptPath) {
         promptService.deletePrompt(promptPath.getPath());
+    }
+
+    @PostMapping(path = "/delete/bulk",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public void deletePrompts(@RequestBody PromptPathsDto promptPaths) {
+        var paths = promptPaths.getPaths().stream().map(PromptPathDto::getPath).toList();
+        promptService.deletePrompts(paths);
     }
 
     @PostMapping(path = "/move",
