@@ -54,6 +54,7 @@ public class CoreRolesMerger {
                         config.getAddons(),
                         config.getApplications(),
                         config.getRoutes(),
+                        config.getToolsets(),
                         config.getAssistant().getAssistants()
                 )
                 .flatMap(m -> m.entrySet().stream())

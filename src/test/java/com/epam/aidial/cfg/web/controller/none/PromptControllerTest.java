@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.ImportResourcesConflictResolutionStrategyDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
 import com.epam.aidial.cfg.dto.PromptPathDto;
+import com.epam.aidial.cfg.dto.PromptPathsDto;
 import com.epam.aidial.cfg.dto.PromptVersionsRequestDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
 import com.epam.aidial.cfg.mapper.PromptMapperImpl;
@@ -191,6 +192,75 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isOk());
 
         verify(promptService).deletePrompt(promptPath);
+    }
+
+    @Test
+    void testDeletePrompts() throws Exception {
+        var promptPath1 = "testPath1/TestName";
+        var promptPath2 = "testPath2/TestName";
+
+        var promptPathDto1 = new PromptPathDto();
+        promptPathDto1.setPath(promptPath1);
+
+        var promptPathDto2 = new PromptPathDto();
+        promptPathDto2.setPath(promptPath2);
+
+        var promptPathsDto = new PromptPathsDto();
+        promptPathsDto.setPaths(List.of(promptPathDto1, promptPathDto2));
+
+        mockMvc.perform(post("/api/v1/prompts/delete/bulk")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(promptPathsDto)))
+                .andExpect(status().isOk());
+
+        verify(promptService).deletePrompts(List.of(promptPath1, promptPath2));
+    }
+
+    @Test
+    void testDeletePrompts_NullPaths_ThrowValidationError() throws Exception {
+        var promptPathsDto = new PromptPathsDto();
+
+        mockMvc.perform(post("/api/v1/prompts/delete/bulk")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(promptPathsDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("paths: must not be empty"));
+
+        verifyNoInteractions(promptService);
+    }
+
+    @Test
+    void testDeletePrompts_EmptyPaths_ThrowValidationError() throws Exception {
+        var promptPathsDto = new PromptPathsDto();
+        promptPathsDto.setPaths(List.of());
+
+        mockMvc.perform(post("/api/v1/prompts/delete/bulk")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(promptPathsDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("paths: must not be empty"));
+
+        verifyNoInteractions(promptService);
+    }
+
+    @Test
+    void testDeletePrompts_PathsContainNullPath_ThrowValidationError() throws Exception {
+        var promptPathDto1 = new PromptPathDto();
+        promptPathDto1.setPath("testPath1/TestName");
+
+        var promptPathDto2 = new PromptPathDto();
+        promptPathDto2.setPath(null);
+
+        var promptPathsDto = new PromptPathsDto();
+        promptPathsDto.setPaths(List.of(promptPathDto1, promptPathDto2));
+
+        mockMvc.perform(post("/api/v1/prompts/delete/bulk")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(promptPathsDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("JSON parse error: path: must not be empty"));
+
+        verifyNoInteractions(promptService);
     }
 
     @Test

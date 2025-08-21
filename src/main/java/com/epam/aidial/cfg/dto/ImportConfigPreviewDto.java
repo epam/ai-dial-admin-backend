@@ -19,5 +19,6 @@ public class ImportConfigPreviewDto {
     private Collection<ImportComponent<ApplicationDto>> applications;
     private Collection<ImportComponent<AddonDto>> addons;
     private Collection<ImportComponent<AssistantDto>> assistants;
+    private Collection<ImportComponent<ToolSetDto>> toolSets;
 
 }

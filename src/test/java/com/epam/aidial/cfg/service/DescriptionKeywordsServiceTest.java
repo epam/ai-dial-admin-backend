@@ -3,9 +3,11 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.ModelService;
+import com.epam.aidial.cfg.domain.service.ToolSetService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +30,8 @@ class DescriptionKeywordsServiceTest {
     private ApplicationService applicationService;
     @Mock
     private ApplicationTypeSchemaService applicationTypeSchemaService;
+    @Mock
+    private ToolSetService toolSetService;
 
     @InjectMocks
     private DescriptionKeywordsService descriptionKeywordsService;
@@ -38,6 +42,7 @@ class DescriptionKeywordsServiceTest {
         when(modelService.getAll()).thenReturn(getModels());
         when(applicationService.getAllApplications()).thenReturn(getApplications());
         when(applicationTypeSchemaService.getAll()).thenReturn(getAppRunners());
+        when(toolSetService.getAll()).thenReturn(getToolSets());
 
         Collection<String> allModels = descriptionKeywordsService.getAllDescriptionKeywords();
 
@@ -47,6 +52,8 @@ class DescriptionKeywordsServiceTest {
                 "Customer Service",
                 "Engineering",
                 "Finance",
+                "MCP1",
+                "MCP2",
                 "Prod",
                 "Test"
         );
@@ -88,6 +95,19 @@ class DescriptionKeywordsServiceTest {
         Model model3 = new Model();
         model3.setTopics(null);
         return List.of(model1, model2, model3);
+    }
+
+    private static List<ToolSet> getToolSets() {
+        ToolSet toolset1 = new ToolSet();
+        toolset1.setDescriptionKeywords(List.of(
+                "MCP1"));
+        ToolSet toolset2 = new ToolSet();
+        toolset2.setDescriptionKeywords(List.of(
+                "Engineering",
+                "MCP2"));
+        ToolSet toolset3 = new ToolSet();
+        toolset3.setDescriptionKeywords(null);
+        return List.of(toolset1, toolset2, toolset3);
     }
 
 }

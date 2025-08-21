@@ -4,9 +4,11 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.ModelService;
+import com.epam.aidial.cfg.domain.service.ToolSetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ public class DescriptionKeywordsService {
     private final ModelService modelService;
     private final ApplicationService applicationService;
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
+    private final ToolSetService toolSetService;
 
     public Collection<String> getAllDescriptionKeywords() {
         var modelKeywords = modelService.getAll().stream()
@@ -45,13 +48,20 @@ public class DescriptionKeywordsService {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
 
-        return combineAndSortSets(modelKeywords, applicationKeywords, appRunnerKeywords);
+        var toolSetKeywords = toolSetService.getAll().stream()
+                .map(ToolSet::getDescriptionKeywords)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .collect(Collectors.toSet());
+
+        return combineAndSortSets(modelKeywords, applicationKeywords, appRunnerKeywords, toolSetKeywords);
     }
 
-    public static List<String> combineAndSortSets(Set<String> set1, Set<String> set2, Set<String> set3) {
+    public static List<String> combineAndSortSets(Set<String> set1, Set<String> set2, Set<String> set3, Set<String> set4) {
         TreeSet<String> combinedSet = new TreeSet<>(set1);
         combinedSet.addAll(set2);
         combinedSet.addAll(set3);
+        combinedSet.addAll(set4);
         return List.copyOf(combinedSet);
     }
 

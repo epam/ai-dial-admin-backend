@@ -296,5 +296,18 @@
       "baseEndpoint": "http://adapter1/",
       "description": "adapter1"
     }
+  },
+  "toolsets": {
+    "toolset1": {
+      "name": "toolset1",
+      "displayName": "ToolSet1",
+      "userRoles": [],
+      "endpoint": "http://sample-endpoint/api",
+      "transport": "sse",
+      "allowedTools": ["branch", "remote"],
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345
+    }
   }
 }

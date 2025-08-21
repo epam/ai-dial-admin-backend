@@ -494,5 +494,26 @@
       }
     }
   ],
-  "assistants": []
+  "assistants": [],
+  "toolSets": [
+    {
+      "importAction": "create",
+      "value": {
+        "deployment": {
+          "name": "toolset1",
+          "roleLimits": [],
+          "isPublic": false,
+          "defaultRoleLimit": {}
+        },
+        "displayName": "ToolSet1",
+        "forwardAuthToken": false,
+        "descriptionKeywords": [],
+        "maxRetryAttempts": 1,
+        "endpoint": "http://sample-endpoint/api",
+        "transport": "sse",
+        "allowedTools": ["branch", "remote"],
+        "author": "test-author"
+      }
+    }
+  ]
 }
