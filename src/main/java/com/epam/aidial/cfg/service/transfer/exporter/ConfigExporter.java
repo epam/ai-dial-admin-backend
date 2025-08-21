@@ -220,9 +220,9 @@ public class ConfigExporter {
         }
     }
 
-    protected Set<String> getAllEntityNames(Set<String> applications,
-                                            Set<String> models,
-                                            Set<String> routes) {
+    private Set<String> getAllEntityNames(Set<String> applications,
+                                          Set<String> models,
+                                          Set<String> routes) {
         return Stream.of(applications, models, routes)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
