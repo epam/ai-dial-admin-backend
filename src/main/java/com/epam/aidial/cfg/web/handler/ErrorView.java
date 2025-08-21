@@ -2,14 +2,12 @@ package com.epam.aidial.cfg.web.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 /**
  * Created by Aliaksei Kurnosau on 9/9/24.
  */
 @Data
-@NoArgsConstructor
 public class ErrorView {
 
     private String path;
