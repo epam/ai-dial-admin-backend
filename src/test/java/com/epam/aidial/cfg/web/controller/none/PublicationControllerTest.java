@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.PublicationService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.PublicationController;
+import com.epam.aidial.cfg.web.handler.ErrorView;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import org.springframework.test.json.JsonCompareMode;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -179,11 +181,14 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
         body.setPath(publicationPath);
         body.setComment(comment);
 
-        mockMvc.perform(post("/api/v1/publications/reject")
+        var result = mockMvc.perform(post("/api/v1/publications/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(body)))
             .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("between 15 and 255 characters")));
+            .andReturn();
+        var jsonResult = objectMapper.readValue(result.getResponse().getContentAsString(),
+            ErrorView.class);
+        assertTrue(jsonResult.getMessage().contains("between 15 and 255 characters"));
     }
 
     private static Stream<Arguments> testGetPublicationParams() {

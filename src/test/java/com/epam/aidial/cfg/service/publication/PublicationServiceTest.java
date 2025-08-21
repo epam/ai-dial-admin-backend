@@ -299,7 +299,7 @@ class PublicationServiceTest {
 
     @ParameterizedTest
     @MethodSource("rejectPublication_TestParams")
-    void rejectPublication_ReturnsPublication(String comment, String expected) {
+    void testRejectPublication(String comment, String expected) {
         // given
         var publicationPath = "testPublication";
 
