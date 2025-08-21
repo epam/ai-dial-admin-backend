@@ -184,10 +184,10 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
         var result = mockMvc.perform(post("/api/v1/publications/reject")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(body)))
-            .andExpect(status().isBadRequest())
-            .andReturn();
+                .andExpect(status().isBadRequest())
+                .andReturn();
         var jsonResult = objectMapper.readValue(result.getResponse().getContentAsString(),
-            ErrorView.class);
+                ErrorView.class);
         assertTrue(jsonResult.getMessage().contains("between 15 and 255 characters"));
     }
 
