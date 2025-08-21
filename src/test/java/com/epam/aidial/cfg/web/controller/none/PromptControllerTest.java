@@ -232,6 +232,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testDeletePrompts_EmptyPaths_ThrowValidationError() throws Exception {
         var promptPathsDto = new PromptPathsDto();
+        promptPathsDto.setPaths(List.of());
 
         mockMvc.perform(post("/api/v1/prompts/delete/bulk")
                         .contentType(MediaType.APPLICATION_JSON)
