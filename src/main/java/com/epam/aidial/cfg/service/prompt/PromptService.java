@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Spliterator;
@@ -111,7 +112,16 @@ public class PromptService implements ResourceService {
     }
 
     public void deletePrompts(List<String> paths) {
-        paths.forEach(this::deletePrompt);
+        List<String> deletedPrompts = new ArrayList<>();
+        for (var path : paths) {
+            try {
+                deletePrompt(path);
+                deletedPrompts.add(path);
+            } catch (Exception exception) {
+                log.error("Unable to delete prompt: {}, deleted prompts: {}", path, deletedPrompts, exception);
+                throw exception;
+            }
+        }
     }
 
     public void deletePrompt(String path) {
