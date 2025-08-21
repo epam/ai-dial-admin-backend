@@ -184,7 +184,7 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
                 .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
-                    .value("Comment must be between 15 and 255 characters"));
+                    .value("comment: Comment must be between 15 and 255 characters"));
     }
 
     private static Stream<Arguments> testGetPublicationParams() {
