@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.configuration.HibernateConfiguration;
 import com.epam.aidial.cfg.configuration.JpaConfiguration;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.configuration.ValidationConfig;
-import com.epam.aidial.cfg.domain.mapper.AddonCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
@@ -30,12 +29,16 @@ import com.epam.aidial.cfg.service.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
+import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreModel;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
+
+import java.util.Map;
 
 @TestConfiguration
 @ComponentScan(basePackages = {
@@ -67,14 +70,14 @@ public class FunctionalTestConfiguration {
                                                                KeyService keyService,
                                                                ModelService modelService, RoleService roleService,
                                                                RouteService routeService, DeploymentService deploymentService,
-                                                               AddonCoreMapper addonMapper, ApplicationCoreMapper applicationMapper,
+                                                               ApplicationCoreMapper applicationMapper,
                                                                ApplicationTypeSchemaCoreMapper schemaMapper,
                                                                InterceptorCoreMapper interceptorMapper,
                                                                KeyCoreMapper keyMapper,
                                                                ModelCoreMapper modelMapper, RoleCoreMapper roleMapper,
                                                                RouteCoreMapper routeMapper) {
         return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService,
-                keyService, modelService, roleService, routeService, deploymentService, addonMapper, applicationMapper, schemaMapper, interceptorMapper,
+                keyService, modelService, roleService, routeService, deploymentService, applicationMapper, schemaMapper, interceptorMapper,
                 keyMapper, modelMapper, roleMapper, routeMapper);
     }
 
@@ -93,7 +96,18 @@ public class FunctionalTestConfiguration {
 
     @Bean
     public CoreConfigRetriever configSource() {
-        return Mockito.mock(CoreConfigRetriever.class);
+        CoreModel model = new CoreModel();
+        model.setName("testModel");
+        model.setDisplayName("testModel displayName");
+
+        Config config = new Config();
+        config.setModels(Map.of(model.getName(), model));
+
+        CoreConfigRetriever mock = Mockito.mock(CoreConfigRetriever.class);
+
+        Mockito.when(mock.getConfig(true)).thenReturn(config);
+
+        return mock;
     }
 
     @Bean
