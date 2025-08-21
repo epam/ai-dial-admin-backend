@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -84,11 +84,11 @@ public class ToolSetImporter extends RoleBasedImporter {
         Optional<ToolSet> toolSet = toolSetService.tryGetToolSet(toolSetName);
         if (toolSet.isPresent()) {
             ToolSet existingToolSet = toolSet.get();
-            setRoleLimits(toolSetName, existingToolSet.getDeployment().getRoleLimits(), roles, newToolSet.getDeployment(), isPreview);
+            setLimits(toolSetName, existingToolSet.getDeployment(), roles, newToolSet.getDeployment(), isPreview);
             return handleExisting(newToolSet, resolutionPolicy, toolSetName, isPreview);
         } else {
             validate(toolSetName, newToolSet);
-            setRoleLimits(toolSetName, List.of(), roles, newToolSet.getDeployment(), isPreview);
+            setLimits(toolSetName,  roles, newToolSet.getDeployment(), isPreview);
             if (!isPreview) {
                 toolSetService.create(newToolSet);
             }
@@ -118,7 +118,7 @@ public class ToolSetImporter extends RoleBasedImporter {
 
     private ToolSet map(String toolSetName, CoreToolSet toolSet) {
         toolSet.setName(toolSetName);
-        return toolSetCoreMapper.mapToolSet(toolSet);
+        return toolSetCoreMapper.mapToolSet(toolSet, new ShareResourceLimit());
     }
 
     private void validate(String toolSetName, ToolSet toolSet) {
