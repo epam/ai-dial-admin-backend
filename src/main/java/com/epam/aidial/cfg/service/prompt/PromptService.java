@@ -116,12 +116,11 @@ public class PromptService implements ResourceService {
         for (var path : paths) {
             try {
                 deletePrompt(path);
+                deletedPrompts.add(path);
             } catch (Exception exception) {
                 log.warn("Unable to delete prompt: {}, deleted prompts: {}", path, deletedPrompts, exception);
                 throw exception;
             }
-
-            deletedPrompts.add(path);
         }
     }
 
