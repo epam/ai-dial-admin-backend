@@ -21,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -74,8 +76,9 @@ public class PublicationService {
     }
 
     public void rejectPublication(String path, String comment) {
-        var rejectPublicationDto = mapper.toRejectPublicationDto(path, comment);
-        publicationClient.rejectPublication(rejectPublicationDto);
+        var safeComment = Jsoup.clean(comment, Whitelist.none());
+        var sanitizedComment = mapper.toRejectPublicationDto(path, safeComment);
+        publicationClient.rejectPublication(sanitizedComment);
     }
 
     public String createPublication(CreatePublication createPublication) {

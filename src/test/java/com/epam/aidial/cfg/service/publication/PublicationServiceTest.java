@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.client.dto.PublicationInfosDto;
 import com.epam.aidial.cfg.client.dto.PublicationPathDto;
 import com.epam.aidial.cfg.client.dto.PublicationStatusDto;
 import com.epam.aidial.cfg.client.dto.PublicationsPathDto;
+import com.epam.aidial.cfg.client.dto.RejectPublicationsDto;
 import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
@@ -35,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -46,8 +48,11 @@ import java.util.stream.Stream;
 import static com.epam.aidial.cfg.client.dto.PublicationStatusDto.APPROVED;
 import static com.epam.aidial.cfg.client.dto.PublicationStatusDto.REJECTED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -292,10 +297,45 @@ class PublicationServiceTest {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("rejectPublication_TestParams")
+    void rejectPublication_ReturnsPublication(String comment, String expected) {
+        // given
+        var publicationPath = "testPublication";
+
+        // when
+        publicationService.rejectPublication(publicationPath, comment);
+
+        // then
+        ArgumentCaptor<String> commentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(publicationClientMapper).toRejectPublicationDto(eq(publicationPath),
+                commentCaptor.capture());
+
+        String sanitizedComment = commentCaptor.getValue();
+        assertEquals(sanitizedComment, expected);
+
+        ArgumentCaptor<RejectPublicationsDto> dtoCaptor =
+                ArgumentCaptor.forClass(RejectPublicationsDto.class);
+        verify(publicationClient).rejectPublication(dtoCaptor.capture());
+
+        assertEquals(dtoCaptor.getValue().getComment(), expected);
+    }
+
     private static Stream<Arguments> getPublication_InvalidStatus_ThrowsEntityNotFoundException_TestParams() {
         return Stream.of(
                 Arguments.of(APPROVED),
                 Arguments.of(REJECTED)
+        );
+    }
+
+    private static Stream<Arguments> rejectPublication_TestParams() {
+        return Stream.of(
+            Arguments.of("<script></script>Valid comment", "Valid comment"),
+            Arguments.of("<script ></script>   Valid comment", "Valid comment"),
+            Arguments.of("  Valid comment", "Valid comment"),
+            Arguments.of("<br>Valid comment", "Valid comment"),
+            Arguments.of("<HTML> Valid comment", "Valid comment"),
+            Arguments.of("<HTML> </p>Valid comment", "Valid comment")
         );
     }
 

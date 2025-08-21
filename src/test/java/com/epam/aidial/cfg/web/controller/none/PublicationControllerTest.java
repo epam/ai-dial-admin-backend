@@ -171,6 +171,21 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
         verify(publicationService).rejectPublication(publicationPath, comment);
     }
 
+    @Test
+    void testRejectPublication_ErrorValidation() throws Exception {
+        var publicationPath = "publicationPath";
+        var comment = "1236";
+        var body = new RejectPublicationDto();
+        body.setPath(publicationPath);
+        body.setComment(comment);
+
+        mockMvc.perform(post("/api/v1/publications/reject")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body)))
+            .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("between 15 and 255 characters")));
+    }
+
     private static Stream<Arguments> testGetPublicationParams() {
         return Stream.of(
                 Arguments.of(
