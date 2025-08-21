@@ -8,26 +8,13 @@ import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
-import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.normalizer.CoreConfigNormalizer;
 import com.epam.aidial.cfg.service.transfer.exporter.ConfigExporter;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
-import com.epam.aidial.cfg.service.transfer.importer.AdapterImporter;
-import com.epam.aidial.cfg.service.transfer.importer.AddonImporter;
-import com.epam.aidial.cfg.service.transfer.importer.ApplicationImporter;
-import com.epam.aidial.cfg.service.transfer.importer.ApplicationTypeSchemaImporter;
-import com.epam.aidial.cfg.service.transfer.importer.AssistantImporter;
-import com.epam.aidial.cfg.service.transfer.importer.InterceptorImporter;
-import com.epam.aidial.cfg.service.transfer.importer.InterceptorRunnerImporter;
-import com.epam.aidial.cfg.service.transfer.importer.KeyImporter;
-import com.epam.aidial.cfg.service.transfer.importer.ModelImporter;
-import com.epam.aidial.cfg.service.transfer.importer.RoleImporter;
-import com.epam.aidial.cfg.service.transfer.importer.RouteImporter;
-import com.epam.aidial.cfg.service.transfer.importer.ToolSetImporter;
-import com.epam.aidial.cfg.service.transfer.importer.util.CoreRolesMerger;
+import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +24,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -68,20 +54,7 @@ public class ConfigTransfer {
     private final ConfigExportProperties properties;
     private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final List<CoreConfigNormalizer> normalizers;
-    private final CoreRolesMerger coreRolesMerger;
-
-    private final ModelImporter modelImporter;
-    private final AddonImporter addonTransfer;
-    private final ApplicationImporter applicationImporter;
-    private final KeyImporter keyImporter;
-    private final RoleImporter roleImporter;
-    private final InterceptorImporter interceptorImporter;
-    private final InterceptorRunnerImporter interceptorRunnerImporter;
-    private final ApplicationTypeSchemaImporter applicationTypeSchemaImporter;
-    private final RouteImporter routeImporter;
-    private final AssistantImporter assistantImporter;
-    private final AdapterImporter adapterImporter;
-    private final ToolSetImporter toolSetImporter;
+    private final ConfigImporter configImporter;
 
     @Transactional(readOnly = true)
     public StreamingResponseBody exportConfig(ExportRequest request) {
@@ -143,45 +116,16 @@ public class ConfigTransfer {
         return configExporter.preview(request);
     }
 
-    @Transactional(readOnly = true)
-    public ImportConfigPreview importPreview(List<MultipartFile> files,
-                                             ConfigImportOptions importOptions) {
+    public ImportConfigPreview importPreview(List<MultipartFile> files, ConfigImportOptions importOptions) {
         try {
-            ConflictResolutionPolicy resolutionPolicy = importOptions.conflictResolutionPolicy();
             Config config = readAndMergeConfig(files);
-            Map<String, Role> configRoles = coreRolesMerger.mergeCoreRoles(config, importOptions.createRoleIfAbsent());
-            var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, true);
-            var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, true);
-            var adapters = adapterImporter.importAdapters(config.getModels(), importOptions, true);
-            var models = modelImporter.importModels(config.getModels(), configRoles, importOptions, adapters, true);
-            var addons = addonTransfer.importAddons(config.getAddons(), configRoles, importOptions, true);
-            var applications = applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, true);
-            var routes = routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, true);
-            var assistants = assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, true);
-            var toolSets = toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, true);
-            var roles = roleImporter.importRoles(configRoles, resolutionPolicy, true);
-            var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
-            return ImportConfigPreview.builder()
-                    .roles(roles)
-                    .keys(keys)
-                    .interceptors(interceptors)
-                    .applicationRunners(applicationRunners)
-                    .routes(routes)
-                    .adapters(adapters)
-                    .models(models)
-                    .applications(applications)
-                    .addons(addons)
-                    .assistants(assistants)
-                    .toolSets(toolSets)
-                    .build();
+            return configImporter.importPreview(config, importOptions);
         } catch (Exception exception) {
             log.warn("Failed to import config. Config import options: {}. Error: {}", importOptions, exception);
             throw exception;
         }
-
     }
 
-    @Transactional(readOnly = true)
     public ImportConfigPreview importPreviewZip(MultipartFile zipFile,
                                                 ConflictResolutionPolicy resolutionPolicy) {
         try (var zipInputStream = new ZipInputStream(new ByteArrayInputStream(zipFile.getBytes()))) {
@@ -196,7 +140,7 @@ public class ConfigTransfer {
                         throw new IllegalArgumentException("Multiple files {" + exportConfigFileName + "} with data found in the ZIP archive.");
                     }
                     ExportConfig config = jsonMapper.readValue(zipInputStream, ExportConfig.class);
-                    importConfigPreview = importPreviewAdminConfig(config, resolutionPolicy);
+                    importConfigPreview = configImporter.importPreviewAdminConfig(config, resolutionPolicy);
                 } else {
                     log.info("Ignoring file {} in zip archive during import", zipEntry.getName());
                 }
@@ -212,58 +156,16 @@ public class ConfigTransfer {
         }
     }
 
-    private ImportConfigPreview importPreviewAdminConfig(ExportConfig config, ConflictResolutionPolicy resolutionPolicy) {
-        var interceptorRunners = interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, true);
-        var interceptors = interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, true);
-        var applicationRunners = applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, true);
-        ConfigImportOptions importOptions = createConfigImportOptions(resolutionPolicy);
-        var routes = routeImporter.importAdminRoutes(config.getRoutes(), config.getRoles(), importOptions, true);
-        var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, true);
-        var models = modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, true);
-        var applications = applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, true);
-        var toolSets = toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, true);
-        var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, true);
-        var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, true);
-
-        return ImportConfigPreview.builder()
-                .roles(roles)
-                .keys(keys)
-                .interceptors(interceptors)
-                .interceptorRunners(interceptorRunners)
-                .applicationRunners(applicationRunners)
-                .routes(routes)
-                .adapters(adapters)
-                .models(models)
-                .applications(applications)
-                .toolSets(toolSets)
-                .build();
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void importConfig(List<MultipartFile> files,
-                             ConfigImportOptions importOptions) {
+    public void importConfig(List<MultipartFile> files, ConfigImportOptions importOptions) {
         try {
-            ConflictResolutionPolicy resolutionPolicy = importOptions.conflictResolutionPolicy();
             Config config = readAndMergeConfig(files);
-            Map<String, Role> configRoles = coreRolesMerger.mergeCoreRoles(config, importOptions.createRoleIfAbsent());
-            interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, false);
-            applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, false);
-            adapterImporter.importAdapters(config.getModels(), importOptions, false);
-            modelImporter.importModels(config.getModels(), configRoles, importOptions, List.of(), false);
-            addonTransfer.importAddons(config.getAddons(), configRoles, importOptions, false);
-            applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, false);
-            routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, false);
-            assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, false);
-            toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, false);
-            roleImporter.importRoles(configRoles, resolutionPolicy, false);
-            keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
+            configImporter.importConfig(config, importOptions);
         } catch (Exception exception) {
             log.warn("Failed to import config. Conflict resolution policy: {}. Error: {}", importOptions.conflictResolutionPolicy(), exception);
             throw exception;
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void importConfigZip(MultipartFile zipFile,
                                 ConfigImportOptions importOptions) {
         try (var zipInputStream = new ZipInputStream(new ByteArrayInputStream(zipFile.getBytes()))) {
@@ -271,7 +173,7 @@ public class ConfigTransfer {
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (zipEntry.getName().equals(properties.getExportConfigFileName())) {
                     ExportConfig config = jsonMapper.readValue(zipInputStream, ExportConfig.class);
-                    importAdminConfig(config, importOptions);
+                    configImporter.importAdminConfig(config, importOptions);
                 } else {
                     log.info("Ignoring file {} in zip archive during import", zipEntry.getName());
                 }
@@ -281,25 +183,6 @@ public class ConfigTransfer {
             log.debug("Config file {} import failed", zipFile.getOriginalFilename(), ex);
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
-    }
-
-    private void importAdminConfig(ExportConfig config,
-                                   ConfigImportOptions importOptions) {
-        var resolutionPolicy = importOptions.conflictResolutionPolicy();
-        interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, false);
-        interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, false);
-        applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, false);
-        routeImporter.importAdminRoutes(config.getRoutes(), config.getRoles(), importOptions, false);
-        adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, false);
-        modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, false);
-        applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, false);
-        toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, false);
-        roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, false);
-        keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, false);
-    }
-
-    private ConfigImportOptions createConfigImportOptions(ConflictResolutionPolicy resolutionPolicy) {
-        return new ConfigImportOptions(resolutionPolicy, false, false);
     }
 
     private Config readAndMergeConfig(List<MultipartFile> files) {

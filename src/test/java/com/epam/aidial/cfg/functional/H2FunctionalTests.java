@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.functional.tests.ApplicationTypeSchemaFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantsPropertyFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ConfigTransferFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.CoreConfigAutoImportFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.InterceptorFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.InterceptorRunnerFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.KeyFunctionalTest;
@@ -63,6 +64,10 @@ public class H2FunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class ConfigTransferTests extends ConfigTransferFunctionalTest {
+    }
+
+    @Nested
+    class CoreConfigAutoImportTests extends CoreConfigAutoImportFunctionalTest {
     }
 
     @Nested

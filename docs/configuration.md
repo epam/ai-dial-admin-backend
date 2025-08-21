@@ -4,7 +4,8 @@ This document provides a comprehensive list of all configurable properties in th
 
 ## Table of Contents
 
-- [AIDIAL Config File Exporter](#aidial-config-file-exporter)
+- [AIDIAL Config File Export Configuration](#aidial-config-file-export-configuration)
+- [AIDIAL Config File Import Configuration](#aidial-config-file-import-configuration)
 - [Kubernetes Configuration](#kubernetes-configuration)
 - [Web Server Configuration](#web-server-configuration)
 - [Security Configuration](#security-configuration)
@@ -18,7 +19,7 @@ This document provides a comprehensive list of all configurable properties in th
 - [Retry Configuration](#retry-configuration)
 - [Validation Configuration](#validation-configuration)
 
-## AIDIAL Config File Exporter
+## AIDIAL Config File Export Configuration
 
 | Setting                                  | Environment Variable                     | Default              | Required | Applied when | Description                                                                                                                                 |
 |------------------------------------------|------------------------------------------|----------------------|----------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------|
@@ -40,6 +41,13 @@ This document provides a comprehensive list of all configurable properties in th
 | config.export.keyvault.expiration.period | CONFIG_EXPORT_KEYVAULT_EXPIRATION_PERIOD | 3                    | No       | -         | Expiration period for keyvault values                                                                                                       |
 | config.export.keyvault.expiration.unit   | CONFIG_EXPORT_KEYVAULT_EXPIRATION_UNIT   | MONTHS               | No       | -         | Unit of time for keyvault value expiration                                                                                                  |
 | config.export.createResources            | CONFIG_EXPORT_CREATE_RESOURCES           | false                | No       | -         | If true, create resources where config is exported if they don't already exist                                                              |
+
+## AIDIAL Config File Import Configuration
+
+| Setting                          | Environment Variable      | Default | Required | Applied when | Description                                                                                                                       |
+|----------------------------------|---------------------------|---------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| config.import.configsMaxCount    | IMPORT_CONFIGS_MAX_COUNT  | 64      | No       | -            | Maximum number of files allowed for a single import config operation                                                              |
+| config.import.autoImport.enabled | ENABLE_CONFIG_AUTO_IMPORT | false   | No       | -            | Enable core config auto import from the same location where export is configured. Auto import runs once on startup if DB is empty |
 
 ## Kubernetes Configuration
 
@@ -228,12 +236,6 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 | feign.retry.errorCodes                    | FEIGN_RETRY_ERRORCODES                      | 408,429,500,502,503,504 | No | - | HTTP status codes that trigger retries                             |
 | prompts.import.consecutiveErrorsThreshold | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No | - | Maximum number of consecutive errors allowed during prompts import |
 | files.import.consecutiveErrorsThreshold   | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD   | 2                       | No | - | Maximum number of consecutive errors allowed during files import   |
-
-## Export/Import Configuration
-
-| Setting | Environment Variable | Default | Required | Applied when | Description |
-|---------|---------------------|---------|----------|-----------|-------------|
-| config.import.configsMaxCount | IMPORT_CONFIGS_MAX_COUNT | 64 | No | - | Maximum number of files allowed for a single import config operation |
 
 ## Additional Entities Configuration
 *(Temporary configuration - will be implemented as managed entities inside admin app)*
