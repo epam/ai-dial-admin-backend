@@ -32,6 +32,7 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     private DeploymentEntity deployment;
 
     private String description;
+    private String displayName;
     @Embedded
     private ResponseEntity response;
     private boolean rewritePath;

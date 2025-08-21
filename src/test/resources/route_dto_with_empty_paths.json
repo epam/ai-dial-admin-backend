@@ -1,6 +1,7 @@
 {
 	"name": "test_route",
 	"description": "routeDescription",
+	"displayName": "routeDisplayName",
 	"response": {
 		"status": 200,
 		"body": "OK"
