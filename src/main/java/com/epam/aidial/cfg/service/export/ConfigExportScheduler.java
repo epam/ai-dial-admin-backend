@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.export;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.service.normalizer.CoreConfigNormalizer;
+import com.epam.aidial.cfg.service.transfer.CoreConfigAutoImportLock;
 import com.epam.aidial.core.config.Config;
 import lombok.RequiredArgsConstructor;
 import lombok.Synchronized;
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Aliaksei Kurnosau on 9/9/24.
@@ -19,12 +21,14 @@ import java.util.List;
 @Service
 @Slf4j
 @LogExecution
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class ConfigExportScheduler {
 
     private final CoreConfigAggregatorService configService;
     private final ConfigExportService configExportService;
     private final List<CoreConfigNormalizer> normalizers;
     private final ConfigExportErrorHandler errorHandler;
+    private final Optional<CoreConfigAutoImportLock> coreConfigAutoImportLock;
 
     @Value("${config.export.createResources}")
     private boolean createResources;
@@ -33,6 +37,11 @@ public class ConfigExportScheduler {
     @Synchronized
     public void exportCurrentConfig() {
         try {
+            if (coreConfigAutoImportLock.isPresent() && !coreConfigAutoImportLock.get().isAutoImportFinished()) {
+                log.info("Skipping export of current configuration since auto import of core configuration is not finished");
+                return;
+            }
+
             Config config = configService.getConfig();
             log.debug("Exporting current Configuration settings.");
             normalizers.forEach(n -> n.normalize(config));

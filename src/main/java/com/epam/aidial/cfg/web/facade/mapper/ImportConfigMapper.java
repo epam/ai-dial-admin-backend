@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
@@ -22,6 +23,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
@@ -54,6 +56,8 @@ public abstract class ImportConfigMapper {
     private RouteDtoMapper routeDtoMapper;
     @Autowired
     private AdapterDtoMapper adapterDtoMapper;
+    @Autowired
+    private ToolSetDtoMapper toolSetDtoMapper;
 
     public abstract ImportConfigPreviewDto toImportConfigPreviewDto(ImportConfigPreview importConfigPreview);
 
@@ -95,6 +99,10 @@ public abstract class ImportConfigMapper {
 
     public Collection<ImportComponent<AdapterDto>> mapAdapters(Collection<ImportComponent<Adapter>> adapters) {
         return mapGeneric(adapters, adapterDtoMapper::toDto);
+    }
+
+    public Collection<ImportComponent<ToolSetDto>> mapToolSets(Collection<ImportComponent<ToolSet>> toolSets) {
+        return mapGeneric(toolSets, toolSetDtoMapper::toDto);
     }
 
     public <T, D> Collection<ImportComponent<D>> mapGeneric(Collection<ImportComponent<T>> input,

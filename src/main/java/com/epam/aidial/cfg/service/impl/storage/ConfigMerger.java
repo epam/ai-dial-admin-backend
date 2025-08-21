@@ -38,6 +38,7 @@ public class ConfigMerger {
             mergeModels(part, config);
             mergeAddons(part, config);
             mergeApplications(part, config);
+            mergeToolSets(part, config);
             mergeAssistants(part, config);
             mergeKeys(part, config);
             mergeRoles(part, config);
@@ -88,6 +89,10 @@ public class ConfigMerger {
         mergeGenericMap(from.getApplicationTypeSchemas(),
                 to::getApplicationTypeSchemas,
                 to::setApplicationTypeSchemas);
+    }
+
+    private void mergeToolSets(Config from, Config to) {
+        mergeGenericMap(from.getToolsets(), to::getToolsets, to::setToolsets);
     }
 
     private <T> void mergeGenericMap(Map<String, T> src,

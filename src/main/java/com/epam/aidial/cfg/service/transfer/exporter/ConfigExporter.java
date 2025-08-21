@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleBased;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -46,6 +47,7 @@ public class ConfigExporter {
     private final InterceptorExporter interceptorExporter;
     private final InterceptorRunnerExporter interceptorRunnerExporter;
     private final AdapterExporter adapterExporter;
+    private final ToolSetExporter toolSetExporter;
 
     public ExportConfig getConfig(ExportRequest request) {
         if (request instanceof SelectedItemsExportRequest exportRequest) {
@@ -63,7 +65,11 @@ public class ConfigExporter {
         Map<String, Model> models = modelExporter.getModels(request);
         config.setModels(models);
 
-        Set<String> allEntityNames = getAllEntityNames(applications.keySet(), models.keySet(), routes.keySet());
+        Map<String, ToolSet> toolSets = toolSetExporter.getToolSets(request);
+        config.setToolsets(toolSets);
+
+        Set<String> allEntityNames = getAllEntityNames(applications.keySet(), models.keySet(), routes.keySet(), toolSets.keySet());
+
         Map<String, Role> roles = roleExporter.getRoles(request, allEntityNames);
         config.setRoles(roles);
         config.setKeys(keyExporter.getKeys(request));
@@ -83,6 +89,7 @@ public class ConfigExporter {
         Collection<ExportComponentInfo> routes = routeExporter.preview(request);
         Collection<ExportComponentInfo> adapters = adapterExporter.preview(request);
         Collection<ExportComponentInfo> models = modelExporter.preview(request);
+        Collection<ExportComponentInfo> toolSets = toolSetExporter.preview(request);
         Collection<ExportComponentInfo> roles = roleExporter.preview(request);
         Collection<ExportKeyInfo> keys = keyExporter.preview(request);
         Collection<ExportComponentInfo> interceptors = interceptorExporter.preview(request);
@@ -94,6 +101,7 @@ public class ConfigExporter {
                 .routes(routes)
                 .applications(applications)
                 .models(models)
+                .toolSets(toolSets)
                 .roles(roles)
                 .keys(keys)
                 .interceptors(interceptors)
@@ -150,6 +158,8 @@ public class ConfigExporter {
                     modelExporter.getModels(), updatedComponents);
             processDependency(roleName, dependencies, ExportConfigComponentType.ROUTE,
                     routeExporter.getRoutes(), updatedComponents);
+            processDependency(roleName, dependencies, ExportConfigComponentType.TOOL_SET,
+                    toolSetExporter.getToolSets(), updatedComponents);
         }
     }
 
@@ -220,10 +230,11 @@ public class ConfigExporter {
         }
     }
 
-    protected Set<String> getAllEntityNames(Set<String> applications,
-                                            Set<String> models,
-                                            Set<String> routes) {
-        return Stream.of(applications, models, routes)
+    private Set<String> getAllEntityNames(Set<String> applications,
+                                          Set<String> models,
+                                          Set<String> routes,
+                                          Set<String> toolSets) {
+        return Stream.of(applications, models, routes, toolSets)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
     }

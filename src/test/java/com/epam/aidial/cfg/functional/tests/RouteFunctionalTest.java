@@ -98,6 +98,7 @@ public abstract class RouteFunctionalTest {
         RouteDto routeDto = new RouteDto();
         routeDto.setName("route" + suffix);
         routeDto.setDescription("description" + suffix);
+        routeDto.setDisplayName("displayName" + suffix);
         routeDto.setRoleLimits(Map.of(
                 "role2", new LimitDto()
         ));

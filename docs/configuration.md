@@ -4,7 +4,8 @@ This document provides a comprehensive list of all configurable properties in th
 
 ## Table of Contents
 
-- [AIDIAL Config File Exporter](#aidial-config-file-exporter)
+- [AIDIAL Config File Export Configuration](#aidial-config-file-export-configuration)
+- [AIDIAL Config File Import Configuration](#aidial-config-file-import-configuration)
 - [Kubernetes Configuration](#kubernetes-configuration)
 - [Web Server Configuration](#web-server-configuration)
 - [Security Configuration](#security-configuration)
@@ -18,7 +19,7 @@ This document provides a comprehensive list of all configurable properties in th
 - [Retry Configuration](#retry-configuration)
 - [Validation Configuration](#validation-configuration)
 
-## AIDIAL Config File Exporter
+## AIDIAL Config File Export Configuration
 
 | Setting                                  | Environment Variable                     | Default              | Required | Applied when | Description                                                                                                                                 |
 |------------------------------------------|------------------------------------------|----------------------|----------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------|
@@ -40,6 +41,13 @@ This document provides a comprehensive list of all configurable properties in th
 | config.export.keyvault.expiration.period | CONFIG_EXPORT_KEYVAULT_EXPIRATION_PERIOD | 3                    | No       | -         | Expiration period for keyvault values                                                                                                       |
 | config.export.keyvault.expiration.unit   | CONFIG_EXPORT_KEYVAULT_EXPIRATION_UNIT   | MONTHS               | No       | -         | Unit of time for keyvault value expiration                                                                                                  |
 | config.export.createResources            | CONFIG_EXPORT_CREATE_RESOURCES           | false                | No       | -         | If true, create resources where config is exported if they don't already exist                                                              |
+
+## AIDIAL Config File Import Configuration
+
+| Setting                          | Environment Variable      | Default | Required | Applied when | Description                                                                                                                       |
+|----------------------------------|---------------------------|---------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| config.import.configsMaxCount    | IMPORT_CONFIGS_MAX_COUNT  | 64      | No       | -            | Maximum number of files allowed for a single import config operation                                                              |
+| config.import.autoImport.enabled | ENABLE_CONFIG_AUTO_IMPORT | false   | No       | -            | Enable core config auto import from the same location where export is configured. Auto import runs once on startup if DB is empty |
 
 ## Kubernetes Configuration
 
@@ -229,12 +237,6 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 | prompts.import.consecutiveErrorsThreshold | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No | - | Maximum number of consecutive errors allowed during prompts import |
 | files.import.consecutiveErrorsThreshold   | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD   | 2                       | No | - | Maximum number of consecutive errors allowed during files import   |
 
-## Export/Import Configuration
-
-| Setting | Environment Variable | Default | Required | Applied when | Description |
-|---------|---------------------|---------|----------|-----------|-------------|
-| config.import.configsMaxCount | IMPORT_CONFIGS_MAX_COUNT | 64 | No | - | Maximum number of files allowed for a single import config operation |
-
 ## Additional Entities Configuration
 *(Temporary configuration - will be implemented as managed entities inside admin app)*
 
@@ -255,16 +257,17 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 
 Allows specifying additional environment-specific entity name validation patterns.
 
-| Setting                             | Environment Variable | Default | Required | Applied when | Description |
-|-------------------------------------|---------------------|---------|----------|-----------|-------------|
-| validation.role.name                | ROLE_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Role name |
-| validation.adapter.name             | ADAPTER_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Adapter name |
-| validation.addon.name               | ADDON_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Addon name |
-| validation.application.name         | APPLICATION_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Application name |
-| validation.assistant.name           | ASSISTANT_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Assistant name |
-| validation.interceptor.name         | INTERCEPTOR_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Interceptor name |
-| validation.interceptorRunner.name   | INTERCEPTOR_RUNNER_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for InterceptorRunner name |
-| validation.key.name                 | KEY_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Key name |
-| validation.model.name               | MODEL_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Model name |
-| validation.route.name               | ROUTE_NAME_VALIDATION_PATTERN | - | No | - | Validation pattern for Route name |
+| Setting                             | Environment Variable                          | Default | Required | Applied when | Description                                     |
+|-------------------------------------|-----------------------------------------------|---------|----------|-----------|-------------------------------------------------|
+| validation.role.name                | ROLE_NAME_VALIDATION_PATTERN                  | - | No | - | Validation pattern for Role name                |
+| validation.adapter.name             | ADAPTER_NAME_VALIDATION_PATTERN               | - | No | - | Validation pattern for Adapter name             |
+| validation.addon.name               | ADDON_NAME_VALIDATION_PATTERN                 | - | No | - | Validation pattern for Addon name               |
+| validation.application.name         | APPLICATION_NAME_VALIDATION_PATTERN           | - | No | - | Validation pattern for Application name         |
+| validation.assistant.name           | ASSISTANT_NAME_VALIDATION_PATTERN             | - | No | - | Validation pattern for Assistant name           |
+| validation.interceptor.name         | INTERCEPTOR_NAME_VALIDATION_PATTERN           | - | No | - | Validation pattern for Interceptor name         |
+| validation.interceptorRunner.name   | INTERCEPTOR_RUNNER_NAME_VALIDATION_PATTERN    | - | No | - | Validation pattern for InterceptorRunner name   |
+| validation.key.name                 | KEY_NAME_VALIDATION_PATTERN                   | - | No | - | Validation pattern for Key name                 |
+| validation.model.name               | MODEL_NAME_VALIDATION_PATTERN                 | - | No | - | Validation pattern for Model name               |
+| validation.route.name               | ROUTE_NAME_VALIDATION_PATTERN                 | - | No | - | Validation pattern for Route name               |
 | validation.applicationTypeSchema.id | APPLICATION_TYPE_SCHEMA_ID_VALIDATION_PATTERN | - | No | - | Validation pattern for ApplicationTypeSchema id |
+| validation.toolSet.name             | TOOLSET_NAME_VALIDATION_PATTERN               | - | No | - | Validation pattern for ToolSet name             |

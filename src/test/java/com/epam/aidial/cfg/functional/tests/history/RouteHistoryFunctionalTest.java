@@ -127,6 +127,7 @@ public abstract class RouteHistoryFunctionalTest {
         RouteDto routeDto = new RouteDto();
         routeDto.setName("route" + suffix);
         routeDto.setDescription("description" + suffix);
+        routeDto.setDisplayName("displayName" + suffix);
         routeDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));

@@ -12,6 +12,7 @@ import com.epam.aidial.core.config.CoreKey;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
+import com.epam.aidial.core.config.CoreToolSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -66,10 +67,11 @@ class ConfigSplitterTest {
         configBody.getRetriableErrorCodes().add(10);
         configBody.getInterceptors().put("interceptor1", generateInterceptor());
         configBody.getApplicationTypeSchemas().put("schema1", generateSchema());
+        configBody.getToolsets().put("toolset1", generateToolSet());
 
         List<ConfigPart> splittedConfig = splitter.splitConfig(configBody, this::encode, 400, 10);
 
-        Assertions.assertEquals(8, splittedConfig.size());
+        Assertions.assertEquals(9, splittedConfig.size());
         List<Config> expected = expected();
         List<Config> actual = splittedConfig.stream()
                 .map(ConfigPart::config)
@@ -122,6 +124,10 @@ class ConfigSplitterTest {
         config.setApplicationTypeSchemas(Map.of("schema1", "schema1"));
         configs.add(config);
 
+        config = createConfig();
+        config.setToolsets(Map.of("toolset1", generateToolSet()));
+        configs.add(config);
+
         return configs;
     }
 
@@ -137,6 +143,7 @@ class ConfigSplitterTest {
         config.setInterceptors(null);
         config.setApplicationTypeSchemas(null);
         config.setRetriableErrorCodes(null);
+        config.setToolsets(null);
         return config;
     }
 
@@ -190,6 +197,12 @@ class ConfigSplitterTest {
         CoreKey key = new CoreKey();
         key.setKey("key" + i);
         return key;
+    }
+
+    private CoreToolSet generateToolSet() {
+        CoreToolSet toolSet = new CoreToolSet();
+        toolSet.setName("toolset1");
+        return toolSet;
     }
 
     @SneakyThrows

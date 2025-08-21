@@ -75,5 +75,6 @@
   "roles": {},
   "retriableErrorCodes": [],
   "interceptors": {},
-  "applicationTypeSchemas": []
+  "applicationTypeSchemas": [],
+  "toolsets": {}
 }

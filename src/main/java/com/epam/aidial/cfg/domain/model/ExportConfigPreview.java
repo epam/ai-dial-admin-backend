@@ -16,6 +16,7 @@ public class ExportConfigPreview {
     private Collection<ExportComponentInfo> routes;
     private Collection<ExportComponentInfo> applications;
     private Collection<ExportComponentInfo> models;
+    private Collection<ExportComponentInfo> toolSets;
 
     private Collection<ExportComponentInfo> roles;
     private Collection<ExportKeyInfo> keys;

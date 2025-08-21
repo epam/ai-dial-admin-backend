@@ -8,12 +8,14 @@ import com.epam.aidial.cfg.functional.tests.ApplicationTypeSchemaFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantsPropertyFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ConfigTransferFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.CoreConfigAutoImportFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.InterceptorFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.InterceptorRunnerFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.KeyFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ModelFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RolesFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RouteFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.ToolSetFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ActivityAuditFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AdapterHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AddonHistoryFunctionalTest;
@@ -27,6 +29,7 @@ import com.epam.aidial.cfg.functional.tests.history.KeyHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ModelHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RolesHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RouteHistoryFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.history.ToolSetHistoryFunctionalTest;
 import org.junit.jupiter.api.Nested;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -64,6 +67,10 @@ public class H2FunctionalTests extends FunctionalTestSuite {
     }
 
     @Nested
+    class CoreConfigAutoImportTests extends CoreConfigAutoImportFunctionalTest {
+    }
+
+    @Nested
     class InterceptorTests extends InterceptorFunctionalTest {
     }
 
@@ -90,6 +97,10 @@ public class H2FunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class AdapterTest extends AdapterFunctionalTest {
+    }
+
+    @Nested
+    class ToolSetTests extends ToolSetFunctionalTest {
     }
 
     @Nested
@@ -142,5 +153,9 @@ public class H2FunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class AdapterHistoryTest extends AdapterHistoryFunctionalTest {
+    }
+
+    @Nested
+    class ToolSetHistoryTests extends ToolSetHistoryFunctionalTest {
     }
 }
