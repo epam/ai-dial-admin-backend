@@ -33,6 +33,7 @@ public class ConfigImporter {
     private final RouteImporter routeImporter;
     private final AssistantImporter assistantImporter;
     private final AdapterImporter adapterImporter;
+    private final ToolSetImporter toolSetImporter;
 
     @Transactional(readOnly = true)
     public ImportConfigPreview importPreview(Config config, ConfigImportOptions importOptions) {
@@ -47,6 +48,7 @@ public class ConfigImporter {
         var applications = applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, true);
         var routes = routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, true);
         var assistants = assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, true);
+        var toolSets = toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, true);
         var roles = roleImporter.importRoles(configRoles, resolutionPolicy, true);
         var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
 
@@ -61,6 +63,7 @@ public class ConfigImporter {
                 .applications(applications)
                 .addons(addons)
                 .assistants(assistants)
+                .toolSets(toolSets)
                 .build();
     }
 
@@ -75,6 +78,7 @@ public class ConfigImporter {
         var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, true);
         var models = modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, true);
         var applications = applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, true);
+        var toolSets = toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, true);
         var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, true);
         var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, true);
 
@@ -88,6 +92,7 @@ public class ConfigImporter {
                 .adapters(adapters)
                 .models(models)
                 .applications(applications)
+                .toolSets(toolSets)
                 .build();
     }
 
@@ -104,6 +109,7 @@ public class ConfigImporter {
         applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, false);
         routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, false);
         assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, false);
+        toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, false);
         roleImporter.importRoles(configRoles, resolutionPolicy, false);
         keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
     }
@@ -119,6 +125,7 @@ public class ConfigImporter {
         adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, false);
         modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, false);
         applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, false);
+        toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, false);
         roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, false);
         keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, false);
     }

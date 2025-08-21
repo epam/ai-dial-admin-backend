@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.functional.tests.KeyFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ModelFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RolesFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.RouteFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.ToolSetFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ActivityAuditFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AdapterHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AddonHistoryFunctionalTest;
@@ -28,6 +29,7 @@ import com.epam.aidial.cfg.functional.tests.history.KeyHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.ModelHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RolesHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.RouteHistoryFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.history.ToolSetHistoryFunctionalTest;
 import org.junit.jupiter.api.Nested;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -98,6 +100,10 @@ public class H2FunctionalTests extends FunctionalTestSuite {
     }
 
     @Nested
+    class ToolSetTests extends ToolSetFunctionalTest {
+    }
+
+    @Nested
     class AddonHistoryTests extends AddonHistoryFunctionalTest {
     }
 
@@ -147,5 +153,9 @@ public class H2FunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class AdapterHistoryTest extends AdapterHistoryFunctionalTest {
+    }
+
+    @Nested
+    class ToolSetHistoryTests extends ToolSetHistoryFunctionalTest {
     }
 }

@@ -34,7 +34,8 @@ public class ConfigSplitter {
                                 mapEntries(configBody, Config::getRoles, Config::setRoles),
                                 mapRetriableErrorCodes(configBody),
                                 mapEntries(configBody, Config::getInterceptors, Config::setInterceptors),
-                                mapEntries(configBody, Config::getApplicationTypeSchemas, Config::setApplicationTypeSchemas))
+                                mapEntries(configBody, Config::getApplicationTypeSchemas, Config::setApplicationTypeSchemas),
+                                mapEntries(configBody, Config::getToolsets, Config::setToolsets))
                         .flatMap(Function.identity())
                         .toList(),
                 partitioningLimit);
@@ -156,6 +157,7 @@ public class ConfigSplitter {
         config.setModels(null);
         config.setAddons(null);
         config.setApplications(null);
+        config.setToolsets(null);
         config.setAssistant(null);
         config.setKeys(null);
         config.setRoles(null);

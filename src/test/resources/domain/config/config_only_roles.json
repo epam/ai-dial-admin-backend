@@ -41,5 +41,6 @@
   },
   "retriableErrorCodes": [],
   "interceptors": {},
-  "applicationTypeSchemas": []
+  "applicationTypeSchemas": [],
+  "toolsets": {}
 }

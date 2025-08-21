@@ -13,6 +13,7 @@ public class ExportConfig {
     private Map<String, Route> routes;
     private Map<String, Application> applications;
     private Map<String, Model> models;
+    private Map<String, ToolSet> toolsets;
 
     private Map<String, Role> roles;
     private Map<String, Key> keys;
@@ -22,7 +23,7 @@ public class ExportConfig {
     private Map<String, Adapter> adapters;
 
     public Collection<Deployment> collectDeployment() {
-        return Stream.of(routes, applications, models)
+        return Stream.of(routes, applications, models, toolsets)
                 .map(Map::values)
                 .flatMap(Collection::stream)
                 .map(RoleBased::getDeployment)

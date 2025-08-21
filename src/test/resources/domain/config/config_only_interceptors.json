@@ -27,5 +27,6 @@
       "dependencies": []
     }
   },
-  "applicationTypeSchemas": []
+  "applicationTypeSchemas": [],
+  "toolsets": {}
 }

@@ -1,0 +1,41 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {},
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {},
+  "retriableErrorCodes": [],
+  "interceptors": {},
+  "applicationTypeSchemas": [],
+  "toolsets": {
+    "sampleDeployment": {
+      "name": "sampleDeployment",
+      "user_roles": [
+        "admin",
+        "user"
+      ],
+      "endpoint": "http://git-mcp-server/call",
+      "icon_url": "https://example.com/icon.png",
+      "display_name": "Sample ToolSet",
+      "description": "Git remote tool set",
+      "description_keywords": [
+        "MCP",
+        "tool",
+        "git"
+      ],
+      "transport": "http",
+      "allowed_tools": ["branch", "remote"],
+      "max_retry_attempts": 3,
+      "author": "test-author",
+      "created_at": 12345,
+      "updated_at": 12345,
+      "forward_auth_token": false,
+      "defaults": {},
+      "interceptors": []
+    }
+  }
+}

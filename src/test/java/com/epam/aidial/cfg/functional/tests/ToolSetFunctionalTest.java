@@ -1,0 +1,128 @@
+package com.epam.aidial.cfg.functional.tests;
+
+import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public abstract class ToolSetFunctionalTest {
+
+    @Autowired
+    private ToolSetFacade toolSetFacade;
+    @Autowired
+    private RoleFacade roleFacade;
+
+    @BeforeEach
+    public void beforeEach() {
+        RoleDto role1 = new RoleDto();
+        role1.setName("role1");
+        role1.setDescription("role1");
+
+        RoleDto role2 = new RoleDto();
+        role2.setName("role2");
+        role2.setDescription("role2");
+
+        roleFacade.createRole(role1);
+        roleFacade.createRole(role2);
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetToolSets() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+        ToolSetDto expected = createDto("1");
+
+        assertToolSet(actual, expected);
+
+        toolSetFacade.createToolSet(createDto("2"));
+
+        Collection<ToolSetDto> actualToolSets = toolSetFacade.getAllToolSets();
+
+        assertToolSets(actualToolSets, List.of(createDto("1"), createDto("2")));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndDeleteToolSet() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+        toolSetFacade.deleteToolSet(toolSetDto.getName());
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> toolSetFacade.getToolSet(toolSetDto.getName()));
+        Assertions.assertTrue(toolSetFacade.getAllToolSets().isEmpty());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndUpdateToolSet() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto updatedToolSet = createDto("1");
+        updatedToolSet.setDescription("New ToolSet description");
+
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        var expected = createDto("1");
+        expected.setDescription("New ToolSet description");
+
+        assertToolSet(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRenameToolSet() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+        ToolSetDto updatedToolSet = createDto("2");
+        updatedToolSet.setDescription("New ToolSet description");
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet)
+        );
+        Assertions.assertEquals("ToolSet with name: 'ToolSet1' can not be renamed. New name: 'ToolSet2'", exception.getMessage());
+    }
+
+    private ToolSetDto createDto(String suffix) {
+        ToolSetDto toolSetDto = new ToolSetDto();
+        toolSetDto.setName("ToolSet" + suffix);
+        toolSetDto.setDescription("Description" + suffix);
+        toolSetDto.setEndpoint("http://test-endpoint/api");
+        toolSetDto.setRoleLimits(Map.of("role" + suffix, new LimitDto()));
+        return toolSetDto;
+    }
+
+    private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {
+        Assertions.assertEquals(expected.getName(), actual.getName());
+        Assertions.assertEquals(expected.getDescription(), actual.getDescription());
+        Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
+    }
+
+    private void assertToolSets(Collection<ToolSetDto> actual, Collection<ToolSetDto> expected) {
+        Map<String, ToolSetDto> actualMap = toMap(actual);
+        Map<String, ToolSetDto> expectedMap = toMap(expected);
+        Assertions.assertEquals(expectedMap.keySet(), actualMap.keySet());
+        for (String name : actualMap.keySet()) {
+            assertToolSet(actualMap.get(name), expectedMap.get(name));
+        }
+    }
+
+    private Map<String, ToolSetDto> toMap(Collection<ToolSetDto> dtos) {
+        return dtos.stream()
+                .collect(Collectors.toMap(ToolSetDto::getName, Function.identity()));
+    }
+}

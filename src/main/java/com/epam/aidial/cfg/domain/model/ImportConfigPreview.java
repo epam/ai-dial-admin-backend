@@ -25,5 +25,6 @@ public class ImportConfigPreview {
     private Collection<ImportComponent<Application>> applications;
     private Collection<ImportComponent<Addon>> addons;
     private Collection<ImportComponent<Assistant>> assistants;
+    private Collection<ImportComponent<ToolSet>> toolSets;
 
 }

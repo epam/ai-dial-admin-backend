@@ -5,6 +5,7 @@ public enum ExportConfigComponentType {
     MODEL,
     APPLICATION,
     ROUTE,
+    TOOL_SET,
 
     ROLE,
     KEY,

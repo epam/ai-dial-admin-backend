@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.domain.mapper.KeyCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
+import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -23,6 +24,7 @@ import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.service.export.CoreConfigAggregatorService;
@@ -70,15 +72,15 @@ public class FunctionalTestConfiguration {
                                                                KeyService keyService,
                                                                ModelService modelService, RoleService roleService,
                                                                RouteService routeService, DeploymentService deploymentService,
-                                                               ApplicationCoreMapper applicationMapper,
+                                                               ToolSetService toolSetService, ApplicationCoreMapper applicationMapper,
                                                                ApplicationTypeSchemaCoreMapper schemaMapper,
                                                                InterceptorCoreMapper interceptorMapper,
                                                                KeyCoreMapper keyMapper,
                                                                ModelCoreMapper modelMapper, RoleCoreMapper roleMapper,
-                                                               RouteCoreMapper routeMapper) {
+                                                               RouteCoreMapper routeMapper, ToolSetCoreMapper toolSetMapper) {
         return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService,
-                keyService, modelService, roleService, routeService, deploymentService, applicationMapper, schemaMapper, interceptorMapper,
-                keyMapper, modelMapper, roleMapper, routeMapper);
+                keyService, modelService, roleService, routeService, deploymentService, toolSetService, applicationMapper, schemaMapper, interceptorMapper,
+                keyMapper, modelMapper, roleMapper, routeMapper, toolSetMapper);
     }
 
     @Bean

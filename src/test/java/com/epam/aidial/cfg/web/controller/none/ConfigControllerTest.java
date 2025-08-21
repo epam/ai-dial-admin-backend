@@ -42,6 +42,7 @@ import com.epam.aidial.cfg.web.facade.mapper.RoleLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ShareResourceLimitDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.UpstreamDtoMapperImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class,
         ModelEndpointDtoMapperImpl.class, AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
         RoleShareResourceLimitDtoMapperImpl.class, InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesMapperImpl.class,
-        AttachmentPathDtoMapperImpl.class
+        AttachmentPathDtoMapperImpl.class, ToolSetDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 

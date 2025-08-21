@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
@@ -25,6 +26,7 @@ import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -83,6 +85,8 @@ class ConfigServiceTest {
     @MockitoBean
     private DeploymentService deploymentService;
     @MockitoBean
+    private ToolSetService toolSetService;
+    @MockitoBean
     private RoleJpaRepository roleJpaRepository;
 
     @Autowired
@@ -127,6 +131,20 @@ class ConfigServiceTest {
 
         var actualRawConfig = objectMapper.writeValueAsString(actualConfig);
         var expectedRawConfig = ResourceUtils.readResource("/domain/config/config_only_application_type_schemas.json");
+        assertThatJson(actualRawConfig).isEqualTo(expectedRawConfig);
+    }
+
+    @Test
+    void getConfig_OnlyToolSets() throws JsonProcessingException {
+        var rawToolSets = ResourceUtils.readResource("/domain/model/toolsets.json");
+        var toolSets = objectMapper.readValue(rawToolSets, new TypeReference<List<ToolSet>>() {
+        });
+        when(toolSetService.getAll()).thenReturn(toolSets);
+
+        var actualConfig = configService.getConfig();
+
+        var actualRawConfig = objectMapper.writeValueAsString(actualConfig);
+        var expectedRawConfig = ResourceUtils.readResource("/domain/config/config_only_toolsets.json");
         assertThatJson(actualRawConfig).isEqualTo(expectedRawConfig);
     }
 
