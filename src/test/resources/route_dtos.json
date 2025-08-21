@@ -2,6 +2,7 @@
 	{
 		"name": "SampleRoute",
 		"description": "routeDescription",
+		"displayName": "routeDisplayName",
 		"response": {
 			"status": 200,
 			"body": "OK"
