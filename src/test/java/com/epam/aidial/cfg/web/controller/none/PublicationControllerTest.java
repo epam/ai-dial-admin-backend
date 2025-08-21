@@ -158,7 +158,7 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testRejectPublication() throws Exception {
         var publicationPath = "bucket/file";
-        var comment = "comment";
+        var comment = "commentcommentcomment";
         var body = new RejectPublicationDto();
         body.setPath(publicationPath);
         body.setComment(comment);

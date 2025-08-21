@@ -22,7 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -76,9 +76,9 @@ public class PublicationService {
     }
 
     public void rejectPublication(String path, String comment) {
-        var safeComment = Jsoup.clean(comment, Whitelist.none());
-        var sanitizedComment = mapper.toRejectPublicationDto(path, safeComment);
-        publicationClient.rejectPublication(sanitizedComment);
+        var sanitizedComment = Jsoup.clean(comment, Safelist.none());
+        var rejectPublicationDto = mapper.toRejectPublicationDto(path, sanitizedComment);
+        publicationClient.rejectPublication(rejectPublicationDto);
     }
 
     public String createPublication(CreatePublication createPublication) {
