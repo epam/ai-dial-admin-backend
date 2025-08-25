@@ -3,8 +3,9 @@ package com.epam.aidial.cfg.domain.mapper;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.core.config.RoleBasedEntity;
-import org.apache.commons.collections4.CollectionUtils;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
 import java.util.Set;
@@ -23,14 +24,11 @@ public interface DeploymentCoreMapper {
                 .collect(Collectors.toSet());
     }
 
-    default Deployment toDeployment(RoleBasedEntity roleBasedEntity) {
-        if (roleBasedEntity == null) {
-            return null;
-        }
-
+    default Deployment toDeployment(RoleBasedEntity roleBasedEntity, @Context ShareResourceLimit defaultShareResourceLimit) {
         Deployment deployment = new Deployment(roleBasedEntity.getName());
         deployment.setIsPublic(roleBasedEntity.getUserRoles() == null);
         deployment.setDefaultRoleLimit(new Limit());
+        deployment.setDefaultRoleShareResourceLimit(defaultShareResourceLimit);
 
         return deployment;
     }

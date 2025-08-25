@@ -13,8 +13,10 @@ import java.util.List;
 public class Deployment {
     private String name;
     private List<RoleLimit> roleLimits;
+    private List<RoleShareResourceLimit> roleShareResourceLimits;
     private Boolean isPublic = false;
     private Limit defaultRoleLimit;
+    private ShareResourceLimit defaultRoleShareResourceLimit;
 
     public Deployment(String name) {
         this.name = name;

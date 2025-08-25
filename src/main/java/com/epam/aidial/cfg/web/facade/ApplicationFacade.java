@@ -1,12 +1,11 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
-import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,12 +35,14 @@ public class ApplicationFacade {
     }
 
     public void createApplication(ApplicationDto applicationDto) {
+        setDefaultRoleShareResourceLimitIfMissing(applicationDto);
         Optional.of(applicationDto)
                 .map(mapper::toDomain)
                 .ifPresent(applicationService::createApplication);
     }
 
     public void updateApplication(String applicationName, ApplicationDto applicationDto) {
+        setDefaultRoleShareResourceLimitIfMissing(applicationDto);
         Application value = mapper.toDomain(applicationDto);
         applicationService.updateApplication(applicationName, value);
     }
@@ -60,5 +61,14 @@ public class ApplicationFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    private void setDefaultRoleShareResourceLimitIfMissing(ApplicationDto applicationDto) {
+        ShareResourceLimitDto defaultRoleShareResourceLimit = applicationDto.getDefaultRoleShareResourceLimit();
+        if (defaultRoleShareResourceLimit == null) {
+            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
+            defaultRoleShareResourceLimit.setMaxAcceptedUsers(10);
+            applicationDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
+        }
     }
 }

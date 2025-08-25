@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
@@ -62,15 +63,17 @@ public abstract class ModelHistoryFunctionalTest {
         ModelDto actual = modelFacade.getModel(modelDto.getName());
         var expected = createDto("1");
         expected.setDescription("new model description");
-        expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
+        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         assertModel(actual, expected);
 
         // add roles to model1
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
+        updatedModel.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedModel.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
+        updatedModel.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         modelFacade.updateModel(modelDto.getName(), updatedModel);
         actual = modelFacade.getModel(modelDto.getName());
         assertModel(actual, updatedModel);
@@ -78,7 +81,10 @@ public abstract class ModelHistoryFunctionalTest {
         // update model1 role limits
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
+        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
+        shareResourceLimitDto.setInvitationTtl(20L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
+        updatedModel.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         modelFacade.updateModel(modelDto.getName(), updatedModel);
         var actualAtRevision = modelFacade.getModel(modelDto.getName());
         assertModel(actualAtRevision, updatedModel);
@@ -89,6 +95,7 @@ public abstract class ModelHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = modelFacade.getModel(modelDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
+        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // delete model 1
         modelFacade.deleteModel(modelDto.getName());
@@ -259,6 +266,9 @@ public abstract class ModelHistoryFunctionalTest {
         modelDto.setDescription("description" + suffix);
         modelDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
+        ));
+        modelDto.setRoleShareResourceLimits(Map.of(
+                "role" + suffix, new ShareResourceLimitDto()
         ));
         return modelDto;
     }

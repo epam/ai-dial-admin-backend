@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
@@ -62,12 +63,15 @@ public abstract class ToolSetHistoryFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("New ToolSet description");
         expected.setDefaultRoleLimit(new LimitDto());
+        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setEndpoint("endpoint2");
         assertToolSet(actual, expected);
 
         // 4. Add roles to ToolSet1
         updatedToolSet.setDefaultRoleLimit(new LimitDto());
+        updatedToolSet.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedToolSet.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
+        updatedToolSet.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         assertToolSet(actual, updatedToolSet);
@@ -75,7 +79,10 @@ public abstract class ToolSetHistoryFunctionalTest {
         // 5. Update ToolSet1 role limits
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
+        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
+        shareResourceLimitDto.setInvitationTtl(20L);
         updatedToolSet.setRoleLimits(Map.of("role3", limitDto));
+        updatedToolSet.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
         var actualAtOldRevision = toolSetFacade.getAllToolSets();
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
@@ -87,6 +94,7 @@ public abstract class ToolSetHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
+        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 7. Delete ToolSet1
         toolSetFacade.deleteToolSet(toolSetDto.getName());
@@ -127,6 +135,9 @@ public abstract class ToolSetHistoryFunctionalTest {
         toolSet.setDescription("description" + suffix);
         toolSet.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
+        ));
+        toolSet.setRoleShareResourceLimits(Map.of(
+                "role" + suffix, new ShareResourceLimitDto()
         ));
         return toolSet;
     }

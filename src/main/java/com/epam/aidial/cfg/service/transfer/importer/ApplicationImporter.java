@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -73,10 +73,10 @@ public class ApplicationImporter extends RoleBasedImporter {
         Optional<Application> application = applicationService.tryGetApplication(applicationName);
         if (application.isPresent()) {
             Application existingApplication = application.get();
-            setRoleLimits(applicationName, existingApplication.getDeployment().getRoleLimits(), roles, newApplication.getDeployment(), isPreview);
+            setLimits(applicationName, existingApplication.getDeployment(), roles, newApplication.getDeployment(), isPreview);
             return handleExisting(newApplication, resolutionPolicy, applicationName, isPreview);
         } else {
-            setRoleLimits(applicationName, List.of(), roles, newApplication.getDeployment(), isPreview);
+            setLimits(applicationName, roles, newApplication.getDeployment(), isPreview);
             return create(newApplication, isPreview);
         }
     }
@@ -109,7 +109,9 @@ public class ApplicationImporter extends RoleBasedImporter {
 
     private Application map(String appName, CoreApplication application) {
         application.setName(appName);
-        return applicationCoreMapper.mapApplication(application);
+        ShareResourceLimit shareResourceLimit = new ShareResourceLimit();
+        shareResourceLimit.setMaxAcceptedUsers(10);
+        return applicationCoreMapper.mapApplication(application, shareResourceLimit);
     }
 
 }

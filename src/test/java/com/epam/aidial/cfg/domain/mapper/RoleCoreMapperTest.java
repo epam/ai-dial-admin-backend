@@ -6,16 +6,27 @@ import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.core.config.CoreRole;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {
+        RoleLimitMapperImpl.class,
+        RoleShareResourceLimitMapperImpl.class,
+        RoleCoreMapperImpl.class
+})
 class RoleCoreMapperTest {
+
+    @Autowired
+    private RoleCoreMapper mapper;
 
     @Test
     void mapRole() {
         // given
-        RoleCoreMapper mapper = Mappers.getMapper(RoleCoreMapper.class);
         Role role = new Role();
         role.setName("testRole");
         Limit limit = new Limit();

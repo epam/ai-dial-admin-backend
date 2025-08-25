@@ -44,10 +44,10 @@ This document provides a comprehensive list of all configurable properties in th
 
 ## AIDIAL Config File Import Configuration
 
-| Setting                          | Environment Variable      | Default | Required | Applied when | Description                                                                                                                       |
-|----------------------------------|---------------------------|---------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| config.import.configsMaxCount    | IMPORT_CONFIGS_MAX_COUNT  | 64      | No       | -            | Maximum number of files allowed for a single import config operation                                                              |
-| config.import.autoImport.enabled | ENABLE_CONFIG_AUTO_IMPORT | false   | No       | -            | Enable core config auto import from the same location where export is configured. Auto import runs once on startup if DB is empty |
+| Setting                                     | Environment Variable                   | Default | Required | Applied when | Description                                                                                                                       |
+|---------------------------------------------|----------------------------------------|---------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| config.import.configsMaxCount               | IMPORT_CONFIGS_MAX_COUNT               | 64      | No       | -            | Maximum number of files allowed for a single import config operation                                                              |
+| config.import.autoImportOnBootstrap.enabled | ENABLE_CONFIG_AUTO_IMPORT_ON_BOOTSTRAP | false   | No       | -            | Enable core config auto import from the same location where export is configured. Auto import runs once on startup if DB is empty |
 
 ## Kubernetes Configuration
 

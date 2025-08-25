@@ -1,7 +1,9 @@
 package com.epam.aidial.cfg.domain.mapper;
 
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.core.config.CoreToolSet;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -29,6 +31,6 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "deployment", source = "toolSet")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    public abstract ToolSet mapToolSet(CoreToolSet toolSet);
+    public abstract ToolSet mapToolSet(CoreToolSet toolSet, @Context ShareResourceLimit defaultShareResourceLimit);
 
 }
