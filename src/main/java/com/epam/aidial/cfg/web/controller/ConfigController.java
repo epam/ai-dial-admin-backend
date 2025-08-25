@@ -132,6 +132,7 @@ public class ConfigController {
     @PostMapping(path = "/import/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ImportConfigPreviewDto importConfigPreview(@RequestPart("file") @Valid @Size(min = 1) List<MultipartFile> files,
                                                       @RequestParam("resolutionPolicy") ConflictResolutionPolicy resolutionPolicy,
+                                                      @RequestParam(value = "createRoleIfAbsent", required = false, defaultValue = "true") boolean createRoleIfAbsent,
                                                       @RequestParam(value = "createAdapterIfAbsent", required = false, defaultValue = "true") boolean createAdapterIfAbsent) {
         int filesSize = CollectionUtils.size(files);
         if (filesSize > importConfigsMaxCount) {
@@ -139,7 +140,7 @@ public class ConfigController {
                     importConfigsMaxCount, filesSize));
         }
 
-        var configImportOptions = new ConfigImportOptions(resolutionPolicy, false, createAdapterIfAbsent);
+        var configImportOptions = new ConfigImportOptions(resolutionPolicy, createRoleIfAbsent, createAdapterIfAbsent);
         var importConfigPreview = configTransfer.importPreview(files, configImportOptions);
         return importConfigMapper.toImportConfigPreviewDto(importConfigPreview);
     }
