@@ -91,10 +91,11 @@ public class RouteExporter {
     }
 
     private Route removeDependency(Route route, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
-        // Exclude role limits from deployment for Admin export format in order to have unidirectional association
-        // between deployments and roles, so it means that role with its limits will be defined only under "roles" section
+        // Exclude role limits and role share resource limits from deployment for Admin export format in order to have unidirectional association
+        // between deployments and roles, so it means that role with its limits and share resource limits will be defined only under "roles" section
         if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
             route.getDeployment().setRoleLimits(null);
+            route.getDeployment().setRoleShareResourceLimits(null);
         }
         return route;
     }

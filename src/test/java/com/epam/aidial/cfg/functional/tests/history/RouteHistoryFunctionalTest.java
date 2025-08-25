@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -60,13 +61,15 @@ public abstract class RouteHistoryFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("new route description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleLimit(new LimitDto());
+        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setUpstreams(List.of());
         assertRoute(actual, expected);
 
         // 3 add roles to route1
         updatedRoute.setDefaultRoleLimit(new LimitDto());
+        updatedRoute.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedRoute.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
+        updatedRoute.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         updatedRoute.setUpstreams(List.of());
         routeFacade.updateRoute(routeDto.getName(), updatedRoute);
         actual = routeFacade.getRoute(routeDto.getName());
@@ -75,7 +78,10 @@ public abstract class RouteHistoryFunctionalTest {
         // 4 update route1 role limits
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
+        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
+        shareResourceLimitDto.setInvitationTtl(20L);
         updatedRoute.setRoleLimits(Map.of("role3", limitDto));
+        updatedRoute.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         routeFacade.updateRoute(routeDto.getName(), updatedRoute);
         var actualAtRevision = routeFacade.getRoute(routeDto.getName());
         assertRoute(actualAtRevision, updatedRoute);
@@ -86,6 +92,7 @@ public abstract class RouteHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = routeFacade.getRoute(routeDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
+        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete route 1
         routeFacade.deleteRoute(routeDto.getName());
@@ -123,6 +130,9 @@ public abstract class RouteHistoryFunctionalTest {
         routeDto.setDisplayName("displayName" + suffix);
         routeDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
+        ));
+        routeDto.setRoleShareResourceLimits(Map.of(
+                "role" + suffix, new ShareResourceLimitDto()
         ));
         return routeDto;
     }

@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
@@ -345,15 +346,19 @@ public abstract class RolesFunctionalTest {
         LimitDto dayLimit = new LimitDto();
         dayLimit.setDay(10L);
 
+        ShareResourceLimitDto shareResourceLimit = new ShareResourceLimitDto();
+        shareResourceLimit.setMaxAcceptedUsers(20);
+
         RoleDto roleDto = createDtoWithKeysAndLimits(
                 "1",
                 List.of("key1", "key2"),
-                Map.of("addon1", dayLimit, "addon2", dayLimit)
+                Map.of("addon1", dayLimit, "addon2", dayLimit),
+                Map.of("addon1", shareResourceLimit, "addon3", shareResourceLimit)
         );
         roleFacade.createRole(roleDto);
 
         RoleDto actual = roleFacade.getRole(roleDto.getName());
-        assertRole(actual, roleDto);
+        Assertions.assertEquals(roleDto, actual);
     }
 
     @Test
@@ -438,13 +443,20 @@ public abstract class RolesFunctionalTest {
     }
 
     private RoleDto createDtoWithKeysAndLimits(String suffix, List<String> keys, Map<String, LimitDto> limits) {
+        return createDtoWithKeysAndLimits(suffix, keys, limits, Map.of());
+    }
+
+    private RoleDto createDtoWithKeysAndLimits(String suffix,
+                                               List<String> keys,
+                                               Map<String, LimitDto> limits,
+                                               Map<String, ShareResourceLimitDto> shareResourceLimits) {
         RoleDto roleDto = new RoleDto();
         roleDto.setName("role" + suffix);
         roleDto.setDisplayName("displayName" + suffix);
         roleDto.setDescription("description" + suffix);
         roleDto.setGrantedKeys(keys);
         roleDto.setLimits(limits);
-        roleDto.setShare(Map.of());
+        roleDto.setShare(shareResourceLimits);
         return roleDto;
     }
 }

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.mapper;
 
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.route.Route;
@@ -7,6 +8,7 @@ import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreUpstream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -38,7 +40,7 @@ public abstract class RouteCoreMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "displayName", ignore = true)
-    public abstract Route mapRoute(CoreRoute route);
+    public abstract Route mapRoute(CoreRoute route, @Context ShareResourceLimit defaultShareResourceLimit);
 
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "description", ignore = true)

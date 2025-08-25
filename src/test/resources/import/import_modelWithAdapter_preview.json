@@ -21,8 +21,10 @@
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
+          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "adapter": {
           "name": "<will be defined during import>",
@@ -66,8 +68,10 @@
         "deployment": {
           "name": "testModel1",
           "roleLimits": [],
+          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {}
+          "defaultRoleLimit": {},
+          "defaultRoleShareResourceLimit": {}
         },
         "adapter": {
           "name": "adapter1",

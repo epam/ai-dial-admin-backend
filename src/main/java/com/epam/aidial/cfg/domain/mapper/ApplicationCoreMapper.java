@@ -1,7 +1,9 @@
 package com.epam.aidial.cfg.domain.mapper;
 
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.core.config.CoreApplication;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -23,6 +25,6 @@ public abstract class ApplicationCoreMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "routes", source = "application.routes")
-    public abstract Application mapApplication(CoreApplication application);
+    public abstract Application mapApplication(CoreApplication application, @Context ShareResourceLimit defaultShareResourceLimit);
 
 }

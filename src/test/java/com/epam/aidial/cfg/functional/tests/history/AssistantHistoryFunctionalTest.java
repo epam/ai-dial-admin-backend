@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
@@ -57,13 +58,16 @@ public abstract class AssistantHistoryFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("new assistant description");
         expected.setDefaultRoleLimit(new LimitDto());
+        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setDefaults(Map.of());
         assertAssistant(actual, expected);
 
         // 3 add roles to assistant1
         updatedAssistant.setDefaultRoleLimit(new LimitDto());
+        updatedAssistant.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedAssistant.setDefaults(Map.of());
         updatedAssistant.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
+        updatedAssistant.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
         actual = assistantFacade.getAssistant(assistantDto.getName());
         assertAssistant(actual, updatedAssistant);
@@ -71,7 +75,10 @@ public abstract class AssistantHistoryFunctionalTest {
         // 4 update assistant1 role limits
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
+        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
+        shareResourceLimitDto.setInvitationTtl(20L);
         updatedAssistant.setRoleLimits(Map.of("role3", limitDto));
+        updatedAssistant.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
         var actualAtRevision7 = assistantFacade.getAssistant(assistantDto.getName());
         assertAssistant(actualAtRevision7, updatedAssistant);
@@ -82,6 +89,7 @@ public abstract class AssistantHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = assistantFacade.getAssistant(assistantDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
+        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete assistant 1
         assistantFacade.deleteAssistant(assistantDto.getName());
@@ -118,6 +126,9 @@ public abstract class AssistantHistoryFunctionalTest {
         assistantDto.setDescription("description" + suffix);
         assistantDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
+        ));
+        assistantDto.setRoleShareResourceLimits(Map.of(
+                "role" + suffix, new ShareResourceLimitDto()
         ));
         return assistantDto;
     }

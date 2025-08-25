@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -85,10 +85,10 @@ public class ModelImporter extends RoleBasedImporter {
         Optional<Model> model = modelService.tryGetModel(modelName);
         if (model.isPresent()) {
             Model existingModel = model.get();
-            setRoleLimits(modelName, existingModel.getDeployment().getRoleLimits(), roles, newModel.getDeployment(), isPreview);
+            setLimits(modelName, existingModel.getDeployment(), roles, newModel.getDeployment(), isPreview);
             return handleExistingModel(newModel, resolutionPolicy, modelName, isPreview);
         } else {
-            setRoleLimits(modelName, List.of(), roles, newModel.getDeployment(), isPreview);
+            setLimits(modelName, roles, newModel.getDeployment(), isPreview);
             return createNewModel(newModel, isPreview);
         }
     }
@@ -128,7 +128,7 @@ public class ModelImporter extends RoleBasedImporter {
         ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
         Adapter adapter = resolveAdapter(adaptersForPreview, isPreview, modelEndpointComponents);
         String endpointDeploymentName = resolveEndpointDeploymentName(modelEndpointComponents);
-        return modelMapper.mapModel(model, adapter, endpointDeploymentName);
+        return modelMapper.mapModel(model, adapter, endpointDeploymentName, new ShareResourceLimit());
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {

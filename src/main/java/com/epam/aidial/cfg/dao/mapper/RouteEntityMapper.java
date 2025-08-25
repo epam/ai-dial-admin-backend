@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
@@ -23,11 +24,15 @@ public abstract class RouteEntityMapper {
 
     public RouteEntity toEntity(Route domain, RouteEntity entity) {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
-        List<RoleEntity> roles = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+        List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
+        List<RoleEntity> rolesForResourceShareLimits = deploymentEntityMapper.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
 
         RouteEntity updatedEntity = update(domain, entity);
 
-        deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), roles, roleLimits);
+        deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
+        deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ROUTE);
 
         return updatedEntity;

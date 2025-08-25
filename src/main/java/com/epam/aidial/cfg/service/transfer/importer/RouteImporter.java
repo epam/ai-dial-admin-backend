@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -84,11 +84,11 @@ public class RouteImporter extends RoleBasedImporter {
         Optional<Route> route = routeService.tryGetRoute(routeName);
         if (route.isPresent()) {
             Route existingRoute = route.get();
-            setRoleLimits(routeName, existingRoute.getDeployment().getRoleLimits(), roles, newRoute.getDeployment(), isPreview);
+            setLimits(routeName, existingRoute.getDeployment(), roles, newRoute.getDeployment(), isPreview);
             return handleExisting(newRoute, resolutionPolicy, routeName, isPreview);
         } else {
             validate(routeName, newRoute);
-            setRoleLimits(routeName, List.of(), roles, newRoute.getDeployment(), isPreview);
+            setLimits(routeName, roles, newRoute.getDeployment(), isPreview);
             if (!isPreview) {
                 routeService.create(newRoute);
             }
@@ -118,7 +118,7 @@ public class RouteImporter extends RoleBasedImporter {
 
     private Route map(String routeName, CoreRoute route) {
         route.setName(routeName);
-        return routeCoreMapper.mapRoute(route);
+        return routeCoreMapper.mapRoute(route, new ShareResourceLimit());
     }
 
     private void validate(String routeName, Route route) {
