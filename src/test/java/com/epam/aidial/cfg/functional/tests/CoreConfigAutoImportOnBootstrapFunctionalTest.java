@@ -11,13 +11,13 @@ import java.util.Collection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @see com.epam.aidial.cfg.service.transfer.CoreConfigAutoImportService
+ * @see com.epam.aidial.cfg.service.transfer.CoreConfigAutoImportOnBootstrapService
  */
 
 @TestPropertySource(properties = {
-        "config.import.autoImport.enabled=true",
+        "config.import.autoImportOnBootstrap.enabled=true",
 })
-public abstract class CoreConfigAutoImportFunctionalTest {
+public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
 
     @Autowired
     private ModelFacade modelFacade;

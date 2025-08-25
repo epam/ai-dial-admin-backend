@@ -2,7 +2,7 @@ package com.epam.aidial.cfg.service.export;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.service.normalizer.CoreConfigNormalizer;
-import com.epam.aidial.cfg.service.transfer.CoreConfigAutoImportLock;
+import com.epam.aidial.cfg.service.transfer.CoreConfigAutoImportOnBootstrapLock;
 import com.epam.aidial.core.config.Config;
 import lombok.RequiredArgsConstructor;
 import lombok.Synchronized;
@@ -28,7 +28,7 @@ public class ConfigExportScheduler {
     private final ConfigExportService configExportService;
     private final List<CoreConfigNormalizer> normalizers;
     private final ConfigExportErrorHandler errorHandler;
-    private final Optional<CoreConfigAutoImportLock> coreConfigAutoImportLock;
+    private final Optional<CoreConfigAutoImportOnBootstrapLock> coreConfigAutoImportLock;
 
     @Value("${config.export.createResources}")
     private boolean createResources;
