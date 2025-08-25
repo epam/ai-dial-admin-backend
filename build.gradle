@@ -80,6 +80,7 @@ dependencies {
     implementation 'software.amazon.awssdk:secretsmanager:2.30.27'
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
+    implementation("org.jsoup:jsoup:1.21.1")
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-security'
