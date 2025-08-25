@@ -179,7 +179,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                 .models(List.of(new ImportComponent<>(CREATE, model)))
                 .build();
 
-        var configImportOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, false, true);
+        var configImportOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         when(configTransfer.importPreview(List.of(mockFile), configImportOptions)).thenReturn(importConfigPreview);
         String expected = ResourceUtils.readResource("/import/import_preview_model.json");
         // when
