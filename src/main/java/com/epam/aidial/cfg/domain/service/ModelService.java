@@ -7,9 +7,11 @@ import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
+import com.epam.aidial.cfg.exception.ConcurrencyModificationException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,8 +70,14 @@ public class ModelService {
     public void updateModel(String modelName, Model model) {
         modelNormalizer.normalize(model);
         modelValidator.validateUpdate(modelName, model);
-        ModelEntity modelEntity = modelJpaRepository.findById(modelName)
+        ModelEntity modelEntity;
+        try {
+            modelEntity = modelJpaRepository.findAndLockById(modelName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+        } catch (PessimisticLockingFailureException exception) {
+            throw new ConcurrencyModificationException("Unable to update model "
+                + model.getDeployment().getName());
+        }
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         Optional.of(model)
                 .map(domainModel -> mapper.toEntity(domainModel, modelEntity))

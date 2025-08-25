@@ -1,16 +1,23 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
+import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.exception.ConcurrencyModificationException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.LockModeType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.doReturn;
 
 public abstract class ModelFunctionalTest {
 
@@ -31,6 +41,12 @@ public abstract class ModelFunctionalTest {
     private ModelFacade modelFacade;
     @Autowired
     private AdapterFacade adapterFacade;
+    @Autowired
+    private ModelJpaRepository modelJpaRepository;
+    @Autowired
+    EntityManagerFactory entityManagerFactory;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
 
     private void initRoles() {
         RoleDto role1 = new RoleDto();
@@ -146,6 +162,23 @@ public abstract class ModelFunctionalTest {
                 () -> modelFacade.updateModel(modelDto.getName(), updatedModel)
         );
         Assertions.assertEquals("Model with name: 'model1' can not be renamed. New name: 'model2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenUpdateModelLocked() {
+        initRoles();
+
+        doReturn(2L).when(transactionTimestampContext).getTimestamp();
+        ModelDto modelDto = createDto("1");
+        modelFacade.createModel(modelDto);
+        var em1 = entityManagerFactory.createEntityManager();
+        em1.getTransaction().begin();
+        em1.find(ModelEntity.class, "model1", LockModeType.PESSIMISTIC_WRITE);
+        ModelDto updatedModel = createDto("1");
+        updatedModel.setDescription("new model description");
+        assertThrows(ConcurrencyModificationException.class, () ->
+                modelFacade.updateModel(modelDto.getName(), updatedModel));
+        em1.close();
     }
 
     @Test

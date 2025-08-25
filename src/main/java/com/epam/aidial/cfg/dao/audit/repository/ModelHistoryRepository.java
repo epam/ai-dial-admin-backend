@@ -26,7 +26,8 @@ public class ModelHistoryRepository extends RevisionRepository {
             Model domain = modelEntityMapper.toDomain(model);
             domain.setInterceptors(List.of());
             domain.setAdapter(null);
-            ModelEntity entity = modelJpaRepository.findById(domain.getDeployment().getName()).orElseGet(ModelEntity::new);
+            ModelEntity entity = modelJpaRepository.findAndLockById(
+                    domain.getDeployment().getName()).orElseGet(ModelEntity::new);
             ModelEntity modelEntity = modelEntityMapper.toEntity(domain, entity);
             modelJpaRepository.save(modelEntity);
         }
