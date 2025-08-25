@@ -16,13 +16,13 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "config.import.autoImport.enabled", havingValue = "true")
-public class CoreConfigAutoImportService {
+@ConditionalOnProperty(value = "config.import.autoImportOnBootstrap.enabled", havingValue = "true")
+public class CoreConfigAutoImportOnBootstrapService {
 
     private final DatabaseService databaseService;
     private final CoreConfigRetriever coreConfigRetriever;
     private final ConfigImporter configImporter;
-    private final CoreConfigAutoImportLock coreConfigAutoImportLock;
+    private final CoreConfigAutoImportOnBootstrapLock coreConfigAutoImportOnBootstrapLock;
 
     @EventListener(ApplicationReadyEvent.class)
     public void autoImportCoreConfig() {
@@ -35,7 +35,7 @@ public class CoreConfigAutoImportService {
             } else {
                 log.info("Database is not empty. Skipping auto import of core config");
             }
-            coreConfigAutoImportLock.finishAutoImport();
+            coreConfigAutoImportOnBootstrapLock.finishAutoImport();
         } catch (Exception exception) {
             log.error("Auto import of core config failed", exception);
             throw exception;
