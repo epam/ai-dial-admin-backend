@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -17,6 +18,9 @@ public class ModelDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
+    @EqualsAndHashCode.Exclude
+    @NotNull(groups = OnUpdate.class, message = "Version is required")
+    private Long version;
     private String adapter;
     private String endpoint;
     private String displayName;

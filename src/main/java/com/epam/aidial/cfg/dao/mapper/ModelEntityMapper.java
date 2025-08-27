@@ -92,6 +92,7 @@ public abstract class ModelEntityMapper {
     @Mapping(target = "deploymentName", ignore = true)
     @Mapping(target = "interceptors", ignore = true)
     @Mapping(target = "adapter", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     public abstract ModelEntity update(Model domain, @MappingTarget ModelEntity entity);

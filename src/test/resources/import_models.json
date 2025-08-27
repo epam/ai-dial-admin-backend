@@ -5,6 +5,7 @@
       "name": "testModel1",
       "displayName": "Test Model1",
       "displayVersion": "2.0.0",
+      "endpoint": "http://adapter1/deployment/embeddings",
       "userRoles": [
         "testRole1"
       ],
@@ -63,5 +64,12 @@
     }
   },
   "applicationTypeSchemas": [],
-  "routes": {}
+  "routes": {},
+  "adapters": {
+    "adapter1": {
+      "name": "adapter1",
+      "baseEndpoint": "http://adapter1/embeddings",
+      "description": "adapter1"
+    }
+  }
 }

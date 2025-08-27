@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
+import com.epam.aidial.cfg.exception.ConcurrencyModificationException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -70,6 +71,7 @@ public class ModelService {
         modelValidator.validateUpdate(modelName, model);
         ModelEntity modelEntity = modelJpaRepository.findById(modelName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+        assertNotConcurrencyOverwrite(modelEntity, model);
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         Optional.of(model)
                 .map(domainModel -> mapper.toEntity(domainModel, modelEntity))
@@ -107,12 +109,18 @@ public class ModelService {
         }
     }
 
+    private void assertNotConcurrencyOverwrite(ModelEntity entity, Model domain) {
+        if (domain.getVersion() != null && !Objects.equals(domain.getVersion(), entity.getVersion())) {
+            throw new ConcurrencyModificationException("Unable to update model with name: '"
+                + entity.getDeployment().getName() + "'. It was updated. Please, refresh page.");
+        }
+    }
+
     private void assertNewModelDisplayNameAndDisplayVersion(ModelEntity entity, Model domain) {
         String displayName = entity.getDisplayName();
         String displayVersion = entity.getDisplayVersion();
         String newDisplayName = domain.getDisplayName();
         String newDisplayVersion = domain.getDisplayVersion();
-
         if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {
             assertNotExists(newDisplayName, newDisplayVersion);
         }

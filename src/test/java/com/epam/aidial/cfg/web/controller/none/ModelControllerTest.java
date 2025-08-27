@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.exception.ConcurrencyModificationException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ModelController;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -19,6 +20,9 @@ import org.springframework.test.json.JsonCompareMode;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -82,7 +86,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testUpdateModel() throws Exception {
+    void testUpdateWithInvalidModelDto() throws Exception {
         var dtoJson = ResourceUtils.readResource("/model_dto.json");
         var dto = objectMapper.readValue(dtoJson, new TypeReference<ModelDto>() {
         });
@@ -91,8 +95,37 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message")
+                            .value("Field [version]: Version is required\n"));
+    }
+
+    @Test
+    void testUpdateModel() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/model_dto_for_update.json");
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ModelDto>() {
+        });
+
+
+        mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .content(dtoJson))
                 .andExpect(status().isNoContent());
         verify(modelFacade).updateModel(eq("test_model"), eq(dto));
+    }
+
+    @Test
+    void testUpdateModelWithConcurrentOverwriting() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/model_dto_for_update.json");
+
+        doThrow(new ConcurrencyModificationException("Concurrent overwriting")).when(
+           modelFacade).updateModel(anyString(), any());
+
+        mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .content(dtoJson))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Concurrent overwriting"));
     }
 
     @Test

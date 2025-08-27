@@ -11,7 +11,6 @@ import java.util.Map;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Model extends RoleBased {
-
     private String description;
     private Adapter adapter;
     private String displayName;
@@ -27,6 +26,7 @@ public class Model extends RoleBased {
     private List<String> topics; //todo: rename to descriptionKeywords
     private Integer maxRetryAttempts;
     private String author;
+    private Long version;
     private Long createdAt;
     private Long updatedAt;
     private List<String> dependencies;

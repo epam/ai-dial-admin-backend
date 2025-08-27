@@ -14,6 +14,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.PreRemove;
+import jakarta.persistence.Version;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -31,6 +32,9 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @Id
     @EqualsAndHashCode.Include
     private String deploymentName;
+
+    @Version
+    private Long version;
 
     @MapsId
     @JoinColumn(name = "deployment_name", unique = true)

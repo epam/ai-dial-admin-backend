@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.exception.ConcurrencyModificationException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
@@ -155,6 +156,31 @@ public abstract class ModelFunctionalTest {
                 () -> modelFacade.updateModel(modelDto.getName(), updatedModel)
         );
         Assertions.assertEquals("Model with name: 'model1' can not be renamed. New name: 'model2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenModelConcurrencyOverwrite() {
+        initRoles();
+
+        ModelDto modelDto = createDto("1");
+        modelFacade.createModel(modelDto);
+
+        ModelDto updatedModel1 = createDto("1");
+        updatedModel1.setDescription("first update for description");
+        updatedModel1.setVersion(0L);
+        modelFacade.updateModel(modelDto.getName(), updatedModel1);
+
+        ModelDto updatedModel2 = createDto("1");
+        updatedModel2.setDescription("second update for description");
+        updatedModel2.setVersion(0L);
+
+
+        ConcurrencyModificationException exception = Assertions.assertThrows(
+                ConcurrencyModificationException.class,
+                () -> modelFacade.updateModel(updatedModel2.getName(), updatedModel2)
+        );
+        Assertions.assertEquals("Unable to update model with name: 'model1'. "
+                + "It was updated. Please, refresh page.", exception.getMessage());
     }
 
     @Test

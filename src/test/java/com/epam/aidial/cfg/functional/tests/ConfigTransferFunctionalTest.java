@@ -287,6 +287,34 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testImport_WithConcurrentOverwritesData() throws IOException {
+        // given
+        String startConfigString = FileUtils.readFileToString(new File("src/test/resources/import_models.json"), StandardCharsets.UTF_8);
+        MockMultipartFile startConfig = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                startConfigString.getBytes()
+        );
+
+        ModelDto modelDto = new ModelDto();
+        modelDto.setName("testModel1");
+        modelDto.setDescription("description");
+        modelFacade.createModel(modelDto);
+
+        // when
+        configTransfer.importConfig(List.of(startConfig), overrideAndCreateRoleAndCreateNew());
+        // then
+        Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
+        Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
+        Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
+            Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
+            Assertions.assertThat(model.getDisplayVersion()).isEqualTo("2.0.0");
+            Assertions.assertThat(model.getVersion()).isEqualTo(1L);
+        });
+    }
+
+    @Test
     void testImport_RoleDoesNotExistInFileButExistsInDb() throws IOException {
         // given
         String startConfig = FileUtils.readFileToString(new File("src/test/resources/import/import_configWithoutAssistants.json"), StandardCharsets.UTF_8);

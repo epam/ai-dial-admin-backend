@@ -1,6 +1,7 @@
 [
   {
     "name": "test_model",
+    "version": 0,
     "adapter": "adapter1",
     "displayName": "Test Model",
     "displayVersion": "1.0.0",

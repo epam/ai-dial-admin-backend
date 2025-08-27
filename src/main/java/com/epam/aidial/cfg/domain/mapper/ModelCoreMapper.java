@@ -37,6 +37,7 @@ public abstract class ModelCoreMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "features", source = "model.features")
+    @Mapping(target = "version", ignore = true)
     public abstract Model mapModel(CoreModel model, Adapter adapter, String endpointDeploymentName, @Context ShareResourceLimit defaultShareResourceLimit);
 
     @Mapping(target = "id", ignore = true)

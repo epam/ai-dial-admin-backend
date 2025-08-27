@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.OnUpdate;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -60,7 +61,7 @@ public class ModelController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateModel(HttpServletResponse response,
                             @PathVariable("modelName") String modelName,
-                            @RequestBody @Valid ModelDto modelDto) throws Exception {
+                            @RequestBody @Validated(OnUpdate.class) ModelDto modelDto) throws Exception {
         modelFacade.updateModel(modelName, modelDto);
     }
 

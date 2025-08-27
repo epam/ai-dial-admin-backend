@@ -85,6 +85,7 @@ public class ModelImporter extends RoleBasedImporter {
         Optional<Model> model = modelService.tryGetModel(modelName);
         if (model.isPresent()) {
             Model existingModel = model.get();
+            existingModel.setVersion(null);
             setLimits(modelName, existingModel.getDeployment(), roles, newModel.getDeployment(), isPreview);
             return handleExistingModel(newModel, resolutionPolicy, modelName, isPreview);
         } else {
