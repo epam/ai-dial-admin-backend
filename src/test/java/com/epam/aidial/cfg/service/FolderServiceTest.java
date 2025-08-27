@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
@@ -37,7 +38,13 @@ class FolderServiceTest {
         fileService = mock(FileService.class);
         promptService = mock(PromptService.class);
         publicationService = mock(PublicationService.class);
-        folderService = new FolderService(List.of(applicationService, conversationService, fileService, promptService), publicationService);
+        Map<ResourceType, ResourceService> resourceServicesByResourceType = Map.of(
+                ResourceType.APPLICATION, applicationService,
+                ResourceType.CONVERSATION, conversationService,
+                ResourceType.FILE, fileService,
+                ResourceType.PROMPT, promptService
+        );
+        folderService = new FolderService(resourceServicesByResourceType, publicationService);
     }
 
     @Test

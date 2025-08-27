@@ -129,7 +129,7 @@ class FileServiceTest {
                 .build();
         ArgumentCaptor<MoveResourceDto> argumentCaptor = ArgumentCaptor.forClass(MoveResourceDto.class);
         // when
-        fileService.moveFile(moveResource);
+        fileService.move(moveResource);
         // then
         verify(resourceClient).move(argumentCaptor.capture());
         Assertions.assertThat(argumentCaptor.getValue()).satisfies(dto -> {

@@ -2,12 +2,16 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.mapper.CoreMetadataUtils;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.validation.annotation.MetadataPath;
+import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
+import com.epam.aidial.cfg.exception.FolderNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.FolderInfo;
+import com.epam.aidial.cfg.model.MoveFolderRequest;
+import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.publication.PublicationService;
@@ -15,12 +19,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,11 +38,11 @@ import static com.epam.aidial.cfg.client.mapper.PublicationClientMapper.PUBLICAT
 @Slf4j
 public class FolderService {
 
-    private final List<ResourceService> resourceServices;
+    private final Map<ResourceType, ResourceService> resourceServicesByResourceType;
     private final PublicationService publicationService;
 
     public FolderInfo getFolders(ResourceMetadataRequest request) {
-        List<FolderInfo> folderInfos = resourceServices.stream()
+        List<FolderInfo> folderInfos = resourceServicesByResourceType.values().stream()
                 .map(resourceService -> resourceService.getFolders(request))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -44,7 +50,7 @@ public class FolderService {
         return folderInfos.isEmpty() ? null : merge(folderInfos);
     }
 
-    public Map<String, List<Rule>> getRules(@MetadataPath String path) {
+    public Map<String, List<Rule>> getRules(String path) {
         return publicationService.getRules(path);
     }
 
@@ -57,8 +63,8 @@ public class FolderService {
         approvePublication(publication);
     }
 
-    public void unpublishFolder(@MetadataPath String path) {
-        Set<String> targetUrls = resourceServices.stream()
+    public void unpublishFolder(String path) {
+        Set<String> targetUrls = resourceServicesByResourceType.values().stream()
                 .map(resourceService -> resourceService.getResourceUrls(path))
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
@@ -70,6 +76,18 @@ public class FolderService {
                 .build();
         String publication = publicationService.createPublication(createPublication);
         approvePublication(publication);
+    }
+
+    public void moveFolder(MoveFolderRequest moveFolderRequest) {
+        String oldPath = moveFolderRequest.getOldPath();
+        String newPath = moveFolderRequest.getNewPath();
+        List<ResourceType> resourceTypes = Optional.ofNullable(moveFolderRequest.getResourceTypes())
+                .orElseGet(() -> Arrays.stream(ResourceType.values()).toList());
+
+        checkFolderExists(oldPath, resourceTypes);
+        checkFolderDoesNotExist(newPath);
+        copyFolderRules(oldPath, newPath);
+        moveResources(oldPath, newPath, resourceTypes);
     }
 
     private List<PublicationResource> createResourcesForDeleting(Set<String> targetUrls) {
@@ -146,6 +164,68 @@ public class FolderService {
                 .stream()
                 .sorted(Comparator.comparing(FolderInfo::getPath))
                 .toList();
+    }
+
+    private void checkFolderExists(String path, List<ResourceType> resourceTypes) {
+        ResourceMetadataRequest resourceMetadataRequest = ResourceMetadataRequest.builder()
+                .path(path)
+                .build();
+        for (var resourceType : resourceTypes) {
+            ResourceService resourceService = resolveResourceService(resourceType);
+            if (resourceService.getFolders(resourceMetadataRequest) == null) {
+                throw new FolderNotFoundException("Folder: " + path + " does not exist in " + resourceService.getResourceType() + " resources");
+            }
+        }
+    }
+
+    private void checkFolderDoesNotExist(String path) {
+        ResourceMetadataRequest resourceMetadataRequest = ResourceMetadataRequest.builder()
+                .path(path)
+                .build();
+        for (var resourceService : resourceServicesByResourceType.values()) {
+            if (resourceService.getFolders(resourceMetadataRequest) != null) {
+                throw new FolderAlreadyExistsException("Folder: " + path + " already exists in " + resourceService.getResourceType() + " resources");
+            }
+        }
+    }
+
+    private void copyFolderRules(String oldPath, String newPath) {
+        List<Rule> rules = getRules(oldPath).values().stream()
+                .flatMap(Collection::stream)
+                .toList();
+        UpdateRulesRequest updateRulesRequest = UpdateRulesRequest.builder()
+                .targetFolder(newPath)
+                .rules(rules)
+                .build();
+        updatesRules(updateRulesRequest);
+    }
+
+    private void moveResources(String oldPath, String newPath, List<ResourceType> resourceTypes) {
+        List<String> movedResources = new ArrayList<>();
+
+        for (var resourceType : resourceTypes) {
+            ResourceService resourceService = resolveResourceService(resourceType);
+            Set<String> resourceUrls = resourceService.getResourceUrls(oldPath);
+
+            for (var resourceUrl : resourceUrls) {
+                try {
+                    MoveResource moveResource = MoveResource.builder()
+                            .sourceUrl(resourceUrl)
+                            .destinationUrl(resourceUrl.replace(oldPath, newPath))
+                            .build();
+                    resourceService.move(moveResource);
+                    movedResources.add(resourceUrl);
+                } catch (Exception exception) {
+                    log.warn("Unable to move resource: {}, moved resources: {}", resourceUrl, movedResources, exception);
+                    throw exception;
+                }
+            }
+        }
+    }
+
+    private ResourceService resolveResourceService(ResourceType resourceType) {
+        return Optional.ofNullable(resourceServicesByResourceType.get(resourceType))
+                .orElseThrow(() -> new IllegalStateException("Unable to find resource service. Resource type: " + resourceType));
     }
 
 }
