@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.dto.validation.annotation;
 
 import jakarta.validation.Constraint;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 import java.lang.annotation.Documented;
@@ -15,7 +14,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Pattern(regexp = "https?://[-a-zA-Z0-9@:%._\\+~#=]{1,256}(\\.[a-zA-Z0-9()]{1,6})?\\b(:[0-9]{1,5})?([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)", message = "Invalid upstream endpoint")
 @Documented
 @Retention(RUNTIME)
-@NotNull(message = "Upstream endpoint must not be null.")
 @Target(FIELD)
 public @interface UpstreamEndpoint {
 
