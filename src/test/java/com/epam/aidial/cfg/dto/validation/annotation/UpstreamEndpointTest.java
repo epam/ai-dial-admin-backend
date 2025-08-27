@@ -41,15 +41,6 @@ class UpstreamEndpointTest {
         Assertions.assertThat(violations).isNotEmpty();
     }
 
-    @Test
-    void testIsValid_violationHasCorrectMessageWhenEndpointIsNull() {
-        TestClass testClass = new TestClass(null);
-        Set<ConstraintViolation<TestClass>> violations = validator.validate(testClass);
-        Assertions.assertThat(violations).isNotEmpty();
-        ConstraintViolation<TestClass> violation = violations.iterator().next();
-        Assertions.assertThat(violation.getMessage()).isEqualTo("Upstream endpoint must not be null.");
-    }
-
     private static Stream<Arguments> validEndpoints() {
         return Stream.of(
                 Arguments.of("http://example.com"),
@@ -59,14 +50,14 @@ class UpstreamEndpointTest {
                 Arguments.of("http://ai-test:50/"),
                 Arguments.of("http://ai-test:50/api"),
                 Arguments.of("http://ai-test:50/api?param=value"),
-                Arguments.of("http://ai-test/api")
+                Arguments.of("http://ai-test/api"),
+                Arguments.of((String) null)
         );
     }
 
     private static Stream<Arguments> invalidEndpoints() {
         return Stream.of(
                 Arguments.of(""),
-                Arguments.of((String) null),
                 Arguments.of("ftp://example.com"),
                 Arguments.of("example.com"),
                 Arguments.of("http://")
