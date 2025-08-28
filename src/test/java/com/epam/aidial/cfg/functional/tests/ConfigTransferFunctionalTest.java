@@ -12,7 +12,9 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
+import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
@@ -35,6 +37,7 @@ import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
@@ -461,7 +464,7 @@ public abstract class ConfigTransferFunctionalTest {
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
         modelDto.setRoleLimits(Map.of("testRole", limitDto));
-        modelDto.setAdapter("testAdapter");
+        modelDto.setSource(new AdapterSourceDto("testAdapter", "/chat/completions"));
 
         RoleDto roleDto = new RoleDto();
         roleDto.setName("testRole");
@@ -492,7 +495,7 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
                         Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
                         Assertions.assertThat(model.getDeployment().getRoleShareResourceLimits()).isNull();
-                        Assertions.assertThat(model.getAdapter()).isNull();
+                        Assertions.assertThat(model.getSource()).isEqualTo(new ModelEndpointsSource());
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
@@ -658,7 +661,7 @@ public abstract class ConfigTransferFunctionalTest {
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
         modelDto.setRoleLimits(Map.of("testRole", limitDto));
-        modelDto.setAdapter("testAdapter");
+        modelDto.setSource(new AdapterSourceDto("testAdapter", "/chat/completions"));
 
         RoleDto roleDto = new RoleDto();
         roleDto.setName("testRole");
@@ -689,7 +692,7 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
                         Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
                         Assertions.assertThat(model.getDeployment().getRoleShareResourceLimits()).isNull();
-                        Assertions.assertThat(model.getAdapter().getName()).isEqualTo("testAdapter");
+                        Assertions.assertThat(model.getSource()).isEqualTo(new AdapterSource("testAdapter", "/chat/completions"));
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");

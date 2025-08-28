@@ -47,7 +47,7 @@ public abstract class AdapterFunctionalTest {
         AdapterDto adapterDto = createDto("1");
         adapterFacade.createAdapter(adapterDto);
 
-        adapterFacade.deleteAdapter(adapterDto.getName());
+        adapterFacade.deleteAdapter(adapterDto.getName(), false);
 
         Assertions.assertThrows(EntityNotFoundException.class, () -> adapterFacade.getAdapter(adapterDto.getName()));
         Assertions.assertTrue(adapterFacade.getAllAdapters().isEmpty());

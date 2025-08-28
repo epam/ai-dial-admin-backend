@@ -15,16 +15,22 @@ import org.springframework.stereotype.Service;
 public class EndpointsRefresherScheduledService {
 
     private final InterceptorService interceptorService;
+    private final ModelService modelService;
 
     // TODO [VPA]: use system user
     @Scheduled(fixedDelayString = "${plugins.deployment.manager.endpoint.refresh.interval}")
     public void refreshEndpoints() {
+        refreshEndpoints(interceptorService::refreshEndpoints, "interceptor");
+        refreshEndpoints(modelService::refreshEndpoints, "model");
+    }
+
+    private void refreshEndpoints(Runnable refreshAction, String logEntity) {
         try {
-            log.debug("Refreshing interceptor endpoints where source is container");
-            interceptorService.refreshEndpoints();
-            log.debug("Successfully refreshed interceptor endpoints");
+            log.debug("Refreshing %s endpoints where source is container".formatted(logEntity));
+            refreshAction.run();
+            log.debug("Successfully refreshed %s endpoints".formatted(logEntity));
         } catch (Exception e) {
-            log.warn("Failed to refresh interceptor endpoints", e);
+            log.warn("Failed to refresh %s endpoints".formatted(logEntity), e);
         }
     }
 }

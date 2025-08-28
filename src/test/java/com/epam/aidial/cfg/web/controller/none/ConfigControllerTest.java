@@ -34,7 +34,6 @@ import com.epam.aidial.cfg.web.facade.mapper.InterceptorSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.KeyDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.LimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapperImpl;
-import com.epam.aidial.cfg.web.facade.mapper.ModelEndpointDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ResponseDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleBasedDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleDtoMapperImpl;
@@ -78,7 +77,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         InterceptorDtoMapperImpl.class, ModelDtoMapperImpl.class, ApplicationDtoMapperImpl.class, ApplicationTypeSchemaDtoMapperImpl.class,
         AddonDtoMapperImpl.class, AssistantDtoMapperImpl.class, RouteDtoMapperImpl.class, RoleLimitDtoMapperImpl.class,
         LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class,
-        ModelEndpointDtoMapperImpl.class, AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
+        AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
         RoleShareResourceLimitDtoMapperImpl.class, InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesMapperImpl.class,
         AttachmentPathDtoMapperImpl.class, ToolSetDtoMapperImpl.class
 })

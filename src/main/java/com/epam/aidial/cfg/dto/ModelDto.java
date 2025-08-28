@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.ModelSourceDto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +18,6 @@ public class ModelDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
-    private String adapter;
     private String endpoint;
     private String displayName;
     private String displayVersion;
@@ -46,6 +46,6 @@ public class ModelDto extends RoleBasedDto {
     private List<UpstreamDto> upstreams = List.of();
     private String overrideName;
     private List<String> fieldsHashingOrder;
-    private String endpointDeploymentName;
+    private ModelSourceDto source;
 
 }

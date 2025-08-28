@@ -3,8 +3,12 @@ package com.epam.aidial.cfg.domain.util;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
+import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import lombok.RequiredArgsConstructor;
@@ -15,14 +19,38 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * Service class for handling interceptor endpoint operations.
+ * Service class for handling container endpoint operations.
  */
 @Service
 @RequiredArgsConstructor
-public class InterceptorEndpointResolver {
+public class ContainerEndpointResolver {
 
     private final DeploymentManagerService deploymentManagerService;
     private final DeploymentInfoValidator deploymentInfoValidator;
+
+    public void processContainerEndpoints(Model model) {
+        ModelContainerSource containerSource = (ModelContainerSource) model.getSource();
+        processContainerEndpoints(
+                containerSource.getContainerId(),
+                containerSource,
+                ModelContainerSource::getCompletionEndpointPath,
+                ModelContainerSource::getCompletionEndpointPath, // stub
+                (target, endpoints) -> target.setEndpoint(endpoints[0]),
+                model
+        );
+    }
+
+    public void processContainerEndpoints(ModelEntity modelEntity) {
+        ModelContainerEntity modelContainerEntity = modelEntity.getModelContainer();
+        processContainerEndpoints(
+                modelContainerEntity.getContainerId(),
+                modelContainerEntity,
+                ModelContainerEntity::getCompletionEndpointPath,
+                ModelContainerEntity::getCompletionEndpointPath, // stub
+                (entity, endpoints) -> entity.setEndpoint(endpoints[0]),
+                modelEntity
+        );
+    }
 
     public void processContainerEndpoints(Interceptor interceptor) {
         InterceptorContainerSource containerSource = (InterceptorContainerSource) interceptor.getSource();

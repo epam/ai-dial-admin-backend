@@ -236,7 +236,7 @@ public abstract class ModelHistoryFunctionalTest {
         modelDto.setDescription("new description");
         modelFacade.updateModel(modelDto.getName(), modelDto);
 
-        adapterFacade.deleteAdapter(adapter1.getName());
+        adapterFacade.deleteAdapter(adapter1.getName(), true);
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);

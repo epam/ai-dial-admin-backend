@@ -2,8 +2,10 @@ package com.epam.aidial.cfg.dao.audit.repository;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AdapterEntityMapper;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
+import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.envers.AuditReader;
@@ -17,11 +19,15 @@ import java.util.stream.Collectors;
 @LogExecution
 public class AdapterHistoryRepository extends RevisionRepository {
 
+    private final ModelJpaRepository modelJpaRepository;
     private final AdapterJpaRepository adapterJpaRepository;
     private final AdapterEntityMapper adapterEntityMapper;
 
-
     public void rollbackAdapters(Number revision, AuditReader auditReader) {
+        Iterable<ModelEntity> models = modelJpaRepository.findAll();
+        models.forEach(entity -> entity.setAdapter(null));
+        modelJpaRepository.saveAllAndFlush(models);
+
         List<AdapterEntity> adapters = getEntitiesAtRevision(revision, auditReader, AdapterEntity.class);
         adapterJpaRepository.deleteAllExcept(adapters.stream().map(AdapterEntity::getId).collect(Collectors.toList()));
         for (AdapterEntity adapter : adapters) {
