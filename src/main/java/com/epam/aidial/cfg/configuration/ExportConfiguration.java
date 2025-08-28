@@ -37,7 +37,6 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import java.util.List;
 
 @Configuration
-@ConditionalOnProperty(value = "config.export.enabled", havingValue = "true")
 @EnableScheduling
 public class ExportConfiguration {
 
