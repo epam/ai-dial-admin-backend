@@ -211,7 +211,7 @@ public class FolderService {
                 try {
                     MoveResource moveResource = MoveResource.builder()
                             .sourceUrl(resourceUrl)
-                            .destinationUrl(resourceUrl.replace(oldPath, newPath))
+                            .destinationUrl(CoreMetadataUtils.replacePathSegment(resourceUrl, oldPath, newPath))
                             .build();
                     resourceService.move(moveResource);
                     movedResources.add(resourceUrl);
