@@ -1,17 +1,13 @@
 package com.epam.aidial.cfg.service.export;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.service.normalizer.CoreConfigNormalizer;
 import com.epam.aidial.cfg.service.transfer.CoreConfigAutoImportOnBootstrapLock;
-import com.epam.aidial.core.config.Config;
 import lombok.RequiredArgsConstructor;
-import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -21,20 +17,15 @@ import java.util.Optional;
 @Service
 @Slf4j
 @LogExecution
+@ConditionalOnProperty(value = "config.export.enabled", havingValue = "true")
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class ConfigExportScheduler {
 
-    private final CoreConfigAggregatorService configService;
-    private final ConfigExportService configExportService;
-    private final List<CoreConfigNormalizer> normalizers;
-    private final ConfigExportErrorHandler errorHandler;
     private final Optional<CoreConfigAutoImportOnBootstrapLock> coreConfigAutoImportLock;
-
-    @Value("${config.export.createResources}")
-    private boolean createResources;
+    private final ConfigExportFacade configExportFacade;
+    private final ConfigExportErrorHandler errorHandler;
 
     @Scheduled(fixedDelayString = "${config.export.syncPeriod}")
-    @Synchronized
     public void exportCurrentConfig() {
         try {
             if (coreConfigAutoImportLock.isPresent() && !coreConfigAutoImportLock.get().isAutoImportFinished()) {
@@ -42,10 +33,7 @@ public class ConfigExportScheduler {
                 return;
             }
 
-            Config config = configService.getConfig();
-            log.debug("Exporting current Configuration settings.");
-            normalizers.forEach(n -> n.normalize(config));
-            configExportService.export(config, createResources);
+            configExportFacade.exportCurrentConfig();
             errorHandler.setLastErrorMessage(null);
         } catch (Exception e) {
             log.error("Can't export current configuration", e);

@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.CoreConfigClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -11,23 +12,24 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 @LogExecution
-public class CoreConfigService {
+@ConditionalOnProperty(value = "config.reload.enabled", havingValue = "true")
+public class CoreConfigReloadService {
 
     private final CoreConfigClient coreConfigClient;
-    private final ConfigExportScheduler configExportScheduler;
+    private final ConfigExportFacade configExportFacade;
     private final long delayReloadMilliseconds;
 
-    public CoreConfigService(CoreConfigClient coreConfigClient,
-                             ConfigExportScheduler configExportScheduler,
-                             @Value("${config.export.delayConfigReload}") long delayReloadMilliseconds) {
+    public CoreConfigReloadService(CoreConfigClient coreConfigClient,
+                                   ConfigExportFacade configExportFacade,
+                                   @Value("${config.reload.delay}") long delayReloadMilliseconds) {
         this.coreConfigClient = coreConfigClient;
-        this.configExportScheduler = configExportScheduler;
+        this.configExportFacade = configExportFacade;
         this.delayReloadMilliseconds = delayReloadMilliseconds;
     }
 
     public void reloadConfig() throws Exception {
         try {
-            configExportScheduler.exportCurrentConfig();
+            configExportFacade.exportCurrentConfig();
             TimeUnit.MILLISECONDS.sleep(delayReloadMilliseconds);
             coreConfigClient.reload();
         } catch (Exception exception) {
