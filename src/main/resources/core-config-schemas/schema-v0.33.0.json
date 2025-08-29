@@ -296,7 +296,6 @@
             "applicationTypeTruncatePromptEndpoint": {"type": "string"},
             "appendApplicationPropertiesHeader": {"type": "boolean"},
             "applicationTypeIconUrl": {"type": "string"},
-            "applicationTypeRoutes": {"type": "object"},
             "defs": {"type": "object"},
             "properties": {"type": "object"},
             "required": {
