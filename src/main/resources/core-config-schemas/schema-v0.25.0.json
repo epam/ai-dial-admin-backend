@@ -261,16 +261,16 @@
         {"$ref": "#/definitions/RoleBasedEntity"},
         {
           "properties": {
-            "schema": {"type": "string"},
-            "id": {"type": "string"},
+            "$schema": {"type": "string"},
+            "$id": {"type": "string"},
             "type": {"type": "string", "enum": ["OBJECT", "BOOLEAN"]},
             "title": {"type": "string"},
             "description": {"type": "string"},
-            "applicationTypeEditorUrl": {"type": "string"},
-            "applicationTypeViewerUrl": {"type": "string"},
-            "applicationTypeDisplayName": {"type": "string"},
-            "applicationTypeCompletionEndpoint": {"type": "string"},
-            "defs": {"type": "object"},
+            "dial:applicationTypeEditorUrl": {"type": "string"},
+            "dial:applicationTypeViewerUrl": {"type": "string"},
+            "dial:applicationTypeDisplayName": {"type": "string"},
+            "dial:applicationTypeCompletionEndpoint": {"type": "string"},
+            "$defs": {"type": "object"},
             "properties": {"type": "object"},
             "required": {
               "type": "array",
