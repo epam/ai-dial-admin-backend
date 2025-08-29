@@ -62,7 +62,7 @@ public abstract class ActivityAuditFunctionalTest {
         ModelDto updatedModel = createDto("ActivityAudit1");
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
 
         // assert model creation
         prevTotal = assertAudit(prevTotal, List.of(new AuditActivityEntityId("Update", "Model", "modelActivityAudit1")));
@@ -71,7 +71,7 @@ public abstract class ActivityAuditFunctionalTest {
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
         updatedModel.setRoleLimits(Map.of("roleActivityAudit2", new LimitDto(), "roleActivityAudit3", new LimitDto()));
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
 
         prevTotal = assertAudit(prevTotal, List.of(
                 new AuditActivityEntityId("Update", "Role", "roleActivityAudit3"),
@@ -83,7 +83,7 @@ public abstract class ActivityAuditFunctionalTest {
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
         updatedModel.setRoleLimits(Map.of("roleActivityAudit3", limitDto));
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
 
         prevTotal = assertAudit(prevTotal, List.of(
                 new AuditActivityEntityId("Update", "Role", "roleActivityAudit3"),
@@ -93,7 +93,7 @@ public abstract class ActivityAuditFunctionalTest {
         LimitDto limitDto2 = new LimitDto();
         limitDto2.setDay(20L);
         updatedModel.setDefaultRoleLimit(limitDto2);
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
 
         prevTotal = assertAudit(prevTotal, List.of(
                 new AuditActivityEntityId("Update", "Model", "modelActivityAudit1")));

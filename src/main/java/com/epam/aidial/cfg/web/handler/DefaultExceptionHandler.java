@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.handler;
 
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.PreconditionFailedException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -125,6 +126,14 @@ public class DefaultExceptionHandler {
         final HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
         String message = clientException.contentUTF8();
         return new ErrorView(req, httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus, message);
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
+    @ExceptionHandler(PreconditionFailedException.class)
+    public ErrorView handlePreconditionFailedException(PreconditionFailedException ex,
+                                                            HttpServletRequest req) {
+        return new ErrorView(req, HttpStatus.PRECONDITION_FAILED, ex.getMessage());
     }
 
 }

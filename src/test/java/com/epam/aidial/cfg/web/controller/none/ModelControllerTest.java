@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,13 +58,43 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testGetModel() throws Exception {
         var dtoJson = ResourceUtils.readResource("/model_dto.json");
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ModelDto>() {
-        });
+        var dto = objectMapper.readValue(dtoJson, ModelDto.class);
 
-        when(modelFacade.getModel(eq("test_model"))).thenReturn(dto);
+        when(modelFacade.getModelWithHash(eq("test_model"))).thenReturn(
+            new ModelFacade.ModelWithHash(dto, "1"));
 
         mockMvc.perform(get("/api/v1/models/{modelName}", "test_model"))
                 .andExpect(status().isOk())
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testGetModeWithSameHash() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/model_dto.json");
+        var dto = objectMapper.readValue(dtoJson, ModelDto.class);
+
+        when(modelFacade.getModelWithHash(eq("test_model"))).thenReturn(
+            new ModelFacade.ModelWithHash(dto, "1"));
+
+        mockMvc.perform(get("/api/v1/models/{modelName}", "test_model")
+                .header("If-None-Match", "1"))
+            .andExpect(status().isNotModified())
+                .andExpect(header().exists("eTag"));
+    }
+
+    @Test
+    void testGetModeWithDifferentHash() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/model_dto.json");
+        var dto = objectMapper.readValue(dtoJson, ModelDto.class);
+
+        when(modelFacade.getModelWithHash(eq("test_model"))).thenReturn(
+            new ModelFacade.ModelWithHash(dto, "2"));
+
+        mockMvc.perform(get("/api/v1/models/{modelName}", "test_model")
+                .header("If-None-Match", "1"))
+            .andExpect(status().isOk())
+            .andExpect(header().exists("eTag"))
+                .andExpect(content().contentType("application/json"))
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
     }
 
@@ -92,7 +123,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isNoContent());
-        verify(modelFacade).updateModel(eq("test_model"), eq(dto));
+        verify(modelFacade).updateModel(eq("test_model"), eq(dto), eq(null));
     }
 
     @Test
@@ -115,5 +146,4 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.message").value("JSON parse error: endpoint: Upstream endpoint must not be null."));
     }
-
 }

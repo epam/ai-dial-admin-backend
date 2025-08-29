@@ -9,6 +9,8 @@ import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.PreconditionFailedException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class ModelService {
     private final ModelNormalizer modelNormalizer;
     private final ModelValidator modelValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Model> getAll() {
@@ -78,6 +81,22 @@ public class ModelService {
     }
 
     @Transactional
+    public String updateModel(String modelName, Model model, String hash) {
+        if (model == null) {
+            throw new RuntimeException("Unable to update model " + modelName);
+        }
+        modelNormalizer.normalize(model);
+        modelValidator.validateUpdate(modelName, model);
+        ModelEntity modelEntity = modelJpaRepository.findById(modelName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+
+        assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
+        assertNotConcurrencyOverwrite(modelEntity, hash);
+        var save = modelJpaRepository.save(mapper.toEntity(model, modelEntity));
+        return calculator.calculateHash(mapper.toDomain(save));
+    }
+
+    @Transactional
     public void deleteModel(String modelName) {
         assertExists(modelName);
         modelJpaRepository.deleteById(modelName);
@@ -115,6 +134,17 @@ public class ModelService {
 
         if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {
             assertNotExists(newDisplayName, newDisplayVersion);
+        }
+    }
+
+    private void assertNotConcurrencyOverwrite(ModelEntity entity, String oldHash) {
+        if (oldHash == null) {
+            return;
+        }
+        var newHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!oldHash.equals(newHash)) {
+            throw new PreconditionFailedException("Unable to update model with name: '"
+                + entity.getDeployment().getName() + "'. Reload the data.");
         }
     }
 

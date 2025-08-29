@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,10 +44,16 @@ public class ModelController {
 
     @GetMapping(path = "/{modelName}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelDto getModel(HttpServletResponse response,
-                             @PathVariable("modelName") String modelName) throws Exception {
-        var result = modelFacade.getModel(modelName);
-        return result;
+    public ResponseEntity<ModelDto> getModel(HttpServletResponse response,
+                                             @PathVariable("modelName") String modelName,
+                                             @RequestHeader(value = "If-None-Match", required = false)
+                                             String previousHash) {
+        var modelWithHash = modelFacade.getModelWithHash(modelName);
+        return modelWithHash.hash().equals(previousHash)
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(modelWithHash.hash())
+            .build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(modelWithHash.hash())
+            .body(modelWithHash.modelDto());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -58,10 +66,14 @@ public class ModelController {
     @PutMapping(path = "/{modelName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateModel(HttpServletResponse response,
+    public ResponseEntity<Void> updateModel(HttpServletResponse response,
                             @PathVariable("modelName") String modelName,
-                            @RequestBody @Valid ModelDto modelDto) throws Exception {
-        modelFacade.updateModel(modelName, modelDto);
+                            @RequestBody @Valid ModelDto modelDto,
+                            @RequestHeader(value = "If-Match", required = false)
+                            String previousHash)
+                            throws Exception {
+        var newHash = modelFacade.updateModel(modelName, modelDto, previousHash);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     @DeleteMapping(path = "/{modelName}")

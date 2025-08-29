@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.exception.PreconditionFailedException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
@@ -95,7 +96,7 @@ public abstract class ModelFunctionalTest {
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
         updatedModel.setEndpointDeploymentName("newEndpointDeploymentName");
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
         var expected = createDto("1");
@@ -113,7 +114,7 @@ public abstract class ModelFunctionalTest {
 
         updatedModel.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         updatedModel.setRoleShareResourceLimits(Map.of("role1", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         expected.setRoleShareResourceLimits(Map.of("role1", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
@@ -126,7 +127,7 @@ public abstract class ModelFunctionalTest {
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
         updatedModel.setRoleShareResourceLimits(Map.of("role2", shareResourceLimitDto));
         updatedModel.setEndpointDeploymentName(null);
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role3", limitDto));
         expected.setRoleShareResourceLimits(Map.of("role2", shareResourceLimitDto));
@@ -152,7 +153,7 @@ public abstract class ModelFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> modelFacade.updateModel(modelDto.getName(), updatedModel)
+                () -> modelFacade.updateModel(modelDto.getName(), updatedModel, null)
         );
         Assertions.assertEquals("Model with name: 'model1' can not be renamed. New name: 'model2'", exception.getMessage());
     }
@@ -174,7 +175,7 @@ public abstract class ModelFunctionalTest {
         updatedModel.setDefaults(Map.of());
         updatedModel.setInterceptors(List.of("int1"));
 
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, null);
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
 
@@ -199,10 +200,25 @@ public abstract class ModelFunctionalTest {
         Assertions.assertEquals(List.of("int1", "int2", "int1", "int1", "int2"), actualModel.getInterceptors());
 
         modelDto.setInterceptors(List.of("int2", "int2", "int1", "int1"));
-        modelFacade.updateModel(modelDto.getName(), modelDto);
+        modelFacade.updateModel(modelDto.getName(), modelDto, null);
 
         actualModel = modelFacade.getModel(modelDto.getName());
         Assertions.assertEquals(List.of("int2", "int2", "int1", "int1"), actualModel.getInterceptors());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenModelConcurrencyOverwrite() {
+        initRoles();
+
+        ModelDto modelDto = createDto("1");
+        modelFacade.createModel(modelDto);
+
+        PreconditionFailedException exception = Assertions.assertThrows(
+            PreconditionFailedException.class,
+            () -> modelFacade.updateModel(modelDto.getName(), modelDto, "test")
+        );
+        Assertions.assertEquals("Unable to update model with name: 'model1'. "
+            + "Reload the data.", exception.getMessage());
     }
 
     @Test
@@ -337,7 +353,7 @@ public abstract class ModelFunctionalTest {
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
                 EntityAlreadyExistsException.class,
-                () -> modelFacade.updateModel(modelDto.getName(), modelDto)
+                () -> modelFacade.updateModel(modelDto.getName(), modelDto, null)
         );
         Assertions.assertEquals("Model with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
     }
