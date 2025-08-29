@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -191,7 +190,7 @@ public class VersionAwareFieldFilter {
         // so it needs to be unwrapped from array and wrapped to map - to conform with other entities
         String appTypeSchemaId = null;
         if (APPLICATION_TYPE_SCHEMAS_KEY.equals(fieldName)) {
-            JsonNode unwrappedFieldValue = unwrapAppTypeSchemaNode(fieldValue);
+            JsonNode unwrappedFieldValue = unwrapAppTypeSchemaNode(fieldName, fieldValue, fieldSchema, parentSchema, filteredNode);
             if (unwrappedFieldValue == null || unwrappedFieldValue.get("$id") == null) {
                 return;
             }
@@ -212,9 +211,15 @@ public class VersionAwareFieldFilter {
             JsonNode filteredProperties = filterPatternProperties(fieldValue, fieldSchema);
             if (APPLICATION_TYPE_SCHEMAS_KEY.equals(fieldName)) {
                 // Wrapping application type schema back to array
-                ArrayNode arrayWrapper = objectMapper.createArrayNode();
-                arrayWrapper.add(filteredProperties.get(appTypeSchemaId));
-                filteredNode.set(fieldName, arrayWrapper);
+                if (filteredNode.get(APPLICATION_TYPE_SCHEMAS_KEY) == null) {
+                    ArrayNode arrayWrapper = objectMapper.createArrayNode();
+                    arrayWrapper.add(filteredProperties.get(appTypeSchemaId));
+                    filteredNode.set(APPLICATION_TYPE_SCHEMAS_KEY, arrayWrapper);
+                } else {
+                    ArrayNode appTypeSchemasArrayNode = (ArrayNode) filteredNode.get(APPLICATION_TYPE_SCHEMAS_KEY);
+                    appTypeSchemasArrayNode.add(filteredProperties.get(appTypeSchemaId));
+                    filteredNode.set(APPLICATION_TYPE_SCHEMAS_KEY, appTypeSchemasArrayNode);
+                }
             } else {
                 filteredNode.set(fieldName, filteredProperties);
             }
@@ -227,59 +232,25 @@ public class VersionAwareFieldFilter {
 
     /**
      * Unwraps application type schema node.
-     * - If node is an array of size 1 and its element is a container (array/object), unwrap it.
-     * - If node is an array of size 1 and its element is a textual JSON, parse it and continue unwrapping.
-     * Stops when node becomes an object or when it can't be further unwrapped.
      */
-    private JsonNode unwrapAppTypeSchemaNode(JsonNode node) {
-        if (node == null) {
+    private JsonNode unwrapAppTypeSchemaNode(String fieldName, JsonNode fieldValue, JsonNode fieldSchema,
+                                             JsonNode parentSchema, ObjectNode filteredNode) {
+        if (fieldValue == null) {
             return null;
         }
 
-        while (true) {
-            // already an object — nothing to do
-            if (node.isObject()) {
-                return node;
-            }
-            // only unwrap single-element arrays
-            if (node.isArray() && node.size() == 1) {
-                JsonNode first = node.get(0);
-                if (first == null) {
-                    return node;
-                }
-                // If the single element is textual JSON, try parsing it
-                if (first.isTextual()) {
-                    String raw = first.asText();
-                    if (raw != null) {
-                        String trimmed = raw.trim();
-                        if (!trimmed.isEmpty() && (trimmed.charAt(0) == '{' || trimmed.charAt(0) == '[')) {
-                            try {
-                                node = objectMapper.readTree(trimmed);
-                                // loop again: parsed could be array/object/textual
-                                continue;
-                            } catch (IOException e) {
-                                // parsing failed -> cannot unwrap further
-                                return node;
-                            }
-                        } else {
-                            // not JSON text -> cannot unwrap further
-                            return node;
-                        }
-                    } else {
-                        return node;
-                    }
-                }
-                // If the single element is itself a container node (array/object), unwrap it
-                if (first.isContainerNode()) {
-                    node = first;
-                    continue;
-                }
-                // primitive or other -> cannot unwrap
-                return node;
-            }
-            // not a single-element array and not an object -> stop
-            return node;
+        if (fieldValue.isObject() || !fieldValue.isArray()) {
+            return fieldValue;
         }
+
+        if (fieldValue.size() > 1) {
+            Iterator<JsonNode> nodeElements = fieldValue.elements();
+            while (nodeElements.hasNext()) {
+                processField(fieldName, nodeElements.next(), fieldSchema, parentSchema, filteredNode);
+            }
+        }
+
+        return fieldValue;
     }
     
     /**
