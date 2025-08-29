@@ -243,7 +243,7 @@ public class VersionAwareFieldFilter {
             return fieldValue;
         }
 
-        if (fieldValue.size() > 1) {
+        if (fieldValue.size() >= 1) {
             Iterator<JsonNode> nodeElements = fieldValue.elements();
             while (nodeElements.hasNext()) {
                 processField(fieldName, nodeElements.next(), fieldSchema, parentSchema, filteredNode);
