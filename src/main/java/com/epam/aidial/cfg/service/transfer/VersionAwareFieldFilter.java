@@ -5,11 +5,13 @@ import com.epam.aidial.cfg.exception.SchemaValidationException;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,6 +25,8 @@ import java.util.Map;
 @LogExecution
 @RequiredArgsConstructor
 public class VersionAwareFieldFilter {
+
+    private static final String APPLICATION_TYPE_SCHEMAS_KEY = "applicationTypeSchemas";
 
     private final CoreConfigVersionAutoDetectService versionAutoDetectService;
     private final VersionedSchemaLoader schemaLoader;
@@ -180,8 +184,23 @@ public class VersionAwareFieldFilter {
     /**
      * Processes a single field based on its schema.
      */
-    private void processField(String fieldName, JsonNode fieldValue, JsonNode fieldSchema, 
-                             JsonNode parentSchema, ObjectNode filteredNode) {
+    private void processField(String fieldName, JsonNode fieldValue, JsonNode fieldSchema,
+                              JsonNode parentSchema, ObjectNode filteredNode) {
+
+        // Value of application type schema is stored as JSON string instead of object,
+        // so it needs to be unwrapped from array and wrapped to map - to conform with other entities
+        String appTypeSchemaId = null;
+        if (APPLICATION_TYPE_SCHEMAS_KEY.equals(fieldName)) {
+            JsonNode unwrappedFieldValue = unwrapAppTypeSchemaNode(fieldValue);
+            if (unwrappedFieldValue == null || unwrappedFieldValue.get("$id") == null) {
+                return;
+            }
+            ObjectNode fieldValueWrappedAsMap = objectMapper.createObjectNode();
+            appTypeSchemaId = unwrappedFieldValue.get("$id").asText();
+            fieldValueWrappedAsMap.set(appTypeSchemaId, unwrappedFieldValue);
+            fieldValue = fieldValueWrappedAsMap;
+        }
+
         if (!fieldValue.isObject()) {
             filteredNode.set(fieldName, fieldValue);
             return;
@@ -190,11 +209,76 @@ public class VersionAwareFieldFilter {
         if (fieldSchema.has("properties")) {
             filteredNode.set(fieldName, filterNodeBySchema(fieldValue, fieldSchema));
         } else if (fieldSchema.has("patternProperties")) {
-            filteredNode.set(fieldName, filterPatternProperties(fieldValue, fieldSchema));
+            JsonNode filteredProperties = filterPatternProperties(fieldValue, fieldSchema);
+            if (APPLICATION_TYPE_SCHEMAS_KEY.equals(fieldName)) {
+                // Wrapping application type schema back to array
+                ArrayNode arrayWrapper = objectMapper.createArrayNode();
+                arrayWrapper.add(filteredProperties.get(appTypeSchemaId));
+                filteredNode.set(fieldName, arrayWrapper);
+            } else {
+                filteredNode.set(fieldName, filteredProperties);
+            }
         } else if (fieldSchema.has("$ref")) {
             processFieldReference(fieldName, fieldValue, fieldSchema, parentSchema, filteredNode);
         } else {
             filteredNode.set(fieldName, fieldValue);
+        }
+    }
+
+    /**
+     * Unwraps application type schema node.
+     * - If node is an array of size 1 and its element is a container (array/object), unwrap it.
+     * - If node is an array of size 1 and its element is a textual JSON, parse it and continue unwrapping.
+     * Stops when node becomes an object or when it can't be further unwrapped.
+     */
+    private JsonNode unwrapAppTypeSchemaNode(JsonNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        while (true) {
+            // already an object — nothing to do
+            if (node.isObject()) {
+                return node;
+            }
+            // only unwrap single-element arrays
+            if (node.isArray() && node.size() == 1) {
+                JsonNode first = node.get(0);
+                if (first == null) {
+                    return node;
+                }
+                // If the single element is textual JSON, try parsing it
+                if (first.isTextual()) {
+                    String raw = first.asText();
+                    if (raw != null) {
+                        String trimmed = raw.trim();
+                        if (!trimmed.isEmpty() && (trimmed.charAt(0) == '{' || trimmed.charAt(0) == '[')) {
+                            try {
+                                node = objectMapper.readTree(trimmed);
+                                // loop again: parsed could be array/object/textual
+                                continue;
+                            } catch (IOException e) {
+                                // parsing failed -> cannot unwrap further
+                                return node;
+                            }
+                        } else {
+                            // not JSON text -> cannot unwrap further
+                            return node;
+                        }
+                    } else {
+                        return node;
+                    }
+                }
+                // If the single element is itself a container node (array/object), unwrap it
+                if (first.isContainerNode()) {
+                    node = first;
+                    continue;
+                }
+                // primitive or other -> cannot unwrap
+                return node;
+            }
+            // not a single-element array and not an object -> stop
+            return node;
         }
     }
     

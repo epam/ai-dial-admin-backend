@@ -59,7 +59,7 @@ public class CoreApplicationTypeSchema {
     private String applicationTypeIconUrl; // 0.29.0
 
     @JsonProperty("dial:applicationTypeRoutes")
-    private LinkedHashMap<String, CoreApplicationTypeSchemaRoute> applicationTypeRoutes; // 0.33.0
+    private LinkedHashMap<String, CoreApplicationTypeSchemaRoute> applicationTypeRoutes; // 0.34.0
 
     @JsonProperty("dial:applicationTypePlaybackSupport")
     private Boolean applicationTypePlaybackSupport; // 0.34.0
