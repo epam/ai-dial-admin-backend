@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.ModelWithHash;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
@@ -23,8 +24,6 @@ public class ModelFacade {
     private final ModelDtoMapper mapper;
     private final HashCalculator hashCalculator;
 
-    public record ModelWithHash(ModelDto modelDto, String hash){}
-
     public Collection<ModelDto> getAll() {
         return modelService.getAll()
                 .stream()
@@ -32,10 +31,10 @@ public class ModelFacade {
                 .collect(Collectors.toList());
     }
 
-    public ModelWithHash getModelWithHash(String modelName) {
+    public ModelWithHash<ModelDto> getModelWithHash(String modelName) {
         Model model = modelService.getModel(modelName);
         ModelDto dto = mapper.toDto(model);
-        return new ModelWithHash(dto, hashCalculator.calculateHash(model));
+        return new ModelWithHash<>(dto, hashCalculator.calculateHash(model));
     }
 
     public ModelDto getModel(String modelName) {

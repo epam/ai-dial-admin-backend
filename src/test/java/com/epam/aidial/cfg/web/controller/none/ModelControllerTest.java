@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.model.ModelWithHash;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ModelController;
@@ -61,7 +62,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, ModelDto.class);
 
         when(modelFacade.getModelWithHash(eq("test_model"))).thenReturn(
-            new ModelFacade.ModelWithHash(dto, "1"));
+            new ModelWithHash<>(dto, "1"));
 
         mockMvc.perform(get("/api/v1/models/{modelName}", "test_model"))
                 .andExpect(status().isOk())
@@ -74,7 +75,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, ModelDto.class);
 
         when(modelFacade.getModelWithHash(eq("test_model"))).thenReturn(
-            new ModelFacade.ModelWithHash(dto, "1"));
+            new ModelWithHash<>(dto, "1"));
 
         mockMvc.perform(get("/api/v1/models/{modelName}", "test_model")
                 .header("If-None-Match", "1"))
@@ -88,7 +89,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, ModelDto.class);
 
         when(modelFacade.getModelWithHash(eq("test_model"))).thenReturn(
-            new ModelFacade.ModelWithHash(dto, "2"));
+            new ModelWithHash<>(dto, "2"));
 
         mockMvc.perform(get("/api/v1/models/{modelName}", "test_model")
                 .header("If-None-Match", "1"))

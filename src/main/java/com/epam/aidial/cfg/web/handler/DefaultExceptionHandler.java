@@ -2,7 +2,7 @@ package com.epam.aidial.cfg.web.handler;
 
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
-import com.epam.aidial.cfg.exception.PreconditionFailedException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -130,9 +130,9 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(PreconditionFailedException.class)
-    public ErrorView handlePreconditionFailedException(PreconditionFailedException ex,
-                                                            HttpServletRequest req) {
+    @ExceptionHandler(OptimisticLockConflictException.class)
+    public ErrorView handlePreconditionFailedException(OptimisticLockConflictException ex,
+                                                       HttpServletRequest req) {
         return new ErrorView(req, HttpStatus.PRECONDITION_FAILED, ex.getMessage());
     }
 

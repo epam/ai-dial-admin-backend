@@ -8,7 +8,7 @@ import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
-import com.epam.aidial.cfg.exception.PreconditionFailedException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -213,8 +213,8 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createDto("1");
         modelFacade.createModel(modelDto);
 
-        PreconditionFailedException exception = Assertions.assertThrows(
-                PreconditionFailedException.class,
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
                 () -> modelFacade.updateModel(modelDto.getName(), modelDto, "test")
         );
         Assertions.assertEquals("Unable to update model with name: 'model1'. "

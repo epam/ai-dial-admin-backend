@@ -5,11 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class HashCalculator {
     private final ObjectWriter writer;
+    public static final String ANY_HASH = "*";
+
 
     public HashCalculator(ObjectMapper mapper) {
         this.writer = mapper.copy()
@@ -30,7 +34,16 @@ public class HashCalculator {
             byte[] digest = md.digest(json);
             return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to compute Hash", e);
+            log.warn("Failed to compute hash for body: {}", toLoggableJson(body), e);
+            throw new RuntimeException("Failed to compute hash", e);
+        }
+    }
+
+    private String toLoggableJson(Object body) {
+        try {
+            return writer.writeValueAsString(body);
+        } catch (Exception e) {
+            return "Unable to serialize";
         }
     }
 }

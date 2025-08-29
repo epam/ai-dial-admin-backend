@@ -9,9 +9,10 @@ import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
-import com.epam.aidial.cfg.exception.PreconditionFailedException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +22,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @Service("coreModelService")
 @RequiredArgsConstructor
+@Slf4j
 public class ModelService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Model with name %s does not exist";
@@ -69,21 +73,19 @@ public class ModelService {
 
     @Transactional
     public void updateModel(String modelName, Model model) {
-        modelNormalizer.normalize(model);
-        modelValidator.validateUpdate(modelName, model);
-        ModelEntity modelEntity = modelJpaRepository.findById(modelName)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
-        assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
-        Optional.of(model)
-                .map(domainModel -> mapper.toEntity(domainModel, modelEntity))
-                .map(modelJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("Unable to update model " + model.getDeployment().getName()));
+        performUpdate(modelName, model, ANY_HASH);
     }
 
     @Transactional
     public String updateModel(String modelName, Model model, String hash) {
+        var savedModel = performUpdate(modelName, model, hash == null ? ANY_HASH : hash);
+        return calculator.calculateHash(mapper.toDomain(savedModel));
+    }
+
+    private ModelEntity performUpdate(String modelName, Model model, String hash) {
         if (model == null) {
-            throw new RuntimeException("Unable to update model " + modelName);
+            throw new IllegalArgumentException("Unable to update model '" + modelName
+                + "', model does not provided");
         }
         modelNormalizer.normalize(model);
         modelValidator.validateUpdate(modelName, model);
@@ -92,8 +94,7 @@ public class ModelService {
 
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         assertNotConcurrencyOverwrite(modelEntity, hash);
-        var save = modelJpaRepository.save(mapper.toEntity(model, modelEntity));
-        return calculator.calculateHash(mapper.toDomain(save));
+        return modelJpaRepository.save(mapper.toEntity(model, modelEntity));
     }
 
     @Transactional
@@ -137,14 +138,17 @@ public class ModelService {
         }
     }
 
-    private void assertNotConcurrencyOverwrite(ModelEntity entity, String oldHash) {
-        if (oldHash == null) {
+    private void assertNotConcurrencyOverwrite(ModelEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
             return;
         }
-        var newHash = calculator.calculateHash(mapper.toDomain(entity));
-        if (!oldHash.equals(newHash)) {
-            throw new PreconditionFailedException("Unable to update model with name: '"
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: modelName={}, expectedHash={}, currentHash={}",
+                    entity.getDeployment().getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException("Optimistic lock conflict on update: modelName={}:'"
                 + entity.getDeployment().getName() + "'. Reload the data.");
+
         }
     }
 

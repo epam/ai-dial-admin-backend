@@ -53,7 +53,7 @@ public class ModelController {
                 ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(modelWithHash.hash())
             .build()
                 : ResponseEntity.status(HttpStatus.OK).eTag(modelWithHash.hash())
-            .body(modelWithHash.modelDto());
+            .body(modelWithHash.model());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
