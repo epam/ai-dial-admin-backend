@@ -76,7 +76,6 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @Embedded
     private ModelContainerEntity modelContainer;
 
-    // TODO [VPA]: group adapter & completionEndpointPath in a separate class (?)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "adapter_name")
     private AdapterEntity adapter;
