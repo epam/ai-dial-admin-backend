@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.exception.SchemaValidationException;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,8 @@ import java.util.Map;
 @LogExecution
 @RequiredArgsConstructor
 public class VersionAwareFieldFilter {
+
+    private static final String APPLICATION_TYPE_SCHEMAS_KEY = "applicationTypeSchemas";
 
     private final CoreConfigVersionAutoDetectService versionAutoDetectService;
     private final VersionedSchemaLoader schemaLoader;
@@ -180,8 +183,23 @@ public class VersionAwareFieldFilter {
     /**
      * Processes a single field based on its schema.
      */
-    private void processField(String fieldName, JsonNode fieldValue, JsonNode fieldSchema, 
-                             JsonNode parentSchema, ObjectNode filteredNode) {
+    private void processField(String fieldName, JsonNode fieldValue, JsonNode fieldSchema,
+                              JsonNode parentSchema, ObjectNode filteredNode) {
+
+        // Value of application type schema is stored as JSON string instead of object,
+        // so it needs to be unwrapped from array and wrapped to map - to conform with other entities
+        String appTypeSchemaId = null;
+        if (APPLICATION_TYPE_SCHEMAS_KEY.equals(fieldName)) {
+            JsonNode unwrappedFieldValue = unwrapAppTypeSchemaNode(fieldName, fieldValue, fieldSchema, parentSchema, filteredNode);
+            if (unwrappedFieldValue == null || unwrappedFieldValue.get("$id") == null) {
+                return;
+            }
+            ObjectNode fieldValueWrappedAsMap = objectMapper.createObjectNode();
+            appTypeSchemaId = unwrappedFieldValue.get("$id").asText();
+            fieldValueWrappedAsMap.set(appTypeSchemaId, unwrappedFieldValue);
+            fieldValue = fieldValueWrappedAsMap;
+        }
+
         if (!fieldValue.isObject()) {
             filteredNode.set(fieldName, fieldValue);
             return;
@@ -190,12 +208,49 @@ public class VersionAwareFieldFilter {
         if (fieldSchema.has("properties")) {
             filteredNode.set(fieldName, filterNodeBySchema(fieldValue, fieldSchema));
         } else if (fieldSchema.has("patternProperties")) {
-            filteredNode.set(fieldName, filterPatternProperties(fieldValue, fieldSchema));
+            JsonNode filteredProperties = filterPatternProperties(fieldValue, fieldSchema);
+            if (APPLICATION_TYPE_SCHEMAS_KEY.equals(fieldName)) {
+                // Wrapping application type schema back to array
+                if (filteredNode.get(APPLICATION_TYPE_SCHEMAS_KEY) == null) {
+                    ArrayNode arrayWrapper = objectMapper.createArrayNode();
+                    arrayWrapper.add(filteredProperties.get(appTypeSchemaId));
+                    filteredNode.set(APPLICATION_TYPE_SCHEMAS_KEY, arrayWrapper);
+                } else {
+                    ArrayNode appTypeSchemasArrayNode = (ArrayNode) filteredNode.get(APPLICATION_TYPE_SCHEMAS_KEY);
+                    appTypeSchemasArrayNode.add(filteredProperties.get(appTypeSchemaId));
+                    filteredNode.set(APPLICATION_TYPE_SCHEMAS_KEY, appTypeSchemasArrayNode);
+                }
+            } else {
+                filteredNode.set(fieldName, filteredProperties);
+            }
         } else if (fieldSchema.has("$ref")) {
             processFieldReference(fieldName, fieldValue, fieldSchema, parentSchema, filteredNode);
         } else {
             filteredNode.set(fieldName, fieldValue);
         }
+    }
+
+    /**
+     * Unwraps application type schema node.
+     */
+    private JsonNode unwrapAppTypeSchemaNode(String fieldName, JsonNode fieldValue, JsonNode fieldSchema,
+                                             JsonNode parentSchema, ObjectNode filteredNode) {
+        if (fieldValue == null) {
+            return null;
+        }
+
+        if (fieldValue.isObject() || !fieldValue.isArray()) {
+            return fieldValue;
+        }
+
+        if (fieldValue.size() >= 1) {
+            Iterator<JsonNode> nodeElements = fieldValue.elements();
+            while (nodeElements.hasNext()) {
+                processField(fieldName, nodeElements.next(), fieldSchema, parentSchema, filteredNode);
+            }
+        }
+
+        return fieldValue;
     }
     
     /**

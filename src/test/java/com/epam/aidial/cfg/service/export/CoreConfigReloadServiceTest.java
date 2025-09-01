@@ -10,26 +10,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CoreConfigServiceTest {
+class CoreConfigReloadServiceTest {
 
-    private CoreConfigService coreConfigService;
-    private ConfigExportScheduler configExportScheduler;
+    private CoreConfigReloadService coreConfigReloadService;
+    private ConfigExportFacade configExportFacade;
     private CoreConfigClient coreConfigClient;
 
     @BeforeEach
     void init() {
         coreConfigClient = mock(CoreConfigClient.class);
-        configExportScheduler = mock(ConfigExportScheduler.class);
-        coreConfigService = new CoreConfigService(coreConfigClient, configExportScheduler, 5000);
+        configExportFacade = mock(ConfigExportFacade.class);
+        coreConfigReloadService = new CoreConfigReloadService(coreConfigClient, configExportFacade, 5000);
     }
 
     @Test
     void reloadConfig_Success() throws Exception {
         // given
         // when
-        coreConfigService.reloadConfig();
+        coreConfigReloadService.reloadConfig();
         // then
-        verify(configExportScheduler).exportCurrentConfig();
+        verify(configExportFacade).exportCurrentConfig();
         verify(coreConfigClient).reload();
     }
 
@@ -39,10 +39,10 @@ class CoreConfigServiceTest {
         var exception = mock(FeignException.Unauthorized.class);
         when(coreConfigClient.reload()).thenThrow(exception);
         // when
-        Assertions.assertThatThrownBy(() -> coreConfigService.reloadConfig())
+        Assertions.assertThatThrownBy(() -> coreConfigReloadService.reloadConfig())
                 .isInstanceOf(FeignException.Unauthorized.class);
         // then
-        verify(configExportScheduler).exportCurrentConfig();
+        verify(configExportFacade).exportCurrentConfig();
         verify(coreConfigClient).reload();
     }
 }
