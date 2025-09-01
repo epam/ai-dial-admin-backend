@@ -2,11 +2,13 @@ package com.epam.aidial.cfg.domain.utils;
 
 import com.epam.aidial.core.config.ModelType;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +43,7 @@ public class ModelEndpointUtils {
             return null;
         }
 
-        return new ModelEndpointComponents(matcher.group(1) + "/", matcher.group(2) + "/" + endpointEnding);
+        return new ModelEndpointComponents(getValueFromMatcherGroup(matcher, 1), getValueFromMatcherGroup(matcher, 2) + endpointEnding);
     }
 
     public boolean isChat(com.epam.aidial.cfg.domain.model.ModelType type) {
@@ -50,6 +52,10 @@ public class ModelEndpointUtils {
 
     private boolean isChat(ModelType type) {
         return type == ModelType.CHAT || type == null;
+    }
+
+    private static String getValueFromMatcherGroup(Matcher matcher, int group) {
+        return Optional.ofNullable(matcher.group(group)).orElse(StringUtils.EMPTY) + "/";
     }
 
     public static String concatEndpointAndPath(String baseEndpoint, String endpointPath) {
