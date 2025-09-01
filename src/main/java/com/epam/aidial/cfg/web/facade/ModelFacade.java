@@ -2,11 +2,10 @@ package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.ModelWithHash;
 import com.epam.aidial.cfg.domain.service.ModelService;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
-import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ public class ModelFacade {
 
     private final ModelService modelService;
     private final ModelDtoMapper mapper;
-    private final HashCalculator hashCalculator;
 
     public Collection<ModelDto> getAll() {
         return modelService.getAll()
@@ -31,10 +29,10 @@ public class ModelFacade {
                 .collect(Collectors.toList());
     }
 
-    public ModelWithHash<ModelDto> getModelWithHash(String modelName) {
-        Model model = modelService.getModel(modelName);
-        ModelDto dto = mapper.toDto(model);
-        return new ModelWithHash<>(dto, hashCalculator.calculateHash(model));
+    public DtoWithDomainHash<ModelDto> getModelWithHash(String modelName) {
+        var modelWithHash = modelService.getModelWithHash(modelName);
+        ModelDto dto = mapper.toDto(modelWithHash.model());
+        return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
     public ModelDto getModel(String modelName) {

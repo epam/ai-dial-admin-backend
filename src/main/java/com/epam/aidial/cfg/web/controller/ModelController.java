@@ -48,12 +48,12 @@ public class ModelController {
                                              @PathVariable("modelName") String modelName,
                                              @RequestHeader(value = "If-None-Match", required = false)
                                              String previousHash) {
-        var modelWithHash = modelFacade.getModelWithHash(modelName);
-        return modelWithHash.hash().equals(previousHash)
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(modelWithHash.hash())
+        var dtoWithHash = modelFacade.getModelWithHash(modelName);
+        return dtoWithHash.hash().equals(previousHash)
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash())
             .build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(modelWithHash.hash())
-            .body(modelWithHash.model());
+                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash())
+            .body(dtoWithHash.dto());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -65,11 +65,10 @@ public class ModelController {
 
     @PutMapping(path = "/{modelName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> updateModel(HttpServletResponse response,
                             @PathVariable("modelName") String modelName,
                             @RequestBody @Valid ModelDto modelDto,
-                            @RequestHeader(value = "If-Match", required = false)
+                            @RequestHeader(value = "If-Match")
                             String previousHash)
                             throws Exception {
         var newHash = modelFacade.updateModel(modelName, modelDto, previousHash);

@@ -11,9 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class HashCalculator {
-    private final ObjectWriter writer;
     public static final String ANY_HASH = "*";
-
+    private final ObjectWriter writer;
 
     public HashCalculator(ObjectMapper mapper) {
         this.writer = mapper.copy()

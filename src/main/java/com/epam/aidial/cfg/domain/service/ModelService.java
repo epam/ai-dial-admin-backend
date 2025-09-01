@@ -4,6 +4,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
@@ -48,8 +49,18 @@ public class ModelService {
 
     @Transactional(readOnly = true)
     public Model getModel(String modelName) {
+        return getModelOrThrow(modelName);
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<Model> getModelWithHash(String modelName) {
+        Model model = getModelOrThrow(modelName);
+        return new DomainObjectWithHash<>(model, calculator.calculateHash(model));
+    }
+
+    public Model getModelOrThrow(String modelName) {
         return tryGetModel(modelName)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+            .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
     }
 
     @Transactional(readOnly = true)
@@ -78,15 +89,15 @@ public class ModelService {
 
     @Transactional
     public String updateModel(String modelName, Model model, String hash) {
-        var savedModel = performUpdate(modelName, model, hash == null ? ANY_HASH : hash);
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                "Hash must not be null. Use \"*\" to skip optimistic check.");
+        }
+        var savedModel = performUpdate(modelName, model, hash);
         return calculator.calculateHash(mapper.toDomain(savedModel));
     }
 
     private ModelEntity performUpdate(String modelName, Model model, String hash) {
-        if (model == null) {
-            throw new IllegalArgumentException("Unable to update model '" + modelName
-                + "', model does not provided");
-        }
         modelNormalizer.normalize(model);
         modelValidator.validateUpdate(modelName, model);
         ModelEntity modelEntity = modelJpaRepository.findById(modelName)
@@ -146,7 +157,7 @@ public class ModelService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: modelName={}, expectedHash={}, currentHash={}",
                     entity.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update: modelName={}:'"
+            throw new OptimisticLockConflictException("Optimistic lock conflict on update: modelName:'"
                 + entity.getDeployment().getName() + "'. Reload the data.");
 
         }
