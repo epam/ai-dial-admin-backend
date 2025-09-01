@@ -32,6 +32,7 @@ public class ApplicationTypeSchemaCoreConfigNormalizer implements CoreConfigNorm
                 applicationTypeSchemas.remove(schemaId);
 
                 List<String> applicationsWithInvalidAppTypeSchema = applications.entrySet().stream()
+                        .filter(appEntry -> appEntry.getValue().getApplicationTypeSchemaId() != null)
                         .filter(appEntry -> appEntry.getValue().getApplicationTypeSchemaId().toString().equals(schemaId))
                         .map(Map.Entry::getKey)
                         .toList();

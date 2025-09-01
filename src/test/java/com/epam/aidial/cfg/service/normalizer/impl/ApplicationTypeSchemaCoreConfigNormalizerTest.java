@@ -57,9 +57,13 @@ class ApplicationTypeSchemaCoreConfigNormalizerTest {
         CoreApplication application2 = new CoreApplication();
         application2.setApplicationTypeSchemaId(URI.create("https://runner-char-new"));
 
+        CoreApplication application3 = new CoreApplication();
+        application3.setEndpoint("https://endpoint");
+
         Map<String, CoreApplication> applicationsMap = new HashMap<>();
         applicationsMap.put("testApplication1", application1);
         applicationsMap.put("testApplication2", application2);
+        applicationsMap.put("testApplication3", application3);
 
         Config config = new Config();
         config.setApplicationTypeSchemas(applicationTypeSchemasMap);
@@ -70,9 +74,10 @@ class ApplicationTypeSchemaCoreConfigNormalizerTest {
 
         // then
         assertThat(config.getApplicationTypeSchemas()).isEmpty();
-        assertThat(config.getApplications()).hasSize(1).satisfies(applications -> {
+        assertThat(config.getApplications()).hasSize(2).satisfies(applications -> {
             assertThat(applications.get("testApplication1")).isNull();
             assertThat(applications.get("testApplication2")).isNotNull();
+            assertThat(applications.get("testApplication3")).isNotNull();
         });
     }
 
@@ -102,9 +107,13 @@ class ApplicationTypeSchemaCoreConfigNormalizerTest {
         CoreApplication application2 = new CoreApplication();
         application2.setApplicationTypeSchemaId(URI.create("https://runner-char-new"));
 
+        CoreApplication application3 = new CoreApplication();
+        application3.setEndpoint("https://endpoint");
+
         Map<String, CoreApplication> applicationsMap = new HashMap<>();
         applicationsMap.put("testApplication1", application1);
         applicationsMap.put("testApplication2", application2);
+        applicationsMap.put("testApplication3", application3);
 
         Config config = new Config();
         config.setApplicationTypeSchemas(applicationTypeSchemasMap);
@@ -118,9 +127,10 @@ class ApplicationTypeSchemaCoreConfigNormalizerTest {
             String schema = applicationTypeSchemas.get("https://runner-char");
             assertThat(schema).isNotNull();
         });
-        assertThat(config.getApplications()).hasSize(2).satisfies(applications -> {
+        assertThat(config.getApplications()).hasSize(3).satisfies(applications -> {
             assertThat(applications.get("testApplication1")).isNotNull();
             assertThat(applications.get("testApplication2")).isNotNull();
+            assertThat(applications.get("testApplication3")).isNotNull();
         });
     }
 
