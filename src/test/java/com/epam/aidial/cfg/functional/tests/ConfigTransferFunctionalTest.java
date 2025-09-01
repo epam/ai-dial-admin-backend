@@ -14,7 +14,6 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
-import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
@@ -39,6 +38,7 @@ import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -249,6 +249,8 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
             Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
             Assertions.assertThat(model.getDisplayVersion()).isEqualTo("2.0.0");
+            Assertions.assertThat(model.getEndpoint()).isEqualTo("https://endpoint1");
+            Assertions.assertThat(model.getSource()).isEqualTo(new ModelEndpointsSourceDto());
         });
     }
 
@@ -495,7 +497,7 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
                         Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
                         Assertions.assertThat(model.getDeployment().getRoleShareResourceLimits()).isNull();
-                        Assertions.assertThat(model.getSource()).isEqualTo(new ModelEndpointsSource());
+                        Assertions.assertThat(model.getSource()).isNull();
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
@@ -1186,7 +1188,10 @@ public abstract class ConfigTransferFunctionalTest {
         Set<String> adapterEndpoints = adapterFacade.getAllAdapters().stream().map(AdapterDto::getBaseEndpoint).collect(Collectors.toSet());
         Assertions.assertThat(adapterEndpoints).isEqualTo(Set.of("http://endpoint1/", "http://endpoint2/"));
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, Function.identity()));
-        Assertions.assertThat(adapterNames).containsAll(Set.of(models.get("testModel1").getAdapter(), models.get("testModel2").getAdapter()));
+        Assertions.assertThat(adapterNames).containsAll(Set.of(
+                ((AdapterSourceDto) models.get("testModel1").getSource()).adapterName(),
+                ((AdapterSourceDto) models.get("testModel2").getSource()).adapterName()
+        ));
     }
 
     @Test
@@ -1222,10 +1227,9 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         Map<String, ModelDto> models = modelFacade.getAll().stream()
                 .collect(Collectors.toMap(ModelDto::getName, Function.identity()));
-        String model1AdapterName = models.get("testModel1").getAdapter();
-        String model2AdapterName = models.get("testModel2").getAdapter();
-        Assertions.assertThat(model1AdapterName).isEqualTo("adapter1");
-        Assertions.assertThat(model2AdapterName).isEqualTo("adapter3");
+
+        Assertions.assertThat(models.get("testModel1").getSource()).isEqualTo(new AdapterSourceDto("adapter1", "testModel1/embeddings"));
+        Assertions.assertThat(models.get("testModel2").getSource()).isEqualTo(new AdapterSourceDto("adapter3", "testModel2/embeddings"));
     }
 
     private static Stream<Arguments> addSecrets() {
@@ -1383,7 +1387,7 @@ public abstract class ConfigTransferFunctionalTest {
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
-            Assertions.assertThat(modelDto.getAdapter()).isEqualTo("adapter1");
+            Assertions.assertThat(modelDto.getSource()).isEqualTo(new AdapterSourceDto("adapter1", "embeddings"));
             Assertions.assertThat(modelDto.getDefaultRoleLimit()).satisfies(limit -> {
                 Assertions.assertThat(limit.getDay()).isEqualTo(3);
             });
@@ -1475,7 +1479,7 @@ public abstract class ConfigTransferFunctionalTest {
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
-            Assertions.assertThat(modelDto.getAdapter()).isEqualTo("adapter1");
+            Assertions.assertThat(modelDto.getSource()).isEqualTo(new AdapterSourceDto("adapter1", "embeddings"));
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());

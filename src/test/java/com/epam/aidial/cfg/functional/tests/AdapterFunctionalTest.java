@@ -4,6 +4,8 @@ import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -84,12 +86,14 @@ public abstract class AdapterFunctionalTest {
 
         adapterFacade.createAdapter(adapterDto);
 
+        AdapterSourceDto sourceDto = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
+
         ModelDto model1 = createModel("1");
-        model1.setAdapter("adapter1");
+        model1.setSource(sourceDto);
         modelFacade.createModel(model1);
 
         ModelDto model2 = createModel("2");
-        model2.setAdapter("adapter1");
+        model2.setSource(sourceDto);
         modelFacade.createModel(model2);
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
@@ -107,10 +111,11 @@ public abstract class AdapterFunctionalTest {
         adapterFacade.createAdapter(adapterDto2);
 
         ModelDto model1 = createModel("1");
-        model1.setAdapter("adapter1");
+        AdapterSourceDto source1 = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
+        model1.setSource(source1);
         modelFacade.createModel(model1);
-        model1.setAdapter("adapter2");
-        model1.setEndpointDeploymentName("model1");
+        AdapterSourceDto source2 = new AdapterSourceDto("adapter2", "/model1/chat/completions");
+        model1.setSource(source2);
         modelFacade.updateModel(model1.getName(), model1);
 
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
@@ -126,14 +131,12 @@ public abstract class AdapterFunctionalTest {
         Assertions.assertEquals(expectedAdapter2, actualAdapter2);
 
         ModelDto expectedModel1 = createModel("1");
-        expectedModel1.setAdapter("adapter2");
-        expectedModel1.setEndpoint("endpoint2/model1/chat/completions");
+        expectedModel1.setSource(source2);
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setRoleShareResourceLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
         expectedModel1.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
-        expectedModel1.setEndpointDeploymentName("model1");
         Assertions.assertEquals(expectedModel1, actualModel1);
     }
 
@@ -145,10 +148,9 @@ public abstract class AdapterFunctionalTest {
         ModelDto model1 = createModel("1");
         modelFacade.createModel(model1);
 
-        // add model to adapter
-        adapterDto1.setModels(List.of("model1"));
+        model1.setSource(new AdapterSourceDto(adapterDto1.getName(), "/chat/completions"));
+        modelFacade.updateModel(model1.getName(), model1);
 
-        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1);
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel1 = modelFacade.getModel(model1.getName());
 
@@ -158,8 +160,7 @@ public abstract class AdapterFunctionalTest {
         Assertions.assertEquals(expectedAdapter1, actualAdapter1);
 
         ModelDto expectedModel1 = createModel("1");
-        expectedModel1.setAdapter("adapter1");
-        expectedModel1.setEndpoint("endpoint1/chat/completions");
+        expectedModel1.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setRoleShareResourceLimits(Map.of());
@@ -184,6 +185,8 @@ public abstract class AdapterFunctionalTest {
         expectedModel2.setRoleShareResourceLimits(Map.of());
         expectedModel2.setDefaultRoleLimit(new LimitDto());
         expectedModel2.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
+        expectedModel2.setSource(new ModelEndpointsSourceDto());
+        expectedModel2.setEndpoint("endpoint1/chat/completions");
         Assertions.assertEquals(expectedModel2, actualModel2);
     }
 

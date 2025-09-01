@@ -199,7 +199,8 @@
 			"createdAt": 12345,
 			"updatedAt": 12345,
 			"dependencies": ["dep1", "dep2"],
-			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+        	"endpoint": "https://endpoint2/embeddings"
 		},
 		"testModel1": {
 			"deployment": {
@@ -231,10 +232,10 @@
 				"consentRequired": false,
 				"parallelToolCallsSupported": true
 			},
-			"adapter": {
-				"name": "adapter1",
-				"baseEndpoint": "http://endpoint1/",
-				"description": "test adapter"
+			"source": {
+                "$type": "adapter",
+				"adapterName": "adapter1",
+				"completionEndpointPath": "embeddings"
 			},
 			"defaults": {},
 			"interceptors": [

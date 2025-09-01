@@ -1,7 +1,6 @@
 [
   {
     "name": "test_model",
-    "adapter": "adapter1",
     "displayName": "Test Model",
     "displayVersion": "1.0.0",
     "description": "It is a test model",
@@ -27,6 +26,11 @@
     "createdAt": "2025-06-01T12:00:00Z",
     "updatedAt": "2025-06-01T15:30:00Z",
     "dependencies": ["dep1", "dep2"],
-    "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+    "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+    "source": {
+      "$type": "adapter",
+      "adapterName": "adapter1",
+      "completionEndpointPath": "some-path/embeddings"
+    }
   }
 ]

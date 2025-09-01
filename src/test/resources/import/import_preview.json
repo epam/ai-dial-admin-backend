@@ -265,7 +265,24 @@
       }
     }
   ],
-  "adapters": [],
+  "adapters": [
+    {
+      "importAction": "create",
+      "value": {
+        "name": "<will be defined during import>",
+        "baseEndpoint": "https://endpoint2/",
+        "models": []
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "name": "<will be defined during import>",
+        "baseEndpoint": "https://endpoint1/",
+        "models": []
+      }
+    }
+  ],
   "models": [
     {
       "importAction": "create",
@@ -312,7 +329,13 @@
           "temperature",
           "seed",
           "system"
-        ]
+        ],
+        "endpoint": "https://endpoint2/embeddings",
+        "source": {
+          "$type": "adapter",
+          "adapterName": "<will be defined during import>",
+          "completionEndpointPath": "/embeddings"
+        }
       }
     },
     {
@@ -393,7 +416,13 @@
           "temperature",
           "seed",
           "system"
-        ]
+        ],
+        "endpoint": "https://endpoint1/embeddings",
+        "source": {
+          "$type": "adapter",
+          "adapterName": "<will be defined during import>",
+          "completionEndpointPath": "/embeddings"
+        }
       }
     }
   ],

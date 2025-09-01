@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
+import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -68,18 +69,16 @@ public class FunctionalTestConfiguration {
     @Bean
     public CoreConfigAggregatorService configAggregatorService(ApplicationService applicationService,
                                                                ApplicationTypeSchemaService applicationTypeSchemaService,
-                                                               InterceptorService interceptorService,
-                                                               KeyService keyService,
+                                                               InterceptorService interceptorService, KeyService keyService,
                                                                ModelService modelService, RoleService roleService,
                                                                RouteService routeService, DeploymentService deploymentService,
-                                                               ToolSetService toolSetService, ApplicationCoreMapper applicationMapper,
-                                                               ApplicationTypeSchemaCoreMapper schemaMapper,
-                                                               InterceptorCoreMapper interceptorMapper,
-                                                               KeyCoreMapper keyMapper,
+                                                               ToolSetService toolSetService, AdapterService adapterService,
+                                                               ApplicationCoreMapper applicationMapper, ApplicationTypeSchemaCoreMapper schemaMapper,
+                                                               InterceptorCoreMapper interceptorMapper, KeyCoreMapper keyMapper,
                                                                ModelCoreMapper modelMapper, RoleCoreMapper roleMapper,
                                                                RouteCoreMapper routeMapper, ToolSetCoreMapper toolSetMapper) {
         return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService,
-                keyService, modelService, roleService, routeService, deploymentService, toolSetService, applicationMapper, schemaMapper, interceptorMapper,
+                keyService, modelService, roleService, routeService, deploymentService, toolSetService, adapterService, applicationMapper, schemaMapper, interceptorMapper,
                 keyMapper, modelMapper, roleMapper, routeMapper, toolSetMapper);
     }
 
@@ -101,6 +100,7 @@ public class FunctionalTestConfiguration {
         CoreModel model = new CoreModel();
         model.setName("testModel");
         model.setDisplayName("testModel displayName");
+        model.setEndpoint("https://endpoint1/chat/completions");
 
         Config config = new Config();
         config.setModels(Map.of(model.getName(), model));

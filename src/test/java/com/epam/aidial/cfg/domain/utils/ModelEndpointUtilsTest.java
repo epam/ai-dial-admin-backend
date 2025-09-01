@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.domain.utils;
 
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.core.config.ModelType;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -33,10 +32,8 @@ class ModelEndpointUtilsTest {
     @ParameterizedTest
     @MethodSource("parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpointTestParams")
     void parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpoint(String modelEndpoint, ModelType type) {
-        Assertions.assertThatThrownBy(() -> modelEndpointUtils.parseModelEndpoint(modelEndpoint, type))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unable to extract adapter endpoint and endpoint deployment name "
-                        + "from invalid model endpoint: " + modelEndpoint);
+        ModelEndpointComponents result = modelEndpointUtils.parseModelEndpoint(modelEndpoint, type);
+        assertThat(result).isNull();
     }
 
 
