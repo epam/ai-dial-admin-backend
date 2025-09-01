@@ -105,15 +105,15 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testCreateModel_MissingUpstreamEndpoint_ValidationException() throws Exception {
-        var dtoJson = ResourceUtils.readResource("/model_dto_without_upstream_endpoint.json");
+    void testCreateModel_EmptyUpstreamEndpoint_ValidationException() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/model_dto_with_empty_upstream_endpoint.json");
 
         mockMvc.perform(post("/api/v1/models")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.message").value("JSON parse error: endpoint: Upstream endpoint must not be null."));
+                .andExpect(jsonPath("$.message").value("JSON parse error: endpoint: Invalid upstream endpoint"));
     }
 
 }

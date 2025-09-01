@@ -22,6 +22,7 @@ public class CoreConfigRetrieverImpl implements CoreConfigRetriever {
         });
     }
 
+    @Override
     public Config getConfig(boolean addSecrets) {
         return configTransferLock.withReadLock(() -> {
             var config = configSource.readConfig();

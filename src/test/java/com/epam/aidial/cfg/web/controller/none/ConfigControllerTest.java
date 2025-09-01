@@ -16,7 +16,7 @@ import com.epam.aidial.cfg.dto.FullExportRequestDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.export.CoreConfigService;
+import com.epam.aidial.cfg.service.export.CoreConfigReloadService;
 import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ConfigController;
@@ -87,7 +87,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private CoreConfigService coreConfigService;
+    private CoreConfigReloadService coreConfigReloadService;
 
     @MockitoBean
     private ConfigTransfer configTransfer;
@@ -101,7 +101,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void reload() throws Exception {
         // given
-        doNothing().when(coreConfigService).reloadConfig();
+        doNothing().when(coreConfigReloadService).reloadConfig();
         // when
         mockMvc.perform(get("/api/v1/configs/reload"))
                 //then

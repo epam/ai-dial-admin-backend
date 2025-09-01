@@ -11,6 +11,7 @@
   },
   "upstreams": [
     {
+      "endpoint": "",
       "key": "test key"
     },
     {

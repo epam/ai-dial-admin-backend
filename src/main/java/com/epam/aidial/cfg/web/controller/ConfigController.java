@@ -11,7 +11,7 @@ import com.epam.aidial.cfg.dto.ImportConfigPreviewDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.export.CoreConfigService;
+import com.epam.aidial.cfg.service.export.CoreConfigReloadService;
 import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.web.facade.mapper.ImportConfigMapper;
 import jakarta.validation.Valid;
@@ -35,14 +35,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/configs")
 @Validated
 @LogExecution
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class ConfigController {
 
-    private final CoreConfigService coreConfigService;
+    private final Optional<CoreConfigReloadService> coreConfigReloadService;
     private final ConfigTransfer configTransfer;
     private final ExportConfigMapper exportConfigMapper;
     private final ImportConfigMapper importConfigMapper;
@@ -50,14 +52,14 @@ public class ConfigController {
     private final int importConfigsMaxCount;
     private final ConfigExportErrorHandler configExportErrorHandler;
 
-    public ConfigController(CoreConfigService coreConfigService,
+    public ConfigController(Optional<CoreConfigReloadService> coreConfigReloadService,
                             ConfigTransfer configTransfer,
                             ExportConfigMapper exportConfigMapper,
                             ImportConfigMapper importConfigMapper,
                             ConfigExportProperties properties,
                             @Value("${config.import.configsMaxCount}") int importConfigsMaxCount,
                             ConfigExportErrorHandler configExportErrorHandler) {
-        this.coreConfigService = coreConfigService;
+        this.coreConfigReloadService = coreConfigReloadService;
         this.configTransfer = configTransfer;
         this.exportConfigMapper = exportConfigMapper;
         this.importConfigMapper = importConfigMapper;
@@ -68,7 +70,11 @@ public class ConfigController {
 
     @GetMapping(path = "/reload")
     public void reload() throws Exception {
-        coreConfigService.reloadConfig();
+        if (coreConfigReloadService.isPresent()) {
+            coreConfigReloadService.get().reloadConfig();
+        } else {
+            throw new UnsupportedOperationException("DIAL Core configuration reloading is disabled");
+        }
     }
 
     @GetMapping(path = "/export/status")
