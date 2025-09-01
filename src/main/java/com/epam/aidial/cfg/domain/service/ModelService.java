@@ -54,11 +54,11 @@ public class ModelService {
 
     @Transactional(readOnly = true)
     public DomainObjectWithHash<Model> getModelWithHash(String modelName) {
-        Model model = getModelOrThrow(modelName);
+        var model = getModelOrThrow(modelName);
         return new DomainObjectWithHash<>(model, calculator.calculateHash(model));
     }
 
-    public Model getModelOrThrow(String modelName) {
+    private Model getModelOrThrow(String modelName) {
         return tryGetModel(modelName)
             .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
     }
