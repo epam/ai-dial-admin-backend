@@ -1,20 +1,11 @@
 package com.epam.aidial.core.config.validation;
 
-import java.util.Map;
-
-import com.epam.aidial.core.metaschemas.MetaSchemaHolder;
-
-import com.networknt.schema.InputFormat;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class ConformToMetaSchemaValidator implements ConstraintValidator<ConformToMetaSchema, Map<String, String>> {
+import java.util.Map;
 
-    private static final JsonSchemaFactory SCHEMA_FACTORY = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-    private static final JsonSchema SCHEMA = SCHEMA_FACTORY.getSchema(MetaSchemaHolder.getCustomApplicationMetaSchema());
+public class ConformToMetaSchemaValidator implements ConstraintValidator<ConformToMetaSchema, Map<String, String>> {
 
     @Override
     public boolean isValid(Map<String, String> idSchemaMap, ConstraintValidatorContext context) {
@@ -22,7 +13,7 @@ public class ConformToMetaSchemaValidator implements ConstraintValidator<Conform
             return true;
         }
         for (Map.Entry<String, String> entry : idSchemaMap.entrySet()) {
-            if (!SCHEMA.validate(entry.getValue(), InputFormat.JSON).isEmpty()) {
+            if (!SchemaConformToMetaSchemaValidator.isValid(entry.getValue())) {
                 context.disableDefaultConstraintViolation();
                 context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
                         .addBeanNode()
