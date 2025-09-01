@@ -42,7 +42,7 @@ class ApplicationCoreConfigNormalizerTest {
     }
 
     @Test
-    void testNormalize_applicationDoesNotConformToItsSchema_RemoveApplication() {
+    void testNormalize_applicationDoesNotConformToItsSchema_removeApplication() {
         // given
         CoreApplication application = new CoreApplication();
 
@@ -65,7 +65,7 @@ class ApplicationCoreConfigNormalizerTest {
     }
 
     @Test
-    void testNormalize_applicationConformsToItsSchema_DoesNotRemoveApplication() {
+    void testNormalize_applicationConformsToItsSchema_doesNotRemoveApplication() {
         // given
         CoreApplication application = new CoreApplication();
 
