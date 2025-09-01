@@ -70,7 +70,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testGetModeWithSameHash() throws Exception {
+    void testGetModelWithSameHash() throws Exception {
         var dtoJson = ResourceUtils.readResource("/model_dto.json");
         var dto = objectMapper.readValue(dtoJson, ModelDto.class);
 
@@ -78,7 +78,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
             new DtoWithDomainHash<>(dto, "1"));
 
         mockMvc.perform(get("/api/v1/models/{modelName}", "test_model")
-                .header("If-None-Match", "1"))
+                        .header("If-None-Match", "1"))
             .andExpect(status().isNotModified())
                 .andExpect(header().exists("eTag"));
     }
@@ -92,7 +92,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
             new DtoWithDomainHash<>(dto, "2"));
 
         mockMvc.perform(get("/api/v1/models/{modelName}", "test_model")
-                .header("If-None-Match", "1"))
+                        .header("If-None-Match", "1"))
             .andExpect(status().isOk())
             .andExpect(header().exists("eTag"))
                 .andExpect(content().contentType("application/json"))
