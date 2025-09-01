@@ -63,6 +63,7 @@ public abstract class RouteHistoryFunctionalTest {
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setUpstreams(List.of());
+        expected.setOrder(Integer.MAX_VALUE);
         assertRoute(actual, expected);
 
         // 3 add roles to route1
@@ -71,6 +72,7 @@ public abstract class RouteHistoryFunctionalTest {
         updatedRoute.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         updatedRoute.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         updatedRoute.setUpstreams(List.of());
+        updatedRoute.setOrder(Integer.MAX_VALUE);
         routeFacade.updateRoute(routeDto.getName(), updatedRoute);
         actual = routeFacade.getRoute(routeDto.getName());
         assertRoute(actual, updatedRoute);
