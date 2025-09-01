@@ -170,9 +170,12 @@ public class FolderService {
         ResourceMetadataRequest resourceMetadataRequest = ResourceMetadataRequest.builder()
                 .path(path)
                 .build();
+        log.debug("checkFolderExists. resourceMetadataRequest: {}, resourceTypes: {}", resourceMetadataRequest, resourceTypes);
         for (var resourceType : resourceTypes) {
             ResourceService resourceService = resolveResourceService(resourceType);
-            if (resourceService.getFolders(resourceMetadataRequest) == null) {
+            FolderInfo folders = resourceService.getFolders(resourceMetadataRequest);
+            log.trace("checkFolderExists. resourceServiceType: {}, resourceFolders: {}", resourceService.getResourceType(), folders);
+            if (folders == null) {
                 throw new FolderNotFoundException("Folder: " + path + " does not exist in " + resourceService.getResourceType() + " resources");
             }
         }
@@ -182,8 +185,11 @@ public class FolderService {
         ResourceMetadataRequest resourceMetadataRequest = ResourceMetadataRequest.builder()
                 .path(path)
                 .build();
+        log.debug("checkFolderDoesNotExist. resourceMetadataRequest: {}", resourceMetadataRequest);
         for (var resourceService : resourceServicesByResourceType.values()) {
-            if (resourceService.getFolders(resourceMetadataRequest) != null) {
+            FolderInfo folders = resourceService.getFolders(resourceMetadataRequest);
+            log.trace("checkFolderDoesNotExist. resourceServiceType: {}, resourceFolders: {}", resourceService.getResourceType(), folders);
+            if (folders != null) {
                 throw new FolderAlreadyExistsException("Folder: " + path + " already exists in " + resourceService.getResourceType() + " resources");
             }
         }
@@ -197,15 +203,18 @@ public class FolderService {
                 .targetFolder(newPath)
                 .rules(rules)
                 .build();
+        log.debug("copyFolderRules. updateRulesRequest: {}", updateRulesRequest);
         updatesRules(updateRulesRequest);
     }
 
     private void moveResources(String oldPath, String newPath, List<ResourceType> resourceTypes) {
+        log.debug("moveResources. oldPath: {}, newPath: {}, resourceTypes: {}", oldPath, newPath, resourceTypes);
         List<String> movedResources = new ArrayList<>();
 
         for (var resourceType : resourceTypes) {
             ResourceService resourceService = resolveResourceService(resourceType);
             Set<String> resourceUrls = resourceService.getResourceUrls(oldPath);
+            log.debug("moveResources. resourceServiceType: {}, resourceUrls: {}", resourceService.getResourceType(), resourceUrls);
 
             for (var resourceUrl : resourceUrls) {
                 try {
@@ -213,6 +222,7 @@ public class FolderService {
                             .sourceUrl(resourceUrl)
                             .destinationUrl(CoreMetadataUtils.replacePathSegment(resourceUrl, oldPath, newPath))
                             .build();
+                    log.trace("moveResources. moveResource: {}, movedResources: {}", moveResource, movedResources);
                     resourceService.move(moveResource);
                     movedResources.add(resourceUrl);
                 } catch (Exception exception) {
