@@ -5,6 +5,7 @@ import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +37,10 @@ public class ApplicationTypeSchemaCoreConfigNormalizer implements CoreConfigNorm
                         .filter(appEntry -> appEntry.getValue().getApplicationTypeSchemaId().toString().equals(schemaId))
                         .map(Map.Entry::getKey)
                         .toList();
-                log.warn("normalizeConfig. remove applications with invalid application type schema: {}", applicationsWithInvalidAppTypeSchema);
-                applicationsWithInvalidAppTypeSchema.forEach(applications::remove);
+                if (CollectionUtils.isNotEmpty(applicationsWithInvalidAppTypeSchema)) {
+                    log.warn("normalizeConfig. remove applications: {} with invalid application type schema: {}", applicationsWithInvalidAppTypeSchema, schemaId);
+                    applicationsWithInvalidAppTypeSchema.forEach(applications::remove);
+                }
             }
         }
     }
