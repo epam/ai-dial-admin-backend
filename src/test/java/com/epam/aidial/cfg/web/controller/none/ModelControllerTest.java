@@ -133,8 +133,8 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         var dtoJson = ResourceUtils.readResource("/model_dto.json");
 
         mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .content(dtoJson))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
                 .andExpect(status().isBadRequest());
     }
 
