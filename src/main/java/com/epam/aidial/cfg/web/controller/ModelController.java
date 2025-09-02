@@ -46,7 +46,7 @@ public class ModelController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ModelDto> getModel(HttpServletResponse response,
                                              @PathVariable("modelName") String modelName,
-                                             @RequestHeader(value = "If-None-Match", required = false)
+                                             @RequestHeader(value = "If-None-Match")
                                              String previousHash) {
         var dtoWithHash = modelFacade.getModelWithHash(modelName);
         return dtoWithHash.hash().equals(previousHash)
