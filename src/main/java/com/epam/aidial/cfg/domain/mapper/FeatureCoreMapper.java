@@ -11,4 +11,6 @@ public interface FeatureCoreMapper {
 
     @BeanMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
     Features toDomain(CoreFeatures features);
+
+    CoreFeatures toCore(Features features);
 }
