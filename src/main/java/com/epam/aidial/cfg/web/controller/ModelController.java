@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,9 +50,9 @@ public class ModelController {
                                              @RequestHeader(value = "If-None-Match")
                                              String previousHash) {
         var dtoWithHash = modelFacade.getModelWithHash(modelName);
-        return dtoWithHash.hash().equals(previousHash)
+        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
                 ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash())
-            .build()
+                .build()
                 : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash())
             .body(dtoWithHash.dto());
     }
@@ -71,7 +72,7 @@ public class ModelController {
                             @RequestHeader(value = "If-Match")
                             String previousHash)
                             throws Exception {
-        var newHash = modelFacade.updateModel(modelName, modelDto, previousHash);
+        var newHash = modelFacade.updateModel(modelName, modelDto, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
