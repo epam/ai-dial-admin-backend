@@ -21,7 +21,7 @@ public class HashCalculator {
     public static final String ANY_HASH = "*";
     private static final Set<String> IGNORED_FIELDS = Set.of("createdAt", "updatedAt");
     private final ObjectWriter writer;
-    private final Base64.Encoder base64Encoder =  Base64.getUrlEncoder().withoutPadding();
+    private final Base64.Encoder base64Encoder;
 
     public HashCalculator(ObjectMapper mapper) {
         var hashingMapper = mapper.copy()
@@ -36,6 +36,7 @@ public class HashCalculator {
                 .setFailOnUnknownId(false);
         hashingMapper.setFilterProvider(filters);
         this.writer = hashingMapper.writer();
+        this.base64Encoder = Base64.getUrlEncoder().withoutPadding();
     }
 
     public String calculateHash(Object body) {

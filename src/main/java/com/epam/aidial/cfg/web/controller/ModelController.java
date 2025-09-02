@@ -38,7 +38,7 @@ public class ModelController {
 
 
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<ModelDto> getAllModels(HttpServletResponse response) throws Exception { //TODO change to model info
+    public Collection<ModelDto> getAllModels(HttpServletResponse response) { //TODO change to model info
         Collection<ModelDto> allModels = modelFacade.getAll();
         return allModels;
     }
@@ -47,31 +47,26 @@ public class ModelController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ModelDto> getModel(HttpServletResponse response,
                                              @PathVariable("modelName") String modelName,
-                                             @RequestHeader(value = "If-None-Match")
-                                             String previousHash) {
+                                             @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = modelFacade.getModelWithHash(modelName);
         return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash())
-                .build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash())
-            .body(dtoWithHash.dto());
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createModel(HttpServletResponse response,
-                            @RequestBody @Valid ModelDto modelDto) throws Exception {
+                            @RequestBody @Valid ModelDto modelDto) {
         modelFacade.createModel(modelDto);
     }
 
     @PutMapping(path = "/{modelName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateModel(HttpServletResponse response,
-                            @PathVariable("modelName") String modelName,
-                            @RequestBody @Valid ModelDto modelDto,
-                            @RequestHeader(value = "If-Match")
-                            String previousHash)
-                            throws Exception {
+                                            @PathVariable("modelName") String modelName,
+                                            @RequestBody @Valid ModelDto modelDto,
+                                            @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = modelFacade.updateModel(modelName, modelDto, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
@@ -79,7 +74,7 @@ public class ModelController {
     @DeleteMapping(path = "/{modelName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteModel(HttpServletResponse response,
-                            @PathVariable("modelName") String modelName) throws Exception {
+                            @PathVariable("modelName") String modelName) {
         modelFacade.deleteModel(modelName);
     }
 
@@ -90,7 +85,7 @@ public class ModelController {
     }
 
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<ModelDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+    public Collection<ModelDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) {
         return modelFacade.getAllAtRevision(revision);
     }
 }
