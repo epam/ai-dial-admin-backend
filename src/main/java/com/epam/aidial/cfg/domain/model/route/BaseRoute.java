@@ -31,5 +31,5 @@ public abstract class BaseRoute extends RoleBased {
     private int maxRetryAttempts;
     private Long createdAt;
     private Long updatedAt;
-    private int order;
+    private int order = Integer.MAX_VALUE;
 }
