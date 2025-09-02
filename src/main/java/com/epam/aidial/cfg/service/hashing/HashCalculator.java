@@ -11,16 +11,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.security.MessageDigest;
+import java.util.Base64;
+import java.util.Set;
 
-import static java.util.Base64.Encoder;
-import static java.util.Base64.getUrlEncoder;
 
 @Component
 @Slf4j
 public class HashCalculator {
     public static final String ANY_HASH = "*";
+    private static final Set<String> IGNORED_FIELDS = Set.of("createdAt", "updatedAt");
     private final ObjectWriter writer;
-    private final Encoder base64Encoder = getUrlEncoder().withoutPadding();
+    private final Base64.Encoder base64Encoder =  Base64.getUrlEncoder().withoutPadding();
 
     public HashCalculator(ObjectMapper mapper) {
         var hashingMapper = mapper.copy()
@@ -30,8 +31,9 @@ public class HashCalculator {
                 .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
                 .enable(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN)
                 .addMixIn(Object.class, HashFilterMixin.class);
-        var filters = new SimpleFilterProvider().setDefaultFilter(
-                SimpleBeanPropertyFilter.serializeAllExcept("createdAt", "updatedAt"));
+        var filters = new SimpleFilterProvider()
+                .addFilter("hashFilter", SimpleBeanPropertyFilter.serializeAllExcept(IGNORED_FIELDS))
+                .setFailOnUnknownId(false);
         hashingMapper.setFilterProvider(filters);
         this.writer = hashingMapper.writer();
     }
