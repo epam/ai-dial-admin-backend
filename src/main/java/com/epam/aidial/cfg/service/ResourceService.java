@@ -3,7 +3,9 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.client.dto.BaseMetadataDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.FolderInfo;
+import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.ResourceType;
 import feign.FeignException;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -19,6 +21,10 @@ public interface ResourceService {
     FolderInfo getFolders(ResourceMetadataRequest request);
 
     BaseMetadataDto getMetadata(ResourceMetadataRequest request);
+
+    void move(MoveResource moveResource);
+
+    ResourceType getResourceType();
 
     default Set<String> getResourceUrls(String path) {
         try {

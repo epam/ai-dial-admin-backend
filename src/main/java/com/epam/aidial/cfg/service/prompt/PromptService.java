@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.Prompt;
 import com.epam.aidial.cfg.model.PromptNodeInfo;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.ResourceService;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +61,7 @@ public class PromptService implements ResourceService {
         return promptClientMapper.toPromptInfo(promptsMetadataResponse);
     }
 
+    @Override
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         try {
             var promptsMetadataResponse = getMetadata(request);
@@ -69,6 +71,7 @@ public class PromptService implements ResourceService {
         }
     }
 
+    @Override
     public PromptMetadataDto getMetadata(ResourceMetadataRequest request) {
         var recursive = request.isRecursive();
         var nextToken = request.getNextToken();
@@ -128,9 +131,15 @@ public class PromptService implements ResourceService {
         promptClient.deletePrompt(path);
     }
 
-    public void movePrompt(MoveResource moveResource) {
+    @Override
+    public void move(MoveResource moveResource) {
         var moveResourceDto = resourceClientMapper.toMoveResourceDto(moveResource, PROMPTS_PREFIX);
         resourceClient.move(moveResourceDto);
+    }
+
+    @Override
+    public ResourceType getResourceType() {
+        return ResourceType.PROMPT;
     }
 
     private Stream<PromptMetadataDto> createStream(String path, boolean recursive) {

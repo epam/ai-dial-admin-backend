@@ -10,8 +10,15 @@ import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.encodePath;
 public interface ResourceClientMapper {
 
     default MoveResourceDto toMoveResourceDto(MoveResource moveResource, String prefix) {
-        var sourceUrl = encodePath(prefix + moveResource.getSourceUrl());
-        var destinationUrl = encodePath(prefix + moveResource.getDestinationUrl());
+        String originalSourceUrl = moveResource.getSourceUrl();
+        String originalDestinationUrl = moveResource.getDestinationUrl();
+
+        var sourceUrl = originalSourceUrl.startsWith(prefix)
+                ? originalSourceUrl
+                : encodePath(prefix + originalSourceUrl);
+        var destinationUrl = originalDestinationUrl.startsWith(prefix)
+                ? originalDestinationUrl
+                : encodePath(prefix + originalDestinationUrl);
 
         return MoveResourceDto.builder()
                 .sourceUrl(sourceUrl)

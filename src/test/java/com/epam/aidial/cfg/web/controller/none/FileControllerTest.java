@@ -222,7 +222,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                         .content(moveFileDtoJson))
                 .andExpect(status().isOk());
 
-        verify(fileService).moveFile(moveFile);
+        verify(fileService).move(moveFile);
     }
 
 }
