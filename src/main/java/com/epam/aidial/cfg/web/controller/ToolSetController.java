@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,5 +71,11 @@ public class ToolSetController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ToolSetDto> getAllAtRevision(@PathVariable Integer revision) throws Exception {
         return toolSetFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/{toolSetName}/tools", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.ListToolsResult getTools(@PathVariable("toolSetName") String toolSetName,
+                                              @RequestParam(required = false) String nextCursor) {
+        return toolSetFacade.getTools(toolSetName, nextCursor);
     }
 }
