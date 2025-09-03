@@ -9,11 +9,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class HashCalculatorTest {
+    private static final String EXPECTED_HASH_MODEL_JSON = "_eAxQcm0i1U-DlXMKt9-fcfP5YH0gnkOOQ88V5P-zkY";
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
     private final HashCalculator calculator = new HashCalculator(objectMapper);
 
     @Test
-    public void calculateHash() throws JsonProcessingException {
+    public void calculateHash_matchesExpectedHash()throws JsonProcessingException {
+        var dtoJson = ResourceUtils.readResource("/domain/model/model.json");
+        var model = objectMapper.readValue(dtoJson, Model.class);
+        var actualHash = calculator.calculateHash(model);
+        Assertions.assertEquals(EXPECTED_HASH_MODEL_JSON, actualHash);
+    }
+
+    @Test
+    public void calculateHash_ignoresAuditFields()throws JsonProcessingException {
         var dtoJson = ResourceUtils.readResource("/domain/model/model.json");
         var model = objectMapper.readValue(dtoJson, Model.class);
         var actualHash = calculator.calculateHash(model);
