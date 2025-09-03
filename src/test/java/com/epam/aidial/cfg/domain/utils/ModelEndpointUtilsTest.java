@@ -30,8 +30,8 @@ class ModelEndpointUtilsTest {
     }
 
     @ParameterizedTest
-    @MethodSource("parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpointTestParams")
-    void parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpoint(String modelEndpoint, ModelType type) {
+    @MethodSource("parseModelEndpoint_shouldReturnNullWhenInvalidModelEndpointTestParams")
+    void parseModelEndpoint_shouldReturnNullWhenInvalidModelEndpoint(String modelEndpoint, ModelType type) {
         ModelEndpointComponents result = modelEndpointUtils.parseModelEndpoint(modelEndpoint, type);
         assertThat(result).isNull();
     }
@@ -72,7 +72,7 @@ class ModelEndpointUtilsTest {
         );
     }
 
-    private static Stream<Arguments> parseModelEndpoint_shouldThrowExceptionWhenInvalidModelEndpointTestParams() {
+    private static Stream<Arguments> parseModelEndpoint_shouldReturnNullWhenInvalidModelEndpointTestParams() {
         return Stream.of(
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat/completions/text", ModelType.CHAT, "chat/completions"),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat", ModelType.CHAT, "chat/completions"),

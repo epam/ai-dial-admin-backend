@@ -75,8 +75,7 @@ public class AdapterService {
     @Transactional
     public void update(String adapterName, Adapter adapter) {
         adapterValidator.validateUpdate(adapterName, adapter);
-        AdapterEntity adapterEntity = adapterJpaRepository.findById(adapterName)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(adapterName)));
+        AdapterEntity adapterEntity = findByAdapterName(adapterName);
         Optional.of(adapter)
                 .map(domainModel -> mapper.toEntity(domainModel, adapterEntity))
                 .map(adapterJpaRepository::save)
