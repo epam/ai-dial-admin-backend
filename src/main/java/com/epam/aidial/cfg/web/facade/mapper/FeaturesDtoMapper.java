@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dto.FeaturesDto;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface FeaturesMapper {
+public interface FeaturesDtoMapper {
 
     Features toDomain(FeaturesDto featuresDto);
 
