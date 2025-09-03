@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.config;
 
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
+import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
@@ -129,6 +130,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public DeploymentManagerService deploymentManagerService() {
         return Mockito.mock(DeploymentManagerService.class);
+    }
+
+    @Bean
+    public McpClientFactory mcpClientFactory() {
+        return Mockito.mock(McpClientFactory.class);
     }
 
 }
