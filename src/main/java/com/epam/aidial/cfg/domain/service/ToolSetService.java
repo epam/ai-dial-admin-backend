@@ -30,7 +30,7 @@ public class ToolSetService {
     private final ToolSetEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
-    private final ToolFinderService toolFinderService;
+    private final ToolDiscoveryService toolDiscoveryService;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
@@ -101,9 +101,9 @@ public class ToolSetService {
     }
 
     @Transactional(readOnly = true)
-    public McpSchema.ListToolsResult getTools(String toolSetName, String nextCursor) {
+    public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
         var toolSet = get(toolSetName);
-        return toolFinderService.findTools(toolSet.getEndpoint(), toolSet.getTransport(), nextCursor);
+        return toolDiscoveryService.discoverTools(toolSet.getEndpoint(), toolSet.getTransport(), nextCursor);
     }
 
     private void assertExists(String name) {

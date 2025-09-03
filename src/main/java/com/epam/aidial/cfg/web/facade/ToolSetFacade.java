@@ -65,8 +65,8 @@ public class ToolSetFacade {
                 .collect(Collectors.toList());
     }
 
-    public McpSchema.ListToolsResult getTools(String toolSetName, String nextCursor) {
-        return toolSetService.getTools(toolSetName, nextCursor);
+    public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
+        return toolSetService.getDiscoveredTools(toolSetName, nextCursor);
     }
 
     private void setDefaultRoleShareResourceLimitIfMissing(ToolSetDto toolSetDto) {

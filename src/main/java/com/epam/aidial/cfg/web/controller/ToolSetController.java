@@ -73,9 +73,9 @@ public class ToolSetController {
         return toolSetFacade.getAllAtRevision(revision);
     }
 
-    @GetMapping(path = "/{toolSetName}/tools", produces = MediaType.APPLICATION_JSON_VALUE)
-    public McpSchema.ListToolsResult getTools(@PathVariable("toolSetName") String toolSetName,
+    @GetMapping(path = "/{toolSetName}/discovered-tools", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.ListToolsResult getDiscoveredTools(@PathVariable("toolSetName") String toolSetName,
                                               @RequestParam(required = false) String nextCursor) {
-        return toolSetFacade.getTools(toolSetName, nextCursor);
+        return toolSetFacade.getDiscoveredTools(toolSetName, nextCursor);
     }
 }

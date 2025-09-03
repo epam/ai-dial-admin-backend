@@ -1,4 +1,4 @@
-package com.epam.aidial.cfg.domain.service.mcp;
+package com.epam.aidial.cfg.client.mcp;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
