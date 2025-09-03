@@ -11,7 +11,7 @@ import org.mapstruct.Named;
         componentModel = "spring",
         uses = {
                 LimitDtoMapper.class, UpstreamDtoMapper.class, RoleBasedDtoMapper.class,
-                ModelEndpointDtoMapper.class, InstantMapper.class, FeaturesMapper.class,
+                ModelEndpointDtoMapper.class, InstantMapper.class, FeaturesDtoMapper.class,
                 ShareResourceLimitDtoMapper.class
         }
 )

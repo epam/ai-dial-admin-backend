@@ -42,5 +42,5 @@ public class FeaturesEntity {
     private Boolean cacheSupported;
     private Boolean autoCachingSupported;
     private Boolean consentRequired;
-    private Boolean parallelToolCallsSupported = true;
+    private boolean parallelToolCallsSupported = true;
 }

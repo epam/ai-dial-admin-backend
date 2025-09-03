@@ -30,7 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, MapPropertiesMapper.class,
-        UpstreamEntityMapper.class, PropertiesEntityMapper.class, AdapterEntityMapper.class})
+        UpstreamEntityMapper.class, PropertiesEntityMapper.class, AdapterEntityMapper.class, FeaturesEntityMapper.class})
 public abstract class ModelEntityMapper {
 
     @Autowired
