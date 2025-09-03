@@ -85,7 +85,7 @@ Additional Kubernetes client configuration options are available from the [Fabri
 | Setting                                 | Environment Variable               | Default | Required | Applied when | Description      |
 |-----------------------------------------|------------------------------------|---------|----------|--------------|------------------|
 | spring.servlet.multipart.maxFileSize    | SERVLET_MULTIPART_MAX_FILE_SIZE    | 4MB     | No       | -            | Max file size    |
-| spring.servlet.multipart.maxRequestSize | SERVLET_MULTIPART_MAX_REQUEST_SIZE | 256MB   | No       | -            | Max request size |
+| spring.servlet.multipart.maxRequestSize | SERVLET_MULTIPART_MAX_REQUEST_SIZE | 64MB    | No       | -            | Max request size |
 
 ## Security Configuration
 
