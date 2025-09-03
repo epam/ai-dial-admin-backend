@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.domain.model.AssistantsProperty;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", uses = FeaturesMapper.class)
+@Mapper(componentModel = "spring", uses = FeaturesDtoMapper.class)
 public interface AssistantsPropertyDtoMapper {
 
     AssistantsProperty toDomain(AssistantsPropertyDto entity);
