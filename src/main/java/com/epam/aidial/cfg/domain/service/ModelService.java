@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
+@LogExecution
 @Service("coreModelService")
 @RequiredArgsConstructor
 public class ModelService {
@@ -118,6 +120,7 @@ public class ModelService {
 
         for (var entity : modelEntities) {
             String modelName = entity.getDeploymentName();
+            log.debug("Refreshing endpoints for model '%s'".formatted(modelName));
             try {
                 refreshService.refreshEndpoints(entity);
                 successfulModels.add(modelName);

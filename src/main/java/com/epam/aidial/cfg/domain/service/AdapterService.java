@@ -87,19 +87,16 @@ public class AdapterService {
         AdapterEntity adapterEntity = findByAdapterName(adapterName);
         List<ModelEntity> models = adapterEntity.getModels();
 
-        if (CollectionUtils.isEmpty(models)) {
-            adapterJpaRepository.delete(adapterEntity);
-            return;
-        }
-
-        if (removeModel) {
-            modelJpaRepository.deleteAll(models);
-        } else {
-            String baseEndpoint = adapterEntity.getBaseEndpoint();
-            models.forEach(model -> {
-                model.setAdapter(null);
-                model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(baseEndpoint, model.getAdapterCompletionEndpointPath()));
-            });
+        if (CollectionUtils.isNotEmpty(models)) {
+            if (removeModel) {
+                modelJpaRepository.deleteAll(models);
+            } else {
+                String baseEndpoint = adapterEntity.getBaseEndpoint();
+                models.forEach(model -> {
+                    model.setAdapter(null);
+                    model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(baseEndpoint, model.getAdapterCompletionEndpointPath()));
+                });
+            }
         }
 
         adapterJpaRepository.delete(adapterEntity);
