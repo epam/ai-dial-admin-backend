@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -38,15 +37,14 @@ public class ModelController {
 
 
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<ModelDto> getAllModels(HttpServletResponse response) { //TODO change to model info
+    public Collection<ModelDto> getAllModels() { //TODO change to model info
         Collection<ModelDto> allModels = modelFacade.getAll();
         return allModels;
     }
 
     @GetMapping(path = "/{modelName}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ModelDto> getModel(HttpServletResponse response,
-                                             @PathVariable("modelName") String modelName,
+    public ResponseEntity<ModelDto> getModel(@PathVariable("modelName") String modelName,
                                              @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = modelFacade.getModelWithHash(modelName);
         return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
@@ -56,15 +54,13 @@ public class ModelController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void createModel(HttpServletResponse response,
-                            @RequestBody @Valid ModelDto modelDto) {
+    public void createModel(@RequestBody @Valid ModelDto modelDto) {
         modelFacade.createModel(modelDto);
     }
 
     @PutMapping(path = "/{modelName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateModel(HttpServletResponse response,
-                                            @PathVariable("modelName") String modelName,
+    public ResponseEntity<Void> updateModel(@PathVariable("modelName") String modelName,
                                             @RequestBody @Valid ModelDto modelDto,
                                             @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = modelFacade.updateModel(modelName, modelDto, StringUtils.unwrap(previousHash, '"'));
@@ -73,8 +69,7 @@ public class ModelController {
 
     @DeleteMapping(path = "/{modelName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteModel(HttpServletResponse response,
-                            @PathVariable("modelName") String modelName) {
+    public void deleteModel(@PathVariable("modelName") String modelName) {
         modelFacade.deleteModel(modelName);
     }
 
@@ -85,7 +80,7 @@ public class ModelController {
     }
 
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<ModelDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) {
+    public Collection<ModelDto> getAllAtRevision(@PathVariable Integer revision) {
         return modelFacade.getAllAtRevision(revision);
     }
 }
