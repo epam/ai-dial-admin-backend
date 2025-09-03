@@ -75,7 +75,7 @@ public class FileController {
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ImportResourcesFileResultDto uploadFiles(@RequestPart("files") @Valid @Size(max = 30, min = 1) List<MultipartFile> files,
+    public ImportResourcesFileResultDto uploadFiles(@RequestPart("files") @Valid @Size(min = 1, max = 30) List<MultipartFile> files,
                                                     @RequestPart("config") @Validated ImportResourcesDto importFilesDto) {
         var importFiles = resourceMapper.toImportResources(importFilesDto);
         var importResults = fileService.uploadFile(files, importFiles);

@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {
         DeploymentEntityMapper.class, MapPropertiesMapper.class, UpstreamEntityMapper.class,
-        PropertiesEntityMapper.class, ModelContainerEntityMapper.class
+        PropertiesEntityMapper.class, ModelContainerEntityMapper.class, FeaturesEntityMapper.class
 })
 public abstract class ModelEntityMapper {
 
