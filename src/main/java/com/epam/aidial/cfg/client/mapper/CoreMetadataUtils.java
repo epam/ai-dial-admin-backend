@@ -36,6 +36,10 @@ public class CoreMetadataUtils {
         return encodePath(path) + "/";
     }
 
+    public static String replacePathSegment(String path, String oldPathSegment, String newPathSegment) {
+        return path.replaceFirst(encodePath(oldPathSegment), encodePath(newPathSegment));
+    }
+
     private static String removeName(String path) {
         if (path == null) {
             return null;

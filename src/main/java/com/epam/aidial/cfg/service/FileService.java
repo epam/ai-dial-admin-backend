@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
 import feign.FeignException;
@@ -58,6 +59,7 @@ public class FileService implements ResourceService {
         return fileClientMapper.toFileInfo(filesMetadataResponse);
     }
 
+    @Override
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         try {
             var filesMetadataResponse = getMetadata(request);
@@ -67,6 +69,7 @@ public class FileService implements ResourceService {
         }
     }
 
+    @Override
     public FileMetadataDto getMetadata(ResourceMetadataRequest request) {
         return fileClient.getFilesMetadata(request.getPath(), request.isRecursive(), request.getNextToken());
     }
@@ -212,9 +215,15 @@ public class FileService implements ResourceService {
         fileClient.deleteFile(path);
     }
 
-    public void moveFile(MoveResource moveResource) {
+    @Override
+    public void move(MoveResource moveResource) {
         var moveResourceDto = resourceClientMapper.toMoveResourceDto(moveResource, FILES_PREFIX);
         resourceClient.move(moveResourceDto);
+    }
+
+    @Override
+    public ResourceType getResourceType() {
+        return ResourceType.FILE;
     }
 
     public StreamingResponseBody export(List<String> paths) {

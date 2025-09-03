@@ -1,7 +1,13 @@
 package com.epam.aidial.cfg.service;
 
+import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
+import com.epam.aidial.cfg.exception.FolderNotFoundException;
+import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.FolderInfo;
+import com.epam.aidial.cfg.model.MoveFolderRequest;
+import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
@@ -37,7 +43,13 @@ class FolderServiceTest {
         fileService = mock(FileService.class);
         promptService = mock(PromptService.class);
         publicationService = mock(PublicationService.class);
-        folderService = new FolderService(List.of(applicationService, conversationService, fileService, promptService), publicationService);
+        Map<ResourceType, ResourceService> resourceServicesByResourceType = Map.of(
+                ResourceType.APPLICATION, applicationService,
+                ResourceType.CONVERSATION, conversationService,
+                ResourceType.FILE, fileService,
+                ResourceType.PROMPT, promptService
+        );
+        folderService = new FolderService(resourceServicesByResourceType, publicationService);
     }
 
     @Test
@@ -127,6 +139,128 @@ class FolderServiceTest {
         verify(promptService).getResourceUrls(path);
         verify(publicationService).createPublication(any());
         verify(publicationService).approvePublication("publicationUrl");
+    }
+
+    @Test
+    void testMoveFolder() {
+        // given
+        String oldPath = "public/old";
+        String newPath = "public/new1/new2";
+
+        MoveFolderRequest moveFolderRequest = MoveFolderRequest.builder()
+                .oldPath(oldPath)
+                .newPath(newPath)
+                .resourceTypes(List.of(ResourceType.PROMPT))
+                .build();
+        ResourceMetadataRequest oldResourceMetadataRequest = ResourceMetadataRequest.builder()
+                .path(oldPath)
+                .build();
+        ResourceMetadataRequest newResourceMetadataRequest = ResourceMetadataRequest.builder()
+                .path(newPath)
+                .build();
+
+        List<Rule> rules = List.of(Rule.builder().build());
+
+        CreatePublication createPublication = CreatePublication.builder()
+                .targetFolder(newPath)
+                .rules(rules)
+                .build();
+
+        String prompt1OldPath = "prompts/public/old/prompt_1";
+        String prompt2OldPath = "prompts/public/old/prompt_2";
+        String prompt1NewPath = "prompts/public/new1/new2/prompt_1";
+        String prompt2NewPath = "prompts/public/new1/new2/prompt_2";
+
+        MoveResource movePrompt1 = MoveResource.builder().sourceUrl(prompt1OldPath).destinationUrl(prompt1NewPath).build();
+        MoveResource movePrompt2 = MoveResource.builder().sourceUrl(prompt2OldPath).destinationUrl(prompt2NewPath).build();
+
+        when(promptService.getFolders(oldResourceMetadataRequest)).thenReturn(FolderInfo.builder().build());
+
+        when(applicationService.getFolders(newResourceMetadataRequest)).thenReturn(null);
+        when(conversationService.getFolders(newResourceMetadataRequest)).thenReturn(null);
+        when(fileService.getFolders(newResourceMetadataRequest)).thenReturn(null);
+        when(promptService.getFolders(newResourceMetadataRequest)).thenReturn(null);
+
+        when(publicationService.getRules(oldPath)).thenReturn(Map.of(oldPath, rules));
+        when(publicationService.createPublication(createPublication)).thenReturn("publications/pub");
+        doNothing().when(publicationService).approvePublication("pub");
+
+        when(promptService.getResourceUrls(oldPath)).thenReturn(Set.of(prompt1OldPath, prompt2OldPath));
+        doNothing().when(promptService).move(movePrompt1);
+        doNothing().when(promptService).move(movePrompt2);
+
+        // when
+        folderService.moveFolder(moveFolderRequest);
+
+        // then
+        verify(promptService).getFolders(oldResourceMetadataRequest);
+        verify(applicationService).getFolders(newResourceMetadataRequest);
+        verify(conversationService).getFolders(newResourceMetadataRequest);
+        verify(fileService).getFolders(newResourceMetadataRequest);
+        verify(promptService).getFolders(newResourceMetadataRequest);
+        verify(publicationService).getRules(oldPath);
+        verify(publicationService).createPublication(createPublication);
+        verify(publicationService).approvePublication("pub");
+        verify(promptService).getResourceUrls(oldPath);
+        verify(promptService).move(movePrompt1);
+        verify(promptService).move(movePrompt2);
+    }
+
+    @Test
+    void testMoveFolder_oldFolderDoesNotExist_exceptionIsThrown() {
+        // given
+        String oldPath = "public/old";
+        String newPath = "public/new1/new2";
+
+        MoveFolderRequest moveFolderRequest = MoveFolderRequest.builder()
+                .oldPath(oldPath)
+                .newPath(newPath)
+                .resourceTypes(List.of(ResourceType.PROMPT))
+                .build();
+        ResourceMetadataRequest oldResourceMetadataRequest = ResourceMetadataRequest.builder()
+                .path(oldPath)
+                .build();
+
+        when(promptService.getFolders(oldResourceMetadataRequest)).thenReturn(null);
+        when(promptService.getResourceType()).thenReturn(ResourceType.PROMPT);
+
+        // then
+        Assertions.assertThatThrownBy(() -> folderService.moveFolder(moveFolderRequest))
+                .isInstanceOf(FolderNotFoundException.class)
+                .hasMessage("Folder: public/old does not exist in PROMPT resources");
+    }
+
+    @Test
+    void testMoveFolder_newFolderAlreadyExists_exceptionIsThrown() {
+        // given
+        String oldPath = "public/old";
+        String newPath = "public/new1/new2";
+
+        MoveFolderRequest moveFolderRequest = MoveFolderRequest.builder()
+                .oldPath(oldPath)
+                .newPath(newPath)
+                .resourceTypes(List.of(ResourceType.PROMPT))
+                .build();
+        ResourceMetadataRequest oldResourceMetadataRequest = ResourceMetadataRequest.builder()
+                .path(oldPath)
+                .build();
+        ResourceMetadataRequest newResourceMetadataRequest = ResourceMetadataRequest.builder()
+                .path(newPath)
+                .build();
+
+        when(promptService.getFolders(oldResourceMetadataRequest)).thenReturn(FolderInfo.builder().build());
+
+        when(applicationService.getFolders(newResourceMetadataRequest)).thenReturn(FolderInfo.builder().build());
+        when(conversationService.getFolders(newResourceMetadataRequest)).thenReturn(null);
+        when(fileService.getFolders(newResourceMetadataRequest)).thenReturn(null);
+        when(promptService.getFolders(newResourceMetadataRequest)).thenReturn(null);
+
+        when(applicationService.getResourceType()).thenReturn(ResourceType.APPLICATION);
+
+        // then
+        Assertions.assertThatThrownBy(() -> folderService.moveFolder(moveFolderRequest))
+                .isInstanceOf(FolderAlreadyExistsException.class)
+                .hasMessage("Folder: public/new1/new2 already exists in APPLICATION resources");
     }
 
 }

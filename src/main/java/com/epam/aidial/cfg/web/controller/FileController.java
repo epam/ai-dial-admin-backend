@@ -99,7 +99,7 @@ public class FileController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void moveFile(@RequestBody MoveResourceDto moveResourceDto) {
         var moveResource = resourceMapper.toMoveResource(moveResourceDto);
-        fileService.moveFile(moveResource);
+        fileService.move(moveResource);
     }
 
     @PostMapping(path = "/export",

@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller.none;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.model.FolderInfo;
+import com.epam.aidial.cfg.model.MoveFolderRequest;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
@@ -124,6 +125,27 @@ class FolderControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isOk());
 
         verify(folderService).unpublishFolder(path);
+    }
+
+    @Test
+    void testMoveFolder() throws Exception {
+        // given
+        var moveFolderRequestDtoJson = ResourceUtils.readResource("/folders/move_folder_request_dto.json");
+
+        var moveFolderRequestJson = ResourceUtils.readResource("/folders/move_folder_request.json");
+        var moveFolderRequest = objectMapper.readValue(moveFolderRequestJson, new TypeReference<MoveFolderRequest>() {
+        });
+
+        doNothing().when(folderService).moveFolder(moveFolderRequest);
+
+        // when
+        mockMvc.perform(post("/api/v1/folders/move")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(moveFolderRequestDtoJson))
+                // then
+                .andExpect(status().isOk());
+
+        verify(folderService).moveFolder(moveFolderRequest);
     }
 
 }

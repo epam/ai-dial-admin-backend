@@ -99,7 +99,7 @@ public class PromptsController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void movePrompt(@RequestBody MoveResourceDto movePromptDto) {
         var movePrompt = resourceMapper.toMoveResource(movePromptDto);
-        promptService.movePrompt(movePrompt);
+        promptService.move(movePrompt);
     }
 
     @PostMapping(path = "/export",
