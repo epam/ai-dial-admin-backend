@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.web.handler;
 
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
+import com.epam.aidial.cfg.exception.FolderNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
 import feign.FeignException;
@@ -126,6 +128,20 @@ public class DefaultExceptionHandler {
         final HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
         String message = clientException.contentUTF8();
         return new ErrorView(req, httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus, message);
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(FolderAlreadyExistsException.class)
+    public ErrorView handleFolderAlreadyExistsError(HttpServletRequest req, Exception ex) {
+        return new ErrorView(req, HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(FolderNotFoundException.class)
+    public ErrorView handleFolderNotFoundError(HttpServletRequest req, Exception ex) {
+        return new ErrorView(req, HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ResponseBody

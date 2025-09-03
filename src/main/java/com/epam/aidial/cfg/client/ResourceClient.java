@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface ResourceClient {
 
     @PostMapping("/v1/ops/resource/move")
-    void move(@RequestBody MoveResourceDto movePromptDto);
+    void move(@RequestBody MoveResourceDto moveResourceDto);
 }

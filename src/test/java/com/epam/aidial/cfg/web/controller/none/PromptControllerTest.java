@@ -276,7 +276,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
                         .content(movePromptDtoJson))
                 .andExpect(status().isOk());
 
-        verify(promptService).movePrompt(movePrompt);
+        verify(promptService).move(movePrompt);
     }
 
     @Test
