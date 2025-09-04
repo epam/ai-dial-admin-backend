@@ -79,13 +79,13 @@ class ModelEndpointUtilsTest {
 
     private static Stream<Arguments> parseModelEndpoint_shouldReturnNullWhenInvalidModelEndpointTestParams() {
         return Stream.of(
-                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat/completions/text", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/endpoint-deployment-name", ModelType.CHAT, "chat/completions"),
-                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/embeddings/text", ModelType.EMBEDDING, "embeddings"),
-                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/", ModelType.EMBEDDING, "embeddings"),
-                Arguments.of("http://host/openai/deployments/endpoint-deployment-name", ModelType.EMBEDDING, "embeddings")
+                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat/completions/text", ModelType.CHAT),
+                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat", ModelType.CHAT),
+                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/", ModelType.CHAT),
+                Arguments.of("http://host/openai/deployments/endpoint-deployment-name", ModelType.CHAT),
+                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/embeddings/text", ModelType.EMBEDDING),
+                Arguments.of("http://host/openai/deployments/endpoint-deployment-name/", ModelType.EMBEDDING),
+                Arguments.of("http://host/openai/deployments/endpoint-deployment-name", ModelType.EMBEDDING)
         );
     }
 }
