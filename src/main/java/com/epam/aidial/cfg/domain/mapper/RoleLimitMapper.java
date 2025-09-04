@@ -17,9 +17,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.utils.NullSafeUtils.getValueOrDefault;
+import static com.epam.aidial.cfg.utils.NullSafeUtils.setIfNotNull;
+
 @Mapper(componentModel = "spring")
 @Slf4j
-public abstract class RoleLimitMapper extends LimitMapper {
+public abstract class RoleLimitMapper {
     public abstract Limit toLimit(CoreLimit limit);
 
     Long getLimit(long value) {
@@ -58,12 +61,12 @@ public abstract class RoleLimitMapper extends LimitMapper {
 
         CoreLimit coreLimit = new CoreLimit();
 
-        setIfNotNull(coreLimit::setMinute, getLimitOrDefault(limit, defaultLimit, Limit::getMinute));
-        setIfNotNull(coreLimit::setDay, getLimitOrDefault(limit, defaultLimit, Limit::getDay));
-        setIfNotNull(coreLimit::setWeek, getLimitOrDefault(limit, defaultLimit, Limit::getWeek));
-        setIfNotNull(coreLimit::setMonth, getLimitOrDefault(limit, defaultLimit, Limit::getMonth));
-        setIfNotNull(coreLimit::setRequestHour, getLimitOrDefault(limit, defaultLimit, Limit::getRequestHour));
-        setIfNotNull(coreLimit::setRequestDay, getLimitOrDefault(limit, defaultLimit, Limit::getRequestDay));
+        setIfNotNull(coreLimit::setMinute, getValueOrDefault(limit, defaultLimit, Limit::getMinute));
+        setIfNotNull(coreLimit::setDay, getValueOrDefault(limit, defaultLimit, Limit::getDay));
+        setIfNotNull(coreLimit::setWeek, getValueOrDefault(limit, defaultLimit, Limit::getWeek));
+        setIfNotNull(coreLimit::setMonth, getValueOrDefault(limit, defaultLimit, Limit::getMonth));
+        setIfNotNull(coreLimit::setRequestHour, getValueOrDefault(limit, defaultLimit, Limit::getRequestHour));
+        setIfNotNull(coreLimit::setRequestDay, getValueOrDefault(limit, defaultLimit, Limit::getRequestDay));
 
         return coreLimit;
     }

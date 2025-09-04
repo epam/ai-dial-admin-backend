@@ -16,9 +16,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.utils.NullSafeUtils.getValueOrDefault;
+import static com.epam.aidial.cfg.utils.NullSafeUtils.setIfNotNull;
+
 @Mapper(componentModel = "spring")
 @Slf4j
-public abstract class RoleShareResourceLimitMapper extends LimitMapper {
+public abstract class RoleShareResourceLimitMapper {
 
     public abstract ShareResourceLimit toLimit(CoreShareResourceLimit limit);
 
@@ -62,8 +65,8 @@ public abstract class RoleShareResourceLimitMapper extends LimitMapper {
 
         CoreShareResourceLimit coreShareResourceLimit = new CoreShareResourceLimit();
 
-        setIfNotNull(coreShareResourceLimit::setMaxAcceptedUsers, getLimitOrDefault(shareResourceLimit, defaultLimit, ShareResourceLimit::getMaxAcceptedUsers));
-        setIfNotNull(coreShareResourceLimit::setInvitationTtl, getLimitOrDefault(shareResourceLimit, defaultLimit, ShareResourceLimit::getInvitationTtl));
+        setIfNotNull(coreShareResourceLimit::setMaxAcceptedUsers, getValueOrDefault(shareResourceLimit, defaultLimit, ShareResourceLimit::getMaxAcceptedUsers));
+        setIfNotNull(coreShareResourceLimit::setInvitationTtl, getValueOrDefault(shareResourceLimit, defaultLimit, ShareResourceLimit::getInvitationTtl));
 
         return coreShareResourceLimit;
     }
