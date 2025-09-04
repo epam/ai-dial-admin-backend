@@ -68,6 +68,11 @@ class ModelEndpointUtilsTest {
                         "http://host/openai/deployments/endpoint-deployment-name-v1/embeddings",
                         ModelType.EMBEDDING,
                         new ModelEndpointComponents("http://host/openai/deployments/", "endpoint-deployment-name-v1/embeddings")
+                ),
+                Arguments.of(
+                        "http://host/chat/completions",
+                        ModelType.CHAT,
+                        new ModelEndpointComponents("http://host/", "chat/completions")
                 )
         );
     }

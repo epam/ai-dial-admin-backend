@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -34,7 +35,7 @@ public class ContainerEndpointResolver {
                 containerSource.getContainerId(),
                 containerSource,
                 ModelContainerSource::getCompletionEndpointPath,
-                ModelContainerSource::getCompletionEndpointPath, // stub
+                null,
                 (target, endpoints) -> target.setEndpoint(endpoints[0]),
                 model
         );
@@ -46,7 +47,7 @@ public class ContainerEndpointResolver {
                 modelContainerEntity.getContainerId(),
                 modelContainerEntity,
                 ModelContainerEntity::getCompletionEndpointPath,
-                ModelContainerEntity::getCompletionEndpointPath, // stub
+                null,
                 (entity, endpoints) -> entity.setEndpoint(endpoints[0]),
                 modelEntity
         );
@@ -103,7 +104,7 @@ public class ContainerEndpointResolver {
             String containerId,
             T pathProvider,
             Function<T, String> completionPathExtractor,
-            Function<T, String> configPathExtractor,
+            @Nullable Function<T, String> configPathExtractor,
             BiConsumer<R, String[]> endpointConsumer,
             R target) {
         
@@ -112,7 +113,7 @@ public class ContainerEndpointResolver {
         
         String containerUrl = deploymentInfo.getUrl();
         String completionPath = completionPathExtractor.apply(pathProvider);
-        String configPath = configPathExtractor.apply(pathProvider);
+        String configPath = configPathExtractor != null ? configPathExtractor.apply(pathProvider) : null;
         
         String[] endpoints = resolveEndpoints(containerUrl, completionPath, configPath);
         endpointConsumer.accept(target, endpoints);

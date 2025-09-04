@@ -55,7 +55,8 @@ public class ModelEndpointUtils {
     }
 
     private static String getValueFromMatcherGroup(Matcher matcher, int group) {
-        return Optional.ofNullable(matcher.group(group)).orElse(StringUtils.EMPTY) + "/";
+        return Optional.ofNullable(matcher.group(group)).map(s -> s + "/")
+                .orElse(StringUtils.EMPTY);
     }
 
     public static String concatEndpointAndPath(String baseEndpoint, String endpointPath) {
