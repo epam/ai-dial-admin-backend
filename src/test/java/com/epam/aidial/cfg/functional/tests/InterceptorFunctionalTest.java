@@ -42,13 +42,13 @@ public abstract class InterceptorFunctionalTest {
         applicationFacade.createApplication(createApplicationDto(firstSuffix));
 
         // create interceptor1 with application1
-        InterceptorDto interceptorDto = createDto(firstSuffix);
+        InterceptorDto interceptorDto = createDtoWithDefaults(firstSuffix);
         interceptorFacade.createInterceptor(interceptorDto);
 
         InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
-        InterceptorDto expected1 = createDto(firstSuffix);
+        InterceptorDto expected1 = createDtoWithDefaults(firstSuffix);
 
-        assertInterceptor(actual, expected1);
+        assertInterceptorWithDefaults(actual, expected1);
 
         // create application1
         applicationFacade.createApplication(createApplicationDto(secondSuffix));
@@ -215,6 +215,12 @@ public abstract class InterceptorFunctionalTest {
         return model;
     }
 
+    private InterceptorDto createDtoWithDefaults(String suffix) {
+        InterceptorDto dto = createDto(suffix);
+        dto.setDefaults(Map.of("max_limit", 7000));
+        return dto;
+    }
+
     private InterceptorDto createDto(String suffix) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
@@ -223,6 +229,11 @@ public abstract class InterceptorFunctionalTest {
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         interceptorDto.setEntities(List.of("application" + suffix));
         return interceptorDto;
+    }
+
+    private void assertInterceptorWithDefaults(InterceptorDto actual, InterceptorDto expected) {
+        assertInterceptor(actual, expected);
+        Assertions.assertEquals(expected.getDefaults(), actual.getDefaults());
     }
 
     private void assertInterceptor(InterceptorDto actual, InterceptorDto expected) {
@@ -278,7 +289,7 @@ public abstract class InterceptorFunctionalTest {
         InterceptorDto result = interceptorFacade.getInterceptor("container-interceptor");
 
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
-        Assertions.assertEquals(containerUrl + configPath, result.getConfigurationEndpoint());
+        Assertions.assertEquals(containerUrl + configPath, result.getFeatures().getConfigurationEndpoint());
 
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
@@ -324,7 +335,7 @@ public abstract class InterceptorFunctionalTest {
 
         InterceptorDto initialResult = interceptorFacade.getInterceptor("refresh-interceptor");
         Assertions.assertEquals(initialUrl + completionPath, initialResult.getEndpoint());
-        Assertions.assertEquals(initialUrl + configPath, initialResult.getConfigurationEndpoint());
+        Assertions.assertEquals(initialUrl + configPath, initialResult.getFeatures().getConfigurationEndpoint());
 
         // When
         interceptorFacade.refreshEndpoints();
@@ -332,7 +343,7 @@ public abstract class InterceptorFunctionalTest {
         // Then
         InterceptorDto refreshedResult = interceptorFacade.getInterceptor("refresh-interceptor");
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
-        Assertions.assertEquals(updatedUrl + configPath, refreshedResult.getConfigurationEndpoint());
+        Assertions.assertEquals(updatedUrl + configPath, refreshedResult.getFeatures().getConfigurationEndpoint());
 
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }

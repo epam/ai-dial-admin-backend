@@ -70,7 +70,9 @@ public class InterceptorValidator {
     private void validateInterceptorSource(Interceptor interceptor) {
         InterceptorSource source = interceptor.getSource();
         String endpoint = interceptor.getEndpoint();
-        String configurationEndpoint = interceptor.getConfigurationEndpoint();
+        String configurationEndpoint = interceptor.getFeatures() != null
+                ? interceptor.getFeatures().getConfigurationEndpoint()
+                : null;
 
         if (source != null) {
             if (source instanceof InterceptorEndpointsSource) {

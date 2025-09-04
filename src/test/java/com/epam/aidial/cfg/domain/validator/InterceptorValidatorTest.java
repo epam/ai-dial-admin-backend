@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
@@ -94,9 +95,12 @@ class InterceptorValidatorTest {
     @Test
     void validateInterceptorSource_shouldThrowExceptionForInvalidConfigurationEndpoint() {
         // given
+        Features features = new Features();
+        features.setConfigurationEndpoint("invalid-url");
+
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setConfigurationEndpoint("invalid-url");
+        interceptor.setFeatures(features);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
@@ -109,7 +113,6 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setConfigurationEndpoint(null);
         interceptor.setEndpoint(TEST_ENDPOINT);
 
         // when/then

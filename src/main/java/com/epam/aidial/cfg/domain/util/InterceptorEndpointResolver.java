@@ -1,8 +1,10 @@
 package com.epam.aidial.cfg.domain.util;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -33,7 +35,8 @@ public class InterceptorEndpointResolver {
                 InterceptorContainerSource::getConfigurationEndpointPath,
                 (target, endpoints) -> {
                     target.setEndpoint(endpoints[0]);
-                    target.setConfigurationEndpoint(endpoints[1]);
+                    Features features = Optional.ofNullable(target.getFeatures()).orElse(new Features());
+                    features.setConfigurationEndpoint(endpoints[1]);
                 },
                 interceptor
         );
@@ -48,7 +51,8 @@ public class InterceptorEndpointResolver {
                 InterceptorContainerEntity::getConfigurationEndpointPath,
                 (entity, endpoints) -> {
                     entity.setEndpoint(endpoints[0]);
-                    entity.setConfigurationEndpoint(endpoints[1]);
+                    FeaturesEntity features = Optional.ofNullable(entity.getFeatures()).orElse(new FeaturesEntity());
+                    features.setConfigurationEndpoint(endpoints[1]);
                 },
                 interceptorEntity
         );
