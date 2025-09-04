@@ -2,8 +2,7 @@
   {
     "name": "deployment1",
     "defaultRoleShareResourceLimit": {
-      "maxAcceptedUsers": 10,
-      "invitationTtl": null
+      "maxAcceptedUsers": 10
     }
   },
   {

@@ -44,6 +44,7 @@ public abstract class RoleLimitMapper {
                     CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
                     return new AbstractMap.SimpleEntry<>(roleLimit.getDeploymentName(), mappedLimit);
                 })
+                .filter(entry -> isLimited(entry.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -69,6 +70,19 @@ public abstract class RoleLimitMapper {
         setIfNotNull(coreLimit::setRequestDay, getValueOrDefault(limit, defaultLimit, Limit::getRequestDay));
 
         return coreLimit;
+    }
+
+    private boolean isLimited(CoreLimit limit) {
+        return isLimited(limit.getMinute())
+                || isLimited(limit.getDay())
+                || isLimited(limit.getWeek())
+                || isLimited(limit.getMonth())
+                || isLimited(limit.getRequestHour())
+                || isLimited(limit.getRequestDay());
+    }
+
+    private boolean isLimited(Long value) {
+        return value != Long.MAX_VALUE;
     }
 
 }

@@ -20,7 +20,7 @@
     "deploymentName": "deployment3",
     "limit": {
       "maxAcceptedUsers": 2147483647,
-      "invitationTtl": null
+      "invitationTtl": 9223372036854775807
     }
   },
   {

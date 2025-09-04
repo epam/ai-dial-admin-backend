@@ -2,7 +2,9 @@
   {
     "name": "deployment1",
     "defaultRoleLimit": {
-      "day": 10
+      "minute": 9223372036854775807,
+      "day": 10,
+      "week": 9223372036854775807
     }
   },
   {

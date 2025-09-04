@@ -1,14 +1,10 @@
 {
   "deployment1": {
     "maxAcceptedUsers": 10,
-    "invitationTtl": 0
+    "invitationTtl": 259200
   },
   "deployment2": {
     "maxAcceptedUsers": 5,
-    "invitationTtl": 0
-  },
-  "deployment3": {
-    "maxAcceptedUsers": 2147483647,
     "invitationTtl": 0
   },
   "deployment4": {

@@ -31,6 +31,7 @@ class RoleCoreMapperTest {
     void mapRole() {
         // given
         Limit limit = new Limit();
+        limit.setDay(10L);
 
         RoleLimit roleLimit = new RoleLimit();
         roleLimit.setRole("testRole");
@@ -45,9 +46,12 @@ class RoleCoreMapperTest {
         deployment.setDefaultRoleLimit(new Limit());
         deployment.setRoleLimits(List.of(roleLimit));
 
+        CoreLimit expectedLimit = new CoreLimit();
+        expectedLimit.setDay(10);
+
         CoreRole expected = new CoreRole();
         expected.setName("testRole");
-        expected.setLimits(Map.of("testModel", new CoreLimit()));
+        expected.setLimits(Map.of("testModel", expectedLimit));
         expected.setShare(Map.of());
 
         // when

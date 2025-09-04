@@ -48,6 +48,7 @@ public abstract class RoleShareResourceLimitMapper {
                     CoreShareResourceLimit mappedLimit = mapShareResourceLimit(roleShareResourceLimit.getLimit(), deployment);
                     return new AbstractMap.SimpleEntry<>(roleShareResourceLimit.getDeploymentName(), mappedLimit);
                 })
+                .filter(entry -> isLimited(entry.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -69,6 +70,18 @@ public abstract class RoleShareResourceLimitMapper {
         setIfNotNull(coreShareResourceLimit::setInvitationTtl, getValueOrDefault(shareResourceLimit, defaultLimit, ShareResourceLimit::getInvitationTtl));
 
         return coreShareResourceLimit;
+    }
+
+    private boolean isLimited(CoreShareResourceLimit limit) {
+        return isLimited(limit.getMaxAcceptedUsers()) || isLimited(limit.getInvitationTtl());
+    }
+
+    private boolean isLimited(Long value) {
+        return value != Long.MAX_VALUE;
+    }
+
+    private boolean isLimited(Integer value) {
+        return value != Integer.MAX_VALUE;
     }
 
 }
