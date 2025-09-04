@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
@@ -7,6 +8,7 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@LogExecution
 @RequiredArgsConstructor
 public class ToolSetService {
 
@@ -27,6 +30,7 @@ public class ToolSetService {
     private final ToolSetEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
+    private final ToolDiscoveryService toolDiscoveryService;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
@@ -94,6 +98,12 @@ public class ToolSetService {
                     .stream()
                     .map(mapper::toDomain)
                     .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
+        var toolSet = get(toolSetName);
+        return toolDiscoveryService.discoverTools(toolSet.getEndpoint(), toolSet.getTransport(), nextCursor);
     }
 
     private void assertExists(String name) {

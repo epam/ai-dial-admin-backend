@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapper;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +63,10 @@ public class ToolSetFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
+        return toolSetService.getDiscoveredTools(toolSetName, nextCursor);
     }
 
     private void setDefaultRoleShareResourceLimitIfMissing(ToolSetDto toolSetDto) {
