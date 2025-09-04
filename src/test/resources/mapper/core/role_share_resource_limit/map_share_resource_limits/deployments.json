@@ -1,0 +1,44 @@
+[
+  {
+    "name": "deployment1",
+    "defaultRoleShareResourceLimit": {
+      "maxAcceptedUsers": 10,
+      "invitationTtl": null
+    }
+  },
+  {
+    "name": "deployment2",
+    "defaultRoleShareResourceLimit": {
+      "maxAcceptedUsers": 10,
+      "invitationTtl": null
+    }
+  },
+  {
+    "name": "deployment3",
+    "defaultRoleShareResourceLimit": {
+      "maxAcceptedUsers": 10,
+      "invitationTtl": null
+    }
+  },
+  {
+    "name": "deployment4",
+    "defaultRoleShareResourceLimit": {
+      "maxAcceptedUsers": null,
+      "invitationTtl": null
+    }
+  },
+  {
+    "name": "deployment5",
+    "defaultRoleShareResourceLimit": {
+      "maxAcceptedUsers": null,
+      "invitationTtl": null
+    }
+  },
+  {
+    "name": "deployment6",
+    "defaultRoleShareResourceLimit": {
+      "maxAcceptedUsers": null,
+      "invitationTtl": null
+    }
+  }
+]

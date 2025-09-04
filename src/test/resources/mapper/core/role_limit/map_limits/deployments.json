@@ -1,0 +1,32 @@
+[
+  {
+    "name": "deployment1",
+    "defaultRoleLimit": {
+      "day": 10
+    }
+  },
+  {
+    "name": "deployment2",
+    "defaultRoleLimit": {
+      "day": 10
+    }
+  },
+  {
+    "name": "deployment3",
+    "defaultRoleLimit": {
+      "day": 10
+    }
+  },
+  {
+    "name": "deployment4",
+    "defaultRoleLimit": {}
+  },
+  {
+    "name": "deployment5",
+    "defaultRoleLimit": {}
+  },
+  {
+    "name": "deployment6",
+    "defaultRoleLimit": {}
+  }
+]
