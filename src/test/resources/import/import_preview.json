@@ -334,7 +334,7 @@
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import>",
-          "completionEndpointPath": "/embeddings"
+          "completionEndpointPath": "embeddings"
         }
       }
     },
@@ -421,7 +421,7 @@
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import>",
-          "completionEndpointPath": "/embeddings"
+          "completionEndpointPath": "embeddings"
         }
       }
     }
