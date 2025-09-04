@@ -1,0 +1,99 @@
+{
+  "tools": [
+    {
+      "name": "get_metadata",
+      "description": "This endpoint allows you to query all the metadata",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "community_data": {
+            "type": "boolean",
+            "description": "include community data, default: true"
+          },
+          "developer_data": {
+            "type": "boolean",
+            "description": "include developer data, default: true"
+          },
+          "pair_format": {
+            "type": "string",
+            "description": "set to `symbol` to display pair base, default: `contract_address`",
+            "enum": [
+              "contract_address",
+              "symbol"
+            ]
+          },
+          "localization": {
+            "type": "boolean",
+            "description": "include all the localized languages in the response, default: true"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_simple_price",
+      "description": "Simple price retrieval",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "string",
+            "description": "IDs, comma-separated if querying more than 1."
+          },
+          "include_24hr_change": {
+            "type": "boolean",
+            "description": "include 24hr change, default: false"
+          },
+          "names": {
+            "type": "string",
+            "description": "names, comma-separated if querying more than 1."
+          },
+          "precision": {
+            "type": "string",
+            "description": "decimal place for currency price value",
+            "enum": [
+              "full",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "15",
+              "16",
+              "17",
+              "18"
+            ]
+          },
+          "symbols": {
+            "type": "string",
+            "description": "symbols, comma-separated if querying more than 1."
+          }
+        },
+        "required": [
+          "ids"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true
+      }
+    }
+  ]
+}

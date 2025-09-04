@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.web.controller.ToolSetController;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
 
     private static final String DTO_JSON_PATH = "/tool_set_dto.json";
+    private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";
     private static final String TEST_TOOL_SET_NAME = "test_tool_set";
     private static final String TOOL_SET_BASE_API_PATH = "/api/v1/toolSets";
     private static final String TOOL_SET_API_PATH = TOOL_SET_BASE_API_PATH + "/{toolSetName}";
@@ -101,6 +103,18 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
 
         mockMvc.perform(delete(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testDiscoverTools() throws Exception {
+        var dtoJson = ResourceUtils.readResource(TOOLS_DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<McpSchema.ListToolsResult>() {});
+
+        when(toolSetFacade.getDiscoveredTools(eq(TEST_TOOL_SET_NAME), eq(null))).thenReturn(dto);
+
+        mockMvc.perform(get(TOOL_SET_API_PATH + "/discovered-tools", TEST_TOOL_SET_NAME))
+                .andExpect(status().isOk())
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
     }
 
 }

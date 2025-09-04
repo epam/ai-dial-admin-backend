@@ -25,7 +25,7 @@ public class ToolDiscoveryService {
             String reason = ExceptionUtils.getRootCause(e).getMessage();
             String message = "Failed to retrieve a list of tools from MCP server. Base URL: %s. Transport: %s. Reason: %s"
                     .formatted(endpoint, transport, reason);
-            log.error(message, e);
+            log.warn(message, e);
             throw new RuntimeException(message);
         }
     }

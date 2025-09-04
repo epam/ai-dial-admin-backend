@@ -1,14 +1,20 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.mcp.McpClientFactory;
+import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import io.modelcontextprotocol.client.McpSyncClient;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
@@ -17,12 +23,16 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.mockito.ArgumentMatchers.eq;
+
 public abstract class ToolSetFunctionalTest {
 
     @Autowired
     private ToolSetFacade toolSetFacade;
     @Autowired
     private RoleFacade roleFacade;
+    @Autowired
+    private McpClientFactory mcpClientFactory;
 
     @BeforeEach
     public void beforeEach() {
@@ -53,6 +63,27 @@ public abstract class ToolSetFunctionalTest {
         Collection<ToolSetDto> actualToolSets = toolSetFacade.getAllToolSets();
 
         assertToolSets(actualToolSets, List.of(createDto("1"), createDto("2")));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateToolSetAndGetDiscoveredTools() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetDto.setTransport(TransportDto.HTTP);
+        toolSetFacade.createToolSet(toolSetDto);
+
+        var expectedTools = Mockito.mock(McpSchema.ListToolsResult.class);
+        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
+
+        Mockito.when(mcpSyncClient.initialize())
+                .thenReturn(null);
+        Mockito.when(mcpSyncClient.listTools(null))
+                .thenReturn(expectedTools);
+        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP)))
+                .thenReturn(mcpSyncClient);
+
+        var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
+
+        Assertions.assertEquals(expectedTools, actualTools);
     }
 
     @Test
