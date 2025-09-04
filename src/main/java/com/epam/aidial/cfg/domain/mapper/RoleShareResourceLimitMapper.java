@@ -22,6 +22,14 @@ public abstract class RoleShareResourceLimitMapper extends LimitMapper {
 
     public abstract ShareResourceLimit toLimit(CoreShareResourceLimit limit);
 
+    Long getLimit(long value) {
+        return value == 0 ? null : value;
+    }
+
+    Integer getLimit(int value) {
+        return value == 0 ? null : value;
+    }
+
     public Map<String, CoreShareResourceLimit> mapShareResourceLimits(List<RoleShareResourceLimit> roleShareResourceLimits,
                                                                       @Context Collection<Deployment> deployments) {
         if (roleShareResourceLimits == null) {
