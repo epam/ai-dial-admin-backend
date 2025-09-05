@@ -1,12 +1,9 @@
 -- add new fields to interceptor_entity table
-alter table if exists interceptor_entity drop column if exists configuration_endpoint;
-
 alter table if exists interceptor_entity add column if not exists defaults text;
 
 alter table if exists interceptor_entity add column if not exists rate_endpoint text;
 alter table if exists interceptor_entity add column if not exists tokenize_endpoint text;
 alter table if exists interceptor_entity add column if not exists truncate_prompt_endpoint text;
-alter table if exists interceptor_entity add column if not exists configuration_endpoint text;
 
 alter table if exists interceptor_entity add column if not exists system_prompt_supported boolean;
 alter table if exists interceptor_entity add column if not exists tools_supported boolean;
@@ -24,14 +21,11 @@ alter table if exists interceptor_entity add column if not exists consent_requir
 alter table if exists interceptor_entity add column if not exists parallel_tool_calls_supported boolean;
 
 -- add new fields to interceptor_entity_aud table
-alter table if exists interceptor_entity_aud drop column if exists configuration_endpoint;
-
 alter table if exists interceptor_entity_aud add column if not exists defaults text;
 
 alter table if exists interceptor_entity_aud add column if not exists rate_endpoint text;
 alter table if exists interceptor_entity_aud add column if not exists tokenize_endpoint text;
 alter table if exists interceptor_entity_aud add column if not exists truncate_prompt_endpoint text;
-alter table if exists interceptor_entity_aud add column if not exists configuration_endpoint text;
 
 alter table if exists interceptor_entity_aud add column if not exists system_prompt_supported boolean;
 alter table if exists interceptor_entity_aud add column if not exists tools_supported boolean;

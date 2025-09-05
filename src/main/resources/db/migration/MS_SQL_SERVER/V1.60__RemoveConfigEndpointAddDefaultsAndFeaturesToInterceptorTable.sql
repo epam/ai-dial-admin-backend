@@ -1,12 +1,9 @@
 -- add new fields to interceptor_entity table
-alter table interceptor_entity drop column configuration_endpoint;
-
 alter table interceptor_entity add defaults nvarchar(max);
 
 alter table interceptor_entity add rate_endpoint nvarchar(max);
 alter table interceptor_entity add tokenize_endpoint nvarchar(max);
 alter table interceptor_entity add truncate_prompt_endpoint nvarchar(max);
-alter table interceptor_entity add configuration_endpoint nvarchar(max);
 
 alter table interceptor_entity add system_prompt_supported bit;
 alter table interceptor_entity add tools_supported bit;
@@ -24,14 +21,11 @@ alter table interceptor_entity add consent_required bit;
 alter table interceptor_entity add parallel_tool_calls_supported bit;
 
 -- add new fields to interceptor_entity_aud table
-alter table interceptor_entity_aud drop column configuration_endpoint;
-
 alter table interceptor_entity_aud add defaults nvarchar(max);
 
 alter table interceptor_entity_aud add rate_endpoint nvarchar(max);
 alter table interceptor_entity_aud add tokenize_endpoint nvarchar(max);
 alter table interceptor_entity_aud add truncate_prompt_endpoint nvarchar(max);
-alter table interceptor_entity_aud add configuration_endpoint nvarchar(max);
 
 alter table interceptor_entity_aud add system_prompt_supported bit;
 alter table interceptor_entity_aud add tools_supported bit;
