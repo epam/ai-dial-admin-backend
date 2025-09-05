@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.service.ModelService;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapper;
@@ -28,6 +29,12 @@ public class ModelFacade {
                 .collect(Collectors.toList());
     }
 
+    public DtoWithDomainHash<ModelDto> getModelWithHash(String modelName) {
+        var modelWithHash = modelService.getModelWithHash(modelName);
+        ModelDto dto = mapper.toDto(modelWithHash.model());
+        return new DtoWithDomainHash<>(dto, modelWithHash.hash());
+    }
+
     public ModelDto getModel(String modelName) {
         Model model = modelService.getModel(modelName);
         return mapper.toDto(model);
@@ -40,10 +47,10 @@ public class ModelFacade {
                 .ifPresent(modelService::createModel);
     }
 
-    public void updateModel(String modelName, ModelDto modelDto) {
+    public String updateModel(String modelName, ModelDto modelDto, String hash) {
         setDefaultRoleShareResourceLimitIfMissing(modelDto);
         Model value = mapper.toDomain(modelDto);
-        modelService.updateModel(modelName, value);
+        return modelService.updateModel(modelName, value, hash);
     }
 
     public void deleteModel(String model) {
