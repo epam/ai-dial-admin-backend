@@ -205,8 +205,8 @@ public abstract class ConfigTransferFunctionalTest {
 
         Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
         Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i -> {
-                Assertions.assertThat(i.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
-                Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
+            Assertions.assertThat(i.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
+            Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
         });
 
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
@@ -1807,47 +1807,42 @@ public abstract class ConfigTransferFunctionalTest {
     @Test
     void testExportCoreConfig_VersionFiltering() throws IOException {
         // given
-        var modelName = "versionTestModel";
-        var interceptorName = "versionTestInterceptor";
-        var endpoint = "https://endpoint.test.com/interceptor";
+        String routeName = "versionTestRoute";
+        int order = 5;
 
-        var interceptorDto = new InterceptorDto();
-        interceptorDto.setName(interceptorName);
-        interceptorDto.setEndpoint(endpoint);
+        var routeDto = new RouteDto();
+        routeDto.setName(routeName);
+        routeDto.setOrder(order);
 
-        var features = new FeaturesDto();
-        features.setConfigurationEndpoint("https://endpoint.test.com/interceptor/conf");
-        interceptorDto.setFeatures(features);
-
-        var modelDto = new ModelDto();
-        modelDto.setName(modelName);
-        modelDto.setInterceptors(List.of("versionTestInterceptor"));
-
-        interceptorFacade.createInterceptor(interceptorDto);
-        modelFacade.createModel(modelDto);
+        routeFacade.createRoute(routeDto);
 
         var request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.INTERCEPTOR));
+        request.setComponentTypes(Set.of(ExportConfigComponentType.ROUTE));
 
-        // when
-        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget("0.30.0");
 
-        // then
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        streamingResponseBody.writeTo(outputStream);
+        try {
+            // when
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
 
-        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+            // then
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
 
-        Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getModels()).containsKey(modelName);
-        Assertions.assertThat(result.getInterceptors()).containsKey(interceptorName);
+            Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
 
-        // TODO [VPA]: refactor this test
-        // this verifies versioning works correctly, since configuration endpoint is not present in schema v0.30.0
-        var exportedInterceptor = result.getInterceptors().get(interceptorName);
-        Assertions.assertThat(exportedInterceptor.getEndpoint()).isEqualTo(endpoint);
-        //Assertions.assertThat(exportedInterceptor.getConfigurationEndpoint()).isNull();
+            Assertions.assertThat(result).isNotNull();
+            Assertions.assertThat(result.getRoutes()).containsKey(routeName);
+
+            // this verifies versioning works correctly, since 'order' is not present in Route in v0.30.0
+            var exportedRoute = result.getRoutes().get(routeName);
+            Assertions.assertThat(exportedRoute.getOrder()).isNotEqualTo(order);
+
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
     }
 
     @Test
