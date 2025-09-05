@@ -4,12 +4,16 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +23,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @Service("coreModelService")
 @RequiredArgsConstructor
+@Slf4j
 public class ModelService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Model with name %s does not exist";
@@ -31,6 +38,7 @@ public class ModelService {
     private final ModelNormalizer modelNormalizer;
     private final ModelValidator modelValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Model> getAll() {
@@ -41,8 +49,18 @@ public class ModelService {
 
     @Transactional(readOnly = true)
     public Model getModel(String modelName) {
+        return getModelOrThrow(modelName);
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<Model> getModelWithHash(String modelName) {
+        var model = getModelOrThrow(modelName);
+        return new DomainObjectWithHash<>(model, calculator.calculateHash(model));
+    }
+
+    private Model getModelOrThrow(String modelName) {
         return tryGetModel(modelName)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+            .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
     }
 
     @Transactional(readOnly = true)
@@ -66,15 +84,28 @@ public class ModelService {
 
     @Transactional
     public void updateModel(String modelName, Model model) {
+        performUpdate(modelName, model, ANY_HASH);
+    }
+
+    @Transactional
+    public String updateModel(String modelName, Model model, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                "Hash must not be null. Use \"*\" to skip optimistic check.");
+        }
+        var savedModel = performUpdate(modelName, model, hash);
+        return calculator.calculateHash(mapper.toDomain(savedModel));
+    }
+
+    private ModelEntity performUpdate(String modelName, Model model, String hash) {
         modelNormalizer.normalize(model);
         modelValidator.validateUpdate(modelName, model);
         ModelEntity modelEntity = modelJpaRepository.findById(modelName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
-        Optional.of(model)
-                .map(domainModel -> mapper.toEntity(domainModel, modelEntity))
-                .map(modelJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("Unable to update model " + model.getDeployment().getName()));
+        assertNotConcurrencyOverwrite(modelEntity, hash);
+        return modelJpaRepository.save(mapper.toEntity(model, modelEntity));
     }
 
     @Transactional
@@ -115,6 +146,20 @@ public class ModelService {
 
         if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {
             assertNotExists(newDisplayName, newDisplayVersion);
+        }
+    }
+
+    private void assertNotConcurrencyOverwrite(ModelEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: modelName={}, expectedHash={}, currentHash={}",
+                    entity.getDeployment().getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException("Optimistic lock conflict on update: modelName:'"
+                + entity.getDeployment().getName() + "'. Reload the data.");
+
         }
     }
 
