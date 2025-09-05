@@ -1,0 +1,78 @@
+{
+  "$schema": "https://dial.epam.com/application_type_schemas/schema#",
+  "$id": "https://test-schema-id.example",
+  "type": "object",
+  "title": "Some Title",
+  "description": "Some Desc",
+  "dial:applicationTypeDisplayName": "test-schema",
+  "dial:applicationTypeEditorUrl": "https://test.com/billings",
+  "dial:applicationTypeViewerUrl": "https://test.com/claims",
+  "dial:applicationTypeCompletionEndpoint": "http://ai-dial-test/openai/deployments/gpt-4o/chat/completions",
+  "dial:applicationTypeConfigurationEndpoint": "https://test.com/conf",
+  "dial:applicationTypeRateEndpoint": "https://test.com/rate",
+  "dial:applicationTypeTokenizeEndpoint": "https://test.com/tokenize",
+  "dial:applicationTypeTruncatePromptEndpoint": "https://test.com/truncate-prompt",
+  "dial:appendApplicationPropertiesHeader": false,
+  "dial:applicationTypeIconUrl": "http://ai-dial-test/openai/deployments/gpt-4o/chat/icon",
+  "dial:applicationTypeRoutes": [
+    {
+      "name": "route1",
+      "response": {
+        "status": 200,
+        "body": "success"
+      },
+      "rewritePath": false,
+      "paths": [
+        "some-path"
+      ],
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "upstreams": [],
+      "maxRetryAttempts": 0,
+      "order": 3,
+      "permissions": [
+        "WRITE"
+      ],
+      "attachmentPaths": {
+        "requestBody": [
+          "/first",
+          "/second"
+        ],
+        "responseBody": [
+          "/third"
+        ]
+      }
+    },
+    {
+      "name": "route2",
+      "rewritePath": false,
+      "paths": [
+        "some-path"
+      ],
+      "methods": [],
+      "upstreams": [
+        {
+          "endpoint": "http://upstream.com/api",
+          "key": "123",
+          "extraData": "{\"field1\":\"val1\"}",
+          "weight": 1,
+          "tier": 0
+        }
+      ],
+      "maxRetryAttempts": 0,
+      "order": 2,
+      "permissions": [
+        "READ"
+      ],
+      "attachmentPaths": {
+        "requestBody": [],
+        "responseBody": []
+      }
+    }
+  ],
+  "dial:applicationTypePlaybackSupport": true,
+  "properties": {},
+  "$defs": {}
+}
