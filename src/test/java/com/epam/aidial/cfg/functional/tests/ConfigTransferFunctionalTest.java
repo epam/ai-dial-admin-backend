@@ -1923,8 +1923,8 @@ public abstract class ConfigTransferFunctionalTest {
 
         String schemaDtoJson = ResourceUtils.readResource("/filtering/app_type_schema_dto.json");
         ApplicationTypeSchemaDto schemaDto = jsonMapper.readValue(
-            schemaDtoJson,
-            new TypeReference<>() {}
+                schemaDtoJson,
+                new TypeReference<>() {}
         );
 
         applicationTypeSchemaFacade.create(schemaDto);
