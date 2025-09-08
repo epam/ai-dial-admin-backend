@@ -415,27 +415,47 @@ public abstract class ConfigTransferFunctionalTest {
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
         request.setComponentTypes(componentTypes);
+
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptorName");
-        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
+
+        InterceptorRunnerDto runnerDto = new InterceptorRunnerDto();
+        runnerDto.setName("someRunner");
+        runnerDto.setCompletionEndpoint("https://endpoint.test.com/api");
+        runnerDto.setConfigurationEndpoint("https://endpoint.test.com/config");
+
+        InterceptorRunnerSourceDto runnerSource = new InterceptorRunnerSourceDto("someRunner");
+        interceptorDto.setSource(runnerSource);
+
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
+
+        interceptorRunnerFacade.createInterceptorRunner(runnerDto);
         interceptorFacade.createInterceptor(interceptorDto);
         modelFacade.createModel(modelDto);
+
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
         // then
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         streamingResponseBody.writeTo(outputStream);
 
         Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
             Assertions.assertThat(config.getModels()).isNotEmpty()
                     .containsOnlyKeys("modelName")
                     .satisfies(models ->
                             Assertions.assertThat(models.get("modelName").getInterceptors()).containsExactlyInAnyOrder("interceptorName"));
-            Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty()
+                    .containsOnlyKeys("interceptorName")
+                    .satisfies(interceptors -> {
+                        var interceptor = interceptors.get("interceptorName");
+                        Assertions.assertThat(interceptor.getEndpoint()).isEqualTo("https://endpoint.test.com/api");
+                        Assertions.assertThat(interceptor.getFeatures().getConfigurationEndpoint()).isEqualTo("https://endpoint.test.com/config");
+                    });
             Assertions.assertThat(result.getApplications()).isEmpty();
         });
     }
