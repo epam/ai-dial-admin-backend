@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "title": "Some Title",
+  "description": "Some Desc",
+  "properties": {},
+  "$schema": "https://dial.epam.com/application_type_schemas/schema#",
+  "$id": "https://test-schema-id.example",
+  "dial:applicationTypeEditorUrl": "https://test.com/billings",
+  "dial:applicationTypeViewerUrl": "https://test.com/claims",
+  "dial:applicationTypeDisplayName": "test-schema",
+  "dial:applicationTypeCompletionEndpoint": "http://ai-dial-test/openai/deployments/gpt-4o/chat/completions",
+  "dial:applicationTypeConfigurationEndpoint": "https://test.com/conf",
+  "dial:applicationTypeRateEndpoint": "https://test.com/rate",
+  "dial:applicationTypeTokenizeEndpoint": "https://test.com/tokenize",
+  "dial:applicationTypeTruncatePromptEndpoint": "https://test.com/truncate-prompt",
+  "dial:appendApplicationPropertiesHeader": false,
+  "$defs": {}
+}
