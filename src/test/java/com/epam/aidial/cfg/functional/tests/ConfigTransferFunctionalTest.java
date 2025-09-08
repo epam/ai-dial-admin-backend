@@ -60,6 +60,7 @@ import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,6 +100,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -1909,6 +1911,67 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(exportedModel.getAuthor()).isNull();
             Assertions.assertThat(exportedModel.getCreatedAt()).isNull();
             Assertions.assertThat(exportedModel.getUpdatedAt()).isNull();
+        } finally {
+            // Restore original version setting
+            versionProperties.setTarget(originalVersion);
+        }
+    }
+
+    @Test
+    void testExportCoreConfig_ApplicationTypeSchemaVersionFieldFiltering() throws IOException {
+        // given
+        String schemaId = "https://test-schema-id.example";
+
+        String schemaDtoJson = ResourceUtils.readResource("/filtering/app_type_schema_dto.json");
+        ApplicationTypeSchemaDto schemaDto = jsonMapper.readValue(
+                schemaDtoJson,
+                new TypeReference<>() {}
+        );
+
+        applicationTypeSchemaFacade.create(schemaDto);
+
+        var request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA));
+
+        // Save original version setting
+        String originalVersion = versionProperties.getTarget();
+
+        try {
+            // Test with the latest version - applicationTypeIconUrl, applicationTypeRoutes and applicationTypePlaybackSupport should be present
+            // when
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            // then
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+
+            Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+            String exportedSchemaJson = result.getApplicationTypeSchemas().get(schemaId);
+            String expectedExportedCoreSchemaJson = ResourceUtils.readResource("/filtering/core_app_type_schema.json");
+            assertEquals(exportedSchemaJson, expectedExportedCoreSchemaJson);
+
+            // Test with version 0.28.0 - applicationTypeIconUrl, applicationTypeRoutes and applicationTypePlaybackSupport should be absent
+            // given
+            versionProperties.setTarget("0.28.0");
+
+            // when
+            streamingResponseBody = configTransfer.exportConfig(request);
+
+            // then
+            outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+
+            result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+            exportedSchemaJson = result.getApplicationTypeSchemas().get(schemaId);
+            var exportedSchema = jsonMapper.readValue(exportedSchemaJson, CoreApplicationTypeSchema.class);
+            String expectedExportedCoreSchemaWithoutRoutesJson = ResourceUtils.readResource("/filtering/core_app_type_schema_without_newer_fields.json");
+            var expectedExportedCoreSchemaWithoutRoutes = jsonMapper.readValue(expectedExportedCoreSchemaWithoutRoutesJson, CoreApplicationTypeSchema.class);
+
+            Assertions.assertThat(exportedSchema).usingRecursiveAssertion().isEqualTo(expectedExportedCoreSchemaWithoutRoutes);
+
         } finally {
             // Restore original version setting
             versionProperties.setTarget(originalVersion);
