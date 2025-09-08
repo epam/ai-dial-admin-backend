@@ -1,4 +1,6 @@
 {
+  "addons": null,
+  "assistant": null,
   "models": {
     "testModel1": {
       "userRoles": [

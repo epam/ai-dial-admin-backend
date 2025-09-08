@@ -104,7 +104,8 @@ public class K8ConfigService {
         log.debug("readSecretEntry. secret: {} by namespace '{}', resourceName '{}'", secret, namespace, secretName);
         Optional<String> entry = Optional.ofNullable(secret)
                 .map(Secret::getData)
-                .map(stringStringMap -> stringStringMap.get(secretKey));
+                .map(stringStringMap -> stringStringMap.get(secretKey))
+                .map(data -> new String(Base64.getDecoder().decode(data)));
         log.trace("readSecretEntry. secret: {} by configName '{}'", SecretUtils.mask(entry.orElse(null)), secretKey);
         return entry;
     }
