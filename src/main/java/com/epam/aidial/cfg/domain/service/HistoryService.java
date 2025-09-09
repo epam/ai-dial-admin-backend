@@ -80,6 +80,7 @@ public class HistoryService {
         AuditReader auditReader = AuditReaderFactory.get(entityManager);
         roleHistoryRepository.rollbackRoles(revision, auditReader);
         keyHistoryRepository.rollbackKeys(revision, auditReader);
+        adapterHistoryRepository.rollbackAdapters(revision, auditReader);
         modelHistoryRepository.rollbackModels(revision, auditReader);
         addonHistoryRepository.rollbackAddons(revision, auditReader);
         toolSetHistoryRepository.rollbackToolSets(revision, auditReader);
@@ -90,7 +91,6 @@ public class HistoryService {
         routeHistoryRepository.rollbackRoutes(revision, auditReader);
         interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
         interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
-        adapterHistoryRepository.rollbackAdapters(revision, auditReader);
     }
 
     @Transactional(readOnly = true)

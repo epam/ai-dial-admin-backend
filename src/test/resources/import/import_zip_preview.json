@@ -415,7 +415,8 @@
         "createdAt": 12345,
         "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"],
-        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+        "endpoint": "https://endpoint2/embeddings"
       }
     },
     {
@@ -463,11 +464,10 @@
             "maxAcceptedUsers": 15
           }
         },
-        "adapter": {
-          "name": "adapter1",
-          "baseEndpoint": "http://endpoint1/",
-          "description": "test adapter",
-          "models": []
+        "source": {
+          "$type": "adapter",
+          "adapterName": "adapter1",
+          "completionEndpointPath": "embeddings"
         },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",

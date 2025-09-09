@@ -6,6 +6,8 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -88,14 +90,13 @@ public abstract class ModelFunctionalTest {
         createAdapter(2);
 
         ModelDto modelDto = createDto("1");
-        modelDto.setAdapter("adapter1");
+        modelDto.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
         modelFacade.createModel(modelDto);
 
         ModelDto updatedModel = createDto("1");
-        updatedModel.setAdapter("adapter2");
+        updatedModel.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
-        updatedModel.setEndpointDeploymentName("newEndpointDeploymentName");
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
@@ -104,9 +105,7 @@ public abstract class ModelFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
-        expected.setAdapter("adapter2");
-        expected.setEndpoint("http://adapter.endpoint2/newEndpointDeploymentName/chat/completions");
-        expected.setEndpointDeploymentName("newEndpointDeploymentName");
+        expected.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
         updatedModel.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
@@ -126,13 +125,12 @@ public abstract class ModelFunctionalTest {
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
         updatedModel.setRoleShareResourceLimits(Map.of("role2", shareResourceLimitDto));
-        updatedModel.setEndpointDeploymentName(null);
+        updatedModel.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role3", limitDto));
         expected.setRoleShareResourceLimits(Map.of("role2", shareResourceLimitDto));
-        expected.setEndpoint("http://adapter.endpoint2/chat/completions");
-        expected.setEndpointDeploymentName(null);
+        expected.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
         assertModel(actual, expected);
 
         roleFacade.deleteRole("role3");
@@ -404,6 +402,8 @@ public abstract class ModelFunctionalTest {
         modelDto.setDefaults(Map.of());
         modelDto.setDefaultRoleLimit(new LimitDto());
         modelDto.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        modelDto.setEndpoint("https://endpoint1");
         return modelDto;
     }
 
@@ -426,6 +426,8 @@ public abstract class ModelFunctionalTest {
         modelDto1.setDefaultRoleLimit(new LimitDto());
         modelDto1.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         modelDto1.setDefaults(Map.of("max_tokens", 8000));
+        modelDto1.setEndpoint("https://endpoint1");
+        modelDto1.setSource(new ModelEndpointsSourceDto());
 
         ModelDto modelDto2 = new ModelDto();
         modelDto2.setName("model2");
@@ -439,6 +441,8 @@ public abstract class ModelFunctionalTest {
         modelDto2.setDefaultRoleLimit(new LimitDto());
         modelDto2.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         modelDto2.setDefaults(Map.of());
+        modelDto2.setEndpoint("https://endpoint1");
+        modelDto2.setSource(new ModelEndpointsSourceDto());
 
         return List.of(modelDto1, modelDto2);
     }
@@ -453,6 +457,8 @@ public abstract class ModelFunctionalTest {
         modelDto.setRoleShareResourceLimits(Map.of(
                 "role" + suffix, new ShareResourceLimitDto()
         ));
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        modelDto.setEndpoint("https://endpoint1");
         return modelDto;
     }
 

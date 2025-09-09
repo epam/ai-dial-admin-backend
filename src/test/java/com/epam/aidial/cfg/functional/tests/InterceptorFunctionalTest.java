@@ -211,7 +211,7 @@ public abstract class InterceptorFunctionalTest {
     private ModelDto createModelDto(String suffix) {
         ModelDto model = new ModelDto();
         model.setName("model" + suffix);
-        model.setEndpoint("endpoint");
+        model.setEndpoint("https://endpoint");
         return model;
     }
 

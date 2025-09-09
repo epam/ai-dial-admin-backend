@@ -37,9 +37,6 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @OneToOne(targetEntity = DeploymentEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private DeploymentEntity deployment;
     private String description;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "adapter_name")
-    private AdapterEntity adapter;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -74,15 +71,20 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private String upstreams;
     private String overrideName;
     private List<String> fieldsHashingOrder;
-    private String endpointDeploymentName;
+    private String endpoint;
+
+    @Embedded
+    private ModelContainerEntity modelContainer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "adapter_name")
+    private AdapterEntity adapter;
+    private String adapterCompletionEndpointPath;
 
     @PreRemove
     public void preRemove() {
         for (InterceptorEntity interceptor : interceptors) {
             interceptor.getModels().remove(this);
-        }
-        if (adapter != null) {
-            adapter.getModels().remove(this);
         }
     }
 

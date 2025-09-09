@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,23 +24,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 
-@RestController
-@RequestMapping("/api/v1/models")
 @Validated
 @LogExecution
+@RestController
+@RequestMapping("/api/v1/models")
+@RequiredArgsConstructor
 public class ModelController {
 
     private final ModelFacade modelFacade;
 
-    public ModelController(ModelFacade modelFacade) {
-        this.modelFacade = modelFacade;
-    }
-
-
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ModelDto> getAllModels() { //TODO change to model info
-        Collection<ModelDto> allModels = modelFacade.getAll();
-        return allModels;
+        return modelFacade.getAll();
     }
 
     @GetMapping(path = "/{modelName}",
@@ -74,7 +70,7 @@ public class ModelController {
     }
 
     @GetMapping(path = "/{modelName}/revision/{revision}",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelDto getSnapshot(@PathVariable String modelName, @PathVariable Integer revision) {
         return modelFacade.getSnapshot(modelName, revision);
     }

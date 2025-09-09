@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.dto.AdapterDto;
-import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.web.facade.mapper.AdapterDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,8 +44,8 @@ public class AdapterFacade {
         adapterService.update(adapterName, value);
     }
 
-    public void deleteAdapter(String adapterName) {
-        adapterService.delete(adapterName);
+    public void deleteAdapter(String adapterName, boolean removeModel) {
+        adapterService.delete(adapterName, removeModel);
     }
 
     public AdapterDto getSnapshot(String adapterName, Integer revision) {

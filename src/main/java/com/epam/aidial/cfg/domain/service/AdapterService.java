@@ -1,21 +1,25 @@
 package com.epam.aidial.cfg.domain.service;
 
-
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AdapterEntityMapper;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
+import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.validator.AdapterValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -27,6 +31,8 @@ import java.util.stream.StreamSupport;
 public class AdapterService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Adapter with name %s does not exist";
+
+    private final ModelJpaRepository modelJpaRepository;
     private final AdapterJpaRepository adapterJpaRepository;
     private final AdapterEntityMapper mapper;
     private final AdapterValidator adapterValidator;
@@ -69,8 +75,7 @@ public class AdapterService {
     @Transactional
     public void update(String adapterName, Adapter adapter) {
         adapterValidator.validateUpdate(adapterName, adapter);
-        AdapterEntity adapterEntity = adapterJpaRepository.findById(adapterName)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(adapterName)));
+        AdapterEntity adapterEntity = findByAdapterName(adapterName);
         Optional.of(adapter)
                 .map(domainModel -> mapper.toEntity(domainModel, adapterEntity))
                 .map(adapterJpaRepository::save)
@@ -78,9 +83,23 @@ public class AdapterService {
     }
 
     @Transactional
-    public void delete(String adapterName) {
-        assertExists(adapterName);
-        adapterJpaRepository.deleteById(adapterName);
+    public void delete(String adapterName, boolean removeModel) {
+        AdapterEntity adapterEntity = findByAdapterName(adapterName);
+        List<ModelEntity> models = adapterEntity.getModels();
+
+        if (CollectionUtils.isNotEmpty(models)) {
+            if (removeModel) {
+                modelJpaRepository.deleteAll(models);
+            } else {
+                String baseEndpoint = adapterEntity.getBaseEndpoint();
+                models.forEach(model -> {
+                    model.setAdapter(null);
+                    model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(baseEndpoint, model.getAdapterCompletionEndpointPath()));
+                });
+            }
+        }
+
+        adapterJpaRepository.delete(adapterEntity);
     }
 
     @Transactional(readOnly = true)
@@ -102,11 +121,9 @@ public class AdapterService {
                 .collect(Collectors.toList());
     }
 
-    private void assertExists(String name) {
-        boolean exists = adapterJpaRepository.existsById(name);
-        if (!exists) {
-            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
-        }
+    private AdapterEntity findByAdapterName(String adapterName) {
+        return adapterJpaRepository.findById(adapterName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(adapterName)));
     }
 
     private void assertNotExists(String name) {
