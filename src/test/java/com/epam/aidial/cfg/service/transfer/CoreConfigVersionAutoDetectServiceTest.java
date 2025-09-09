@@ -66,6 +66,21 @@ class CoreConfigVersionAutoDetectServiceTest {
     }
 
     @Test
+    void getVersion_successfulApiCall_returnsCoreVersionWithSuffix() {
+        // Given
+        when(properties.isAutoDetectEnabled()).thenReturn(true);
+        when(coreConfigClient.getVersion()).thenReturn(CORE_VERSION + "-rc");
+
+        // When
+        String result = service.getVersion();
+
+        // Then
+        assertEquals(CORE_VERSION, result);
+        verify(properties).isAutoDetectEnabled();
+        verify(coreConfigClient).getVersion();
+    }
+
+    @Test
     void getVersion_cachedVersion_returnsCachedVersionWithoutApiCall() {
         // Given
         when(properties.isAutoDetectEnabled()).thenReturn(true);
