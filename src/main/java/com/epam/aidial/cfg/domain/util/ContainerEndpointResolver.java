@@ -82,6 +82,7 @@ public class ContainerEndpointResolver {
                 (entity, endpoints) -> {
                     entity.setEndpoint(endpoints[0]);
                     FeaturesEntity features = Optional.ofNullable(entity.getFeatures()).orElse(new FeaturesEntity());
+                    entity.setFeatures(features);
                     features.setConfigurationEndpoint(endpoints[1]);
                 },
                 interceptorEntity
