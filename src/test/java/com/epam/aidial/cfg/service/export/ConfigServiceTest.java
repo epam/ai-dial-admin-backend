@@ -19,6 +19,7 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
+import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
@@ -90,6 +91,8 @@ class ConfigServiceTest {
     private DeploymentService deploymentService;
     @MockitoBean
     private ToolSetService toolSetService;
+    @MockitoBean
+    private AdapterService adapterService;
     @MockitoBean
     private RoleJpaRepository roleJpaRepository;
 

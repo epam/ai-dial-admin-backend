@@ -24,7 +24,8 @@
         "temperature",
         "seed",
         "system"
-      ]
+      ],
+      "endpoint": "https://endpoint1/embeddings"
     },
     "testModel2": {
       "type": "embedding",
@@ -43,7 +44,8 @@
         "temperature",
         "seed",
         "system"
-      ]
+      ],
+      "endpoint": "https://endpoint2/embeddings"
     }
   },
   "applications": {

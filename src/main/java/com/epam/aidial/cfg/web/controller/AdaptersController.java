@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,11 +48,11 @@ public class AdaptersController {
         adapterFacade.createAdapter(adapterDto);
     }
 
-    @DeleteMapping(path = "/{adapterName}",
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "/{adapterName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteAdapter(@PathVariable String adapterName) {
-        adapterFacade.deleteAdapter(adapterName);
+    public void deleteAdapter(@PathVariable String adapterName,
+                              @RequestParam(name = "removeModel", required = false, defaultValue = "true") boolean removeModel) {
+        adapterFacade.deleteAdapter(adapterName, removeModel);
     }
 
     @PutMapping(path = "/{adapterName}",
@@ -70,7 +70,7 @@ public class AdaptersController {
     }
 
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<AdapterDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+    public Collection<AdapterDto> getAllAtRevision(@PathVariable Integer revision) {
         return adapterFacade.getAllAtRevision(revision);
     }
 }

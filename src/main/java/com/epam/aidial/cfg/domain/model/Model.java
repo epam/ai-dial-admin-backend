@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -12,8 +13,8 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class Model extends RoleBased {
 
+    private String endpoint;
     private String description;
-    private Adapter adapter;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -37,5 +38,5 @@ public class Model extends RoleBased {
     private List<Upstream> upstreams;
     private String overrideName;
     private List<String> fieldsHashingOrder;
-    private String endpointDeploymentName;
+    private ModelSource source;
 }

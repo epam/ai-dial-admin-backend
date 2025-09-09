@@ -5,8 +5,10 @@ import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -27,24 +29,26 @@ public abstract class AdapterEntityMapper {
     public abstract Adapter toDomain(AdapterEntity entity);
 
     public AdapterEntity toEntity(Adapter domain, AdapterEntity entity) {
+        boolean shouldUpdateModels = domain.getModels() != null;
+        List<ModelEntity> models = shouldUpdateModels
+                ? findModelsByNames(domain.getModels())
+                : entity.getModels();
+
         AdapterEntity updatedEntity = update(domain, entity);
 
-        List<String> modelNames = domain.getModels();
-        List<ModelEntity> models = Lists.newArrayList(modelJpaRepository.findAllById(modelNames));
-        Set<String> existingModels = models.stream().map(ModelEntity::getDeploymentName).collect(Collectors.toSet());
-        Set<String> namesDiff = SetUtils.difference(new HashSet<>(modelNames), existingModels);
-        if (!namesDiff.isEmpty()) {
-            throw new EntityNotFoundException("unable to find models: " + namesDiff);
+        if (shouldUpdateModels) {
+            updatedEntity.getModels().forEach(model -> {
+                model.setAdapter(null);
+                model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(updatedEntity.getBaseEndpoint(), model.getAdapterCompletionEndpointPath()));
+            });
+            models.forEach(app -> {
+                app.setAdapter(updatedEntity);
+                app.setEndpoint(null);
+            });
+            updatedEntity.getModels().clear();
+            updatedEntity.getModels().addAll(models);
         }
 
-        for (ModelEntity model : updatedEntity.getModels()) {
-            model.setAdapter(null);
-        }
-        updatedEntity.getModels().clear();
-        updatedEntity.getModels().addAll(models);
-        for (ModelEntity model : models) {
-            model.setAdapter(entity);
-        }
         return updatedEntity;
     }
 
@@ -61,5 +65,23 @@ public abstract class AdapterEntityMapper {
                 .map(ModelEntity::getDeployment)
                 .map(DeploymentEntity::getName)
                 .collect(Collectors.toList());
+    }
+
+    private List<ModelEntity> findModelsByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return List.of();
+        }
+
+        List<ModelEntity> existingModels = Lists.newArrayList(modelJpaRepository.findAllById(names));
+        Set<String> existingModelsNames = existingModels.stream()
+                .map(ModelEntity::getId)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingModelsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find Models: " + namesDiff);
+        }
+
+        return existingModels;
     }
 }

@@ -54,7 +54,7 @@ public abstract class AdapterHistoryFunctionalTest {
         adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter);
 
         // delete adapter 1
-        adapterFacade.deleteAdapter(adapterDto.getName());
+        adapterFacade.deleteAdapter(adapterDto.getName(), false);
 
         // create adapter 2
         adapterFacade.createAdapter(createDto("2"));

@@ -2,11 +2,11 @@ package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.Embeddable;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Embeddable
-public class InterceptorContainerEntity {
-    private String containerId;
-    private String completionEndpointPath;
+public class InterceptorContainerEntity extends ContainerEntity {
     private String configurationEndpointPath;
 }

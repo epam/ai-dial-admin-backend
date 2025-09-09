@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.domain.mapper.ExportConfigMapperImpl;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
+import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
@@ -34,7 +35,7 @@ import com.epam.aidial.cfg.web.facade.mapper.InterceptorSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.KeyDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.LimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapperImpl;
-import com.epam.aidial.cfg.web.facade.mapper.ModelEndpointDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ModelSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ResponseDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleBasedDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleDtoMapperImpl;
@@ -78,9 +79,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         InterceptorDtoMapperImpl.class, ModelDtoMapperImpl.class, ApplicationDtoMapperImpl.class, ApplicationTypeSchemaDtoMapperImpl.class,
         AddonDtoMapperImpl.class, AssistantDtoMapperImpl.class, RouteDtoMapperImpl.class, RoleLimitDtoMapperImpl.class,
         LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class,
-        ModelEndpointDtoMapperImpl.class, AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
-        RoleShareResourceLimitDtoMapperImpl.class, InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class,
-        AttachmentPathDtoMapperImpl.class, ToolSetDtoMapperImpl.class
+        AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class, RoleShareResourceLimitDtoMapperImpl.class,
+        InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class, AttachmentPathDtoMapperImpl.class,
+        ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 
@@ -325,6 +326,36 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         mockMvc.perform(post("/api/v1/configs/export/preview")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(content().json(expected, JsonCompareMode.LENIENT));
+        verify(configTransfer).exportPreview(any());
+    }
+
+    @Test
+    void testExportPreview_ToolSets_CoreFormat() throws Exception {
+        // given
+        FullExportRequestDto request = new FullExportRequestDto();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.TOOL_SET));
+
+        ExportComponentInfo componentInfo = ExportComponentInfo.builder()
+                .type(ExportConfigComponentType.TOOL_SET)
+                .name("name1")
+                .description("description1")
+                .displayName("displayName1")
+                .build();
+
+        ExportConfigPreview exportConfigPreview = new ExportConfigPreview();
+        exportConfigPreview.setToolSets(List.of(componentInfo));
+
+        when(configTransfer.exportPreview(any())).thenReturn(exportConfigPreview);
+        String expected = ResourceUtils.readResource("/preview_toolset.json");
+
+        // when
+        mockMvc.perform(post("/api/v1/configs/export/preview")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 // then
                 .andExpect(status().isOk())
                 .andExpect(content().json(expected, JsonCompareMode.LENIENT));

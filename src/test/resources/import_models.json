@@ -12,7 +12,11 @@
       "createdAt": 12345,
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
-      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+      "source": {
+        "$type": "endpoints"
+      },
+      "endpoint": "https://endpoint1"
     },
     "testModel2": {
       "type": "embedding",
@@ -21,7 +25,11 @@
       "displayVersion": "1.0.0",
       "userRoles": [
         "testRole1"
-      ]
+      ],
+      "source": {
+        "$type": "endpoints"
+      },
+      "endpoint": "https://endpoint2"
     }
   },
   "applications": {},
