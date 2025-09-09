@@ -1,0 +1,10 @@
+{
+  "toolSets": [
+    {
+      "type": "TOOL_SET",
+      "name": "name1",
+      "description": "description1",
+      "displayName": "displayName1"
+    }
+  ]
+}
