@@ -16,7 +16,6 @@ public class LimitDto {
     @PositiveOrZero
     @JsonSerialize(using = ToStringSerializer.class)
     private Long minute;
-
     @PositiveOrZero
     @JsonSerialize(using = ToStringSerializer.class)
     private Long day;
