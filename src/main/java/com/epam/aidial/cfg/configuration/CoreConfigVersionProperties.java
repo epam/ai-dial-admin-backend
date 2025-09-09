@@ -28,10 +28,16 @@ public class CoreConfigVersionProperties {
     private long cacheExpirationMs;
 
     @PostConstruct
-    public void validateConfiguration() {
-        log.info("Initializing core config version properties. Target: {}", target);
+    public void validateAndNormalizeConfiguration() {
+        log.info("Initializing core config version properties. Original target: {}", target);
 
-        if (!LATEST_VERSION.equals(target) && !VERSION_PATTERN.matcher(target).matches()) {
+        if (target != null && target.contains("-")) {
+            String croppedTarget = target.substring(0, target.indexOf('-'));
+            log.info("Target version normalized by changing from '{}' to '{}'", target, croppedTarget);
+            target = croppedTarget;
+        }
+
+        if (target == null || (!LATEST_VERSION.equals(target) && !VERSION_PATTERN.matcher(target).matches())) {
             throw new InvalidVersionException("Invalid CORE_CONFIG_VERSION format: " + target
                 + ". Expected format: X.Y.Z (e.g., '0.23.0', '1.0.1', '2.0.3') or 'latest'");
         }

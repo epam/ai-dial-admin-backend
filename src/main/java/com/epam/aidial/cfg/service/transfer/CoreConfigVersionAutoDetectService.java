@@ -61,8 +61,17 @@ public class CoreConfigVersionAutoDetectService {
 
     private String getVersionFromCore() {
         log.debug("Attempting to get version from Core");
-        String version = coreConfigClient.getVersion();
+        String version = normalizeCoreVersion(coreConfigClient.getVersion());
         log.info("Successfully retrieved Core version: {}", version);
+        return version;
+    }
+
+    private String normalizeCoreVersion(String version) {
+        if (version != null && version.contains("-")) {
+            String croppedVersion = version.substring(0, version.indexOf('-'));
+            log.info("Auto-detected Core version normalized by changing from '{}' to '{}'", version, croppedVersion);
+            return croppedVersion;
+        }
         return version;
     }
 }
