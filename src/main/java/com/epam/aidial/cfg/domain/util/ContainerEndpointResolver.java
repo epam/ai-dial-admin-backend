@@ -65,6 +65,7 @@ public class ContainerEndpointResolver {
                 (target, endpoints) -> {
                     target.setEndpoint(endpoints[0]);
                     Features features = Optional.ofNullable(target.getFeatures()).orElse(new Features());
+                    target.setFeatures(features);
                     features.setConfigurationEndpoint(endpoints[1]);
                 },
                 interceptor
