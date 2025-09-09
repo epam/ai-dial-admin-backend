@@ -10,6 +10,7 @@ public class ExportConfigPreviewDto {
     private Collection<ExportComponentInfoDto> routes;
     private Collection<ExportComponentInfoDto> applications;
     private Collection<ExportComponentInfoDto> models;
+    private Collection<ExportComponentInfoDto> toolSets;
 
     private Collection<ExportComponentInfoDto> roles;
     private Collection<ExportKeyInfoDto> keys;
