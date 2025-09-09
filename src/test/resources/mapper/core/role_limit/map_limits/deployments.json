@@ -1,0 +1,34 @@
+[
+  {
+    "name": "deployment1",
+    "defaultRoleLimit": {
+      "minute": 9223372036854775807,
+      "day": 10,
+      "week": 9223372036854775807
+    }
+  },
+  {
+    "name": "deployment2",
+    "defaultRoleLimit": {
+      "day": 10
+    }
+  },
+  {
+    "name": "deployment3",
+    "defaultRoleLimit": {
+      "day": 10
+    }
+  },
+  {
+    "name": "deployment4",
+    "defaultRoleLimit": {}
+  },
+  {
+    "name": "deployment5",
+    "defaultRoleLimit": {}
+  },
+  {
+    "name": "deployment6",
+    "defaultRoleLimit": {}
+  }
+]
