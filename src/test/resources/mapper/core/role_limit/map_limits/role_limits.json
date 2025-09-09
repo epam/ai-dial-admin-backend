@@ -1,0 +1,40 @@
+[
+  {
+    "role": "role1",
+    "deploymentName": "deployment1",
+    "limit": {}
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment2",
+    "limit": {
+      "day": 5
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment3",
+    "limit": {
+      "day": 9223372036854775807
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment4",
+    "limit": {}
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment5",
+    "limit": {
+      "day": 5
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment6",
+    "limit": {
+      "day": 9223372036854775807
+    }
+  }
+]
