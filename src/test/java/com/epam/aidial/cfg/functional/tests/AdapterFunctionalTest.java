@@ -116,7 +116,7 @@ public abstract class AdapterFunctionalTest {
         modelFacade.createModel(model1);
         AdapterSourceDto source2 = new AdapterSourceDto("adapter2", "/model1/chat/completions");
         model1.setSource(source2);
-        modelFacade.updateModel(model1.getName(), model1);
+        modelFacade.updateModel(model1.getName(), model1, "*");
 
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
         AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto2.getName());

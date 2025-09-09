@@ -67,4 +67,23 @@ class CoreRolesMergerTest {
         Assertions.assertThat(actualResult).isEqualTo(expectedResult);
         verifyNoInteractions(roleService);
     }
+
+    @Test
+    void mergeCoreRoles_singleModelWithoutUserRolesAndRoles_shouldReturnEmptyRoles() throws JsonProcessingException {
+        // given
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        Config config = objectMapper.readValue(
+                ResourceUtils.readResource("/import/core_roles_merge/single_model_without_user_roles_and_roles/config.json"),
+                Config.class
+        );
+        Map<String, Role> expectedResult = Map.of();
+
+        // when
+        Map<String, Role> actualResult = coreRolesMerger.mergeCoreRoles(config, true);
+
+        // then
+        Assertions.assertThat(actualResult).isEqualTo(expectedResult);
+        verifyNoInteractions(roleService);
+    }
 }

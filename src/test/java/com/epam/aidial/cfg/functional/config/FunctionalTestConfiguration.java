@@ -30,6 +30,7 @@ import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.service.export.CoreConfigAggregatorService;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
@@ -51,9 +52,9 @@ import java.util.Map;
         "com.epam.aidial.cfg.web.facade",
         "com.epam.aidial.cfg.service.transfer",
         "com.epam.aidial.cfg.service.normalizer",
-        "com.epam.aidial.cfg.transaction",
+        "com.epam.aidial.cfg.transaction"
 })
-@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, ValidationConfig.class})
+@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, ValidationConfig.class, HashCalculator.class})
 @EnableAspectJAutoProxy
 public class FunctionalTestConfiguration {
 

@@ -59,7 +59,7 @@ public abstract class ModelHistoryFunctionalTest {
         ModelDto updatedModel = createDto("1");
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 
         // verify model1
         ModelDto actual = modelFacade.getModel(modelDto.getName());
@@ -76,7 +76,7 @@ public abstract class ModelHistoryFunctionalTest {
         updatedModel.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedModel.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         updatedModel.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         actual = modelFacade.getModel(modelDto.getName());
         assertModel(actual, updatedModel);
 
@@ -87,7 +87,7 @@ public abstract class ModelHistoryFunctionalTest {
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
         updatedModel.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
-        modelFacade.updateModel(modelDto.getName(), updatedModel);
+        modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         var actualAtRevision = modelFacade.getModel(modelDto.getName());
         assertModel(actualAtRevision, updatedModel);
 
@@ -145,7 +145,7 @@ public abstract class ModelHistoryFunctionalTest {
 
         // update model
         modelDto.setInterceptors(List.of(interceptor2.getName()));
-        modelFacade.updateModel(modelDto.getName(), modelDto);
+        modelFacade.updateModel(modelDto.getName(), modelDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -173,7 +173,7 @@ public abstract class ModelHistoryFunctionalTest {
         var actualAtRevision = modelFacade.getAll();
 
         modelDto.setDescription("new description");
-        modelFacade.updateModel(modelDto.getName(), modelDto);
+        modelFacade.updateModel(modelDto.getName(), modelDto, "*");
 
         interceptorFacade.deleteInterceptor(interceptor1.getName());
 
@@ -209,7 +209,7 @@ public abstract class ModelHistoryFunctionalTest {
 
         // update model
         modelDto.setSource(new AdapterSourceDto(adapter2.getName(), "/chat/completions"));
-        modelFacade.updateModel(modelDto.getName(), modelDto);
+        modelFacade.updateModel(modelDto.getName(), modelDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);

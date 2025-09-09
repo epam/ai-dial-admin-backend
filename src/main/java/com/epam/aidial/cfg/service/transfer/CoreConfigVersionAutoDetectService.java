@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.transfer;
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.utils.CoreConfigVersionNormalizer;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +62,7 @@ public class CoreConfigVersionAutoDetectService {
 
     private String getVersionFromCore() {
         log.debug("Attempting to get version from Core");
-        String version = coreConfigClient.getVersion();
+        String version = CoreConfigVersionNormalizer.normalizeCoreVersion(coreConfigClient.getVersion());
         log.info("Successfully retrieved Core version: {}", version);
         return version;
     }

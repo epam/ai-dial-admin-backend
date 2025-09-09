@@ -129,7 +129,7 @@ public abstract class InterceptorFunctionalTest {
                 .containsExactlyInAnyOrderElementsOf(List.of("model1", "model2"));
 
         modelDto1.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor1"));
-        modelFacade.updateModel(modelDto1.getName(), modelDto1);
+        modelFacade.updateModel(modelDto1.getName(), modelDto1, "*");
 
         actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
         org.assertj.core.api.Assertions.assertThat(actualInterceptor.getEntities())

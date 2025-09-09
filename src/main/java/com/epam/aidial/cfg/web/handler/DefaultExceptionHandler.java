@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -141,6 +142,14 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(FolderNotFoundException.class)
     public ErrorView handleFolderNotFoundError(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
+    @ExceptionHandler(OptimisticLockConflictException.class)
+    public ErrorView handlePreconditionFailedException(OptimisticLockConflictException ex,
+                                                       HttpServletRequest req) {
+        return new ErrorView(req, HttpStatus.PRECONDITION_FAILED, ex.getMessage());
     }
 
 }
