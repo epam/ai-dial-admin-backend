@@ -1,0 +1,50 @@
+[
+  {
+    "role": "role1",
+    "deploymentName": "deployment1",
+    "limit": {
+      "maxAcceptedUsers": null,
+      "invitationTtl": null
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment2",
+    "limit": {
+      "maxAcceptedUsers": 5,
+      "invitationTtl": null
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment3",
+    "limit": {
+      "maxAcceptedUsers": 2147483647,
+      "invitationTtl": 9223372036854775807
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment4",
+    "limit": {
+      "maxAcceptedUsers": null,
+      "invitationTtl": null
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment5",
+    "limit": {
+      "maxAcceptedUsers": 5,
+      "invitationTtl": null
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "deployment6",
+    "limit": {
+      "maxAcceptedUsers": 2147483647,
+      "invitationTtl": null
+    }
+  }
+]
