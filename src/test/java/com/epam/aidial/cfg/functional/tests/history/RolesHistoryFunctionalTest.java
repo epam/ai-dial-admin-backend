@@ -63,7 +63,7 @@ public abstract class RolesHistoryFunctionalTest {
         updatedRole.setLimits(Map.of("model1", limit1, "model2", limit2));
         updatedRole.setShare(Map.of("model1", shareResourceLimit1, "model2", shareResourceLimit2));
         updatedRole.setGrantedKeys(List.of("key1", "key2"));
-        roleFacade.updateRole(roleDto.getName(), updatedRole);
+        roleFacade.updateRole(roleDto.getName(), updatedRole, "*");
 
         // verify role1
         RoleDto actual = roleFacade.getRole(roleDto.getName());
@@ -81,7 +81,7 @@ public abstract class RolesHistoryFunctionalTest {
         updatedRole = roleFacade.getRole(roleDto.getName());
         updatedRole.setDescription("new new role description");
         updatedRole.setGrantedKeys(List.of("key2", "key3"));
-        roleFacade.updateRole(roleDto.getName(), updatedRole);
+        roleFacade.updateRole(roleDto.getName(), updatedRole, "*");
 
         keyFacade.deleteKey("key1");
         // delete role 1
@@ -144,7 +144,7 @@ public abstract class RolesHistoryFunctionalTest {
         updatedRole.setLimits(Map.of("model1", limit1, "model2", limit2));
         updatedRole.setShare(Map.of("model1", shareResourceLimit1, "model2", shareResourceLimit2));
         updatedRole.setGrantedKeys(List.of("key1", "key2"));
-        roleFacade.updateRole(roleDto.getName(), updatedRole);
+        roleFacade.updateRole(roleDto.getName(), updatedRole, "*");
 
         // verify role1
         RoleDto actual = roleFacade.getRole(roleDto.getName());
@@ -164,7 +164,7 @@ public abstract class RolesHistoryFunctionalTest {
         updatedRole.setShare(Map.of("model1", shareResourceLimit1, "model2", shareResourceLimit2));
         updatedRole.setDescription("new new role description");
         updatedRole.setGrantedKeys(List.of("key2", "key3"));
-        roleFacade.updateRole(roleDto.getName(), updatedRole);
+        roleFacade.updateRole(roleDto.getName(), updatedRole, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);

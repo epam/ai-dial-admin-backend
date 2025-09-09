@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.dto.AdapterDto;
-import com.epam.aidial.cfg.dto.AddonDto;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.web.facade.mapper.AdapterDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,16 +33,23 @@ public class AdapterFacade {
         return mapper.toDto(adapter);
     }
 
+    public DtoWithDomainHash<AdapterDto> getAdapterWithHash(String adapterName) {
+        var modelWithHash = adapterService.getAdapterWithHash(adapterName);
+        AdapterDto dto = mapper.toDto(modelWithHash.model());
+        return new DtoWithDomainHash<>(dto, modelWithHash.hash());
+    }
+
     public void createAdapter(AdapterDto adapterDto) {
         Optional.of(adapterDto)
                 .map(mapper::toDomain)
                 .ifPresent(adapterService::create);
     }
 
-    public void updateAdapter(String adapterName,
-                              AdapterDto adapterDto) {
+    public String updateAdapter(String adapterName,
+                                AdapterDto adapterDto,
+                                String hash) {
         Adapter value = mapper.toDomain(adapterDto);
-        adapterService.update(adapterName, value);
+        return adapterService.update(adapterName, value, hash);
     }
 
     public void deleteAdapter(String adapterName) {

@@ -56,7 +56,7 @@ public abstract class ToolSetHistoryFunctionalTest {
         ToolSetDto updatedToolSet = createDto("1");
         updatedToolSet.setDescription("New ToolSet description");
         updatedToolSet.setEndpoint("endpoint2");
-        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         // 3. Verify ToolSet1
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
@@ -72,7 +72,7 @@ public abstract class ToolSetHistoryFunctionalTest {
         updatedToolSet.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedToolSet.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         updatedToolSet.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
-        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         assertToolSet(actual, updatedToolSet);
 
@@ -83,7 +83,7 @@ public abstract class ToolSetHistoryFunctionalTest {
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedToolSet.setRoleLimits(Map.of("role3", limitDto));
         updatedToolSet.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
-        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
         var actualAtOldRevision = toolSetFacade.getAllToolSets();
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         assertToolSet(actual, updatedToolSet);

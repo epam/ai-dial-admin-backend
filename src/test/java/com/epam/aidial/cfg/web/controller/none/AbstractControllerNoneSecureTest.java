@@ -13,6 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
     SecurityPackage.class,
 })
 public abstract class AbstractControllerNoneSecureTest {
+    protected static final String HEADER_ETAG = "eTag";
+    protected static final String HEADER_IF_NONE_MATCH = "If-None-Match";
+    protected static final String HEADER_MATCH = "If-Match";
 
     @Autowired
     protected MockMvc mockMvc;

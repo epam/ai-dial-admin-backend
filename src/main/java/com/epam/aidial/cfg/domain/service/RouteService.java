@@ -3,10 +3,14 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,8 +19,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @Service("coreRouteService")
 @RequiredArgsConstructor
+@Slf4j
 public class RouteService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Route with name %s does not exist";
@@ -26,6 +33,7 @@ public class RouteService {
     private final DeploymentService deploymentService;
     private final RouteValidator routeValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Route> getAll() {
@@ -38,6 +46,12 @@ public class RouteService {
     public Route get(String routeName) {
         return tryGetRoute(routeName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<Route> getRouteWithHash(String routeName) {
+        var route = get(routeName);
+        return new DomainObjectWithHash<>(route, calculator.calculateHash(route));
     }
 
     @Transactional(readOnly = true)
@@ -59,13 +73,38 @@ public class RouteService {
 
     @Transactional
     public void update(String routeName, Route value) {
+        performUpdate(routeName, value, ANY_HASH);
+    }
+
+    @Transactional
+    public String update(String routeName, Route value, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+        }
+        var savedModel = performUpdate(routeName, value, hash);
+        return calculator.calculateHash(mapper.toDomain(savedModel));
+    }
+
+    private RouteEntity performUpdate(String routeName, Route value, String hash) {
         routeValidator.validateUpdate(routeName, value);
         RouteEntity routeEntity = routeJpaRepository.findById(routeName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
-        Optional.of(value)
-                .map(domainModel -> mapper.toEntity(domainModel, routeEntity))
-                .map(routeJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("Unable to update route " + value.getDeployment().getName()));
+        assertNotConcurrencyOverwrite(routeEntity, hash);
+        return routeJpaRepository.save(mapper.toEntity(value, routeEntity));
+    }
+
+    private void assertNotConcurrencyOverwrite(RouteEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: routeName={}, expectedHash={}, currentHash={}",
+                    entity.getDeployment().getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException("Optimistic lock conflict on update routeName:'"
+                    + entity.getDeployment().getName() + "'. Reload the data.");
+        }
     }
 
     @Transactional

@@ -4,12 +4,16 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,9 +21,12 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @Service
 @LogExecution
 @RequiredArgsConstructor
+@Slf4j
 public class ToolSetService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "ToolSet with name %s does not exist";
@@ -31,6 +38,7 @@ public class ToolSetService {
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
     private final ToolDiscoveryService toolDiscoveryService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
@@ -43,6 +51,12 @@ public class ToolSetService {
     public ToolSet get(String toolSetName) {
         return tryGetToolSet(toolSetName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<ToolSet> getToolSetWithHash(String toolSetName) {
+        var toolSet = get(toolSetName);
+        return new DomainObjectWithHash<>(toolSet, calculator.calculateHash(toolSet));
     }
 
     @Transactional(readOnly = true)
@@ -65,14 +79,40 @@ public class ToolSetService {
 
     @Transactional
     public void update(String toolSetName, ToolSet value) {
+        performUpdate(toolSetName, value, ANY_HASH);
+    }
+
+    @Transactional
+    public String update(String toolSetName, ToolSet value, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+        }
+        var savedModel = performUpdate(toolSetName, value, hash);
+        return calculator.calculateHash(mapper.toDomain(savedModel));
+    }
+
+    private ToolSetEntity performUpdate(String toolSetName, ToolSet value, String hash) {
         toolSetNormalizer.normalize(value);
         toolSetValidator.validateUpdate(toolSetName, value);
         ToolSetEntity toolSetEntity = toolSetJpaRepository.findById(toolSetName)
-                    .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
-        Optional.of(value)
-                    .map(domainModel -> mapper.toEntity(domainModel, toolSetEntity))
-                    .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to update ToolSet " + value.getDeployment().getName()));
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
+
+        assertNotConcurrencyOverwrite(toolSetEntity, hash);
+        return toolSetJpaRepository.save(mapper.toEntity(value, toolSetEntity));
+    }
+
+    private void assertNotConcurrencyOverwrite(ToolSetEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: toolSetName={}, expectedHash={}, currentHash={}",
+                    entity.getDeployment().getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException("Optimistic lock conflict on update: toolSetName:'"
+                    + entity.getDeployment().getName() + "'. Reload the data.");
+        }
     }
 
     @Transactional

@@ -6,9 +6,12 @@ import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AdapterEntityMapper;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.validator.AdapterValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
@@ -19,6 +22,8 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @Service("coreAdapterService")
 @RequiredArgsConstructor
@@ -31,6 +36,7 @@ public class AdapterService {
     private final AdapterEntityMapper mapper;
     private final AdapterValidator adapterValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Adapter> getAll() {
@@ -45,6 +51,12 @@ public class AdapterService {
                 .flatMap(adapterJpaRepository::findById)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(adapterName)));
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<Adapter> getAdapterWithHash(String adapterName) {
+        var adapter = get(adapterName);
+        return new DomainObjectWithHash<>(adapter, calculator.calculateHash(adapter));
     }
 
     @Transactional(readOnly = true)
@@ -68,13 +80,25 @@ public class AdapterService {
 
     @Transactional
     public void update(String adapterName, Adapter adapter) {
+        performUpdate(adapterName, adapter, ANY_HASH);
+    }
+
+    @Transactional
+    public String update(String adapterName, Adapter adapter, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+        }
+        var savedModel = performUpdate(adapterName, adapter, hash);
+        return calculator.calculateHash(mapper.toDomain(savedModel));
+    }
+
+    private AdapterEntity performUpdate(String adapterName, Adapter adapter, String hash) {
         adapterValidator.validateUpdate(adapterName, adapter);
         AdapterEntity adapterEntity = adapterJpaRepository.findById(adapterName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(adapterName)));
-        Optional.of(adapter)
-                .map(domainModel -> mapper.toEntity(domainModel, adapterEntity))
-                .map(adapterJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("Unable to update adapter " + adapter.getName()));
+        assertNotConcurrencyOverwrite(adapterEntity, hash);
+        return adapterJpaRepository.save(mapper.toEntity(adapter, adapterEntity));
     }
 
     @Transactional
@@ -100,6 +124,19 @@ public class AdapterService {
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    private void assertNotConcurrencyOverwrite(AdapterEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: adapterName={}, expectedHash={}, currentHash={}",
+                    entity.getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException("Optimistic lock conflict on update: adapterName:'"
+                    + entity.getName() + "'. Reload the data.");
+        }
     }
 
     private void assertExists(String name) {

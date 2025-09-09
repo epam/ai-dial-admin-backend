@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import io.modelcontextprotocol.client.McpSyncClient;
@@ -104,7 +105,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto updatedToolSet = createDto("1");
         updatedToolSet.setDescription("New ToolSet description");
 
-        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
@@ -123,9 +124,35 @@ public abstract class ToolSetFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet)
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*")
         );
         Assertions.assertEquals("ToolSet with name: 'ToolSet1' can not be renamed. New name: 'ToolSet2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenToolSetConcurrencyOverwrite() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), toolSetDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: toolSetName:'ToolSet1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), toolSetDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+                exception.getMessage());
     }
 
     private ToolSetDto createDto(String suffix) {

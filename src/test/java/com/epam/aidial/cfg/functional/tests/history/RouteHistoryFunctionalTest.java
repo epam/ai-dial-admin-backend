@@ -54,7 +54,7 @@ public abstract class RouteHistoryFunctionalTest {
         // 2 update route1 description
         RouteDto updatedRoute = createDto("1");
         updatedRoute.setDescription("new route description");
-        routeFacade.updateRoute(routeDto.getName(), updatedRoute);
+        routeFacade.updateRoute(routeDto.getName(), updatedRoute, "*");
 
         // verify route1
         RouteDto actual = routeFacade.getRoute(routeDto.getName());
@@ -73,7 +73,7 @@ public abstract class RouteHistoryFunctionalTest {
         updatedRoute.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         updatedRoute.setUpstreams(List.of());
         updatedRoute.setOrder(Integer.MAX_VALUE);
-        routeFacade.updateRoute(routeDto.getName(), updatedRoute);
+        routeFacade.updateRoute(routeDto.getName(), updatedRoute, "*");
         actual = routeFacade.getRoute(routeDto.getName());
         assertRoute(actual, updatedRoute);
 
@@ -84,7 +84,7 @@ public abstract class RouteHistoryFunctionalTest {
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedRoute.setRoleLimits(Map.of("role3", limitDto));
         updatedRoute.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
-        routeFacade.updateRoute(routeDto.getName(), updatedRoute);
+        routeFacade.updateRoute(routeDto.getName(), updatedRoute, "*");
         var actualAtRevision = routeFacade.getRoute(routeDto.getName());
         assertRoute(actualAtRevision, updatedRoute);
 

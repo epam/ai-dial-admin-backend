@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import org.junit.jupiter.api.Assertions;
@@ -60,7 +61,7 @@ public abstract class AdapterFunctionalTest {
         AdapterDto updatedAdapter = createDto("1");
         updatedAdapter.setBaseEndpoint("new adapter endpoint");
 
-        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter);
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*");
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
         var expected = createDto("1");
@@ -75,7 +76,8 @@ public abstract class AdapterFunctionalTest {
         AdapterDto updatedAdapter = createDto("2");
         updatedAdapter.setBaseEndpoint("new adapter endpoint");
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*"));
     }
 
     @Test
@@ -148,7 +150,7 @@ public abstract class AdapterFunctionalTest {
         // add model to adapter
         adapterDto1.setModels(List.of("model1"));
 
-        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1);
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel1 = modelFacade.getModel(model1.getName());
 
@@ -170,7 +172,7 @@ public abstract class AdapterFunctionalTest {
         // remove model from adapter
         adapterDto1.setModels(List.of());
 
-        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1);
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
         AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel2 = modelFacade.getModel(model1.getName());
 
@@ -185,6 +187,32 @@ public abstract class AdapterFunctionalTest {
         expectedModel2.setDefaultRoleLimit(new LimitDto());
         expectedModel2.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         Assertions.assertEquals(expectedModel2, actualModel2);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenAdapterConcurrencyOverwrite() {
+        AdapterDto adapterDto = createDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: adapterName:'adapter1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        AdapterDto adapterDto = createDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+                exception.getMessage());
     }
 
     private AdapterDto createDto(String suffix) {
