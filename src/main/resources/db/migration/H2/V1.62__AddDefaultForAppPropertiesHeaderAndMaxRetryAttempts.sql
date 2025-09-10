@@ -1,6 +1,7 @@
 -- Update application_type_schema_entity
 UPDATE application_type_schema_entity SET append_application_properties_header = true WHERE append_application_properties_header IS NULL;
 ALTER TABLE application_type_schema_entity ALTER COLUMN append_application_properties_header SET DEFAULT true;
+ALTER TABLE application_type_schema_entity ALTER COLUMN append_application_properties_header SET NOT NULL;
 
 -- Update application_type_schema_entity_aud
 UPDATE application_type_schema_entity_aud SET append_application_properties_header = true WHERE append_application_properties_header IS NULL AND revtype != 2;

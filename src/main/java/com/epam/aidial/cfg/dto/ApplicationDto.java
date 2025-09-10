@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -35,7 +35,7 @@ public class ApplicationDto extends RoleBasedDto {
     private Map<String, Object> defaults;
     private List<String> interceptors;
     private List<String> topics;
-    @Min(value = 1, message = "Max retry attempts should be greater than 0")
+    @Positive(message = "Max retry attempts should be greater than 0")
     private Integer maxRetryAttempts;
     private String author;
     @EqualsAndHashCode.Exclude
