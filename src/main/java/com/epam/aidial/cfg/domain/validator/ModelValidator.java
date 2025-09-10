@@ -78,15 +78,15 @@ public class ModelValidator {
 
     private void validateModelSource(Model model) {
         ModelSource source = model.getSource();
-        String endpoint = model.getEndpoint();
+        String modelName = model.getDeployment().getName();
 
         if (source != null) {
             if (source instanceof ModelEndpointsSource) {
-                validateEndpointsSource(endpoint);
+                validateEndpointsSource(model);
             } else if (source instanceof AdapterSource adapterSource) {
-                validateAdapterSource(adapterSource, model.getType());
+                validateAdapterSource(adapterSource, model);
             } else if (source instanceof ModelContainerSource containerSource) {
-                validateContainerSource(containerSource);
+                validateContainerSource(containerSource, modelName);
             } else {
                 throw new IllegalArgumentException(
                     "Unsupported model source: %s. Model: %s".formatted(source, model.getDeployment().getName())
@@ -95,19 +95,26 @@ public class ModelValidator {
             return;
         }
 
-        validateEndpoint(endpoint);
+        validateEndpoint(model.getEndpoint(), modelName);
     }
 
-    private void validateEndpointsSource(String completionEndpoint) {
+    private void validateEndpointsSource(Model model) {
+        String name = model.getDeployment().getName();
+        String completionEndpoint = model.getEndpoint();
         if (completionEndpoint == null) {
-            throw new IllegalArgumentException("Completion endpoint is required when source type is 'Model endpoints'");
+            throw new IllegalArgumentException("Completion endpoint is required when source type is 'Model endpoints'. Model: %s"
+                    .formatted(model.getDeployment().getName()));
         }
-        validateEndpoint(completionEndpoint);
+        validateEndpoint(completionEndpoint, name);
     }
 
-    private void validateAdapterSource(AdapterSource adapterSource, ModelType type) {
+    private void validateAdapterSource(AdapterSource adapterSource, Model model) {
+        ModelType type = model.getType();
+        String name = model.getDeployment().getName();
+
         if (StringUtils.isBlank(adapterSource.getAdapterName())) {
-            throw new IllegalArgumentException("Adapter name is required when source type is 'Adapter'");
+            throw new IllegalArgumentException("Adapter name is required when source type is 'Adapter'. Model: %s"
+                    .formatted(name));
         }
 
         boolean isChat = modelEndpointUtils.isChat(type);
@@ -115,28 +122,28 @@ public class ModelValidator {
         String completionEndpointPath = adapterSource.getCompletionEndpointPath();
 
         if (completionEndpointPath == null || !completionEndpointPath.endsWith(endpointEnding)) {
-            throw new IllegalArgumentException("Completion endpoint path should be provided and end with '%s' when model type is '%s'"
-                    .formatted(endpointEnding, type));
+            throw new IllegalArgumentException("Completion endpoint path should be provided and end with '%s' when model type is '%s'. Model: %s"
+                    .formatted(endpointEnding, type, name));
         }
     }
 
-    private void validateContainerSource(ModelContainerSource containerSource) {
+    private void validateContainerSource(ModelContainerSource containerSource, String modelName) {
         String containerId = containerSource.getContainerId();
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
 
-        validateEndpointPath(containerSource.getCompletionEndpointPath());
+        validateEndpointPath(containerSource.getCompletionEndpointPath(), modelName);
     }
 
-    private void validateEndpoint(String endpoint) {
+    private void validateEndpoint(String endpoint, String modelName) {
         if (endpoint != null && EndpointValidator.isInvalidUrl(endpoint)) {
-            throw new IllegalArgumentException("Invalid completion endpoint: '%s'".formatted(endpoint));
+            throw new IllegalArgumentException("Invalid completion endpoint: '%s'. Model: %s".formatted(endpoint, modelName));
         }
     }
 
-    private void validateEndpointPath(String endpoint) {
+    private void validateEndpointPath(String endpoint, String modelName) {
         if (endpoint != null && EndpointValidator.isInvalidUrlPath(endpoint)) {
-            throw new IllegalArgumentException("Invalid completion endpoint path: '%s'".formatted(endpoint));
+            throw new IllegalArgumentException("Invalid completion endpoint path: '%s'. Model: %s".formatted(endpoint, modelName));
         }
     }
 }
