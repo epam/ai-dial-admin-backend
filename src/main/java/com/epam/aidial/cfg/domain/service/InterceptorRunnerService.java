@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorRunnerJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.InterceptorRunnerEntityMapper;
+import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.domain.model.InterceptorRunner;
@@ -123,7 +124,11 @@ public class InterceptorRunnerService {
         interceptors.forEach(interceptor -> {
             interceptor.setInterceptorRunner(null);
             interceptor.setEndpoint(interceptorRunnerEntity.getCompletionEndpoint());
-            interceptor.setConfigurationEndpoint(interceptorRunnerEntity.getConfigurationEndpoint());
+
+            if (interceptor.getFeatures() == null) {
+                interceptor.setFeatures(new FeaturesEntity());
+            }
+            interceptor.getFeatures().setConfigurationEndpoint(interceptorRunnerEntity.getConfigurationEndpoint());
         });
         interceptorRunnerJpaRepository.delete(interceptorRunnerEntity);
     }

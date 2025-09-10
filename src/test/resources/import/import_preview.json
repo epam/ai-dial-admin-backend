@@ -126,7 +126,23 @@
         "endpoint": "https://endpoint.test.com/interceptor",
         "forwardAuthToken": false,
         "author": "test-author",
-        "dependencies": []
+        "dependencies": [],
+        "defaults": {
+          "defaults_key": "defaults_value"
+        },
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": true,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": true,
+          "parallelToolCallsSupported": true
+        }
       }
     }
   ],
