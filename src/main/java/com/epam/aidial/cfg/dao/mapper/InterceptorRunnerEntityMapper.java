@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
+import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.domain.model.InterceptorRunner;
@@ -39,15 +40,20 @@ public abstract class InterceptorRunnerEntityMapper {
         InterceptorRunnerEntity updatedEntity = update(domain, entity);
 
         if (shouldUpdateInterceptors) {
-            updatedEntity.getInterceptors().forEach(app -> {
-                app.setInterceptorRunner(null);
-                app.setEndpoint(updatedEntity.getCompletionEndpoint());
-                app.setConfigurationEndpoint(updatedEntity.getConfigurationEndpoint());
+            updatedEntity.getInterceptors().forEach(interceptor -> {
+                interceptor.setInterceptorRunner(null);
+                interceptor.setEndpoint(updatedEntity.getCompletionEndpoint());
+                if (interceptor.getFeatures() == null) {
+                    interceptor.setFeatures(new FeaturesEntity());
+                }
+                interceptor.getFeatures().setConfigurationEndpoint(updatedEntity.getConfigurationEndpoint());
             });
-            interceptors.forEach(app -> {
-                app.setInterceptorRunner(updatedEntity);
-                app.setEndpoint(null);
-                app.setConfigurationEndpoint(null);
+            interceptors.forEach(interceptor -> {
+                interceptor.setInterceptorRunner(updatedEntity);
+                interceptor.setEndpoint(null);
+                if (interceptor.getFeatures() != null) {
+                    interceptor.getFeatures().setConfigurationEndpoint(null);
+                }
             });
             updatedEntity.getInterceptors().clear();
             updatedEntity.getInterceptors().addAll(interceptors);

@@ -3,8 +3,10 @@ package com.epam.aidial.cfg.service.transfer.exporter;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
+import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -27,27 +29,28 @@ import java.util.stream.Collectors;
 public class InterceptorExporter {
 
     private final InterceptorService interceptorService;
+    private final InterceptorRunnerService interceptorRunnerService;
 
     protected Map<String, Interceptor> getInterceptors(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.INTERCEPTOR)
-                    ? getInterceptorsWithRemovedDependencies(fullExportRequest.getComponentTypes()).stream()
+                    ? getInterceptorsWithRemovedDependencies(fullExportRequest.getComponentTypes(), request.getExportFormat()).stream()
                     .collect(Collectors.toMap(Interceptor::getName, Function.identity()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getInterceptorsWithRemovedDependencies(selectedItemsExportRequest.getComponents()).stream()
+            return getInterceptorsWithRemovedDependencies(selectedItemsExportRequest.getComponents(), request.getExportFormat()).stream()
                     .collect(Collectors.toMap(Interceptor::getName, Function.identity()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
-    private Collection<Interceptor> getInterceptorsWithRemovedDependencies(Set<ExportConfigComponentType> componentTypes) {
+    private Collection<Interceptor> getInterceptorsWithRemovedDependencies(Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
         return interceptorService.getAll().stream()
-            .map(interceptor -> removeDependency(interceptor, componentTypes))
+            .map(interceptor -> removeDependencies(interceptor, componentTypes, exportFormat))
             .toList();
     }
 
-    private List<Interceptor> getInterceptorsWithRemovedDependencies(List<ExportConfigComponent> components) {
+    private List<Interceptor> getInterceptorsWithRemovedDependencies(List<ExportConfigComponent> components, ExportFormat exportFormat) {
         return components.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.INTERCEPTOR)
                 .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
@@ -59,17 +62,21 @@ public class InterceptorExporter {
                 .stream()
                 .map(component -> {
                     Interceptor interceptor = interceptorService.get(component.getName());
-                    return removeDependency(interceptor, component.getDependencies());
+                    return removeDependencies(interceptor, component.getDependencies(), exportFormat);
                 })
                 .toList();
     }
 
-    private Interceptor removeDependency(Interceptor interceptor, Set<ExportConfigComponentType> componentTypes) {
-        if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR_RUNNER)
-                && interceptor.getSource() != null
-                && interceptor.getSource() instanceof InterceptorRunnerSource
-        ) {
-            interceptor.setSource(null);
+    private Interceptor removeDependencies(Interceptor interceptor, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
+        if (interceptor.getSource() != null && interceptor.getSource() instanceof InterceptorRunnerSource runnerSource) {
+            if (exportFormat == ExportFormat.CORE) {
+                var interceptorRunner = interceptorRunnerService.get(runnerSource.getRunnerName());
+                interceptor.setEndpoint(interceptorRunner.getCompletionEndpoint());
+                interceptor.getFeatures().setConfigurationEndpoint(interceptorRunner.getConfigurationEndpoint());
+            }
+            if (exportFormat == ExportFormat.CORE || !componentTypes.contains(ExportConfigComponentType.INTERCEPTOR_RUNNER)) {
+                interceptor.setSource(null);
+            }
         }
         interceptor.setEntities(null);
         return interceptor;

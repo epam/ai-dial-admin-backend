@@ -209,8 +209,10 @@ public abstract class ConfigTransferFunctionalTest {
         });
 
         Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
-        Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
-                Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i -> {
+            Assertions.assertThat(i.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
+            Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
+        });
 
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
         Assertions.assertThat(allKeys).hasSize(2).allSatisfy(key ->
@@ -418,27 +420,47 @@ public abstract class ConfigTransferFunctionalTest {
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
         request.setComponentTypes(componentTypes);
+
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptorName");
-        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
+
+        InterceptorRunnerDto runnerDto = new InterceptorRunnerDto();
+        runnerDto.setName("someRunner");
+        runnerDto.setCompletionEndpoint("https://endpoint.test.com/api");
+        runnerDto.setConfigurationEndpoint("https://endpoint.test.com/config");
+
+        InterceptorRunnerSourceDto runnerSource = new InterceptorRunnerSourceDto("someRunner");
+        interceptorDto.setSource(runnerSource);
+
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
+
+        interceptorRunnerFacade.createInterceptorRunner(runnerDto);
         interceptorFacade.createInterceptor(interceptorDto);
         modelFacade.createModel(modelDto);
+
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
         // then
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         streamingResponseBody.writeTo(outputStream);
 
         Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
             Assertions.assertThat(config.getModels()).isNotEmpty()
                     .containsOnlyKeys("modelName")
                     .satisfies(models ->
                             Assertions.assertThat(models.get("modelName").getInterceptors()).containsExactlyInAnyOrder("interceptorName"));
-            Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty()
+                    .containsOnlyKeys("interceptorName")
+                    .satisfies(interceptors -> {
+                        var interceptor = interceptors.get("interceptorName");
+                        Assertions.assertThat(interceptor.getEndpoint()).isEqualTo("https://endpoint.test.com/api");
+                        Assertions.assertThat(interceptor.getFeatures().getConfigurationEndpoint()).isEqualTo("https://endpoint.test.com/config");
+                    });
             Assertions.assertThat(result.getApplications()).isEmpty();
         });
     }
@@ -1814,43 +1836,42 @@ public abstract class ConfigTransferFunctionalTest {
     @Test
     void testExportCoreConfig_VersionFiltering() throws IOException {
         // given
-        var modelName = "versionTestModel";
-        var interceptorName = "versionTestInterceptor";
-        var endpoint = "https://endpoint.test.com/interceptor";
+        String routeName = "versionTestRoute";
+        int order = 5;
 
-        var interceptorDto = new InterceptorDto();
-        interceptorDto.setName(interceptorName);
-        interceptorDto.setEndpoint(endpoint);
-        interceptorDto.setConfigurationEndpoint("https://endpoint.test.com/interceptor/conf");
+        var routeDto = new RouteDto();
+        routeDto.setName(routeName);
+        routeDto.setOrder(order);
 
-        var modelDto = new ModelDto();
-        modelDto.setName(modelName);
-        modelDto.setInterceptors(List.of("versionTestInterceptor"));
-
-        interceptorFacade.createInterceptor(interceptorDto);
-        modelFacade.createModel(modelDto);
+        routeFacade.createRoute(routeDto);
 
         var request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.INTERCEPTOR));
+        request.setComponentTypes(Set.of(ExportConfigComponentType.ROUTE));
 
-        // when
-        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget("0.30.0");
 
-        // then
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        streamingResponseBody.writeTo(outputStream);
+        try {
+            // when
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
 
-        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+            // then
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
 
-        Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getModels()).containsKey(modelName);
-        Assertions.assertThat(result.getInterceptors()).containsKey(interceptorName);
+            Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
 
-        // this verifies versioning works correctly, since configuration endpoint is not present in schema v0.30.0
-        var exportedInterceptor = result.getInterceptors().get(interceptorName);
-        Assertions.assertThat(exportedInterceptor.getEndpoint()).isEqualTo(endpoint);
-        Assertions.assertThat(exportedInterceptor.getConfigurationEndpoint()).isNull();
+            Assertions.assertThat(result).isNotNull();
+            Assertions.assertThat(result.getRoutes()).containsKey(routeName);
+
+            // this verifies versioning works correctly, since 'order' is not present in Route in v0.30.0
+            var exportedRoute = result.getRoutes().get(routeName);
+            Assertions.assertThat(exportedRoute.getOrder()).isNotEqualTo(order);
+
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
     }
 
     @Test

@@ -1,11 +1,11 @@
 package com.epam.aidial.cfg.dao.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PreRemove;
@@ -33,7 +33,12 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     private Boolean forwardAuthToken;
     private String author;
     private List<String> dependencies;
-    private String configurationEndpoint;
+
+    @Column(columnDefinition = "CLOB")
+    private String defaults;
+
+    @Embedded
+    private FeaturesEntity features;
 
     @Embedded
     private InterceptorContainerEntity interceptorContainer;

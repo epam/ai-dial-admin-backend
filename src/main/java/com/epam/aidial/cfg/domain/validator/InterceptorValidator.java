@@ -71,7 +71,9 @@ public class InterceptorValidator {
         InterceptorSource source = interceptor.getSource();
         String interceptorName = interceptor.getName();
         String endpoint = interceptor.getEndpoint();
-        String configurationEndpoint = interceptor.getConfigurationEndpoint();
+        String configurationEndpoint = interceptor.getFeatures() != null
+                ? interceptor.getFeatures().getConfigurationEndpoint()
+                : null;
 
         if (source != null) {
             if (source instanceof InterceptorEndpointsSource) {

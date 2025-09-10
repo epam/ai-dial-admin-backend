@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class InterceptorDto {
@@ -20,11 +21,12 @@ public class InterceptorDto {
     private Boolean forwardAuthToken;
     private List<String> entities;
     private InterceptorSourceDto source;
-    private String configurationEndpoint;
     private String author;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> dependencies;
+    private Map<String, Object> defaults;
+    private FeaturesDto features = new FeaturesDto();
 }

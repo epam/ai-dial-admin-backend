@@ -50,12 +50,14 @@ public abstract class InterceptorHistoryFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("new interceptor description");
         expected.setSource(new InterceptorEndpointsSourceDto());
+        expected.setDefaults(Map.of());
         assertInterceptor(actual, expected);
 
         var actualAtRevision = actual;
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
         updatedInterceptor.setDescription("new new interceptor description");
+        updatedInterceptor.setDefaults(Map.of("key1", "val1"));
         interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor);
 
         // delete interceptor 1
