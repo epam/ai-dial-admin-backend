@@ -152,7 +152,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         );
 
         Assertions.assertEquals(
-                "InterceptorRunner with name: 'interceptorRunner1' can not be renamed. New interceptor runner name: 'interceptorRunner2'",
+                "Interceptor runner with name: 'interceptorRunner1' can not be renamed. New interceptor runner name: 'interceptorRunner2'",
                 exception.getMessage()
         );
     }

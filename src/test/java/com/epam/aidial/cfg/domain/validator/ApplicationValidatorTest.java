@@ -66,7 +66,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid endpoint: '" + endpoint + "'");
+                .hasMessage("Invalid endpoint: '" + endpoint + "'. Application: text");
 
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
     }
@@ -83,13 +83,13 @@ class ApplicationValidatorTest {
         application.setEndpoint(endpoint);
         application.setApplicationTypeSchemaId(applicationTypeSchemaId);
 
-        Deployment deployment = new Deployment("text");
+        Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Missing endpoint and application type schema id. Only one of them should be specified");
+                .hasMessage("Missing endpoint and application type schema id. Only one of them should be specified. Application: deploymentName");
 
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
     }
@@ -102,13 +102,14 @@ class ApplicationValidatorTest {
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setApplicationTypeSchemaId(URI.create("https://test.com"));
-        Deployment deployment = new Deployment("text");
+        Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. Only one of them should be specified");
+                .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. "
+                        + "Only one of them should be specified. Application: deploymentName");
     }
 
     @Test
@@ -136,17 +137,18 @@ class ApplicationValidatorTest {
     @CsvSource({"''", "' '"})
     void validateUpdate_shouldThrowExceptionWhenEndpointIsNotNullButBlank(String endpoint) {
         // given
-        String deploymentName = "deploymentName";
-
         Application application = new Application();
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
 
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
         // then
-        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deployment.getName(), application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid endpoint: '" + endpoint + "'");
+                .hasMessage("Invalid endpoint: '" + endpoint + "'. Application: deploymentName");
 
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
     }
@@ -158,7 +160,10 @@ class ApplicationValidatorTest {
         URI applicationTypeSchemaId = applicationTypeSchemaIdAsString != null ? URI.create(applicationTypeSchemaIdAsString) : null;
         String deploymentName = "deploymentName";
 
+        Deployment deployment = new Deployment(deploymentName);
+
         Application application = new Application();
+        application.setDeployment(deployment);
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
@@ -167,24 +172,26 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Missing endpoint and application type schema id. Only one of them should be specified");
+                .hasMessage("Missing endpoint and application type schema id. Only one of them should be specified. Application: deploymentName");
     }
 
     @Test
     void validateUpdate_shouldThrowExceptionWhenEndpointAndApplicationTypeSchemaIdAreNotBlank() {
         // given
-        String deploymentName = "deploymentName";
-
         Application application = new Application();
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setApplicationTypeSchemaId(URI.create("https://test.com"));
 
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
         // then
-        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deployment.getName(), application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. Only one of them should be specified");
+                .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. "
+                        + "Only one of them should be specified. Application: deploymentName");
     }
 
     @ParameterizedTest
