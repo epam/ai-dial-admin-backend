@@ -58,7 +58,7 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @OrderColumn
     private List<InterceptorEntity> interceptors = new ArrayList<>();
     private List<String> topics;
-    private Integer maxRetryAttempts;
+    private int maxRetryAttempts = 1;
     private String author;
     private List<String> dependencies;
     private ModelTypeEntity type;

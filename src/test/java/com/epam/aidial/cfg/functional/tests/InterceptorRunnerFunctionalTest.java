@@ -104,7 +104,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         InterceptorDto detachedInterceptor = interceptorFacade.getInterceptor(interceptorDto.getName());
         Assertions.assertTrue(detachedInterceptor.getSource() instanceof InterceptorEndpointsSourceDto);
         Assertions.assertEquals(runnerDto.getCompletionEndpoint(), detachedInterceptor.getEndpoint());
-        Assertions.assertEquals(runnerDto.getConfigurationEndpoint(), detachedInterceptor.getConfigurationEndpoint());
+        Assertions.assertEquals(runnerDto.getConfigurationEndpoint(), detachedInterceptor.getFeatures().getConfigurationEndpoint());
     }
 
     @Test
@@ -152,7 +152,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         );
 
         Assertions.assertEquals(
-                "InterceptorRunner with name: 'interceptorRunner1' can not be renamed. New interceptor runner name: 'interceptorRunner2'",
+                "Interceptor runner with name: 'interceptorRunner1' can not be renamed. New interceptor runner name: 'interceptorRunner2'",
                 exception.getMessage()
         );
     }

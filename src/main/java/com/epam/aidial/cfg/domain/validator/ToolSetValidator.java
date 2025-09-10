@@ -45,7 +45,8 @@ public class ToolSetValidator {
     private void validateToolSetFields(ToolSet toolSet) {
         final String endpoint = toolSet.getEndpoint();
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
-            throw new IllegalArgumentException("Invalid endpoint: '" + endpoint + "'");
+            throw new IllegalArgumentException("Invalid endpoint: '%s'. ToolSet: %s"
+                    .formatted(endpoint, toolSet.getDeployment().getName()));
         }
     }
 

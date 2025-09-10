@@ -68,9 +68,11 @@ public abstract class ModelHistoryFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
+        expected.setMaxRetryAttempts(1);
         assertModel(actual, expected);
 
         // add roles to model1
+        updatedModel.setMaxRetryAttempts(3);
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
         updatedModel.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());

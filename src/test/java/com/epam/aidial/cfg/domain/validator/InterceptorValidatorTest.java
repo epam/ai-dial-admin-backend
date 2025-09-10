@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
@@ -94,14 +95,17 @@ class InterceptorValidatorTest {
     @Test
     void validateInterceptorSource_shouldThrowExceptionForInvalidConfigurationEndpoint() {
         // given
+        Features features = new Features();
+        features.setConfigurationEndpoint("invalid-url");
+
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setConfigurationEndpoint("invalid-url");
+        interceptor.setFeatures(features);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid configuration endpoint: 'invalid-url'");
+                .hasMessage("Invalid configuration endpoint: 'invalid-url'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -109,7 +113,6 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setConfigurationEndpoint(null);
         interceptor.setEndpoint(TEST_ENDPOINT);
 
         // when/then
@@ -127,7 +130,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Completion endpoint is required when source type is 'Interceptor endpoints'");
+                .hasMessage("Completion endpoint is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -141,7 +144,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid completion endpoint: 'invalid-url'");
+                .hasMessage("Invalid completion endpoint: 'invalid-url'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -154,7 +157,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Runner name is required when source type is 'Interceptor runner'");
+                .hasMessage("Runner name is required when source type is 'Interceptor runner'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -214,7 +217,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid completion endpoint path: 'invalid path with spaces'");
+                .hasMessage("Invalid completion endpoint path: 'invalid path with spaces'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -231,7 +234,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid configuration endpoint path: 'invalid path with spaces'");
+                .hasMessage("Invalid configuration endpoint path: 'invalid path with spaces'. Interceptor: test-interceptor");
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -19,6 +20,7 @@ public class ToolSetDto extends RoleBasedDto {
     private String description;
     private String displayName;
     private List<String> descriptionKeywords;
+    @Positive(message = "Max retry attempts should be greater than 0")
     private Integer maxRetryAttempts;
     private String author;
     @EqualsAndHashCode.Exclude
