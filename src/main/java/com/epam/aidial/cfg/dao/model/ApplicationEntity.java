@@ -47,7 +47,7 @@ public class ApplicationEntity extends TimeTrackableEntity<String> {
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private List<String> descriptionKeywords;
-    private Integer maxRetryAttempts;
+    private int maxRetryAttempts = 1;
     @Column(columnDefinition = "CLOB")
     private String defaults;
     @ToString.Exclude

@@ -77,9 +77,11 @@ public abstract class ApplicationHistoryFunctionalTest {
         expected.setInterceptors(List.of());
         expected.setEndpoint("endpoint2");
         expected.setRoutes(List.of());
+        expected.setMaxRetryAttempts(1);
         assertApplication(actual, expected);
 
         // 3 add roles to application1
+        updatedApplication.setMaxRetryAttempts(3);
         updatedApplication.setDefaultRoleLimit(new LimitDto());
         updatedApplication.setDefaultRoleShareResourceLimit(defaultShareResourceLimitDto);
         updatedApplication.setDefaults(Map.of());

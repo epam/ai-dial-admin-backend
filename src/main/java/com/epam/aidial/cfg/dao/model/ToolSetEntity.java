@@ -36,7 +36,7 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private String description;
     private String displayName;
     private List<String> descriptionKeywords;
-    private Integer maxRetryAttempts;
+    private int maxRetryAttempts = 1;
     private String author;
 
     @Enumerated(EnumType.STRING)

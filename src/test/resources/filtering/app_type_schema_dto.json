@@ -30,7 +30,7 @@
         "GET"
       ],
       "upstreams": [],
-      "maxRetryAttempts": 0,
+      "maxRetryAttempts": 1,
       "order": 3,
       "permissions": [
         "WRITE"
@@ -61,7 +61,7 @@
           "tier": 0
         }
       ],
-      "maxRetryAttempts": 0,
+      "maxRetryAttempts": 2,
       "order": 2,
       "permissions": [
         "READ"

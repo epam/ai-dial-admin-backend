@@ -33,6 +33,7 @@ public abstract class BaseRouteDto extends RoleBasedDto {
     private Set<@HttpMethod String> methods;
     @Valid
     private List<UpstreamDto> upstreams;
+    @Min(value = 1, message = "Max retry attempts should be greater than 0")
     private int maxRetryAttempts;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;

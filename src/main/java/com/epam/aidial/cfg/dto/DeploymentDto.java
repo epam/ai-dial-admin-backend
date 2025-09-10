@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,5 +46,6 @@ public class DeploymentDto extends RoleBasedDto {
 
     private List<String> topics;
 
+    @Min(value = 1, message = "Max retry attempts should be greater than 0")
     private Integer maxRetryAttempts;
 }
