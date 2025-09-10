@@ -105,7 +105,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid configuration endpoint: 'invalid-url'");
+                .hasMessage("Invalid configuration endpoint: 'invalid-url'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -130,7 +130,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Completion endpoint is required when source type is 'Interceptor endpoints'");
+                .hasMessage("Completion endpoint is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -144,7 +144,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid completion endpoint: 'invalid-url'");
+                .hasMessage("Invalid completion endpoint: 'invalid-url'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -157,7 +157,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Runner name is required when source type is 'Interceptor runner'");
+                .hasMessage("Runner name is required when source type is 'Interceptor runner'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -217,7 +217,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid completion endpoint path: 'invalid path with spaces'");
+                .hasMessage("Invalid completion endpoint path: 'invalid path with spaces'. Interceptor: test-interceptor");
     }
 
     @Test
@@ -234,7 +234,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid configuration endpoint path: 'invalid path with spaces'");
+                .hasMessage("Invalid configuration endpoint path: 'invalid path with spaces'. Interceptor: test-interceptor");
     }
 
     @Test

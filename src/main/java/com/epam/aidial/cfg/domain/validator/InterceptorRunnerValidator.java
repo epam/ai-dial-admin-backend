@@ -23,17 +23,17 @@ public class InterceptorRunnerValidator {
         this.interceptorRunnerNameValidationPattern = interceptorRunnerNameValidationPattern;
     }
 
-    public void validateCreation(InterceptorRunner interceptorRunner) {
-        validateInterceptorRunnerName(interceptorRunner);
-        validateEndpoints(interceptorRunner.getCompletionEndpoint(), interceptorRunner.getConfigurationEndpoint());
+    public void validateCreation(InterceptorRunner runner) {
+        validateInterceptorRunnerName(runner);
+        validateEndpoints(runner.getCompletionEndpoint(), runner.getConfigurationEndpoint(), runner.getName());
     }
 
-    public void validateUpdate(String interceptorRunnerName, InterceptorRunner interceptorRunner) {
-        if (!Objects.equals(interceptorRunnerName, interceptorRunner.getName())) {
-            throw new IllegalArgumentException("InterceptorRunner with name: '%s' can not be renamed. New interceptor runner name: '%s'"
-                    .formatted(interceptorRunnerName, interceptorRunner.getName()));
+    public void validateUpdate(String interceptorRunnerName, InterceptorRunner runner) {
+        if (!Objects.equals(interceptorRunnerName, runner.getName())) {
+            throw new IllegalArgumentException("Interceptor runner with name: '%s' can not be renamed. New interceptor runner name: '%s'"
+                    .formatted(interceptorRunnerName, runner.getName()));
         }
-        validateEndpoints(interceptorRunner.getCompletionEndpoint(), interceptorRunner.getConfigurationEndpoint());
+        validateEndpoints(runner.getCompletionEndpoint(), runner.getConfigurationEndpoint(), runner.getName());
     }
 
     private void validateInterceptorRunnerName(InterceptorRunner interceptorRunner) {
@@ -42,22 +42,24 @@ public class InterceptorRunnerValidator {
         idFieldValidator.validateName("InterceptorRunner", interceptorRunnerName);
 
         if (StringUtils.isEmpty(interceptorRunnerNameValidationPattern)) {
-            log.debug("InterceptorRunner name validation pattern is empty, skipping validation for interceptor runner: {}", interceptorRunnerName);
+            log.debug("Interceptor runner name validation pattern is empty, skipping validation for interceptor runner: {}", interceptorRunnerName);
             return;
         }
 
         if (!Pattern.matches(interceptorRunnerNameValidationPattern, interceptorRunnerName)) {
-            throw new IllegalArgumentException("InterceptorRunner name '" + interceptorRunnerName
+            throw new IllegalArgumentException("Interceptor runner name '" + interceptorRunnerName
                     + "' does not match the required pattern: " + interceptorRunnerNameValidationPattern);
         }
     }
 
-    private void validateEndpoints(String completionEndpoint, String configurationEndpoint) {
+    private void validateEndpoints(String completionEndpoint, String configurationEndpoint, String runnerName) {
         if (completionEndpoint != null && EndpointValidator.isInvalidUrl(completionEndpoint)) {
-            throw new IllegalArgumentException("Invalid completion endpoint: '%s'".formatted(completionEndpoint));
+            throw new IllegalArgumentException("Invalid completion endpoint: '%s'. Interceptor runner: %s"
+                    .formatted(completionEndpoint, runnerName));
         }
         if (configurationEndpoint != null && EndpointValidator.isInvalidUrl(configurationEndpoint)) {
-            throw new IllegalArgumentException("Invalid configuration endpoint: '%s'".formatted(configurationEndpoint));
+            throw new IllegalArgumentException("Invalid configuration endpoint: '%s'. Interceptor runner: %s"
+                    .formatted(configurationEndpoint, runnerName));
         }
     }
 }
