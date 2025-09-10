@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -33,6 +34,7 @@ public abstract class BaseRouteDto extends RoleBasedDto {
     private Set<@HttpMethod String> methods;
     @Valid
     private List<UpstreamDto> upstreams;
+    @Positive(message = "Max retry attempts should be greater than 0")
     private int maxRetryAttempts;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;

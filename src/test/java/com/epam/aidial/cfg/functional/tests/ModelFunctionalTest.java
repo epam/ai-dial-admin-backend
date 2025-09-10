@@ -103,6 +103,7 @@ public abstract class ModelFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("new model description");
         expected.setDefaults(Map.of());
+        expected.setMaxRetryAttempts(1);
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
@@ -410,6 +411,7 @@ public abstract class ModelFunctionalTest {
     private ModelDto expectedDto1WithDefaults() {
         ModelDto modelDto = expectedDto1();
         modelDto.setDefaults(Map.of("max_tokens", 8000));
+        modelDto.setMaxRetryAttempts(1);
         return modelDto;
     }
 
@@ -428,6 +430,7 @@ public abstract class ModelFunctionalTest {
         modelDto1.setDefaults(Map.of("max_tokens", 8000));
         modelDto1.setEndpoint("https://endpoint1");
         modelDto1.setSource(new ModelEndpointsSourceDto());
+        modelDto1.setMaxRetryAttempts(1);
 
         ModelDto modelDto2 = new ModelDto();
         modelDto2.setName("model2");
@@ -443,6 +446,7 @@ public abstract class ModelFunctionalTest {
         modelDto2.setDefaults(Map.of());
         modelDto2.setEndpoint("https://endpoint1");
         modelDto2.setSource(new ModelEndpointsSourceDto());
+        modelDto2.setMaxRetryAttempts(1);
 
         return List.of(modelDto1, modelDto2);
     }

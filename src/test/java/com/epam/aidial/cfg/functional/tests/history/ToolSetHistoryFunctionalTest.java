@@ -139,6 +139,7 @@ public abstract class ToolSetHistoryFunctionalTest {
         toolSet.setRoleShareResourceLimits(Map.of(
                 "role" + suffix, new ShareResourceLimitDto()
         ));
+        toolSet.setMaxRetryAttempts(1);
         return toolSet;
     }
 }

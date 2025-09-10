@@ -201,6 +201,7 @@ public abstract class AdapterFunctionalTest {
         ModelDto modelDto = new ModelDto();
         modelDto.setName("model" + suffix);
         modelDto.setDescription("description" + suffix);
+        modelDto.setMaxRetryAttempts(1);
         return modelDto;
     }
 
