@@ -221,6 +221,39 @@ public abstract class ModelHistoryFunctionalTest {
         Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
     }
 
+    @Test
+    public void shouldSuccessfullyRollbackModelAfterRoleLimitRemoval() {
+        // create role
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create model
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        ModelDto modelDto = createDto("1");
+        modelDto.setRoleLimits(Map.of("role1", limitDto));
+        modelFacade.createModel(modelDto);
+
+        // remember rev number and expected models state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<ModelDto> actualAtRevision = modelFacade.getAll();
+
+        // remove model role limit
+        ModelDto updatedModel = createDto("1");
+        updatedModel.setRoleLimits(null);
+        modelFacade.updateModel(updatedModel.getName(), updatedModel, "*");
+
+        List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        List<ConfigRevisionDto> revisionsListAfterRollback = historyFacade.getRevisionsList();
+
+        Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
+
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
+        Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
+    }
+
     private InterceptorDto createInterceptor(String suffix) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
