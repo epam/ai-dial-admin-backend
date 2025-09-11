@@ -19,8 +19,8 @@ UPDATE interceptor_entity SET folder_attachments_supported = false WHERE folder_
 ALTER TABLE interceptor_entity ALTER COLUMN folder_attachments_supported SET DEFAULT false;
 ALTER TABLE interceptor_entity ALTER COLUMN folder_attachments_supported SET NOT NULL;
 
-UPDATE interceptor_entity SET allow_resume = false WHERE allow_resume IS NULL;
-ALTER TABLE interceptor_entity ALTER COLUMN allow_resume SET DEFAULT false;
+UPDATE interceptor_entity SET allow_resume = true WHERE allow_resume IS NULL;
+ALTER TABLE interceptor_entity ALTER COLUMN allow_resume SET DEFAULT true;
 ALTER TABLE interceptor_entity ALTER COLUMN allow_resume SET NOT NULL;
 
 UPDATE interceptor_entity SET accessible_by_per_request_key = true WHERE accessible_by_per_request_key IS NULL;

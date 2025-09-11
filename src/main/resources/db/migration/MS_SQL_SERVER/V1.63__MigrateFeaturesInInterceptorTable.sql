@@ -19,8 +19,8 @@ UPDATE interceptor_entity SET folder_attachments_supported = 0 WHERE folder_atta
 ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_folder_attachments_supported DEFAULT 0 FOR folder_attachments_supported;
 ALTER TABLE interceptor_entity ALTER COLUMN folder_attachments_supported BIT NOT NULL;
 
-UPDATE interceptor_entity SET allow_resume = 0 WHERE allow_resume IS NULL;
-ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_allow_resume DEFAULT 0 FOR allow_resume;
+UPDATE interceptor_entity SET allow_resume = 1 WHERE allow_resume IS NULL;
+ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_allow_resume DEFAULT 1 FOR allow_resume;
 ALTER TABLE interceptor_entity ALTER COLUMN allow_resume BIT NOT NULL;
 
 UPDATE interceptor_entity SET accessible_by_per_request_key = 1 WHERE accessible_by_per_request_key IS NULL;
@@ -59,7 +59,7 @@ UPDATE interceptor_entity_aud SET tools_supported = 0 WHERE tools_supported IS N
 UPDATE interceptor_entity_aud SET seed_supported = 0 WHERE seed_supported IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET url_attachments_supported = 0 WHERE url_attachments_supported IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET folder_attachments_supported = 0 WHERE folder_attachments_supported IS NULL AND revtype != 2;
-UPDATE interceptor_entity_aud SET allow_resume = 0 WHERE allow_resume IS NULL AND revtype != 2;
+UPDATE interceptor_entity_aud SET allow_resume = 1 WHERE allow_resume IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET accessible_by_per_request_key = 1 WHERE accessible_by_per_request_key IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET content_parts_supported = 0 WHERE content_parts_supported IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET temperature_supported = 1 WHERE temperature_supported IS NULL AND revtype != 2;

@@ -477,7 +477,23 @@
 			"author": "test-author",
 			"createdAt": 12345,
 			"updatedAt": 12345,
-			"dependencies": []
+			"dependencies": [],
+			"features": {
+				"systemPromptSupported": true,
+				"toolsSupported": false,
+				"seedSupported": false,
+				"urlAttachmentsSupported": false,
+				"folderAttachmentsSupported": false,
+				"allowResume": false,
+				"accessibleByPerRequestKey": true,
+				"contentPartsSupported": false,
+				"temperatureSupported": true,
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
+			}
 		},
 		"testInterceptor2": {
 			"name": "testInterceptor2",
@@ -487,6 +503,22 @@
 			"createdAt": 12345,
 			"updatedAt": 12345,
 			"dependencies": [],
+			"features": {
+				"systemPromptSupported": true,
+				"toolsSupported": false,
+				"seedSupported": false,
+				"urlAttachmentsSupported": false,
+				"folderAttachmentsSupported": false,
+				"allowResume": false,
+				"accessibleByPerRequestKey": true,
+				"contentPartsSupported": false,
+				"temperatureSupported": true,
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
+			},
 			"source": {
 				"$type": "runner",
 				"runnerName": "testRunner1"
