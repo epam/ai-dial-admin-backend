@@ -177,6 +177,12 @@ dependencies {
         implementation ('io.netty:netty-codec:4.2.5.Final') {
             because("previous versions have vulnerabilities")
         }
+        implementation ('io.netty:netty-codec-http:4.2.5.Final') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('org.springframework:spring-webmvc:6.2.10') {
+            because("previous versions have vulnerabilities")
+        }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
         }
