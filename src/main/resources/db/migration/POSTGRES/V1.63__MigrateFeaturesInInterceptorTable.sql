@@ -39,15 +39,6 @@ UPDATE interceptor_entity SET addons_supported = true WHERE addons_supported IS 
 ALTER TABLE interceptor_entity ALTER COLUMN addons_supported SET DEFAULT true;
 ALTER TABLE interceptor_entity ALTER COLUMN addons_supported SET NOT NULL;
 
-UPDATE interceptor_entity SET cache_supported = false WHERE cache_supported IS NULL;
-ALTER TABLE interceptor_entity ALTER COLUMN cache_supported SET DEFAULT false;
-
-UPDATE interceptor_entity SET auto_caching_supported = false WHERE auto_caching_supported IS NULL;
-ALTER TABLE interceptor_entity ALTER COLUMN auto_caching_supported SET DEFAULT false;
-
-UPDATE interceptor_entity SET consent_required = false WHERE consent_required IS NULL;
-ALTER TABLE interceptor_entity ALTER COLUMN consent_required SET DEFAULT false;
-
 UPDATE interceptor_entity SET parallel_tool_calls_supported = true WHERE parallel_tool_calls_supported IS NULL;
 ALTER TABLE interceptor_entity ALTER COLUMN parallel_tool_calls_supported SET DEFAULT true;
 ALTER TABLE interceptor_entity ALTER COLUMN parallel_tool_calls_supported SET NOT NULL;
@@ -64,7 +55,4 @@ UPDATE interceptor_entity_aud SET accessible_by_per_request_key = true WHERE acc
 UPDATE interceptor_entity_aud SET content_parts_supported = false WHERE content_parts_supported IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET temperature_supported = true WHERE temperature_supported IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET addons_supported = true WHERE addons_supported IS NULL AND revtype != 2;
-UPDATE interceptor_entity_aud SET cache_supported = false WHERE cache_supported IS NULL AND revtype != 2;
-UPDATE interceptor_entity_aud SET auto_caching_supported = false WHERE auto_caching_supported IS NULL AND revtype != 2;
-UPDATE interceptor_entity_aud SET consent_required = false WHERE consent_required IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET parallel_tool_calls_supported = true WHERE parallel_tool_calls_supported IS NULL AND revtype != 2;

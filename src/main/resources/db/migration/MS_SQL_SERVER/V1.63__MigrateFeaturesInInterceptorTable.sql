@@ -39,15 +39,6 @@ UPDATE interceptor_entity SET addons_supported = 1 WHERE addons_supported IS NUL
 ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_addons_supported DEFAULT 1 FOR addons_supported;
 ALTER TABLE interceptor_entity ALTER COLUMN addons_supported BIT NOT NULL;
 
-UPDATE interceptor_entity SET cache_supported = 0 WHERE cache_supported IS NULL;
-ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_cache_supported DEFAULT 0 FOR cache_supported;
-
-UPDATE interceptor_entity SET auto_caching_supported = 0 WHERE auto_caching_supported IS NULL;
-ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_auto_caching_supported DEFAULT 0 FOR auto_caching_supported;
-
-UPDATE interceptor_entity SET consent_required = 0 WHERE consent_required IS NULL;
-ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_consent_required DEFAULT 0 FOR consent_required;
-
 UPDATE interceptor_entity SET parallel_tool_calls_supported = 1 WHERE parallel_tool_calls_supported IS NULL;
 ALTER TABLE interceptor_entity ADD CONSTRAINT df_interceptor_entity_parallel_tool_calls_supported DEFAULT 1 FOR parallel_tool_calls_supported;
 ALTER TABLE interceptor_entity ALTER COLUMN parallel_tool_calls_supported BIT NOT NULL;
@@ -64,7 +55,4 @@ UPDATE interceptor_entity_aud SET accessible_by_per_request_key = 1 WHERE access
 UPDATE interceptor_entity_aud SET content_parts_supported = 0 WHERE content_parts_supported IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET temperature_supported = 1 WHERE temperature_supported IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET addons_supported = 1 WHERE addons_supported IS NULL AND revtype != 2;
-UPDATE interceptor_entity_aud SET cache_supported = 0 WHERE cache_supported IS NULL AND revtype != 2;
-UPDATE interceptor_entity_aud SET auto_caching_supported = 0 WHERE auto_caching_supported IS NULL AND revtype != 2;
-UPDATE interceptor_entity_aud SET consent_required = 0 WHERE consent_required IS NULL AND revtype != 2;
 UPDATE interceptor_entity_aud SET parallel_tool_calls_supported = 1 WHERE parallel_tool_calls_supported IS NULL AND revtype != 2;
