@@ -26,7 +26,7 @@ import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationTypeSchemaDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AssistantDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AttachmentPathDtoMapperImpl;
-import com.epam.aidial.cfg.web.facade.mapper.FeaturesMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.FeaturesDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ImportConfigMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.InstantMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapperImpl;
@@ -79,7 +79,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         AddonDtoMapperImpl.class, AssistantDtoMapperImpl.class, RouteDtoMapperImpl.class, RoleLimitDtoMapperImpl.class,
         LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class,
         ModelEndpointDtoMapperImpl.class, AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
-        RoleShareResourceLimitDtoMapperImpl.class, InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesMapperImpl.class,
+        RoleShareResourceLimitDtoMapperImpl.class, InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class,
         AttachmentPathDtoMapperImpl.class, ToolSetDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
