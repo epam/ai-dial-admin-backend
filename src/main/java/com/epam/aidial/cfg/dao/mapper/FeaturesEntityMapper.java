@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.domain.model.Features;
-
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueMappingStrategy;
