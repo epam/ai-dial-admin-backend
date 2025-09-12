@@ -3,11 +3,14 @@ package com.epam.aidial.cfg.web.controller.none;
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
+import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.mapper.ApplicationResourceMapperImpl;
-import com.epam.aidial.cfg.mapper.PublicationMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
+import com.epam.aidial.cfg.model.ApplicationNodeInfo;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
+import com.epam.aidial.cfg.model.MoveResource;
+import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ApplicationResourceController;
@@ -24,6 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +54,9 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
     private static final String GET_API_PATH = APP_RESOURCE_BASE_API_PATH + "/get";
     private static final String CREATE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/create";
     private static final String DELETE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/delete";
+    private static final String DELETE_BULK_API_PATH = APP_RESOURCE_BASE_API_PATH + "/delete/bulk";
+    private static final String LIST_API_PATH = APP_RESOURCE_BASE_API_PATH + "/list";
+    private static final String MOVE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/move";
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -68,6 +75,30 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                 Arguments.of("Get application with schema", "app_get_ws.json", "app_get_ws_dto.json"),
                 Arguments.of("Get application without schema", "app_get_wo.json", "app_get_wo_dto.json")
         );
+    }
+
+    @Test
+    void testGetAllApplicationResources() throws Exception {
+        var applicationsInfoRequestDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "app_infos_request_dto.json");
+
+        var applicationsInfoRequestJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "app_infos_request.json");
+        var applicationsInfoRequest = objectMapper.readValue(applicationsInfoRequestJson,
+                new TypeReference<ResourceMetadataRequest>() {});
+
+        var modelJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "/app_infos.json");
+        var model = objectMapper.readValue(modelJson, new TypeReference<ApplicationNodeInfo>() {
+        });
+
+        when(applicationResourceService.getApplications(any())).thenReturn(model);
+
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "app_infos_dto.json");
+        mockMvc.perform(post(LIST_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(applicationsInfoRequestDtoJson))
+                .andExpect(status().isOk())
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+
+        verify(applicationResourceService).getApplications(eq(applicationsInfoRequest));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -130,7 +161,45 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk());
 
-        verify(applicationResourceService).deleteApplicationResource(APP_PATH);
+        verify(applicationResourceService).deleteApplicationResource(APP_PATH, null);
+    }
+
+    @Test
+    void testDeleteApplications() throws Exception {
+        var path1 = "testPath1/TestName";
+        var path2 = "testPath2/TestName";
+
+        var pathDto1 = new ResourcePathDto();
+        pathDto1.setPath(path1);
+
+        var pathDto2 = new ResourcePathDto();
+        pathDto2.setPath(path2);
+
+        var pathsDto = new ResourcePathsDto();
+        pathsDto.setPaths(List.of(pathDto1, pathDto2));
+
+        mockMvc.perform(post(DELETE_BULK_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pathsDto)))
+                .andExpect(status().isOk());
+
+        verify(applicationResourceService).deleteApplicationResources(List.of(path1, path2));
+    }
+
+    @Test
+    void testMoveApplication() throws Exception {
+        var moveDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "move_app_dto.json");
+
+        var moveJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "move_app.json");
+        var moveApplication = objectMapper.readValue(moveJson, new TypeReference<MoveResource>() {
+        });
+
+        mockMvc.perform(post(MOVE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(moveDtoJson))
+                .andExpect(status().isOk());
+
+        verify(applicationResourceService).move(moveApplication);
     }
 
 }
