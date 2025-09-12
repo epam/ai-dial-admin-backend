@@ -3,9 +3,15 @@ package com.epam.aidial.cfg.client;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Map;
 
 @FeignClient(
         name = "applicationClient",
@@ -16,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestParam;
                 RetryClientConfiguration.class,
         })
 public interface ApplicationClient {
+    String IF_MATCH_HEADER_NAME = "If-Match";
+    String IF_NONE_MATCH_HEADER_NAME = "If-None-Match";
 
     @GetMapping("/v1/metadata/applications/{path}")
     ApplicationMetadataDto getApplicationMetadata(@PathVariable String path,
@@ -33,4 +41,12 @@ public interface ApplicationClient {
      */
     @GetMapping("/v1/applications/{path}")
     ApplicationResourceDto getApplicationResource(@PathVariable String path);
+
+    @PutMapping("/v1/applications/{path}")
+    ApplicationMetadataDto putApplicationResource(@PathVariable String path,
+                                                  @RequestBody ApplicationResourceDto applicationResourceDto,
+                                                  @RequestHeader Map<String, String> headers);
+
+    @DeleteMapping("/v1/applications/{path}")
+    void deleteApplicationResource(@PathVariable String path);
 }

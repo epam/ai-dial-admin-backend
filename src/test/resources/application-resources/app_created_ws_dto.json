@@ -1,0 +1,23 @@
+{
+  "path": "844pucrUihSTVTN9XSpCPW/Char_with_schema_1__1",
+  "version": "1",
+  "folderId": "844pucrUihSTVTN9XSpCPW",
+  "updateTime": 1757596621200,
+  "author": "char_key",
+  "name": "Char_with_schema_1",
+  "displayVersion": "0.0.1",
+  "description": "",
+  "descriptionKeywords": [
+    "Analysis"
+  ],
+  "applicationTypeSchemaId": "https://mydial.epam.com/custom_application_schemas/quickapps",
+  "applicationProperties": {
+    "model": "gpt-4o",
+    "documentRelativeUrl": [],
+    "instructions": "",
+    "temperature": 1,
+    "web_api_toolset": [],
+    "mcp_toolset": []
+  },
+  "routes": []
+}

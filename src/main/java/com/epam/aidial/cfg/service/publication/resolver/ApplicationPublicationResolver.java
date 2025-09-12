@@ -11,7 +11,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.ResourceType;
-import com.epam.aidial.cfg.service.ApplicationService;
+import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 public class ApplicationPublicationResolver implements PublicationResolver {
 
     private final PublicationClientMapper mapper;
-    private final ApplicationService applicationService;
+    private final ApplicationResourceService applicationService;
     private final PublicationResourceUrlResolver publicationResourceUrlResolver;
 
     @Override

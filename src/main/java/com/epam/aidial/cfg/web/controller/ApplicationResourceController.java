@@ -1,0 +1,82 @@
+package com.epam.aidial.cfg.web.controller;
+
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.ApplicationResourceDto;
+import com.epam.aidial.cfg.dto.ApplicationResourceNodeInfoDto;
+import com.epam.aidial.cfg.dto.CreateApplicationResourceDto;
+import com.epam.aidial.cfg.dto.MoveResourceDto;
+import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
+import com.epam.aidial.cfg.dto.ResourcePathDto;
+import com.epam.aidial.cfg.dto.ResourcePathsDto;
+import com.epam.aidial.cfg.mapper.ApplicationResourceMapper;
+import com.epam.aidial.cfg.mapper.ResourceMapper;
+import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.CreateApplicationResource;
+import com.epam.aidial.cfg.service.ApplicationResourceService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/application-resources")
+@Validated
+@LogExecution
+@RequiredArgsConstructor
+public class ApplicationResourceController {
+
+    private final ApplicationResourceService applicationService;
+    private final ResourceMapper resourceMapper;
+    private final ApplicationResourceMapper applicationResourceMapper;
+
+    @PostMapping(path = "/list",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ApplicationResourceNodeInfoDto getApplications(@RequestBody(required = false) ResourceMetadataRequestDto applicationsRequestDto) {
+        var applicationsRequest = resourceMapper.toRequest(applicationsRequestDto);
+        var applicationResource = applicationService.getApplications(applicationsRequest);
+        return applicationResourceMapper.toApplicationResourceNodeInfoDto(applicationResource);
+    }
+
+    @PostMapping(path = "/get",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ApplicationResourceDto getApplication(@RequestBody ResourcePathDto applicationPath) throws JsonProcessingException {
+        ApplicationResource applicationResource = applicationService.getApplicationResource(applicationPath.getPath());
+        return applicationResourceMapper.toApplicationResourceDto(applicationResource);
+    }
+
+    @PostMapping(path = "/create",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ApplicationResourceDto createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) throws JsonProcessingException {
+        CreateApplicationResource createApplication = applicationResourceMapper.toCreateApplicationResourceDto(createApplicationDto);
+        var createdApplication = applicationService.createApplicationResource(createApplication, true, null);
+        return applicationResourceMapper.toApplicationResourceDto(createdApplication);
+    }
+
+    @PostMapping(path = "/delete",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public void deleteApplicationResource(@RequestBody ResourcePathDto applicationPath) {
+        applicationService.deleteApplicationResource(applicationPath.getPath());
+    }
+
+    @PostMapping(path = "/delete/bulk",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public void deleteApplicationResources(@RequestBody ResourcePathsDto applicationPaths) {
+        var paths = applicationPaths.getPaths().stream().map(ResourcePathDto::getPath).toList();
+        applicationService.deleteApplicationResources(paths);
+    }
+
+    @PostMapping(path = "/move",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public void moveApplicationResource(@RequestBody MoveResourceDto movePromptDto) {
+        var movePrompt = resourceMapper.toMoveResource(movePromptDto);
+        applicationService.move(movePrompt);
+    }
+
+}
