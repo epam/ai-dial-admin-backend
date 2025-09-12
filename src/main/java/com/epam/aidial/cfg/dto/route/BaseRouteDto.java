@@ -35,7 +35,7 @@ public abstract class BaseRouteDto extends RoleBasedDto {
     @Valid
     private List<UpstreamDto> upstreams;
     @Positive(message = "Max retry attempts should be greater than 0")
-    private int maxRetryAttempts;
+    private Integer maxRetryAttempts;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
