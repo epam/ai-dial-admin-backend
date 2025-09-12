@@ -253,7 +253,8 @@
       "properties": {
         "name": {"type": "string"},
         "limits": {"type": "object"},
-        "share": {"type": "object"}
+        "share": {"type": "object"},
+        "costLimit": {"$ref": "#/definitions/CoreCostLimit"}
       }
     },
     "Key": {
@@ -462,6 +463,15 @@
           }
         }
       ]
+    },
+    "CoreCostLimit": {
+      "type": "object",
+      "properties": {
+        "minute": {"type": "number"},
+        "day": {"type": "number"},
+        "week": {"type": "number"},
+        "month": {"type": "number"}
+      }
     }
   }
 }
