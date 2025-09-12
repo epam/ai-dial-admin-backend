@@ -2,15 +2,19 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
+import com.epam.aidial.cfg.dao.model.ResourceAuthSettingsEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
 import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitId;
+import com.epam.aidial.cfg.dao.model.SecuredResourceEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Limit;
+import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
@@ -19,6 +23,7 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -28,16 +33,18 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Mapper(
-        componentModel = "spring",
-        uses = {RoleLimitEntityMapper.class, LimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class, ShareResourceLimitEntityMapper.class}
-)
+@Mapper(componentModel = "spring", uses = {
+        RoleLimitEntityMapper.class, LimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class,
+        ShareResourceLimitEntityMapper.class, ResourceAuthSettingsEntityMapper.class
+})
 public abstract class DeploymentEntityMapper {
 
     @Autowired
     private RoleLimitEntityMapper roleLimitEntityMapper;
     @Autowired
     private RoleShareResourceLimitEntityMapper roleShareResourceLimitEntityMapper;
+    @Autowired
+    private ResourceAuthSettingsEntityMapper resourceAuthSettingsEntityMapper;
 
     @Autowired
     private RoleJpaRepository roleJpaRepository;
@@ -48,6 +55,35 @@ public abstract class DeploymentEntityMapper {
     @Mapping(target = "roleShareResourceLimits", ignore = true)
     @Mapping(target = "type", ignore = true)
     public abstract DeploymentEntity toEntity(Deployment deployment, @MappingTarget DeploymentEntity entity);
+
+    @Named("toSecuredResource")
+    public SecuredResource toSecuredResource(DeploymentEntity deploymentEntity) {
+        Deployment deployment = toDomain(deploymentEntity);
+        if (!(deploymentEntity instanceof SecuredResourceEntity securedResourceEntity)) {
+            throw new IllegalArgumentException("Only Secured Resource entity can be mapped to Secured Resource");
+        }
+
+        ResourceAuthSettings authSettings = resourceAuthSettingsEntityMapper.toDomain(securedResourceEntity.getAuthSettings());
+
+        return new SecuredResource(deployment, authSettings);
+    }
+
+    public void toSecuredResourceEntity(Deployment deployment, @MappingTarget SecuredResourceEntity entity) {
+        DeploymentEntity mappedEntity = toEntity(deployment, entity);
+        if (!(deployment instanceof SecuredResource securedResource)) {
+            throw new IllegalArgumentException("Only Secured Resource can be mapped to Secured Resource entity");
+        }
+
+        entity.setName(mappedEntity.getName());
+        entity.setIsPublic(mappedEntity.getIsPublic());
+        entity.setRoleLimits(mappedEntity.getRoleLimits());
+        entity.setRoleShareResourceLimits(mappedEntity.getRoleShareResourceLimits());
+        entity.setDefaultRoleLimit(mappedEntity.getDefaultRoleLimit());
+        entity.setDefaultRoleShareResourceLimit(mappedEntity.getDefaultRoleShareResourceLimit());
+
+        ResourceAuthSettingsEntity authSettings = resourceAuthSettingsEntityMapper.toEntity(securedResource.getAuthSettings());
+        entity.setAuthSettings(authSettings);
+    }
 
     public List<RoleEntity> findRolesByNames(List<String> names) {
         if (names.isEmpty()) {

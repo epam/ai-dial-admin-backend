@@ -18,7 +18,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class CoreToolSet extends Deployment {
+public class CoreToolSet extends CoreSecuredResource {
 
     private Transport transport;
 

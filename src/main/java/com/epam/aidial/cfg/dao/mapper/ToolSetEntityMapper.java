@@ -20,6 +20,7 @@ public abstract class ToolSetEntityMapper {
     @Autowired
     private DeploymentEntityMapper deploymentEntityMapper;
 
+    @Mapping(target = "deployment", source = "deployment", qualifiedByName = "toSecuredResource")
     public abstract ToolSet toDomain(ToolSetEntity entity);
 
     public ToolSetEntity toEntity(ToolSet domain, ToolSetEntity entity) {

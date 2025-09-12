@@ -580,6 +580,7 @@
       "importAction": "create",
       "value": {
         "deployment": {
+          "$type": "SecuredResource",
           "name": "toolset1",
           "roleLimits": [],
           "roleShareResourceLimits": [],
@@ -587,6 +588,9 @@
           "defaultRoleLimit": {},
           "defaultRoleShareResourceLimit": {
             "invitationTtl": 259200
+          },
+          "authSettings": {
+            "authenticationType": "none"
           }
         },
         "displayName": "ToolSet1",

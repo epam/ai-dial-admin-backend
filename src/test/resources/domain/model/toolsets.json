@@ -14,6 +14,7 @@
     "transport": "http",
     "allowedTools": ["branch", "remote"],
     "deployment": {
+      "$type": "SecuredResource",
       "id": 200,
       "name": "sampleDeployment",
       "isPublic": false,
@@ -52,7 +53,10 @@
             "requestDay": 1000
           }
         }
-      ]
+      ],
+      "authSettings": {
+        "authenticationType": "none"
+      }
     },
     "author": "test-author",
     "createdAt": 12345,
