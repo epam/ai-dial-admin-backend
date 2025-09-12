@@ -72,7 +72,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("getApplicationParams")
-    void testGetApplicationResourceWithoutSchema(String testName,
+    void testGetApplicationResource(String testName,
                                                  String pathAppDtoJson,
                                                  String pathAppJson) throws Exception {
         var modelJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + pathAppDtoJson);
@@ -122,7 +122,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
     }
 
     @Test
-    void testDeletePrompt() throws Exception {
+    void testDeleteApplication() throws Exception {
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
         mockMvc.perform(post(DELETE_API_PATH)

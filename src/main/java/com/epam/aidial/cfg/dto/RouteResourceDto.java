@@ -18,7 +18,7 @@ public class RouteResourceDto {
     private boolean rewritePath;
     private List<@NotNull String> paths;
     private Set<@HttpMethod String> methods;
-    private List<UpstreamDto> upstreams;
+    private List<UpstreamResourceDto> upstreams;
     private int maxRetryAttempts;
     private Integer order;
     private Set<ResourceAccessType> permissions;

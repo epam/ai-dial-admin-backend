@@ -52,7 +52,7 @@ public abstract class ApplicationClientMapper {
             throw new IllegalStateException("Metadata must have item node type");
         }
 
-        PathUtils.VersionedPathParts itemParts = PathUtils.parseEncodedVersionedPath(metadataDto.getUrl(), APPLICATIONS_PREFIX);
+        var itemParts = PathUtils.parseEncodedVersionedPath(metadataDto.getUrl(), APPLICATIONS_PREFIX);
         return toApplicationResource(applicationResourceDto, metadataDto, itemParts);
     }
 
