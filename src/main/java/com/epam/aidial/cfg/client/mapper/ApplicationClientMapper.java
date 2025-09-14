@@ -105,6 +105,9 @@ public abstract class ApplicationClientMapper {
     }
 
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "author", ignore = true)
+    @Mapping(target = "invalid", ignore = true)
     public abstract ApplicationResourceDto toApplicationResourceDto(CreateApplicationResource createApplicationResource);
 
     public String toPath(CreateApplicationResource createApplicationResource) {

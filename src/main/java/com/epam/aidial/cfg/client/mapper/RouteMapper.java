@@ -16,9 +16,11 @@ public interface RouteMapper {
 
     Route toRoute(RouteDto dto);
 
-    Upstream toUpstream(UpstreamDto dto);
-
     default List<Route> toRouteList(Map<String, RouteDto> routeDtos) {
+        if (routeDtos == null) {
+            return List.of();
+        }
+
         return routeDtos.entrySet().stream()
                 .map(e -> {
                     RouteDto dto = e.getValue();

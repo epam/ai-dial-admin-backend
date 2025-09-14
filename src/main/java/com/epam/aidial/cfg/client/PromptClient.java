@@ -24,9 +24,6 @@ import java.util.Map;
 )
 public interface PromptClient {
 
-    String IF_MATCH_HEADER_NAME = "If-Match";
-    String IF_NONE_MATCH_HEADER_NAME = "If-None-Match";
-
     @GetMapping("/v1/metadata/prompts/{path}")
     PromptMetadataDto getPromptsMetadata(
             @PathVariable String path,

@@ -30,6 +30,7 @@ public class ApplicationResourceDto {
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
+    private Boolean invalid;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private List<RouteResourceDto> routes;

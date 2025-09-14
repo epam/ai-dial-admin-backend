@@ -37,6 +37,7 @@ public class ApplicationResource {
     private String viewerUrl;
     private String editorUrl;
     private List<Route> routes;
+    private Boolean invalid;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
 }

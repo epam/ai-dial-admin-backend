@@ -15,11 +15,11 @@ public class RouteResourceDto {
     private String name;
     private List<String> userRoles;
     private ResponseDto response;
-    private boolean rewritePath;
+    private Boolean rewritePath;
     private List<@NotNull String> paths;
     private Set<@HttpMethod String> methods;
     private List<UpstreamResourceDto> upstreams;
-    private int maxRetryAttempts;
+    private Integer maxRetryAttempts;
     private Integer order;
     private Set<ResourceAccessType> permissions;
     private AttachmentPath attachmentPaths;

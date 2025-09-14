@@ -32,11 +32,14 @@ public class ApplicationResourceDto {
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
+    private String author;
     private Long createdAt;
+    private Long updatedAt;
     private List<String> dependencies;
     private Map<String, RouteDto> routes;
     private String viewerUrl;
     private String editorUrl;
+    private Boolean invalid;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
 }

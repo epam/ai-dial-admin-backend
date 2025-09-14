@@ -22,8 +22,6 @@ import java.util.Map;
                 RetryClientConfiguration.class,
         })
 public interface ApplicationClient {
-    String IF_MATCH_HEADER_NAME = "If-Match";
-    String IF_NONE_MATCH_HEADER_NAME = "If-None-Match";
 
     @GetMapping("/v1/metadata/applications/{path}")
     ApplicationMetadataDto getApplicationMetadata(@PathVariable String path,
@@ -48,5 +46,6 @@ public interface ApplicationClient {
                                                   @RequestHeader Map<String, String> headers);
 
     @DeleteMapping("/v1/applications/{path}")
-    void deleteApplicationResource(@PathVariable String path);
+    void deleteApplicationResource(@PathVariable String path,
+                                   @RequestHeader Map<String, String> headers);
 }

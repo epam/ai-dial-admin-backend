@@ -21,9 +21,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.epam.aidial.cfg.client.mapper.ApplicationClientMapper.APPLICATIONS_PREFIX;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createIfMatchHeaders;
 
 @Slf4j
 @Service
@@ -47,6 +48,7 @@ public class ApplicationResourceService implements ResourceService {
             ApplicationMetadataDto applicationMetadata = getMetadata(request);
             return applicationClientMapper.toFolderInfo(applicationMetadata, APPLICATIONS_PREFIX);
         } catch (FeignException.FeignClientException.NotFound notFound) {
+            log.debug("Application metadata not found for request: {}", request, notFound);
             return null;
         }
     }
@@ -83,21 +85,11 @@ public class ApplicationResourceService implements ResourceService {
         return applicationClientMapper.toApplicationResource(applicationResourceDto, applicationMetadata);
     }
 
-    private Map<String, String> createHeadersForCreate(boolean allowOverride, String etag) {
-        if (!allowOverride) {
-            return Map.of(ApplicationClient.IF_NONE_MATCH_HEADER_NAME, "*");
-        }
-        if (etag != null) {
-            return Map.of(ApplicationClient.IF_MATCH_HEADER_NAME, etag);
-        }
-        return Map.of();
-    }
-
     public void deleteApplicationResources(List<String> paths) {
         List<String> deletedApplicationResources = new ArrayList<>();
         for (var path : paths) {
             try {
-                deleteApplicationResource(path);
+                deleteApplicationResource(path, null);
                 deletedApplicationResources.add(path);
             } catch (Exception exception) {
                 log.warn("Unable to delete applications: {}, deleted applications: {}", path, deletedApplicationResources,
@@ -107,8 +99,10 @@ public class ApplicationResourceService implements ResourceService {
         }
     }
 
-    public void deleteApplicationResource(String path) {
-        applicationClient.deleteApplicationResource(path);
+    public void deleteApplicationResource(String path,
+                                          String etag) {
+        var headers = createIfMatchHeaders(etag);
+        applicationClient.deleteApplicationResource(path, headers);
     }
 
 }

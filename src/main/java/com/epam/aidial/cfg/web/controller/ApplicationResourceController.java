@@ -62,7 +62,7 @@ public class ApplicationResourceController {
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteApplicationResource(@RequestBody ResourcePathDto applicationPath) {
-        applicationService.deleteApplicationResource(applicationPath.getPath());
+        applicationService.deleteApplicationResource(applicationPath.getPath(), null);
     }
 
     @PostMapping(path = "/delete/bulk",
