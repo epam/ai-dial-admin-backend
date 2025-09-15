@@ -7,8 +7,8 @@ alter table deployment_entity alter column deployment_type varchar(32) not null;
 
 alter table deployment_entity_aud add deployment_type varchar(32);
 GO
-update deployment_entity_aud set deployment_type = 'SECURED' where type = 'TOOL_SET' and revtype != 2;
-update deployment_entity_aud set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET' and revtype != 2;
+update deployment_entity_aud set deployment_type = 'SECURED' where type = 'TOOL_SET';
+update deployment_entity_aud set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET';
 
 -- add secured resource's fields to deployment_entity
 alter table deployment_entity add authentication_type nvarchar(max);

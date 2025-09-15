@@ -5,8 +5,8 @@ update deployment_entity set deployment_type = 'DEPLOYMENT' where type != 'TOOL_
 alter table if exists deployment_entity alter column deployment_type set not null;
 
 alter table if exists deployment_entity_aud add column if not exists deployment_type varchar(32);
-update deployment_entity_aud set deployment_type = 'SECURED' where type = 'TOOL_SET' and revtype != 2;
-update deployment_entity_aud set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET' and revtype != 2;
+update deployment_entity_aud set deployment_type = 'SECURED' where type = 'TOOL_SET';
+update deployment_entity_aud set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET';
 
 
 -- add secured resource's fields to deployment_entity
