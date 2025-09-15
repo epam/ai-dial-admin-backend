@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service("coreApplicationService")
 @RequiredArgsConstructor
@@ -34,7 +34,14 @@ public class ApplicationService {
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
-        return StreamSupport.stream(applicationJpaRepository.findAll().spliterator(), false)
+        return applicationJpaRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Application> getAllByNames(List<String> names) {
+        return applicationJpaRepository.findAllById(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

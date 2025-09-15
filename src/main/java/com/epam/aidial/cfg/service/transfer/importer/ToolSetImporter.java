@@ -2,9 +2,12 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
+import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
@@ -22,9 +25,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -48,27 +53,24 @@ public class ToolSetImporter extends RoleBasedImporter {
 
     public Collection<ImportComponent<ToolSet>> importToolSets(Map<String, CoreToolSet> coreToolSets,
                                                                Map<String, Role> roles,
-                                                               ConfigImportOptions importOptions,
-                                                               boolean isPreview) {
+                                                               ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(coreToolSets)) {
             Map<String, ToolSet> toolSets = coreToolSets.entrySet()
                     .stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue())));
-            return importAdminToolSets(toolSets, roles, importOptions, isPreview);
+            return importAdminToolSets(toolSets, roles, importOptions);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<ToolSet>> importAdminToolSets(Map<String, ToolSet> toolSets,
                                                                     Map<String, Role> roles,
-                                                                    ConfigImportOptions importOptions,
-                                                                    boolean isPreview) {
+                                                                    ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(toolSets)) {
             return toolSets.entrySet().stream()
                     .map(toolSetEntry -> {
                                 var toolSet = toolSetEntry.getValue();
-                                var importAction = processToolSet(toolSetEntry.getKey(), toolSet, roles, importOptions.conflictResolutionPolicy(), isPreview);
-                                return new ImportComponent<>(importAction, toolSet);
+                                return processToolSet(toolSetEntry.getKey(), toolSet, roles, importOptions.conflictResolutionPolicy());
                             }
                     )
                     .toList();
@@ -76,44 +78,35 @@ public class ToolSetImporter extends RoleBasedImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processToolSet(String toolSetName,
-                                        ToolSet newToolSet,
-                                        Map<String, Role> roles,
-                                        ConflictResolutionPolicy resolutionPolicy,
-                                        boolean isPreview) {
+    private ImportComponent<ToolSet> processToolSet(String toolSetName,
+                                                    ToolSet newToolSet,
+                                                    Map<String, Role> roles,
+                                                    ConflictResolutionPolicy resolutionPolicy) {
         Optional<ToolSet> toolSet = toolSetService.tryGetToolSet(toolSetName);
         if (toolSet.isPresent()) {
             ToolSet existingToolSet = toolSet.get();
-            setLimits(toolSetName, existingToolSet.getDeployment(), roles, newToolSet.getDeployment(), isPreview);
-            return handleExisting(newToolSet, resolutionPolicy, toolSetName, isPreview);
+            setLimits(toolSetName, existingToolSet.getDeployment(), roles, newToolSet.getDeployment());
+            ImportAction importAction = handleExisting(newToolSet, resolutionPolicy, toolSetName);
+            return new ImportComponent<>(importAction, existingToolSet, newToolSet);
         } else {
             validate(toolSetName, newToolSet);
-            setLimits(toolSetName,  roles, newToolSet.getDeployment(), isPreview);
-            if (!isPreview) {
-                toolSetService.create(newToolSet);
-            }
-            return CREATE;
+            setLimits(toolSetName, roles, newToolSet.getDeployment());
+            toolSetService.create(newToolSet);
+            return new ImportComponent<>(CREATE, null, newToolSet);
         }
     }
 
     private ImportAction handleExisting(ToolSet newToolSet,
                                         ConflictResolutionPolicy resolutionPolicy,
-                                        String toolSetName,
-                                        boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing ToolSet will remain unchanged.
-                return SKIP;
-            }
+                                        String toolSetName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing ToolSet will remain unchanged.
             case OVERRIDE -> {
                 validate(toolSetName, newToolSet);
-                if (!isPreview) {
-                    toolSetService.update(toolSetName, newToolSet);
-                }
-                return UPDATE;
+                toolSetService.update(toolSetName, newToolSet);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolution policy: " + resolutionPolicy);
-        }
+        };
     }
 
     private ToolSet map(String toolSetName, CoreToolSet toolSet) {
@@ -131,6 +124,40 @@ public class ToolSetImporter extends RoleBasedImporter {
             Path propertyPath = violation.getPropertyPath();
             log.error("ToolSet '{}' is invalid: {} {}", toolSetName, propertyPath, message);
             throw new IllegalArgumentException("ToolSet '" + toolSetName + "' is invalid: " + propertyPath + " " + message);
+        }
+    }
+
+    public List<ImportComponent<ToolSet>> getActualImportedToolSets(Collection<ImportComponent<ToolSet>> toolSetImportComponents,
+                                                                    Collection<ImportComponent<Role>> roleImportComponents) {
+        List<String> names = toolSetImportComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(ToolSet::getDeployment)
+                .map(Deployment::getName)
+                .toList();
+        Map<String, ToolSet> importedToolSetsByNames = toolSetService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(toolSet -> toolSet.getDeployment().getName(), Function.identity()));
+
+        Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
+        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
+
+        return toolSetImportComponents.stream()
+                .map(importComponent -> {
+                    var next = importedToolSetsByNames.get(importComponent.getNext().getDeployment().getName());
+                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(ToolSet toolSet) {
+        if (toolSet != null) {
+            toolSet.setCreatedAt(null);
+            toolSet.setUpdatedAt(null);
         }
     }
 }

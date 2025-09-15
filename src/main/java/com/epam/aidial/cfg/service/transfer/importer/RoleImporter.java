@@ -13,7 +13,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
 import static com.epam.aidial.cfg.domain.model.ImportAction.SKIP;
@@ -28,21 +32,18 @@ public class RoleImporter {
     private final RoleService roleService;
 
     public Collection<ImportComponent<Role>> importRoles(Map<String, Role> roles,
-                                                         ConflictResolutionPolicy resolutionPolicy,
-                                                         boolean isPreview) {
-        return importAdminRoles(roles, resolutionPolicy, isPreview);
+                                                         ConflictResolutionPolicy resolutionPolicy) {
+        return importAdminRoles(roles, resolutionPolicy);
     }
 
     public Collection<ImportComponent<Role>> importAdminRoles(Map<String, Role> roles,
-                                                              ConflictResolutionPolicy resolutionPolicy,
-                                                              boolean isPreview) {
+                                                              ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(roles)) {
             return roles.entrySet().stream()
                     .map(roleEntry -> {
                                 var role = roleEntry.getValue();
                                 role.setName(roleEntry.getKey());
-                                var importAction = importRole(roleEntry.getKey(), role, resolutionPolicy, isPreview);
-                                return new ImportComponent<>(importAction, role);
+                                return importRole(roleEntry.getKey(), role, resolutionPolicy);
                             }
                     )
                     .toList();
@@ -51,29 +52,51 @@ public class RoleImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction importRole(String roleName,
-                                    Role newRole,
-                                    ConflictResolutionPolicy resolutionPolicy,
-                                    boolean isPreview) {
-        if (roleService.exists(roleName)) {
-            switch (resolutionPolicy) {
-                case SKIP -> {
-                    // Do nothing, the existing role will remain unchanged.
-                    return SKIP;
-                }
-                case OVERRIDE -> {
-                    if (!isPreview) {
-                        roleService.updateRole(roleName, newRole);
-                    }
-                    return UPDATE;
-                }
-                default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-            }
+    private ImportComponent<Role> importRole(String roleName, Role newRole, ConflictResolutionPolicy resolutionPolicy) {
+        Optional<Role> role = roleService.tryGetRole(roleName);
+        if (role.isPresent()) {
+            ImportAction importAction = handleExistingRole(newRole, resolutionPolicy, roleName);
+            return new ImportComponent<>(importAction, role.get(), newRole);
         } else {
-            if (!isPreview) {
-                roleService.createRole(newRole);
+            roleService.createRole(newRole);
+            return new ImportComponent<>(CREATE, null, newRole);
+        }
+    }
+
+    private ImportAction handleExistingRole(Role role, ConflictResolutionPolicy resolutionPolicy, String roleName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing role will remain unchanged.
+            case OVERRIDE -> {
+                roleService.updateRole(roleName, role);
+                yield UPDATE;
             }
-            return CREATE;
+        };
+    }
+
+    public List<ImportComponent<Role>> getActualImportedRoles(Collection<ImportComponent<Role>> importComponents) {
+        List<String> names = importComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(Role::getName)
+                .toList();
+        Map<String, Role> importedRolesByNames = roleService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(Role::getName, Function.identity()));
+
+        return importComponents.stream()
+                .map(importComponent -> {
+                    var next = importedRolesByNames.get(importComponent.getNext().getName());
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Role role) {
+        if (role != null) {
+            role.setCreatedAt(null);
+            role.setUpdatedAt(null);
         }
     }
 }

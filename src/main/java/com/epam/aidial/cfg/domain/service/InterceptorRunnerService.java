@@ -43,11 +43,23 @@ public class InterceptorRunnerService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<InterceptorRunner> getAllByNames(List<String> names) {
+        return StreamSupport.stream(interceptorRunnerJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public InterceptorRunner get(String interceptorRunnerName) {
+        return tryGet(interceptorRunnerName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorRunnerName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<InterceptorRunner> tryGet(String interceptorRunnerName) {
         return Optional.ofNullable(interceptorRunnerName)
                 .flatMap(interceptorRunnerJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorRunnerName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional
@@ -64,7 +76,7 @@ public class InterceptorRunnerService {
         interceptorRunnerValidator.validateUpdate(interceptorRunnerName, interceptorRunner);
         InterceptorRunnerEntity interceptorRunnerEntity = findByInterceptorRunnerName(interceptorRunnerName);
         Optional.of(interceptorRunner)
-                .map(domainModel ->  mapper.toEntity(domainModel, interceptorRunnerEntity))
+                .map(domainModel -> mapper.toEntity(domainModel, interceptorRunnerEntity))
                 .ifPresent(interceptorRunnerJpaRepository::save);
     }
 

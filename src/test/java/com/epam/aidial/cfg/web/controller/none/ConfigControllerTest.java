@@ -177,7 +177,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         model.setDependencies(List.of("dep1", "dep2"));
         model.setFieldsHashingOrder(List.of("prompt", "temperature", "seed", "system"));
         var importConfigPreview = ImportConfigPreview.builder()
-                .models(List.of(new ImportComponent<>(CREATE, model)))
+                .models(List.of(new ImportComponent<>(CREATE, null, model)))
                 .build();
 
         var configImportOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
@@ -216,7 +216,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         model.setDependencies(List.of("dep1", "dep2"));
         model.setFieldsHashingOrder(List.of("prompt", "temperature", "seed", "system"));
         var importConfigPreview = ImportConfigPreview.builder()
-                .models(List.of(new ImportComponent<>(CREATE, model)))
+                .models(List.of(new ImportComponent<>(CREATE, null, model)))
                 .build();
 
         when(configTransfer.importPreviewZip(mockFile, ConflictResolutionPolicy.SKIP)).thenReturn(importConfigPreview);

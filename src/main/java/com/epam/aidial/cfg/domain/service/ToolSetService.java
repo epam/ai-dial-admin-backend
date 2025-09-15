@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,8 +36,15 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
         return toolSetJpaRepository.findAll().stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<ToolSet> getAllByNames(List<String> names) {
+        return toolSetJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -58,9 +66,9 @@ public class ToolSetService {
         toolSetValidator.validateCreation(toolSet);
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
         Optional.of(toolSet)
-                    .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
-                    .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
+                .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
+                .map(toolSetJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
     }
 
     @Transactional
@@ -68,11 +76,11 @@ public class ToolSetService {
         toolSetNormalizer.normalize(value);
         toolSetValidator.validateUpdate(toolSetName, value);
         ToolSetEntity toolSetEntity = toolSetJpaRepository.findById(toolSetName)
-                    .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
         Optional.of(value)
-                    .map(domainModel -> mapper.toEntity(domainModel, toolSetEntity))
-                    .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to update ToolSet " + value.getDeployment().getName()));
+                .map(domainModel -> mapper.toEntity(domainModel, toolSetEntity))
+                .map(toolSetJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to update ToolSet " + value.getDeployment().getName()));
     }
 
     @Transactional
@@ -95,9 +103,9 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAllAtRevision(Integer revision) {
         return historyService.getEntitiesAtRevision(revision, ToolSetEntity.class)
-                    .stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
