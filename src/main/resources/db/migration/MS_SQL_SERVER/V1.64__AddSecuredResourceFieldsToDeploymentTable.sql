@@ -2,6 +2,7 @@
 alter table deployment_entity add deployment_type varchar(32);
 update deployment_entity set deployment_type = 'SECURED' where type = 'TOOL_SET';
 update deployment_entity set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET';
+alter table deployment_entity ALTER COLUMN deployment_type varchar(32) not null;
 
 alter table deployment_entity_aud add deployment_type varchar(32);
 update deployment_entity_aud set deployment_type = 'SECURED' where type = 'TOOL_SET' and revtype != 2;
