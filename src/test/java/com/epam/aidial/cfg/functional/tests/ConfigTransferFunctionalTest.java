@@ -1109,8 +1109,13 @@ public abstract class ConfigTransferFunctionalTest {
                         ExportConfigComponentType.ROUTE,
                         ExportConfigComponentType.ROLE,
                         ExportConfigComponentType.INTERCEPTOR,
-                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
-        )));
+                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)),
+                new ExportConfigComponent(
+                    "toolset1",
+                    ExportConfigComponentType.TOOL_SET,
+                    Set.of()
+                )
+        ));
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
         // then
@@ -1125,8 +1130,18 @@ public abstract class ConfigTransferFunctionalTest {
                             Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
                             Assertions.assertThat(keys.get("testKey1").getKey()).isEqualTo(expectedKey);
                         });
+                Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
+                        .satisfies(toolsets -> {
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientId()).isEqualTo("some-client-id");
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientSecret()).isEqualTo("some-client-secret");
+                        });
             } else {
                 Assertions.assertThat(config.getKeys()).isEmpty();
+                Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
+                        .satisfies(toolsets -> {
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientId()).isEqualTo("some-client-id");
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientSecret()).isNull();
+                        });
             }
             Assertions.assertThat(config.getRoles()).containsOnlyKeys("default");
             Assertions.assertThat(config.getApplications()).isNotEmpty().containsOnlyKeys("testApplication1")
