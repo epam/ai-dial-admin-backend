@@ -26,8 +26,8 @@ public interface ApplicationClient {
     @GetMapping("/v1/metadata/applications/{path}")
     ApplicationMetadataDto getApplicationMetadata(@PathVariable String path,
                                                   @RequestParam boolean recursive,
-                                                  @RequestParam String token);
-
+                                                  @RequestParam String token,
+                                                  @RequestParam int limit);
     /**
      * Implementation Details:
      *
@@ -37,8 +37,10 @@ public interface ApplicationClient {
      * <p>For more information, refer to the custom decoder implementation in:
      * {@link MessageConversionCoreClientConfiguration#feignDecoder(org.springframework.beans.factory.ObjectFactory, com.fasterxml.jackson.databind.ObjectMapper)}
      */
+
     @GetMapping("/v1/applications/{path}")
     ApplicationResourceDto getApplicationResource(@PathVariable String path);
+
 
     @PutMapping("/v1/applications/{path}")
     ApplicationMetadataDto putApplicationResource(@PathVariable String path,

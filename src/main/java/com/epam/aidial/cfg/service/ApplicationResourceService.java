@@ -17,6 +17,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,11 +32,15 @@ import static com.epam.aidial.cfg.utils.HeaderUtils.createIfMatchHeaders;
 @RequiredArgsConstructor
 @LogExecution
 public class ApplicationResourceService implements ResourceService {
+    private static final String BASE_PATH = "public/";
 
     private final ApplicationClient applicationClient;
     private final ApplicationClientMapper applicationClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
+
+    @Value("${core.applications.metadata.default.limit}")
+    private final int applicationsMetadataDefaultLimit;
 
     public ApplicationNodeInfo getApplications(ResourceMetadataRequest request) {
         var applicationMetadata = getMetadata(request);
@@ -55,7 +60,11 @@ public class ApplicationResourceService implements ResourceService {
 
     @Override
     public ApplicationMetadataDto getMetadata(ResourceMetadataRequest request) {
-        return applicationClient.getApplicationMetadata(request.getPath(), request.isRecursive(), request.getNextToken());
+        var recursive = request.isRecursive();
+        var nextToken = request.getNextToken();
+        var path = request.getPath() != null ? request.getPath() : BASE_PATH;
+        var limit = request.getLimit() != null ? request.getLimit() : applicationsMetadataDefaultLimit;
+        return applicationClient.getApplicationMetadata(path, recursive, nextToken, limit);
     }
 
     @Override
@@ -71,7 +80,8 @@ public class ApplicationResourceService implements ResourceService {
 
     public ApplicationResource getApplicationResource(String path) {
         ApplicationResourceDto applicationDto = applicationClient.getApplicationResource(path);
-        var applicationMetadataDto = applicationClient.getApplicationMetadata(path, false, null);
+        var applicationMetadataDto = applicationClient.getApplicationMetadata(path, false, null,
+                applicationsMetadataDefaultLimit);
         return applicationClientMapper.toApplicationResource(applicationDto, applicationMetadataDto);
     }
 
