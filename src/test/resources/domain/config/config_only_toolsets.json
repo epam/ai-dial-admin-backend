@@ -37,7 +37,20 @@
       "defaults": {},
       "interceptors": [],
       "auth_settings": {
-        "authentication_type": "none"
+        "authentication_type": "api_key",
+        "client_id": "some-client-id",
+        "client_secret": "some-client-secret",
+        "authorization_endpoint": "https://some-auth-endpoint",
+        "token_endpoint": "https://some-token-endpoint",
+        "redirect_uri": "https://some-redirect-uri",
+        "code_challenge": "someCodeChallenge",
+        "code_challenge_method": "someCodeChallengeMethod",
+        "code_verifier": "someCodeVerifier",
+        "api_key_header": "someApiKeyHeader",
+        "scopes_supported": [
+          "first",
+          "second"
+        ]
       }
     }
   }
