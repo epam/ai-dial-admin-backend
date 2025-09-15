@@ -21,10 +21,5 @@ public class ResourceAuthSettingsDto {
     private String codeVerifier;
     private String apiKeyHeader;
 
-    // TODO [VPA]: for ToolSet, remove globalAuthStatus, userLevelAuthStatus and appLevelAuthStatus (?)
-    private ResourceAuthStatusDto globalAuthStatus;
-    private ResourceAuthStatusDto userLevelAuthStatus;
-    private ResourceAuthStatusDto appLevelAuthStatus;
-
     private List<String> scopesSupported;
 }

@@ -54,15 +54,6 @@ public class CoreResourceAuthSettings {
     @JsonAlias({"apiKeyHeader", "api_key_header"})
     private String apiKeyHeader;
 
-    @JsonAlias({"globalAuthStatus", "global_auth_status"})
-    private CoreResourceAuthStatus globalAuthStatus;
-
-    @JsonAlias({"userLevelAuthStatus", "user_level_auth_status"})
-    private CoreResourceAuthStatus userLevelAuthStatus;
-
-    @JsonAlias({"appLevelAuthStatus", "app_level_auth_status"})
-    private CoreResourceAuthStatus appLevelAuthStatus;
-
     @JsonAlias({"scopesSupported", "scopes_supported"})
     private List<String> scopesSupported;
 }

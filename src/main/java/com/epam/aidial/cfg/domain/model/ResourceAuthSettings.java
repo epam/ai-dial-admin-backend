@@ -21,9 +21,5 @@ public class ResourceAuthSettings {
     private String codeVerifier;
     private String apiKeyHeader;
 
-    private ResourceAuthStatus globalAuthStatus;
-    private ResourceAuthStatus userLevelAuthStatus;
-    private ResourceAuthStatus appLevelAuthStatus;
-
     private List<String> scopesSupported;
 }
