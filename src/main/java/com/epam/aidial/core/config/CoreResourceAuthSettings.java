@@ -1,5 +1,6 @@
 package com.epam.aidial.core.config;
 
+import com.epam.aidial.cfg.utils.SecretUtils;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -54,15 +55,22 @@ public class CoreResourceAuthSettings {
     @JsonAlias({"apiKeyHeader", "api_key_header"})
     private String apiKeyHeader;
 
-    @JsonAlias({"globalAuthStatus", "global_auth_status"})
-    private CoreResourceAuthStatus globalAuthStatus;
-
-    @JsonAlias({"userLevelAuthStatus", "user_level_auth_status"})
-    private CoreResourceAuthStatus userLevelAuthStatus;
-
-    @JsonAlias({"appLevelAuthStatus", "app_level_auth_status"})
-    private CoreResourceAuthStatus appLevelAuthStatus;
-
     @JsonAlias({"scopesSupported", "scopes_supported"})
     private List<String> scopesSupported;
+
+    @Override
+    public String toString() {
+        return "CoreResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()
+                + ", clientId='" + getClientId()
+                + ", clientSecret='" + SecretUtils.mask(this.getClientSecret())
+                + ", authorizationEndpoint='" + getAuthorizationEndpoint()
+                + ", tokenEndpoint='" + getTokenEndpoint()
+                + ", redirectUri='" + getRedirectUri()
+                + ", codeChallenge='" + getCodeChallenge()
+                + ", codeChallengeMethod='"+ getCodeChallengeMethod()
+                + ", codeVerifier='" + getCodeVerifier()
+                + ", apiKeyHeader='" + getApiKeyHeader()
+                + ", scopesSupported=" + getScopesSupported()
+                + ')';
+    }
 }

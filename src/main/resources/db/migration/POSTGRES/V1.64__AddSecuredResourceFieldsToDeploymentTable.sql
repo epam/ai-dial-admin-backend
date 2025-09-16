@@ -1,9 +1,18 @@
 -- add discriminator column for inheritance strategy
 alter table if exists deployment_entity add column if not exists deployment_type varchar(32);
+update deployment_entity set deployment_type = 'SECURED_RESOURCE' where type = 'TOOL_SET';
+update deployment_entity set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET';
+alter table if exists deployment_entity alter column deployment_type set not null;
+
 alter table if exists deployment_entity_aud add column if not exists deployment_type varchar(32);
+update deployment_entity_aud set deployment_type = 'SECURED_RESOURCE' where type = 'TOOL_SET';
+update deployment_entity_aud set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET';
+
 
 -- add secured resource's fields to deployment_entity
 alter table if exists deployment_entity add column if not exists authentication_type text;
+update deployment_entity set authentication_type = 'NONE' where type = 'TOOL_SET';
+
 alter table if exists deployment_entity add column if not exists client_id text;
 alter table if exists deployment_entity add column if not exists client_secret text;
 alter table if exists deployment_entity add column if not exists authorization_endpoint text;
@@ -13,13 +22,12 @@ alter table if exists deployment_entity add column if not exists code_challenge 
 alter table if exists deployment_entity add column if not exists code_challenge_method text;
 alter table if exists deployment_entity add column if not exists code_verifier text;
 alter table if exists deployment_entity add column if not exists api_key_header text;
-alter table if exists deployment_entity add column if not exists global_auth_status text;
-alter table if exists deployment_entity add column if not exists user_level_auth_status text;
-alter table if exists deployment_entity add column if not exists app_level_auth_status text;
 alter table if exists deployment_entity add column if not exists scopes_supported text array;
 
 -- add secured resource's fields to deployment_entity_aud
 alter table if exists deployment_entity_aud add column if not exists authentication_type text;
+update deployment_entity_aud set authentication_type = 'NONE' where type = 'TOOL_SET' and revtype != 2;
+
 alter table if exists deployment_entity_aud add column if not exists client_id text;
 alter table if exists deployment_entity_aud add column if not exists client_secret text;
 alter table if exists deployment_entity_aud add column if not exists authorization_endpoint text;
@@ -29,7 +37,4 @@ alter table if exists deployment_entity_aud add column if not exists code_challe
 alter table if exists deployment_entity_aud add column if not exists code_challenge_method text;
 alter table if exists deployment_entity_aud add column if not exists code_verifier text;
 alter table if exists deployment_entity_aud add column if not exists api_key_header text;
-alter table if exists deployment_entity_aud add column if not exists global_auth_status text;
-alter table if exists deployment_entity_aud add column if not exists user_level_auth_status text;
-alter table if exists deployment_entity_aud add column if not exists app_level_auth_status text;
 alter table if exists deployment_entity_aud add column if not exists scopes_supported text array;

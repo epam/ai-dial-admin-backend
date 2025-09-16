@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.dao.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,6 +29,7 @@ import java.util.List;
 @Audited
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "deployment_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("DEPLOYMENT")
 public class DeploymentEntity extends AbstractEntity<String> {
 
     @Id

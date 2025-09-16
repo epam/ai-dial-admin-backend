@@ -7,11 +7,13 @@ import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.core.config.CoreResourceAuthSettings;
 import com.epam.aidial.core.config.CoreToolSet;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 @Mapper(
         componentModel = "spring",
         uses = {
@@ -46,7 +48,10 @@ public abstract class ToolSetCoreMapper {
 
     protected CoreResourceAuthSettings toAuthSettings(Deployment deployment) {
         if (!(deployment instanceof SecuredResource securedResource)) {
-            throw new IllegalArgumentException("Unable to retrieve authSettings from regular Deployment. Secured Resource is required");
+            String message = "Unable to retrieve authSettings from Deployment. Secured Resource is required."
+                    + " Deployment: '%s'. Details: '%s'".formatted(deployment.getName(), deployment);
+            log.warn(message);
+            throw new IllegalArgumentException(message);
         }
         return authSettingsCoreMapper.toCoreResourceAuthSettings(securedResource.getAuthSettings());
     }

@@ -60,7 +60,8 @@ public abstract class DeploymentEntityMapper {
     public SecuredResource toSecuredResource(DeploymentEntity deploymentEntity) {
         Deployment deployment = toDomain(deploymentEntity);
         if (!(deploymentEntity instanceof SecuredResourceEntity securedResourceEntity)) {
-            throw new IllegalArgumentException("Only Secured Resource entity can be mapped to Secured Resource");
+            throw new IllegalArgumentException("Only Secured Resource entity can be mapped to Secured Resource."
+                    + " Deployment: %s".formatted(deployment.getName()));
         }
 
         ResourceAuthSettings authSettings = resourceAuthSettingsEntityMapper.toDomain(securedResourceEntity.getAuthSettings());
@@ -71,7 +72,8 @@ public abstract class DeploymentEntityMapper {
     public void toSecuredResourceEntity(Deployment deployment, @MappingTarget SecuredResourceEntity entity) {
         DeploymentEntity mappedEntity = toEntity(deployment, entity);
         if (!(deployment instanceof SecuredResource securedResource)) {
-            throw new IllegalArgumentException("Only Secured Resource can be mapped to Secured Resource entity");
+            throw new IllegalArgumentException("Only Secured Resource can be mapped to Secured Resource entity."
+                    + " Deployment: %s".formatted(mappedEntity.getName()));
         }
 
         entity.setName(mappedEntity.getName());

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.utils.SecretUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -21,10 +22,21 @@ public class ResourceAuthSettingsDto {
     private String codeVerifier;
     private String apiKeyHeader;
 
-    // TODO [VPA]: for ToolSet, remove globalAuthStatus, userLevelAuthStatus and appLevelAuthStatus (?)
-    private ResourceAuthStatusDto globalAuthStatus;
-    private ResourceAuthStatusDto userLevelAuthStatus;
-    private ResourceAuthStatusDto appLevelAuthStatus;
-
     private List<String> scopesSupported;
+
+    @Override
+    public String toString() {
+        return "ResourceAuthSettingsDto(" + "authenticationType=" + getAuthenticationType()
+                + ", clientId='" + getClientId()
+                + ", clientSecret='" + SecretUtils.mask(this.getClientSecret())
+                + ", authorizationEndpoint='" + getAuthorizationEndpoint()
+                + ", tokenEndpoint='" + getTokenEndpoint()
+                + ", redirectUri='" + getRedirectUri()
+                + ", codeChallenge='" + getCodeChallenge()
+                + ", codeChallengeMethod='" + getCodeChallengeMethod()
+                + ", codeVerifier='" + getCodeVerifier()
+                + ", apiKeyHeader='" + getApiKeyHeader()
+                + ", scopesSupported=" + getScopesSupported()
+                + ')';
+    }
 }

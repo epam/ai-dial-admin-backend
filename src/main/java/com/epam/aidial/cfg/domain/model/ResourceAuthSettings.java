@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.utils.SecretUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -21,9 +22,21 @@ public class ResourceAuthSettings {
     private String codeVerifier;
     private String apiKeyHeader;
 
-    private ResourceAuthStatus globalAuthStatus;
-    private ResourceAuthStatus userLevelAuthStatus;
-    private ResourceAuthStatus appLevelAuthStatus;
-
     private List<String> scopesSupported;
+
+    @Override
+    public String toString() {
+        return "ResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()
+                + ", clientId='" + getClientId()
+                + ", clientSecret='" + SecretUtils.mask(this.getClientSecret())
+                + ", authorizationEndpoint='" + getAuthorizationEndpoint()
+                + ", tokenEndpoint='" + getTokenEndpoint()
+                + ", redirectUri='" + getRedirectUri()
+                + ", codeChallenge='" + getCodeChallenge()
+                + ", codeChallengeMethod='" + getCodeChallengeMethod()
+                + ", codeVerifier='" + getCodeVerifier()
+                + ", apiKeyHeader='" + getApiKeyHeader()
+                + ", scopesSupported=" + getScopesSupported()
+                + ')';
+    }
 }

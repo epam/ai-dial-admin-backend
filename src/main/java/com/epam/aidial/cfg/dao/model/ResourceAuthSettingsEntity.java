@@ -24,12 +24,5 @@ public class ResourceAuthSettingsEntity {
     private String codeVerifier;
     private String apiKeyHeader;
 
-    @Enumerated(EnumType.STRING)
-    private ResourceAuthStatusEntity globalAuthStatus;
-    @Enumerated(EnumType.STRING)
-    private ResourceAuthStatusEntity userLevelAuthStatus;
-    @Enumerated(EnumType.STRING)
-    private ResourceAuthStatusEntity appLevelAuthStatus;
-
     private List<String> scopesSupported;
 }
