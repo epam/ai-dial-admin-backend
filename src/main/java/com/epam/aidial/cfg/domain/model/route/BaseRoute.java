@@ -28,7 +28,7 @@ public abstract class BaseRoute extends RoleBased {
     private Set<@HttpMethod String> methods;
     @Valid
     private List<Upstream> upstreams;
-    private int maxRetryAttempts;
+    private Integer maxRetryAttempts;
     private Long createdAt;
     private Long updatedAt;
     private int order = Integer.MAX_VALUE;
