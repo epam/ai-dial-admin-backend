@@ -52,6 +52,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
         Map<String, CoreToolSet> toolsets = config.getToolsets().entrySet()
                 .stream()
                 .map(e -> Pair.of(e.getKey(), mapToolSet(e.getValue())))
+                .filter(p -> StringUtils.isNotEmpty(p.getValue().getAuthSettings().getClientSecret()))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
         secretConfig.setToolsets(toolsets);
 

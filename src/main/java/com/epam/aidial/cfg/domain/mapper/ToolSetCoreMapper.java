@@ -48,8 +48,8 @@ public abstract class ToolSetCoreMapper {
 
     protected CoreResourceAuthSettings toAuthSettings(Deployment deployment) {
         if (!(deployment instanceof SecuredResource securedResource)) {
-            String message = "Unable to retrieve authSettings from regular Deployment. Secured Resource is required."
-                    + " Deployment: %s".formatted(deployment.getName());
+            String message = "Unable to retrieve authSettings from Deployment. Secured Resource is required."
+                    + " Deployment: '%s'. Details: '%s'".formatted(deployment.getName(), deployment);
             log.warn(message);
             throw new IllegalArgumentException(message);
         }
