@@ -37,7 +37,7 @@ public interface ApplicationClient {
      * to facilitate the decoding of the response.
      *
      * <p>For more information, refer to the custom decoder implementation in:
-     * {@link MessageConversionCoreClientConfiguration#feignDecoder(org.springframework.beans.factory.ObjectFactory, com.fasterxml.jackson.databind.ObjectMapper)}
+     * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
      */
 
     @GetMapping(value = "/v1/applications/{path}")
@@ -46,7 +46,7 @@ public interface ApplicationClient {
 
 
     @PutMapping("/v1/applications/{path}")
-    ApplicationMetadataDto putApplicationResource(@PathVariable String path,
+    ResponseEntity<ApplicationMetadataDto> putApplicationResource(@PathVariable String path,
                                                   @RequestBody ApplicationResourceDto applicationResourceDto,
                                                   @RequestHeader Map<String, String> headers);
 

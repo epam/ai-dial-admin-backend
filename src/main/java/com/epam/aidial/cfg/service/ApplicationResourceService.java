@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.client.ApplicationClient;
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
-import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
@@ -98,20 +97,21 @@ public class ApplicationResourceService implements ResourceService {
                 applicationsMetadataDefaultLimit
         );
 
-        var resource = applicationClientMapper.toApplicationResource(response.getBody(), metadata);
-        var responseEtag = response.getHeaders().getETag();
-
-        return new DomainModelWithEtag<>(resource, responseEtag);
+        var applicationResource = applicationClientMapper.toApplicationResource(response.getBody(), metadata);
+        var currentEtag = response.getHeaders().getETag();
+        return new DomainModelWithEtag<>(applicationResource, currentEtag);
     }
 
-    public ApplicationResource createApplicationResource(CreateApplicationResource createApplicationResource,
+    public DomainModelWithEtag<ApplicationResource> putApplicationResource(CreateApplicationResource createApplicationResource,
                                                          boolean allowOverride,
                                                          String etag) {
-        ApplicationResourceDto applicationResourceDto = applicationClientMapper.toApplicationResourceDto(createApplicationResource);
+        var applicationResourceDto = applicationClientMapper.toApplicationResourceDto(createApplicationResource);
         var path = applicationClientMapper.toPath(createApplicationResource);
         var headers = createHeadersForCreate(allowOverride, etag);
         var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
-        return applicationClientMapper.toApplicationResource(applicationResourceDto, applicationMetadata);
+        var applicationResource =  applicationClientMapper.toApplicationResource(applicationResourceDto, applicationMetadata.getBody());
+        var currentEtag = applicationMetadata.getHeaders().getETag();
+        return new DomainModelWithEtag<>(applicationResource, currentEtag);
     }
 
     public void deleteApplicationResources(List<String> paths) {

@@ -40,6 +40,7 @@ public class ApplicationResourceDto {
     private String viewerUrl;
     private String editorUrl;
     private Boolean invalid;
+    private List<String> userRoles;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
 }

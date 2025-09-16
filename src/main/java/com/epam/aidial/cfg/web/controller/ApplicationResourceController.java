@@ -10,7 +10,6 @@ import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.mapper.ApplicationResourceMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
-import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
@@ -57,11 +56,31 @@ public class ApplicationResourceController {
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ApplicationResourceDto createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) throws JsonProcessingException {
-        CreateApplicationResource createApplication = applicationResourceMapper.toCreateApplicationResourceDto(createApplicationDto);
-        var createdApplication = applicationService.createApplicationResource(createApplication, true, null);
-        return applicationResourceMapper.toApplicationResourceDto(createdApplication);
+    public ResponseEntity<ApplicationResourceDto> createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) throws JsonProcessingException {
+        var createApplication = applicationResourceMapper.toCreateApplicationResourceDto(createApplicationDto);
+        var createdApplication = applicationService.putApplicationResource(createApplication, false, null);
+        return ResponseEntity.ok()
+                .eTag(createdApplication.etag())
+                .body(applicationResourceMapper.toApplicationResourceDto(createdApplication.model()));
     }
+
+    @PostMapping(
+            path = "/update",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<ApplicationResourceDto> updateApplication(
+            @RequestHeader("If-Match") String etag,
+            @RequestBody CreateApplicationResourceDto updateApplicationDto) {
+
+        var updateApplication = applicationResourceMapper.toCreateApplicationResourceDto(updateApplicationDto);
+        var updatedApplication = applicationService.putApplicationResource(updateApplication, true,
+                etag);
+        return ResponseEntity.ok()
+                .eTag(updatedApplication.etag())
+                .body(applicationResourceMapper.toApplicationResourceDto(updatedApplication.model()));
+    }
+
 
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
