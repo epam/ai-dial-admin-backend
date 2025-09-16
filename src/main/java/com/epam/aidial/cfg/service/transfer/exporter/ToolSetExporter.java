@@ -103,10 +103,8 @@ public class ToolSetExporter {
 
     private ToolSet removeClientSecret(ToolSet toolSet, boolean addSecrets) {
         var deployment = toolSet.getDeployment();
-        if (deployment instanceof SecuredResource securedResource
-                && securedResource.getAuthSettings() != null
-                && !addSecrets) {
-            securedResource.getAuthSettings().setClientSecret(null);
+        if (deployment.getAuthSettings() != null && !addSecrets) {
+            deployment.getAuthSettings().setClientSecret(null);
         }
         return toolSet;
     }

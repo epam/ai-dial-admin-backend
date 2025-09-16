@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
-import com.epam.aidial.cfg.dao.model.ResourceAuthSettingsEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
@@ -11,7 +10,6 @@ import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitId;
 import com.epam.aidial.cfg.dao.model.SecuredResourceEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Limit;
-import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
@@ -23,7 +21,6 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
@@ -51,40 +48,18 @@ public abstract class DeploymentEntityMapper {
 
     public abstract Deployment toDomain(DeploymentEntity deploymentEntity);
 
+    public abstract SecuredResource toDomain(SecuredResourceEntity deploymentEntity);
+
+    @ToEntity
+    public abstract DeploymentEntity toEntity(Deployment deployment, @MappingTarget DeploymentEntity entity);
+
+    @ToEntity
+    public abstract SecuredResourceEntity toEntity(SecuredResource deployment, @MappingTarget SecuredResourceEntity entity);
+
     @Mapping(target = "roleLimits", ignore = true)
     @Mapping(target = "roleShareResourceLimits", ignore = true)
     @Mapping(target = "type", ignore = true)
-    public abstract DeploymentEntity toEntity(Deployment deployment, @MappingTarget DeploymentEntity entity);
-
-    @Named("toSecuredResource")
-    public SecuredResource toSecuredResource(DeploymentEntity deploymentEntity) {
-        Deployment deployment = toDomain(deploymentEntity);
-        if (!(deploymentEntity instanceof SecuredResourceEntity securedResourceEntity)) {
-            throw new IllegalArgumentException("Only Secured Resource entity can be mapped to Secured Resource."
-                    + " Deployment: %s".formatted(deployment.getName()));
-        }
-
-        ResourceAuthSettings authSettings = resourceAuthSettingsEntityMapper.toDomain(securedResourceEntity.getAuthSettings());
-
-        return new SecuredResource(deployment, authSettings);
-    }
-
-    public void toSecuredResourceEntity(Deployment deployment, @MappingTarget SecuredResourceEntity entity) {
-        DeploymentEntity mappedEntity = toEntity(deployment, entity);
-        if (!(deployment instanceof SecuredResource securedResource)) {
-            throw new IllegalArgumentException("Only Secured Resource can be mapped to Secured Resource entity."
-                    + " Deployment: %s".formatted(mappedEntity.getName()));
-        }
-
-        entity.setName(mappedEntity.getName());
-        entity.setIsPublic(mappedEntity.getIsPublic());
-        entity.setRoleLimits(mappedEntity.getRoleLimits());
-        entity.setRoleShareResourceLimits(mappedEntity.getRoleShareResourceLimits());
-        entity.setDefaultRoleLimit(mappedEntity.getDefaultRoleLimit());
-        entity.setDefaultRoleShareResourceLimit(mappedEntity.getDefaultRoleShareResourceLimit());
-
-        ResourceAuthSettingsEntity authSettings = resourceAuthSettingsEntityMapper.toEntity(securedResource.getAuthSettings());
-        entity.setAuthSettings(authSettings);
+    public @interface ToEntity {
     }
 
     public List<RoleEntity> findRolesByNames(List<String> names) {
