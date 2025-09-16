@@ -6,6 +6,8 @@ import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.ApplicationNodeInfo;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
@@ -109,9 +111,19 @@ public class ApplicationResourceService implements ResourceService {
         var path = applicationClientMapper.toPath(createApplicationResource);
         var headers = createHeadersForCreate(allowOverride, etag);
         var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
-        var applicationResource =  applicationClientMapper.toApplicationResource(applicationResourceDto, applicationMetadata.getBody());
+        var applicationResource = applicationClientMapper.toApplicationResource(applicationResourceDto, applicationMetadata.getBody());
         var currentEtag = applicationMetadata.getHeaders().getETag();
         return new DomainModelWithEtag<>(applicationResource, currentEtag);
+    }
+
+    public DomainModelWithEtag<ApplicationResource> createApplicationResource(CreateApplicationResource createApplicationResource,
+                                                                              boolean allowOverride,
+                                                                              String etag) {
+        try {
+            return putApplicationResource(createApplicationResource, allowOverride, etag);
+        } catch (ResourcePreconditionFailedException ex) {
+            throw new EntityAlreadyExistsException("Application with name " + createApplicationResource.getName() + " already exists");
+        }
     }
 
     public void deleteApplicationResources(List<String> paths) {

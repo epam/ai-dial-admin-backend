@@ -58,7 +58,7 @@ public class ApplicationResourceController {
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationResourceDto> createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) throws JsonProcessingException {
         var createApplication = applicationResourceMapper.toCreateApplicationResourceDto(createApplicationDto);
-        var createdApplication = applicationService.putApplicationResource(createApplication, false, null);
+        var createdApplication = applicationService.createApplicationResource(createApplication, false, null);
         return ResponseEntity.ok()
                 .eTag(createdApplication.etag())
                 .body(applicationResourceMapper.toApplicationResourceDto(createdApplication.model()));

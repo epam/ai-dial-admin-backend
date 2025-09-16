@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
@@ -204,7 +205,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         });
         var createdApplicationDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + pathCreatedAppDtoJson);
 
-        when(applicationResourceService.putApplicationResource(any(), anyBoolean(), any())).thenReturn(
+        when(applicationResourceService.createApplicationResource(any(), anyBoolean(), any())).thenReturn(
                 new DomainModelWithEtag<>(createdApplication, TEST_ETAG));
 
         mockMvc.perform(post(CREATE_API_PATH)
@@ -214,7 +215,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                 .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG))
                 .andExpect(content().json(createdApplicationDtoJson, JsonCompareMode.LENIENT));
 
-        verify(applicationResourceService).putApplicationResource(eq(createApplication), eq(false), isNull());
+        verify(applicationResourceService).createApplicationResource(eq(createApplication), eq(false), isNull());
     }
 
     @Test
@@ -226,17 +227,17 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         });
 
 
-        doThrow(new ResourcePreconditionFailedException("Precondition failed"))
-                .when(applicationResourceService).putApplicationResource(any(), anyBoolean(), any());
+        doThrow(new EntityAlreadyExistsException("Already exist"))
+                .when(applicationResourceService).createApplicationResource(any(), anyBoolean(), any());
 
         mockMvc.perform(post(CREATE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createApplicationDtoJson))
-                .andExpect(status().isPreconditionFailed())
+                .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message")
-                        .value("Precondition failed"));
+                        .value("Already exist"));
 
-        verify(applicationResourceService).putApplicationResource(eq(createApplication), eq(false), isNull());
+        verify(applicationResourceService).createApplicationResource(eq(createApplication), eq(false), isNull());
     }
 
     @Test
