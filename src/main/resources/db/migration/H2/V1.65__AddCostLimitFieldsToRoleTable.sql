@@ -1,8 +1,8 @@
 -- add cost limit's fields to role_entity
-alter table if exists role_entity add column if not exists cost_limit_minute numeric default 9223372036854775807;
-alter table if exists role_entity add column if not exists cost_limit_day numeric default 9223372036854775807;
-alter table if exists role_entity add column if not exists cost_limit_week numeric default 9223372036854775807;
-alter table if exists role_entity add column if not exists cost_limit_month numeric default 9223372036854775807;
+alter table if exists role_entity add column if not exists cost_limit_minute numeric default 9223372036854775807 not null;
+alter table if exists role_entity add column if not exists cost_limit_day numeric default 9223372036854775807 not null;
+alter table if exists role_entity add column if not exists cost_limit_week numeric default 9223372036854775807 not null;
+alter table if exists role_entity add column if not exists cost_limit_month numeric default 9223372036854775807 not null;
 
 -- add cost limit's fields to role_entity_aud
 alter table if exists role_entity_aud add column if not exists cost_limit_minute numeric;
