@@ -40,8 +40,6 @@ public abstract class DeploymentEntityMapper {
     private RoleLimitEntityMapper roleLimitEntityMapper;
     @Autowired
     private RoleShareResourceLimitEntityMapper roleShareResourceLimitEntityMapper;
-    @Autowired
-    private ResourceAuthSettingsEntityMapper resourceAuthSettingsEntityMapper;
 
     @Autowired
     private RoleJpaRepository roleJpaRepository;

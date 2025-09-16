@@ -9,18 +9,17 @@ import org.mapstruct.Mapping;
         LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class,
         ShareResourceLimitDtoMapper.class, ResourceAuthSettingsDtoMapper.class
 })
-public abstract class ToolSetDtoMapper {
+public interface ToolSetDtoMapper {
 
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "deployment.authSettings", source = "authSettings")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    public abstract ToolSet toDomain(ToolSetDto dto);
+    ToolSet toDomain(ToolSetDto dto);
 
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "authSettings", source = "deployment.authSettings")
-    public abstract ToolSetDto toDto(ToolSet domain);
-
+    ToolSetDto toDto(ToolSet domain);
 }
