@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.client;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +21,7 @@ import java.util.Map;
                 MessageConversionCoreClientConfiguration.class,
                 AuthorizationCoreClientConfiguration.class,
                 RetryClientConfiguration.class,
+                FeinErrorDecoderConfiguration.class
         })
 public interface ApplicationClient {
 
@@ -38,8 +40,9 @@ public interface ApplicationClient {
      * {@link MessageConversionCoreClientConfiguration#feignDecoder(org.springframework.beans.factory.ObjectFactory, com.fasterxml.jackson.databind.ObjectMapper)}
      */
 
-    @GetMapping("/v1/applications/{path}")
-    ApplicationResourceDto getApplicationResource(@PathVariable String path);
+    @GetMapping(value = "/v1/applications/{path}")
+    ResponseEntity<ApplicationResourceDto> getApplicationResource(@PathVariable String path,
+                                                                  @RequestHeader Map<String, String> headers);
 
 
     @PutMapping("/v1/applications/{path}")

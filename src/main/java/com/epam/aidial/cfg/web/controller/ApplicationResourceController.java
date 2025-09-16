@@ -10,15 +10,17 @@ import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.mapper.ApplicationResourceMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
-import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,9 +47,11 @@ public class ApplicationResourceController {
     @PostMapping(path = "/get",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ApplicationResourceDto getApplication(@RequestBody ResourcePathDto applicationPath) throws JsonProcessingException {
-        ApplicationResource applicationResource = applicationService.getApplicationResource(applicationPath.getPath());
-        return applicationResourceMapper.toApplicationResourceDto(applicationResource);
+    public ResponseEntity<ApplicationResourceDto> getApplication(@RequestBody ResourcePathDto applicationPath,
+                                                                 @RequestHeader(value = "If-None-Match") String etag) throws JsonProcessingException {
+        var applicationResource = applicationService.getApplicationResource(applicationPath.getPath(), etag);
+        var applicationResourceDto = applicationResourceMapper.toApplicationResourceDto(applicationResource.model());
+        return ResponseEntity.status(HttpStatus.OK).eTag(applicationResource.etag()).body(applicationResourceDto);
     }
 
     @PostMapping(path = "/create",
@@ -61,8 +65,9 @@ public class ApplicationResourceController {
 
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public void deleteApplicationResource(@RequestBody ResourcePathDto applicationPath) {
-        applicationService.deleteApplicationResource(applicationPath.getPath(), null);
+    public void deleteApplicationResource(@RequestBody ResourcePathDto applicationPath,
+                                          @RequestHeader(value = "If-Match") String etag) {
+        applicationService.deleteApplicationResource(applicationPath.getPath(), etag);
     }
 
     @PostMapping(path = "/delete/bulk",

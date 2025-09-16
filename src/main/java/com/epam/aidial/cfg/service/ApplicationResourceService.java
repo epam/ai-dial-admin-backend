@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.model.ApplicationNodeInfo;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
+import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
@@ -26,6 +27,7 @@ import java.util.List;
 import static com.epam.aidial.cfg.client.mapper.ApplicationClientMapper.APPLICATIONS_PREFIX;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createIfMatchHeaders;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createIfNonMatchHeaders;
 
 @Slf4j
 @Service
@@ -40,7 +42,7 @@ public class ApplicationResourceService implements ResourceService {
     private final ResourceClientMapper resourceClientMapper;
 
     @Value("${core.applications.metadata.default.limit}")
-    private final int applicationsMetadataDefaultLimit;
+    private int applicationsMetadataDefaultLimit;
 
     public ApplicationNodeInfo getApplications(ResourceMetadataRequest request) {
         var applicationMetadata = getMetadata(request);
@@ -79,10 +81,27 @@ public class ApplicationResourceService implements ResourceService {
     }
 
     public ApplicationResource getApplicationResource(String path) {
-        ApplicationResourceDto applicationDto = applicationClient.getApplicationResource(path);
-        var applicationMetadataDto = applicationClient.getApplicationMetadata(path, false, null,
-                applicationsMetadataDefaultLimit);
-        return applicationClientMapper.toApplicationResource(applicationDto, applicationMetadataDto);
+        return fetchApplicationResource(path, null).model();
+    }
+
+    public DomainModelWithEtag<ApplicationResource> getApplicationResource(String path, String etag) {
+        return fetchApplicationResource(path, etag);
+    }
+
+    private DomainModelWithEtag<ApplicationResource> fetchApplicationResource(String path, String etag) {
+        var response = applicationClient.getApplicationResource(path, createIfNonMatchHeaders(etag));
+
+        var metadata = applicationClient.getApplicationMetadata(
+                path,
+                false,
+                null,
+                applicationsMetadataDefaultLimit
+        );
+
+        var resource = applicationClientMapper.toApplicationResource(response.getBody(), metadata);
+        var responseEtag = response.getHeaders().getETag();
+
+        return new DomainModelWithEtag<>(resource, responseEtag);
     }
 
     public ApplicationResource createApplicationResource(CreateApplicationResource createApplicationResource,

@@ -4,11 +4,15 @@ import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
+import com.epam.aidial.cfg.exception.NotModifiedException;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.mapper.ApplicationResourceMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.model.ApplicationNodeInfo;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
+import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
@@ -28,16 +32,20 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ApplicationResourceController.class)
@@ -83,7 +91,8 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
 
         var applicationsInfoRequestJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "app_infos_request.json");
         var applicationsInfoRequest = objectMapper.readValue(applicationsInfoRequestJson,
-                new TypeReference<ResourceMetadataRequest>() {});
+                new TypeReference<ResourceMetadataRequest>() {
+                });
 
         var modelJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + "/app_infos.json");
         var model = objectMapper.readValue(modelJson, new TypeReference<ApplicationNodeInfo>() {
@@ -104,24 +113,74 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
     @ParameterizedTest(name = "{0}")
     @MethodSource("getApplicationParams")
     void testGetApplicationResource(String testName,
-                                                 String pathAppDtoJson,
-                                                 String pathAppJson) throws Exception {
+                                    String pathAppDtoJson,
+                                    String pathAppJson) throws Exception {
         var modelJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + pathAppDtoJson);
         var model = objectMapper.readValue(modelJson, new TypeReference<ApplicationResource>() {
         });
 
-        when(applicationResourceService.getApplicationResource(any())).thenReturn(model);
+        when(applicationResourceService.getApplicationResource(any(), any()))
+                .thenReturn(new DomainModelWithEtag<>(model, "test"));
 
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
         var dtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + pathAppJson);
         mockMvc.perform(post(GET_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_NONE_MATCH, "*"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
 
-        verify(applicationResourceService).getApplicationResource(eq(APP_PATH));
+        verify(applicationResourceService).getApplicationResource(eq(APP_PATH), eq("*"));
+    }
+
+    @Test
+    void testGetApplication_whenResourceNotExist() throws Exception {
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+
+        doThrow(new ResourceNotFoundException("Not Found")).when(applicationResourceService).getApplicationResource(any(), any());
+
+        mockMvc.perform(post(GET_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_NONE_MATCH, "test"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message")
+                        .value("Not Found"));
+
+        verify(applicationResourceService).getApplicationResource(eq(APP_PATH), eq("test"));
+    }
+
+    @Test
+    void testGetApplication_whenResourceWithSameEtag() throws Exception {
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+
+        doThrow(new NotModifiedException(Map.of("etag", List.of("test")))).when(applicationResourceService).getApplicationResource(any(), any());
+
+        mockMvc.perform(post(GET_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_NONE_MATCH, "test"))
+                .andExpect(status().isNotModified())
+                .andExpect(header().string(HEADER_ETAG, "\"test\""));
+
+        verify(applicationResourceService).getApplicationResource(eq(APP_PATH), eq("test"));
+    }
+
+    @Test
+    void testGetApplication_whenIfNoneMatchHeaderNotPresent() throws Exception {
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+
+        mockMvc.perform(post(GET_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-None-Match' for method parameter type String is not present"));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -158,10 +217,59 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         body.setPath(APP_PATH);
         mockMvc.perform(post(DELETE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_MATCH, "*"))
                 .andExpect(status().isOk());
 
-        verify(applicationResourceService).deleteApplicationResource(APP_PATH, null);
+        verify(applicationResourceService).deleteApplicationResource(APP_PATH, "*");
+    }
+
+    @Test
+    void testDeleteApplication_whenResourceNotExist() throws Exception {
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+
+        doThrow(new ResourceNotFoundException("Not Found")).when(applicationResourceService).deleteApplicationResource(any(), any());
+
+        mockMvc.perform(post(DELETE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_MATCH, "test"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message")
+                        .value("Not Found"));
+
+        verify(applicationResourceService).deleteApplicationResource(APP_PATH, "test");
+    }
+
+    @Test
+    void testDeleteApplication_whenWrongEtag() throws Exception {
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+
+        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(applicationResourceService).deleteApplicationResource(any(), any());
+
+        mockMvc.perform(post(DELETE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_MATCH, "test"))
+                .andExpect(status().isPreconditionFailed())
+                .andExpect(jsonPath("$.message")
+                        .value("Precondition failed"));
+    }
+
+    @Test
+    void testDeleteApplication_whenIfMatchHeaderNotPresent() throws Exception {
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+
+        mockMvc.perform(post(DELETE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-Match' for method parameter type String is not present"));
+
     }
 
     @Test

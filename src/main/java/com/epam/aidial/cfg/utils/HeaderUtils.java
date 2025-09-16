@@ -22,4 +22,11 @@ public class HeaderUtils {
         }
         return Map.of();
     }
+
+    public static Map<String, String> createIfNonMatchHeaders(String etag) {
+        if (etag != null) {
+            return Map.of(IF_NONE_MATCH_HEADER_NAME, etag);
+        }
+        return Map.of();
+    }
 }
