@@ -1,5 +1,6 @@
 package com.epam.aidial.core.config;
 
+import com.epam.aidial.cfg.utils.SecretUtils;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -56,4 +57,20 @@ public class CoreResourceAuthSettings {
 
     @JsonAlias({"scopesSupported", "scopes_supported"})
     private List<String> scopesSupported;
+
+    @Override
+    public String toString() {
+        return "CoreResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()
+                + ", clientId='" + getClientId()
+                + ", clientSecret='" + SecretUtils.mask(this.getClientSecret())
+                + ", authorizationEndpoint='" + getAuthorizationEndpoint()
+                + ", tokenEndpoint='" + getTokenEndpoint()
+                + ", redirectUri='" + getRedirectUri()
+                + ", codeChallenge='" + getCodeChallenge()
+                + ", codeChallengeMethod='"+ getCodeChallengeMethod()
+                + ", codeVerifier='" + getCodeVerifier()
+                + ", apiKeyHeader='" + getApiKeyHeader()
+                + ", scopesSupported=" + getScopesSupported()
+                + ')';
+    }
 }
