@@ -580,7 +580,6 @@
       "importAction": "create",
       "value": {
         "deployment": {
-          "$type": "SecuredResource",
           "name": "toolset1",
           "roleLimits": [],
           "roleShareResourceLimits": [],
