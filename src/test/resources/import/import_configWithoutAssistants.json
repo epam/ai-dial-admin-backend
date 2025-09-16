@@ -99,6 +99,12 @@
           "maxAcceptedUsers": 10,
           "invitationTtl": 120
         }
+      },
+      "costLimit": {
+        "minute": "111",
+        "day": "222",
+        "week": "333",
+        "month": "444"
       }
     },
     "testRole2": {
@@ -108,6 +114,12 @@
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
+      },
+      "costLimit": {
+        "minute": "111",
+        "day": "222",
+        "week": "333",
+        "month": "444"
       }
     },
     "testRole3": {
@@ -117,6 +129,12 @@
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
+      },
+      "costLimit": {
+        "minute": "111",
+        "day": "222",
+        "week": "333",
+        "month": "444"
       }
     },
     "default": {
@@ -128,6 +146,12 @@
         "testModel2": {},
         "testApplication1": {},
         "testApplication2": {}
+      },
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
       }
     }
   },

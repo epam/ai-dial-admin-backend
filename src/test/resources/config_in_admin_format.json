@@ -256,7 +256,13 @@
 		"default": {
 			"name": "default",
 			"limits": [],
-            "share": []
+            "share": [],
+          "costLimit": {
+            "minute": "9223372036854775807",
+            "day": "9223372036854775807",
+            "week": "9223372036854775807",
+            "month": "9223372036854775807"
+          }
 		},
 		"testRole3": {
 			"name": "testRole3",
@@ -301,7 +307,13 @@
                 		"invitationTtl": 120
 					}
 				}
-			]
+			],
+			"costLimit": {
+				"minute": "111",
+				"day": "222",
+				"week": "333",
+				"month": "444"
+			}
 		},
 		"testRole2": {
 			"name": "testRole2",
@@ -337,7 +349,13 @@
 					"limit": {}
 				}
 			],
-			"share": []
+			"share": [],
+          "costLimit": {
+            "minute": "9223372036854775807",
+            "day": "9223372036854775807",
+            "week": "9223372036854775807",
+            "month": "9223372036854775807"
+          }
 		},
 		"testRole1": {
 			"name": "testRole1",
@@ -375,7 +393,13 @@
 					"limit": {}
 				}
 			],
-			"share": []
+			"share": [],
+          "costLimit": {
+            "minute": "9223372036854775807",
+            "day": "9223372036854775807",
+            "week": "9223372036854775807",
+            "month": "9223372036854775807"
+          }
 		}
 	},
 	"keys": {
