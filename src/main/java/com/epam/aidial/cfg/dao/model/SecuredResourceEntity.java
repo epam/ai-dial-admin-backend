@@ -13,7 +13,7 @@ import org.hibernate.envers.Audited;
 @NoArgsConstructor
 @Entity
 @Audited
-@DiscriminatorValue("SECURED")
+@DiscriminatorValue("SECURED_RESOURCE")
 public class SecuredResourceEntity extends DeploymentEntity {
 
     @Embedded
