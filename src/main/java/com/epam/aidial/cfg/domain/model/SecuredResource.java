@@ -13,6 +13,10 @@ public class SecuredResource extends Deployment {
 
     private ResourceAuthSettings authSettings;
 
+    public SecuredResource(String name) {
+        this.setName(name);
+    }
+
     public SecuredResource(Deployment deployment, ResourceAuthSettings authSettings) {
         this.setName(deployment.getName());
         this.setRoleLimits(deployment.getRoleLimits());

@@ -1,17 +1,12 @@
 package com.epam.aidial.cfg.domain.mapper;
 
-import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
-import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
-import com.epam.aidial.core.config.CoreResourceAuthSettings;
 import com.epam.aidial.core.config.CoreToolSet;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 @Mapper(
@@ -21,11 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
         }
 )
 public abstract class ToolSetCoreMapper {
-
-    @Autowired
-    private DeploymentCoreMapper deploymentCoreMapper;
-    @Autowired
-    private ResourceAuthSettingsCoreMapper authSettingsCoreMapper;
 
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "userRoles", source = "deployment")
@@ -38,7 +28,7 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "defaults", ignore = true)
     @Mapping(target = "interceptors", ignore = true)
     @Mapping(target = "dependencies", ignore = true)
-    @Mapping(target = "authSettings", source = "deployment")
+    @Mapping(target = "authSettings", source = "deployment.authSettings")
     public abstract CoreToolSet mapToolSet(ToolSet toolSet);
 
     @Mapping(target = "deployment", source = "toolSet")
@@ -46,19 +36,4 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "updatedAt", ignore = true)
     public abstract ToolSet mapToolSet(CoreToolSet toolSet, @Context ShareResourceLimit defaultShareResourceLimit);
 
-    protected CoreResourceAuthSettings toAuthSettings(Deployment deployment) {
-        if (!(deployment instanceof SecuredResource securedResource)) {
-            String message = "Unable to retrieve authSettings from Deployment. Secured Resource is required."
-                    + " Deployment: '%s'".formatted(deployment.getName());
-            log.warn(message + ". Details: '%s'".formatted(deployment));
-            throw new IllegalArgumentException(message);
-        }
-        return authSettingsCoreMapper.toCoreResourceAuthSettings(securedResource.getAuthSettings());
-    }
-
-    protected SecuredResource toSecuredResource(CoreToolSet toolSet, @Context ShareResourceLimit defaultShareResourceLimit) {
-        Deployment deployment = deploymentCoreMapper.toDeployment(toolSet, defaultShareResourceLimit);
-        ResourceAuthSettings authSettings = authSettingsCoreMapper.toResourceAuthSettings(toolSet.getAuthSettings());
-        return new SecuredResource(deployment, authSettings);
-    }
 }

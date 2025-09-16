@@ -9,5 +9,5 @@ public interface ResourceAuthSettingsCoreMapper {
 
     CoreResourceAuthSettings toCoreResourceAuthSettings(ResourceAuthSettings domain);
 
-    ResourceAuthSettings toResourceAuthSettings(CoreResourceAuthSettings coreModel);
+    ResourceAuthSettings toResourceAuthSettings(CoreResourceAuthSettings coreResourceAuthSettings);
 }
