@@ -36,6 +36,8 @@ public class ConfigImporter {
 
     @Transactional
     public ImportConfigPreview importPreview(Config config, ConfigImportOptions importOptions) {
+        // mark that transaction should be rolled back. This is a trick to get actual state of importing objects
+        // with all associations but doesn't save the state into DB
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 
         var resolutionPolicy = importOptions.conflictResolutionPolicy();
@@ -82,6 +84,8 @@ public class ConfigImporter {
 
     @Transactional
     public ImportConfigPreview importPreviewAdminConfig(ExportConfig config, ConflictResolutionPolicy resolutionPolicy) {
+        // mark that transaction should be rolled back. This is a trick to get actual state of importing objects
+        // with all associations but doesn't save the state into DB
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 
         var importOptions = new ConfigImportOptions(resolutionPolicy, false, false);
