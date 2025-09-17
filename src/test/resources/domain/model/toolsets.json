@@ -14,7 +14,6 @@
     "transport": "http",
     "allowedTools": ["branch", "remote"],
     "deployment": {
-      "$type": "SecuredResource",
       "id": 200,
       "name": "sampleDeployment",
       "isPublic": false,
