@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
 import com.epam.aidial.cfg.domain.model.Adapter;
-import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
@@ -162,23 +161,18 @@ public class ModelImporter extends RoleBasedImporter {
     private Adapter resolveAdapter(ModelEndpointComponents modelEndpointComponents) {
         String adapterEndpoint = modelEndpointComponents.adapterEndpoint();
         return adapterService.getByEndpoint(adapterEndpoint);
-
     }
 
     public List<ImportComponent<Model>> getActualImportedModels(Collection<ImportComponent<Model>> modelImportComponents,
                                                                 Collection<ImportComponent<Role>> roleImportComponents) {
-        List<String> names = modelImportComponents.stream()
-                .map(ImportComponent::getNext)
-                .map(Model::getDeployment)
-                .map(Deployment::getName)
-                .toList();
+        List<String> names = getNextImportComponentNames(modelImportComponents);
         Map<String, Model> importedModelsByNames = modelService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(model -> model.getDeployment().getName(), Function.identity()));
 
-        Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
-        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
 
         return modelImportComponents.stream()
                 .map(importComponent -> {

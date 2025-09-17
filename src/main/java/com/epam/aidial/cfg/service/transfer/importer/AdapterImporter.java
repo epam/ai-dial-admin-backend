@@ -63,20 +63,20 @@ public class AdapterImporter {
         int i = 0;
         for (String endpoint : adapterBaseEndpointsFromCoreModels) {
             if (!existingAdapterBaseEndpoints.contains(endpoint)) {
-                if (createAdapterIfAbsent) {
-                    Adapter adapter = new Adapter();
-                    adapter.setBaseEndpoint(endpoint);
-                    if (!isPreview) {
-                        adapter.setName(UUID.randomUUID().toString());
-                    } else {
-                        adapter.setName("<will be defined during import " + i + ">");
-                        i++;
-                    }
-                    adapterService.create(adapter);
-                    result.add(new ImportComponent<>(CREATE, null, adapter));
-                } else {
+                if (!createAdapterIfAbsent) {
                     throw new IllegalArgumentException("Unable to import adapters, adapter with endpoint " + endpoint + " does not exist");
                 }
+
+                Adapter adapter = new Adapter();
+                adapter.setBaseEndpoint(endpoint);
+                if (!isPreview) {
+                    adapter.setName(UUID.randomUUID().toString());
+                } else {
+                    adapter.setName("<will be defined during import " + i + ">");
+                    i++;
+                }
+                adapterService.create(adapter);
+                result.add(new ImportComponent<>(CREATE, null, adapter));
             }
         }
 

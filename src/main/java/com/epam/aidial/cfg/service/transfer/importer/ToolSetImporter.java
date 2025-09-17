@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
-import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
@@ -129,18 +128,14 @@ public class ToolSetImporter extends RoleBasedImporter {
 
     public List<ImportComponent<ToolSet>> getActualImportedToolSets(Collection<ImportComponent<ToolSet>> toolSetImportComponents,
                                                                     Collection<ImportComponent<Role>> roleImportComponents) {
-        List<String> names = toolSetImportComponents.stream()
-                .map(ImportComponent::getNext)
-                .map(ToolSet::getDeployment)
-                .map(Deployment::getName)
-                .toList();
+        List<String> names = getNextImportComponentNames(toolSetImportComponents);
         Map<String, ToolSet> importedToolSetsByNames = toolSetService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(toolSet -> toolSet.getDeployment().getName(), Function.identity()));
 
-        Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
-        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
 
         return toolSetImportComponents.stream()
                 .map(importComponent -> {

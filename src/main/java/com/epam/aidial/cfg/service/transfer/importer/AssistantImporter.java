@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.AssistantCoreMapper;
 import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.domain.model.AssistantsProperty;
-import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
@@ -158,18 +157,14 @@ public class AssistantImporter extends RoleBasedImporter {
 
     public List<ImportComponent<Assistant>> getActualImportedAssistants(Collection<ImportComponent<Assistant>> assistantImportComponents,
                                                                         Collection<ImportComponent<Role>> roleImportComponents) {
-        List<String> names = assistantImportComponents.stream()
-                .map(ImportComponent::getNext)
-                .map(Assistant::getDeployment)
-                .map(Deployment::getName)
-                .toList();
+        List<String> names = getNextImportComponentNames(assistantImportComponents);
         Map<String, Assistant> importedAssistantsByNames = assistantService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(assistant -> assistant.getDeployment().getName(), Function.identity()));
 
-        Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
-        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
 
         return assistantImportComponents.stream()
                 .map(importComponent -> {

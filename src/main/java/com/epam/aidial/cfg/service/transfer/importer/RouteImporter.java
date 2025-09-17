@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
-import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
@@ -128,18 +127,14 @@ public class RouteImporter extends RoleBasedImporter {
 
     public List<ImportComponent<Route>> getActualImportedRoutes(Collection<ImportComponent<Route>> routeImportComponents,
                                                                 Collection<ImportComponent<Role>> roleImportComponents) {
-        List<String> names = routeImportComponents.stream()
-                .map(ImportComponent::getNext)
-                .map(Route::getDeployment)
-                .map(Deployment::getName)
-                .toList();
+        List<String> names = getNextImportComponentNames(routeImportComponents);
         Map<String, Route> importedRoutesByNames = routeService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(route -> route.getDeployment().getName(), Function.identity()));
 
-        Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
-        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
 
         return routeImportComponents.stream()
                 .map(importComponent -> {

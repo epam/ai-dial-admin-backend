@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.service.transfer.importer;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.AddonCoreMapper;
 import com.epam.aidial.cfg.domain.model.Addon;
-import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
@@ -103,18 +102,14 @@ public class AddonImporter extends RoleBasedImporter {
 
     public List<ImportComponent<Addon>> getActualImportedAddons(Collection<ImportComponent<Addon>> addonImportComponents,
                                                                 Collection<ImportComponent<Role>> roleImportComponents) {
-        List<String> names = addonImportComponents.stream()
-                .map(ImportComponent::getNext)
-                .map(Addon::getDeployment)
-                .map(Deployment::getName)
-                .toList();
+        List<String> names = getNextImportComponentNames(addonImportComponents);
         Map<String, Addon> importedAddonsByNames = addonService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(addon -> addon.getDeployment().getName(), Function.identity()));
 
-        Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
-        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
 
         return addonImportComponents.stream()
                 .map(importComponent -> {

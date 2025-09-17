@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -88,6 +90,21 @@ public abstract class RoleBasedImporter {
                 && limit1.getDeploymentName().equals(limit2.getDeploymentName());
     }
 
+    protected <T extends RoleBased> List<String> getNextImportComponentNames(Collection<ImportComponent<T>> importComponents) {
+        return importComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(RoleBased::getDeployment)
+                .map(Deployment::getName)
+                .toList();
+    }
+
+    protected ImportedLimits getImportedLimits(Collection<ImportComponent<Role>> roleImportComponents) {
+        Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
+        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
+        return new ImportedLimits(importedRoleLimits, importedRoleShareResourceLimits);
+    }
+
     protected void setImportedLimits(RoleBased roleBased,
                                      List<RoleLimit> importedRoleLimits,
                                      List<RoleShareResourceLimit> importedRoleShareResourceLimits) {
@@ -102,6 +119,10 @@ public abstract class RoleBasedImporter {
 
         roleBased.getDeployment().setRoleLimits(roleLimits);
         roleBased.getDeployment().setRoleShareResourceLimits(roleShareResourceLimits);
+    }
+
+    protected record ImportedLimits(List<RoleLimit> importedRoleLimits,
+                                    List<RoleShareResourceLimit> importedRoleShareResourceLimits) {
     }
 
 }
