@@ -32,6 +32,7 @@ public class ApplicationResourceDto {
     private String viewerUrl;
     private String editorUrl;
     private Boolean invalid;
+    private List<String> userRoles;
     private FeaturesResourceDto features;
     private List<RouteResourceDto> routes;
     private String applicationTypeSchemaId;

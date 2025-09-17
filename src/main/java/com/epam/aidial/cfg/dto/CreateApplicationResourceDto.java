@@ -34,7 +34,7 @@ public class CreateApplicationResourceDto {
     private String editorUrl;
     private String description;
     private List<String> userRoles;
-    private FeaturesDto features = new FeaturesDto();
+    private FeaturesResourceDto features = new FeaturesResourceDto();
     private List<RouteResourceDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties = new HashMap<>();

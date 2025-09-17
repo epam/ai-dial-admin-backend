@@ -12,7 +12,7 @@ public class RouteResourceDto {
     @NotBlank(message = "Name is required")
     private String name;
     private List<String> userRoles;
-    private ResponseDto response;
+    private ResponseResourceDto response;
     private Boolean rewritePath;
     private List<String> paths;
     private Set<String> methods;
@@ -26,6 +26,13 @@ public class RouteResourceDto {
     public static class AttachmentPath {
         private List<String> requestBody = new ArrayList<>();
         private List<String> responseBody = new ArrayList<>();
+    }
+
+    @Data
+    public static class ResponseResourceDto {
+        private int status;
+        private String body;
+
     }
 
     public enum ResourceAccessType {
