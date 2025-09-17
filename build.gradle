@@ -4,6 +4,9 @@ buildscript {
             classpath ('org.apache.commons:commons-lang3:3.18.0') {
                 because("previous versions have vulnerabilities")
             }
+            classpath ('org.springframework:spring-core:6.2.11') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
