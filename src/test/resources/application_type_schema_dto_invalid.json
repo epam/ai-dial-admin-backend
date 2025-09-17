@@ -1,0 +1,7 @@
+{
+	"$schema": "https://test.com/application_type_schemas/schema#",
+	"$id": "https://test-schema-1.example",
+	"dial:applicationTypeDisplayName": "Test invalid endpoint",
+	"dial:applicationTypeCompletionEndpoint": "https://<placeholder>/openai/deployments/mindmap/chat/completions",
+    "description": "testDescription"
+}
