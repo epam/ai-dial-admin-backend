@@ -26,7 +26,7 @@ public class ExportConfig {
         return Stream.of(routes, applications, models, toolsets)
                 .map(Map::values)
                 .flatMap(Collection::stream)
-                .map(DeploymentHolder::getDeployment)
+                .map(RoleBased::getDeployment)
                 .toList();
     }
 

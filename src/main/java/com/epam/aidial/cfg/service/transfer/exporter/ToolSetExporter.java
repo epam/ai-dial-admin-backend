@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
-import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
@@ -37,7 +36,7 @@ public class ToolSetExporter {
                             (existing, newToolSet) -> newToolSet, LinkedHashMap::new))
                     : new LinkedHashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return getToolSets(selectedItemsExportRequest, request.isAddSecrets()).stream()
+            return getToolSets(selectedItemsExportRequest).stream()
                     .collect(Collectors.toMap(
                             toolSet -> toolSet.getDeployment().getName(), Function.identity(),
                             (existing, replacement) -> {
@@ -53,7 +52,7 @@ public class ToolSetExporter {
         return toolSetService.getAll();
     }
 
-    private List<ToolSet> getToolSets(SelectedItemsExportRequest selectedItemsExportRequest, boolean addSecrets) {
+    private List<ToolSet> getToolSets(SelectedItemsExportRequest selectedItemsExportRequest) {
         List<ExportConfigComponent> elements = selectedItemsExportRequest.getComponents();
         return elements.stream()
                 .filter(component -> component.getType() == ExportConfigComponentType.TOOL_SET)
@@ -69,13 +68,11 @@ public class ToolSetExporter {
                     ToolSet toolSet = toolSetService.get(component.getName());
                     return removeDependency(toolSet, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
-                .map(toolSet -> removeClientSecret(toolSet, addSecrets))
                 .toList();
     }
 
     private Collection<ToolSet> getToolSets(FullExportRequest fullExportRequest) {
         return getToolSets().stream()
-                .map(toolSet -> removeClientSecret(toolSet, fullExportRequest.isAddSecrets()))
                 .map(toolSet -> removeDependency(toolSet, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
@@ -97,14 +94,6 @@ public class ToolSetExporter {
         if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
             toolSet.getDeployment().setRoleLimits(null);
             toolSet.getDeployment().setRoleShareResourceLimits(null);
-        }
-        return toolSet;
-    }
-
-    private ToolSet removeClientSecret(ToolSet toolSet, boolean addSecrets) {
-        var deployment = toolSet.getDeployment();
-        if (deployment.getAuthSettings() != null && !addSecrets) {
-            deployment.getAuthSettings().setClientSecret(null);
         }
         return toolSet;
     }

@@ -199,20 +199,5 @@
         "testRole1"
       ]
     }
-  },
-  "toolsets": {
-    "toolset1": {
-      "name": "toolset1",
-      "displayName": "ToolSet1",
-      "userRoles": [],
-      "endpoint": "http://sample-endpoint/api",
-      "transport": "sse",
-      "allowedTools": ["branch", "remote"],
-      "authSettings": {
-        "authenticationType": "OAUTH",
-        "clientId": "some-client-id",
-        "clientSecret": "some-client-secret"
-      }
-    }
   }
 }

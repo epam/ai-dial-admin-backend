@@ -6,20 +6,18 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
-        LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class,
-        ShareResourceLimitDtoMapper.class, ResourceAuthSettingsDtoMapper.class
+    LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class, ShareResourceLimitDtoMapper.class
 })
 public interface ToolSetDtoMapper {
 
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
-    @Mapping(target = "deployment.authSettings", source = "authSettings")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    ToolSet toDomain(ToolSetDto dto);
+    ToolSet toDomain(ToolSetDto entity);
 
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
-    @Mapping(target = "authSettings", source = "deployment.authSettings")
     ToolSetDto toDto(ToolSet domain);
+
 }

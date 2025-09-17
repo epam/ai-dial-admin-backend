@@ -15,7 +15,6 @@ public class ConfigUtils {
         Config secretConfig = new Config();
         secretConfig.setKeys(config.getKeys());
         secretConfig.setModels(config.getModels());
-        secretConfig.setToolsets(config.getToolsets());
         return secretConfig;
     }
 
@@ -30,13 +29,6 @@ public class ConfigUtils {
                     .filter(upstream -> upstream.getKey() == null)
                     .collect(Collectors.toList());
             model.setUpstreams(upstreams);
-        });
-        config.getToolsets().forEach((key, toolset) -> {
-            var authSettings = toolset.getAuthSettings();
-            if (authSettings == null) {
-                return;
-            }
-            toolset.getAuthSettings().setClientSecret(null);
         });
     }
 
@@ -77,9 +69,6 @@ public class ConfigUtils {
         }
         if (CollectionUtils.isEmpty(config.getRetriableErrorCodes())) {
             config.setRetriableErrorCodes(null);
-        }
-        if (MapUtils.isEmpty(config.getToolsets())) {
-            config.setToolsets(null);
         }
     }
 

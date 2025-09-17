@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.service.transfer.exporter;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Application;
-import com.epam.aidial.cfg.domain.model.DeploymentHolder;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
@@ -12,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
@@ -163,15 +163,15 @@ public class ConfigExporter {
         }
     }
 
-    private <T extends DeploymentHolder> void processDependency(String roleName,
-                                                                Set<ExportConfigComponentType> dependencies,
-                                                                ExportConfigComponentType dependencyType,
-                                                                Collection<T> entities,
-                                                                List<ExportConfigComponent> updatedComponents) {
+    private <T extends RoleBased> void processDependency(String roleName,
+                                                         Set<ExportConfigComponentType> dependencies,
+                                                         ExportConfigComponentType dependencyType,
+                                                         Collection<T> entities,
+                                                         List<ExportConfigComponent> updatedComponents) {
         if (!dependencies.contains(dependencyType)) {
             return;
         }
-        List<? extends DeploymentHolder> enabledEntities = entities.stream()
+        List<? extends RoleBased> enabledEntities = entities.stream()
                 .filter(entity -> entity.getDeployment().getIsPublic()
                         || entity.getDeployment().getRoleLimits().stream()
                         .anyMatch(roleLimit -> Objects.equals(roleLimit.getRole(), roleName) && roleLimit.isEnabled()))

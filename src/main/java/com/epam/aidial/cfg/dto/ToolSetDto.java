@@ -32,8 +32,6 @@ public class ToolSetDto extends RoleBasedDto {
     private TransportDto transport;
     private List<String> allowedTools = List.of();
 
-    private ResourceAuthSettingsDto authSettings;
-
     public enum TransportDto {
         HTTP, SSE
     }

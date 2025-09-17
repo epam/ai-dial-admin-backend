@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class ToolSet extends SecuredRoleBased {
+public class ToolSet extends RoleBased {
 
     private String endpoint;
     private String iconUrl;

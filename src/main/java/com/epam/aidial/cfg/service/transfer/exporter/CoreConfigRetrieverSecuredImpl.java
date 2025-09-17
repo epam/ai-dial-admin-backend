@@ -4,8 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.service.impl.storage.ConfigSource;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreModel;
-import com.epam.aidial.core.config.CoreResourceAuthSettings;
-import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.CoreUpstream;
 import lombok.RequiredArgsConstructor;
 
@@ -13,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -49,16 +46,8 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
             publicConfig.setKeys(secretConfig.getKeys());
         }
 
-        Map<String, CoreModel> models = getModels(optionalMap(publicConfig.getModels()), optionalMap(secretConfig.getModels()));
-        publicConfig.setModels(models);
-
-        Map<String, CoreToolSet> toolSets = getToolSets(optionalMap(publicConfig.getToolsets()), optionalMap(secretConfig.getToolsets()));
-        publicConfig.setToolsets(toolSets);
-
-        return publicConfig;
-    }
-
-    private Map<String, CoreModel> getModels(Map<String, CoreModel> publicModels, Map<String, CoreModel> secretModels) {
+        Map<String, CoreModel> publicModels = optionalMap(publicConfig.getModels());
+        Map<String, CoreModel> secretModels = optionalMap(secretConfig.getModels());
         for (Map.Entry<String, CoreModel> entry : secretModels.entrySet()) {
             String modelName = entry.getKey();
             CoreModel secretModel = entry.getValue();
@@ -73,27 +62,9 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
             }
             publicModel.setUpstreams(mergedUpstreams);
         }
-        return publicModels;
-    }
+        publicConfig.setModels(publicModels);
 
-    private Map<String, CoreToolSet> getToolSets(Map<String, CoreToolSet> publicToolSets, Map<String, CoreToolSet> secretToolSets) {
-        for (Map.Entry<String, CoreToolSet> entry : secretToolSets.entrySet()) {
-            String toolSetName = entry.getKey();
-            CoreToolSet secretToolSet = entry.getValue();
-            CoreToolSet publicToolSet = publicToolSets.computeIfAbsent(toolSetName, k -> new CoreToolSet());
-
-            CoreResourceAuthSettings authSettings = publicToolSet.getAuthSettings();
-            CoreResourceAuthSettings secretAuthSettings = secretToolSet.getAuthSettings();
-            if (authSettings == null) {
-                authSettings = Objects.requireNonNullElseGet(secretAuthSettings, CoreResourceAuthSettings::new);
-            }
-            if (secretAuthSettings != null) {
-                authSettings.setClientSecret(secretAuthSettings.getClientSecret());
-            }
-
-            publicToolSet.setAuthSettings(authSettings);
-        }
-        return publicToolSets;
+        return publicConfig;
     }
 
     /* Helper that guarantees we always work on a mutable map. */

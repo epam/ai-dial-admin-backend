@@ -52,23 +52,7 @@
             "requestDay": 1000
           }
         }
-      ],
-      "authSettings": {
-        "authenticationType": "API_KEY",
-        "clientId": "some-client-id",
-        "clientSecret": "some-client-secret",
-        "authorizationEndpoint": "https://some-auth-endpoint",
-        "tokenEndpoint": "https://some-token-endpoint",
-        "redirectUri": "https://some-redirect-uri",
-        "codeChallenge": "someCodeChallenge",
-        "codeChallengeMethod": "someCodeChallengeMethod",
-        "codeVerifier": "someCodeVerifier",
-        "apiKeyHeader": "someApiKeyHeader",
-        "scopesSupported": [
-          "first",
-          "second"
-        ]
-      }
+      ]
     },
     "author": "test-author",
     "createdAt": 12345,

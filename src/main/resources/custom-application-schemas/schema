@@ -176,7 +176,7 @@
       ]
     },
     "dialFileFormatAndTypeSchema": {
-      "$comment": "Sub-schema defining the type format and dial:file properties. The schema is deprecated. Use dialResourceFormatAndTypeSchema",
+      "$comment": "Sub-schema defining the type format and dial:file properties",
       "properties": {
         "format": {
           "type": "string"
@@ -231,41 +231,10 @@
         }
       ]
     },
-    "dialResourceFormatAndTypeSchema": {
-      "$comment": "Sub-schema defining the type format and dial:resource properties",
-      "properties": {
-        "format": {
-          "type": "string"
-        },
-        "type": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/simpleTypes"
-            },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/simpleTypes"
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            }
-          ]
-        },
-        "dial:resource": {
-          "description": "Required to check resource existence in DIAL instance",
-          "type": "boolean",
-          "default": false
-        }
-      }
-    },
     "topLevelSchema": {
       "allOf": [
         {
           "$ref": "#/definitions/dialFileFormatAndTypeSchema"
-        },
-        {
-          "$ref": "#/definitions/dialResourceFormatAndTypeSchema"
         },
         {
           "type": [
@@ -455,9 +424,6 @@
       "allOf": [
         {
           "$ref": "#/definitions/dialFileFormatAndTypeSchema"
-        },
-        {
-          "$ref": "#/definitions/dialResourceFormatAndTypeSchema"
         },
         {
           "type": [

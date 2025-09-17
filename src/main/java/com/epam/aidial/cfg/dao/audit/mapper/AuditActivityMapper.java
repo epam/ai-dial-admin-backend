@@ -16,7 +16,6 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
-import com.epam.aidial.cfg.dao.model.SecuredResourceEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
@@ -41,8 +40,6 @@ public class AuditActivityMapper {
             return ActivityResourceType.AssistantsProperty;
         } else if (entityClass == DeploymentEntity.class) {
             return ActivityResourceType.Deployment;
-        } else if (entityClass == SecuredResourceEntity.class) {
-            return ActivityResourceType.SecuredResource;
         } else if (entityClass == InterceptorEntity.class) {
             return ActivityResourceType.Interceptor;
         } else if (entityClass == InterceptorRunnerEntity.class) {
