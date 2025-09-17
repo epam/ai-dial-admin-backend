@@ -25,7 +25,7 @@ public class ApplicationResourceDto {
     private String description;
     private String reference;
     private Boolean forwardAuthToken;
-    private FeaturesDto features;
+
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
@@ -36,11 +36,13 @@ public class ApplicationResourceDto {
     private Long createdAt;
     private Long updatedAt;
     private List<String> dependencies;
-    private Map<String, RouteDto> routes;
+
     private String viewerUrl;
     private String editorUrl;
     private Boolean invalid;
     private List<String> userRoles;
+    private FeaturesDto features;
+    private Map<String, RouteDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
 }

@@ -21,6 +21,7 @@ public class CreateApplicationResourceDto {
     private String displayName;
     private String displayVersion;
     private String iconUrl;
+    private String description;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
@@ -32,7 +33,7 @@ public class CreateApplicationResourceDto {
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
-    private String description;
+    private Boolean invalid;
     private List<String> userRoles;
     private FeaturesResourceDto features = new FeaturesResourceDto();
     private List<RouteResourceDto> routes;

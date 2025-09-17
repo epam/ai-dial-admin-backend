@@ -32,6 +32,7 @@ public class CreateApplicationResource {
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
+    private Boolean invalid;
     private List<String> userRoles;
     private Features features;
     private List<Route> routes;
