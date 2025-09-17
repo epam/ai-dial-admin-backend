@@ -1,8 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -16,8 +14,8 @@ public class RouteResourceDto {
     private List<String> userRoles;
     private ResponseDto response;
     private Boolean rewritePath;
-    private List<@NotNull String> paths;
-    private Set<@HttpMethod String> methods;
+    private List<String> paths;
+    private Set<String> methods;
     private List<UpstreamResourceDto> upstreams;
     private Integer maxRetryAttempts;
     private Integer order;

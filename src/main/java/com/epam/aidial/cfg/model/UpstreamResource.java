@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Upstream {
+public class UpstreamResource {
     private String endpoint;
     private String key;
     private String extraData;

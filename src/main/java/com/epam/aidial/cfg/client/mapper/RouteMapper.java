@@ -1,9 +1,7 @@
 package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.RouteDto;
-import com.epam.aidial.cfg.client.dto.UpstreamDto;
 import com.epam.aidial.cfg.model.Route;
-import com.epam.aidial.cfg.model.Upstream;
 import org.mapstruct.Mapper;
 
 import java.time.Instant;

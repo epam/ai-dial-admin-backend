@@ -3,8 +3,8 @@ package com.epam.aidial.cfg.client.mapper;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
-import com.epam.aidial.cfg.model.ApplicationNodeInfo;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.NodeType;
@@ -63,13 +63,13 @@ public abstract class ApplicationClientMapper {
     @Mapping(target = "routes", source = "dto.routes")
     protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto, ApplicationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
 
-    public ApplicationNodeInfo toApplicationInfo(ApplicationMetadataDto dto) {
+    public ApplicationResourceNodeInfo toApplicationInfo(ApplicationMetadataDto dto) {
         if (dto == null) {
             return null;
         }
 
         return switch (dto.getNodeType()) {
-            case FOLDER -> ApplicationNodeInfo.builder()
+            case FOLDER -> ApplicationResourceNodeInfo.builder()
                     .path(extractPath(dto.getUrl(), APPLICATIONS_PREFIX))
                     .name(null)
                     .version(null)
@@ -82,7 +82,7 @@ public abstract class ApplicationClientMapper {
                     .build();
             case ITEM -> {
                 var itemParts = parseEncodedVersionedPath(dto.getUrl(), APPLICATIONS_PREFIX);
-                yield ApplicationNodeInfo.builder()
+                yield ApplicationResourceNodeInfo.builder()
                         .path(itemParts.getPath())
                         .name(itemParts.getName())
                         .version(itemParts.getVersion())
@@ -97,7 +97,7 @@ public abstract class ApplicationClientMapper {
         };
     }
 
-    private List<ApplicationNodeInfo> toApplicationInfo(List<ApplicationMetadataDto> dtoList) {
+    private List<ApplicationResourceNodeInfo> toApplicationInfo(List<ApplicationMetadataDto> dtoList) {
         if (dtoList == null) {
             return null;
         }

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.client.dto;
 
-import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +19,7 @@ public class RouteDto {
     private ResponseDto response;
     private Boolean rewritePath;
     private List<String> paths;
-    private Set<@HttpMethod String> methods;
+    private Set<String> methods;
     private List<UpstreamDto> upstreams;
     private Integer maxRetryAttempts;
     private Integer order;

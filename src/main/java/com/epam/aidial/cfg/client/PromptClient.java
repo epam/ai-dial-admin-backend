@@ -39,7 +39,7 @@ public interface PromptClient {
      * to facilitate the decoding of the response.
      *
      * <p>For more information, refer to the custom decoder implementation in:
-     * {@link MessageConversionCoreClientConfiguration#feignDecoder(org.springframework.beans.factory.ObjectFactory, com.fasterxml.jackson.databind.ObjectMapper)}
+     * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
      */
     @GetMapping("/v1/prompts/{path}")
     PromptDto getPrompt(

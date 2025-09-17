@@ -8,8 +8,8 @@ import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
-import com.epam.aidial.cfg.model.ApplicationNodeInfo;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.FolderInfo;
@@ -45,7 +45,7 @@ public class ApplicationResourceService implements ResourceService {
     @Value("${core.applications.metadata.default.limit}")
     private int applicationsMetadataDefaultLimit;
 
-    public ApplicationNodeInfo getApplications(ResourceMetadataRequest request) {
+    public ApplicationResourceNodeInfo getApplications(ResourceMetadataRequest request) {
         var applicationMetadata = getMetadata(request);
         return applicationClientMapper.toApplicationInfo(applicationMetadata);
     }
@@ -117,10 +117,9 @@ public class ApplicationResourceService implements ResourceService {
     }
 
     public DomainModelWithEtag<ApplicationResource> createApplicationResource(CreateApplicationResource createApplicationResource,
-                                                                              boolean allowOverride,
                                                                               String etag) {
         try {
-            return putApplicationResource(createApplicationResource, allowOverride, etag);
+            return putApplicationResource(createApplicationResource, false, etag);
         } catch (ResourcePreconditionFailedException ex) {
             throw new EntityAlreadyExistsException("Application with name " + createApplicationResource.getName() + " already exists");
         }

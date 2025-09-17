@@ -1,7 +1,5 @@
 package com.epam.aidial.cfg.model;
 
-import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,9 +16,9 @@ public class Route {
     private String name;
     private List<String> userRoles;
     private Boolean rewritePath;
-    private List<@NotNull String> paths;
-    private Set<@HttpMethod String> methods;
-    private List<Upstream> upstreams;
+    private List<String> paths;
+    private Set<String> methods;
+    private List<UpstreamResource> upstreams;
     private Integer maxRetryAttempts;
     private Integer order;
     private Response response;

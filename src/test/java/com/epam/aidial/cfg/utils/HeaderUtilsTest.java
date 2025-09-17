@@ -22,7 +22,6 @@ class HeaderUtilsTest {
         Map<String, String> headers = HeaderUtils.createHeadersForCreate(true, TEST_ETAG);
         assertThat(headers)
                 .containsEntry(HeaderUtils.IF_MATCH_HEADER_NAME, TEST_ETAG)
-                .doesNotContainKey(HeaderUtils.IF_NONE_MATCH_HEADER_NAME)
                 .hasSize(1);
     }
 

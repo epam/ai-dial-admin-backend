@@ -4,8 +4,8 @@ import com.epam.aidial.cfg.client.mapper.RouteMapper;
 import com.epam.aidial.cfg.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.ApplicationResourceNodeInfoDto;
 import com.epam.aidial.cfg.dto.CreateApplicationResourceDto;
-import com.epam.aidial.cfg.model.ApplicationNodeInfo;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import org.mapstruct.Mapper;
 
@@ -14,7 +14,7 @@ public interface ApplicationResourceMapper {
 
     CreateApplicationResource toCreateApplicationResourceDto(CreateApplicationResourceDto createApplicationResourceDto);
 
-    ApplicationResourceNodeInfoDto toApplicationResourceNodeInfoDto(ApplicationNodeInfo applicationNodeInfo);
+    ApplicationResourceNodeInfoDto toApplicationResourceNodeInfoDto(ApplicationResourceNodeInfo applicationResourceNodeInfo);
 
     ApplicationResourceDto toApplicationResourceDto(ApplicationResource model);
 }

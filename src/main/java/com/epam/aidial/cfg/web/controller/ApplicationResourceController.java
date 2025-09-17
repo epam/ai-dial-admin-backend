@@ -47,7 +47,7 @@ public class ApplicationResourceController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationResourceDto> getApplication(@RequestBody ResourcePathDto applicationPath,
-                                                                 @RequestHeader(value = "If-None-Match") String etag) throws JsonProcessingException {
+                                                                 @RequestHeader(value = "If-None-Match") String etag) {
         var applicationResource = applicationService.getApplicationResource(applicationPath.getPath(), etag);
         var applicationResourceDto = applicationResourceMapper.toApplicationResourceDto(applicationResource.model());
         return ResponseEntity.status(HttpStatus.OK).eTag(applicationResource.etag()).body(applicationResourceDto);
@@ -56,9 +56,9 @@ public class ApplicationResourceController {
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationResourceDto> createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) throws JsonProcessingException {
+    public ResponseEntity<ApplicationResourceDto> createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) {
         var createApplication = applicationResourceMapper.toCreateApplicationResourceDto(createApplicationDto);
-        var createdApplication = applicationService.createApplicationResource(createApplication, false, null);
+        var createdApplication = applicationService.createApplicationResource(createApplication, null);
         return ResponseEntity.ok()
                 .eTag(createdApplication.etag())
                 .body(applicationResourceMapper.toApplicationResourceDto(createdApplication.model()));

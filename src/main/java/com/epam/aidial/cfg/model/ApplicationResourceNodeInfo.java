@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApplicationNodeInfo {
+public class ApplicationResourceNodeInfo {
 
     private String path;
     private String name;
@@ -20,7 +20,7 @@ public class ApplicationNodeInfo {
     private Long updateTime;
     private String author;
     private NodeType nodeType;
-    private List<ApplicationNodeInfo> items;
+    private List<ApplicationResourceNodeInfo> items;
     private String nextToken;
 
 }

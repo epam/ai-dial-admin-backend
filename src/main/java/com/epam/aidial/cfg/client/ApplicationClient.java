@@ -21,7 +21,7 @@ import java.util.Map;
                 MessageConversionCoreClientConfiguration.class,
                 AuthorizationCoreClientConfiguration.class,
                 RetryClientConfiguration.class,
-                FeinErrorDecoderConfiguration.class
+                FeignErrorDecoderConfiguration.class
         })
 public interface ApplicationClient {
 
