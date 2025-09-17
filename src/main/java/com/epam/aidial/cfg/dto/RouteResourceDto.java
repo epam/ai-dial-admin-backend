@@ -24,8 +24,8 @@ public class RouteResourceDto {
 
     @Data
     public static class AttachmentPath {
-        private List<String> requestBody = new ArrayList<>();
-        private List<String> responseBody = new ArrayList<>();
+        private List<String> requestBody;
+        private List<String> responseBody;
     }
 
     @Data

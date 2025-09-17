@@ -27,15 +27,15 @@ public class RouteDto {
     private AttachmentPath attachmentPaths;
 
     @Data
-    public static class Response {
+    public static class ResponseDto {
         private int status;
         private String body;
     }
 
     @Data
     public static class AttachmentPath {
-        private List<String> requestBody = List.of();
-        private List<String> responseBody = List.of();
+        private List<String> requestBody;
+        private List<String> responseBody;
     }
 
     public enum ResourceAccessType {

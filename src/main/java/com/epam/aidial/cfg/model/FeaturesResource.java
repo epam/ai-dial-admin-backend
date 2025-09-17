@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Features {
+public class FeaturesResource {
     private String rateEndpoint;
     private String tokenizeEndpoint;
     private String truncatePromptEndpoint;

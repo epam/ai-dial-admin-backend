@@ -12,7 +12,7 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Route {
+public class RouteResource {
     private String name;
     private List<String> userRoles;
     private Boolean rewritePath;
@@ -22,10 +22,8 @@ public class Route {
     private Integer maxRetryAttempts;
     private Integer order;
     private Response response;
-    @Builder.Default
-    private Set<ResourceAccessType> permissions = Set.of();
-    @Builder.Default
-    private AttachmentPath attachmentPaths = new AttachmentPath();
+    private Set<ResourceAccessType> permissions;
+    private AttachmentPath attachmentPaths;
 
     @Data
     public static class Response {

@@ -37,10 +37,10 @@ public class ApplicationResource {
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
-    private List<Route> routes;
+    private List<RouteResource> routes;
     private Boolean invalid;
     private List<String> userRoles;
-    private Features features;
+    private FeaturesResource features;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
 }

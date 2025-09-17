@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.RouteDto;
-import com.epam.aidial.cfg.model.Route;
+import com.epam.aidial.cfg.model.RouteResource;
 import org.mapstruct.Mapper;
 
 import java.time.Instant;
@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface RouteMapper {
 
-    Route toRoute(RouteDto dto);
+    RouteResource toRoute(RouteDto dto);
 
-    default List<Route> toRouteList(Map<String, RouteDto> routeDtos) {
+    default List<RouteResource> toRouteList(Map<String, RouteDto> routeDtos) {
         if (routeDtos == null) {
             return List.of();
         }
@@ -22,23 +22,23 @@ public interface RouteMapper {
         return routeDtos.entrySet().stream()
                 .map(e -> {
                     RouteDto dto = e.getValue();
-                    Route route = toRoute(dto);
+                    RouteResource route = toRoute(dto);
                     route.setName(e.getKey());
                     return route;
                 })
                 .toList();
     }
 
-    RouteDto toRouteDto(Route domain);
+    RouteDto toRouteDto(RouteResource domain);
 
-    default Map<String, RouteDto> map(List<Route> routes) {
+    default Map<String, RouteDto> map(List<RouteResource> routes) {
         if (routes == null) {
             return Map.of();
         }
 
         return routes.stream()
                 .collect(Collectors.toMap(
-                        Route::getName,
+                        RouteResource::getName,
                         this::toRouteDto
                 ));
     }

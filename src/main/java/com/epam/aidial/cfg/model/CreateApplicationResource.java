@@ -34,8 +34,8 @@ public class CreateApplicationResource {
     private String editorUrl;
     private Boolean invalid;
     private List<String> userRoles;
-    private Features features;
-    private List<Route> routes;
+    private FeaturesResource features;
+    private List<RouteResource> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
 }
