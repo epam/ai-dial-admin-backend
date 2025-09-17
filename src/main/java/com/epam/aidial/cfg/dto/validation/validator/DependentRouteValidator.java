@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.dto.validation.validator;
 import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
-import com.epam.aidial.cfg.dto.validation.annotation.ValidDependentRoute;
+import com.epam.aidial.cfg.dto.validation.annotation.DependentRoute;
 import io.micrometer.common.util.StringUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -11,7 +11,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
-public class DependentRouteValidator implements ConstraintValidator<ValidDependentRoute, DependentRouteDto> {
+public class DependentRouteValidator implements ConstraintValidator<DependentRoute, DependentRouteDto> {
 
     @Override
     public boolean isValid(DependentRouteDto route, ConstraintValidatorContext context) {

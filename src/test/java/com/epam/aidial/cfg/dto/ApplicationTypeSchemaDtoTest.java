@@ -36,7 +36,7 @@ class ApplicationTypeSchemaDtoTest {
     }
 
     @Test
-    void shouldThrowValidationExceptionIfCompletionEndpointIfInvalid() {
+    void shouldThrowValidationExceptionIfCompletionEndpointIsInvalid() {
         // given
         File dtoJson = new File("src/test/resources/application_type_schema_dto_invalid.json");
 

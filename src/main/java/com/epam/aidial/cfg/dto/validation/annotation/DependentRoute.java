@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Retention(RUNTIME)
 @Target(TYPE)
-public @interface ValidDependentRoute {
+public @interface DependentRoute {
 
     String message() default "Invalid dependent route configuration";
 
