@@ -7,10 +7,12 @@ import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
 import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitId;
+import com.epam.aidial.cfg.dao.model.SecuredResourceEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
@@ -28,10 +30,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Mapper(
-        componentModel = "spring",
-        uses = {RoleLimitEntityMapper.class, LimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class, ShareResourceLimitEntityMapper.class}
-)
+@Mapper(componentModel = "spring", uses = {
+        RoleLimitEntityMapper.class, LimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class,
+        ShareResourceLimitEntityMapper.class, ResourceAuthSettingsEntityMapper.class
+})
 public abstract class DeploymentEntityMapper {
 
     @Autowired
@@ -44,10 +46,19 @@ public abstract class DeploymentEntityMapper {
 
     public abstract Deployment toDomain(DeploymentEntity deploymentEntity);
 
+    public abstract SecuredResource toDomain(SecuredResourceEntity deploymentEntity);
+
+    @ToEntity
+    public abstract DeploymentEntity toEntity(Deployment deployment, @MappingTarget DeploymentEntity entity);
+
+    @ToEntity
+    public abstract SecuredResourceEntity toEntity(SecuredResource deployment, @MappingTarget SecuredResourceEntity entity);
+
     @Mapping(target = "roleLimits", ignore = true)
     @Mapping(target = "roleShareResourceLimits", ignore = true)
     @Mapping(target = "type", ignore = true)
-    public abstract DeploymentEntity toEntity(Deployment deployment, @MappingTarget DeploymentEntity entity);
+    public @interface ToEntity {
+    }
 
     public List<RoleEntity> findRolesByNames(List<String> names) {
         if (names.isEmpty()) {

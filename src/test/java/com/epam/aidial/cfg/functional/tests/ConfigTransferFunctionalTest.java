@@ -21,12 +21,14 @@ import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.AttachmentPathDto;
+import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
@@ -225,11 +227,14 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
 
+        ResourceAuthSettingsDto expectedAuthSettings = getAuthSettingsDto();
+
         ToolSetDto toolSet1 = toolSetFacade.getToolSet("toolset1");
         Assertions.assertThat(toolSet1).satisfies(t -> {
             Assertions.assertThat(t.getEndpoint()).isEqualTo("http://sample-endpoint/api");
             Assertions.assertThat(t.getTransport()).isEqualTo(TransportDto.SSE);
             Assertions.assertThat(t.getAllowedTools()).isEqualTo(List.of("branch", "remote"));
+            Assertions.assertThat(t.getAuthSettings()).isEqualTo(expectedAuthSettings);
         });
     }
 
@@ -1104,8 +1109,13 @@ public abstract class ConfigTransferFunctionalTest {
                         ExportConfigComponentType.ROUTE,
                         ExportConfigComponentType.ROLE,
                         ExportConfigComponentType.INTERCEPTOR,
-                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
-        )));
+                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)),
+                new ExportConfigComponent(
+                    "toolset1",
+                    ExportConfigComponentType.TOOL_SET,
+                    Set.of()
+                )
+        ));
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
         // then
@@ -1120,8 +1130,18 @@ public abstract class ConfigTransferFunctionalTest {
                             Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
                             Assertions.assertThat(keys.get("testKey1").getKey()).isEqualTo(expectedKey);
                         });
+                Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
+                        .satisfies(toolsets -> {
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientId()).isEqualTo("some-client-id");
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientSecret()).isEqualTo("some-client-secret");
+                        });
             } else {
                 Assertions.assertThat(config.getKeys()).isEmpty();
+                Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
+                        .satisfies(toolsets -> {
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientId()).isEqualTo("some-client-id");
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientSecret()).isNull();
+                        });
             }
             Assertions.assertThat(config.getRoles()).containsOnlyKeys("default");
             Assertions.assertThat(config.getApplications()).isNotEmpty().containsOnlyKeys("testApplication1")
@@ -2060,6 +2080,23 @@ public abstract class ConfigTransferFunctionalTest {
                     "properties": {},
                     "required": [%s]
                 }""".formatted(requiredFieldsString);
+    }
+
+
+    private ResourceAuthSettingsDto getAuthSettingsDto() {
+        ResourceAuthSettingsDto authSettings = new ResourceAuthSettingsDto();
+        authSettings.setAuthenticationType(AuthenticationTypeDto.API_KEY);
+        authSettings.setClientId("some-client-id");
+        authSettings.setClientSecret("some-client-secret");
+        authSettings.setAuthorizationEndpoint("https://some-auth-endpoint");
+        authSettings.setTokenEndpoint("https://some-token-endpoint");
+        authSettings.setRedirectUri("https://some-redirect-uri");
+        authSettings.setCodeChallenge("someCodeChallenge");
+        authSettings.setCodeChallengeMethod("someCodeChallengeMethod");
+        authSettings.setCodeVerifier("someCodeVerifier");
+        authSettings.setApiKeyHeader("someApiKeyHeader");
+        authSettings.setScopesSupported(List.of("first", "second"));
+        return authSettings;
     }
 
     private String findKeyNameByProject(String project) {
