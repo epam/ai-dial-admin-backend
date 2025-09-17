@@ -188,6 +188,9 @@ dependencies {
         implementation ('org.springframework:spring-webmvc:6.2.10') {
             because("previous versions have vulnerabilities")
         }
+        implementation ('org.springframework.security:spring-security-core:6.5.4') {
+            because("previous versions have vulnerabilities")
+        }
         implementation ('org.springframework:spring-core:6.2.11') {
             because("previous versions have vulnerabilities")
         }
