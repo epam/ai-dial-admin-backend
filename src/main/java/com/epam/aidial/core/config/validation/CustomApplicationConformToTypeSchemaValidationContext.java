@@ -16,6 +16,7 @@ public class CustomApplicationConformToTypeSchemaValidationContext {
     private static final JsonMetaSchema DIAL_META_SCHEMA = getMetaschemaBuilder()
             .keyword(new NonValidationKeyword("dial:meta"))
             .keyword(new NonValidationKeyword("dial:file"))
+            .keyword(new NonValidationKeyword("dial:resource"))
             .build();
 
     private final JsonSchemaFactory schemaFactory;
