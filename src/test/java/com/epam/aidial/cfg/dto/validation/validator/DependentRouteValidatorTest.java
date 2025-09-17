@@ -70,12 +70,13 @@ class DependentRouteValidatorTest {
     @Test
     void testInvalidResponse() {
         ResponseDto response = new ResponseDto();
-        response.setStatus(200);
+        response.setStatus(0);
         response.setBody(null);
         route.setResponse(response);
 
         Set<ConstraintViolation<DependentRouteDto>> violations = validator.validate(route);
         assertFalse(violations.isEmpty(), "Invalid response should cause validation violations");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Response status must be provided")));
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Response body must be provided")));
     }
 

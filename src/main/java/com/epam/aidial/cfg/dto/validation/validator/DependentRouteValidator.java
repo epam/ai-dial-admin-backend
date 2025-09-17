@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.validation.annotation.ValidDependentRoute;
 import io.micrometer.common.util.StringUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -80,7 +81,7 @@ public class DependentRouteValidator implements ConstraintValidator<ValidDepende
 
     private boolean validateUpstreamEndpoints(DependentRouteDto route, ConstraintValidatorContext context) {
         List<UpstreamDto> upstreams = route.getUpstreams();
-        if (upstreams == null || upstreams.isEmpty()) {
+        if (CollectionUtils.isEmpty(upstreams)) {
             return true;
         }
 
