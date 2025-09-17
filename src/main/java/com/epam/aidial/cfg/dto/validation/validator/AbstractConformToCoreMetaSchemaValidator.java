@@ -38,14 +38,16 @@ public abstract class AbstractConformToCoreMetaSchemaValidator<V> implements Con
         Set<ValidationMessage> validations = SCHEMA.validate(dtoJson, InputFormat.JSON);
         if (!validations.isEmpty()) {
             context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
+            String validationsMessage = validations.stream()
+                    .map(ValidationMessage::getMessage)
+                    .collect(Collectors.joining(","));
+            String message = "ApplicationTypeSchema validation failed: %s".formatted(validationsMessage);
+            context.buildConstraintViolationWithTemplate(message)
                     .addBeanNode()
                     .inContainer(Map.class, 1)
                     .inIterable().atKey(id)
                     .addConstraintViolation();
-            log.warn("ApplicationTypeSchema validation failed: {}", validations.stream()
-                    .map(ValidationMessage::getMessage)
-                    .collect(Collectors.joining(",")));
+            log.warn(message);
             return false;
         }
         return true;
