@@ -88,6 +88,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -1486,10 +1487,18 @@ public abstract class ConfigTransferFunctionalTest {
         var appTypeSchemaRoute = appTypeSchema.getApplicationTypeRoutes().get(0);
         Assertions.assertThat(appTypeSchemaRoute).isEqualTo(expectedRoute);
 
-        Assertions.assertThat(roleFacade.getRole("testRole3").getShare()).hasSize(1).satisfies(share -> {
-            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
-            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
-            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+        Assertions.assertThat(roleFacade.getRole("testRole3")).satisfies(role -> {
+                Assertions.assertThat(role.getShare()).hasSize(1).satisfies(share -> {
+                    ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+                    Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+                    Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+                });
+                Assertions.assertThat(role.getCostLimit()).satisfies(costLimit -> {
+                    Assertions.assertThat(costLimit.getMinute()).isEqualTo(BigDecimal.valueOf(111.222333444));
+                    Assertions.assertThat(costLimit.getDay()).isEqualTo(BigDecimal.valueOf(222));
+                    Assertions.assertThat(costLimit.getWeek()).isEqualTo(BigDecimal.valueOf(333));
+                    Assertions.assertThat(costLimit.getMonth()).isEqualTo(BigDecimal.valueOf(444));
+                });
         });
     }
 
