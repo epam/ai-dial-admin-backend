@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class PromptPathsDto {
+public class ResourcePathsDto {
     @NotEmpty
-    private List<PromptPathDto> paths;
+    private List<ResourcePathDto> paths;
 }

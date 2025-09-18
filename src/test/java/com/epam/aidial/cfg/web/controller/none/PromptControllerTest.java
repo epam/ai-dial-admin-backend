@@ -4,10 +4,10 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.ImportResourcesConflictResolutionStrategyDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
-import com.epam.aidial.cfg.dto.PromptPathDto;
-import com.epam.aidial.cfg.dto.PromptPathsDto;
 import com.epam.aidial.cfg.dto.PromptVersionsRequestDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
+import com.epam.aidial.cfg.dto.ResourcePathDto;
+import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.mapper.PromptMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.model.CreatePrompt;
@@ -108,7 +108,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
 
         when(promptService.getPrompt(any())).thenReturn(model);
 
-        var body = new PromptPathDto();
+        var body = new ResourcePathDto();
         body.setPath(promptPath);
         var dtoJson = ResourceUtils.readResource("/prompts/prompt_dto.json");
         mockMvc.perform(post("/api/v1/prompts/get")
@@ -122,7 +122,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
 
     @Test
     void testGetPrompt_PathIsNull_ThrowValidationError() throws Exception {
-        var body = new PromptPathDto();
+        var body = new ResourcePathDto();
         body.setPath(null);
         mockMvc.perform(post("/api/v1/prompts/get")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -184,7 +184,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testDeletePrompt() throws Exception {
         var promptPath = "testPath/TestName";
-        var body = new PromptPathDto();
+        var body = new ResourcePathDto();
         body.setPath(promptPath);
         mockMvc.perform(post("/api/v1/prompts/delete")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -199,13 +199,13 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
         var promptPath1 = "testPath1/TestName";
         var promptPath2 = "testPath2/TestName";
 
-        var promptPathDto1 = new PromptPathDto();
+        var promptPathDto1 = new ResourcePathDto();
         promptPathDto1.setPath(promptPath1);
 
-        var promptPathDto2 = new PromptPathDto();
+        var promptPathDto2 = new ResourcePathDto();
         promptPathDto2.setPath(promptPath2);
 
-        var promptPathsDto = new PromptPathsDto();
+        var promptPathsDto = new ResourcePathsDto();
         promptPathsDto.setPaths(List.of(promptPathDto1, promptPathDto2));
 
         mockMvc.perform(post("/api/v1/prompts/delete/bulk")
@@ -218,7 +218,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
 
     @Test
     void testDeletePrompts_NullPaths_ThrowValidationError() throws Exception {
-        var promptPathsDto = new PromptPathsDto();
+        var promptPathsDto = new ResourcePathDto();
 
         mockMvc.perform(post("/api/v1/prompts/delete/bulk")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -231,7 +231,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
 
     @Test
     void testDeletePrompts_EmptyPaths_ThrowValidationError() throws Exception {
-        var promptPathsDto = new PromptPathsDto();
+        var promptPathsDto = new ResourcePathsDto();
         promptPathsDto.setPaths(List.of());
 
         mockMvc.perform(post("/api/v1/prompts/delete/bulk")
@@ -245,13 +245,13 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
 
     @Test
     void testDeletePrompts_PathsContainNullPath_ThrowValidationError() throws Exception {
-        var promptPathDto1 = new PromptPathDto();
+        var promptPathDto1 = new ResourcePathDto();
         promptPathDto1.setPath("testPath1/TestName");
 
-        var promptPathDto2 = new PromptPathDto();
+        var promptPathDto2 = new ResourcePathDto();
         promptPathDto2.setPath(null);
 
-        var promptPathsDto = new PromptPathsDto();
+        var promptPathsDto = new ResourcePathsDto();
         promptPathsDto.setPaths(List.of(promptPathDto1, promptPathDto2));
 
         mockMvc.perform(post("/api/v1/prompts/delete/bulk")
