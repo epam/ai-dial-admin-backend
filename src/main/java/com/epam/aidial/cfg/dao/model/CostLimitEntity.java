@@ -18,4 +18,20 @@ public class CostLimitEntity {
     private BigDecimal week;
     @Column(name = "cost_limit_month")
     private BigDecimal month;
+
+    public BigDecimal getMinute() {
+        return minute == null ? null : minute.stripTrailingZeros();
+    }
+
+    public BigDecimal getDay() {
+        return day == null ? null : day.stripTrailingZeros();
+    }
+
+    public BigDecimal getWeek() {
+        return week == null ? null : week.stripTrailingZeros();
+    }
+
+    public BigDecimal getMonth() {
+        return month == null ? null : month.stripTrailingZeros();
+    }
 }
