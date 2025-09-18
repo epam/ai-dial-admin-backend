@@ -11,7 +11,6 @@ import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.mapper.ApplicationResourceMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,12 +55,10 @@ public class ApplicationResourceController {
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationResourceDto> createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) {
+    public ResponseEntity<Void> createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) {
         var createApplication = applicationResourceMapper.toCreateApplicationResourceDto(createApplicationDto);
-        var createdApplication = applicationService.createApplicationResource(createApplication, null);
-        return ResponseEntity.ok()
-                .eTag(createdApplication.etag())
-                .body(applicationResourceMapper.toApplicationResourceDto(createdApplication.model()));
+        var currentEtag = applicationService.createApplicationResource(createApplication, null);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 
     @PostMapping(
@@ -69,16 +66,14 @@ public class ApplicationResourceController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<ApplicationResourceDto> updateApplication(
+    public ResponseEntity<Void> updateApplication(
             @RequestHeader("If-Match") String etag,
             @RequestBody CreateApplicationResourceDto updateApplicationDto) {
 
         var updateApplication = applicationResourceMapper.toCreateApplicationResourceDto(updateApplicationDto);
-        var updatedApplication = applicationService.putApplicationResource(updateApplication, true,
+        var currentEtag = applicationService.putApplicationResource(updateApplication, true,
                 etag);
-        return ResponseEntity.ok()
-                .eTag(updatedApplication.etag())
-                .body(applicationResourceMapper.toApplicationResourceDto(updatedApplication.model()));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 
 

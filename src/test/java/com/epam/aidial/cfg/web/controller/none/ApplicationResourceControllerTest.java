@@ -56,8 +56,6 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
     private static final String DTO_JSON_BASE_PATH = "/application-resources/";
     private static final String JSON_APP_CREATE_DTO = "app_create_dto.json";
     private static final String JSON_APP_CREATE = "app_create.json";
-    private static final String JSON_APP_CREATED_DTO = "app_created_dto.json";
-    private static final String JSON_APP_CREATED = "app_created.json";
     private static final String APP_PATH = "rootPath/subFolder/TestName";
     private static final String APP_RESOURCE_BASE_API_PATH = "/api/v1/application-resources";
     private static final String GET_API_PATH = APP_RESOURCE_BASE_API_PATH + "/get";
@@ -178,20 +176,14 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         var createApplicationJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE);
         var createApplication = objectMapper.readValue(createApplicationJson, new TypeReference<CreateApplicationResource>() {
         });
-        var createdApplicationJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATED);
-        var createdApplication = objectMapper.readValue(createdApplicationJson, new TypeReference<ApplicationResource>() {
-        });
-        var createdApplicationDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATED_DTO);
 
-        when(applicationResourceService.createApplicationResource(any(), any())).thenReturn(
-                new DomainModelWithEtag<>(createdApplication, TEST_ETAG));
+        when(applicationResourceService.createApplicationResource(any(), any())).thenReturn(TEST_ETAG);
 
         mockMvc.perform(post(CREATE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createApplicationDtoJson))
-                .andExpect(status().isOk())
-                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG))
-                .andExpect(content().json(createdApplicationDtoJson, JsonCompareMode.LENIENT));
+                .andExpect(status().isNoContent())
+                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG));
 
         verify(applicationResourceService).createApplicationResource(eq(createApplication), isNull());
     }
@@ -226,21 +218,14 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         var updateApplication = objectMapper.readValue(updateApplicationJson, new TypeReference<CreateApplicationResource>() {
         });
 
-        var updatedApplicationJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATED);
-        var updatedApplication = objectMapper.readValue(updatedApplicationJson, new TypeReference<ApplicationResource>() {
-        });
-        var updatedApplicationDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATED_DTO);
-
-
-        when(applicationResourceService.putApplicationResource(any(), anyBoolean(), any())).thenReturn(
-                new DomainModelWithEtag<>(updatedApplication, TEST_ETAG + 1));
+        when(applicationResourceService.putApplicationResource(any(), anyBoolean(), any())).thenReturn(TEST_ETAG);
 
         mockMvc.perform(post(UPDATE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateApplicationDtoJson)
                         .header(HEADER_IF_MATCH, TEST_ETAG))
-                .andExpect(status().isOk())
-                .andExpect(content().json(updatedApplicationDtoJson, JsonCompareMode.LENIENT));
+                .andExpect(status().isNoContent())
+                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG));
 
         verify(applicationResourceService).putApplicationResource(eq(updateApplication), eq(true), eq(TEST_ETAG));
     }

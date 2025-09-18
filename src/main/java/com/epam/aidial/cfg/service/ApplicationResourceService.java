@@ -104,19 +104,17 @@ public class ApplicationResourceService implements ResourceService {
         return new DomainModelWithEtag<>(applicationResource, currentEtag);
     }
 
-    public DomainModelWithEtag<ApplicationResource> putApplicationResource(CreateApplicationResource createApplicationResource,
+    public String putApplicationResource(CreateApplicationResource createApplicationResource,
                                                          boolean allowOverride,
                                                          String etag) {
         var applicationResourceDto = applicationClientMapper.toApplicationResourceDto(createApplicationResource);
         var path = applicationClientMapper.toPath(createApplicationResource);
         var headers = createHeadersForCreate(allowOverride, etag);
         var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
-        var applicationResource = applicationClientMapper.toApplicationResource(applicationResourceDto, applicationMetadata.getBody());
-        var currentEtag = applicationMetadata.getHeaders().getETag();
-        return new DomainModelWithEtag<>(applicationResource, currentEtag);
+        return applicationMetadata.getHeaders().getETag();
     }
 
-    public DomainModelWithEtag<ApplicationResource> createApplicationResource(CreateApplicationResource createApplicationResource,
+    public String createApplicationResource(CreateApplicationResource createApplicationResource,
                                                                               String etag) {
         try {
             return putApplicationResource(createApplicationResource, false, etag);
