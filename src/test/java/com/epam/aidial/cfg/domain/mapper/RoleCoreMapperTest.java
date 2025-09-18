@@ -20,7 +20,8 @@ import java.util.Map;
 @ContextConfiguration(classes = {
         RoleLimitMapperImpl.class,
         RoleShareResourceLimitMapperImpl.class,
-        RoleCoreMapperImpl.class
+        RoleCoreMapperImpl.class,
+        CostLimitCoreMapperImpl.class
 })
 class RoleCoreMapperTest {
 

@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.core.config.Assistants;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreCostLimit;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,9 @@ public class CoreRolesMerger {
         for (String roleName : allRoleNames) {
             CoreRole coreRole = resolveCoreRole(roleName, roles, createRoleIfAbsent);
             coreRole.setName(roleName);
+            if (coreRole.getCostLimit() == null) {
+                coreRole.setCostLimit(new CoreCostLimit());
+            }
             addRoleLimitsFromUserRoles(coreRole, deploymentNamesByUserRole);
 
             Role role = roleCoreMapper.mapToRole(coreRole, deploymentNamesByUserRole);
