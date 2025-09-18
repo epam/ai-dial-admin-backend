@@ -5,7 +5,9 @@ import com.epam.aidial.cfg.dto.RoleDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {RoleLimitDtoMapper.class, RoleShareResourceLimitDtoMapper.class, InstantMapper.class})
+@Mapper(componentModel = "spring", uses = {
+        RoleLimitDtoMapper.class, RoleShareResourceLimitDtoMapper.class, InstantMapper.class, CostLimitDtoMapper.class
+})
 public interface RoleDtoMapper {
 
     @Mapping(target = "keys", source = "grantedKeys")

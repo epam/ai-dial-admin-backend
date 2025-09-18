@@ -3,14 +3,16 @@ package com.epam.aidial.cfg.domain.mapper;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.core.config.CoreToolSet;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+@Slf4j
 @Mapper(
         componentModel = "spring",
         uses = {
-                DeploymentCoreMapper.class,
+                DeploymentCoreMapper.class, ResourceAuthSettingsCoreMapper.class
         }
 )
 public abstract class ToolSetCoreMapper {
@@ -26,6 +28,7 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "defaults", ignore = true)
     @Mapping(target = "interceptors", ignore = true)
     @Mapping(target = "dependencies", ignore = true)
+    @Mapping(target = "authSettings", source = "deployment.authSettings")
     public abstract CoreToolSet mapToolSet(ToolSet toolSet);
 
     @Mapping(target = "deployment", source = "toolSet")

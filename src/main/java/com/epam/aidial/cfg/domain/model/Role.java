@@ -13,5 +13,6 @@ public class Role {
     private Long updatedAt;
     private List<RoleLimit> limits;
     private List<String> keys;
+    private CostLimit costLimit;
     private List<RoleShareResourceLimit> share;
 }

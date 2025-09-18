@@ -17,6 +17,12 @@
           "maxAcceptedUsers": 10,
           "invitationTtl": 120
         }
+      },
+      "costLimit": {
+        "minute": "111",
+        "day": "222",
+        "week": "333",
+        "month": "444"
       }
     },
     "userRoleInRolesSectionWithNonEmptyLimit": {
@@ -24,9 +30,21 @@
         "testModel1": {
           "day": 5
         }
+      },
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
       }
     },
     "roleInRolesSectionWithEmptyLimit": {
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
+      }
     },
     "roleInRolesSectionWithNonEmptyLimit": {
       "limits": {
@@ -34,6 +52,12 @@
           "week": 120,
           "month": 500
         }
+      },
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
       }
     }
   }

@@ -26,5 +26,6 @@ public class RoleDto {
     private Map<@NotBlank(message = "Deployment name is required") String, @Valid ShareResourceLimitDto> share;
 
     private List<String> grantedKeys;
+    private CostLimitDto costLimit = new CostLimitDto();
 
 }
