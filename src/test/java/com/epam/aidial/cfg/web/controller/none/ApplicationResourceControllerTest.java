@@ -35,7 +35,6 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -177,7 +176,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         var createApplication = objectMapper.readValue(createApplicationJson, new TypeReference<CreateApplicationResource>() {
         });
 
-        when(applicationResourceService.createApplicationResource(any(), any())).thenReturn(TEST_ETAG);
+        when(applicationResourceService.createApplicationResource(any())).thenReturn(TEST_ETAG);
 
         mockMvc.perform(post(CREATE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -185,7 +184,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                 .andExpect(status().isNoContent())
                 .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG));
 
-        verify(applicationResourceService).createApplicationResource(eq(createApplication), isNull());
+        verify(applicationResourceService).createApplicationResource(eq(createApplication));
     }
 
     @Test
@@ -198,7 +197,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
 
 
         doThrow(new EntityAlreadyExistsException("Already exist"))
-                .when(applicationResourceService).createApplicationResource(any(), any());
+                .when(applicationResourceService).createApplicationResource(any());
 
         mockMvc.perform(post(CREATE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -207,7 +206,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                 .andExpect(jsonPath("$.message")
                         .value("Already exist"));
 
-        verify(applicationResourceService).createApplicationResource(eq(createApplication), isNull());
+        verify(applicationResourceService).createApplicationResource(eq(createApplication));
     }
 
     @Test

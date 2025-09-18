@@ -57,7 +57,7 @@ public class ApplicationResourceController {
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createApplication(@RequestBody CreateApplicationResourceDto createApplicationDto) {
         var createApplication = applicationResourceMapper.toCreateApplicationResourceDto(createApplicationDto);
-        var currentEtag = applicationService.createApplicationResource(createApplication, null);
+        var currentEtag = applicationService.createApplicationResource(createApplication);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 

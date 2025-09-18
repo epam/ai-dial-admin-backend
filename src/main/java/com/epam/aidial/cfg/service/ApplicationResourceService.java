@@ -114,10 +114,9 @@ public class ApplicationResourceService implements ResourceService {
         return applicationMetadata.getHeaders().getETag();
     }
 
-    public String createApplicationResource(CreateApplicationResource createApplicationResource,
-                                                                              String etag) {
+    public String createApplicationResource(CreateApplicationResource createApplicationResource) {
         try {
-            return putApplicationResource(createApplicationResource, false, etag);
+            return putApplicationResource(createApplicationResource, false, null);
         } catch (ResourcePreconditionFailedException ex) {
             throw new EntityAlreadyExistsException("Application with name " + createApplicationResource.getName() + " already exists");
         }
