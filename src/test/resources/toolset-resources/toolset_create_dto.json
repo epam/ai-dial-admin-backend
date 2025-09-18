@@ -1,0 +1,18 @@
+{
+  "name": "test_toolset",
+  "folderId": "test_folder",
+  "version": "1",
+  "allowed_tools": ["tool1"],
+  "defaults": {},
+  "dependencies": [],
+  "description": "dsggs",
+  "description_keywords": ["Analysis", "Development"],
+  "display_name": "Untitled toolset",
+  "display_version": "0.0.1",
+  "endpoint": "https://test",
+  "forwardAuthToken": false,
+  "icon_url": "",
+  "interceptors": [],
+  "maxRetryAttempts": 10,
+  "transport": "HTTP"
+}
