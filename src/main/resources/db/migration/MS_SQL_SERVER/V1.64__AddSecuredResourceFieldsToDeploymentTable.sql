@@ -9,7 +9,6 @@ alter table deployment_entity_aud add deployment_type varchar(32);
 go
 update deployment_entity_aud set deployment_type = 'SECURED_RESOURCE' where type = 'TOOL_SET';
 update deployment_entity_aud set deployment_type = 'DEPLOYMENT' where type != 'TOOL_SET';
-alter table deployment_entity_aud alter column deployment_type varchar(32) not null;
 
 -- add secured resource's fields to deployment_entity
 alter table deployment_entity add authentication_type nvarchar(max);
