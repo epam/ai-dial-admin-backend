@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.ResourceAuthSettingsEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RoleShareResourceLimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapperImpl;
@@ -19,6 +20,7 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
+import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
@@ -60,7 +62,8 @@ import static org.mockito.Mockito.when;
         DeploymentEntityMapperImpl.class,
         UpstreamEntityMapperImpl.class,
         LimitEntityMapperImpl.class,
-        ShareResourceLimitEntityMapperImpl.class
+        ShareResourceLimitEntityMapperImpl.class,
+        ResourceAuthSettingsEntityMapperImpl.class
 })
 class ConfigServiceTest {
 
@@ -90,6 +93,8 @@ class ConfigServiceTest {
     private DeploymentService deploymentService;
     @MockitoBean
     private ToolSetService toolSetService;
+    @MockitoBean
+    private AdapterService adapterService;
     @MockitoBean
     private RoleJpaRepository roleJpaRepository;
 

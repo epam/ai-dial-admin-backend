@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
@@ -66,9 +68,11 @@ public abstract class ModelHistoryFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
+        expected.setMaxRetryAttempts(1);
         assertModel(actual, expected);
 
         // add roles to model1
+        updatedModel.setMaxRetryAttempts(3);
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
         updatedModel.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
@@ -194,7 +198,8 @@ public abstract class ModelHistoryFunctionalTest {
         adapterFacade.createAdapter(adapter1);
         // create model1
         ModelDto modelDto = createDto("1");
-        modelDto.setAdapter(adapter1.getName());
+        modelDto.setEndpoint(null);
+        modelDto.setSource(new AdapterSourceDto(adapter1.getName(), "/chat/completions"));
         modelFacade.createModel(modelDto);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
@@ -205,7 +210,7 @@ public abstract class ModelHistoryFunctionalTest {
         adapterFacade.createAdapter(adapter2);
 
         // update model
-        modelDto.setAdapter(adapter2.getName());
+        modelDto.setSource(new AdapterSourceDto(adapter2.getName(), "/chat/completions"));
         modelFacade.updateModel(modelDto.getName(), modelDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
@@ -219,24 +224,27 @@ public abstract class ModelHistoryFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyRollbackModelsWithAdaptersWhenAdapterDeleted() {
-        initRoles();
+    public void shouldSuccessfullyRollbackModelAfterRoleLimitRemoval() {
+        // create role
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
 
-        // create adapter1
-        AdapterDto adapter1 = createAdapter("1");
-        adapterFacade.createAdapter(adapter1);
-        // create model1
+        // create model
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
         ModelDto modelDto = createDto("1");
-        modelDto.setAdapter(adapter1.getName());
+        modelDto.setRoleLimits(Map.of("role1", limitDto));
         modelFacade.createModel(modelDto);
 
-        final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
-        var actualAtRevision = modelFacade.getAll();
+        // remember rev number and expected models state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<ModelDto> actualAtRevision = modelFacade.getAll();
 
-        modelDto.setDescription("new description");
-        modelFacade.updateModel(modelDto.getName(), modelDto, "*");
-
-        adapterFacade.deleteAdapter(adapter1.getName());
+        // remove model role limit
+        ModelDto updatedModel = createDto("1");
+        updatedModel.setRoleLimits(null);
+        modelFacade.updateModel(updatedModel.getName(), updatedModel, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -270,6 +278,8 @@ public abstract class ModelHistoryFunctionalTest {
         modelDto.setRoleShareResourceLimits(Map.of(
                 "role" + suffix, new ShareResourceLimitDto()
         ));
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        modelDto.setEndpoint("https://endpoint1/chat/completions");
         return modelDto;
     }
 

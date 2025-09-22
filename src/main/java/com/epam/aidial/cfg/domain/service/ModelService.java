@@ -1,12 +1,14 @@
 package com.epam.aidial.cfg.domain.service;
 
-
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
+import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -17,17 +19,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
+@Slf4j
+@LogExecution
 @Service("coreModelService")
 @RequiredArgsConstructor
-@Slf4j
 public class ModelService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Model with name %s does not exist";
@@ -38,11 +42,13 @@ public class ModelService {
     private final ModelNormalizer modelNormalizer;
     private final ModelValidator modelValidator;
     private final HistoryService historyService;
+    private final ModelRefreshService refreshService;
+    private final ContainerEndpointResolver endpointResolver;
     private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Model> getAll() {
-        return StreamSupport.stream(modelJpaRepository.findAll().spliterator(), false)
+        return modelJpaRepository.findAll().stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -76,6 +82,7 @@ public class ModelService {
         modelValidator.validateCreation(model);
         deploymentService.assertDeploymentNotExists(model.getDeployment().getName());
         assertNotExists(model.getDisplayName(), model.getDisplayVersion());
+        resolveEndpointsIfContainerSource(model);
         Optional.of(model)
                 .map(domainModel -> mapper.toEntity(domainModel, new ModelEntity()))
                 .map(modelJpaRepository::save)
@@ -105,6 +112,7 @@ public class ModelService {
 
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         assertNotConcurrencyOverwrite(modelEntity, hash);
+        resolveEndpointsIfContainerSource(model);
         return modelJpaRepository.save(mapper.toEntity(model, modelEntity));
     }
 
@@ -123,6 +131,43 @@ public class ModelService {
     public Model getSnapshot(String modelName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, modelName, ModelEntity.class);
         return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Model> getAllAtRevision(Integer revision) {
+        return historyService.getEntitiesAtRevision(revision, ModelEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public void refreshEndpoints() {
+        var modelEntities = modelJpaRepository.findByContainerIdIsNotNull();
+        List<String> successfulModels = new ArrayList<>();
+        List<String> failedModels = new ArrayList<>();
+
+        for (var entity : modelEntities) {
+            String modelName = entity.getDeploymentName();
+            log.debug("Refreshing endpoints for model '%s'".formatted(modelName));
+            try {
+                refreshService.refreshEndpoints(entity);
+                successfulModels.add(modelName);
+            } catch (Exception e) {
+                log.error("Failed to refresh endpoints for model '{}'", modelName, e);
+                failedModels.add(modelName);
+            }
+        }
+
+        if (!failedModels.isEmpty()) {
+            log.warn("Failed to refresh endpoints for {} models: {}",
+                    failedModels.size(), String.join(", ", failedModels));
+        }
+
+        if (!successfulModels.isEmpty()) {
+            log.debug("Successfully refreshed endpoints for {} models: {}",
+                    successfulModels.size(), String.join(", ", successfulModels));
+        }
     }
 
     private void assertExists(String name) {
@@ -163,11 +208,10 @@ public class ModelService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Collection<Model> getAllAtRevision(Integer revision) {
-        return historyService.getEntitiesAtRevision(revision, ModelEntity.class)
-                .stream()
-                .map(mapper::toDomain)
-                .collect(Collectors.toList());
+    private void resolveEndpointsIfContainerSource(Model model) {
+        if (!(model.getSource() instanceof ModelContainerSource)) {
+            return;
+        }
+        endpointResolver.processContainerEndpoints(model);
     }
 }

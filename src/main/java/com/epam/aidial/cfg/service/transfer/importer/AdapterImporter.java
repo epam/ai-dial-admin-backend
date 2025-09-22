@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreModel;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -45,6 +47,7 @@ public class AdapterImporter {
                     .stream()
                     .filter(coreModel -> coreModel.getEndpoint() != null)
                     .map(this::mapToAdapterBaseEndpoint)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
             boolean createAdapterIfAbsent = importOptions.createAdapterIfAbsent();
             List<ImportComponent<Adapter>> result = new ArrayList<>();
@@ -74,7 +77,8 @@ public class AdapterImporter {
     private String mapToAdapterBaseEndpoint(CoreModel coreModel) {
         String modelEndpoint = coreModel.getEndpoint();
         ModelType type = coreModel.getType();
-        return modelEndpointUtils.parseModelEndpoint(modelEndpoint, type).adapterEndpoint();
+        ModelEndpointComponents endpointComponents = modelEndpointUtils.parseModelEndpoint(modelEndpoint, type);
+        return endpointComponents != null ? endpointComponents.adapterEndpoint() : null;
     }
 
     public List<ImportComponent<Adapter>> importAdminAdapters(Map<String, Adapter> adapters,

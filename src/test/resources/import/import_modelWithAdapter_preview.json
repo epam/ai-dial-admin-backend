@@ -26,11 +26,12 @@
           "defaultRoleLimit": {},
           "defaultRoleShareResourceLimit": {}
         },
-        "adapter": {
-          "name": "<will be defined during import>",
-          "baseEndpoint": "http://endpoint2/",
-          "models": []
+        "source": {
+          "$type": "adapter",
+          "adapterName": "<will be defined during import>",
+          "completionEndpointPath": "testModel2/embeddings"
         },
+        "endpoint": "http://endpoint2/testModel2/embeddings",
         "displayName": "Test Model2",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -58,8 +59,7 @@
         "dependencies": [],
         "type": "embedding",
         "upstreams": [],
-        "fieldsHashingOrder": [],
-        "endpointDeploymentName": "testModel2"
+        "fieldsHashingOrder": []
       }
     },
     {
@@ -73,13 +73,12 @@
           "defaultRoleLimit": {},
           "defaultRoleShareResourceLimit": {}
         },
-        "adapter": {
-          "name": "adapter1",
-          "baseEndpoint": "http://endpoint1/",
-          "models": [],
-          "createdAt": 123,
-          "updatedAt": 123
+        "source": {
+          "$type": "adapter",
+          "adapterName": "adapter1",
+          "completionEndpointPath": "testModel1/embeddings"
         },
+        "endpoint": "http://endpoint1/testModel1/embeddings",
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -113,8 +112,7 @@
         "fieldsHashingOrder": [
           "prompt",
           "temperature"
-        ],
-        "endpointDeploymentName": "testModel1"
+        ]
       }
     }
   ],

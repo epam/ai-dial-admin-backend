@@ -6,7 +6,10 @@ import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Upstream;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
@@ -29,6 +32,7 @@ import java.util.stream.Collectors;
 public class ModelExporter {
 
     private final ModelService modelService;
+    private final AdapterService adapterService;
 
     protected Map<String, Model> getModels(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
@@ -61,7 +65,8 @@ public class ModelExporter {
                 .stream()
                 .map(component -> {
                     Model model = getModel(component.getName());
-                    return removeDependency(model, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
+                    Model modelWithRemovedDependencies = removeDependency(model, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
+                    return resolveEndpoint(modelWithRemovedDependencies, selectedItemsExportRequest.getExportFormat());
                 })
                 .map(model -> removeUpstreamKey(model, addSecrets))
                 .toList();
@@ -71,6 +76,7 @@ public class ModelExporter {
         return getModels().stream()
                 .map(model -> removeUpstreamKey(model, fullExportRequest.isAddSecrets()))
                 .map(model -> removeDependency(model, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
+                .map(model -> resolveEndpoint(model, fullExportRequest.getExportFormat()))
                 .toList();
     }
 
@@ -100,8 +106,11 @@ public class ModelExporter {
         if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {
             model.setInterceptors(null);
         }
-        if (!componentTypes.contains(ExportConfigComponentType.ADAPTER) && exportFormat != ExportFormat.CORE) {
-            model.setAdapter(null);
+        if (!componentTypes.contains(ExportConfigComponentType.ADAPTER)
+                && exportFormat != ExportFormat.CORE
+                && model.getSource() != null
+                && model.getSource() instanceof AdapterSource) {
+            model.setSource(null);
         }
         return model;
     }
@@ -112,6 +121,16 @@ public class ModelExporter {
             for (Upstream upstream : upstreams) {
                 upstream.setKey(null);
             }
+        }
+        return model;
+    }
+
+    private Model resolveEndpoint(Model model, ExportFormat exportFormat) {
+        if (exportFormat == ExportFormat.CORE
+                && model.getSource() != null
+                && model.getSource() instanceof AdapterSource adapterSource) {
+            var adapter = adapterService.get(adapterSource.getAdapterName());
+            model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
         }
         return model;
     }

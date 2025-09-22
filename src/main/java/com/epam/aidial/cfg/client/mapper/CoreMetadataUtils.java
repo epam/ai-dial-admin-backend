@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.client.mapper;
 
+import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.core.util.UrlUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +50,13 @@ public class CoreMetadataUtils {
             throw new IllegalArgumentException("The metadata path does not contain a '/': %s".formatted(path));
         }
         return path.substring(0, lastSlashIndex);
+    }
+
+    public static PathUtils.VersionedPathParts parseEncodedVersionedPath(String path, String prefix) {
+        var pathWithoutPrefix = removeMetadataPrefix(path, prefix);
+        var pathDecoded = UrlUtil.decodePath(pathWithoutPrefix);
+
+        return PathUtils.parseVersionedPath(pathDecoded);
     }
 
 }

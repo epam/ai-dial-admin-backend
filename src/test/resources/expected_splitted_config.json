@@ -129,6 +129,12 @@
             "maxAcceptedUsers": 10,
             "invitationTtl": 120
           }
+        },
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
         }
       }
     }

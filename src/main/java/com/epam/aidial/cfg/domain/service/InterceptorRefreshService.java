@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
-import com.epam.aidial.cfg.domain.util.InterceptorEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InterceptorRefreshService {
 
     private final InterceptorJpaRepository interceptorJpaRepository;
-    private final InterceptorEndpointResolver interceptorEndpointResolver;
+    private final ContainerEndpointResolver containerEndpointResolver;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void refreshEndpoints(InterceptorEntity interceptorEntity) {
@@ -23,7 +23,7 @@ public class InterceptorRefreshService {
         if (interceptorContainerEntity == null) {
             return;
         }
-        interceptorEndpointResolver.processContainerEndpoints(interceptorEntity);
+        containerEndpointResolver.processContainerEndpoints(interceptorEntity);
         interceptorJpaRepository.save(interceptorEntity);
     }
 }

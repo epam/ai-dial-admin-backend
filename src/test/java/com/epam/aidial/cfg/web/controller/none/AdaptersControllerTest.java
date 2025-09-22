@@ -112,7 +112,7 @@ class AdaptersControllerTest extends AbstractControllerNoneSecureTest {
 
         mockMvc.perform(put(ADAPTER_API_PATH, TEST_ADAPTER_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .header(HEADER_MATCH, "1")
+                        .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
                 .andExpect(status().isNoContent())
                 .andExpect(header().exists(HEADER_ETAG))
@@ -130,7 +130,7 @@ class AdaptersControllerTest extends AbstractControllerNoneSecureTest {
 
         mockMvc.perform(put(ADAPTER_API_PATH, TEST_ADAPTER_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .header(HEADER_MATCH, "1")
+                        .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
                 .andExpect(status().isPreconditionFailed())
                 .andExpect(jsonPath("$.message").value("Conflict Exception"));

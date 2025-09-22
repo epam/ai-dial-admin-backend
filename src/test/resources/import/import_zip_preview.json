@@ -5,7 +5,13 @@
       "value": {
         "name": "default",
         "limits": [],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     },
     {
@@ -53,7 +59,13 @@
               "invitationTtl": 120
             }
           }
-        ]
+        ],
+        "costLimit": {
+          "minute": "111.222333444",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -92,7 +104,13 @@
             "limit": {}
           }
         ],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     },
     {
@@ -133,7 +151,13 @@
             "limit": {}
           }
         ],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     }
   ],
@@ -178,7 +202,23 @@
         "author": "test-author",
         "createdAt": 12345,
         "updatedAt": 12345,
-        "dependencies": []
+        "dependencies": [],
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
+        }
       }
     },
     {
@@ -191,6 +231,22 @@
         "createdAt": 12345,
         "updatedAt": 12345,
         "dependencies": [],
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
+        },
         "source": {
           "$type": "runner",
           "runnerName": "testRunner1"
@@ -415,7 +471,8 @@
         "createdAt": 12345,
         "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"],
-        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+        "endpoint": "https://endpoint2/embeddings"
       }
     },
     {
@@ -463,11 +520,10 @@
             "maxAcceptedUsers": 15
           }
         },
-        "adapter": {
-          "name": "adapter1",
-          "baseEndpoint": "http://endpoint1/",
-          "description": "test adapter",
-          "models": []
+        "source": {
+          "$type": "adapter",
+          "adapterName": "adapter1",
+          "completionEndpointPath": "embeddings"
         },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",

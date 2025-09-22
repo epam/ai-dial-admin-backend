@@ -28,15 +28,15 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
 
     @MapsId
     @JoinColumn(name = "deployment_name", unique = true)
-    @OneToOne(targetEntity = DeploymentEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private DeploymentEntity deployment;
+    @OneToOne(targetEntity = SecuredResourceEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private SecuredResourceEntity deployment;
 
     private String endpoint;
     private String iconUrl;
     private String description;
     private String displayName;
     private List<String> descriptionKeywords;
-    private Integer maxRetryAttempts;
+    private int maxRetryAttempts = 1;
     private String author;
 
     @Enumerated(EnumType.STRING)

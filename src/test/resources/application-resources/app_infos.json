@@ -1,0 +1,18 @@
+{
+  "path": "public/Same_Company/",
+  "nodeType": "folder",
+  "nextToken": "testNextToken",
+  "items": [
+    {
+      "path": "public/Same_Company/UX test app for publishing__0.0.1",
+      "name": "UX test app for publishing",
+      "version": "0.0.1",
+      "folderId": "public/Same_Company/",
+      "updateTime": 1750766372516,
+      "author": "Test author",
+      "nodeType": "item",
+      "nextToken": null,
+      "items": null
+    }
+  ]
+}

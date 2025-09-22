@@ -52,8 +52,8 @@ public class AdapterFacade {
         return adapterService.update(adapterName, value, hash);
     }
 
-    public void deleteAdapter(String adapterName) {
-        adapterService.delete(adapterName);
+    public void deleteAdapter(String adapterName, boolean removeModel) {
+        adapterService.delete(adapterName, removeModel);
     }
 
     public AdapterDto getSnapshot(String adapterName, Integer revision) {

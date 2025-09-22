@@ -147,7 +147,7 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
         // when
         mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .header(HEADER_MATCH, "1")
+                        .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
                 // then
                 .andExpect(status().isNoContent())
@@ -166,7 +166,7 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
 
         mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .header(HEADER_MATCH, "1")
+                        .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
                 .andExpect(status().isPreconditionFailed())
                 .andExpect(jsonPath("$.message").value("Conflict Exception"));

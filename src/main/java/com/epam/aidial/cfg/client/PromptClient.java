@@ -24,9 +24,6 @@ import java.util.Map;
 )
 public interface PromptClient {
 
-    String IF_MATCH_HEADER_NAME = "If-Match";
-    String IF_NONE_MATCH_HEADER_NAME = "If-None-Match";
-
     @GetMapping("/v1/metadata/prompts/{path}")
     PromptMetadataDto getPromptsMetadata(
             @PathVariable String path,
@@ -42,7 +39,7 @@ public interface PromptClient {
      * to facilitate the decoding of the response.
      *
      * <p>For more information, refer to the custom decoder implementation in:
-     * {@link MessageConversionCoreClientConfiguration#feignDecoder(org.springframework.beans.factory.ObjectFactory, com.fasterxml.jackson.databind.ObjectMapper)}
+     * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
      */
     @GetMapping("/v1/prompts/{path}")
     PromptDto getPrompt(

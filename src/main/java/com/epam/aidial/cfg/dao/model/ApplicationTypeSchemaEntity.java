@@ -39,7 +39,7 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private String applicationTypeRateEndpoint;
     private String applicationTypeTokenizeEndpoint;
     private String applicationTypeTruncatePromptEndpoint;
-    private Boolean appendApplicationPropertiesHeader;
+    private boolean appendApplicationPropertiesHeader = true;
     private String applicationTypeIconUrl;
     private Boolean applicationTypePlaybackSupport;
 

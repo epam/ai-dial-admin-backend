@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
-import com.epam.aidial.cfg.domain.util.InterceptorEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -27,7 +27,7 @@ public class InterceptorService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor with name '%s' does not exist";
 
-    private final InterceptorEndpointResolver interceptorEndpointResolver;
+    private final ContainerEndpointResolver endpointResolver;
     private final InterceptorRefreshService interceptorRefreshService;
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final InterceptorValidator interceptorValidator;
@@ -127,7 +127,7 @@ public class InterceptorService {
         if (!(interceptor.getSource() instanceof InterceptorContainerSource)) {
             return;
         }
-        interceptorEndpointResolver.processContainerEndpoints(interceptor);
+        endpointResolver.processContainerEndpoints(interceptor);
     }
 
     private void assertExists(String name) {

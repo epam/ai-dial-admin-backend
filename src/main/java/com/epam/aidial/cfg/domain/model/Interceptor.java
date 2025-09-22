@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class Interceptor {
@@ -17,8 +18,9 @@ public class Interceptor {
     private String author;
     private Long createdAt;
     private Long updatedAt;
+    private Features features;
+    private Map<String, Object> defaults;
     private List<String> dependencies;
     private List<String> entities;
     private InterceptorSource source;
-    private String configurationEndpoint;
 }

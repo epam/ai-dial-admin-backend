@@ -58,25 +58,28 @@ public class ApplicationValidator {
     }
 
     private void validateApplicationFields(Application application) {
+        String appName = application.getDeployment().getName();
         String endpoint = application.getEndpoint();
         URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
         List<DependentRoute> routes = application.getRoutes();
 
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
-            throw new IllegalArgumentException("Invalid endpoint: '" + endpoint + "'");
+            throw new IllegalArgumentException("Invalid endpoint: '%s'. Application: %s".formatted(endpoint, appName));
         }
 
         if (endpoint == null && isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException("Missing endpoint and application type schema id. Only one of them should be specified");
+            throw new IllegalArgumentException("Missing endpoint and application type schema id. Only one of them should be specified. Application: %s"
+                    .formatted(appName));
         }
 
         if (endpoint != null && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException("Both endpoint: '" + endpoint + "' and application type schema id: '" + applicationTypeSchemaId + "' are specified."
-                    + " Only one of them should be specified");
+            throw new IllegalArgumentException("Both endpoint: '%s' and application type schema id: '%s' are specified.".formatted(endpoint, applicationTypeSchemaId)
+                    + " Only one of them should be specified. Application: %s".formatted(appName));
         }
 
         if (CollectionUtils.isNotEmpty(routes) && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException("Both routes and application type schema id are specified. Only one of them should be specified");
+            throw new IllegalArgumentException("Both routes and application type schema id are specified. Only one of them should be specified."
+                    + " Application: %s".formatted(appName));
         }
     }
 

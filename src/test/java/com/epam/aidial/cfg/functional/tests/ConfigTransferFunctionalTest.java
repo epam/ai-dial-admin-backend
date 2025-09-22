@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
@@ -20,12 +21,14 @@ import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.AttachmentPathDto;
+import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
@@ -35,7 +38,9 @@ import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -83,6 +88,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -206,8 +212,10 @@ public abstract class ConfigTransferFunctionalTest {
         });
 
         Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
-        Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i ->
-                Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i -> {
+            Assertions.assertThat(i.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
+            Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
+        });
 
         Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
         Assertions.assertThat(allKeys).hasSize(2).allSatisfy(key ->
@@ -220,11 +228,14 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
 
+        ResourceAuthSettingsDto expectedAuthSettings = getAuthSettingsDto();
+
         ToolSetDto toolSet1 = toolSetFacade.getToolSet("toolset1");
         Assertions.assertThat(toolSet1).satisfies(t -> {
             Assertions.assertThat(t.getEndpoint()).isEqualTo("http://sample-endpoint/api");
             Assertions.assertThat(t.getTransport()).isEqualTo(TransportDto.SSE);
             Assertions.assertThat(t.getAllowedTools()).isEqualTo(List.of("branch", "remote"));
+            Assertions.assertThat(t.getAuthSettings()).isEqualTo(expectedAuthSettings);
         });
     }
 
@@ -248,6 +259,8 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
             Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
             Assertions.assertThat(model.getDisplayVersion()).isEqualTo("2.0.0");
+            Assertions.assertThat(model.getEndpoint()).isEqualTo("https://endpoint1");
+            Assertions.assertThat(model.getSource()).isEqualTo(new ModelEndpointsSourceDto());
         });
     }
 
@@ -413,27 +426,47 @@ public abstract class ConfigTransferFunctionalTest {
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
         request.setComponentTypes(componentTypes);
+
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptorName");
-        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
+
+        InterceptorRunnerDto runnerDto = new InterceptorRunnerDto();
+        runnerDto.setName("someRunner");
+        runnerDto.setCompletionEndpoint("https://endpoint.test.com/api");
+        runnerDto.setConfigurationEndpoint("https://endpoint.test.com/config");
+
+        InterceptorRunnerSourceDto runnerSource = new InterceptorRunnerSourceDto("someRunner");
+        interceptorDto.setSource(runnerSource);
+
         ModelDto modelDto = new ModelDto();
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
+
+        interceptorRunnerFacade.createInterceptorRunner(runnerDto);
         interceptorFacade.createInterceptor(interceptorDto);
         modelFacade.createModel(modelDto);
+
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
         // then
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         streamingResponseBody.writeTo(outputStream);
 
         Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
             Assertions.assertThat(config.getModels()).isNotEmpty()
                     .containsOnlyKeys("modelName")
                     .satisfies(models ->
                             Assertions.assertThat(models.get("modelName").getInterceptors()).containsExactlyInAnyOrder("interceptorName"));
-            Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty()
+                    .containsOnlyKeys("interceptorName")
+                    .satisfies(interceptors -> {
+                        var interceptor = interceptors.get("interceptorName");
+                        Assertions.assertThat(interceptor.getEndpoint()).isEqualTo("https://endpoint.test.com/api");
+                        Assertions.assertThat(interceptor.getFeatures().getConfigurationEndpoint()).isEqualTo("https://endpoint.test.com/config");
+                    });
             Assertions.assertThat(result.getApplications()).isEmpty();
         });
     }
@@ -463,7 +496,7 @@ public abstract class ConfigTransferFunctionalTest {
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
         modelDto.setRoleLimits(Map.of("testRole", limitDto));
-        modelDto.setAdapter("testAdapter");
+        modelDto.setSource(new AdapterSourceDto("testAdapter", "/chat/completions"));
 
         RoleDto roleDto = new RoleDto();
         roleDto.setName("testRole");
@@ -494,7 +527,7 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
                         Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
                         Assertions.assertThat(model.getDeployment().getRoleShareResourceLimits()).isNull();
-                        Assertions.assertThat(model.getAdapter()).isNull();
+                        Assertions.assertThat(model.getSource()).isNull();
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
@@ -660,7 +693,7 @@ public abstract class ConfigTransferFunctionalTest {
         modelDto.setName("modelName");
         modelDto.setInterceptors(List.of("interceptorName"));
         modelDto.setRoleLimits(Map.of("testRole", limitDto));
-        modelDto.setAdapter("testAdapter");
+        modelDto.setSource(new AdapterSourceDto("testAdapter", "/chat/completions"));
 
         RoleDto roleDto = new RoleDto();
         roleDto.setName("testRole");
@@ -691,7 +724,7 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptorName");
                         Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
                         Assertions.assertThat(model.getDeployment().getRoleShareResourceLimits()).isNull();
-                        Assertions.assertThat(model.getAdapter().getName()).isEqualTo("testAdapter");
+                        Assertions.assertThat(model.getSource()).isEqualTo(new AdapterSource("testAdapter", "/chat/completions"));
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptorName");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("testRole");
@@ -1077,8 +1110,13 @@ public abstract class ConfigTransferFunctionalTest {
                         ExportConfigComponentType.ROUTE,
                         ExportConfigComponentType.ROLE,
                         ExportConfigComponentType.INTERCEPTOR,
-                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
-        )));
+                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)),
+                new ExportConfigComponent(
+                    "toolset1",
+                    ExportConfigComponentType.TOOL_SET,
+                    Set.of()
+                )
+        ));
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
         // then
@@ -1093,8 +1131,18 @@ public abstract class ConfigTransferFunctionalTest {
                             Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
                             Assertions.assertThat(keys.get("testKey1").getKey()).isEqualTo(expectedKey);
                         });
+                Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
+                        .satisfies(toolsets -> {
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientId()).isEqualTo("some-client-id");
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientSecret()).isEqualTo("some-client-secret");
+                        });
             } else {
                 Assertions.assertThat(config.getKeys()).isEmpty();
+                Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
+                        .satisfies(toolsets -> {
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientId()).isEqualTo("some-client-id");
+                            Assertions.assertThat(toolsets.get("toolset1").getAuthSettings().getClientSecret()).isNull();
+                        });
             }
             Assertions.assertThat(config.getRoles()).containsOnlyKeys("default");
             Assertions.assertThat(config.getApplications()).isNotEmpty().containsOnlyKeys("testApplication1")
@@ -1185,7 +1233,10 @@ public abstract class ConfigTransferFunctionalTest {
         Set<String> adapterEndpoints = adapterFacade.getAllAdapters().stream().map(AdapterDto::getBaseEndpoint).collect(Collectors.toSet());
         Assertions.assertThat(adapterEndpoints).isEqualTo(Set.of("http://endpoint1/", "http://endpoint2/"));
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, Function.identity()));
-        Assertions.assertThat(adapterNames).containsAll(Set.of(models.get("testModel1").getAdapter(), models.get("testModel2").getAdapter()));
+        Assertions.assertThat(adapterNames).containsAll(Set.of(
+                ((AdapterSourceDto) models.get("testModel1").getSource()).adapterName(),
+                ((AdapterSourceDto) models.get("testModel2").getSource()).adapterName()
+        ));
     }
 
     @Test
@@ -1221,10 +1272,9 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         Map<String, ModelDto> models = modelFacade.getAll().stream()
                 .collect(Collectors.toMap(ModelDto::getName, Function.identity()));
-        String model1AdapterName = models.get("testModel1").getAdapter();
-        String model2AdapterName = models.get("testModel2").getAdapter();
-        Assertions.assertThat(model1AdapterName).isEqualTo("adapter1");
-        Assertions.assertThat(model2AdapterName).isEqualTo("adapter3");
+
+        Assertions.assertThat(models.get("testModel1").getSource()).isEqualTo(new AdapterSourceDto("adapter1", "testModel1/embeddings"));
+        Assertions.assertThat(models.get("testModel2").getSource()).isEqualTo(new AdapterSourceDto("adapter3", "testModel2/embeddings"));
     }
 
     private static Stream<Arguments> addSecrets() {
@@ -1382,7 +1432,7 @@ public abstract class ConfigTransferFunctionalTest {
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
-            Assertions.assertThat(modelDto.getAdapter()).isEqualTo("adapter1");
+            Assertions.assertThat(modelDto.getSource()).isEqualTo(new AdapterSourceDto("adapter1", "embeddings"));
             Assertions.assertThat(modelDto.getDefaultRoleLimit()).satisfies(limit -> {
                 Assertions.assertThat(limit.getDay()).isEqualTo(3);
             });
@@ -1437,10 +1487,18 @@ public abstract class ConfigTransferFunctionalTest {
         var appTypeSchemaRoute = appTypeSchema.getApplicationTypeRoutes().get(0);
         Assertions.assertThat(appTypeSchemaRoute).isEqualTo(expectedRoute);
 
-        Assertions.assertThat(roleFacade.getRole("testRole3").getShare()).hasSize(1).satisfies(share -> {
-            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
-            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
-            Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+        Assertions.assertThat(roleFacade.getRole("testRole3")).satisfies(role -> {
+            Assertions.assertThat(role.getShare()).hasSize(1).satisfies(share -> {
+                ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+                Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+                Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
+            });
+            Assertions.assertThat(role.getCostLimit()).satisfies(costLimit -> {
+                Assertions.assertThat(costLimit.getMinute()).isEqualTo(BigDecimal.valueOf(111.222333444));
+                Assertions.assertThat(costLimit.getDay()).isEqualTo(BigDecimal.valueOf(222));
+                Assertions.assertThat(costLimit.getWeek()).isEqualTo(BigDecimal.valueOf(333));
+                Assertions.assertThat(costLimit.getMonth()).isEqualTo(BigDecimal.valueOf(444));
+            });
         });
     }
 
@@ -1474,7 +1532,7 @@ public abstract class ConfigTransferFunctionalTest {
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
-            Assertions.assertThat(modelDto.getAdapter()).isEqualTo("adapter1");
+            Assertions.assertThat(modelDto.getSource()).isEqualTo(new AdapterSourceDto("adapter1", "embeddings"));
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
@@ -1807,43 +1865,42 @@ public abstract class ConfigTransferFunctionalTest {
     @Test
     void testExportCoreConfig_VersionFiltering() throws IOException {
         // given
-        var modelName = "versionTestModel";
-        var interceptorName = "versionTestInterceptor";
-        var endpoint = "https://endpoint.test.com/interceptor";
+        String routeName = "versionTestRoute";
+        int order = 5;
 
-        var interceptorDto = new InterceptorDto();
-        interceptorDto.setName(interceptorName);
-        interceptorDto.setEndpoint(endpoint);
-        interceptorDto.setConfigurationEndpoint("https://endpoint.test.com/interceptor/conf");
+        var routeDto = new RouteDto();
+        routeDto.setName(routeName);
+        routeDto.setOrder(order);
 
-        var modelDto = new ModelDto();
-        modelDto.setName(modelName);
-        modelDto.setInterceptors(List.of("versionTestInterceptor"));
-
-        interceptorFacade.createInterceptor(interceptorDto);
-        modelFacade.createModel(modelDto);
+        routeFacade.createRoute(routeDto);
 
         var request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.INTERCEPTOR));
+        request.setComponentTypes(Set.of(ExportConfigComponentType.ROUTE));
 
-        // when
-        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget("0.30.0");
 
-        // then
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        streamingResponseBody.writeTo(outputStream);
+        try {
+            // when
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
 
-        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+            // then
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
 
-        Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getModels()).containsKey(modelName);
-        Assertions.assertThat(result.getInterceptors()).containsKey(interceptorName);
+            Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
 
-        // this verifies versioning works correctly, since configuration endpoint is not present in schema v0.30.0
-        var exportedInterceptor = result.getInterceptors().get(interceptorName);
-        Assertions.assertThat(exportedInterceptor.getEndpoint()).isEqualTo(endpoint);
-        Assertions.assertThat(exportedInterceptor.getConfigurationEndpoint()).isNull();
+            Assertions.assertThat(result).isNotNull();
+            Assertions.assertThat(result.getRoutes()).containsKey(routeName);
+
+            // this verifies versioning works correctly, since 'order' is not present in Route in v0.30.0
+            var exportedRoute = result.getRoutes().get(routeName);
+            Assertions.assertThat(exportedRoute.getOrder()).isNotEqualTo(order);
+
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
     }
 
     @Test
@@ -2032,6 +2089,23 @@ public abstract class ConfigTransferFunctionalTest {
                     "properties": {},
                     "required": [%s]
                 }""".formatted(requiredFieldsString);
+    }
+
+
+    private ResourceAuthSettingsDto getAuthSettingsDto() {
+        ResourceAuthSettingsDto authSettings = new ResourceAuthSettingsDto();
+        authSettings.setAuthenticationType(AuthenticationTypeDto.API_KEY);
+        authSettings.setClientId("some-client-id");
+        authSettings.setClientSecret("some-client-secret");
+        authSettings.setAuthorizationEndpoint("https://some-auth-endpoint");
+        authSettings.setTokenEndpoint("https://some-token-endpoint");
+        authSettings.setRedirectUri("https://some-redirect-uri");
+        authSettings.setCodeChallenge("someCodeChallenge");
+        authSettings.setCodeChallengeMethod("someCodeChallengeMethod");
+        authSettings.setCodeVerifier("someCodeVerifier");
+        authSettings.setApiKeyHeader("someApiKeyHeader");
+        authSettings.setScopesSupported(List.of("first", "second"));
+        return authSettings;
     }
 
     private String findKeyNameByProject(String project) {

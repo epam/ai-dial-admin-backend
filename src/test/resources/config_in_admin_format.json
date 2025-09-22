@@ -199,7 +199,8 @@
 			"createdAt": 12345,
 			"updatedAt": 12345,
 			"dependencies": ["dep1", "dep2"],
-			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+        	"endpoint": "https://endpoint2/embeddings"
 		},
 		"testModel1": {
 			"deployment": {
@@ -231,10 +232,10 @@
 				"consentRequired": false,
 				"parallelToolCallsSupported": true
 			},
-			"adapter": {
-				"name": "adapter1",
-				"baseEndpoint": "http://endpoint1/",
-				"description": "test adapter"
+			"source": {
+                "$type": "adapter",
+				"adapterName": "adapter1",
+				"completionEndpointPath": "embeddings"
 			},
 			"defaults": {},
 			"interceptors": [
@@ -255,7 +256,13 @@
 		"default": {
 			"name": "default",
 			"limits": [],
-            "share": []
+            "share": [],
+          "costLimit": {
+            "minute": "9223372036854775807",
+            "day": "9223372036854775807",
+            "week": "9223372036854775807",
+            "month": "9223372036854775807"
+          }
 		},
 		"testRole3": {
 			"name": "testRole3",
@@ -300,7 +307,13 @@
                 		"invitationTtl": 120
 					}
 				}
-			]
+			],
+			"costLimit": {
+				"minute": "111.222333444",
+				"day": "222",
+				"week": "333",
+				"month": "444"
+			}
 		},
 		"testRole2": {
 			"name": "testRole2",
@@ -336,7 +349,13 @@
 					"limit": {}
 				}
 			],
-			"share": []
+			"share": [],
+          "costLimit": {
+            "minute": "9223372036854775807",
+            "day": "9223372036854775807",
+            "week": "9223372036854775807",
+            "month": "9223372036854775807"
+          }
 		},
 		"testRole1": {
 			"name": "testRole1",
@@ -374,7 +393,13 @@
 					"limit": {}
 				}
 			],
-			"share": []
+			"share": [],
+          "costLimit": {
+            "minute": "9223372036854775807",
+            "day": "9223372036854775807",
+            "week": "9223372036854775807",
+            "month": "9223372036854775807"
+          }
 		}
 	},
 	"keys": {
@@ -476,7 +501,23 @@
 			"author": "test-author",
 			"createdAt": 12345,
 			"updatedAt": 12345,
-			"dependencies": []
+			"dependencies": [],
+			"features": {
+				"systemPromptSupported": true,
+				"toolsSupported": false,
+				"seedSupported": false,
+				"urlAttachmentsSupported": false,
+				"folderAttachmentsSupported": false,
+				"allowResume": false,
+				"accessibleByPerRequestKey": true,
+				"contentPartsSupported": false,
+				"temperatureSupported": true,
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
+			}
 		},
 		"testInterceptor2": {
 			"name": "testInterceptor2",
@@ -486,6 +527,22 @@
 			"createdAt": 12345,
 			"updatedAt": 12345,
 			"dependencies": [],
+			"features": {
+				"systemPromptSupported": true,
+				"toolsSupported": false,
+				"seedSupported": false,
+				"urlAttachmentsSupported": false,
+				"folderAttachmentsSupported": false,
+				"allowResume": false,
+				"accessibleByPerRequestKey": true,
+				"contentPartsSupported": false,
+				"temperatureSupported": true,
+				"addonsSupported": false,
+				"cacheSupported": false,
+				"autoCachingSupported": true,
+				"consentRequired": false,
+				"parallelToolCallsSupported": true
+			},
 			"source": {
 				"$type": "runner",
 				"runnerName": "testRunner1"

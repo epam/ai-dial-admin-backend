@@ -2,9 +2,8 @@
   {
     "id": 1,
     "description": "This is a sample model",
-    "adapter": {
-      "name": "example.model",
-      "baseEndpoint": "https://example.com/model"
+    "source": {
+      "$type": "endpoints"
     },
     "displayName": "Sample Model",
     "displayVersion": "1.0.0",
@@ -126,6 +125,6 @@
     "createdAt": 12345,
     "updatedAt": 12345,
     "dependencies": ["dep1", "dep2"],
-    "endpointDeploymentName": "sampleDeployment"
+    "endpoint": "https://example.com/model/sampleDeployment/chat/completions"
   }
 ]

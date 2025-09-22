@@ -12,7 +12,8 @@
       "createdAt": 12345,
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
-      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+      "endpoint": "https://endpoint1/embeddings"
     },
     "testModel2": {
       "type": "embedding",
@@ -21,7 +22,8 @@
       "displayVersion": "1.0.0",
       "userRoles": [
         "testRole1"
-      ]
+      ],
+      "endpoint": "https://endpoint1/embeddings"
     }
   },
   "applications": {
@@ -64,6 +66,12 @@
           "maxAcceptedUsers": 10,
           "invitationTtl": 120
         }
+      },
+      "costLimit": {
+        "minute": "111",
+        "day": "222",
+        "week": "333",
+        "month": "444"
       }
     },
     "default": {
@@ -76,7 +84,13 @@
         "testApplication1": {},
         "testApplication2": {}
       },
-      "share": {}
+      "share": {},
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
+      }
     }
   },
   "interceptors": {
@@ -196,6 +210,21 @@
       "userRoles": [
         "testRole1"
       ]
+    }
+  },
+  "toolsets": {
+    "toolset1": {
+      "name": "toolset1",
+      "displayName": "ToolSet1",
+      "userRoles": [],
+      "endpoint": "http://sample-endpoint/api",
+      "transport": "sse",
+      "allowedTools": ["branch", "remote"],
+      "authSettings": {
+        "authenticationType": "OAUTH",
+        "clientId": "some-client-id",
+        "clientSecret": "some-client-secret"
+      }
     }
   }
 }

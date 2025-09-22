@@ -3,10 +3,10 @@ package com.epam.aidial.cfg.dao.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.envers.AuditJoinTable;
 import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
@@ -27,17 +27,11 @@ public class AdapterEntity extends TimeTrackableEntity<String> {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "adapter")
+    @AuditJoinTable
     private List<ModelEntity> models = new ArrayList<>();
 
     @Override
     public String getId() {
         return getName();
-    }
-
-    @PreRemove
-    public void preRemove() {
-        for (ModelEntity model : models) {
-            model.setAdapter(null);
-        }
     }
 }

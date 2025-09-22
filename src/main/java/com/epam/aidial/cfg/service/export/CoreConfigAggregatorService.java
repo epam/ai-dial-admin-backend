@@ -10,6 +10,9 @@ import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
@@ -19,6 +22,7 @@ import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.CoreInterceptor;
@@ -51,6 +55,7 @@ public class CoreConfigAggregatorService {
     private final RouteService routeService;
     private final DeploymentService deploymentService;
     private final ToolSetService toolSetService;
+    private final AdapterService adapterService;
 
     private final ApplicationCoreMapper applicationMapper;
     private final ApplicationTypeSchemaCoreMapper schemaMapper;
@@ -91,8 +96,19 @@ public class CoreConfigAggregatorService {
 
     private Map<String, CoreModel> getModels() {
         return modelService.getAll().stream()
-                .map(modelMapper::mapModel)
+                .map(model -> {
+                    String endpoint = getModelEndpoint(model);
+                    return modelMapper.mapModel(model, endpoint);
+                })
                 .collect(Collectors.toMap(RoleBasedEntity::getName, model -> model));
+    }
+
+    private String getModelEndpoint(Model model) {
+        if (model.getSource() instanceof AdapterSource adapterSource) {
+            var adapter = adapterService.get(adapterSource.getAdapterName());
+            return ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath());
+        }
+        return model.getEndpoint();
     }
 
     private Map<String, CoreApplication> getApplications() {

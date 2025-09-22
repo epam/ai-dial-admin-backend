@@ -39,7 +39,7 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     private List<String> paths;
     private Set<String> methods;
     private String upstreams;
-    private int maxRetryAttempts;
+    private int maxRetryAttempts = 1;
     @Column(name = "order_value")
     private int order;
 

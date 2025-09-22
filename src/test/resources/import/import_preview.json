@@ -47,7 +47,13 @@
               "invitationTtl": 120
             }
           }
-        ]
+        ],
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -55,7 +61,13 @@
       "value": {
         "name": "testRole2",
         "limits": [],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -70,7 +82,13 @@
             "limit": {}
           }
         ],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -87,7 +105,13 @@
             }
           }
         ],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     }
   ],
@@ -126,7 +150,23 @@
         "endpoint": "https://endpoint.test.com/interceptor",
         "forwardAuthToken": false,
         "author": "test-author",
-        "dependencies": []
+        "dependencies": [],
+        "defaults": {
+          "defaults_key": "defaults_value"
+        },
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": true,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": true,
+          "parallelToolCallsSupported": true
+        }
       }
     }
   ],
@@ -265,7 +305,24 @@
       }
     }
   ],
-  "adapters": [],
+  "adapters": [
+    {
+      "importAction": "create",
+      "value": {
+        "name": "<will be defined during import>",
+        "baseEndpoint": "https://endpoint2/",
+        "models": []
+      }
+    },
+    {
+      "importAction": "create",
+      "value": {
+        "name": "<will be defined during import>",
+        "baseEndpoint": "https://endpoint1/",
+        "models": []
+      }
+    }
+  ],
   "models": [
     {
       "importAction": "create",
@@ -312,7 +369,13 @@
           "temperature",
           "seed",
           "system"
-        ]
+        ],
+        "endpoint": "https://endpoint2/embeddings",
+        "source": {
+          "$type": "adapter",
+          "adapterName": "<will be defined during import>",
+          "completionEndpointPath": "embeddings"
+        }
       }
     },
     {
@@ -393,7 +456,13 @@
           "temperature",
           "seed",
           "system"
-        ]
+        ],
+        "endpoint": "https://endpoint1/embeddings",
+        "source": {
+          "$type": "adapter",
+          "adapterName": "<will be defined during import>",
+          "completionEndpointPath": "embeddings"
+        }
       }
     }
   ],
@@ -542,6 +611,22 @@
           "defaultRoleLimit": {},
           "defaultRoleShareResourceLimit": {
             "invitationTtl": 259200
+          },
+          "authSettings": {
+            "authenticationType": "API_KEY",
+            "clientId": "some-client-id",
+            "clientSecret": "some-client-secret",
+            "authorizationEndpoint": "https://some-auth-endpoint",
+            "tokenEndpoint": "https://some-token-endpoint",
+            "redirectUri": "https://some-redirect-uri",
+            "codeChallenge": "someCodeChallenge",
+            "codeChallengeMethod": "someCodeChallengeMethod",
+            "codeVerifier": "someCodeVerifier",
+            "apiKeyHeader": "someApiKeyHeader",
+            "scopesSupported": [
+              "first",
+              "second"
+            ]
           }
         },
         "displayName": "ToolSet1",
