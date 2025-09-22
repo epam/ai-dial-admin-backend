@@ -22,13 +22,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.client.mapper.PromptClientMapper.PROMPTS_PREFIX;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
 
 @Slf4j
 @Service
@@ -102,16 +102,6 @@ public class PromptService implements ResourceService {
         var headers = createHeadersForCreate(allowOverride, etag);
         var promptMetadata = promptClient.createPrompt(path, promptDto, headers);
         return promptClientMapper.toPrompt(promptDto, promptMetadata);
-    }
-
-    private Map<String, String> createHeadersForCreate(boolean allowOverride, String etag) {
-        if (!allowOverride) {
-            return Map.of(PromptClient.IF_NONE_MATCH_HEADER_NAME, "*");
-        }
-        if (etag != null) {
-            return Map.of(PromptClient.IF_MATCH_HEADER_NAME, etag);
-        }
-        return Map.of();
     }
 
     public void deletePrompts(List<String> paths) {

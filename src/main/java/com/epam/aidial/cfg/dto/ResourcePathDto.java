@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 @Data
-public class PromptPathDto {
+public class ResourcePathDto {
     @NotEmpty
     private String path;
 }

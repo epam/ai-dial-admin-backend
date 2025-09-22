@@ -1,19 +1,21 @@
-package com.epam.aidial.cfg.dto;
+package com.epam.aidial.cfg.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class ApplicationResourceDto {
-
-    private String path;
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateApplicationResource {
+    private String name;
     private String version;
     private String folderId;
-    private long updateTime;
-    private String author;
-    private String name;
     private String endpoint;
     private String displayName;
     private String displayVersion;
@@ -27,14 +29,16 @@ public class ApplicationResourceDto {
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
-    private Long createdAt;
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
     private Boolean invalid;
     private List<String> userRoles;
-    private FeaturesResourceDto features;
-    private List<RouteResourceDto> routes;
+    private FeaturesResource features;
+    private List<RouteResource> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
 }
+
+
+

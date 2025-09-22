@@ -9,12 +9,12 @@ import com.epam.aidial.cfg.dto.ImportResourcesPreviewDto;
 import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.dto.PromptDto;
 import com.epam.aidial.cfg.dto.PromptNodeInfoDto;
-import com.epam.aidial.cfg.dto.PromptPathDto;
-import com.epam.aidial.cfg.dto.PromptPathsDto;
 import com.epam.aidial.cfg.dto.PromptVersionsDto;
 import com.epam.aidial.cfg.dto.PromptVersionsRequestDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
 import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
+import com.epam.aidial.cfg.dto.ResourcePathDto;
+import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.mapper.PromptMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.service.prompt.PromptEximService;
@@ -60,7 +60,7 @@ public class PromptsController {
     @PostMapping(path = "/get",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public PromptDto getPrompt(@RequestBody PromptPathDto promptPath) {
+    public PromptDto getPrompt(@RequestBody ResourcePathDto promptPath) {
         var prompt = promptService.getPrompt(promptPath.getPath());
         return promptMapper.toPromptDto(prompt);
     }
@@ -84,14 +84,14 @@ public class PromptsController {
 
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public void deletePrompt(@RequestBody PromptPathDto promptPath) {
+    public void deletePrompt(@RequestBody ResourcePathDto promptPath) {
         promptService.deletePrompt(promptPath.getPath());
     }
 
     @PostMapping(path = "/delete/bulk",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public void deletePrompts(@RequestBody PromptPathsDto promptPaths) {
-        var paths = promptPaths.getPaths().stream().map(PromptPathDto::getPath).toList();
+    public void deletePrompts(@RequestBody ResourcePathsDto promptPaths) {
+        var paths = promptPaths.getPaths().stream().map(ResourcePathDto::getPath).toList();
         promptService.deletePrompts(paths);
     }
 

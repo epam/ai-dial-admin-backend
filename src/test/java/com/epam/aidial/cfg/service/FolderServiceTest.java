@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 
 class FolderServiceTest {
 
-    private ApplicationService applicationService;
+    private ApplicationResourceService applicationService;
     private ConversationService conversationService;
     private FileService fileService;
     private PromptService promptService;
@@ -38,7 +38,7 @@ class FolderServiceTest {
 
     @BeforeEach
     void init() {
-        applicationService = mock(ApplicationService.class);
+        applicationService = mock(ApplicationResourceService.class);
         conversationService = mock(ConversationService.class);
         fileService = mock(FileService.class);
         promptService = mock(PromptService.class);

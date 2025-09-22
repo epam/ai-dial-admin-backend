@@ -1,0 +1,36 @@
+{
+  "path": "844pucrUihSTVTN9XSpCPW/Char13",
+  "version": null,
+  "folderId": "844pucrUihSTVTN9XSpCPW",
+  "updateTime": 1757583286303,
+  "author": "char_key",
+  "name": "Char13",
+  "endpoint": null,
+  "displayName": "Char_3",
+  "displayVersion": "0.0.1",
+  "iconUrl": "",
+  "description": "",
+  "reference": "a596922a-96f4-447f-a586-9227ff301320",
+  "forwardAuthToken": false,
+  "inputAttachmentTypes": null,
+  "defaults": {},
+  "interceptors": [],
+  "descriptionKeywords": [
+    "Analysis"
+  ],
+  "maxRetryAttempts": 1,
+  "createdAt": 1757583286303,
+  "dependencies": [],
+  "viewerUrl": null,
+  "editorUrl": null,
+  "routes": [],
+  "applicationTypeSchemaId": "https://mydial.epam.com/custom_application_schemas/quickapps",
+  "applicationProperties": {
+    "model": "gpt-4o",
+    "document_relative_url": [],
+    "instructions": "",
+    "temperature": 1,
+    "web_api_toolset": [],
+    "mcp_toolset": []
+  }
+}

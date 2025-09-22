@@ -4,13 +4,17 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
+import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
@@ -46,7 +50,8 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({EntityNotFoundException.class, NoResourceFoundException.class})
+    @ExceptionHandler({EntityNotFoundException.class, NoResourceFoundException.class,
+            ResourceNotFoundException.class})
     public ErrorView handleEntityNotFoundError(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.NOT_FOUND, ex.getMessage());
     }
@@ -146,10 +151,17 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(OptimisticLockConflictException.class)
-    public ErrorView handlePreconditionFailedException(OptimisticLockConflictException ex,
-                                                       HttpServletRequest req) {
+    @ExceptionHandler({OptimisticLockConflictException.class, ResourcePreconditionFailedException.class})
+    public ErrorView handlePreconditionFailedException(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.PRECONDITION_FAILED, ex.getMessage());
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NOT_MODIFIED)
+    @ExceptionHandler(NotModifiedException.class)
+    public ResponseEntity<Void> handleNotModifiedException(NotModifiedException ex,
+                                                           HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(ex.getEtag()).build();
     }
 
 }

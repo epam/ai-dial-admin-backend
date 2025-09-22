@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.controller.none;
 
+import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.PublicationPathDto;
 import com.epam.aidial.cfg.dto.RejectPublicationDto;
@@ -45,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         JsonMapperConfiguration.class,
         PublicationMapperImpl.class,
+        RouteMapperImpl.class,
         FileMapperImpl.class,
 })
 class PublicationControllerTest extends AbstractControllerNoneSecureTest {
