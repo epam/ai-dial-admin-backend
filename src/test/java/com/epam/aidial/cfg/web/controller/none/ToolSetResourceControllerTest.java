@@ -53,8 +53,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
 
 
     private static final String DTO_JSON_BASE_PATH = "/toolSet-resources/";
-    private static final String JSON_APP_CREATE_DTO = "toolSet_create_dto.json";
-    private static final String JSON_APP_CREATE = "toolSet_create.json";
+    private static final String JSON_TOOLSET_CREATE_DTO = "toolset_create_dto.json";
+    private static final String JSON_TOOLSET_CREATE = "toolset_create.json";
     private static final String APP_PATH = "rootPath/subFolder/TestName";
     private static final String APP_RESOURCE_BASE_API_PATH = "/api/v1/toolset-resources";
     private static final String GET_API_PATH = APP_RESOURCE_BASE_API_PATH + "/get";
@@ -171,8 +171,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     @Test
     void testCreateToolSetResource() throws Exception {
 
-        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE_DTO);
-        var createToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE);
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+        var createToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE);
         var createToolSet = objectMapper.readValue(createToolSetJson, new TypeReference<CreateToolSetResource>() {
         });
 
@@ -190,8 +190,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     @Test
     void testCreateToolSetResource_whenResourcePresent() throws Exception {
 
-        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE_DTO);
-        var createToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE);
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+        var createToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE);
         var createToolSet = objectMapper.readValue(createToolSetJson, new TypeReference<CreateToolSetResource>() {
         });
 
@@ -212,8 +212,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     @Test
     void testUpdateToolSetResource() throws Exception {
 
-        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE_DTO);
-        var updateToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE);
+        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+        var updateToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE);
         var updateToolSet = objectMapper.readValue(updateToolSetJson, new TypeReference<CreateToolSetResource>() {
         });
 
@@ -232,8 +232,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     @Test
     void testUpdateToolSetResource_whenResourceNotExist() throws Exception {
 
-        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE_DTO);
-        var updateToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE);
+        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+        var updateToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE);
         var updateToolSet = objectMapper.readValue(updateToolSetJson, new TypeReference<CreateToolSetResource>() {
         });
 
@@ -255,8 +255,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     @Test
     void testUpdateToolSetResource_whenWrongIfMatchEtag() throws Exception {
 
-        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE_DTO);
-        var updateToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE);
+        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+        var updateToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE);
         var updateToolSet = objectMapper.readValue(updateToolSetJson, new TypeReference<CreateToolSetResource>() {
         });
 
@@ -277,7 +277,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
 
     @Test
     void testUpdateToolSet_whenIfMatchHeaderNotPresent() throws Exception {
-        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_APP_CREATE_DTO);
+        var updateToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         mockMvc.perform(post(UPDATE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
