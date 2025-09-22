@@ -52,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureTest {
 
 
-    private static final String DTO_JSON_BASE_PATH = "/toolSet-resources/";
+    private static final String DTO_JSON_BASE_PATH = "/toolset-resources/";
     private static final String JSON_TOOLSET_CREATE_DTO = "toolset_create_dto.json";
     private static final String JSON_TOOLSET_CREATE = "toolset_create.json";
     private static final String APP_PATH = "rootPath/subFolder/TestName";
