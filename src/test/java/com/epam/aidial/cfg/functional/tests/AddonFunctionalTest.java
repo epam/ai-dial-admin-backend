@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -88,7 +89,7 @@ public abstract class AddonFunctionalTest {
         AddonDto addonDto = createDto("1");
         doThrow(new UnsupportedOperationException("Feature flag 'addonsSupported' is disabled.")).when(featureFlagAspect).evaluate(any(), any());
         // when
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> addonFacade.updateAddon(addonDto.getName(), addonDto))
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> addonFacade.updateAddon(addonDto.getName(), addonDto, "*"))
                 // then
                 .isInstanceOf(UnsupportedOperationException.class)
                 .hasMessageContaining("Feature flag 'addonsSupported' is disabled.");
@@ -115,7 +116,7 @@ public abstract class AddonFunctionalTest {
         AddonDto updatedAddon = createDto("1");
         updatedAddon.setDescription("new addon description");
 
-        addonFacade.updateAddon(addonDto.getName(), updatedAddon);
+        addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
 
         AddonDto actual = addonFacade.getAddon(addonDto.getName());
         var expected = createDto("1");
@@ -131,7 +132,7 @@ public abstract class AddonFunctionalTest {
         AddonDto updatedAddon = createDto("1");
         updatedAddon.setDescription("new addon description");
 
-        addonFacade.updateAddon(addonDto.getName(), updatedAddon);
+        addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
 
         AddonDto actual = addonFacade.getAddon(updatedAddon.getName());
 
@@ -151,9 +152,39 @@ public abstract class AddonFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> addonFacade.updateAddon(addonDto.getName(), updatedAddon)
+                () -> addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*")
         );
         Assertions.assertEquals("Addon with name: 'addon1' can not be renamed. New name: 'addon2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenAddonConcurrencyOverwrite() {
+        initRoles();
+
+        AddonDto addonDto = createDto("1");
+        addonFacade.createAddon(addonDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> addonFacade.updateAddon(addonDto.getName(), addonDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: addonName:'addon1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        initRoles();
+
+        AddonDto addonDto = createDto("1");
+        addonFacade.createAddon(addonDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> addonFacade.updateAddon(addonDto.getName(), addonDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+                exception.getMessage());
     }
 
     private void assertAddon(AddonDto actual, AddonDto expected) {

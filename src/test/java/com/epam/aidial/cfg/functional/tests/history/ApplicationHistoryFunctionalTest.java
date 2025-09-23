@@ -63,7 +63,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         ApplicationDto updatedApplication = createDto("1");
         updatedApplication.setDescription("new application description");
         updatedApplication.setEndpoint("endpoint2");
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
 
         // verify application1
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
@@ -89,7 +89,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         updatedApplication.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         updatedApplication.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         updatedApplication.setRoutes(List.of());
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
         actual = applicationFacade.getApplication(applicationDto.getName());
         assertApplication(actual, updatedApplication);
 
@@ -100,7 +100,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedApplication.setRoleLimits(Map.of("role3", limitDto));
         updatedApplication.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
         var actualAtOldRevision = applicationFacade.getAllApplications();
         actual = applicationFacade.getApplication(applicationDto.getName());
         assertApplication(actual, updatedApplication);
@@ -165,7 +165,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // update application
         applicationDto.setInterceptors(List.of(interceptor2.getName()));
-        applicationFacade.updateApplication(applicationDto.getName(), applicationDto);
+        applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -201,7 +201,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // update application
         applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto2.getId()));
-        applicationFacade.updateApplication(applicationDto.getName(), applicationDto);
+        applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -234,7 +234,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         application1Dto.setCustomAppSchemaId(null);
         application1Dto.setEndpoint("endpoint");
-        applicationFacade.updateApplication(application1Dto.getName(), application1Dto);
+        applicationFacade.updateApplication(application1Dto.getName(), application1Dto, "*");
 
         ApplicationDto application2Dto = createDto("2");
         application2Dto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));

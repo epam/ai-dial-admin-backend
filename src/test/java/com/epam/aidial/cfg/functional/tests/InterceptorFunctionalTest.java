@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -102,7 +103,7 @@ public abstract class InterceptorFunctionalTest {
         InterceptorDto updatedInterceptor = createDto("1");
         updatedInterceptor.setEntities(List.of("application2"));
 
-        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor);
+        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, "*");
 
         assertAppInterceptors(applicationDto.getName(), List.of());
         assertAppInterceptors(applicationDto2.getName(), List.of("interceptor1"));
@@ -155,7 +156,7 @@ public abstract class InterceptorFunctionalTest {
                 .containsExactlyInAnyOrderElementsOf(List.of("application1", "application2"));
 
         applicationDto1.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor1"));
-        applicationFacade.updateApplication(applicationDto1.getName(), applicationDto1);
+        applicationFacade.updateApplication(applicationDto1.getName(), applicationDto1, "*");
 
         actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
         org.assertj.core.api.Assertions.assertThat(actualInterceptor.getEntities())
@@ -195,10 +196,40 @@ public abstract class InterceptorFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> interceptorFacade.updateInterceptor("interceptor1", interceptorDto)
+                () -> interceptorFacade.updateInterceptor("interceptor1", interceptorDto, "*")
         );
 
         Assertions.assertEquals("Interceptor with name: 'interceptor1' can not be renamed. New interceptor name: 'interceptor2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenInterceptorConcurrencyOverwrite() {
+        ApplicationDto applicationDto1 = createApplicationDto("1");
+        applicationFacade.createApplication(applicationDto1);
+        InterceptorDto interceptorDto = createDto("1");
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> interceptorFacade.updateInterceptor(interceptorDto.getName(), interceptorDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: interceptorId:'interceptor1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        ApplicationDto applicationDto1 = createApplicationDto("1");
+        applicationFacade.createApplication(applicationDto1);
+        InterceptorDto interceptorDto = createDto("1");
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> interceptorFacade.updateInterceptor(interceptorDto.getName(), interceptorDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+                exception.getMessage());
     }
 
     private ApplicationDto createApplicationDto(String suffix) {
