@@ -84,8 +84,19 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @appName = echo
 GET http://localhost:8080/api/v1/applications/{{appName}}
+If-None-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Application
+#@no-log
+@appName = echo
+PUT http://localhost:8080/api/v1/applications/{{appName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
 
 ###
 
@@ -110,8 +121,19 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @interceptorName = logging-interceptor
 GET http://localhost:8080/api/v1/interceptors/{{interceptorName}}
+If-None-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Interceptor
+#@no-log
+@interceptorName = logging-interceptor
+PUT http://localhost:8080/api//interceptors/{{interceptorName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
 
 ###
 

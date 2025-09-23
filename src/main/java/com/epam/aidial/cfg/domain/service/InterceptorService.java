@@ -3,12 +3,15 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @Slf4j
 @Service("coreInterceptorService")
@@ -33,6 +38,7 @@ public class InterceptorService {
     private final InterceptorValidator interceptorValidator;
     private final InterceptorEntityMapper mapper;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Interceptor> getAll() {
@@ -49,6 +55,12 @@ public class InterceptorService {
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName)));
     }
 
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<Interceptor> getInterceptorWithHash(String interceptorName) {
+        var interceptor = get(interceptorName);
+        return new DomainObjectWithHash<>(interceptor, calculator.calculateHash(interceptor));
+    }
+
     @Transactional
     public void create(Interceptor interceptor) {
         interceptorValidator.validateCreation(interceptor);
@@ -61,13 +73,25 @@ public class InterceptorService {
 
     @Transactional
     public void update(String interceptorName, Interceptor interceptor) {
+        performUpdate(interceptorName, interceptor, ANY_HASH);
+    }
+
+    @Transactional
+    public String update(String interceptorName, Interceptor interceptor, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+        }
+        var savedModel = performUpdate(interceptorName, interceptor, hash);
+        return calculator.calculateHash(mapper.toDomain(savedModel));
+    }
+
+    private InterceptorEntity performUpdate(String interceptorName, Interceptor interceptor, String hash) {
         interceptorValidator.validateUpdate(interceptorName, interceptor);
-        resolveEndpointsIfContainerSource(interceptor);
-        InterceptorEntity interceptorEntity = interceptorJpaRepository.findById(interceptorName)
+        var interceptorEntity = interceptorJpaRepository.findById(interceptorName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName)));
-        Optional.of(interceptor)
-                .map(domainModel -> mapper.toEntity(domainModel, interceptorEntity))
-                .ifPresent(interceptorJpaRepository::save);
+        assertNotConcurrencyOverwrite(interceptorEntity, hash);
+        return interceptorJpaRepository.save(mapper.toEntity(interceptor, interceptorEntity));
     }
 
     @Transactional
@@ -93,6 +117,19 @@ public class InterceptorService {
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    private void assertNotConcurrencyOverwrite(InterceptorEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: interceptorId={}, expectedHash={}, currentHash={}",
+                    entity.getId(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException("Optimistic lock conflict on update: interceptorId:'"
+                    + entity.getId() + "'. Reload the data.");
+        }
     }
 
     @Transactional(readOnly = true)

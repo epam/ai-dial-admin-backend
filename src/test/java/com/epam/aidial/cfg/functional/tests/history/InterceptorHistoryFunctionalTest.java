@@ -43,7 +43,7 @@ public abstract class InterceptorHistoryFunctionalTest {
         // update interceptor1 description
         InterceptorDto updatedInterceptor = createDto("1");
         updatedInterceptor.setDescription("new interceptor description");
-        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor);
+        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, "*");
 
         // verify interceptor1
         InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
@@ -58,7 +58,7 @@ public abstract class InterceptorHistoryFunctionalTest {
 
         updatedInterceptor.setDescription("new new interceptor description");
         updatedInterceptor.setDefaults(Map.of("key1", "val1"));
-        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor);
+        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, "*");
 
         // delete interceptor 1
         interceptorFacade.deleteInterceptor(interceptorDto.getName());
@@ -100,7 +100,7 @@ public abstract class InterceptorHistoryFunctionalTest {
 
         // update interceptor
         interceptor1.setEntities(List.of(model2.getName()));
-        interceptorFacade.updateInterceptor(interceptor1.getName(), interceptor1);
+        interceptorFacade.updateInterceptor(interceptor1.getName(), interceptor1, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -134,7 +134,7 @@ public abstract class InterceptorHistoryFunctionalTest {
 
         // update interceptor
         interceptor1.setEntities(List.of(application2.getName()));
-        interceptorFacade.updateInterceptor(interceptor1.getName(), interceptor1);
+        interceptorFacade.updateInterceptor(interceptor1.getName(), interceptor1, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
