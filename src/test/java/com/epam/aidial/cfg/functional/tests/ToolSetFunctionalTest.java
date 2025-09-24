@@ -1,11 +1,14 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
+import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,8 @@ public abstract class ToolSetFunctionalTest {
     private RoleFacade roleFacade;
     @Autowired
     private McpClientFactory mcpClientFactory;
+    @Autowired
+    private DeploymentManagerService deploymentManagerService;
 
     @BeforeEach
     public void beforeEach() {
@@ -153,6 +159,97 @@ public abstract class ToolSetFunctionalTest {
         );
         Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
                 exception.getMessage());
+    }
+
+    @Test
+    public void shouldResolveEndpointsForContainerSource() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerName = "test-container";
+        String containerUrl = "https://container-url.com";
+        String completionPath = "/api/completion";
+
+        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        deploymentInfoDto.setId(UUID.fromString(containerId));
+        deploymentInfoDto.setName("Test Container");
+        deploymentInfoDto.setUrl(containerUrl);
+
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ToolSetDto toolSetDto = new ToolSetDto();
+        toolSetDto.setName("container-toolset");
+        toolSetDto.setDescription("Container toolset");
+
+        ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
+                containerId,
+                containerName,
+                completionPath
+        );
+
+        toolSetDto.setSource(sourceDto);
+
+        // When
+        toolSetFacade.createToolSet(toolSetDto);
+
+        // Then
+        ToolSetDto result = toolSetFacade.getToolSet("container-toolset");
+
+        Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
+
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+    }
+
+    @Test
+    public void shouldRefreshEndpointsForContainerSource() {
+        // Given
+        String deploymentName = "Test Container";
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerName = "test-container";
+        String initialUrl = "https://initial-url.com";
+        String updatedUrl = "https://updated-url.com";
+        String completionPath = "/api/completion";
+        String refreshedToolSetName = "refresh-toolset";
+
+        DeploymentInfoDto initialDeploymentInfo = new DeploymentInfoDto();
+        initialDeploymentInfo.setId(UUID.fromString(containerId));
+        initialDeploymentInfo.setName(deploymentName);
+        initialDeploymentInfo.setUrl(initialUrl);
+
+        DeploymentInfoDto updatedDeploymentInfo = new DeploymentInfoDto();
+        updatedDeploymentInfo.setId(UUID.fromString(containerId));
+        updatedDeploymentInfo.setName(deploymentName);
+        updatedDeploymentInfo.setUrl(updatedUrl);
+
+        Mockito.when(deploymentManagerService.getById(containerId))
+                .thenReturn(initialDeploymentInfo)
+                .thenReturn(initialDeploymentInfo)
+                .thenReturn(updatedDeploymentInfo)
+                .thenReturn(updatedDeploymentInfo);
+
+        ToolSetDto toolSetDto = new ToolSetDto();
+        toolSetDto.setName(refreshedToolSetName);
+        toolSetDto.setDescription("Refresh toolset");
+
+        ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
+                containerId,
+                containerName,
+                completionPath
+        );
+
+        toolSetDto.setSource(sourceDto);
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto initialResult = toolSetFacade.getToolSet(refreshedToolSetName);
+        Assertions.assertEquals(initialUrl + completionPath, initialResult.getEndpoint());
+
+        // When
+        toolSetFacade.refreshEndpoints();
+
+        // Then
+        ToolSetDto refreshedResult = toolSetFacade.getToolSet(refreshedToolSetName);
+        Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
+
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     private ToolSetDto createDto(String suffix) {

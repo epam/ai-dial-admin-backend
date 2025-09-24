@@ -11,7 +11,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ModelContainerSource extends ModelSource {
+public class ToolSetContainerSource extends ToolSetSource {
     private String containerId;
     private String containerName;
     private String completionEndpointPath;

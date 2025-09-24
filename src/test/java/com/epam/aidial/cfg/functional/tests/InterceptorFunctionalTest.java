@@ -259,6 +259,7 @@ public abstract class InterceptorFunctionalTest {
     public void shouldResolveEndpointsForContainerSource() {
         // Given
         String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerName = "test-container";
         String containerUrl = "https://container-url.com";
         String completionPath = "/api/completion";
         String configPath = "/api/config";
@@ -276,6 +277,7 @@ public abstract class InterceptorFunctionalTest {
 
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
                 containerId,
+                containerName,
                 completionPath,
                 configPath
         );
@@ -299,6 +301,7 @@ public abstract class InterceptorFunctionalTest {
         // Given
         String deploymentName = "Test Container";
         String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerName = "test-container";
         String initialUrl = "https://initial-url.com";
         String updatedUrl = "https://updated-url.com";
         String completionPath = "/api/completion";
@@ -326,6 +329,7 @@ public abstract class InterceptorFunctionalTest {
 
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
                 containerId,
+                containerName,
                 completionPath,
                 configPath
         );

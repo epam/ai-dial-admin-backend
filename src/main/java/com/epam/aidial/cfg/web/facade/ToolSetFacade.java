@@ -76,6 +76,10 @@ public class ToolSetFacade {
         return toolSetService.getDiscoveredTools(toolSetName, nextCursor);
     }
 
+    public void refreshEndpoints() {
+        toolSetService.refreshEndpoints();
+    }
+
     private void setDefaultRoleShareResourceLimitIfMissing(ToolSetDto toolSetDto) {
         ShareResourceLimitDto defaultRoleShareResourceLimit = toolSetDto.getDefaultRoleShareResourceLimit();
         if (defaultRoleShareResourceLimit == null) {

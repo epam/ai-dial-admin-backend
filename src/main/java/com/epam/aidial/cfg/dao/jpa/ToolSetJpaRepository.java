@@ -13,4 +13,7 @@ public interface ToolSetJpaRepository extends JpaRepository<ToolSetEntity, Strin
     @Modifying
     @Query("DELETE FROM ToolSetEntity t WHERE t.deploymentName NOT IN :ids")
     void deleteAllExcept(@Param("ids") List<String> ids);
+
+    @Query("SELECT i FROM ToolSetEntity i WHERE i.toolSetContainer IS NOT NULL")
+    List<ToolSetEntity> findByContainerIdIsNotNull();
 }

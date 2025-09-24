@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.dto.source.ToolSetEndpointsSourceDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import org.junit.jupiter.api.Assertions;
@@ -49,13 +50,13 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         // 1. Create ToolSet1
         ToolSetDto toolSetDto = createDto("1");
-        toolSetDto.setEndpoint("endpoint1");
+        toolSetDto.setEndpoint("https://test-endpoint");
         toolSetFacade.createToolSet(toolSetDto);
 
         // 2. Update ToolSet1 description
         ToolSetDto updatedToolSet = createDto("1");
         updatedToolSet.setDescription("New ToolSet description");
-        updatedToolSet.setEndpoint("endpoint2");
+        updatedToolSet.setEndpoint("https://test-endpoint2");
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         // 3. Verify ToolSet1
@@ -64,10 +65,12 @@ public abstract class ToolSetHistoryFunctionalTest {
         expected.setDescription("New ToolSet description");
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
-        expected.setEndpoint("endpoint2");
+        expected.setEndpoint("https://test-endpoint2");
+        expected.setSource(new ToolSetEndpointsSourceDto());
         assertToolSet(actual, expected);
 
         // 4. Add roles to ToolSet1
+        updatedToolSet.setSource(new ToolSetEndpointsSourceDto());
         updatedToolSet.setDefaultRoleLimit(new LimitDto());
         updatedToolSet.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedToolSet.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
@@ -101,7 +104,7 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         // 7. Create ToolSet2
         ToolSetDto toolSetDto2 = createDto("2");
-        toolSetDto2.setEndpoint("endpoint3");
+        toolSetDto2.setEndpoint("https://test-endpoint3");
         toolSetFacade.createToolSet(toolSetDto2);
 
         // 9. Create role3
@@ -112,7 +115,7 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         // 10. Create ToolSet3 with assigned role3
         ToolSetDto toolSetDto3 = createDto("3");
-        toolSetDto3.setEndpoint("endpoint4");
+        toolSetDto3.setEndpoint("https://test-endpoint4");
         toolSetFacade.createToolSet(toolSetDto3);
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
