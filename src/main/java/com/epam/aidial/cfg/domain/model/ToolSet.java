@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -17,6 +18,7 @@ public class ToolSet extends SecuredRoleBased {
     private String displayName;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
+    private ToolSetSource source;
     private String author;
     private Long createdAt;
     private Long updatedAt;

@@ -13,6 +13,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public class InterceptorContainerSource extends InterceptorSource {
     private String containerId;
+    private String containerName;
     private String completionEndpointPath;
     private String configurationEndpointPath;
 }

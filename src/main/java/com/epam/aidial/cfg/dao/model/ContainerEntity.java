@@ -7,5 +7,6 @@ import lombok.Data;
 @MappedSuperclass
 public abstract class ContainerEntity {
     private String containerId;
+    private String containerName;
     private String completionEndpointPath;
 }

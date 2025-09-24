@@ -6,11 +6,15 @@ import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
+import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,38 @@ public class ContainerEndpointResolver {
     private final DeploymentManagerService deploymentManagerService;
     private final DeploymentInfoValidator deploymentInfoValidator;
 
+    public void processContainerEndpoints(ToolSet toolSet) {
+        ToolSetContainerSource containerSource = (ToolSetContainerSource) toolSet.getSource();
+        processContainerEndpoints(
+                containerSource.getContainerId(),
+                containerSource,
+                ToolSetContainerSource::getCompletionEndpointPath,
+                null,
+                (target, endpoints) -> {
+                    ToolSetContainerSource targetSource = (ToolSetContainerSource) target.getSource();
+                    targetSource.setContainerName(endpoints.containerName());
+                    target.setEndpoint(endpoints.completionEndpoint());
+                },
+                toolSet
+        );
+    }
+
+    public void processContainerEndpoints(ToolSetEntity toolSetEntity) {
+        ToolSetContainerEntity containerEntity = toolSetEntity.getToolSetContainer();
+        processContainerEndpoints(
+                containerEntity.getContainerId(),
+                containerEntity,
+                ToolSetContainerEntity::getCompletionEndpointPath,
+                null,
+                (entity, endpoints) -> {
+                    ToolSetContainerEntity targetContainer = entity.getToolSetContainer();
+                    targetContainer.setContainerName(endpoints.containerName());
+                    entity.setEndpoint(endpoints.completionEndpoint());
+                },
+                toolSetEntity
+        );
+    }
+
     public void processContainerEndpoints(Model model) {
         ModelContainerSource containerSource = (ModelContainerSource) model.getSource();
         processContainerEndpoints(
@@ -38,7 +74,11 @@ public class ContainerEndpointResolver {
                 containerSource,
                 ModelContainerSource::getCompletionEndpointPath,
                 null,
-                (target, endpoints) -> target.setEndpoint(endpoints[0]),
+                (target, endpoints) -> {
+                    ModelContainerSource targetSource = (ModelContainerSource) target.getSource();
+                    targetSource.setContainerName(endpoints.containerName());
+                    target.setEndpoint(endpoints.completionEndpoint());
+                },
                 model
         );
     }
@@ -50,7 +90,11 @@ public class ContainerEndpointResolver {
                 modelContainerEntity,
                 ModelContainerEntity::getCompletionEndpointPath,
                 null,
-                (entity, endpoints) -> entity.setEndpoint(endpoints[0]),
+                (entity, endpoints) -> {
+                    ModelContainerEntity targetContainer = entity.getModelContainer();
+                    targetContainer.setContainerName(endpoints.containerName());
+                    entity.setEndpoint(endpoints.completionEndpoint());
+                },
                 modelEntity
         );
     }
@@ -63,10 +107,12 @@ public class ContainerEndpointResolver {
                 InterceptorContainerSource::getCompletionEndpointPath,
                 InterceptorContainerSource::getConfigurationEndpointPath,
                 (target, endpoints) -> {
-                    target.setEndpoint(endpoints[0]);
+                    InterceptorContainerSource targetSource = (InterceptorContainerSource) target.getSource();
+                    targetSource.setContainerName(endpoints.containerName());
+                    target.setEndpoint(endpoints.completionEndpoint());
                     Features features = Optional.ofNullable(target.getFeatures()).orElse(new Features());
                     target.setFeatures(features);
-                    features.setConfigurationEndpoint(endpoints[1]);
+                    features.setConfigurationEndpoint(endpoints.configurationEndpoint());
                 },
                 interceptor
         );
@@ -80,10 +126,12 @@ public class ContainerEndpointResolver {
                 InterceptorContainerEntity::getCompletionEndpointPath,
                 InterceptorContainerEntity::getConfigurationEndpointPath,
                 (entity, endpoints) -> {
-                    entity.setEndpoint(endpoints[0]);
+                    InterceptorContainerEntity targetContainer = entity.getInterceptorContainer();
+                    targetContainer.setContainerName(endpoints.containerName());
+                    entity.setEndpoint(endpoints.completionEndpoint());
                     FeaturesEntity features = Optional.ofNullable(entity.getFeatures()).orElse(new FeaturesEntity());
                     entity.setFeatures(features);
-                    features.setConfigurationEndpoint(endpoints[1]);
+                    features.setConfigurationEndpoint(endpoints.configurationEndpoint());
                 },
                 interceptorEntity
         );
@@ -111,35 +159,38 @@ public class ContainerEndpointResolver {
             T pathProvider,
             Function<T, String> completionPathExtractor,
             @Nullable Function<T, String> configPathExtractor,
-            BiConsumer<R, String[]> endpointConsumer,
+            BiConsumer<R, ContainerEndpoints> endpointConsumer,
             R target) {
-        
+
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
-        
+
+        String containerName = deploymentInfo.getName();
         String containerUrl = deploymentInfo.getUrl();
         String completionPath = completionPathExtractor.apply(pathProvider);
         String configPath = configPathExtractor != null ? configPathExtractor.apply(pathProvider) : null;
-        
-        String[] endpoints = resolveEndpoints(containerUrl, completionPath, configPath);
-        endpointConsumer.accept(target, endpoints);
+
+        ContainerEndpoints containerEndpoints = resolveEndpoints(containerName, containerUrl, completionPath, configPath);
+        endpointConsumer.accept(target, containerEndpoints);
     }
 
     /**
      * Resolves endpoints based on container URL and endpoint paths.
      *
+     * @param containerName the name of the container
      * @param containerUrl the base URL of the container
      * @param completionEndpointPath the path for the completion endpoint
      * @param configurationEndpointPath the path for the configuration endpoint
-     * @return array containing [completionEndpoint, configurationEndpoint]
+     * @return ContainerEndpoints
      */
-    private static String[] resolveEndpoints(
+    private static ContainerEndpoints resolveEndpoints(
+            String containerName,
             String containerUrl,
             String completionEndpointPath,
             String configurationEndpointPath) {
         String completionEndpoint = resolveEndpoint(containerUrl, completionEndpointPath);
         String configurationEndpoint = resolveEndpoint(containerUrl, configurationEndpointPath);
-        return new String[]{completionEndpoint, configurationEndpoint};
+        return new ContainerEndpoints(containerName, completionEndpoint, configurationEndpoint);
     }
 
     /**
@@ -152,4 +203,6 @@ public class ContainerEndpointResolver {
     private static String resolveEndpoint(final String url, final String path) {
         return url + Optional.ofNullable(path).orElse("");
     }
+
+    private record ContainerEndpoints(String containerName, String completionEndpoint, String configurationEndpoint) { }
 }
