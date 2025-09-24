@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
@@ -141,7 +142,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setDescription("newDescription");
         dto.setTopics(Set.of("newTopic"));
         // when
-        typeSchemaFacade.update(dto.getId(), dto);
+        typeSchemaFacade.update(dto.getId(), dto, "*");
         // then
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(actual).isEqualTo(dto);
@@ -162,7 +163,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setApplicationTypeRoutes(List.of());
 
         // when
-        typeSchemaFacade.update(dto.getId(), dto);
+        typeSchemaFacade.update(dto.getId(), dto, "*");
 
         // then
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
@@ -177,7 +178,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         String oldId = dto.getId();
         dto.setId("https://newId.example");
         // then
-        Assertions.assertThatThrownBy(() -> typeSchemaFacade.update(oldId, dto))
+        Assertions.assertThatThrownBy(() -> typeSchemaFacade.update(oldId, dto, "*"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Schema id can not be updated for application type schema with schema id: 'https://test-schema.example'. New schema id: 'https://newId.example'");
     }
@@ -198,7 +199,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setId("https://newId.example");
         typeSchemaFacade.create(dto);
 
-        Assertions.assertThatThrownBy(() -> typeSchemaFacade.update("https://test-schema.example", dto))
+        Assertions.assertThatThrownBy(() -> typeSchemaFacade.update("https://test-schema.example", dto, "*"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Schema id can not be updated for application type schema with schema id: 'https://test-schema.example'. New schema id: 'https://newId.example'");
     }
@@ -217,4 +218,22 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
                 .hasMessage("unable to find applications: [application2, application3]");
     }
 
+    @Test
+    public void shouldThrowExceptionWhenApplicationTypeSchemaConcurrencyOverwrite() {
+        typeSchemaFacade.create(dto);
+        Assertions.assertThatThrownBy(() -> typeSchemaFacade.update(dto.getId(), dto, "test"))
+                .isInstanceOf(OptimisticLockConflictException.class)
+                .hasMessage("Optimistic lock conflict on update: schemaId:'https://test-schema.example'. Reload the data.");
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenUpdateApplicationTypeSchemaAndHashIsNull() {
+        typeSchemaFacade.create(dto);
+
+        IllegalArgumentException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> typeSchemaFacade.update(dto.getId(), dto, null)
+        );
+        Assertions.assertThat(exception.getMessage()).isEqualTo("Hash must not be null. Use \"*\" to skip optimistic check. Schema:https://test-schema.example.");
+    }
 }

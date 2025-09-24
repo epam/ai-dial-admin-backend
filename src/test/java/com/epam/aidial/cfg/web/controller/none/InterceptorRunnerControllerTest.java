@@ -1,12 +1,12 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.epam.aidial.cfg.web.controller.ApplicationTypeSchemaController;
-import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.cfg.web.controller.InterceptorRunnerController;
+import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -28,58 +28,59 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = ApplicationTypeSchemaController.class)
+@WebMvcTest(controllers = InterceptorRunnerController.class)
 @Import({
         JsonMapperConfiguration.class,
 })
-class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTest {
-
-    private static final String DTO_JSON_PATH = "/application_type_schema_dto.json";
-    private static final String DTOS_JSON_PATH = "/application_type_schema_dtos.json";
-    private static final String TEST_SCHEMA_NAME = "test-schema";
-    private static final String ID = "id";
-    private static final String SCHEMA_BASE_API_PATH = "/api/v1/applicationTypeSchemas";
+class InterceptorRunnerControllerTest extends AbstractControllerNoneSecureTest {
+    private static final String DTO_JSON_PATH = "/interceptor_runner_dto.json";
+    private static final String DTOS_JSON_PATH = "/interceptor_runner_dtos.json";
+    private static final String TEST_INTERCEPTOR_RUNNER_NAME = "test_interceptor-runner";
+    private static final String INTERCEPTOR_RUNNER_BASE_API_PATH = "/api/v1/interceptor-runners";
+    private static final String INTERCEPTOR_RUNNER_API_PATH = INTERCEPTOR_RUNNER_BASE_API_PATH + "/{interceptorRunnerName}";
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private ApplicationTypeSchemaFacade schemaFacade;
+    private InterceptorRunnerFacade interceptorRunnerFacade;
 
     @Test
-    void testGetAll() throws Exception {
-        // given
+    void testGetAllInterceptorRunners() throws Exception {
         var dtosJson = ResourceUtils.readResource(DTOS_JSON_PATH);
-        var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<ApplicationTypeSchemaDto>>() {
+        var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<InterceptorRunnerDto>>() {
         });
 
-        when(schemaFacade.getAll()).thenReturn(dtos);
-        // when
-        mockMvc.perform(get(SCHEMA_BASE_API_PATH))
-                //then
+        when(interceptorRunnerFacade.getAllInterceptorRunners()).thenReturn(dtos);
+
+        mockMvc.perform(get(INTERCEPTOR_RUNNER_BASE_API_PATH))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtosJson, JsonCompareMode.LENIENT));
     }
 
     @Test
-    void testGetSchemaWithSameHash() throws Exception {
-        // given
-        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var expected = ResourceUtils.readResource(DTOS_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
-        });
+    void testGetInterceptorRunnerWithoutHeaderIfNoneMatch() throws Exception {
+        mockMvc.perform(get(INTERCEPTOR_RUNNER_API_PATH, TEST_INTERCEPTOR_RUNNER_NAME))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-None-Match' for method parameter type String is not present"));
+    }
 
-        when(schemaFacade.getSchemaWithHash(eq(TEST_SCHEMA_NAME))).thenReturn(new DtoWithDomainHash<>(dto, "1"));
-        // when
-        mockMvc.perform(get(SCHEMA_BASE_API_PATH)
-                        .param(ID, TEST_SCHEMA_NAME)
+    @Test
+    void testGetInterceptorRunnerWithSameHash() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, InterceptorRunnerDto.class);
+
+        when(interceptorRunnerFacade.getInterceptorRunnerWithHash(eq(TEST_INTERCEPTOR_RUNNER_NAME)))
+                .thenReturn(new DtoWithDomainHash<>(dto, "1"));
+
+        mockMvc.perform(get(INTERCEPTOR_RUNNER_API_PATH, TEST_INTERCEPTOR_RUNNER_NAME)
                         .header(HEADER_IF_NONE_MATCH, "1"))
                 .andExpect(status().isNotModified())
                 .andExpect(header().exists(HEADER_ETAG))
@@ -87,77 +88,62 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
     }
 
     @Test
-    void testGetSchemaWithDifferentHash() throws Exception {
+    void testGetInterceptorRunnerWithDifferentHash() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
-        });
-        when(schemaFacade.getSchemaWithHash(eq(TEST_SCHEMA_NAME))).thenReturn(new DtoWithDomainHash<>(dto, "2"));
+        var dto = objectMapper.readValue(dtoJson, InterceptorRunnerDto.class);
 
-        mockMvc.perform(get(SCHEMA_BASE_API_PATH, TEST_SCHEMA_NAME)
-                        .param(ID, TEST_SCHEMA_NAME)
+        when(interceptorRunnerFacade.getInterceptorRunnerWithHash(eq(TEST_INTERCEPTOR_RUNNER_NAME)))
+                .thenReturn(new DtoWithDomainHash<>(dto, "2"));
+
+        mockMvc.perform(get(INTERCEPTOR_RUNNER_API_PATH, TEST_INTERCEPTOR_RUNNER_NAME)
                         .header(HEADER_IF_NONE_MATCH, "1"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HEADER_ETAG))
                 .andExpect(header().string(HEADER_ETAG, "\"2\""))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
     }
 
     @Test
-    void testCreate() throws Exception {
-        // given
+    void testUpdateInterceptorRunner() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, InterceptorRunnerDto.class);
 
-        doNothing().when(schemaFacade).create(any());
-        // when
-        mockMvc.perform(post(SCHEMA_BASE_API_PATH)
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .content(dtoJson))
-                // then
-                .andExpect(status().isNoContent());
-    }
+        when(interceptorRunnerFacade.updateInterceptorRunner(eq(TEST_INTERCEPTOR_RUNNER_NAME), any(), eq("1")))
+                .thenReturn("2");
 
-    @Test
-    void testUpdate() throws Exception {
-        // given
-        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-
-        when(schemaFacade.update(any(), any(), any())).thenReturn("2");
-        // when
-        mockMvc.perform(put(SCHEMA_BASE_API_PATH)
-                        .param(ID, TEST_SCHEMA_NAME)
+        mockMvc.perform(put(INTERCEPTOR_RUNNER_API_PATH, TEST_INTERCEPTOR_RUNNER_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
-                // then
-                .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent())
+                .andExpect(header().exists(HEADER_ETAG))
+                .andExpect(header().string(HEADER_ETAG, "\"2\""));
+        verify(interceptorRunnerFacade).updateInterceptorRunner(eq(TEST_INTERCEPTOR_RUNNER_NAME), eq(dto), eq("1"));
     }
 
     @Test
-    void testUpdateSchemaWithNotMatchHash() throws Exception {
+    void testUpdateInterceptorRunnerWithNotMatchHash() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
-        });
+        var dto = objectMapper.readValue(dtoJson, InterceptorRunnerDto.class);
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(schemaFacade).update(eq(TEST_SCHEMA_NAME), any(), eq("1"));
+                .when(interceptorRunnerFacade).updateInterceptorRunner(eq(TEST_INTERCEPTOR_RUNNER_NAME), any(), eq("1"));
 
-        mockMvc.perform(put(SCHEMA_BASE_API_PATH, TEST_SCHEMA_NAME)
-                        .param(ID, TEST_SCHEMA_NAME)
+        mockMvc.perform(put(INTERCEPTOR_RUNNER_API_PATH, TEST_INTERCEPTOR_RUNNER_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
                 .andExpect(status().isPreconditionFailed())
                 .andExpect(jsonPath("$.message").value("Conflict Exception"));
-        verify(schemaFacade).update(eq(TEST_SCHEMA_NAME), eq(dto), eq("1"));
+        verify(interceptorRunnerFacade).updateInterceptorRunner(eq(TEST_INTERCEPTOR_RUNNER_NAME), eq(dto), eq("1"));
     }
 
     @Test
-    void testUpdateSchemaWithoutHeaderIfMatch() throws Exception {
+    void testUpdateInterceptorRunnerWithoutHeaderIfMatch() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
-        mockMvc.perform(put(SCHEMA_BASE_API_PATH, TEST_SCHEMA_NAME)
-                        .param(ID, TEST_SCHEMA_NAME)
+        mockMvc.perform(put(INTERCEPTOR_RUNNER_API_PATH, TEST_INTERCEPTOR_RUNNER_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isBadRequest())
@@ -166,13 +152,11 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
     }
 
     @Test
-    void testDelete() throws Exception {
-        // given
-        doNothing().when(schemaFacade).delete(any(), eq(false));
-        // when
-        mockMvc.perform(delete(SCHEMA_BASE_API_PATH)
-                        .param(ID, TEST_SCHEMA_NAME))
-                // then
+    void testDeleteInterceptorRunner() throws Exception {
+
+        doNothing().when(interceptorRunnerFacade).deleteInterceptorRunner(eq(TEST_INTERCEPTOR_RUNNER_NAME), eq(true));
+
+        mockMvc.perform(delete(INTERCEPTOR_RUNNER_API_PATH, TEST_INTERCEPTOR_RUNNER_NAME))
                 .andExpect(status().isNoContent());
     }
 }

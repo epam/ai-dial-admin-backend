@@ -6,10 +6,14 @@ import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +24,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @Service("coreApplicationTypeSchemaService")
 @RequiredArgsConstructor
+@Slf4j
 public class ApplicationTypeSchemaService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Application type schema with schema id %s does not exist";
@@ -31,6 +38,7 @@ public class ApplicationTypeSchemaService {
     private final ApplicationJpaRepository applicationJpaRepository;
     private final ApplicationTypeSchemaValidator applicationTypeSchemaValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<ApplicationTypeSchema> getAll() {
@@ -47,6 +55,12 @@ public class ApplicationTypeSchemaService {
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(id)));
     }
 
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<ApplicationTypeSchema> getSchemaWithHash(String id) {
+        var applicationTypeSchema = get(id);
+        return new DomainObjectWithHash<>(applicationTypeSchema, calculator.calculateHash(applicationTypeSchema));
+    }
+
     @Transactional
     public void create(ApplicationTypeSchema applicationTypeSchema) {
         applicationTypeSchemaValidator.validateCreation(applicationTypeSchema);
@@ -57,13 +71,27 @@ public class ApplicationTypeSchemaService {
     }
 
     @Transactional
-    public void update(String schemaId, ApplicationTypeSchema value) {
-        applicationTypeSchemaValidator.validateUpdate(schemaId, value);
-        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = findBySchemaId(schemaId);
-        Optional.of(value)
-                .map(domainModel -> mapper.toEntity(domainModel, applicationTypeSchemaEntity))
-                .ifPresent(jpaRepository::save);
+    public void update(String schemaId, ApplicationTypeSchema schema) {
+        performUpdate(schemaId, schema, ANY_HASH);
     }
+
+    @Transactional
+    public String update(String schemaId, ApplicationTypeSchema schema, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Schema:%s.", schemaId));
+        }
+        var savedSchema = performUpdate(schemaId, schema, hash);
+        return calculator.calculateHash(mapper.toDomain(savedSchema));
+    }
+
+    private ApplicationTypeSchemaEntity performUpdate(String schemaId, ApplicationTypeSchema schema, String hash) {
+        applicationTypeSchemaValidator.validateUpdate(schemaId, schema);
+        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = findBySchemaId(schemaId);
+        assertNotConcurrencyOverwrite(applicationTypeSchemaEntity, hash);
+        return jpaRepository.save(mapper.toEntity(schema, applicationTypeSchemaEntity));
+    }
+
 
     @Transactional
     public void delete(String id, boolean removeApplication) {
@@ -99,6 +127,19 @@ public class ApplicationTypeSchemaService {
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    private void assertNotConcurrencyOverwrite(ApplicationTypeSchemaEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: schemaId={}, expectedHash={}, currentHash={}",
+                    entity.getSchemaId(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: schemaId:'"
+                    + "%s'. Reload the data.", entity.getSchemaId()));
+        }
     }
 
     private ApplicationTypeSchemaEntity findBySchemaId(String schemaId) {

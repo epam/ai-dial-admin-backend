@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import org.junit.jupiter.api.Assertions;
@@ -31,7 +32,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         // 2 update application1 description
         ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
         updatedApplicationTypeSchema.setDescription("new application description");
-        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema);
+        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "*");
 
         // verify application1
         ApplicationTypeSchemaDto actual = applicationTypeSchemaFacade.get(applicationDto.getId());
@@ -50,7 +51,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         // 3 update application type schema
         updatedApplicationTypeSchema = createDto("1");
         updatedApplicationTypeSchema.setDescription("new new application description");
-        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema);
+        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "*");
 
         // 6 delete application 1
         applicationTypeSchemaFacade.delete(applicationDto.getId(), false);
@@ -69,6 +70,39 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
 
         Collection<ApplicationTypeSchemaDto> applicationsAfterRollback = applicationTypeSchemaFacade.getAll();
         Assertions.assertEquals(actualAtOldRevision, applicationsAfterRollback);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateSchemaWithCorrectHash() {
+        ApplicationTypeSchemaDto applicationDto = createDto("1");
+        applicationTypeSchemaFacade.create(applicationDto);
+        ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
+        updatedApplicationTypeSchema.setDescription("new application description");
+
+        var hash = applicationTypeSchemaFacade.getSchemaWithHash(applicationDto.getId()).hash();
+
+        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, hash);
+
+        ApplicationTypeSchemaDto actual = applicationTypeSchemaFacade.get(applicationDto.getId());
+        var expected = createDto("1");
+        expected.setDescription("new application description");
+        expected.setDefs(Map.of());
+        expected.setProperties(Map.of());
+        expected.setApplications(List.of());
+        expected.setApplicationTypeRoutes(List.of());
+        expected.setAppendApplicationPropertiesHeader(true);
+        assertApplicationTypeSchema(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateSchemaWithIncorrectHash() {
+        ApplicationTypeSchemaDto applicationDto = createDto("1");
+        applicationTypeSchemaFacade.create(applicationDto);
+        ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
+        updatedApplicationTypeSchema.setDescription("new application description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "test"));
     }
 
     private ApplicationTypeSchemaDto createAppTypeSchema(String suffix) {

@@ -3,9 +3,8 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
-import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
-import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationTypeSchemaDtoMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,15 +34,20 @@ public class ApplicationTypeSchemaFacade {
         return mapper.toDto(applicationTypeSchema);
     }
 
+    public DtoWithDomainHash<ApplicationTypeSchemaDto> getSchemaWithHash(String id) {
+        var schemaWithHash = schemaService.getSchemaWithHash(id);
+        return new DtoWithDomainHash<>(mapper.toDto(schemaWithHash.model()), schemaWithHash.hash());
+    }
+
     public void create(@Valid ApplicationTypeSchemaDto schemaDto) {
         Optional.of(schemaDto)
                 .map(mapper::toDomain)
                 .ifPresent(schemaService::create);
     }
 
-    public void update(String id, @Valid ApplicationTypeSchemaDto dto) {
+    public String update(String id, @Valid ApplicationTypeSchemaDto dto, String hash) {
         ApplicationTypeSchema value = mapper.toDomain(dto);
-        schemaService.update(id, value);
+        return schemaService.update(id, value, hash);
     }
 
     public void delete(String schemaId, boolean removeApplication) {

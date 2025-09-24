@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -127,7 +128,7 @@ public abstract class KeyFunctionalTest {
 
         doReturn(2L).when(transactionTimestampContext).getTimestamp();
 
-        keyFacade.updateKey(keyDto.getName(), updatedKey);
+        keyFacade.updateKey(keyDto.getName(), updatedKey, "*");
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
         var expected = createDto("1");
@@ -147,7 +148,7 @@ public abstract class KeyFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> keyFacade.updateKey(keyDto.getName(), updatedKey)
+                () -> keyFacade.updateKey(keyDto.getName(), updatedKey, "*")
         );
         assertEquals("Key with name: 'key1' can not be renamed. New key name: 'key2'", exception.getMessage());
     }
@@ -174,7 +175,7 @@ public abstract class KeyFunctionalTest {
 
         doReturn(2L).when(transactionTimestampContext).getTimestamp();
         keyDto.setKey("new keyValue");
-        keyFacade.updateKey(keyDto.getName(), keyDto);
+        keyFacade.updateKey(keyDto.getName(), keyDto, "*");
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
 
@@ -204,7 +205,7 @@ public abstract class KeyFunctionalTest {
 
         // update key1: roles=[role2, role3]
         KeyDto updatedKeyDto = createDto("1", List.of("role2", "role3"));
-        keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto);
+        keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto, "*");
 
         // check key1: roles=[role2, role3]
         KeyDto actual = keyFacade.getKey(updatedKeyDto.getName());
@@ -239,7 +240,7 @@ public abstract class KeyFunctionalTest {
         KeyDto updatedKeyDto = createDto("1", List.of("role1", "role4", "role5"));
         EntityNotFoundException exception = Assertions.assertThrows(
                 EntityNotFoundException.class,
-                () -> keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto)
+                () -> keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto, "*")
         );
 
         assertEquals("unable to find roles: [role4, role5]", exception.getMessage());
@@ -326,10 +327,40 @@ public abstract class KeyFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> keyFacade.updateKey("key1", keyDto)
+                () -> keyFacade.updateKey("key1", keyDto, "*")
         );
 
         assertEquals("Key with name: 'key1' can not be renamed. New key name: 'key2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateKeyWithCorrectHash() {
+        KeyDto keyDto = createDto("1");
+        keyFacade.createKey(keyDto);
+
+        KeyDto updatedKeyDto = createDto("1");
+        updatedKeyDto.setDisplayName("updated DisplayName");
+
+        var hash = keyFacade.getKeyWithHash(keyDto.getName()).hash();
+
+        keyFacade.updateKey(keyDto.getName(), updatedKeyDto, hash);
+
+        KeyDto actual = keyFacade.getKey(keyDto.getName());
+        var expected = createDto("1");
+        expected.setDisplayName("updated DisplayName");
+        assertKeyExcludingGeneratedFields(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateKeyWithIncorrectHash() {
+        KeyDto keyDto = createDto("1");
+        keyFacade.createKey(keyDto);
+
+        KeyDto updatedKeyDto = createDto("1");
+        updatedKeyDto.setDisplayName("updatedDisplayName");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> keyFacade.updateKey(keyDto.getName(), updatedKeyDto, "test"));
     }
 
     private void assertKeys(Collection<KeyDto> actual, Collection<KeyDto> expected, boolean excludeGeneratedFields) {

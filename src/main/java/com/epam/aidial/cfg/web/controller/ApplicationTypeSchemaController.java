@@ -2,13 +2,14 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
-import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
-import jakarta.servlet.http.HttpServletResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,14 +18,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/applicationTypeSchemas")
@@ -39,12 +39,19 @@ public class ApplicationTypeSchemaController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<ApplicationTypeSchemaDto> get(@RequestParam(name = "id", required = false) String id) {
+    public ResponseEntity<?> get(@RequestParam(name = "id", required = false) String id,
+                                 @RequestHeader(value = "If-None-Match", required = false) String previousHash) {
         if (StringUtils.isEmpty(id)) {
-            return applicationTypeSchemaFacade.getAll();
+            return ResponseEntity.ok(applicationTypeSchemaFacade.getAll());
         }
-        ApplicationTypeSchemaDto schemaDto = applicationTypeSchemaFacade.get(id);
-        return schemaDto != null ? List.of(schemaDto) : Collections.emptyList();
+        var schemaDto = applicationTypeSchemaFacade.getSchemaWithHash(id);
+        if (schemaDto == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return previousHash == null
+                || (!schemaDto.hash().equals(StringUtils.unwrap(previousHash, '"')))
+                ? ResponseEntity.status(HttpStatus.OK).eTag(schemaDto.hash()).body(schemaDto.dto())
+                : ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(schemaDto.hash()).build();
     }
 
     @GetMapping(path = "/snapshot", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -55,29 +62,28 @@ public class ApplicationTypeSchemaController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void createApplicationTypeSchema(HttpServletResponse response,
-                                            @RequestBody @Valid ApplicationTypeSchemaDto schemaDto) {
+    public void createApplicationTypeSchema(@RequestBody @Valid ApplicationTypeSchemaDto schemaDto) {
         applicationTypeSchemaFacade.create(schemaDto);
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(HttpServletResponse response,
-                       @RequestParam(name = "id") String id,
-                       @RequestBody @Valid ApplicationTypeSchemaDto dto) {
-        applicationTypeSchemaFacade.update(id, dto);
+    public ResponseEntity<Void> update(@RequestParam(name = "id") String id,
+                                       @RequestBody @Valid ApplicationTypeSchemaDto dto,
+                                       @RequestHeader(value = "If-Match") String previousHash) {
+
+        var newHash = applicationTypeSchemaFacade.update(id, dto, previousHash);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(HttpServletResponse response,
-                       @RequestParam(name = "id") String id,
+    public void delete(@RequestParam(name = "id") String id,
                        @RequestParam(name = "removeApplication", required = false, defaultValue = "true") boolean removeApplication) {
         applicationTypeSchemaFacade.delete(id, removeApplication);
     }
 
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<ApplicationTypeSchemaDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+    public Collection<ApplicationTypeSchemaDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationTypeSchemaFacade.getAllAtRevision(revision);
     }
 }
