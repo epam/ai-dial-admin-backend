@@ -15,7 +15,7 @@ class RegexValidatorTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"null", "''", "' '", "[A-Za-z0-9]", "http://qwe.com"}, nullValues = "null")
+    @CsvSource(value = {"null", "''", "' '", "[A-Za-z0-9]", "http://qwe.com", "/abc/myendpoint/.*", "https?://\\S*"}, nullValues = "null")
     void testIsValid_shouldReturnTrueWhenValidRegex(String regex) {
         var result = validator.isValid(regex, null);
         Assertions.assertThat(result).isTrue();
