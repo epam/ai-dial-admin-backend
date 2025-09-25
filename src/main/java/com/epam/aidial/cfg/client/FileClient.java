@@ -18,7 +18,10 @@ import java.util.Map;
 
 @FeignClient(name = "fileClient",
         url = "${core.client.url}",
-        configuration = {AuthorizationCoreClientConfiguration.class, RetryClientConfiguration.class})
+        configuration = {
+                AuthorizationCoreClientConfiguration.class,
+                RetryClientConfiguration.class,
+                FeignErrorDecoderConfiguration.class})
 public interface FileClient {
 
     @GetMapping("/v1/metadata/files/{path}")

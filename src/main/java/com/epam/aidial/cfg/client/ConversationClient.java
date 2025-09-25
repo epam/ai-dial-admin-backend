@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
                 MessageConversionCoreClientConfiguration.class,
                 AuthorizationCoreClientConfiguration.class,
                 RetryClientConfiguration.class,
+                FeignErrorDecoderConfiguration.class
         })
 public interface ConversationClient {
 
