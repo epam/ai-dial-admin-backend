@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.client.dto.FileMetadataDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -64,7 +65,7 @@ public class FileService implements ResourceService {
         try {
             var filesMetadataResponse = getMetadata(request);
             return fileClientMapper.toFolderInfo(filesMetadataResponse, FILES_PREFIX);
-        } catch (FeignException.FeignClientException.NotFound notFound) {
+        } catch (ResourceNotFoundException notFound) {
             return null;
         }
     }
