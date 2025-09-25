@@ -1,0 +1,71 @@
+{
+  "custom_property_1": "custom_value_1",
+  "custom_property_2": "custom_value_2",
+  "name": "test_application",
+  "viewerUrl": "https://viewer.test.com",
+  "editorUrl": "https://editor.test.com",
+  "endpoint": "https://endpoint.test.com/embeddings",
+  "displayName": "Test Application",
+  "description": "It is a test application",
+  "displayVersion": "1.0.0",
+  "reference": "test_reference",
+  "userRoles": [
+    "testRole1"
+  ],
+  "forwardAuthToken": true,
+  "features": {
+    "rateEndpoint": "https://endpoint.test.com/rate",
+    "tokenizeEndpoint": "https://endpoint.test.com/tokenize",
+    "truncatePromptEndpoint": "https://endpoint.test.com/truncate",
+    "configurationEndpoint": "https://endpoint.test.com/configuration",
+    "systemPromptSupported": true,
+    "toolsSupported": true,
+    "seedSupported": true,
+    "urlAttachmentsSupported": true,
+    "folderAttachmentsSupported": true,
+    "allowResume": true,
+    "accessibleByPerRequestKey": true,
+    "contentPartsSupported": true
+  },
+  "inputAttachmentTypes": [
+    "application/json"
+  ],
+  "maxInputAttachments": 10,
+  "defaults": {
+    "test_key": "test_value"
+  },
+  "interceptors": [
+    "test_interceptor"
+  ],
+  "topics": [
+    "Test Topic"
+  ],
+  "maxRetryAttempts": 10,
+  "roleLimits": {
+    "testRole1": {
+      "minute": "128000",
+      "day": "2000000"
+    }
+  },
+  "author": "test-author",
+  "createdAt": "2025-06-01T12:00:00Z",
+  "updatedAt": "2025-06-01T15:30:00Z",
+  "dependencies": [
+    "dep1",
+    "dep2"
+  ],
+  "routes": [
+    {
+      "name": "test_route",
+      "paths": [
+        "[A-Za-z0-9]",
+        "URL???"
+      ],
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "upstreams": []
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleBasedDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.validation.annotation.HttpMethod;
+import com.epam.aidial.cfg.dto.validation.annotation.Regex;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +31,7 @@ public abstract class BaseRouteDto extends RoleBasedDto {
     private ResponseDto response;
     private boolean rewritePath;
     @NotEmpty
-    private List<@NotNull String> paths;
+    private List<@NotNull @Regex String> paths;
     private Set<@HttpMethod String> methods;
     @Valid
     private List<UpstreamDto> upstreams;
