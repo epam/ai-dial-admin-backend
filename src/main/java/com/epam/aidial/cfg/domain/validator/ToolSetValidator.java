@@ -97,7 +97,7 @@ public class ToolSetValidator {
     }
 
     private void validateEndpointPath(String endpoint, String name) {
-        if (endpoint != null && EndpointValidator.isInvalidUrlPath(endpoint)) {
+        if (StringUtils.isNotEmpty(endpoint) && EndpointValidator.isInvalidUrlPath(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint path: '%s'. Toolset: %s".formatted(endpoint, name));
         }
     }
