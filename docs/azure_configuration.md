@@ -68,7 +68,7 @@ Steps:
 #### vi. Assign Users or Groups
 - Go to **Enterprise Applications**.
 - Find `Ai.Dial.Env.Tst`, open it.
-- Under **Users and Groups**, assign users/groups with the **ConfigAdmin** role.
+- Under **Users and Groups**, assign users/groups with the **ConfigAdmin** role. 
 
 ---
 
