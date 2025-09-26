@@ -1,7 +1,5 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
 import com.epam.aidial.cfg.domain.model.page.SortDirection;
 import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.LimitDto;
@@ -16,7 +14,6 @@ import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public abstract class ActivityAuditFunctionalTest {
 
