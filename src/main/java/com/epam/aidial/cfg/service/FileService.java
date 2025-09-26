@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.FileClient;
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.dto.FileMetadataDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapper;
+import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.model.FileNodeInfo;
@@ -50,6 +51,7 @@ public class FileService implements ResourceService {
     private final FileClientMapper fileClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
+    private final FolderMapper folderMapper;
 
     @Value("${files.import.consecutiveErrorsThreshold}")
     private int importErrorsThreshold;
@@ -63,7 +65,7 @@ public class FileService implements ResourceService {
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         try {
             var filesMetadataResponse = getMetadata(request);
-            return fileClientMapper.toFolderInfo(filesMetadataResponse, FILES_PREFIX);
+            return folderMapper.toFolderInfo(filesMetadataResponse, FILES_PREFIX);
         } catch (FeignException.FeignClientException.NotFound notFound) {
             return null;
         }

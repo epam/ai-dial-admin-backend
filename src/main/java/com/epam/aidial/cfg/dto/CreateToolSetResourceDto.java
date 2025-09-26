@@ -22,16 +22,8 @@ public class CreateToolSetResourceDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
-    private String reference;
-    private Boolean forwardAuthToken  = false;
-    private FeaturesResourceDto features;
-    private List<String> inputAttachmentTypes;
-    private Integer maxInputAttachments;
-    private Map<String, Object> defaults;
-    private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
-    private List<String> dependencies;
     private TransportDto transport;
     private List<String> allowedTools;
     private CoreResourceAuthSettingsDto authSettings;

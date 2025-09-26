@@ -53,8 +53,7 @@ public class ToolSetResourceController {
     }
 
     @PostMapping(path = "/create",
-            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
-            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createToolSetResource(@RequestBody CreateToolSetResourceDto createToolSetResourceDto) {
         var createToolSet = toolSetResourceMapper.toCreateToolSetResourceDto(createToolSetResourceDto);
         var currentEtag = toolSetResourceService.createToolSetResource(createToolSet);
@@ -63,9 +62,7 @@ public class ToolSetResourceController {
 
     @PostMapping(
             path = "/update",
-            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
-            produces = MimeTypeUtils.APPLICATION_JSON_VALUE
-    )
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateToolSetResource(
             @RequestHeader("If-Match") String etag,
             @RequestBody CreateToolSetResourceDto updateToolSetDto) {

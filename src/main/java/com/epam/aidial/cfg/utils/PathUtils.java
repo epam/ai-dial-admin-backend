@@ -4,6 +4,7 @@ import com.epam.aidial.core.util.UrlUtil;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
@@ -82,6 +83,11 @@ public class PathUtils {
             version = nameParts[1];
         }
         return Pair.of(name, version);
+    }
+
+    public static String buildPath(String folderId, String name, String version) {
+        var cleanFolderId = StringUtils.stripEnd(folderId, "/");
+        return cleanFolderId + "/" + name + "__" + version;
     }
 
     @Data

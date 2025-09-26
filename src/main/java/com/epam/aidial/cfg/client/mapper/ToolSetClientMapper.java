@@ -4,52 +4,31 @@ import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
 import com.epam.aidial.cfg.client.dto.ToolSetResourceDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
-import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
 import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.extractPath;
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.parseEncodedVersionedPath;
 
-@Mapper(componentModel = "spring", uses = {FolderUrlMapper.class})
+@Mapper(componentModel = "spring")
 @Slf4j
 public abstract class ToolSetClientMapper {
     public static final String TOOLSETS_PREFIX = "toolsets/";
-
-    @Mapping(target = "path", source = "url", qualifiedByName = "mapUrl")
-    @Mapping(target = "items", source = "items", qualifiedByName = "mapItems")
-    public abstract FolderInfo toFolderInfo(ToolSetMetadataDto toolSetMetadataDto, @Context String prefix);
-
-    @Named("mapItems")
-    public List<FolderInfo> mapItems(List<ToolSetMetadataDto> items) {
-        return Optional.ofNullable(items)
-                .orElse(Collections.emptyList())
-                .stream()
-                .filter(metadata -> Objects.equals(NodeTypeDto.FOLDER, metadata.getNodeType()))
-                .map(metadata -> toFolderInfo(metadata, TOOLSETS_PREFIX))
-                .toList();
-    }
 
     public ToolSetResource toToolSetResource(ToolSetResourceDto toolSetResourceDto, ToolSetMetadataDto metadataDto) {
         if (toolSetResourceDto == null || metadataDto == null) {
             return null;
         }
         if (metadataDto.getNodeType() != NodeTypeDto.ITEM) {
-            log.error("Metadata: {} must have item node type", metadataDto);
-            throw new IllegalStateException("Metadata must have item node type");
+            log.warn("Metadata: {} must have item node type", metadataDto);
+            throw new IllegalStateException("Metadata must have item node type, toolsetName:" + toolSetResourceDto.getName());
         }
 
         var itemParts = PathUtils.parseEncodedVersionedPath(metadataDto.getUrl(), TOOLSETS_PREFIX);
@@ -107,11 +86,6 @@ public abstract class ToolSetClientMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "author", ignore = true)
     public abstract ToolSetResourceDto toToolSetResourceDto(CreateToolSetResource createToolSetResource);
-
-    public String toPath(CreateToolSetResource createToolSetResource) {
-        var folderId = StringUtils.stripEnd(createToolSetResource.getFolderId(), "/");
-        return folderId + "/" + createToolSetResource.getName() + "__" + createToolSetResource.getVersion();
-    }
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
 

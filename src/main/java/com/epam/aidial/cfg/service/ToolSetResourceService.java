@@ -3,10 +3,12 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.ToolSetClient;
 import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
+import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
 import com.epam.aidial.cfg.model.DomainModelWithEtag;
@@ -16,7 +18,6 @@ import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import static com.epam.aidial.cfg.client.mapper.ToolSetClientMapper.TOOLSETS_PRE
 import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createIfMatchHeaders;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createIfNonMatchHeaders;
+import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 
 @Slf4j
 @Service
@@ -41,6 +43,7 @@ public class ToolSetResourceService implements ResourceService {
     private final ToolSetClientMapper toolSetClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
+    private final FolderMapper folderMapper;
 
     @Value("${core.toolsets.metadata.default.limit}")
     private int toolSetsMetadataDefaultLimit;
@@ -54,9 +57,9 @@ public class ToolSetResourceService implements ResourceService {
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         try {
             ToolSetMetadataDto toolSetMetadataDto = getMetadata(request);
-            return toolSetClientMapper.toFolderInfo(toolSetMetadataDto, TOOLSETS_PREFIX);
-        } catch (FeignException.FeignClientException.NotFound notFound) {
-            log.debug("Toolset metadata not found for request: {}", request, notFound);
+            return folderMapper.toFolderInfo(toolSetMetadataDto, TOOLSETS_PREFIX);
+        } catch (ResourceNotFoundException notFound) {
+            log.debug("Toolset metadata not found for request: {}, exception: {}", request, notFound);
             return null;
         }
     }
@@ -107,7 +110,8 @@ public class ToolSetResourceService implements ResourceService {
                                      boolean allowOverride,
                                      String etag) {
         var toolSetResourceDto = toolSetClientMapper.toToolSetResourceDto(createToolSetResource);
-        var path = toolSetClientMapper.toPath(createToolSetResource);
+        var path = buildPath(createToolSetResource.getFolderId(), createToolSetResource.getName(),
+                createToolSetResource.getVersion());
         var headers = createHeadersForCreate(allowOverride, etag);
         var toolSetMetadata = toolSetClient.putToolSetResource(path, toolSetResourceDto, headers);
         return toolSetMetadata.getHeaders().getETag();
@@ -115,7 +119,7 @@ public class ToolSetResourceService implements ResourceService {
 
     public String createToolSetResource(CreateToolSetResource createToolSetResource) {
         try {
-            return putToolSetResource(createToolSetResource, true, null);
+            return putToolSetResource(createToolSetResource, false, null);
         } catch (ResourcePreconditionFailedException ex) {
             throw new EntityAlreadyExistsException("ToolSet with name " + createToolSetResource.getName() + " already exists");
         }

@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.ApplicationClient;
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
+import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -29,6 +30,7 @@ import static com.epam.aidial.cfg.client.mapper.ApplicationClientMapper.APPLICAT
 import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createIfMatchHeaders;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createIfNonMatchHeaders;
+import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 
 @Slf4j
 @Service
@@ -41,6 +43,7 @@ public class ApplicationResourceService implements ResourceService {
     private final ApplicationClientMapper applicationClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
+    private final FolderMapper folderMapper;
 
     @Value("${core.applications.metadata.default.limit}")
     private int applicationsMetadataDefaultLimit;
@@ -54,7 +57,7 @@ public class ApplicationResourceService implements ResourceService {
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         try {
             ApplicationMetadataDto applicationMetadata = getMetadata(request);
-            return applicationClientMapper.toFolderInfo(applicationMetadata, APPLICATIONS_PREFIX);
+            return folderMapper.toFolderInfo(applicationMetadata, APPLICATIONS_PREFIX);
         } catch (FeignException.FeignClientException.NotFound notFound) {
             log.debug("Application metadata not found for request: {}", request, notFound);
             return null;
@@ -105,10 +108,11 @@ public class ApplicationResourceService implements ResourceService {
     }
 
     public String putApplicationResource(CreateApplicationResource createApplicationResource,
-                                                         boolean allowOverride,
-                                                         String etag) {
+                                         boolean allowOverride,
+                                         String etag) {
         var applicationResourceDto = applicationClientMapper.toApplicationResourceDto(createApplicationResource);
-        var path = applicationClientMapper.toPath(createApplicationResource);
+        var path = buildPath(createApplicationResource.getFolderId(), createApplicationResource.getName(),
+                createApplicationResource.getVersion());
         var headers = createHeadersForCreate(allowOverride, etag);
         var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
         return applicationMetadata.getHeaders().getETag();
