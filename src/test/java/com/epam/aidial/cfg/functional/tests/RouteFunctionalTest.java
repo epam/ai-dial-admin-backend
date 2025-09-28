@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -82,6 +83,35 @@ public abstract class RouteFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyUpdateRouteWithCorrectHash() {
+        RouteDto routeDto = createDto("1");
+        routeFacade.createRoute(routeDto);
+        RouteDto updatedRoute = createDto("1");
+        updatedRoute.setDescription("new route description");
+
+        var hash = routeFacade.getRouteWithHash(routeDto.getName()).hash();
+
+        routeFacade.updateRoute(routeDto.getName(), updatedRoute, hash);
+
+        RouteDto actual = routeFacade.getRoute(routeDto.getName());
+        var expected = createDto("1");
+        expected.setDescription("new route description");
+        assertRoute(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateRouteWithIncorrectHash() {
+        RouteDto routeDto = createDto("1");
+        routeFacade.createRoute(routeDto);
+
+        RouteDto updatedRoute = createDto("1");
+        updatedRoute.setDescription("new route description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> routeFacade.updateRoute(routeDto.getName(), updatedRoute, "test"));
+    }
+
+    @Test
     public void shouldThrowExceptionWhenRenameRoute() {
         RouteDto routeDto = createDto("1");
         routeFacade.createRoute(routeDto);
@@ -104,7 +134,7 @@ public abstract class RouteFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> routeFacade.updateRoute(routeDto.getName(), routeDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update routeName:'route1'"
+        Assertions.assertEquals("Optimistic lock conflict on update: routeName:'route1'"
                 + ". Reload the data.", exception.getMessage());
     }
 
@@ -117,7 +147,7 @@ public abstract class RouteFunctionalTest {
                 IllegalArgumentException.class,
                 () -> routeFacade.updateRoute(routeDto.getName(), routeDto, null)
         );
-        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Route:route1.",
                 exception.getMessage());
     }
 

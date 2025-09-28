@@ -79,11 +79,11 @@ public class RouteService {
     @Transactional
     public String update(String routeName, Route value, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Route:%s.", routeName));
         }
-        var savedModel = performUpdate(routeName, value, hash);
-        return calculator.calculateHash(mapper.toDomain(savedModel));
+        var savedRoute = performUpdate(routeName, value, hash);
+        return calculator.calculateHash(mapper.toDomain(savedRoute));
     }
 
     private RouteEntity performUpdate(String routeName, Route value, String hash) {
@@ -102,8 +102,8 @@ public class RouteService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: routeName={}, expectedHash={}, currentHash={}",
                     entity.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update routeName:'"
-                    + entity.getDeployment().getName() + "'. Reload the data.");
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: routeName:'"
+                    + "%s'. Reload the data.", entity.getDeployment().getName()));
         }
     }
 

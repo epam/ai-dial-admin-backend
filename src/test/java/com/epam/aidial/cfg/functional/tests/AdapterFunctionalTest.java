@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
@@ -69,6 +70,34 @@ public abstract class AdapterFunctionalTest {
         var expected = createDto("1");
         expected.setBaseEndpoint("new adapter endpoint");
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateAdapterWithCorrectHash() {
+        AdapterDto adapterDto = createDto("1");
+        adapterFacade.createAdapter(adapterDto);
+        AdapterDto updatedAdapter = createDto("1");
+        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+
+        var hash = adapterFacade.getAdapterWithHash(adapterDto.getName()).hash();
+
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, hash);
+
+        AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
+        var expected = createDto("1");
+        expected.setBaseEndpoint("new adapter endpoint");
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateAdapterWithIncorrectHash() {
+        AdapterDto adapterDto = createDto("1");
+        adapterFacade.createAdapter(adapterDto);
+        AdapterDto updatedAdapter = createDto("1");
+        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "test"));
     }
 
     @Test
@@ -214,7 +243,7 @@ public abstract class AdapterFunctionalTest {
                 IllegalArgumentException.class,
                 () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, null)
         );
-        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Adapter:adapter1.",
                 exception.getMessage());
     }
 

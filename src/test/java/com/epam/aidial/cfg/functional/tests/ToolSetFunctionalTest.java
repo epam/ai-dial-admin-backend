@@ -122,6 +122,37 @@ public abstract class ToolSetFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyUpdateToolSetWithCorrectHash() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+        var hash = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).hash();
+
+        ToolSetDto updatedToolSet = createDto("1");
+        updatedToolSet.setDescription("New ToolSet description");
+
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, hash);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        var expected = createDto("1");
+        expected.setDescription("New ToolSet description");
+
+        assertToolSet(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateToolSetWithIncorrectHash() {
+        ToolSetDto toolSetDto = createDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto updatedToolSet = createDto("1");
+        updatedToolSet.setDescription("New ToolSet description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "test"));
+    }
+
+    @Test
     public void shouldThrowExceptionWhenRenameToolSet() {
         ToolSetDto toolSetDto = createDto("1");
         toolSetFacade.createToolSet(toolSetDto);
@@ -157,7 +188,7 @@ public abstract class ToolSetFunctionalTest {
                 IllegalArgumentException.class,
                 () -> toolSetFacade.updateToolSet(toolSetDto.getName(), toolSetDto, null)
         );
-        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. ToolSet:ToolSet1.",
                 exception.getMessage());
     }
 

@@ -125,6 +125,34 @@ public abstract class RolesFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyUpdateRoleWithCorrectHash() {
+        RoleDto roleDto = createDto("1");
+        roleFacade.createRole(roleDto);
+        RoleDto updatedRole = createDto("1");
+        updatedRole.setDescription("new role description");
+
+        var hash = roleFacade.getRoleWithHash(roleDto.getName()).hash();
+
+        roleFacade.updateRole(roleDto.getName(), updatedRole, hash);
+
+        RoleDto actual = roleFacade.getRole(roleDto.getName());
+        var expected = createDto("1");
+        expected.setDescription("new role description");
+        assertRole(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateRoleWithIncorrectHash() {
+        RoleDto roleDto = createDto("1");
+        roleFacade.createRole(roleDto);
+        RoleDto updatedRole = createDto("1");
+        updatedRole.setDescription("new role description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> roleFacade.updateRole(roleDto.getName(), updatedRole, "test"));
+    }
+
+    @Test
     public void shouldThrowExceptionWhenRoleConcurrencyOverwrite() {
         RoleDto roleDto = createDto("1");
         roleFacade.createRole(roleDto);
@@ -133,7 +161,7 @@ public abstract class RolesFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> roleFacade.updateRole(roleDto.getName(), roleDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update roleName:'role1'"
+        Assertions.assertEquals("Optimistic lock conflict on update: roleName:'role1'"
                 + ". Reload the data.", exception.getMessage());
     }
 
@@ -146,7 +174,7 @@ public abstract class RolesFunctionalTest {
                 IllegalArgumentException.class,
                 () -> roleFacade.updateRole(roleDto.getName(), roleDto, null)
         );
-        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Role:role1.",
                 exception.getMessage());
     }
 

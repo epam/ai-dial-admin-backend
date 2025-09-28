@@ -92,11 +92,11 @@ public class AdapterService {
     @Transactional
     public String update(String adapterName, Adapter adapter, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Adapter:%s.", adapterName));
         }
-        var savedModel = performUpdate(adapterName, adapter, hash);
-        return calculator.calculateHash(mapper.toDomain(savedModel));
+        var savedAdapter = performUpdate(adapterName, adapter, hash);
+        return calculator.calculateHash(mapper.toDomain(savedAdapter));
     }
 
     private AdapterEntity performUpdate(String adapterName, Adapter adapter, String hash) {
@@ -158,8 +158,8 @@ public class AdapterService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: adapterName={}, expectedHash={}, currentHash={}",
                     entity.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update: adapterName:'"
-                    + entity.getName() + "'. Reload the data.");
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: adapterName:'"
+                    + "%s'. Reload the data.", entity.getName()));
         }
     }
 

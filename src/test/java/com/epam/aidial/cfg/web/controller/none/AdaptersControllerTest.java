@@ -22,9 +22,11 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -147,5 +149,14 @@ class AdaptersControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
                         .value("Required request header 'If-Match' for method parameter type String is not present"));
+    }
+
+    @Test
+    void testDeleteApplication() throws Exception {
+
+        doNothing().when(adapterFacade).deleteAdapter(eq(TEST_ADAPTER_NAME), eq(true));
+
+        mockMvc.perform(delete(ADAPTER_API_PATH, TEST_ADAPTER_NAME))
+                .andExpect(status().isNoContent());
     }
 }

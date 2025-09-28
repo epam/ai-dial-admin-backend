@@ -49,8 +49,8 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
         return toolSetJpaRepository.findAll().stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -79,9 +79,9 @@ public class ToolSetService {
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
         resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
-                    .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
-                    .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
+                .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
+                .map(toolSetJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
     }
 
     @Transactional
@@ -92,11 +92,11 @@ public class ToolSetService {
     @Transactional
     public String update(String toolSetName, ToolSet value, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. ToolSet:%s.", toolSetName));
         }
-        var savedModel = performUpdate(toolSetName, value, hash);
-        return calculator.calculateHash(mapper.toDomain(savedModel));
+        var savedToolSet = performUpdate(toolSetName, value, hash);
+        return calculator.calculateHash(mapper.toDomain(savedToolSet));
     }
 
     private ToolSetEntity performUpdate(String toolSetName, ToolSet toolSet, String hash) {
@@ -117,8 +117,8 @@ public class ToolSetService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: toolSetName={}, expectedHash={}, currentHash={}",
                     entity.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update: toolSetName:'"
-                    + entity.getDeployment().getName() + "'. Reload the data.");
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: toolSetName:'"
+                    + "%s'. Reload the data.", entity.getDeployment().getName()));
         }
     }
 
@@ -142,9 +142,9 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAllAtRevision(Integer revision) {
         return historyService.getEntitiesAtRevision(revision, ToolSetEntity.class)
-                    .stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

@@ -79,11 +79,11 @@ public class RoleService {
     @Transactional
     public String updateRole(String roleName, Role role, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Role:%s.", roleName));
         }
-        var savedModel = performUpdate(roleName, role, hash);
-        return calculator.calculateHash(mapper.toDomain(savedModel));
+        var savedRole = performUpdate(roleName, role, hash);
+        return calculator.calculateHash(mapper.toDomain(savedRole));
     }
 
     private RoleEntity performUpdate(String roleName, Role role, String hash) {
@@ -102,8 +102,8 @@ public class RoleService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: roleName={}, expectedHash={}, currentHash={}",
                     entity.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update roleName:'"
-                    + entity.getName() + "'. Reload the data.");
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: roleName:'"
+                    + "%s'. Reload the data.", entity.getName()));
         }
     }
 
