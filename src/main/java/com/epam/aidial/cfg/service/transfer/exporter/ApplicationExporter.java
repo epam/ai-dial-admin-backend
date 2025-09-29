@@ -42,7 +42,7 @@ public class ApplicationExporter {
     }
 
     protected Collection<Application> getApplications() {
-        return applicationService.getAllApplications();
+        return applicationService.getAllValidApplications();
     }
 
     protected Collection<ExportComponentInfo> preview(ExportRequest request) {
@@ -82,6 +82,7 @@ public class ApplicationExporter {
                     Application application = getApplication(component.getName());
                     return removeDependency(application, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
+                .filter(app -> app.getValidityState().isValid())
                 .toList();
     }
 

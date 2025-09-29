@@ -11,7 +11,6 @@ import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.normalizer.CoreConfigNormalizer;
 import com.epam.aidial.cfg.service.transfer.exporter.ConfigExporter;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
@@ -53,7 +52,6 @@ public class ConfigTransfer {
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
     private final ConfigExportProperties properties;
     private final VersionAwareFieldFilter versionAwareFieldFilter;
-    private final List<CoreConfigNormalizer> normalizers;
     private final ConfigImporter configImporter;
 
     @Transactional(readOnly = true)
@@ -88,7 +86,6 @@ public class ConfigTransfer {
 
     private StreamingResponseBody exportCoreConfig(ExportConfig config) {
         Config fullCoreConfig = configMapper.toCoreConfig(config);
-        normalizers.forEach(n -> n.normalize(fullCoreConfig));
         Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(fullCoreConfig);
         return outputStream -> {
             try {

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dao.mapper;
 
-import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
@@ -14,19 +13,14 @@ import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
-import com.epam.aidial.cfg.exception.EntityNotFoundException;
-import com.google.api.client.util.Lists;
-import org.apache.commons.collections4.SetUtils;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -40,9 +34,6 @@ public abstract class DeploymentEntityMapper {
     private RoleLimitEntityMapper roleLimitEntityMapper;
     @Autowired
     private RoleShareResourceLimitEntityMapper roleShareResourceLimitEntityMapper;
-
-    @Autowired
-    private RoleJpaRepository roleJpaRepository;
 
     public abstract Deployment toDomain(DeploymentEntity deploymentEntity);
 
@@ -58,22 +49,6 @@ public abstract class DeploymentEntityMapper {
     @Mapping(target = "roleShareResourceLimits", ignore = true)
     @Mapping(target = "type", ignore = true)
     public @interface ToEntity {
-    }
-
-    public List<RoleEntity> findRolesByNames(List<String> names) {
-        if (names.isEmpty()) {
-            return List.of();
-        }
-
-        List<RoleEntity> existingRoles = Lists.newArrayList(roleJpaRepository.findAllById(names));
-        Set<String> existingRoleNames = existingRoles.stream().map(RoleEntity::getName).collect(Collectors.toSet());
-
-        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingRoleNames);
-        if (!namesDiff.isEmpty()) {
-            throw new EntityNotFoundException("unable to find roles: " + namesDiff);
-        }
-
-        return existingRoles;
     }
 
     public void setRoleLimits(DeploymentEntity deployment, List<RoleEntity> roles, List<RoleLimit> roleLimits) {

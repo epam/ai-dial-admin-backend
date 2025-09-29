@@ -2,10 +2,18 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.ToolSetContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
+import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.SecuredResource;
+import com.epam.aidial.cfg.domain.model.SecuredRoleBased;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
 import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
@@ -13,6 +21,7 @@ import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +43,7 @@ public class ToolSetService {
     private final ToolSetNormalizer toolSetNormalizer;
     private final ToolSetValidator toolSetValidator;
     private final ToolSetEntityMapper mapper;
+    private final ToolSetContainerEntityMapper toolSetContainerEntityMapper;
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
     private final ToolDiscoveryService toolDiscoveryService;
@@ -43,8 +53,8 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
         return toolSetJpaRepository.findAll().stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -67,9 +77,9 @@ public class ToolSetService {
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
         resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
-                    .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
-                    .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
+                .map(domainModel -> toEntity(domainModel, new ToolSetEntity()))
+                .map(toolSetJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
     }
 
     @Transactional
@@ -77,12 +87,12 @@ public class ToolSetService {
         toolSetNormalizer.normalize(toolSet);
         toolSetValidator.validateUpdate(toolSetName, toolSet);
         ToolSetEntity toolSetEntity = toolSetJpaRepository.findById(toolSetName)
-                    .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
         resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
-                    .map(domainModel -> mapper.toEntity(domainModel, toolSetEntity))
-                    .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to update ToolSet " + toolSet.getDeployment().getName()));
+                .map(domainModel -> toEntity(domainModel, toolSetEntity))
+                .map(toolSetJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to update ToolSet " + toolSet.getDeployment().getName()));
     }
 
     @Transactional
@@ -103,11 +113,24 @@ public class ToolSetService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<ToolSet> getAllAtRevision(Integer revision) {
+    public Collection<ToolSet> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, ToolSetEntity.class)
-                    .stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackToolSets(Number revision) {
+        Collection<ToolSet> toolSets = getAllAtRevision(revision);
+        List<String> ids = toolSets.stream().map(SecuredRoleBased::getDeployment).map(SecuredResource::getName).toList();
+        toolSetJpaRepository.deleteAllExcept(ids);
+
+        for (ToolSet toolSet : toolSets) {
+            ToolSetEntity entity = toolSetJpaRepository.findById(toolSet.getDeployment().getName()).orElseGet(ToolSetEntity::new);
+            ToolSetEntity toolSetEntity = toEntity(toolSet, entity);
+            toolSetJpaRepository.save(toolSetEntity);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -157,6 +180,23 @@ public class ToolSetService {
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
         }
+    }
+
+    private ToolSetEntity toEntity(ToolSet domain, ToolSetEntity entity) {
+        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
+        List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
+        List<RoleEntity> rolesForResourceShareLimits = deploymentService.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
+
+        ToolSetContainerEntity toolSetContainer = null;
+
+        ToolSetSource source = domain.getSource();
+        if (source instanceof ToolSetContainerSource containerSource) {
+            toolSetContainer = toolSetContainerEntityMapper.toEntity(containerSource);
+        }
+
+        return mapper.toEntity(domain, entity, toolSetContainer, roleLimits, rolesForLimits, roleShareResourceLimits, rolesForResourceShareLimits);
     }
 
 }

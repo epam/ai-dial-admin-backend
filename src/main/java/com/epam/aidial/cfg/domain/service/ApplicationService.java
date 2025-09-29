@@ -1,23 +1,39 @@
 package com.epam.aidial.cfg.domain.service;
 
-
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.RoleBased;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.normalizer.ApplicationNormalizer;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service("coreApplicationService")
 @RequiredArgsConstructor
@@ -26,6 +42,8 @@ public class ApplicationService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Application with name %s does not exist";
 
     private final ApplicationJpaRepository applicationJpaRepository;
+    private final ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
+    private final InterceptorJpaRepository interceptorJpaRepository;
     private final ApplicationEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final ApplicationNormalizer applicationNormalizer;
@@ -34,7 +52,14 @@ public class ApplicationService {
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
-        return StreamSupport.stream(applicationJpaRepository.findAll().spliterator(), false)
+        return applicationJpaRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Application> getAllValidApplications() {
+        return applicationJpaRepository.findAllByValidityStateIsValidTrue().stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -59,7 +84,7 @@ public class ApplicationService {
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
         assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         Optional.of(application)
-                .map(domainModel -> mapper.toEntity(domainModel, new ApplicationEntity()))
+                .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))
                 .map(applicationJpaRepository::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create application " + application.getDeployment().getName()));
     }
@@ -72,7 +97,7 @@ public class ApplicationService {
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(applicationName)));
         assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, value);
         Optional.of(value)
-                .map(domainModel -> mapper.toEntity(domainModel, applicationEntity))
+                .map(domainModel -> toEntity(domainModel, applicationEntity))
                 .map(applicationJpaRepository::save)
                 .orElseThrow(() -> new RuntimeException("Unable to update application " + value.getDeployment().getName()));
     }
@@ -89,11 +114,31 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Application> getAllAtRevision(Integer revision) {
+    public Application getSnapshot(String applicationName, Integer revision) {
+        var entity = historyService.entitySnapshotAtRevision(revision, applicationName, ApplicationEntity.class);
+        return mapper.toDomain(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Application> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, ApplicationEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackApplications(Number revision) {
+        Collection<Application> applications = getAllAtRevision(revision);
+        List<String> ids = applications.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
+        applicationJpaRepository.deleteAllExcept(ids);
+
+        for (Application application : applications) {
+            application.setInterceptors(List.of());
+            ApplicationEntity entity = applicationJpaRepository.findById(application.getDeployment().getName()).orElseGet(ApplicationEntity::new);
+            ApplicationEntity applicationEntity = toEntity(application, entity);
+            applicationJpaRepository.save(applicationEntity);
+        }
     }
 
     private void assertExists(String name) {
@@ -120,9 +165,44 @@ public class ApplicationService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Application getSnapshot(String applicationName, Integer revision) {
-        var entity = historyService.entitySnapshotAtRevision(revision, applicationName, ApplicationEntity.class);
-        return mapper.toDomain(entity);
+    private ApplicationEntity toEntity(Application domain, ApplicationEntity entity) {
+        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+
+        ApplicationTypeSchemaEntity applicationTypeSchema = findApplicationTypeSchemaById(domain.getApplicationTypeSchemaId());
+
+        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
+        List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
+        List<RoleEntity> rolesForResourceShareLimits = deploymentService.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
+
+        return mapper.toEntity(domain, entity, interceptors, applicationTypeSchema, roleLimits, rolesForLimits, roleShareResourceLimits, rolesForResourceShareLimits);
+    }
+
+    private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return List.of();
+        }
+
+        List<InterceptorEntity> interceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
+        Set<String> existingInterceptors = interceptors.stream().map(InterceptorEntity::getName).collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptors);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find interceptors: " + namesDiff);
+        }
+
+        return interceptors;
+    }
+
+    private ApplicationTypeSchemaEntity findApplicationTypeSchemaById(URI applicationTypeSchemaId) {
+        String schemaId = applicationTypeSchemaId != null ? applicationTypeSchemaId.toString() : null;
+
+        if (StringUtils.isBlank(schemaId)) {
+            return null;
+        }
+
+        return applicationTypeSchemaJpaRepository.findById(schemaId)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find application type schema with schema id: " + schemaId));
     }
 }

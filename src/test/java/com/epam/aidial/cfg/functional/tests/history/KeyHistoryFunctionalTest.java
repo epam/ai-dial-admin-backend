@@ -118,7 +118,8 @@ public abstract class KeyHistoryFunctionalTest {
         Assertions.assertEquals(expected.getProject(), actual.getProject());
         Assertions.assertEquals(expected.isSecured(), actual.isSecured());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
-        Assertions.assertEquals(expected.getRoles(), actual.getRoles());
+        org.assertj.core.api.Assertions.assertThat(actual.getRoles())
+                .containsExactlyInAnyOrderElementsOf(expected.getRoles());
     }
 
     private KeyDto createDto(String suffix) {

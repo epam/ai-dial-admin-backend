@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
-import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -23,13 +22,12 @@ public abstract class AssistantEntityMapper {
     @Mapping(target = "topics", source = "descriptionKeywords")
     public abstract Assistant toDomain(AssistantEntity entity);
 
-    public AssistantEntity toEntity(Assistant domain, AssistantEntity entity) {
-        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
-        List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-
-        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
-        List<RoleEntity> rolesForResourceShareLimits = deploymentEntityMapper.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
-
+    public AssistantEntity toEntity(Assistant domain,
+                                    AssistantEntity entity,
+                                    List<RoleLimit> roleLimits,
+                                    List<RoleEntity> rolesForLimits,
+                                    List<RoleShareResourceLimit> roleShareResourceLimits,
+                                    List<RoleEntity> rolesForResourceShareLimits) {
         AssistantEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);

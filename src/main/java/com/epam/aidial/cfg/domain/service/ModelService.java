@@ -1,12 +1,25 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.ModelContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
+import com.epam.aidial.cfg.dao.model.AdapterEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.RoleBased;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
@@ -14,16 +27,23 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
@@ -37,7 +57,10 @@ public class ModelService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Model with name %s does not exist";
 
     private final ModelJpaRepository modelJpaRepository;
+    private final InterceptorJpaRepository interceptorJpaRepository;
+    private final AdapterJpaRepository adapterJpaRepository;
     private final ModelEntityMapper mapper;
+    private final ModelContainerEntityMapper modelContainerEntityMapper;
     private final DeploymentService deploymentService;
     private final ModelNormalizer modelNormalizer;
     private final ModelValidator modelValidator;
@@ -66,7 +89,7 @@ public class ModelService {
 
     private Model getModelOrThrow(String modelName) {
         return tryGetModel(modelName)
-            .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
     }
 
     @Transactional(readOnly = true)
@@ -84,7 +107,7 @@ public class ModelService {
         assertNotExists(model.getDisplayName(), model.getDisplayVersion());
         resolveEndpointsIfContainerSource(model);
         Optional.of(model)
-                .map(domainModel -> mapper.toEntity(domainModel, new ModelEntity()))
+                .map(domainModel -> toEntity(domainModel, new ModelEntity()))
                 .map(modelJpaRepository::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create model " + model.getDeployment().getName()));
     }
@@ -98,7 +121,7 @@ public class ModelService {
     public String updateModel(String modelName, Model model, String hash) {
         if (hash == null) {
             throw new IllegalArgumentException(
-                "Hash must not be null. Use \"*\" to skip optimistic check.");
+                    "Hash must not be null. Use \"*\" to skip optimistic check.");
         }
         var savedModel = performUpdate(modelName, model, hash);
         return calculator.calculateHash(mapper.toDomain(savedModel));
@@ -113,7 +136,7 @@ public class ModelService {
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         assertNotConcurrencyOverwrite(modelEntity, hash);
         resolveEndpointsIfContainerSource(model);
-        return modelJpaRepository.save(mapper.toEntity(model, modelEntity));
+        return modelJpaRepository.save(toEntity(model, modelEntity));
     }
 
     @Transactional
@@ -134,11 +157,25 @@ public class ModelService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Model> getAllAtRevision(Integer revision) {
+    public Collection<Model> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, ModelEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackModels(Number revision) {
+        Collection<Model> models = getAllAtRevision(revision);
+        List<String> ids = models.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
+        modelJpaRepository.deleteAllExcept(ids);
+
+        for (Model model : models) {
+            model.setInterceptors(List.of());
+            ModelEntity entity = modelJpaRepository.findById(model.getDeployment().getName()).orElseGet(ModelEntity::new);
+            ModelEntity modelEntity = toEntity(model, entity);
+            modelJpaRepository.save(modelEntity);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -203,7 +240,7 @@ public class ModelService {
             log.debug("Optimistic lock conflict on update: modelName={}, expectedHash={}, currentHash={}",
                     entity.getDeployment().getName(), expectedHash, currentHash);
             throw new OptimisticLockConflictException("Optimistic lock conflict on update: modelName:'"
-                + entity.getDeployment().getName() + "'. Reload the data.");
+                    + entity.getDeployment().getName() + "'. Reload the data.");
 
         }
     }
@@ -213,5 +250,56 @@ public class ModelService {
             return;
         }
         endpointResolver.processContainerEndpoints(model);
+    }
+
+    private ModelEntity toEntity(Model domain, ModelEntity entity) {
+        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+
+        AdapterEntity adapterEntity = null;
+        String completionEndpointPath = null;
+        ModelContainerEntity modelContainer = null;
+
+        ModelSource source = domain.getSource();
+        if (source != null) {
+            if (source instanceof AdapterSource adapterSource) {
+                adapterEntity = findAdapter(adapterSource.getAdapterName());
+                completionEndpointPath = adapterSource.getCompletionEndpointPath();
+            } else if (source instanceof ModelContainerSource containerSource) {
+                modelContainer = modelContainerEntityMapper.toEntity(containerSource);
+            }
+        }
+
+        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
+        List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
+        List<RoleEntity> rolesForResourceShareLimits = deploymentService.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
+
+        return mapper.toEntity(domain, entity, interceptors, adapterEntity, completionEndpointPath, modelContainer,
+                roleLimits, rolesForLimits, roleShareResourceLimits, rolesForResourceShareLimits);
+    }
+
+    private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return List.of();
+        }
+
+        List<InterceptorEntity> interceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
+        Set<String> existingInterceptors = interceptors.stream().map(InterceptorEntity::getName).collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptors);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find interceptors: " + namesDiff);
+        }
+
+        return interceptors;
+    }
+
+    private AdapterEntity findAdapter(String name) {
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
+        return adapterJpaRepository.findById(name)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find Adapter with name: '%s'".formatted(name)));
     }
 }

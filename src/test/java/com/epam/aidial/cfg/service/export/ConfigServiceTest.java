@@ -120,7 +120,7 @@ class ConfigServiceTest {
         var rawApplications = ResourceUtils.readResource("/domain/model/applications.json");
         var applications = objectMapper.readValue(rawApplications, new TypeReference<List<Application>>() {
         });
-        when(applicationService.getAllApplications()).thenReturn(applications);
+        when(applicationService.getAllValidApplications()).thenReturn(applications);
 
         var actualConfig = configService.getConfig();
 
@@ -176,7 +176,7 @@ class ConfigServiceTest {
         var rawKeys = ResourceUtils.readResource("/domain/model/keys.json");
         var keys = objectMapper.readValue(rawKeys, new TypeReference<List<Key>>() {
         });
-        when(keyService.getAllKeys()).thenReturn(keys);
+        when(keyService.getAllValidKeys()).thenReturn(keys);
 
         var actualConfig = configService.getConfig();
 

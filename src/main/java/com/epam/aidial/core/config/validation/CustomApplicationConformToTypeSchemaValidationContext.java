@@ -8,6 +8,8 @@ import com.networknt.schema.NonValidationKeyword;
 import com.networknt.schema.SpecVersion;
 import lombok.Getter;
 
+import java.util.Map;
+
 import static com.epam.aidial.core.metaschemas.MetaSchemaHolder.getMetaschemaBuilder;
 
 @Getter
@@ -23,8 +25,12 @@ public class CustomApplicationConformToTypeSchemaValidationContext {
     private final ObjectMapper mapper;
 
     public CustomApplicationConformToTypeSchemaValidationContext(Config value) {
+        this(value.getApplicationTypeSchemas());
+    }
+
+    public CustomApplicationConformToTypeSchemaValidationContext(Map<String, String> applicationTypeSchemas) {
         schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7, builder ->
-                builder.schemaLoaders(loaders -> loaders.schemas(value.getApplicationTypeSchemas()))
+                builder.schemaLoaders(loaders -> loaders.schemas(applicationTypeSchemas))
                         .metaSchema(DIAL_META_SCHEMA)
         );
         mapper = new ObjectMapper();

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
@@ -78,6 +79,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         expected.setEndpoint("endpoint2");
         expected.setRoutes(List.of());
         expected.setMaxRetryAttempts(1);
+        expected.setValidityState(applicationValidState());
         assertApplication(actual, expected);
 
         // 3 add roles to application1
@@ -91,6 +93,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         updatedApplication.setRoutes(List.of());
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
         actual = applicationFacade.getApplication(applicationDto.getName());
+        updatedApplication.setValidityState(applicationValidState());
         assertApplication(actual, updatedApplication);
 
         // 4 update application1 role limits
@@ -103,6 +106,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
         var actualAtOldRevision = applicationFacade.getAllApplications();
         actual = applicationFacade.getApplication(applicationDto.getName());
+        updatedApplication.setValidityState(applicationValidState());
         assertApplication(actual, updatedApplication);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
@@ -281,5 +285,11 @@ public abstract class ApplicationHistoryFunctionalTest {
                 "role" + suffix, new ShareResourceLimitDto()
         ));
         return applicationDto;
+    }
+
+    private ValidityStateDto applicationValidState() {
+        ValidityStateDto validityStateDto = new ValidityStateDto();
+        validityStateDto.setValid(true);
+        return validityStateDto;
     }
 }

@@ -11,16 +11,20 @@ import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.validator.AdapterValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -67,7 +71,7 @@ public class AdapterService {
         adapterValidator.validateAdapterCreation(adapter);
         assertNotExists(adapter.getName());
         Optional.of(adapter)
-                .map(domainModel -> mapper.toEntity(domainModel, new AdapterEntity()))
+                .map(domainModel -> toEntity(domainModel, new AdapterEntity()))
                 .map(adapterJpaRepository::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create adapter " + adapter.getName()));
     }
@@ -77,7 +81,7 @@ public class AdapterService {
         adapterValidator.validateUpdate(adapterName, adapter);
         AdapterEntity adapterEntity = findByAdapterName(adapterName);
         Optional.of(adapter)
-                .map(domainModel -> mapper.toEntity(domainModel, adapterEntity))
+                .map(domainModel -> toEntity(domainModel, adapterEntity))
                 .map(adapterJpaRepository::save)
                 .orElseThrow(() -> new RuntimeException("Unable to update adapter " + adapter.getName()));
     }
@@ -114,11 +118,26 @@ public class AdapterService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Adapter> getAllAtRevision(Integer revision) {
+    public Collection<Adapter> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, AdapterEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackAdapters(Number revision) {
+        Iterable<ModelEntity> models = modelJpaRepository.findAll();
+        models.forEach(entity -> entity.setAdapter(null));
+        modelJpaRepository.saveAllAndFlush(models);
+
+        Collection<Adapter> adapters = getAllAtRevision(revision);
+        adapterJpaRepository.deleteAllExcept(adapters.stream().map(Adapter::getName).collect(Collectors.toList()));
+        for (Adapter adapter : adapters) {
+            AdapterEntity entity = adapterJpaRepository.findById(adapter.getName()).orElseGet(AdapterEntity::new);
+            AdapterEntity keyEntity = toEntity(adapter, entity);
+            adapterJpaRepository.save(keyEntity);
+        }
     }
 
     private AdapterEntity findByAdapterName(String adapterName) {
@@ -144,5 +163,32 @@ public class AdapterService {
         }
 
         return IterableUtils.first(adapters);
+    }
+
+    private AdapterEntity toEntity(Adapter domain, AdapterEntity entity) {
+        List<ModelEntity> models = findModelsByNames(domain.getModels());
+        return mapper.toEntity(domain, entity, models);
+    }
+
+    private List<ModelEntity> findModelsByNames(List<String> names) {
+        if (names == null) {
+            return null;
+        }
+
+        if (names.isEmpty()) {
+            return List.of();
+        }
+
+        List<ModelEntity> existingModels = Lists.newArrayList(modelJpaRepository.findAllById(names));
+        Set<String> existingModelsNames = existingModels.stream()
+                .map(ModelEntity::getId)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingModelsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find Models: " + namesDiff);
+        }
+
+        return existingModels;
     }
 }

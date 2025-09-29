@@ -11,14 +11,18 @@ import com.epam.aidial.cfg.domain.model.InterceptorRunner;
 import com.epam.aidial.cfg.domain.validator.InterceptorRunnerValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -55,7 +59,7 @@ public class InterceptorRunnerService {
         interceptorRunnerValidator.validateCreation(interceptorRunner);
         assertNotExists(interceptorRunner.getName());
         Optional.of(interceptorRunner)
-                .map(domainModel -> mapper.toEntity(domainModel, new InterceptorRunnerEntity()))
+                .map(domainModel -> toEntity(domainModel, new InterceptorRunnerEntity()))
                 .ifPresent(interceptorRunnerJpaRepository::save);
     }
 
@@ -64,7 +68,7 @@ public class InterceptorRunnerService {
         interceptorRunnerValidator.validateUpdate(interceptorRunnerName, interceptorRunner);
         InterceptorRunnerEntity interceptorRunnerEntity = findByInterceptorRunnerName(interceptorRunnerName);
         Optional.of(interceptorRunner)
-                .map(domainModel ->  mapper.toEntity(domainModel, interceptorRunnerEntity))
+                .map(domainModel -> toEntity(domainModel, interceptorRunnerEntity))
                 .ifPresent(interceptorRunnerJpaRepository::save);
     }
 
@@ -97,11 +101,27 @@ public class InterceptorRunnerService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<InterceptorRunner> getAllAtRevision(Integer revision) {
+    public Collection<InterceptorRunner> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, InterceptorRunnerEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackInterceptorRunners(Number revision) {
+        Iterable<InterceptorEntity> interceptors = interceptorJpaRepository.findAll();
+        interceptors.forEach(entity -> entity.setInterceptorRunner(null));
+        interceptorJpaRepository.saveAllAndFlush(interceptors);
+
+        Collection<InterceptorRunner> interceptorRunners = getAllAtRevision(revision);
+        interceptorRunnerJpaRepository.deleteAllExcept(interceptorRunners.stream().map(InterceptorRunner::getName).toList());
+
+        for (InterceptorRunner interceptorRunner : interceptorRunners) {
+            InterceptorRunnerEntity entity = interceptorRunnerJpaRepository.findById(interceptorRunner.getName()).orElseGet(InterceptorRunnerEntity::new);
+            InterceptorRunnerEntity interceptorRunnerEntity = toEntity(interceptorRunner, entity);
+            interceptorRunnerJpaRepository.save(interceptorRunnerEntity);
+        }
     }
 
     private InterceptorRunnerEntity findByInterceptorRunnerName(String interceptorRunnerName) {
@@ -131,6 +151,33 @@ public class InterceptorRunnerService {
             interceptor.getFeatures().setConfigurationEndpoint(interceptorRunnerEntity.getConfigurationEndpoint());
         });
         interceptorRunnerJpaRepository.delete(interceptorRunnerEntity);
+    }
+
+    private InterceptorRunnerEntity toEntity(InterceptorRunner domain, InterceptorRunnerEntity entity) {
+        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+        return mapper.toEntity(domain, entity, interceptors);
+    }
+
+    private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
+        if (names == null) {
+            return null;
+        }
+
+        if (names.isEmpty()) {
+            return List.of();
+        }
+
+        List<InterceptorEntity> existingInterceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
+        Set<String> existingInterceptorsNames = existingInterceptors.stream()
+                .map(InterceptorEntity::getId)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptorsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find Interceptors: " + namesDiff);
+        }
+
+        return existingInterceptors;
     }
 
 }

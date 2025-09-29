@@ -65,6 +65,7 @@ public class ApplicationDto extends RoleBasedDto {
     }
 
     private URI customAppSchemaId;
+    private ValidityStateDto validityState;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {

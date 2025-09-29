@@ -266,7 +266,6 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(List.of("int1", "int1"), actualApplication2.getInterceptors());
     }
 
-
     @Test
     public void shouldThrowExceptionWhenCreateApplicationWithExistingDisplayNameAndDisplayVersion() {
         initRoles();

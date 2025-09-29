@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service.transfer.exporter;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
-import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -47,7 +46,7 @@ public class KeyExporter {
     }
 
     private Collection<Key> getKeys(FullExportRequest fullExportRequest) {
-        return keyService.getAllKeys().stream()
+        return keyService.getAllValidKeys().stream()
                 .map(key -> removeKey(key, fullExportRequest))
                 .filter(Objects::nonNull)
                 .map(key -> removeDependency(key, fullExportRequest.getComponentTypes()))
@@ -67,6 +66,7 @@ public class KeyExporter {
                 .values()
                 .stream()
                 .map(component -> keyService.getKey(component.getName()))
+                .filter(key -> key.getValidityState().isValid())
                 .map(key -> removeKey(key, selectedItemsExportRequest))
                 .filter(Objects::nonNull)
                 .toList();

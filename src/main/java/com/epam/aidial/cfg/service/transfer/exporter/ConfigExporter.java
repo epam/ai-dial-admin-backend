@@ -196,8 +196,10 @@ public class ConfigExporter {
             }
 
             Application application = applicationExporter.getApplication(component.getName());
-            processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
-            processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
+            if (application.getValidityState().isValid()) {
+                processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
+                processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
+            }
         }
     }
 

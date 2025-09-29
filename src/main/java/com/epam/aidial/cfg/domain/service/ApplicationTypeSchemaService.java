@@ -9,14 +9,18 @@ import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -52,7 +56,7 @@ public class ApplicationTypeSchemaService {
         applicationTypeSchemaValidator.validateCreation(applicationTypeSchema);
         assertNotExists(applicationTypeSchema.getSchemaId());
         Optional.of(applicationTypeSchema)
-                .map(domainModel -> mapper.toEntity(domainModel, new ApplicationTypeSchemaEntity()))
+                .map(domainModel -> toEntity(domainModel, new ApplicationTypeSchemaEntity()))
                 .ifPresent(jpaRepository::save);
     }
 
@@ -61,7 +65,7 @@ public class ApplicationTypeSchemaService {
         applicationTypeSchemaValidator.validateUpdate(schemaId, value);
         ApplicationTypeSchemaEntity applicationTypeSchemaEntity = findBySchemaId(schemaId);
         Optional.of(value)
-                .map(domainModel -> mapper.toEntity(domainModel, applicationTypeSchemaEntity))
+                .map(domainModel -> toEntity(domainModel, applicationTypeSchemaEntity))
                 .ifPresent(jpaRepository::save);
     }
 
@@ -94,11 +98,28 @@ public class ApplicationTypeSchemaService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<ApplicationTypeSchema> getAllAtRevision(Integer revision) {
+    public Collection<ApplicationTypeSchema> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, ApplicationTypeSchemaEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackApplicationTypeSchemas(Number revision) {
+        Iterable<ApplicationEntity> applications = applicationJpaRepository.findAll();
+        applications.forEach(applicationEntity -> {
+            applicationEntity.setApplicationTypeSchema(null);
+            applicationEntity.setEndpoint("endpoint");
+        });
+        applicationJpaRepository.saveAllAndFlush(applications);
+        Collection<ApplicationTypeSchema> applicationTypeSchemas = getAllAtRevision(revision);
+        jpaRepository.deleteAllExcept(applicationTypeSchemas.stream().map(ApplicationTypeSchema::getSchemaId).collect(Collectors.toList()));
+        for (ApplicationTypeSchema domain : applicationTypeSchemas) {
+            ApplicationTypeSchemaEntity entity = jpaRepository.findById(domain.getSchemaId()).orElseGet(ApplicationTypeSchemaEntity::new);
+            ApplicationTypeSchemaEntity applicationTypeSchemaEntity = toEntity(domain, entity);
+            jpaRepository.save(applicationTypeSchemaEntity);
+        }
     }
 
     private ApplicationTypeSchemaEntity findBySchemaId(String schemaId) {
@@ -123,5 +144,32 @@ public class ApplicationTypeSchemaService {
         if (jpaRepository.existsById(schemaId)) {
             throw new EntityAlreadyExistsException("Application type schema with schema id " + schemaId + " already exists");
         }
+    }
+
+    private ApplicationTypeSchemaEntity toEntity(ApplicationTypeSchema domain, ApplicationTypeSchemaEntity entity) {
+        List<ApplicationEntity> applications = findApplicationsByNames(domain.getApplications());
+        return mapper.toEntity(domain, entity, applications);
+    }
+
+    private List<ApplicationEntity> findApplicationsByNames(List<String> names) {
+        if (names == null) {
+            return null;
+        }
+
+        if (names.isEmpty()) {
+            return List.of();
+        }
+
+        List<ApplicationEntity> existingApplications = Lists.newArrayList(applicationJpaRepository.findAllById(names));
+        Set<String> existingApplicationsNames = existingApplications.stream()
+                .map(ApplicationEntity::getDeploymentName)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingApplicationsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find applications: " + namesDiff);
+        }
+
+        return existingApplications;
     }
 }

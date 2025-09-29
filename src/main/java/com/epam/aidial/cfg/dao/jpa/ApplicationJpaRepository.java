@@ -15,4 +15,6 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationEntit
     @Query("DELETE FROM ApplicationEntity a WHERE a.deploymentName NOT IN :ids")
     @Modifying
     void deleteAllExcept(@Param("ids") List<String> ids);
+
+    List<ApplicationEntity> findAllByValidityStateIsValidTrue();
 }

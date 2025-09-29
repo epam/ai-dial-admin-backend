@@ -27,6 +27,7 @@ public class KeyDto {
     private Instant updatedAt;
     private Instant expiresAt;
     private Instant keyGeneratedAt;
+    private ValidityStateDto validityState;
 
     public String toString() {
         return "KeyDto(name=" + this.getName()
@@ -39,6 +40,7 @@ public class KeyDto {
                 + ", createdAt=" + this.getCreatedAt()
                 + ", expiresAt=" + this.getExpiresAt()
                 + ", keyGeneratedAt=" + this.getKeyGeneratedAt()
+                + ", validityState=" + this.getValidityState()
                 + ")";
     }
 }

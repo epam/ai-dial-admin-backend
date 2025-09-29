@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
-import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -22,13 +21,12 @@ public abstract class AddonEntityMapper {
 
     public abstract Addon toDomain(AddonEntity entity);
 
-    public AddonEntity toEntity(Addon domain, AddonEntity entity) {
-        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
-        List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-
-        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
-        List<RoleEntity> rolesForResourceShareLimits = deploymentEntityMapper.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
-
+    public AddonEntity toEntity(Addon domain,
+                                AddonEntity entity,
+                                List<RoleLimit> roleLimits,
+                                List<RoleEntity> rolesForLimits,
+                                List<RoleShareResourceLimit> roleShareResourceLimits,
+                                List<RoleEntity> rolesForResourceShareLimits) {
         AddonEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);

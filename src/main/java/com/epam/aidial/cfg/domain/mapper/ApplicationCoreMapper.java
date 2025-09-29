@@ -24,6 +24,7 @@ public abstract class ApplicationCoreMapper {
     @Mapping(target = "features", source = "application.features")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "validityState", ignore = true)
     @Mapping(target = "routes", source = "application.routes")
     public abstract Application mapApplication(CoreApplication application, @Context ShareResourceLimit defaultShareResourceLimit);
 
