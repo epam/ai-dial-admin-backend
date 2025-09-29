@@ -152,7 +152,7 @@ class AdaptersControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testDeleteApplication() throws Exception {
+    void testDeleteAdapter() throws Exception {
 
         doNothing().when(adapterFacade).deleteAdapter(eq(TEST_ADAPTER_NAME), eq(true));
 
