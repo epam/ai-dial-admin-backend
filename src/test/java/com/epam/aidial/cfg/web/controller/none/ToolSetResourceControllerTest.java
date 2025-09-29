@@ -150,7 +150,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(objectMapper.writeValueAsString(body))
                         .header(HEADER_IF_NONE_MATCH, TEST_ETAG))
                 .andExpect(status().isNotModified())
-                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG));
+                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG))
+                .andExpect(content().string(""));
 
         verify(toolSetResourceService).getToolSetResource(eq(APP_PATH), eq(TEST_ETAG));
     }
