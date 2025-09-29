@@ -40,7 +40,6 @@ public class ApplicationValidityStateResolver {
             return validityStateEntity;
         }
 
-
         CoreApplication coreApplication = mapToCoreApplication(applicationEntity);
         String coreApplicationTypeSchema = mapToCoreApplicationTypeSchema(applicationTypeSchemaEntity);
         var validationContext = new CustomApplicationConformToTypeSchemaValidationContext(
