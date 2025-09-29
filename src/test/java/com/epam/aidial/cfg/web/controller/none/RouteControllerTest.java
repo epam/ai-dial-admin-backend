@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = RouteController.class)
@@ -135,6 +136,22 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
                         .content(dtoJson))
                 // then
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testCreateRoute_WithInvalidPath_BadRequest() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource("/route_dto_with_invalid_path.json");
+
+        doNothing().when(routeFacade).createRoute(any());
+
+        // when
+        mockMvc.perform(post("/api/v1/routes")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("paths[0].<list element>: Invalid regular expression pattern"));
     }
 
     @Test
