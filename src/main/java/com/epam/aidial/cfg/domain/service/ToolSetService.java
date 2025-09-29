@@ -5,18 +5,24 @@ import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
+import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @LogExecution
 @RequiredArgsConstructor
@@ -31,6 +37,8 @@ public class ToolSetService {
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
     private final ToolDiscoveryService toolDiscoveryService;
+    private final ToolSetRefreshService toolSetRefreshService;
+    private final ContainerEndpointResolver endpointResolver;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
@@ -57,6 +65,7 @@ public class ToolSetService {
         toolSetNormalizer.normalize(toolSet);
         toolSetValidator.validateCreation(toolSet);
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
+        resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
                     .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
                     .map(toolSetJpaRepository::save)
@@ -64,15 +73,16 @@ public class ToolSetService {
     }
 
     @Transactional
-    public void update(String toolSetName, ToolSet value) {
-        toolSetNormalizer.normalize(value);
-        toolSetValidator.validateUpdate(toolSetName, value);
+    public void update(String toolSetName, ToolSet toolSet) {
+        toolSetNormalizer.normalize(toolSet);
+        toolSetValidator.validateUpdate(toolSetName, toolSet);
         ToolSetEntity toolSetEntity = toolSetJpaRepository.findById(toolSetName)
                     .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
-        Optional.of(value)
+        resolveEndpointsIfContainerSource(toolSet);
+        Optional.of(toolSet)
                     .map(domainModel -> mapper.toEntity(domainModel, toolSetEntity))
                     .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to update ToolSet " + value.getDeployment().getName()));
+                    .orElseThrow(() -> new RuntimeException("Unable to update ToolSet " + toolSet.getDeployment().getName()));
     }
 
     @Transactional
@@ -104,6 +114,42 @@ public class ToolSetService {
     public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
         var toolSet = get(toolSetName);
         return toolDiscoveryService.discoverTools(toolSet.getEndpoint(), toolSet.getTransport(), nextCursor);
+    }
+
+    @Transactional(readOnly = true)
+    public void refreshEndpoints() {
+        var entities = toolSetJpaRepository.findByContainerIdIsNotNull();
+        List<String> successfulToolSets = new ArrayList<>();
+        List<String> failedToolSets = new ArrayList<>();
+
+        for (var entity : entities) {
+            String name = entity.getDeploymentName();
+            log.debug("Refreshing endpoints for toolset '%s'".formatted(name));
+            try {
+                toolSetRefreshService.refreshEndpoints(entity);
+                successfulToolSets.add(name);
+            } catch (Exception e) {
+                log.error("Failed to refresh endpoints for toolset '{}'", name, e);
+                failedToolSets.add(name);
+            }
+        }
+
+        if (!failedToolSets.isEmpty()) {
+            log.warn("Failed to refresh endpoints for {} toolsets: {}",
+                    failedToolSets.size(), String.join(", ", failedToolSets));
+        }
+
+        if (!successfulToolSets.isEmpty()) {
+            log.debug("Successfully refreshed endpoints for {} toolsets: {}",
+                    successfulToolSets.size(), String.join(", ", successfulToolSets));
+        }
+    }
+
+    private void resolveEndpointsIfContainerSource(ToolSet toolSet) {
+        if (!(toolSet.getSource() instanceof ToolSetContainerSource)) {
+            return;
+        }
+        endpointResolver.processContainerEndpoints(toolSet);
     }
 
     private void assertExists(String name) {

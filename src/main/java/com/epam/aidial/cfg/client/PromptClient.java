@@ -20,6 +20,7 @@ import java.util.Map;
                 MessageConversionCoreClientConfiguration.class,
                 AuthorizationCoreClientConfiguration.class,
                 RetryClientConfiguration.class,
+                FeignErrorDecoderConfiguration.class
         }
 )
 public interface PromptClient {

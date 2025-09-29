@@ -64,7 +64,8 @@ public class AuditActivityService {
     private static Specification<AuditActivityEntity> defaultFilters() {
         return Specification.allOf(
                 (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("resourceType"), "RoleLimit"),
-                (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("resourceType"), "Deployment")
+                (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("resourceType"), "Deployment"),
+                (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("resourceType"), "SecuredResource")
         );
     }
 }

@@ -32,6 +32,7 @@ public abstract class ToolSetCoreMapper {
     public abstract CoreToolSet mapToolSet(ToolSet toolSet);
 
     @Mapping(target = "deployment", source = "toolSet")
+    @Mapping(target = "source", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     public abstract ToolSet mapToolSet(CoreToolSet toolSet, @Context ShareResourceLimit defaultShareResourceLimit);

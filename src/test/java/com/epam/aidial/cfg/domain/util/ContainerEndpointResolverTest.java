@@ -6,11 +6,15 @@ import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
+import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +32,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ContainerEndpointResolverTest {
 
-    private static final String CONTAINER_ID = "test-container-id";
+    private static final String CONTAINER_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final String CONTAINER_NAME = "test-container";
     private static final String CONTAINER_URL = "https://test-container.com";
     private static final String COMPLETION_PATH = "/api/completion";
     private static final String CONFIG_PATH = "/api/config";
@@ -50,7 +55,7 @@ class ContainerEndpointResolverTest {
     void processContainerEndpoints_ForModel_ShouldSetEndpoint() {
         // given
         Model model = new Model();
-        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, COMPLETION_PATH);
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH);
         model.setSource(containerSource);
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
@@ -94,7 +99,7 @@ class ContainerEndpointResolverTest {
     void processContainerEndpoints_ForInterceptor_ShouldSetEndpoints() {
         // given
         Interceptor interceptor = new Interceptor();
-        InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH);
+        InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH);
         interceptor.setSource(containerSource);
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
@@ -138,10 +143,54 @@ class ContainerEndpointResolverTest {
     }
 
     @Test
+    void processContainerEndpoints_ForToolSet_ShouldSetEndpoint() {
+        // given
+        ToolSet toolSet = new ToolSet();
+        ToolSetContainerSource containerSource = new ToolSetContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH);
+        toolSet.setSource(containerSource);
+
+        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(toolSet);
+
+        // then
+        verify(deploymentManagerService).getById(CONTAINER_ID);
+        verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
+        assertThat(toolSet.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+    }
+
+    @Test
+    void processContainerEndpoints_ForToolSetEntity_ShouldSetEndpoint() {
+        // given
+        ToolSetEntity toolSetEntity = new ToolSetEntity();
+        ToolSetContainerEntity containerEntity = new ToolSetContainerEntity();
+        containerEntity.setContainerId(CONTAINER_ID);
+        containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        toolSetEntity.setToolSetContainer(containerEntity);
+
+        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(toolSetEntity);
+
+        // then
+        verify(deploymentManagerService).getById(CONTAINER_ID);
+        verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
+        assertThat(toolSetEntity.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+    }
+
+    @Test
     void processContainerEndpoints_WhenDeploymentInfoNull_ShouldDelegateValidation() {
         // given
         Model model = new Model();
-        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, COMPLETION_PATH);
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH);
         model.setSource(containerSource);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(null);
@@ -158,7 +207,7 @@ class ContainerEndpointResolverTest {
     void processContainerEndpoints_WithNullCompletionPath_ShouldHandleGracefully() {
         // given
         Model model = new Model();
-        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, null);
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, null);
         model.setSource(containerSource);
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
@@ -177,7 +226,7 @@ class ContainerEndpointResolverTest {
     void processContainerEndpoints_WithNullConfigPath_ShouldHandleGracefully() {
         // given
         Interceptor interceptor = new Interceptor();
-        InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, COMPLETION_PATH, null);
+        InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, null);
         interceptor.setSource(containerSource);
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
@@ -197,7 +246,7 @@ class ContainerEndpointResolverTest {
     void processContainerEndpoints_ForInterceptorWithExistingFeatures_ShouldUpdateFeatures() {
         // given
         Interceptor interceptor = new Interceptor();
-        InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH);
+        InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH);
         interceptor.setSource(containerSource);
         
         Features existingFeatures = new Features();

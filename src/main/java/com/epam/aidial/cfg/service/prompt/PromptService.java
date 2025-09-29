@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
@@ -15,7 +16,6 @@ import com.epam.aidial.cfg.model.PromptNodeInfo;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.ResourceService;
-import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,7 +71,7 @@ public class PromptService implements ResourceService {
         try {
             var promptsMetadataResponse = getMetadata(request);
             return folderMapper.toFolderInfo(promptsMetadataResponse, PROMPTS_PREFIX);
-        } catch (FeignException.FeignClientException.NotFound notFound) {
+        } catch (ResourceNotFoundException notFound) {
             return null;
         }
     }

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
@@ -17,7 +18,6 @@ import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +58,7 @@ public class ApplicationResourceService implements ResourceService {
         try {
             ApplicationMetadataDto applicationMetadata = getMetadata(request);
             return folderMapper.toFolderInfo(applicationMetadata, APPLICATIONS_PREFIX);
-        } catch (FeignException.FeignClientException.NotFound notFound) {
+        } catch (ResourceNotFoundException notFound) {
             log.debug("Application metadata not found for request: {}", request, notFound);
             return null;
         }
