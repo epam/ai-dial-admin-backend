@@ -1,21 +1,25 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
-import com.epam.aidial.cfg.dto.source.ToolSetEndpointsSourceDto;
+import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public abstract class ToolSetHistoryFunctionalTest {
 
@@ -25,6 +29,8 @@ public abstract class ToolSetHistoryFunctionalTest {
     private ToolSetFacade toolSetFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
+    @Autowired
+    private DeploymentManagerService deploymentManagerService;
 
     private void initRoles() {
         RoleDto role1 = new RoleDto();
@@ -48,15 +54,29 @@ public abstract class ToolSetHistoryFunctionalTest {
     public void shouldSuccessfullyCreateAndUpdateToolSet() {
         initRoles();
 
+        // Mock deployment manager
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerUrl = "https://container-url.com";
+        String containerName = "Test Container";
+        String endpointPath = "/some-path";
+        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        deploymentInfoDto.setId(UUID.fromString(containerId));
+        deploymentInfoDto.setName(containerName);
+        deploymentInfoDto.setUrl(containerUrl);
+
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
         // 1. Create ToolSet1
+        var containerSourceDto = new ToolSetContainerSourceDto(containerId, containerName, endpointPath);
+
         ToolSetDto toolSetDto = createDto("1");
-        toolSetDto.setEndpoint("https://test-endpoint");
+        toolSetDto.setSource(containerSourceDto);
         toolSetFacade.createToolSet(toolSetDto);
 
         // 2. Update ToolSet1 description
         ToolSetDto updatedToolSet = createDto("1");
         updatedToolSet.setDescription("New ToolSet description");
-        updatedToolSet.setEndpoint("https://test-endpoint2");
+        updatedToolSet.setSource(containerSourceDto);
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
 
         // 3. Verify ToolSet1
@@ -65,12 +85,13 @@ public abstract class ToolSetHistoryFunctionalTest {
         expected.setDescription("New ToolSet description");
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
-        expected.setEndpoint("https://test-endpoint2");
-        expected.setSource(new ToolSetEndpointsSourceDto());
+        expected.setEndpoint(containerUrl + endpointPath);
+        expected.setSource(containerSourceDto);
         assertToolSet(actual, expected);
 
         // 4. Add roles to ToolSet1
-        updatedToolSet.setSource(new ToolSetEndpointsSourceDto());
+        updatedToolSet.setSource(containerSourceDto);
+        updatedToolSet.setEndpoint(containerUrl + endpointPath);
         updatedToolSet.setDefaultRoleLimit(new LimitDto());
         updatedToolSet.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedToolSet.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
