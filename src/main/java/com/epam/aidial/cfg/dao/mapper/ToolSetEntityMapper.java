@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
+import com.epam.aidial.cfg.utils.AuthSettingsComparator;
 import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -55,7 +56,15 @@ public abstract class ToolSetEntityMapper {
             toolSetContainer = toolSetContainerEntityMapper.toEntity(containerSource);
         }
 
+        var domainAuthSettings = domain.getDeployment() != null ? domain.getDeployment().getAuthSettings() : null;
+        var entityAuthSettings = entity.getDeployment() != null ? entity.getDeployment().getAuthSettings() : null;
+
         ToolSetEntity updatedEntity = update(domain, entity);
+
+        // Auth Settings update is not reflected in ToolSet's audit table, so provoking a dirty entity by manually setting 'updatedAt'
+        if (AuthSettingsComparator.isChanged(domainAuthSettings, entityAuthSettings)) {
+            updatedEntity.setUpdatedAt(System.currentTimeMillis());
+        }
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);

@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
@@ -68,15 +69,20 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         // 1. Create ToolSet1
         var containerSourceDto = new ToolSetContainerSourceDto(containerId, containerName, endpointPath);
+        var authSettingsDto = new ResourceAuthSettingsDto();
+        String clientId = "some-client-id";
+        authSettingsDto.setClientId(clientId);
 
         ToolSetDto toolSetDto = createDto("1");
         toolSetDto.setSource(containerSourceDto);
+        toolSetDto.setAuthSettings(authSettingsDto);
         toolSetFacade.createToolSet(toolSetDto);
 
         // 2. Update ToolSet1 description
         ToolSetDto updatedToolSet = createDto("1");
         updatedToolSet.setDescription("New ToolSet description");
         updatedToolSet.setSource(containerSourceDto);
+        updatedToolSet.setAuthSettings(authSettingsDto);
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
 
         // 3. Verify ToolSet1
@@ -87,10 +93,12 @@ public abstract class ToolSetHistoryFunctionalTest {
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setEndpoint(containerUrl + endpointPath);
         expected.setSource(containerSourceDto);
+        expected.setAuthSettings(authSettingsDto);
         assertToolSet(actual, expected);
 
         // 4. Add roles to ToolSet1
         updatedToolSet.setSource(containerSourceDto);
+        updatedToolSet.setAuthSettings(authSettingsDto);
         updatedToolSet.setEndpoint(containerUrl + endpointPath);
         updatedToolSet.setDefaultRoleLimit(new LimitDto());
         updatedToolSet.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
@@ -114,27 +122,41 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
-        // 6. Delete role3
+        // 6. Update authSettings
+        final long activitiesNum = historyFacade.getActivities().getTotal();
+
+        authSettingsDto.setClientId(clientId + '1');
+        updatedToolSet.setAuthSettings(authSettingsDto);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+
+        actual = toolSetFacade.getToolSet(toolSetDto.getName());
+        Assertions.assertEquals(actual.getAuthSettings().getClientId(), clientId + '1');
+
+        // Using activities total instead of rev num because revisions include records from deployment_entity_aud table, while activities filter them
+        final long activitiesNumAfterUpdate = historyFacade.getActivities().getTotal();
+        Assertions.assertEquals(activitiesNum + 1, activitiesNumAfterUpdate);
+
+        // 7. Delete role3
         roleFacade.deleteRole("role3");
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
         Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
-        // 7. Delete ToolSet1
+        // 8. Delete ToolSet1
         toolSetFacade.deleteToolSet(toolSetDto.getName());
 
-        // 7. Create ToolSet2
+        // 9. Create ToolSet2
         ToolSetDto toolSetDto2 = createDto("2");
         toolSetDto2.setEndpoint("https://test-endpoint3");
         toolSetFacade.createToolSet(toolSetDto2);
 
-        // 9. Create role3
+        // 10. Create role3
         RoleDto role3 = new RoleDto();
         role3.setName("role3");
         role3.setDescription("role3");
         roleFacade.createRole(role3);
 
-        // 10. Create ToolSet3 with assigned role3
+        // 11. Create ToolSet3 with assigned role3
         ToolSetDto toolSetDto3 = createDto("3");
         toolSetDto3.setEndpoint("https://test-endpoint4");
         toolSetFacade.createToolSet(toolSetDto3);
