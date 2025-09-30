@@ -79,11 +79,11 @@ public class InterceptorService {
     @Transactional
     public String update(String interceptorName, Interceptor interceptor, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Interceptor:%s.", interceptorName));
         }
-        var savedModel = performUpdate(interceptorName, interceptor, hash);
-        return calculator.calculateHash(mapper.toDomain(savedModel));
+        var savedInterceptor = performUpdate(interceptorName, interceptor, hash);
+        return calculator.calculateHash(mapper.toDomain(savedInterceptor));
     }
 
     private InterceptorEntity performUpdate(String interceptorName, Interceptor interceptor, String hash) {
@@ -125,10 +125,10 @@ public class InterceptorService {
         }
         var currentHash = calculator.calculateHash(mapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: interceptorId={}, expectedHash={}, currentHash={}",
-                    entity.getId(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update: interceptorId:'"
-                    + entity.getId() + "'. Reload the data.");
+            log.debug("Optimistic lock conflict on update: interceptorName={}, expectedHash={}, currentHash={}",
+                    entity.getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: interceptorName:'"
+                            + "%s'. Reload the data.", entity.getName()));
         }
     }
 

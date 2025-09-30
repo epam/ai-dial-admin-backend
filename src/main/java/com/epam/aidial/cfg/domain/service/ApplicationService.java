@@ -87,11 +87,11 @@ public class ApplicationService {
     @Transactional
     public String updateApplication(String applicationName, Application application, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Application:%s.", applicationName));
         }
-        var savedModel = performUpdate(applicationName, application, hash);
-        return calculator.calculateHash(mapper.toDomain(savedModel));
+        var savedApplication = performUpdate(applicationName, application, hash);
+        return calculator.calculateHash(mapper.toDomain(savedApplication));
     }
 
     private ApplicationEntity performUpdate(String applicationName, Application application, String hash) {
@@ -132,8 +132,8 @@ public class ApplicationService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: applicationName={}, expectedHash={}, currentHash={}",
                     entity.getDeploymentName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update: applicationName:'"
-                    + entity.getDeploymentName() + "'. Reload the data.");
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: applicationName:'"
+                    + "%s'. Reload the data.", entity.getDeploymentName()));
         }
     }
 

@@ -50,23 +50,19 @@ public class AddonController {
                 : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
     }
 
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createAddon(@RequestBody @Valid AddonDto addonDto) {
         addonFacade.createAddon(addonDto);
     }
 
-    @DeleteMapping(path = "/{addonName}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "/{addonName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAddon(@PathVariable("addonName") String addonName) {
         addonFacade.deleteAddon(addonName);
     }
 
     @PutMapping(path = "/{addonName}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateAddon(@PathVariable("addonName") String addonName,
                                             @RequestBody @Valid AddonDto addonDto,
