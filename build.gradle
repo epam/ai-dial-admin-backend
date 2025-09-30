@@ -178,7 +178,7 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
-            because("previous versions have мulnerabilities)")
+            because("previous versions have vulnerabilities)")
         }
         implementation ('io.netty:netty-codec:4.2.5.Final') {
             because("previous versions have vulnerabilities")
