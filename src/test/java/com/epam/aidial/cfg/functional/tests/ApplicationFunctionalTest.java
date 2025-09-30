@@ -154,7 +154,7 @@ public abstract class ApplicationFunctionalTest {
                 IllegalArgumentException.class,
                 () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, null)
         );
-        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Application:application1.",
                 exception.getMessage());
     }
 

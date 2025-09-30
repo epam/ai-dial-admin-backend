@@ -83,11 +83,11 @@ public class AddonService {
     @Transactional
     public String updateAddon(String addonName, Addon addon, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Addon:%s.", addonName));
         }
-        var savedModel = performUpdate(addonName, addon, hash);
-        return calculator.calculateHash(mapper.toDomain(savedModel));
+        var savedAddon = performUpdate(addonName, addon, hash);
+        return calculator.calculateHash(mapper.toDomain(savedAddon));
     }
 
     private AddonEntity performUpdate(String addonName, Addon addon, String hash) {
@@ -132,8 +132,8 @@ public class AddonService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: addonName={}, expectedHash={}, currentHash={}",
                     entity.getDeploymentName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update: addonName:'"
-                    + entity.getDeploymentName() + "'. Reload the data.");
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: addonName:'"
+                    + "%s'. Reload the data.", entity.getDeploymentName()));
         }
     }
 

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
@@ -158,6 +159,37 @@ public abstract class AddonFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyUpdateAddonWithCorrectHash() {
+        initRoles();
+        AddonDto addonDto = createDto("1");
+        addonFacade.createAddon(addonDto);
+        AddonDto updatedAddon = createDto("1");
+        updatedAddon.setDescription("new addon description");
+
+        var hash = addonFacade.getAddonWithHash(addonDto.getName()).hash();
+
+        addonFacade.updateAddon(addonDto.getName(), updatedAddon, hash);
+
+        AddonDto actual = addonFacade.getAddon(updatedAddon.getName());
+
+        var expected = createDto("1");
+        expected.setDescription("new addon description");
+        assertAddon(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateAddonWithIncorrectHash() {
+        initRoles();
+        AddonDto addonDto = createDto("1");
+        addonFacade.createAddon(addonDto);
+        AddonDto updatedAddon = createDto("1");
+        updatedAddon.setDescription("new addon description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> addonFacade.updateAddon(addonDto.getName(), updatedAddon, "test"));
+    }
+
+    @Test
     public void shouldThrowExceptionWhenAddonConcurrencyOverwrite() {
         initRoles();
 
@@ -183,7 +215,7 @@ public abstract class AddonFunctionalTest {
                 IllegalArgumentException.class,
                 () -> addonFacade.updateAddon(addonDto.getName(), addonDto, null)
         );
-        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Addon:addon1.",
                 exception.getMessage());
     }
 

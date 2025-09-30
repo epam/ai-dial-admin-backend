@@ -50,15 +50,13 @@ public class InterceptorController {
                 : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
     }
 
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createInterceptor(@RequestBody @Valid InterceptorDto interceptorDto) {
         interceptorFacade.createInterceptor(interceptorDto);
     }
 
     @PutMapping(path = "/{interceptorName}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateInterceptor(@PathVariable("interceptorName") String interceptorName,
                                                   @RequestBody @Valid InterceptorDto interceptorDto,
@@ -67,9 +65,7 @@ public class InterceptorController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
-    @DeleteMapping(path = "/{interceptorName}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "/{interceptorName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInterceptor(@PathVariable("interceptorName") String interceptorName) {
         interceptorFacade.deleteInterceptor(interceptorName);

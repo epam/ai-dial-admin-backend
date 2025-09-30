@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -213,7 +214,7 @@ public abstract class InterceptorFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> interceptorFacade.updateInterceptor(interceptorDto.getName(), interceptorDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update: interceptorId:'interceptor1'"
+        Assertions.assertEquals("Optimistic lock conflict on update: interceptorName:'interceptor1'"
                 + ". Reload the data.", exception.getMessage());
     }
 
@@ -228,8 +229,48 @@ public abstract class InterceptorFunctionalTest {
                 IllegalArgumentException.class,
                 () -> interceptorFacade.updateInterceptor(interceptorDto.getName(), interceptorDto, null)
         );
-        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check.",
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Interceptor:interceptor1.",
                 exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateInterceptorWithCorrectHash() {
+        ApplicationDto applicationDto = createApplicationDto("1");
+        applicationFacade.createApplication(applicationDto);
+        ApplicationDto applicationDto2 = createApplicationDto("2");
+        applicationFacade.createApplication(applicationDto2);
+        InterceptorDto interceptorDto = createDto("1");
+        interceptorFacade.createInterceptor(interceptorDto);
+        assertAppInterceptors(applicationDto.getName(), List.of("interceptor1"));
+
+        InterceptorDto updatedInterceptor = createDto("1");
+        updatedInterceptor.setEntities(List.of("application2"));
+
+        var hash = interceptorFacade.getInterceptorWithHash(interceptorDto.getName()).hash();
+
+        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, hash);
+
+        InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
+        var expected = createDto("1");
+        expected.setEntities(List.of("application2"));
+        assertInterceptor(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateInterceptorWithIncorrectHash() {
+        ApplicationDto applicationDto = createApplicationDto("1");
+        applicationFacade.createApplication(applicationDto);
+        ApplicationDto applicationDto2 = createApplicationDto("2");
+        applicationFacade.createApplication(applicationDto2);
+        InterceptorDto interceptorDto = createDto("1");
+        interceptorFacade.createInterceptor(interceptorDto);
+        assertAppInterceptors(applicationDto.getName(), List.of("interceptor1"));
+
+        InterceptorDto updatedInterceptor = createDto("1");
+        updatedInterceptor.setEntities(List.of("application2"));
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, "test"));
     }
 
     private ApplicationDto createApplicationDto(String suffix) {
