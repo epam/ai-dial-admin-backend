@@ -153,9 +153,7 @@ class AdaptersControllerTest extends AbstractControllerNoneSecureTest {
 
     @Test
     void testDeleteAdapter() throws Exception {
-
         doNothing().when(adapterFacade).deleteAdapter(eq(TEST_ADAPTER_NAME), eq(true));
-
         mockMvc.perform(delete(ADAPTER_API_PATH, TEST_ADAPTER_NAME))
                 .andExpect(status().isNoContent());
     }
