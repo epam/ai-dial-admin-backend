@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.dao.listener.validitystate.resolver;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.ValidityStateEntity;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 @Component
+@LogExecution
 public class KeyValidityStateResolver {
 
     public ValidityStateEntity resolveValidityState(KeyEntity entity) {

@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.domain.model.ExportFormat.CORE;
+
 @Service
 @LogExecution
 @RequiredArgsConstructor
@@ -41,8 +43,10 @@ public class ApplicationExporter {
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
-    protected Collection<Application> getApplications() {
-        return applicationService.getAllValidApplications();
+    protected Collection<Application> getValidApplications(ExportRequest request) {
+        return request.getExportFormat() == CORE
+                ? applicationService.getAllValidApplications()
+                : applicationService.getAllApplications();
     }
 
     protected Collection<ExportComponentInfo> preview(ExportRequest request) {
@@ -62,7 +66,7 @@ public class ApplicationExporter {
     }
 
     private Collection<Application> getApplicationsWithRemovedDependencies(FullExportRequest fullExportRequest) {
-        return getApplications().stream()
+        return getValidApplications(fullExportRequest).stream()
                 .map(app -> removeDependency(app, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
@@ -82,7 +86,7 @@ public class ApplicationExporter {
                     Application application = getApplication(component.getName());
                     return removeDependency(application, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
-                .filter(app -> app.getValidityState().isValid())
+                .filter(app -> isValidApplication(app, selectedItemsExportRequest))
                 .toList();
     }
 
@@ -100,6 +104,10 @@ public class ApplicationExporter {
             app.getDeployment().setRoleShareResourceLimits(null);
         }
         return app;
+    }
+
+    private boolean isValidApplication(Application application, SelectedItemsExportRequest selectedItemsExportRequest) {
+        return selectedItemsExportRequest.getExportFormat() != CORE || application.getValidityState().isValid();
     }
 
 }

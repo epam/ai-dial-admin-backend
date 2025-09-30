@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dao.listener.validitystate;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.listener.validitystate.setter.ApplicationValidityStateSetter;
 import com.epam.aidial.cfg.dao.listener.validitystate.setter.KeyValidityStateSetter;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
@@ -9,6 +10,7 @@ import jakarta.persistence.PreUpdate;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@LogExecution
 public class ValidityStateAwareEntityListener {
 
     private final KeyValidityStateSetter keyValidityStateSetter;

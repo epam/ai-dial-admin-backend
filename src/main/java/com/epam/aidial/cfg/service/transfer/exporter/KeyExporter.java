@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.domain.model.ExportFormat.CORE;
+
 @Service
 @LogExecution
 @RequiredArgsConstructor
@@ -46,7 +48,10 @@ public class KeyExporter {
     }
 
     private Collection<Key> getKeys(FullExportRequest fullExportRequest) {
-        return keyService.getAllValidKeys().stream()
+        var keys = fullExportRequest.getExportFormat() == CORE
+                ? keyService.getAllValidKeys()
+                : keyService.getAllKeys();
+        return keys.stream()
                 .map(key -> removeKey(key, fullExportRequest))
                 .filter(Objects::nonNull)
                 .map(key -> removeDependency(key, fullExportRequest.getComponentTypes()))
@@ -66,7 +71,7 @@ public class KeyExporter {
                 .values()
                 .stream()
                 .map(component -> keyService.getKey(component.getName()))
-                .filter(key -> key.getValidityState().isValid())
+                .filter(key -> isValidKey(key, selectedItemsExportRequest))
                 .map(key -> removeKey(key, selectedItemsExportRequest))
                 .filter(Objects::nonNull)
                 .toList();
@@ -104,5 +109,9 @@ public class KeyExporter {
                 yield key;
             }
         };
+    }
+
+    private boolean isValidKey(Key key, SelectedItemsExportRequest selectedItemsExportRequest) {
+        return selectedItemsExportRequest.getExportFormat() != CORE || key.getValidityState().isValid();
     }
 }

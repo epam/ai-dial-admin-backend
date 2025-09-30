@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dao.listener.validitystate.resolver;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
@@ -13,7 +14,6 @@ import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSche
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
 import com.networknt.schema.ValidationMessage;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
+@LogExecution
 public class ApplicationValidityStateResolver {
 
     private final ApplicationEntityMapper applicationEntityMapper;
