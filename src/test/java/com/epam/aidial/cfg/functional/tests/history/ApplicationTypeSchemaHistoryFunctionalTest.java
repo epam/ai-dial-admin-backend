@@ -72,39 +72,6 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         Assertions.assertEquals(actualAtOldRevision, applicationsAfterRollback);
     }
 
-    @Test
-    public void shouldSuccessfullyUpdateSchemaWithCorrectHash() {
-        ApplicationTypeSchemaDto applicationDto = createDto("1");
-        applicationTypeSchemaFacade.create(applicationDto);
-        ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
-        updatedApplicationTypeSchema.setDescription("new application description");
-
-        var hash = applicationTypeSchemaFacade.getSchemaWithHash(applicationDto.getId()).hash();
-
-        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, hash);
-
-        ApplicationTypeSchemaDto actual = applicationTypeSchemaFacade.get(applicationDto.getId());
-        var expected = createDto("1");
-        expected.setDescription("new application description");
-        expected.setDefs(Map.of());
-        expected.setProperties(Map.of());
-        expected.setApplications(List.of());
-        expected.setApplicationTypeRoutes(List.of());
-        expected.setAppendApplicationPropertiesHeader(true);
-        assertApplicationTypeSchema(actual, expected);
-    }
-
-    @Test
-    public void shouldThrowWhenUpdateSchemaWithIncorrectHash() {
-        ApplicationTypeSchemaDto applicationDto = createDto("1");
-        applicationTypeSchemaFacade.create(applicationDto);
-        ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
-        updatedApplicationTypeSchema.setDescription("new application description");
-
-        Assertions.assertThrows(OptimisticLockConflictException.class,
-                () -> applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "test"));
-    }
-
     private ApplicationTypeSchemaDto createAppTypeSchema(String suffix) {
         ApplicationTypeSchemaDto dto = new ApplicationTypeSchemaDto();
         dto.setId("https://test-schema.example/" + suffix);

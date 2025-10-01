@@ -236,4 +236,18 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         );
         Assertions.assertThat(exception.getMessage()).isEqualTo("Hash must not be null. Use \"*\" to skip optimistic check. Schema:https://test-schema.example.");
     }
+
+    @Test
+    public void shouldSuccessfullyUpdateSchemaWithCorrectHash() {
+        typeSchemaFacade.create(dto);
+        var updatedApplicationTypeSchema = new ApplicationTypeSchemaDto(dto);
+        updatedApplicationTypeSchema.setDescription("new schema description");
+
+        var hash = typeSchemaFacade.getSchemaWithHash(dto.getId()).hash();
+
+        typeSchemaFacade.update(dto.getId(), updatedApplicationTypeSchema, hash);
+
+        ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(actual.getDescription()).isEqualTo("new schema description");
+    }
 }

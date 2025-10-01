@@ -1,11 +1,10 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.KeyJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.KeyEntityMapper;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
-import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
-import com.epam.aidial.cfg.domain.model.InterceptorRunner;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
 import com.epam.aidial.cfg.domain.validator.KeyValidator;
@@ -26,6 +25,7 @@ import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
+@LogExecution
 @Service("coreKeyService")
 @RequiredArgsConstructor
 @Slf4j
