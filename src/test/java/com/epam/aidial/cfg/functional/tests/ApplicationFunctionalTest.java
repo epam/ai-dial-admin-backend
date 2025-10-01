@@ -131,7 +131,6 @@ public abstract class ApplicationFunctionalTest {
     @Test
     public void shouldThrowExceptionWhenApplicationConcurrencyOverwrite() {
         initRoles();
-
         ApplicationDto applicationDto = createDto("1");
         applicationFacade.createApplication(applicationDto);
 
@@ -146,7 +145,6 @@ public abstract class ApplicationFunctionalTest {
     @Test
     public void shouldThrowExceptionWhenHashIsNull() {
         initRoles();
-
         ApplicationDto applicationDto = createDto("1");
         applicationFacade.createApplication(applicationDto);
 
@@ -156,6 +154,34 @@ public abstract class ApplicationFunctionalTest {
         );
         Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Application:application1.",
                 exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateApplicationWithCorrectHash() {
+        initRoles();
+        ApplicationDto applicationDto = createDto("1");
+        applicationFacade.createApplication(applicationDto);
+        ApplicationDto updatedApplication = createDto("1");
+        updatedApplication.setDescription("new application description");
+
+        var hash = applicationFacade.getApplicationWithHash(applicationDto.getName()).hash();
+
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, hash);
+
+        var actual = applicationFacade.getApplication(applicationDto.getName());
+        var expected = createDto("1");
+        expected.setDescription("new application description");
+        assertApplication(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateApplicationWithIncorrectHash() {
+        initRoles();
+        ApplicationDto applicationDto = createDto("1");
+        applicationFacade.createApplication(applicationDto);
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "test"));
     }
 
     @Test
