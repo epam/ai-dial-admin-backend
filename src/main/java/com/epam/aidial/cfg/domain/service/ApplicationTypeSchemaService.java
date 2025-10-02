@@ -40,11 +40,23 @@ public class ApplicationTypeSchemaService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<ApplicationTypeSchema> getAllByIds(List<String> ids) {
+        return StreamSupport.stream(jpaRepository.findAllById(ids).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public ApplicationTypeSchema get(String id) {
+        return tryGet(id)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(id)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ApplicationTypeSchema> tryGet(String id) {
         return Optional.ofNullable(id)
                 .flatMap(jpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(id)));
+                .map(mapper::toDomain);
     }
 
     @Transactional

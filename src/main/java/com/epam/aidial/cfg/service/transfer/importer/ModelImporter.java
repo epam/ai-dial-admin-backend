@@ -8,6 +8,8 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
@@ -25,13 +27,14 @@ import com.epam.aidial.core.config.CoreModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.Strings;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -42,7 +45,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @LogExecution
 @RequiredArgsConstructor
-public class ModelImporter extends RoleBasedImporter {
+public class ModelImporter extends DeploymentHolderImporter {
 
     private final ModelService modelService;
     private final AdapterService adapterService;
@@ -52,32 +55,28 @@ public class ModelImporter extends RoleBasedImporter {
 
     public Collection<ImportComponent<Model>> importModels(Map<String, CoreModel> coreModels,
                                                            Map<String, Role> roles,
-                                                           ConfigImportOptions importOptions,
-                                                           Collection<ImportComponent<Adapter>> adaptersForPreview,
-                                                           boolean isPreview) {
+                                                           ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(coreModels)) {
             Map<String, Model> models = coreModels.entrySet()
                     .stream()
                     .collect(Collectors.toMap(
                                     Map.Entry::getKey,
-                                    entry -> map(entry.getKey(), entry.getValue(), adaptersForPreview, isPreview)
+                                    entry -> map(entry.getKey(), entry.getValue())
                             )
                     );
-            return importAdminModels(models, roles, importOptions, isPreview);
+            return importAdminModels(models, roles, importOptions);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<Model>> importAdminModels(Map<String, Model> models,
                                                                 Map<String, Role> roles,
-                                                                ConfigImportOptions importOptions,
-                                                                boolean isPreview) {
+                                                                ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(models)) {
             return models.entrySet().stream()
                     .map(modelEntry -> {
                                 var model = modelEntry.getValue();
-                                var importAction = processModel(modelEntry.getKey(), model, roles, importOptions.conflictResolutionPolicy(), isPreview);
-                                return new ImportComponent<>(importAction, model);
+                                return processModel(modelEntry.getKey(), model, roles, importOptions.conflictResolutionPolicy());
                             }
                     )
                     .toList();
@@ -85,20 +84,21 @@ public class ModelImporter extends RoleBasedImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processModel(String modelName,
-                                      Model newModel,
-                                      Map<String, Role> roles,
-                                      ConflictResolutionPolicy resolutionPolicy,
-                                      boolean isPreview) {
+    private ImportComponent<Model> processModel(String modelName,
+                                                Model newModel,
+                                                Map<String, Role> roles,
+                                                ConflictResolutionPolicy resolutionPolicy) {
         removeContainerSourceDependencyIfContainerIsAbsent(newModel);
         Optional<Model> model = modelService.tryGetModel(modelName);
         if (model.isPresent()) {
             Model existingModel = model.get();
-            setLimits(modelName, existingModel.getDeployment(), roles, newModel.getDeployment(), isPreview);
-            return handleExistingModel(newModel, resolutionPolicy, modelName, isPreview);
+            setLimits(modelName, existingModel.getDeployment(), roles, newModel.getDeployment());
+            ImportAction importAction = handleExistingModel(newModel, resolutionPolicy, modelName);
+            return new ImportComponent<>(importAction, existingModel, newModel);
         } else {
-            setLimits(modelName, roles, newModel.getDeployment(), isPreview);
-            return createNewModel(newModel, isPreview);
+            setLimits(modelName, roles, newModel.getDeployment());
+            modelService.createModel(newModel);
+            return new ImportComponent<>(CREATE, null, newModel);
         }
     }
 
@@ -122,46 +122,28 @@ public class ModelImporter extends RoleBasedImporter {
         }
     }
 
-    private ImportAction handleExistingModel(
-            Model newModel,
-            ConflictResolutionPolicy resolutionPolicy,
-            String modelName,
-            boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing model will remain unchanged.
-                return SKIP;
-            }
+    private ImportAction handleExistingModel(Model newModel,
+                                             ConflictResolutionPolicy resolutionPolicy,
+                                             String modelName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing model will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    modelService.updateModel(modelName, newModel);
-                }
-                return UPDATE;
+                modelService.updateModel(modelName, newModel);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
+        };
     }
 
-    private ImportAction createNewModel(Model model, boolean isPreview) {
-        if (!isPreview) {
-            modelService.createModel(model);
-        }
-        return CREATE;
-    }
-
-    private Model map(String modelName,
-                      CoreModel model,
-                      Collection<ImportComponent<Adapter>> adaptersForPreview,
-                      boolean isPreview) {
+    private Model map(String modelName, CoreModel model) {
         model.setName(modelName);
 
-        ModelSource source =  new ModelEndpointsSource();
+        ModelSource source = new ModelEndpointsSource();
         ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
         if (modelEndpointComponents == null) {
             return modelMapper.mapModel(model, source, new ShareResourceLimit());
         }
 
-        Adapter adapter = resolveAdapter(adaptersForPreview, isPreview, modelEndpointComponents);
+        Adapter adapter = resolveAdapter(modelEndpointComponents);
         if (adapter != null) {
             source = new AdapterSource(adapter.getName(), modelEndpointComponents.completionEndpointPath());
         }
@@ -176,21 +158,38 @@ public class ModelImporter extends RoleBasedImporter {
         return modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
     }
 
-    private Adapter resolveAdapter(Collection<ImportComponent<Adapter>> adaptersForPreview,
-                                   boolean isPreview,
-                                   ModelEndpointComponents modelEndpointComponents) {
+    private Adapter resolveAdapter(ModelEndpointComponents modelEndpointComponents) {
         String adapterEndpoint = modelEndpointComponents.adapterEndpoint();
-
-        if (!isPreview) {
-            return adapterService.getByEndpoint(adapterEndpoint);
-        }
-
-        return adaptersForPreview.stream()
-                .filter(importComponent -> importComponent.getImportAction() == CREATE)
-                .map(ImportComponent::getValue)
-                .filter(adapter -> Strings.CS.equals(adapter.getBaseEndpoint(), adapterEndpoint))
-                .findFirst()
-                .orElseGet(() -> adapterService.getByEndpoint(adapterEndpoint));
+        return adapterService.getByEndpoint(adapterEndpoint);
     }
 
+    public List<ImportComponent<Model>> getActualImportedModels(Collection<ImportComponent<Model>> modelImportComponents,
+                                                                Collection<ImportComponent<Role>> roleImportComponents) {
+        List<String> names = getNextImportComponentNames(modelImportComponents);
+        Map<String, Model> importedModelsByNames = modelService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(model -> model.getDeployment().getName(), Function.identity()));
+
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+
+        return modelImportComponents.stream()
+                .map(importComponent -> {
+                    var next = importedModelsByNames.get(importComponent.getNext().getDeployment().getName());
+                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Model model) {
+        if (model != null) {
+            model.setCreatedAt(null);
+            model.setUpdatedAt(null);
+        }
+    }
 }

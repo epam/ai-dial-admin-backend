@@ -2,7 +2,7 @@
   "roles": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testRole1",
         "limits": [
           {
@@ -38,6 +38,10 @@
             "limit": {}
           }
         ],
+        "keys": [
+          "<will be defined during import 0>",
+          "<will be defined during import 1>"
+        ],
         "share": [
           {
             "role": "testRole1",
@@ -58,9 +62,10 @@
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testRole2",
         "limits": [],
+        "keys": [],
         "share": [],
         "costLimit": {
           "minute": "111",
@@ -72,7 +77,7 @@
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testRole3",
         "limits": [
           {
@@ -82,6 +87,7 @@
             "limit": {}
           }
         ],
+        "keys": [],
         "share": [],
         "costLimit": {
           "minute": "111",
@@ -93,7 +99,19 @@
     },
     {
       "importAction": "update",
-      "value": {
+      "prev": {
+        "name": "default",
+        "limits": [],
+        "keys": [],
+        "share": [],
+        "costLimit": {
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807
+        }
+      },
+      "next": {
         "name": "default",
         "limits": [
           {
@@ -105,6 +123,7 @@
             }
           }
         ],
+        "keys": [],
         "share": [],
         "costLimit": {
           "minute": "9223372036854775807",
@@ -118,8 +137,8 @@
   "keys": [
     {
       "importAction": "create",
-      "value": {
-        "name": "<will be defined during import>",
+      "next": {
+        "name": "<will be defined during import 0>",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
@@ -130,8 +149,8 @@
     },
     {
       "importAction": "create",
-      "value": {
-        "name": "<will be defined during import>",
+      "next": {
+        "name": "<will be defined during import 1>",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
@@ -144,7 +163,7 @@
   "interceptors": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
@@ -166,6 +185,13 @@
           "temperatureSupported": true,
           "addonsSupported": true,
           "parallelToolCallsSupported": true
+        },
+        "entities": [
+          "testApplication1",
+          "testModel1"
+        ],
+        "source": {
+          "$type": "endpoints"
         }
       }
     }
@@ -173,7 +199,7 @@
   "applicationRunners": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "schemaId": "https://test-schema-id.example",
         "schema": "https://dial.epam.com/application_type_schemas/schema#",
         "applicationTypeEditorUrl": "https://test.com/billings",
@@ -242,14 +268,17 @@
         "properties": {},
         "required": [],
         "type": "object",
-        "title": "Sample Schema"
+        "title": "Sample Schema",
+        "applications": [
+          "testApplication1"
+        ]
       }
     }
   ],
   "routes": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "test_route1",
           "roleLimits": [
@@ -308,25 +337,29 @@
   "adapters": [
     {
       "importAction": "create",
-      "value": {
-        "name": "<will be defined during import>",
+      "next": {
+        "name": "<will be defined during import 0>",
         "baseEndpoint": "https://endpoint2/",
-        "models": []
+        "models": [
+          "testModel2"
+        ]
       }
     },
     {
       "importAction": "create",
-      "value": {
-        "name": "<will be defined during import>",
+      "next": {
+        "name": "<will be defined during import 1>",
         "baseEndpoint": "https://endpoint1/",
-        "models": []
+        "models": [
+          "testModel1"
+        ]
       }
     }
   ],
   "models": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
@@ -354,7 +387,6 @@
           "parallelToolCallsSupported": true
         },
         "defaults": {},
-        "interceptors": [],
         "topics": [],
         "maxRetryAttempts": 5,
         "type": "embedding",
@@ -373,14 +405,14 @@
         "endpoint": "https://endpoint2/embeddings",
         "source": {
           "$type": "adapter",
-          "adapterName": "<will be defined during import>",
+          "adapterName": "<will be defined during import 0>",
           "completionEndpointPath": "embeddings"
         }
       }
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel1",
           "roleLimits": [
@@ -460,7 +492,7 @@
         "endpoint": "https://endpoint1/embeddings",
         "source": {
           "$type": "adapter",
-          "adapterName": "<will be defined during import>",
+          "adapterName": "<will be defined during import 1>",
           "completionEndpointPath": "embeddings"
         }
       }
@@ -469,7 +501,7 @@
   "applications": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testApplication1",
           "roleLimits": [
@@ -512,7 +544,9 @@
           "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
+        "applicationProperties": {},
         "applicationTypeSchemaId": "https://test-schema-id.example",
+        "routes": [],
         "author": "test-author",
         "dependencies": [
           "dep1",
@@ -522,7 +556,7 @@
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testApplication2",
           "roleLimits": [
@@ -563,14 +597,16 @@
           "temperatureSupported": true,
           "addonsSupported": true,
           "parallelToolCallsSupported": true
-        }
+        },
+        "applicationProperties": {},
+        "routes": []
       }
     }
   ],
   "addons": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testAddon1",
           "roleLimits": [
@@ -602,7 +638,7 @@
   "toolSets": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "toolset1",
           "roleLimits": [],
@@ -636,7 +672,10 @@
         "endpoint": "http://sample-endpoint/api",
         "transport": "sse",
         "allowedTools": ["branch", "remote"],
-        "author": "test-author"
+        "author": "test-author",
+        "source": {
+          "$type": "endpoints"
+        }
       }
     }
   ]
