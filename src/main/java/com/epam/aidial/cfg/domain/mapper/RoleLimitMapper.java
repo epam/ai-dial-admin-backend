@@ -18,16 +18,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.utils.NullSafeUtils.getValueOrDefault;
-import static com.epam.aidial.cfg.utils.NullSafeUtils.setIfNotNull;
 
 @Mapper(componentModel = "spring")
 @Slf4j
 public abstract class RoleLimitMapper {
     public abstract Limit toLimit(CoreLimit limit);
-
-    Long getLimit(long value) {
-        return Long.MAX_VALUE == value ? null : value;
-    }
 
     @Named("mapToCoreLimits")
     public Map<String, CoreLimit> mapLimits(List<RoleLimit> roleLimits, @Context Collection<Deployment> deployments) {
@@ -44,7 +39,7 @@ public abstract class RoleLimitMapper {
                     CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
                     return new AbstractMap.SimpleEntry<>(roleLimit.getDeploymentName(), mappedLimit);
                 })
-                .filter(entry -> isLimited(entry.getValue()))
+                .filter(entry -> !entry.getValue().isEmpty())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -62,27 +57,13 @@ public abstract class RoleLimitMapper {
 
         CoreLimit coreLimit = new CoreLimit();
 
-        setIfNotNull(coreLimit::setMinute, getValueOrDefault(limit, defaultLimit, Limit::getMinute));
-        setIfNotNull(coreLimit::setDay, getValueOrDefault(limit, defaultLimit, Limit::getDay));
-        setIfNotNull(coreLimit::setWeek, getValueOrDefault(limit, defaultLimit, Limit::getWeek));
-        setIfNotNull(coreLimit::setMonth, getValueOrDefault(limit, defaultLimit, Limit::getMonth));
-        setIfNotNull(coreLimit::setRequestHour, getValueOrDefault(limit, defaultLimit, Limit::getRequestHour));
-        setIfNotNull(coreLimit::setRequestDay, getValueOrDefault(limit, defaultLimit, Limit::getRequestDay));
+        coreLimit.setMinute(getValueOrDefault(limit, defaultLimit, Limit::getMinute));
+        coreLimit.setDay(getValueOrDefault(limit, defaultLimit, Limit::getDay));
+        coreLimit.setWeek(getValueOrDefault(limit, defaultLimit, Limit::getWeek));
+        coreLimit.setMonth(getValueOrDefault(limit, defaultLimit, Limit::getMonth));
+        coreLimit.setRequestHour(getValueOrDefault(limit, defaultLimit, Limit::getRequestHour));
+        coreLimit.setRequestDay(getValueOrDefault(limit, defaultLimit, Limit::getRequestDay));
 
         return coreLimit;
     }
-
-    private boolean isLimited(CoreLimit limit) {
-        return isLimited(limit.getMinute())
-                || isLimited(limit.getDay())
-                || isLimited(limit.getWeek())
-                || isLimited(limit.getMonth())
-                || isLimited(limit.getRequestHour())
-                || isLimited(limit.getRequestDay());
-    }
-
-    private boolean isLimited(Long value) {
-        return value != Long.MAX_VALUE;
-    }
-
 }

@@ -3,24 +3,40 @@
     "minute": 9223372036854775807,
     "day": 10,
     "week": 9223372036854775807,
-    "month": 9223372036854775807,
-    "requestHour": 9223372036854775807,
-    "requestDay": 9223372036854775807
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
   },
   "deployment2": {
-    "minute": 9223372036854775807,
+    "minute": null,
     "day": 5,
-    "week": 9223372036854775807,
-    "month": 9223372036854775807,
-    "requestHour": 9223372036854775807,
-    "requestDay": 9223372036854775807
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "deployment3": {
+    "minute": null,
+    "day": 9223372036854775807,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
   },
   "deployment5": {
-    "minute": 9223372036854775807,
+    "minute": null,
     "day": 5,
-    "week": 9223372036854775807,
-    "month": 9223372036854775807,
-    "requestHour": 9223372036854775807,
-    "requestDay": 9223372036854775807
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "deployment6": {
+    "minute": null,
+    "day": 9223372036854775807,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
   }
 }
