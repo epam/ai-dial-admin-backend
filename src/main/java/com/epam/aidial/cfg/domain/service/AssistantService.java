@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -31,6 +32,13 @@ public class AssistantService {
     @Transactional(readOnly = true)
     public Collection<Assistant> getAllAssistants() {
         return StreamSupport.stream(assistantJpaRepository.findAll().spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Assistant> getAllByNames(List<String> names) {
+        return StreamSupport.stream(assistantJpaRepository.findAllById(names).spliterator(), false)
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

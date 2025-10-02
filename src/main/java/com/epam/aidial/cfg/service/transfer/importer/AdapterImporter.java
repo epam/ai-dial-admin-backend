@@ -13,19 +13,25 @@ import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.ModelType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
+import static com.epam.aidial.cfg.domain.model.ImportAction.SKIP;
+import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 
 @Service
 @Slf4j
@@ -38,40 +44,52 @@ public class AdapterImporter {
     public Collection<ImportComponent<Adapter>> importAdapters(Map<String, CoreModel> coreModels,
                                                                ConfigImportOptions importOptions,
                                                                boolean isPreview) {
-        if (MapUtils.isNotEmpty(coreModels)) {
-            Map<String, Adapter> adapterByEndpoint = new HashMap<>();
-            for (Adapter adapter : adapterService.getAll()) {
-                adapterByEndpoint.put(adapter.getBaseEndpoint(), adapter);
-            }
-            Set<String> coreEndpoints = coreModels.values()
-                    .stream()
-                    .filter(coreModel -> coreModel.getEndpoint() != null)
-                    .map(this::mapToAdapterBaseEndpoint)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-            boolean createAdapterIfAbsent = importOptions.createAdapterIfAbsent();
-            List<ImportComponent<Adapter>> result = new ArrayList<>();
-            for (String endpoint : coreEndpoints) {
-                if (!adapterByEndpoint.containsKey(endpoint)) {
-                    if (createAdapterIfAbsent) {
-                        Adapter adapter = new Adapter();
-                        adapter.setBaseEndpoint(endpoint);
-                        if (!isPreview) {
-                            adapter.setName(UUID.randomUUID().toString());
-                            adapterService.create(adapter);
-                        } else {
-                            adapter.setName("<will be defined during import>");
-                        }
-                        result.add(new ImportComponent<>(ImportAction.CREATE, adapter));
-                    } else {
-                        throw new IllegalArgumentException("Unable to import adapters, adapter with endpoint " + endpoint + " does not exist");
-                    }
-                }
-            }
-
-            return result;
+        if (MapUtils.isEmpty(coreModels)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        Set<String> adapterBaseEndpointsFromCoreModels = getAdapterBaseEndpoints(coreModels);
+        if (CollectionUtils.isEmpty(adapterBaseEndpointsFromCoreModels)) {
+            return Collections.emptyList();
+        }
+
+        Set<String> existingAdapterBaseEndpoints = adapterService.getAll().stream()
+                .map(Adapter::getBaseEndpoint)
+                .collect(Collectors.toSet());
+        boolean createAdapterIfAbsent = importOptions.createAdapterIfAbsent();
+
+        List<ImportComponent<Adapter>> result = new ArrayList<>();
+
+        int i = 0;
+        for (String endpoint : adapterBaseEndpointsFromCoreModels) {
+            if (!existingAdapterBaseEndpoints.contains(endpoint)) {
+                if (!createAdapterIfAbsent) {
+                    throw new IllegalArgumentException("Unable to import adapters, adapter with endpoint " + endpoint + " does not exist");
+                }
+
+                Adapter adapter = new Adapter();
+                adapter.setBaseEndpoint(endpoint);
+                if (!isPreview) {
+                    adapter.setName(UUID.randomUUID().toString());
+                } else {
+                    adapter.setName("<will be defined during import " + i + ">");
+                    i++;
+                }
+                adapterService.create(adapter);
+                result.add(new ImportComponent<>(CREATE, null, adapter));
+            }
+        }
+
+        return result;
+    }
+
+    private Set<String> getAdapterBaseEndpoints(Map<String, CoreModel> coreModels) {
+        return coreModels.values()
+                .stream()
+                .filter(coreModel -> coreModel.getEndpoint() != null)
+                .map(this::mapToAdapterBaseEndpoint)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     private String mapToAdapterBaseEndpoint(CoreModel coreModel) {
@@ -82,12 +100,11 @@ public class AdapterImporter {
     }
 
     public List<ImportComponent<Adapter>> importAdminAdapters(Map<String, Adapter> adapters,
-                                                              ConfigImportOptions importOptions,
-                                                              boolean isPreview) {
+                                                              ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(adapters)) {
             return adapters.entrySet()
                     .stream()
-                    .map(e -> getImportComponent(importOptions, e.getKey(), e.getValue(), isPreview))
+                    .map(e -> getImportComponent(importOptions, e.getKey(), e.getValue()))
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();
@@ -95,46 +112,64 @@ public class AdapterImporter {
 
     private ImportComponent<Adapter> getImportComponent(ConfigImportOptions importOptions,
                                                         String name,
-                                                        Adapter adapter,
-                                                        boolean isPreview) {
-        ImportAction importAction = processAdapter(name, adapter, importOptions.conflictResolutionPolicy(), isPreview);
-        return new ImportComponent<>(importAction, adapter);
+                                                        Adapter adapter) {
+        removeDependency(adapter);
+        return processAdapter(name, adapter, importOptions.conflictResolutionPolicy());
     }
 
-    private ImportAction processAdapter(String adapterName,
-                                        Adapter adapter,
-                                        ConflictResolutionPolicy conflictResolutionPolicy,
-                                        boolean isPreview) {
-        if (adapterService.exists(adapterName)) {
-            return handleExistingAdapter(adapter, conflictResolutionPolicy, adapterName, isPreview);
+    private void removeDependency(Adapter adapter) {
+        adapter.setModels(null);
+    }
+
+    private ImportComponent<Adapter> processAdapter(String adapterName,
+                                                    Adapter adapter,
+                                                    ConflictResolutionPolicy conflictResolutionPolicy) {
+        Optional<Adapter> existingAdapter = adapterService.tryGet(adapterName);
+        if (existingAdapter.isPresent()) {
+            ImportAction importAction = handleExistingAdapter(adapter, conflictResolutionPolicy, adapterName);
+            return new ImportComponent<>(importAction, existingAdapter.get(), adapter);
         } else {
-            return createNewAdapter(adapter, isPreview);
-        }
-    }
-
-    private ImportAction createNewAdapter(Adapter adapter, boolean isPreview) {
-        if (!isPreview) {
             adapterService.create(adapter);
+            return new ImportComponent<>(CREATE, null, adapter);
         }
-        return ImportAction.CREATE;
     }
 
     private ImportAction handleExistingAdapter(Adapter adapter,
                                                ConflictResolutionPolicy resolutionPolicy,
-                                               String adapterName,
-                                               boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing adapter will remain unchanged.
-                return ImportAction.SKIP;
-            }
+                                               String adapterName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing adapter will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    adapterService.update(adapterName, adapter);
-                }
-                return ImportAction.UPDATE;
+                adapterService.update(adapterName, adapter);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
+        };
+    }
+
+    public List<ImportComponent<Adapter>> getActualImportedAdapters(Collection<ImportComponent<Adapter>> importComponents) {
+        List<String> names = importComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(Adapter::getName)
+                .toList();
+        Map<String, Adapter> importedAdaptersByNames = adapterService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(Adapter::getName, Function.identity()));
+
+        return importComponents.stream()
+                .map(importComponent -> {
+                    var next = importedAdaptersByNames.get(importComponent.getNext().getName());
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Adapter adapter) {
+        if (adapter != null) {
+            adapter.setCreatedAt(null);
+            adapter.setUpdatedAt(null);
         }
     }
 }

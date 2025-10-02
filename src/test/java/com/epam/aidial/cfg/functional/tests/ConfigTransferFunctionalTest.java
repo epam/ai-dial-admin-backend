@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
+import com.epam.aidial.cfg.domain.service.DatabaseService;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
@@ -148,6 +149,8 @@ public abstract class ConfigTransferFunctionalTest {
     private CoreConfigVersionProperties versionProperties;
     @Autowired
     private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private DatabaseService databaseService;
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
 
@@ -1777,6 +1780,7 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         var expected = ResourceUtils.readResource("/import/import_preview.json");
         var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
+        Assertions.assertThat(databaseService.isInitializedEmptyDatabase()).isTrue();
         Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
     }
 
@@ -1790,6 +1794,7 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         var expected = ResourceUtils.readResource("/import/import_zip_preview.json");
         var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
+        Assertions.assertThat(databaseService.isInitializedEmptyDatabase()).isTrue();
         Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
     }
 

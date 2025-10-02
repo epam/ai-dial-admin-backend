@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.domain.model.AssistantsProperty;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.AssistantService;
 import com.epam.aidial.cfg.domain.service.AssistantsPropertyService;
@@ -21,9 +23,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -35,7 +39,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @LogExecution
 @RequiredArgsConstructor
-public class AssistantImporter extends RoleBasedImporter {
+public class AssistantImporter extends DeploymentHolderImporter {
 
     private final AssistantService assistantService;
     private final AssistantsPropertyService assistantsPropertyService;
@@ -43,8 +47,7 @@ public class AssistantImporter extends RoleBasedImporter {
 
     public Collection<ImportComponent<Assistant>> importAssistants(Assistants coreAssistants,
                                                                    Map<String, Role> roles,
-                                                                   ConfigImportOptions importOptions,
-                                                                   boolean isPreview) {
+                                                                   ConfigImportOptions importOptions) {
         if (coreAssistants != null) {
             AssistantsProperty assistantsProperty = mapper.mapAssistantsProperty(coreAssistants);
             processAssistantsProperty(assistantsProperty, importOptions.conflictResolutionPolicy());
@@ -53,7 +56,7 @@ public class AssistantImporter extends RoleBasedImporter {
                 Map<String, Assistant> assistants = coreAssistantsMap.entrySet()
                         .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue())));
-                return importAdminAssistants(assistants, roles, importOptions, isPreview);
+                return importAdminAssistants(assistants, roles, importOptions);
             }
         }
         return Collections.emptyList();
@@ -104,14 +107,12 @@ public class AssistantImporter extends RoleBasedImporter {
 
     public Collection<ImportComponent<Assistant>> importAdminAssistants(Map<String, Assistant> assistants,
                                                                         Map<String, Role> roles,
-                                                                        ConfigImportOptions importOptions,
-                                                                        boolean isPreview) {
+                                                                        ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(assistants)) {
             return assistants.entrySet().stream()
                     .map(assistantEntry -> {
                                 var assistant = assistantEntry.getValue();
-                                var importAction = processAssistant(assistantEntry.getKey(), assistant, roles, importOptions.conflictResolutionPolicy(), isPreview);
-                                return new ImportComponent<>(importAction, assistant);
+                                return processAssistant(assistantEntry.getKey(), assistant, roles, importOptions.conflictResolutionPolicy());
                             }
                     )
                     .toList();
@@ -119,42 +120,34 @@ public class AssistantImporter extends RoleBasedImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processAssistant(String assistantName,
-                                          Assistant newAssistant,
-                                          Map<String, Role> roles,
-                                          ConflictResolutionPolicy resolutionPolicy,
-                                          boolean isPreview) {
+    private ImportComponent<Assistant> processAssistant(String assistantName,
+                                                        Assistant newAssistant,
+                                                        Map<String, Role> roles,
+                                                        ConflictResolutionPolicy resolutionPolicy) {
         Optional<Assistant> assistant = assistantService.tryGetAssistant(assistantName);
         if (assistant.isPresent()) {
             Assistant existingAssistant = assistant.get();
-            setLimits(assistantName, existingAssistant.getDeployment(), roles, newAssistant.getDeployment(), isPreview);
-            return handleExisting(newAssistant, resolutionPolicy, assistantName, isPreview);
+            setLimits(assistantName, existingAssistant.getDeployment(), roles, newAssistant.getDeployment());
+            ImportAction importAction = handleExisting(newAssistant, resolutionPolicy, assistantName);
+            return new ImportComponent<>(importAction, existingAssistant, newAssistant);
         } else {
-            setLimits(assistantName, roles, newAssistant.getDeployment(), isPreview);
-            if (!isPreview) {
-                assistantService.createAssistant(newAssistant);
-            }
-            return CREATE;
+            setLimits(assistantName, roles, newAssistant.getDeployment());
+            assistantService.createAssistant(newAssistant);
+
+            return new ImportComponent<>(CREATE, null, newAssistant);
         }
     }
 
     private ImportAction handleExisting(Assistant assistant,
                                         ConflictResolutionPolicy resolutionPolicy,
-                                        String assistantName,
-                                        boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing assistant will remain unchanged.
-                return SKIP;
-            }
+                                        String assistantName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing assistant will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    assistantService.updateAssistant(assistantName, assistant);
-                }
-                return UPDATE;
+                assistantService.updateAssistant(assistantName, assistant);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
+        };
     }
 
     private Assistant map(String assistantName, CoreAssistant assistant) {
@@ -162,4 +155,33 @@ public class AssistantImporter extends RoleBasedImporter {
         return mapper.mapAssistant(assistant, new ShareResourceLimit());
     }
 
+    public List<ImportComponent<Assistant>> getActualImportedAssistants(Collection<ImportComponent<Assistant>> assistantImportComponents,
+                                                                        Collection<ImportComponent<Role>> roleImportComponents) {
+        List<String> names = getNextImportComponentNames(assistantImportComponents);
+        Map<String, Assistant> importedAssistantsByNames = assistantService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(assistant -> assistant.getDeployment().getName(), Function.identity()));
+
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+
+        return assistantImportComponents.stream()
+                .map(importComponent -> {
+                    var next = importedAssistantsByNames.get(importComponent.getNext().getDeployment().getName());
+                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Assistant assistant) {
+        if (assistant != null) {
+            assistant.setCreatedAt(null);
+            assistant.setUpdatedAt(null);
+        }
+    }
 }

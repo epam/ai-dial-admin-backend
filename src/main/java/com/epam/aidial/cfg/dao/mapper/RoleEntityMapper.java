@@ -82,7 +82,7 @@ public abstract class RoleEntityMapper {
                 .collect(Collectors.toMap(DeploymentEntity::getName, Function.identity()));
         List<RoleShareResourceLimitEntity> roleShareResourceLimitEntities = roleShareResourceLimits.stream()
                 .map(roleShareResourceLimit -> mapToRoleShareResourceLimitEntity(roleShareResourceLimit, updatedEntity,
-                    roleShareDeploymentsByNames, existingRoleShareResourceLimitEntitiesById))
+                        roleShareDeploymentsByNames, existingRoleShareResourceLimitEntitiesById))
                 .toList();
         updatedEntity.getShare().clear();
         updatedEntity.getShare().addAll(roleShareResourceLimitEntities);
