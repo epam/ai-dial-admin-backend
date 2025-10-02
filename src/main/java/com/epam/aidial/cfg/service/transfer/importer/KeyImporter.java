@@ -56,6 +56,7 @@ public class KeyImporter {
                     .map(keyEntry -> {
                                 var key = keyEntry.getValue();
                                 key.setName(keyEntry.getKey());
+                                key.setDisplayName(keyEntry.getKey());
                                 var importAction = processKey(key, resolutionPolicy, isPreview);
                                 return new ImportComponent<>(importAction, key);
                             }

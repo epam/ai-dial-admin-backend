@@ -41,6 +41,7 @@ public class RoleImporter {
                     .map(roleEntry -> {
                                 var role = roleEntry.getValue();
                                 role.setName(roleEntry.getKey());
+                                role.setDisplayName(roleEntry.getKey());
                                 var importAction = importRole(roleEntry.getKey(), role, resolutionPolicy, isPreview);
                                 return new ImportComponent<>(importAction, role);
                             }

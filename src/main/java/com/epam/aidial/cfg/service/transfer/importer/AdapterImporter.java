@@ -58,9 +58,11 @@ public class AdapterImporter {
                         adapter.setBaseEndpoint(endpoint);
                         if (!isPreview) {
                             adapter.setName(UUID.randomUUID().toString());
+                            adapter.setDisplayName(adapter.getName());
                             adapterService.create(adapter);
                         } else {
                             adapter.setName("<will be defined during import>");
+                            adapter.setDisplayName(adapter.getName());
                         }
                         result.add(new ImportComponent<>(ImportAction.CREATE, adapter));
                     } else {
@@ -105,6 +107,7 @@ public class AdapterImporter {
                                         Adapter adapter,
                                         ConflictResolutionPolicy conflictResolutionPolicy,
                                         boolean isPreview) {
+        adapter.setDisplayName(adapterName);
         if (adapterService.exists(adapterName)) {
             return handleExistingAdapter(adapter, conflictResolutionPolicy, adapterName, isPreview);
         } else {

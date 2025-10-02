@@ -1,11 +1,8 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.dto.AdapterDto;
-import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
-import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -16,7 +13,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 
 public abstract class AdapterHistoryFunctionalTest {
 
@@ -33,17 +33,17 @@ public abstract class AdapterHistoryFunctionalTest {
     public void shouldSuccessfullyCreateAndUpdateAdapter() {
 
         // create adapter1
-        AdapterDto adapterDto = createDto("1");
+        AdapterDto adapterDto = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto);
 
         // update adapter1 description
-        AdapterDto updatedAdapter = createDto("1");
+        AdapterDto updatedAdapter = createAdapterDto("1");
         updatedAdapter.setDescription("new adapter description");
         adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter);
 
         // verify adapter1
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
-        var expected = createDto("1");
+        var expected = createAdapterDto("1");
         expected.setDescription("new adapter description");
         assertAdapter(actual, expected);
 
@@ -57,10 +57,10 @@ public abstract class AdapterHistoryFunctionalTest {
         adapterFacade.deleteAdapter(adapterDto.getName(), false);
 
         // create adapter 2
-        adapterFacade.createAdapter(createDto("2"));
+        adapterFacade.createAdapter(createAdapterDto("2"));
 
         // create adapter3
-        adapterFacade.createAdapter(createDto("3"));
+        adapterFacade.createAdapter(createAdapterDto("3"));
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -77,13 +77,13 @@ public abstract class AdapterHistoryFunctionalTest {
         initRoles();
 
         // create model1
-        ModelDto model1 = createModel("1");
+        ModelDto model1 = createModelDto("1");
         modelFacade.createModel(model1);
-        ModelDto model2 = createModel("2");
+        ModelDto model2 = createModelDto("2");
         modelFacade.createModel(model2);
 
         // create adapter1
-        AdapterDto adapter1 = createDto("1");
+        AdapterDto adapter1 = createAdapterDto("1");
         adapter1.setModels(List.of(model1.getName()));
         adapterFacade.createAdapter(adapter1);
 
@@ -104,47 +104,12 @@ public abstract class AdapterHistoryFunctionalTest {
         Assertions.assertEquals(actualAtRevision, adaptersAfterRollbackToRevision);
     }
 
-    private ModelDto createModel(String suffix) {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setName("model" + suffix);
-        modelDto.setDescription("description" + suffix);
-        modelDto.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        return modelDto;
-    }
-
-    private ApplicationDto createApplication(String suffix) {
-        ApplicationDto applicationDto = new ApplicationDto();
-        applicationDto.setName("application" + suffix);
-        applicationDto.setDescription("description" + suffix);
-        applicationDto.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        return applicationDto;
-    }
-
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
     }
 
     private void assertAdapter(AdapterDto actual, AdapterDto expected) {
         Assertions.assertEquals(expected, actual);
-    }
-
-    private AdapterDto createDto(String suffix) {
-        AdapterDto adapterDto = new AdapterDto();
-        adapterDto.setName("adapter" + suffix);
-        adapterDto.setBaseEndpoint("https://endpoint.test.com/adapter" + suffix);
-        adapterDto.setDescription("description" + suffix);
-        adapterDto.setModels(List.of());
-        return adapterDto;
     }
 }

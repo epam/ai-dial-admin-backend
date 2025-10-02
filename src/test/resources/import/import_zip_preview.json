@@ -1,55 +1,106 @@
 {
   "roles": [
     {
-      "importAction": "update",
+      "importAction": "UPDATE",
       "value": {
         "name": "default",
+        "description": null,
+        "displayName": "default",
+        "createdAt": null,
+        "updatedAt": null,
         "limits": [],
-        "share": [],
+        "keys": null,
         "costLimit": {
-          "minute": "9223372036854775807",
-          "day": "9223372036854775807",
-          "week": "9223372036854775807",
-          "month": "9223372036854775807"
-        }
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807
+        },
+        "share": []
       }
     },
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "testRole3",
+        "description": null,
+        "displayName": "testRole3",
+        "createdAt": null,
+        "updatedAt": null,
         "limits": [
           {
             "role": "testRole3",
             "deploymentName": "testModel2",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole3",
             "deploymentName": "testModel1",
             "enabled": true,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole3",
             "deploymentName": "testApplication1",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole3",
             "deploymentName": "testApplication2",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole3",
             "deploymentName": "test_route1",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           }
         ],
+        "keys": null,
+        "costLimit": {
+          "minute": 111.222333444,
+          "day": 222,
+          "week": 333,
+          "month": 444
+        },
         "share": [
           {
             "role": "testRole3",
@@ -59,179 +110,238 @@
               "invitationTtl": 120
             }
           }
-        ],
-        "costLimit": {
-          "minute": "111.222333444",
-          "day": "222",
-          "week": "333",
-          "month": "444"
-        }
+        ]
       }
     },
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "testRole2",
+        "description": null,
+        "displayName": "testRole2",
+        "createdAt": null,
+        "updatedAt": null,
         "limits": [
           {
             "role": "testRole2",
             "deploymentName": "testModel2",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole2",
             "deploymentName": "testModel1",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole2",
             "deploymentName": "testApplication1",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole2",
             "deploymentName": "testApplication2",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole2",
             "deploymentName": "test_route1",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           }
         ],
-        "share": [],
+        "keys": null,
         "costLimit": {
-          "minute": "9223372036854775807",
-          "day": "9223372036854775807",
-          "week": "9223372036854775807",
-          "month": "9223372036854775807"
-        }
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807
+        },
+        "share": []
       }
     },
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "testRole1",
+        "description": null,
+        "displayName": "testRole1",
+        "createdAt": null,
+        "updatedAt": null,
         "limits": [
           {
             "role": "testRole1",
             "deploymentName": "testModel2",
             "enabled": false,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole1",
             "deploymentName": "testModel1",
             "enabled": true,
             "limit": {
-              "day": 1
+              "minute": null,
+              "day": 1,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
             }
           },
           {
             "role": "testRole1",
             "deploymentName": "testApplication1",
             "enabled": true,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole1",
             "deploymentName": "testApplication2",
             "enabled": true,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           },
           {
             "role": "testRole1",
             "deploymentName": "test_route1",
             "enabled": true,
-            "limit": {}
+            "limit": {
+              "minute": null,
+              "day": null,
+              "week": null,
+              "month": null,
+              "requestHour": null,
+              "requestDay": null
+            }
           }
         ],
-        "share": [],
+        "keys": null,
         "costLimit": {
-          "minute": "9223372036854775807",
-          "day": "9223372036854775807",
-          "week": "9223372036854775807",
-          "month": "9223372036854775807"
-        }
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807
+        },
+        "share": []
       }
     }
   ],
   "keys": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "testKey2",
+        "displayName": "testKey2",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
         "roles": [
           "testRole1"
         ],
+        "description": null,
+        "projectContactPoint": null,
         "createdAt": 1746705584619,
+        "updatedAt": null,
+        "expiresAt": null,
         "keyGeneratedAt": 1746705584619
       }
     },
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "testKey1",
+        "displayName": "testKey1",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
         "roles": [
           "testRole1"
         ],
+        "description": null,
+        "projectContactPoint": null,
         "createdAt": 1746705584619,
+        "updatedAt": null,
+        "expiresAt": null,
         "keyGeneratedAt": 1746705584619
       }
     }
   ],
   "interceptors": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "testInterceptor1",
-        "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
+        "iconUrl": null,
+        "description": null,
+        "displayName": "Test Interceptor1",
         "forwardAuthToken": false,
         "author": "test-author",
         "createdAt": 12345,
         "updatedAt": 12345,
-        "dependencies": [],
         "features": {
-          "systemPromptSupported": true,
-          "toolsSupported": false,
-          "seedSupported": false,
-          "urlAttachmentsSupported": false,
-          "folderAttachmentsSupported": false,
-          "allowResume": false,
-          "accessibleByPerRequestKey": true,
-          "contentPartsSupported": false,
-          "temperatureSupported": true,
-          "addonsSupported": false,
-          "cacheSupported": false,
-          "autoCachingSupported": true,
-          "consentRequired": false,
-          "parallelToolCallsSupported": true
-        }
-      }
-    },
-    {
-      "importAction": "create",
-      "value": {
-        "name": "testInterceptor2",
-        "displayName": "Test Interceptor2",
-        "forwardAuthToken": false,
-        "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
-        "dependencies": [],
-        "features": {
+          "rateEndpoint": null,
+          "tokenizeEndpoint": null,
+          "truncatePromptEndpoint": null,
+          "configurationEndpoint": null,
           "systemPromptSupported": true,
           "toolsSupported": false,
           "seedSupported": false,
@@ -247,6 +357,47 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
+        "defaults": null,
+        "dependencies": [],
+        "entities": null,
+        "source": null
+      }
+    },
+    {
+      "importAction": "CREATE",
+      "value": {
+        "name": "testInterceptor2",
+        "endpoint": null,
+        "iconUrl": null,
+        "description": null,
+        "displayName": "Test Interceptor2",
+        "forwardAuthToken": false,
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "features": {
+          "rateEndpoint": null,
+          "tokenizeEndpoint": null,
+          "truncatePromptEndpoint": null,
+          "configurationEndpoint": null,
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
+        },
+        "defaults": null,
+        "dependencies": [],
+        "entities": null,
         "source": {
           "$type": "runner",
           "runnerName": "testRunner1"
@@ -256,20 +407,28 @@
   ],
   "interceptorRunners": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "testRunner1",
+        "displayName": "testRunner1",
+        "description": null,
         "completionEndpoint": "https://template.test.com/api",
-        "configurationEndpoint": "https://template.test.com/conf"
+        "configurationEndpoint": "https://template.test.com/conf",
+        "createdAt": null,
+        "updatedAt": null,
+        "interceptors": null
       }
     }
   ],
   "applicationRunners": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "schemaId": "https://test-schema-id.example",
         "schema": "https://dial.epam.com/application_type_schemas/schema#",
+        "type": null,
+        "title": null,
+        "description": null,
         "applicationTypeEditorUrl": "https://test.com/billings",
         "applicationTypeViewerUrl": "https://test.com/claims",
         "applicationTypeDisplayName": "runner display name",
@@ -279,14 +438,16 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
-        "defs": {},
-        "properties": {},
-        "required": [],
+        "applicationTypeIconUrl": null,
         "applicationTypeRoutes": [
           {
             "deployment": {
               "name": "route1",
-              "isPublic": false
+              "roleLimits": null,
+              "roleShareResourceLimits": null,
+              "isPublic": false,
+              "defaultRoleLimit": null,
+              "defaultRoleShareResourceLimit": null
             },
             "description": "some desc",
             "response": {
@@ -299,11 +460,12 @@
               "/second"
             ],
             "methods": [
-              "GET",
-              "POST"
+              "POST",
+              "GET"
             ],
             "upstreams": [
               {
+                "id": null,
                 "endpoint": "http://sample.com",
                 "key": "someKey",
                 "extraData": {
@@ -314,10 +476,12 @@
               }
             ],
             "maxRetryAttempts": 5,
+            "createdAt": null,
+            "updatedAt": null,
             "order": 1,
             "permissions": [
-              "write",
-              "read"
+              "WRITE",
+              "READ"
             ],
             "attachmentPaths": {
               "requestBody": [
@@ -329,13 +493,21 @@
               ]
             }
           }
-        ]
+        ],
+        "applicationTypePlaybackSupport": null,
+        "properties": {},
+        "required": [],
+        "applications": null,
+        "topics": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "$defs": null
       }
     }
   ],
   "routes": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "deployment": {
           "name": "test_route1",
@@ -344,26 +516,58 @@
               "role": "testRole3",
               "deploymentName": "test_route1",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole2",
               "deploymentName": "test_route1",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole1",
               "deploymentName": "test_route1",
               "enabled": true,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             }
           ],
           "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {
+            "minute": null,
+            "day": null,
+            "week": null,
+            "month": null,
+            "requestHour": null,
+            "requestDay": null
+          },
+          "defaultRoleShareResourceLimit": {
+            "maxAcceptedUsers": null,
+            "invitationTtl": 259200
+          }
         },
+        "description": null,
         "response": {
           "status": 200,
           "body": "OK"
@@ -379,42 +583,51 @@
         ],
         "upstreams": [
           {
+            "id": null,
             "endpoint": "http://upstream1.example.com",
             "key": "upstream-key-1",
-            "extraData": "{\"custom\":\"data1\"}",
+            "extraData": {
+              "custom": "data1"
+            },
             "weight": 1,
             "tier": 0
           },
           {
+            "id": null,
             "endpoint": "http://upstream2.example.com",
             "key": "upstream-key-2",
-            "extraData": "{\"custom\":\"data2\"}",
+            "extraData": {
+              "custom": "data2"
+            },
             "weight": 2,
             "tier": 1
           }
         ],
-        "maxRetryAttempts": 3
+        "maxRetryAttempts": 3,
+        "createdAt": null,
+        "updatedAt": null,
+        "order": 2147483647,
+        "displayName": "test_route1"
       }
     }
   ],
   "adapters": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "name": "adapter1",
+        "displayName": "adapter1",
         "baseEndpoint": "http://endpoint1/",
         "description": "test adapter",
-        "models": [],
-        "author": "test-author",
         "createdAt": 12345,
         "updatedAt": 12345,
-        "dependencies": []
+        "models": []
       }
     }
   ],
   "models": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "deployment": {
           "name": "testModel2",
@@ -423,30 +636,69 @@
               "role": "testRole3",
               "deploymentName": "testModel2",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole2",
               "deploymentName": "testModel2",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole1",
               "deploymentName": "testModel2",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             }
           ],
           "roleShareResourceLimits": [],
           "isPublic": true,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {
+            "minute": null,
+            "day": null,
+            "week": null,
+            "month": null,
+            "requestHour": null,
+            "requestDay": null
+          },
+          "defaultRoleShareResourceLimit": {
+            "maxAcceptedUsers": null,
+            "invitationTtl": 259200
+          }
         },
+        "endpoint": "https://endpoint2/embeddings",
+        "description": null,
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
+        "iconUrl": null,
+        "reference": null,
         "forwardAuthToken": false,
         "features": {
+          "rateEndpoint": null,
+          "tokenizeEndpoint": null,
+          "truncatePromptEndpoint": null,
+          "configurationEndpoint": null,
           "systemPromptSupported": true,
           "toolsSupported": false,
           "seedSupported": false,
@@ -462,21 +714,36 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
+        "inputAttachmentTypes": null,
+        "maxInputAttachments": null,
         "defaults": {},
+        "interceptors": null,
         "topics": [],
         "maxRetryAttempts": 5,
-        "type": "embedding",
-        "upstreams": [],
         "author": "test-author",
         "createdAt": 12345,
         "updatedAt": 12345,
-        "dependencies": ["dep1", "dep2"],
-        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
-        "endpoint": "https://endpoint2/embeddings"
+        "dependencies": [
+          "dep1",
+          "dep2"
+        ],
+        "type": "EMBEDDING",
+        "tokenizerModel": null,
+        "limits": null,
+        "pricing": null,
+        "upstreams": [],
+        "overrideName": null,
+        "fieldsHashingOrder": [
+          "prompt",
+          "temperature",
+          "seed",
+          "system"
+        ],
+        "source": null
       }
     },
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "deployment": {
           "name": "testModel1",
@@ -485,20 +752,39 @@
               "role": "testRole3",
               "deploymentName": "testModel1",
               "enabled": true,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole2",
               "deploymentName": "testModel1",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole1",
               "deploymentName": "testModel1",
               "enabled": true,
               "limit": {
-                "day": 1
+                "minute": null,
+                "day": 1,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
               }
             }
           ],
@@ -514,21 +800,30 @@
           ],
           "isPublic": false,
           "defaultRoleLimit": {
-            "day": 3
+            "minute": null,
+            "day": 3,
+            "week": null,
+            "month": null,
+            "requestHour": null,
+            "requestDay": null
           },
           "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": 15
+            "maxAcceptedUsers": 15,
+            "invitationTtl": 259200
           }
         },
-        "source": {
-          "$type": "adapter",
-          "adapterName": "adapter1",
-          "completionEndpointPath": "embeddings"
-        },
+        "endpoint": null,
+        "description": null,
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
+        "iconUrl": null,
+        "reference": null,
         "forwardAuthToken": false,
         "features": {
+          "rateEndpoint": null,
+          "tokenizeEndpoint": null,
+          "truncatePromptEndpoint": null,
+          "configurationEndpoint": null,
           "systemPromptSupported": true,
           "toolsSupported": false,
           "seedSupported": false,
@@ -544,25 +839,44 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
+        "inputAttachmentTypes": null,
+        "maxInputAttachments": null,
         "defaults": {},
         "interceptors": [
           "testInterceptor1"
         ],
         "topics": [],
         "maxRetryAttempts": 5,
-        "type": "embedding",
-        "upstreams": [],
         "author": "test-author",
         "createdAt": 12345,
         "updatedAt": 12345,
-        "dependencies": ["dep1", "dep2"],
-        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
+        "dependencies": [
+          "dep1",
+          "dep2"
+        ],
+        "type": "EMBEDDING",
+        "tokenizerModel": null,
+        "limits": null,
+        "pricing": null,
+        "upstreams": [],
+        "overrideName": null,
+        "fieldsHashingOrder": [
+          "prompt",
+          "temperature",
+          "seed",
+          "system"
+        ],
+        "source": {
+          "$type": "adapter",
+          "adapterName": "adapter1",
+          "completionEndpointPath": "embeddings"
+        }
       }
     }
   ],
   "applications": [
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "deployment": {
           "name": "testApplication1",
@@ -571,38 +885,84 @@
               "role": "testRole3",
               "deploymentName": "testApplication1",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole2",
               "deploymentName": "testApplication1",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole1",
               "deploymentName": "testApplication1",
               "enabled": true,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             }
           ],
           "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {
+            "minute": null,
+            "day": null,
+            "week": null,
+            "month": null,
+            "requestHour": null,
+            "requestDay": null
+          },
+          "defaultRoleShareResourceLimit": {
+            "maxAcceptedUsers": null,
+            "invitationTtl": 259200
+          }
         },
+        "endpoint": null,
+        "iconUrl": null,
+        "reference": null,
+        "description": null,
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
+        "inputAttachmentTypes": null,
+        "maxInputAttachments": null,
         "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
-        "viewerUrl": "https://viewer.test.com/app1",
-        "editorUrl": "https://editor.test.com/app1",
         "defaults": {},
         "interceptors": [
           "testInterceptor1"
         ],
+        "author": "test-author",
+        "createdAt": 12345,
+        "updatedAt": 12345,
+        "dependencies": [
+          "dep1",
+          "dep2"
+        ],
         "features": {
+          "rateEndpoint": null,
+          "tokenizeEndpoint": null,
+          "truncatePromptEndpoint": null,
+          "configurationEndpoint": null,
           "systemPromptSupported": true,
           "toolsSupported": false,
           "seedSupported": false,
@@ -620,14 +980,13 @@
         },
         "applicationProperties": {},
         "applicationTypeSchemaId": "https://test-schema-id.example",
-        "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
-        "dependencies": ["dep1", "dep2"]
+        "viewerUrl": "https://viewer.test.com/app1",
+        "editorUrl": "https://editor.test.com/app1",
+        "routes": null
       }
     },
     {
-      "importAction": "create",
+      "importAction": "CREATE",
       "value": {
         "deployment": {
           "name": "testApplication2",
@@ -636,35 +995,79 @@
               "role": "testRole3",
               "deploymentName": "testApplication2",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole2",
               "deploymentName": "testApplication2",
               "enabled": false,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             },
             {
               "role": "testRole1",
               "deploymentName": "testApplication2",
               "enabled": true,
-              "limit": {}
+              "limit": {
+                "minute": null,
+                "day": null,
+                "week": null,
+                "month": null,
+                "requestHour": null,
+                "requestDay": null
+              }
             }
           ],
           "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {
+            "minute": null,
+            "day": null,
+            "week": null,
+            "month": null,
+            "requestHour": null,
+            "requestDay": null
+          },
+          "defaultRoleShareResourceLimit": {
+            "maxAcceptedUsers": null,
+            "invitationTtl": 259200
+          }
         },
         "endpoint": "endpoint",
+        "iconUrl": null,
+        "reference": null,
+        "description": null,
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
+        "inputAttachmentTypes": null,
+        "maxInputAttachments": null,
         "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
         "defaults": {},
         "interceptors": [],
+        "author": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "dependencies": null,
         "features": {
+          "rateEndpoint": null,
+          "tokenizeEndpoint": null,
+          "truncatePromptEndpoint": null,
+          "configurationEndpoint": null,
           "systemPromptSupported": true,
           "toolsSupported": false,
           "seedSupported": false,
@@ -681,11 +1084,18 @@
           "parallelToolCallsSupported": true
         },
         "applicationProperties": {},
+        "applicationTypeSchemaId": null,
+        "viewerUrl": null,
+        "editorUrl": null,
         "routes": [
           {
             "deployment": {
               "name": "route1",
-              "isPublic": false
+              "roleLimits": null,
+              "roleShareResourceLimits": null,
+              "isPublic": false,
+              "defaultRoleLimit": null,
+              "defaultRoleShareResourceLimit": null
             },
             "description": "some desc",
             "response": {
@@ -698,11 +1108,12 @@
               "/second"
             ],
             "methods": [
-              "GET",
-              "POST"
+              "POST",
+              "GET"
             ],
             "upstreams": [
               {
+                "id": null,
                 "endpoint": "http://sample.com",
                 "key": "someKey",
                 "extraData": {
@@ -713,10 +1124,12 @@
               }
             ],
             "maxRetryAttempts": 5,
+            "createdAt": null,
+            "updatedAt": null,
             "order": 1,
             "permissions": [
-              "write",
-              "read"
+              "WRITE",
+              "READ"
             ],
             "attachmentPaths": {
               "requestBody": [
@@ -732,5 +1145,7 @@
       }
     }
   ],
+  "addons": null,
+  "assistants": null,
   "toolSets": []
 }

@@ -3,6 +3,7 @@
 		"test_route1": {
 			"deployment": {
 				"name": "test_route1",
+				"displayName": "test_route1",
 				"isPublic": false,
 				"defaultRoleLimit": {},
 				"defaultRoleShareResourceLimit": {}

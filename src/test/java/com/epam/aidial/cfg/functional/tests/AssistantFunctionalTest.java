@@ -2,7 +2,7 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAssistantDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 
@@ -30,39 +32,33 @@ public abstract class AssistantFunctionalTest {
     private FeatureFlagGateEvaluationAspect featureFlagAspect;
 
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndGetAssistants() {
         initRoles();
-        AssistantDto assistantDto = createDto("1");
+        AssistantDto assistantDto = createAssistantDto("1");
 
         assistantFacade.createAssistant(assistantDto);
 
         AssistantDto actual = assistantFacade.getAssistant(assistantDto.getName());
-        AssistantDto expected = createDto("1");
+        AssistantDto expected = createAssistantDto("1");
 
         assertAssistant(actual, expected);
 
-        assistantFacade.createAssistant(createDto("2"));
+        assistantFacade.createAssistant(createAssistantDto("2"));
 
         Collection<AssistantDto> actualAssistants = assistantFacade.getAllAssistants();
 
-        assertAssistants(actualAssistants, List.of(createDto("1"), createDto("2")));
+        assertAssistants(actualAssistants, List.of(createAssistantDto("1"), createAssistantDto("2")));
     }
 
     @Test
     void testCreate_UnsupportedException() {
         // given
-        AssistantDto assistantDto = createDto("1");
+        AssistantDto assistantDto = createAssistantDto("1");
         doThrow(new UnsupportedOperationException("Feature flag 'assistantsSupported' is disabled.")).when(featureFlagAspect).evaluate(any(), any());
         // when
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> assistantFacade.createAssistant(assistantDto))
@@ -74,7 +70,7 @@ public abstract class AssistantFunctionalTest {
     @Test
     void testUpdate_UnsupportedException() {
         // given
-        AssistantDto assistantDto = createDto("1");
+        AssistantDto assistantDto = createAssistantDto("1");
         doThrow(new UnsupportedOperationException("Feature flag 'assistantsSupported' is disabled.")).when(featureFlagAspect).evaluate(any(), any());
         // when
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> assistantFacade.updateAssistant(assistantDto.getName(), assistantDto))
@@ -97,7 +93,7 @@ public abstract class AssistantFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndDeleteAssistant() {
         initRoles();
-        AssistantDto assistantDto = createDto("1");
+        AssistantDto assistantDto = createAssistantDto("1");
         assistantFacade.createAssistant(assistantDto);
 
         assistantFacade.deleteAssistant(assistantDto.getName());
@@ -109,15 +105,15 @@ public abstract class AssistantFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndUpdateAssistant() {
         initRoles();
-        AssistantDto assistantDto = createDto("1");
+        AssistantDto assistantDto = createAssistantDto("1");
         assistantFacade.createAssistant(assistantDto);
-        AssistantDto updatedAssistant = createDto("1");
+        AssistantDto updatedAssistant = createAssistantDto("1");
         updatedAssistant.setDescription("new assistant description");
 
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
 
         AssistantDto actual = assistantFacade.getAssistant(assistantDto.getName());
-        var expected = createDto("1");
+        var expected = createAssistantDto("1");
         expected.setDescription("new assistant description");
         assertAssistant(actual, expected);
     }
@@ -125,9 +121,9 @@ public abstract class AssistantFunctionalTest {
     @Test
     public void shouldThrowExceptionWhenRenameAssistant() {
         initRoles();
-        AssistantDto assistantDto = createDto("1");
+        AssistantDto assistantDto = createAssistantDto("1");
         assistantFacade.createAssistant(assistantDto);
-        AssistantDto updatedAssistant = createDto("2");
+        AssistantDto updatedAssistant = createAssistantDto("2");
         updatedAssistant.setDescription("new assistant description");
 
         IllegalArgumentException exception = Assertions.assertThrows(
@@ -141,16 +137,6 @@ public abstract class AssistantFunctionalTest {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
-    }
-
-    private AssistantDto createDto(String suffix) {
-        AssistantDto assistantDto = new AssistantDto();
-        assistantDto.setName("assistant" + suffix);
-        assistantDto.setDescription("description" + suffix);
-        assistantDto.setRoleLimits(Map.of(
-                "role2", new LimitDto()
-        ));
-        return assistantDto;
     }
 
     private Map<String, AssistantDto> toMap(Collection<AssistantDto> dtos) {

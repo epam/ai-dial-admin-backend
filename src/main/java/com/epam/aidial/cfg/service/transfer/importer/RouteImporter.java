@@ -84,11 +84,13 @@ public class RouteImporter extends RoleBasedImporter {
         Optional<Route> route = routeService.tryGetRoute(routeName);
         if (route.isPresent()) {
             Route existingRoute = route.get();
+            newRoute.setDisplayName(existingRoute.getDisplayName());
             setLimits(routeName, existingRoute.getDeployment(), roles, newRoute.getDeployment(), isPreview);
             return handleExisting(newRoute, resolutionPolicy, routeName, isPreview);
         } else {
             validate(routeName, newRoute);
             setLimits(routeName, roles, newRoute.getDeployment(), isPreview);
+            newRoute.setDisplayName(routeName);
             if (!isPreview) {
                 routeService.create(newRoute);
             }
