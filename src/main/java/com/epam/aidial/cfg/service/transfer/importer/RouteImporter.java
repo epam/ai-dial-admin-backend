@@ -38,7 +38,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Service
 @Slf4j
 @LogExecution
-public class RouteImporter extends RoleBasedImporter {
+public class RouteImporter extends DeploymentHolderImporter {
 
     private final RouteService routeService;
     private final RouteCoreMapper routeCoreMapper;

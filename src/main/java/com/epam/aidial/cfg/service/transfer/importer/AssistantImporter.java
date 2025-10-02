@@ -39,7 +39,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @LogExecution
 @RequiredArgsConstructor
-public class AssistantImporter extends RoleBasedImporter {
+public class AssistantImporter extends DeploymentHolderImporter {
 
     private final AssistantService assistantService;
     private final AssistantsPropertyService assistantsPropertyService;

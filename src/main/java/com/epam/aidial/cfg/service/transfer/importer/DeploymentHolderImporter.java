@@ -1,9 +1,9 @@
 package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.DeploymentHolder;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
-import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 
@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public abstract class RoleBasedImporter {
+public abstract class DeploymentHolderImporter {
 
     protected void setLimits(String deploymentName, Map<String, Role> roles, Deployment newDeployment) {
         setRoleLimits(deploymentName, List.of(), roles, newDeployment);
@@ -90,10 +90,10 @@ public abstract class RoleBasedImporter {
                 && limit1.getDeploymentName().equals(limit2.getDeploymentName());
     }
 
-    protected <T extends RoleBased> List<String> getNextImportComponentNames(Collection<ImportComponent<T>> importComponents) {
+    protected <T extends DeploymentHolder> List<String> getNextImportComponentNames(Collection<ImportComponent<T>> importComponents) {
         return importComponents.stream()
                 .map(ImportComponent::getNext)
-                .map(RoleBased::getDeployment)
+                .map(DeploymentHolder::getDeployment)
                 .map(Deployment::getName)
                 .toList();
     }
@@ -105,10 +105,10 @@ public abstract class RoleBasedImporter {
         return new ImportedLimits(importedRoleLimits, importedRoleShareResourceLimits);
     }
 
-    protected void setImportedLimits(RoleBased roleBased,
+    protected void setImportedLimits(DeploymentHolder deploymentHolder,
                                      List<RoleLimit> importedRoleLimits,
                                      List<RoleShareResourceLimit> importedRoleShareResourceLimits) {
-        String name = roleBased.getDeployment().getName();
+        String name = deploymentHolder.getDeployment().getName();
 
         List<RoleLimit> roleLimits = importedRoleLimits.stream()
                 .filter(roleLimit -> roleLimit.getDeploymentName().equals(name))
@@ -117,8 +117,8 @@ public abstract class RoleBasedImporter {
                 .filter(roleShareResourceLimit -> roleShareResourceLimit.getDeploymentName().equals(name))
                 .toList();
 
-        roleBased.getDeployment().setRoleLimits(roleLimits);
-        roleBased.getDeployment().setRoleShareResourceLimits(roleShareResourceLimits);
+        deploymentHolder.getDeployment().setRoleLimits(roleLimits);
+        deploymentHolder.getDeployment().setRoleShareResourceLimits(roleShareResourceLimits);
     }
 
     protected record ImportedLimits(List<RoleLimit> importedRoleLimits,

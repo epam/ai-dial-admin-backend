@@ -34,7 +34,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @LogExecution
 @RequiredArgsConstructor
-public class ApplicationImporter extends RoleBasedImporter {
+public class ApplicationImporter extends DeploymentHolderImporter {
 
     private final ApplicationService applicationService;
     private final ApplicationCoreMapper applicationCoreMapper;

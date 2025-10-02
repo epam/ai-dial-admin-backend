@@ -34,7 +34,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @LogExecution
 @RequiredArgsConstructor
-public class AddonImporter extends RoleBasedImporter {
+public class AddonImporter extends DeploymentHolderImporter {
 
     private final AddonService addonService;
     private final AddonCoreMapper addonCoreMapper;

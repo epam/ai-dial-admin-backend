@@ -42,7 +42,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @Service
 @LogExecution
-public class ToolSetImporter extends RoleBasedImporter {
+public class ToolSetImporter extends DeploymentHolderImporter {
 
     private final DeploymentManagerService deploymentManagerService;
     private final ToolSetCoreMapper toolSetCoreMapper;
