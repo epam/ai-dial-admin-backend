@@ -103,7 +103,13 @@
         "name": "default",
         "limits": [],
         "keys": [],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807
+        }
       },
       "next": {
         "name": "default",
@@ -666,7 +672,10 @@
         "endpoint": "http://sample-endpoint/api",
         "transport": "sse",
         "allowedTools": ["branch", "remote"],
-        "author": "test-author"
+        "author": "test-author",
+        "source": {
+          "$type": "endpoints"
+        }
       }
     }
   ]
