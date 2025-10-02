@@ -14,7 +14,7 @@ import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.RuleFunction;
-import com.epam.aidial.cfg.service.ApplicationService;
+import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +35,7 @@ class ApplicationPublicationResolverTest {
     @Mock
     private PublicationResourceUrlResolver publicationResourceUrlResolver;
     @Mock
-    private ApplicationService applicationService;
+    private ApplicationResourceService applicationService;
     @Spy
     private PublicationClientMapperImpl publicationClientMapper;
 

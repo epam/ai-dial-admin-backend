@@ -28,6 +28,7 @@ public class ApplicationResource {
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
+    private Integer maxInputAttachments;
     private Map<String, Object> defaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
@@ -36,5 +37,10 @@ public class ApplicationResource {
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
+    private List<RouteResource> routes;
+    private Boolean invalid;
+    private List<String> userRoles;
+    private FeaturesResource features;
     private String applicationTypeSchemaId;
+    private Map<String, Object> applicationProperties;
 }

@@ -75,6 +75,12 @@
           "maxAcceptedUsers": 10,
           "invitationTtl": 120
         }
+      },
+      "costLimit": {
+        "minute": "111",
+        "day": "222",
+        "week": "333",
+        "month": "444"
       }
     },
     "testRole2": {
@@ -86,7 +92,13 @@
         "testApplication2": {},
         "testAssistant1": {}
       },
-      "share": {}
+      "share": {},
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
+      }
     },
     "testRole3": {
       "description": "test role 1 description",
@@ -97,7 +109,13 @@
         "testApplication2": {},
         "testAssistant1": {}
       },
-      "share": {}
+      "share": {},
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
+      }
     },
     "default": {
       "description": "test role 1 description",
@@ -108,7 +126,13 @@
         "testApplication2": {},
         "testAssistant1": {}
       },
-      "share": {}
+      "share": {},
+      "costLimit": {
+        "minute": "9223372036854775807",
+        "day": "9223372036854775807",
+        "week": "9223372036854775807",
+        "month": "9223372036854775807"
+      }
     }
   },
   "addons": {

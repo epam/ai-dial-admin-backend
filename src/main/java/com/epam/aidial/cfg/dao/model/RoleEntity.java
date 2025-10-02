@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
@@ -38,6 +39,8 @@ public class RoleEntity extends TimeTrackableEntity<String> {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "role", orphanRemoval = true)
     @AuditJoinTable
     private List<RoleShareResourceLimitEntity> share = new ArrayList<>();
+    @Embedded
+    private CostLimitEntity costLimit;
 
     @PreRemove
     public void preRemove() {

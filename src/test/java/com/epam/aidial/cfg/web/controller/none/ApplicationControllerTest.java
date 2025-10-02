@@ -19,6 +19,7 @@ import org.springframework.test.json.JsonCompareMode;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ApplicationController.class)
@@ -93,6 +95,19 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testUpdateApplication_appRouteWithInvalidPath_BadRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/application_dto_with_invalid_app_route_path.json");
+
+        doNothing().when(applicationFacade).updateApplication(eq("test_application"), any());
+
+        mockMvc.perform(put("/api/v1/applications/{applicationName}", "test_application")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("JSON parse error: paths[1].<list element>: Invalid regular expression pattern"));
     }
 
     @Test

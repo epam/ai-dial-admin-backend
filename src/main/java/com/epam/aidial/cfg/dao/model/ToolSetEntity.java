@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,8 +29,8 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
 
     @MapsId
     @JoinColumn(name = "deployment_name", unique = true)
-    @OneToOne(targetEntity = DeploymentEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private DeploymentEntity deployment;
+    @OneToOne(targetEntity = SecuredResourceEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private SecuredResourceEntity deployment;
 
     private String endpoint;
     private String iconUrl;
@@ -38,6 +39,9 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private List<String> descriptionKeywords;
     private int maxRetryAttempts = 1;
     private String author;
+
+    @Embedded
+    private ToolSetContainerEntity toolSetContainer;
 
     @Enumerated(EnumType.STRING)
     private TransportEntity transport;

@@ -29,7 +29,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {RoleLimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class})
+@Mapper(componentModel = "spring", uses = {
+        RoleLimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class, CostLimitEntityMapper.class
+})
 public abstract class RoleEntityMapper {
 
     @Autowired

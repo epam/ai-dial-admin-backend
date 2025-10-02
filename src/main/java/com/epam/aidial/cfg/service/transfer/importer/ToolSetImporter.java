@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service.transfer.importer;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
@@ -9,7 +10,10 @@ import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
+import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreToolSet;
@@ -40,13 +44,17 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @LogExecution
 public class ToolSetImporter extends RoleBasedImporter {
 
+    private final DeploymentManagerService deploymentManagerService;
     private final ToolSetCoreMapper toolSetCoreMapper;
     private final ToolSetService toolSetService;
     private final Validator validator;
 
-    public ToolSetImporter(ToolSetService toolSetService, ToolSetCoreMapper toolSetCoreMapper) {
-        this.toolSetService = toolSetService;
+    public ToolSetImporter(DeploymentManagerService deploymentManagerService,
+                           ToolSetCoreMapper toolSetCoreMapper,
+                           ToolSetService toolSetService) {
+        this.deploymentManagerService = deploymentManagerService;
         this.toolSetCoreMapper = toolSetCoreMapper;
+        this.toolSetService = toolSetService;
         this.validator = Validation.buildDefaultValidatorFactory().getValidator();
     }
 
@@ -81,6 +89,7 @@ public class ToolSetImporter extends RoleBasedImporter {
                                                     ToolSet newToolSet,
                                                     Map<String, Role> roles,
                                                     ConflictResolutionPolicy resolutionPolicy) {
+        removeContainerSourceDependencyIfContainerIsAbsent(newToolSet);
         Optional<ToolSet> toolSet = toolSetService.tryGetToolSet(toolSetName);
         if (toolSet.isPresent()) {
             ToolSet existingToolSet = toolSet.get();
@@ -92,6 +101,26 @@ public class ToolSetImporter extends RoleBasedImporter {
             setLimits(toolSetName, roles, newToolSet.getDeployment());
             toolSetService.create(newToolSet);
             return new ImportComponent<>(CREATE, null, newToolSet);
+        }
+    }
+
+    private void removeContainerSourceDependencyIfContainerIsAbsent(ToolSet newToolSet) {
+        if (!(newToolSet.getSource() instanceof ToolSetContainerSource containerSource)) {
+            return;
+        }
+
+        String containerId = containerSource.getContainerId();
+        DeploymentInfoDto deploymentInfo = null;
+
+        try {
+            deploymentInfo = deploymentManagerService.getById(containerId);
+        } catch (DeploymentClientNotExistsException e) {
+            log.warn("Failed to get deployment by ID '%s' on ToolSet '%s' import"
+                    .formatted(containerId, newToolSet.getDeployment().getName()), e);
+        }
+
+        if (deploymentInfo == null) {
+            newToolSet.setSource(null);
         }
     }
 

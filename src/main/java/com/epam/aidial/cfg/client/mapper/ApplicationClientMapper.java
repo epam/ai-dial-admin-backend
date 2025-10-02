@@ -4,9 +4,13 @@ import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
+import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.FolderInfo;
+import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,10 +21,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring", uses = FolderUrlMapper.class)
+import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.extractPath;
+import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.parseEncodedVersionedPath;
+
+@Mapper(componentModel = "spring", uses = {FolderUrlMapper.class, RouteMapper.class})
 @Slf4j
 public abstract class ApplicationClientMapper {
-
     public static final String APPLICATIONS_PREFIX = "applications/";
 
     @Mapping(target = "path", source = "url", qualifiedByName = "mapUrl")
@@ -52,7 +58,63 @@ public abstract class ApplicationClientMapper {
 
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "updateTime", source = "metadataDto.updatedAt")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "author", source = "metadataDto.author")
+    @Mapping(target = "routes", source = "dto.routes")
     protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto, ApplicationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
 
+    public ApplicationResourceNodeInfo toApplicationInfo(ApplicationMetadataDto dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        return switch (dto.getNodeType()) {
+            case FOLDER -> ApplicationResourceNodeInfo.builder()
+                    .path(extractPath(dto.getUrl(), APPLICATIONS_PREFIX))
+                    .name(null)
+                    .version(null)
+                    .folderId(null)
+                    .updateTime(dto.getUpdatedAt())
+                    .author(dto.getAuthor())
+                    .nodeType(toNodeType(dto.getNodeType()))
+                    .nextToken(dto.getNextToken())
+                    .items(toApplicationInfo(dto.getItems()))
+                    .build();
+            case ITEM -> {
+                var itemParts = parseEncodedVersionedPath(dto.getUrl(), APPLICATIONS_PREFIX);
+                yield ApplicationResourceNodeInfo.builder()
+                        .path(itemParts.getPath())
+                        .name(itemParts.getName())
+                        .version(itemParts.getVersion())
+                        .folderId(itemParts.getFolderId())
+                        .updateTime(dto.getUpdatedAt())
+                        .author(dto.getAuthor())
+                        .nodeType(toNodeType(dto.getNodeType()))
+                        .nextToken(dto.getNextToken())
+                        .items(toApplicationInfo(dto.getItems()))
+                        .build();
+            }
+        };
+    }
+
+    private List<ApplicationResourceNodeInfo> toApplicationInfo(List<ApplicationMetadataDto> dtoList) {
+        if (dtoList == null) {
+            return null;
+        }
+        return dtoList.stream().map(this::toApplicationInfo).toList();
+    }
+
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "author", ignore = true)
+    @Mapping(target = "invalid", ignore = true)
+    public abstract ApplicationResourceDto toApplicationResourceDto(CreateApplicationResource createApplicationResource);
+
+    public String toPath(CreateApplicationResource createApplicationResource) {
+        var folderId = StringUtils.stripEnd(createApplicationResource.getFolderId(), "/");
+        return folderId + "/" + createApplicationResource.getName() + "__" + createApplicationResource.getVersion();
+    }
+
+    protected abstract NodeType toNodeType(NodeTypeDto dto);
 
 }

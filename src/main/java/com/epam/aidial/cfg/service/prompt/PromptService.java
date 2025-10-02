@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.client.dto.PromptMetadataDto;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
@@ -14,7 +15,6 @@ import com.epam.aidial.cfg.model.PromptNodeInfo;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.ResourceService;
-import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,13 +22,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.client.mapper.PromptClientMapper.PROMPTS_PREFIX;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
 
 @Slf4j
 @Service
@@ -66,7 +66,7 @@ public class PromptService implements ResourceService {
         try {
             var promptsMetadataResponse = getMetadata(request);
             return promptClientMapper.toFolderInfo(promptsMetadataResponse, PROMPTS_PREFIX);
-        } catch (FeignException.FeignClientException.NotFound notFound) {
+        } catch (ResourceNotFoundException notFound) {
             return null;
         }
     }
@@ -102,16 +102,6 @@ public class PromptService implements ResourceService {
         var headers = createHeadersForCreate(allowOverride, etag);
         var promptMetadata = promptClient.createPrompt(path, promptDto, headers);
         return promptClientMapper.toPrompt(promptDto, promptMetadata);
-    }
-
-    private Map<String, String> createHeadersForCreate(boolean allowOverride, String etag) {
-        if (!allowOverride) {
-            return Map.of(PromptClient.IF_NONE_MATCH_HEADER_NAME, "*");
-        }
-        if (etag != null) {
-            return Map.of(PromptClient.IF_MATCH_HEADER_NAME, etag);
-        }
-        return Map.of();
     }
 
     public void deletePrompts(List<String> paths) {

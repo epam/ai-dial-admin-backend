@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service.transfer.importer.util;
 
+import com.epam.aidial.cfg.domain.mapper.CostLimitCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.RoleLimitMapperImpl;
@@ -28,7 +29,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 @ContextConfiguration(classes = {
         RoleLimitMapperImpl.class,
         RoleShareResourceLimitMapperImpl.class,
-        RoleCoreMapperImpl.class
+        RoleCoreMapperImpl.class,
+        CostLimitCoreMapperImpl.class
 })
 class CoreRolesMergerTest {
 

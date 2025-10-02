@@ -27,6 +27,7 @@ import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationTypeSchemaDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AssistantDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AttachmentPathDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.CostLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.FeaturesDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ImportConfigMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.InstantMapperImpl;
@@ -36,6 +37,7 @@ import com.epam.aidial.cfg.web.facade.mapper.KeyDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.LimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ModelSourceDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ResourceAuthSettingsDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ResponseDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleBasedDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleDtoMapperImpl;
@@ -44,6 +46,7 @@ import com.epam.aidial.cfg.web.facade.mapper.RoleShareResourceLimitDtoMapperImpl
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ToolSetSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.UpstreamDtoMapperImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -81,7 +84,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class,
         AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class, RoleShareResourceLimitDtoMapperImpl.class,
         InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class, AttachmentPathDtoMapperImpl.class,
-        ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class
+        ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class, ResourceAuthSettingsDtoMapperImpl.class, CostLimitDtoMapperImpl.class,
+        ToolSetSourceDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 

@@ -6,12 +6,12 @@ import com.epam.aidial.cfg.client.dto.ConversationMetadataDto;
 import com.epam.aidial.cfg.client.mapper.ConversationClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ public class ConversationService implements ResourceService {
         try {
             ConversationMetadataDto conversationMetadata = getMetadata(request);
             return conversationClientMapper.toFolderInfo(conversationMetadata, CONVERSATIONS_PREFIX);
-        } catch (FeignException.FeignClientException.NotFound notFound) {
+        } catch (ResourceNotFoundException notFound) {
             return null;
         }
     }

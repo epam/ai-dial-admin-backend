@@ -51,7 +51,13 @@
               "invitationTtl": 120
             }
           }
-        ]
+        ],
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -60,7 +66,13 @@
         "name": "testRole2",
         "limits": [],
         "keys": [],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -76,7 +88,13 @@
           }
         ],
         "keys": [],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -100,7 +118,13 @@
           }
         ],
         "keys": [],
-        "share": []
+        "share": [],
+        "costLimit": {
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     }
   ],
@@ -617,6 +641,22 @@
           "defaultRoleLimit": {},
           "defaultRoleShareResourceLimit": {
             "invitationTtl": 259200
+          },
+          "authSettings": {
+            "authenticationType": "API_KEY",
+            "clientId": "some-client-id",
+            "clientSecret": "some-client-secret",
+            "authorizationEndpoint": "https://some-auth-endpoint",
+            "tokenEndpoint": "https://some-token-endpoint",
+            "redirectUri": "https://some-redirect-uri",
+            "codeChallenge": "someCodeChallenge",
+            "codeChallengeMethod": "someCodeChallengeMethod",
+            "codeVerifier": "someCodeVerifier",
+            "apiKeyHeader": "someApiKeyHeader",
+            "scopesSupported": [
+              "first",
+              "second"
+            ]
           }
         },
         "displayName": "ToolSet1",

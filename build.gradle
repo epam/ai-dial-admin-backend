@@ -4,6 +4,9 @@ buildscript {
             classpath ('org.apache.commons:commons-lang3:3.18.0') {
                 because("previous versions have vulnerabilities")
             }
+            classpath ('org.springframework:spring-core:6.2.11') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
@@ -16,7 +19,7 @@ plugins {
 }
 
 group = 'com.epam.aidial'
-version = "0.8.0-rc"
+version = "0.9.0-rc"
 
 java {
     toolchain {
@@ -113,7 +116,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql:11.4.1'
     implementation 'org.flywaydb:flyway-sqlserver:11.4.1'
 
-    implementation 'io.fabric8:kubernetes-client:7.3.1'
+    implementation 'io.fabric8:kubernetes-client:7.4.0'
 
     implementation 'com.influxdb:influxdb-client-java:7.2.0'
 

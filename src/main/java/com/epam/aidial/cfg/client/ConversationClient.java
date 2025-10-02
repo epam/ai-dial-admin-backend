@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
                 MessageConversionCoreClientConfiguration.class,
                 AuthorizationCoreClientConfiguration.class,
                 RetryClientConfiguration.class,
+                FeignErrorDecoderConfiguration.class
         })
 public interface ConversationClient {
 
@@ -29,7 +30,7 @@ public interface ConversationClient {
      * to facilitate the decoding of the response.
      *
      * <p>For more information, refer to the custom decoder implementation in:
-     * {@link MessageConversionCoreClientConfiguration#feignDecoder(org.springframework.beans.factory.ObjectFactory, com.fasterxml.jackson.databind.ObjectMapper)}
+     * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
      */
     @GetMapping("/v1/conversations/{path}")
     ConversationDto getConversation(@PathVariable String path);

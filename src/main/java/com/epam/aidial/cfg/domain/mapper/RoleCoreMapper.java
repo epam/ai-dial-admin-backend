@@ -22,7 +22,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {RoleLimitMapper.class, RoleShareResourceLimitMapper.class})
+@Mapper(componentModel = "spring", uses = {
+        RoleLimitMapper.class, RoleShareResourceLimitMapper.class, CostLimitCoreMapper.class
+})
 public interface RoleCoreMapper {
 
     @Mapping(target = "limits", qualifiedByName = "mapToCoreLimits")
