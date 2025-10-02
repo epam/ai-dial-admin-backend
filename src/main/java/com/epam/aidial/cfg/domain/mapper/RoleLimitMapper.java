@@ -10,8 +10,8 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 
-import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -26,21 +26,30 @@ public abstract class RoleLimitMapper {
 
     @Named("mapToCoreLimits")
     public Map<String, CoreLimit> mapLimits(List<RoleLimit> roleLimits, @Context Collection<Deployment> deployments) {
-        if (roleLimits == null) {
-            return Map.of();
-        }
+        Map<String, CoreLimit> result = new HashMap<>();
+
+        CollectionUtils.emptyIfNull(deployments).stream()
+                .filter(Deployment::getIsPublic)
+                .filter(deployment -> !deployment.getDefaultRoleLimit().isEmpty())
+                .forEach(deployment -> {
+                    CoreLimit mappedLimit = mapLimit(new Limit(), deployment);
+                    result.put(deployment.getName(), mappedLimit);
+                });
 
         Map<String, Deployment> deploymentsByName = CollectionUtils.emptyIfNull(deployments).stream()
                 .collect(Collectors.toMap(Deployment::getName, Function.identity()));
 
-        return roleLimits.stream()
-                .map(roleLimit -> {
+        CollectionUtils.emptyIfNull(roleLimits)
+                .forEach(roleLimit -> {
                     Deployment deployment = deploymentsByName.get(roleLimit.getDeploymentName());
                     CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
-                    return new AbstractMap.SimpleEntry<>(roleLimit.getDeploymentName(), mappedLimit);
-                })
-                .filter(entry -> !entry.getValue().isEmpty())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+                    if (!mappedLimit.isEmpty()) {
+                        result.put(roleLimit.getDeploymentName(), mappedLimit);
+                    }
+                });
+
+        return result;
     }
 
     private CoreLimit mapLimit(Limit limit, Deployment deployment) {
