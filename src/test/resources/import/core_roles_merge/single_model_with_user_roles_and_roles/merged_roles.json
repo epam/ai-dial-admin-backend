@@ -1,4 +1,112 @@
 {
+  "userRoleInRolesSectionWithoutLimits": {
+    "name": "userRoleInRolesSectionWithoutLimits",
+    "limits": [
+      {
+        "role": "userRoleInRolesSectionWithoutLimits",
+        "deploymentName": "testModel1",
+        "enabled": true,
+        "limit": {}
+      }
+    ],
+    "share": [
+      {
+        "role": "userRoleInRolesSectionWithoutLimits",
+        "deploymentName": "testModel1",
+        "limit": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
+  },
+  "userRoleInRolesSectionWithNullLimits": {
+    "name": "userRoleInRolesSectionWithNullLimits",
+    "limits": [
+      {
+        "role": "userRoleInRolesSectionWithNullLimits",
+        "deploymentName": "testModel1",
+        "enabled": true,
+        "limit": {}
+      }
+    ],
+    "share": [
+      {
+        "role": "userRoleInRolesSectionWithNullLimits",
+        "deploymentName": "testModel1",
+        "limit": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
+  },
+  "userRoleInRolesSectionWithEmptyLimits": {
+    "name": "userRoleInRolesSectionWithEmptyLimits",
+    "limits": [
+      {
+        "role": "userRoleInRolesSectionWithEmptyLimits",
+        "deploymentName": "testModel1",
+        "enabled": true,
+        "limit": {}
+      }
+    ],
+    "share": [
+      {
+        "role": "userRoleInRolesSectionWithEmptyLimits",
+        "deploymentName": "testModel1",
+        "limit": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
+  },
+  "userRoleInRolesSectionWithNullLimit": {
+    "name": "userRoleInRolesSectionWithNullLimit",
+    "limits": [
+      {
+        "role": "userRoleInRolesSectionWithNullLimit",
+        "deploymentName": "testModel1",
+        "enabled": true,
+        "limit": {}
+      }
+    ],
+    "share": [
+      {
+        "role": "userRoleInRolesSectionWithNullLimit",
+        "deploymentName": "testModel1",
+        "limit": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
+  },
   "userRoleInRolesSectionWithEmptyLimit": {
     "name": "userRoleInRolesSectionWithEmptyLimit",
     "limits": [
@@ -6,7 +114,14 @@
         "role": "userRoleInRolesSectionWithEmptyLimit",
         "deploymentName": "testModel1",
         "enabled": true,
-        "limit": {}
+        "limit": {
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
+        }
       }
     ],
     "share": [
@@ -34,7 +149,12 @@
         "deploymentName": "testModel1",
         "enabled": true,
         "limit": {
-          "day": 5
+          "minute": 9223372036854775807,
+          "day": 5,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
         }
       }
     ],
@@ -46,9 +166,67 @@
       "month": "9223372036854775807"
     }
   },
+  "roleInRolesSectionWithoutLimits": {
+    "name": "roleInRolesSectionWithoutLimits",
+    "limits": [],
+    "share": [],
+    "costLimit": {
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
+  },
+  "roleInRolesSectionWithNullLimits": {
+    "name": "roleInRolesSectionWithNullLimits",
+    "limits": [],
+    "share": [],
+    "costLimit": {
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
+  },
+  "roleInRolesSectionWithEmptyLimits": {
+    "name": "roleInRolesSectionWithEmptyLimits",
+    "limits": [],
+    "share": [],
+    "costLimit": {
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
+  },
+  "roleInRolesSectionWithNullLimit": {
+    "name": "roleInRolesSectionWithNullLimit",
+    "limits": [],
+    "share": [],
+    "costLimit": {
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
+  },
   "roleInRolesSectionWithEmptyLimit": {
     "name": "roleInRolesSectionWithEmptyLimit",
-    "limits": [],
+    "limits": [
+      {
+        "role": "roleInRolesSectionWithEmptyLimit",
+        "deploymentName": "testModel1",
+        "enabled": false,
+        "limit": {
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
+        }
+      }
+    ],
     "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
@@ -65,8 +243,12 @@
         "deploymentName": "testModel1",
         "enabled": false,
         "limit": {
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
           "week": 120,
-          "month": 500
+          "month": 500,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
         }
       }
     ],

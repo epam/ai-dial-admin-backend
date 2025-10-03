@@ -1,38 +1,66 @@
 [
   {
     "role": "role1",
-    "deploymentName": "deployment1",
+    "deploymentName": "privateDeploymentWithDefaultDayForLimitWithoutDay",
     "limit": {}
   },
   {
     "role": "role1",
-    "deploymentName": "deployment2",
+    "deploymentName": "privateDeploymentWithDefaultDayForLimitWithDay",
     "limit": {
       "day": 5
     }
   },
   {
     "role": "role1",
-    "deploymentName": "deployment3",
+    "deploymentName": "privateDeploymentWithDefaultDayForLimitWithMaxDay",
     "limit": {
       "day": 9223372036854775807
     }
   },
   {
     "role": "role1",
-    "deploymentName": "deployment4",
+    "deploymentName": "privateDeploymentWithoutDefaultDayForLimitWithoutDay",
     "limit": {}
   },
   {
     "role": "role1",
-    "deploymentName": "deployment5",
+    "deploymentName": "privateDeploymentWithoutDefaultDayForLimitWithDay",
     "limit": {
       "day": 5
     }
   },
   {
     "role": "role1",
-    "deploymentName": "deployment6",
+    "deploymentName": "privateDeploymentWithoutDefaultDayForLimitWithMaxDay",
+    "limit": {
+      "day": 9223372036854775807
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "publicDeploymentWithDefaultDayForLimitWithDay",
+    "limit": {
+      "day": 5
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "publicDeploymentWithDefaultDayForLimitWithMaxDay",
+    "limit": {
+      "day": 9223372036854775807
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "publicDeploymentWithoutDefaultDayForLimitWithDay",
+    "limit": {
+      "day": 5
+    }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "publicDeploymentWithoutDefaultDayForLimitWithMaxDay",
     "limit": {
       "day": 9223372036854775807
     }

@@ -1,34 +1,74 @@
 [
   {
-    "name": "deployment1",
-    "defaultRoleLimit": {
-      "minute": 9223372036854775807,
-      "day": 10,
-      "week": 9223372036854775807
-    }
-  },
-  {
-    "name": "deployment2",
+    "name": "privateDeploymentWithDefaultDayForLimitWithoutDay",
     "defaultRoleLimit": {
       "day": 10
-    }
+    },
+    "isPublic": false
   },
   {
-    "name": "deployment3",
+    "name": "privateDeploymentWithDefaultDayForLimitWithDay",
     "defaultRoleLimit": {
       "day": 10
-    }
+    },
+    "isPublic": false
   },
   {
-    "name": "deployment4",
-    "defaultRoleLimit": {}
+    "name": "privateDeploymentWithDefaultDayForLimitWithMaxDay",
+    "defaultRoleLimit": {
+      "day": 10
+    },
+    "isPublic": false
   },
   {
-    "name": "deployment5",
-    "defaultRoleLimit": {}
+    "name": "privateDeploymentWithoutDefaultDayForLimitWithoutDay",
+    "defaultRoleLimit": {},
+    "isPublic": false
   },
   {
-    "name": "deployment6",
-    "defaultRoleLimit": {}
+    "name": "privateDeploymentWithoutDefaultDayForLimitWithDay",
+    "defaultRoleLimit": {},
+    "isPublic": false
+  },
+  {
+    "name": "privateDeploymentWithoutDefaultDayForLimitWithMaxDay",
+    "defaultRoleLimit": {},
+    "isPublic": false
+  },
+  {
+    "name": "publicDeploymentWithDefaultDayWithoutLimit",
+    "defaultRoleLimit": {
+      "day": 10
+    },
+    "isPublic": true
+  },
+  {
+    "name": "publicDeploymentWithDefaultDayForLimitWithDay",
+    "defaultRoleLimit": {
+      "day": 10
+    },
+    "isPublic": true
+  },
+  {
+    "name": "publicDeploymentWithDefaultDayForLimitWithMaxDay",
+    "defaultRoleLimit": {
+      "day": 10
+    },
+    "isPublic": true
+  },
+  {
+    "name": "publicDeploymentWithoutDefaultDayWithoutLimit",
+    "defaultRoleLimit": {},
+    "isPublic": true
+  },
+  {
+    "name": "publicDeploymentWithoutDefaultDayForLimitWithDay",
+    "defaultRoleLimit": {},
+    "isPublic": true
+  },
+  {
+    "name": "publicDeploymentWithoutDefaultDayForLimitWithMaxDay",
+    "defaultRoleLimit": {},
+    "isPublic": true
   }
 ]
