@@ -56,8 +56,6 @@ For more information about aidial-core, visit the [aidial-core repository](https
 The Admin Panel API exposes REST endpoints under the `/api/v1` prefix.
 Sample REST API requests can be found in [AdminPanel.http](docs/sample/http-requests/AdminPanel.http).
 
-For detailed API documentation, refer to the [API Documentation](docs/api.md).
-
 ## Configuration
 
 Complete list of configuration properties can be found [here](docs/configuration.md).
