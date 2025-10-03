@@ -173,22 +173,26 @@ public abstract class ConfigTransferFunctionalTest {
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(modelDto -> {
-            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole3", "default");
+            Assertions.assertThat(modelDto.getRoleLimits()).containsOnlyKeys("testRole1", "testRole2", "testRole3", "default");
             Assertions.assertThat(modelDto.getRoleLimits().get("testRole1")).satisfies(limit1 -> {
                 Assertions.assertThat(limit1.isEnabled()).isTrue();
                 Assertions.assertThat(limit1.getDay()).isEqualTo(1);
-                Assertions.assertThat(limit1.getMinute()).isNull();
+                Assertions.assertThat(limit1.getMinute()).isEqualTo(Long.MAX_VALUE);
             });
-            Assertions.assertThat(modelDto.getRoleLimits().get("testRole2")).isNull();
+            Assertions.assertThat(modelDto.getRoleLimits().get("testRole2")).satisfies(limit2 -> {
+                Assertions.assertThat(limit2.isEnabled()).isFalse();
+                Assertions.assertThat(limit2.getDay()).isEqualTo(Long.MAX_VALUE);
+                Assertions.assertThat(limit2.getMinute()).isEqualTo(Long.MAX_VALUE);
+            });
             Assertions.assertThat(modelDto.getRoleLimits().get("testRole3")).satisfies(limit3 -> {
                 Assertions.assertThat(limit3.isEnabled()).isTrue();
-                Assertions.assertThat(limit3.getDay()).isNull();
-                Assertions.assertThat(limit3.getMinute()).isNull();
+                Assertions.assertThat(limit3.getDay()).isEqualTo(Long.MAX_VALUE);
+                Assertions.assertThat(limit3.getMinute()).isEqualTo(Long.MAX_VALUE);
             });
             Assertions.assertThat(modelDto.getRoleLimits().get("default")).satisfies(limitDefault -> {
                 Assertions.assertThat(limitDefault.isEnabled()).isFalse();
                 Assertions.assertThat(limitDefault.getDay()).isEqualTo(3);
-                Assertions.assertThat(limitDefault.getMinute()).isNull();
+                Assertions.assertThat(limitDefault.getMinute()).isEqualTo(Long.MAX_VALUE);
             });
             Assertions.assertThat(modelDto.getInterceptors()).isNotEmpty()
                     .hasSize(1).first().isEqualTo("testInterceptor1");
@@ -1615,7 +1619,7 @@ public abstract class ConfigTransferFunctionalTest {
         ModelDto modelDto = modelFacade.getModel("testModel1");
         Assertions.assertThat(modelDto).isNotNull().satisfies(importedModel ->
                 Assertions.assertThat(importedModel.getRoleLimits().get("testRole1")).isNotNull().satisfies(roleLimit -> {
-                    Assertions.assertThat(roleLimit.getMinute()).isNull();
+                    Assertions.assertThat(roleLimit.getMinute()).isEqualTo(Long.MAX_VALUE);
                     Assertions.assertThat(roleLimit.getDay()).isEqualTo(1L);
                 })
         );
