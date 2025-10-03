@@ -28,8 +28,7 @@
           "month": 1000
         },
         "sampleDeployment5": {}
-      },
-      "share": {}
+      }
     }
   },
   "retriableErrorCodes": [],

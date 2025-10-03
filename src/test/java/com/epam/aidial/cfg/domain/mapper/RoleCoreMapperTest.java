@@ -52,7 +52,6 @@ class RoleCoreMapperTest {
         CoreRole expected = new CoreRole();
         expected.setName("testRole");
         expected.setLimits(Map.of("testModel", expectedLimit));
-        expected.setShare(Map.of());
 
         // when
         CoreRole result = mapper.mapRole(role, List.of(deployment));
