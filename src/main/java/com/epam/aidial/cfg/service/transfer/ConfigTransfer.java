@@ -152,7 +152,7 @@ public class ConfigTransfer {
             return importConfigPreview;
         } catch (Exception ex) {
             log.debug("Config file {} import failed", zipFile.getOriginalFilename(), ex);
-            throw new IllegalArgumentException(ex.getMessage());
+            throw new IllegalArgumentException(ex.getMessage(), ex);
         }
     }
 

@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Assistant;
+import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Interceptor;
@@ -18,6 +19,8 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
+import com.epam.aidial.cfg.dto.ImportActionDto;
+import com.epam.aidial.cfg.dto.ImportComponentDto;
 import com.epam.aidial.cfg.dto.ImportConfigPreviewDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.KeyDto;
@@ -61,58 +64,64 @@ public abstract class ImportConfigMapper {
 
     public abstract ImportConfigPreviewDto toImportConfigPreviewDto(ImportConfigPreview importConfigPreview);
 
-    public Collection<ImportComponent<KeyDto>> mapKeys(Collection<ImportComponent<Key>> keys) {
+    public Collection<ImportComponentDto<KeyDto>> mapKeys(Collection<ImportComponent<Key>> keys) {
         return mapGeneric(keys, keyDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<RoleDto>> mapRoles(Collection<ImportComponent<Role>> roles) {
+    public Collection<ImportComponentDto<RoleDto>> mapRoles(Collection<ImportComponent<Role>> roles) {
         return mapGeneric(roles, roleDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<InterceptorDto>> mapInterceptors(Collection<ImportComponent<Interceptor>> interceptors) {
+    public Collection<ImportComponentDto<InterceptorDto>> mapInterceptors(Collection<ImportComponent<Interceptor>> interceptors) {
         return mapGeneric(interceptors, interceptorDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<ApplicationTypeSchemaDto>> mapAppRunners(Collection<ImportComponent<ApplicationTypeSchema>> schemas) {
+    public Collection<ImportComponentDto<ApplicationTypeSchemaDto>> mapAppRunners(Collection<ImportComponent<ApplicationTypeSchema>> schemas) {
         return mapGeneric(schemas, applicationTypeSchemaDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<RouteDto>> mapRoutes(Collection<ImportComponent<Route>> routes) {
+    public Collection<ImportComponentDto<RouteDto>> mapRoutes(Collection<ImportComponent<Route>> routes) {
         return mapGeneric(routes, routeDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<ModelDto>> mapModels(Collection<ImportComponent<Model>> models) {
+    public Collection<ImportComponentDto<ModelDto>> mapModels(Collection<ImportComponent<Model>> models) {
         return mapGeneric(models, modelDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<ApplicationDto>> mapApplications(Collection<ImportComponent<Application>> applications) {
+    public Collection<ImportComponentDto<ApplicationDto>> mapApplications(Collection<ImportComponent<Application>> applications) {
         return mapGeneric(applications, applicationDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<AddonDto>> mapAddons(Collection<ImportComponent<Addon>> addons) {
+    public Collection<ImportComponentDto<AddonDto>> mapAddons(Collection<ImportComponent<Addon>> addons) {
         return mapGeneric(addons, addonDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<AssistantDto>> mapAssistants(Collection<ImportComponent<Assistant>> assistants) {
+    public Collection<ImportComponentDto<AssistantDto>> mapAssistants(Collection<ImportComponent<Assistant>> assistants) {
         return mapGeneric(assistants, assistantDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<AdapterDto>> mapAdapters(Collection<ImportComponent<Adapter>> adapters) {
+    public Collection<ImportComponentDto<AdapterDto>> mapAdapters(Collection<ImportComponent<Adapter>> adapters) {
         return mapGeneric(adapters, adapterDtoMapper::toDto);
     }
 
-    public Collection<ImportComponent<ToolSetDto>> mapToolSets(Collection<ImportComponent<ToolSet>> toolSets) {
+    public Collection<ImportComponentDto<ToolSetDto>> mapToolSets(Collection<ImportComponent<ToolSet>> toolSets) {
         return mapGeneric(toolSets, toolSetDtoMapper::toDto);
     }
 
-    public <T, D> Collection<ImportComponent<D>> mapGeneric(Collection<ImportComponent<T>> input,
-                                                            Function<T, D> dtoMapper) {
+    public <T, D> Collection<ImportComponentDto<D>> mapGeneric(Collection<ImportComponent<T>> input,
+                                                               Function<T, D> dtoMapper) {
         if (CollectionUtils.isEmpty(input)) {
             return Collections.emptyList();
         }
 
         return input.stream()
-                .map(component -> new ImportComponent<>(component.getImportAction(), dtoMapper.apply(component.getValue())))
+                .map(component -> new ImportComponentDto<>(
+                        mapImportAction(component.getImportAction()),
+                        dtoMapper.apply(component.getPrev()),
+                        dtoMapper.apply(component.getNext()))
+                )
                 .toList();
     }
+
+    abstract ImportActionDto mapImportAction(ImportAction importAction);
 }

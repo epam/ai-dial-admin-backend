@@ -13,7 +13,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
 import static com.epam.aidial.cfg.domain.model.ImportAction.SKIP;
@@ -28,16 +32,14 @@ public class InterceptorRunnerImporter {
     private final InterceptorRunnerService interceptorRunnerService;
 
     public Collection<ImportComponent<InterceptorRunner>> importAdminInterceptorRunners(Map<String, InterceptorRunner> interceptorRunners,
-                                                                                        ConflictResolutionPolicy resolutionPolicy,
-                                                                                        boolean isPreview) {
+                                                                                        ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(interceptorRunners)) {
             return interceptorRunners.entrySet().stream()
                     .map(interceptorRunnerEntry -> {
                                 var interceptorRunner = interceptorRunnerEntry.getValue();
                                 interceptorRunner.setName(interceptorRunnerEntry.getKey());
                                 interceptorRunner.setDisplayName(interceptorRunnerEntry.getKey());
-                                var importAction = processInterceptorRunner(interceptorRunnerEntry.getKey(), interceptorRunner, resolutionPolicy, isPreview);
-                                return new ImportComponent<>(importAction, interceptorRunner);
+                                return processInterceptorRunner(interceptorRunnerEntry.getKey(), interceptorRunner, resolutionPolicy);
                             }
                     )
                     .toList();
@@ -45,40 +47,55 @@ public class InterceptorRunnerImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processInterceptorRunner(String interceptorRunnerName,
-                                                  InterceptorRunner newInterceptorRunner,
-                                                  ConflictResolutionPolicy resolutionPolicy,
-                                                  boolean isPreview) {
-        if (interceptorRunnerService.exists(interceptorRunnerName)) {
-            return handleExisting(newInterceptorRunner, resolutionPolicy, interceptorRunnerName, isPreview);
+    private ImportComponent<InterceptorRunner> processInterceptorRunner(String interceptorRunnerName,
+                                                                        InterceptorRunner newInterceptorRunner,
+                                                                        ConflictResolutionPolicy resolutionPolicy) {
+        Optional<InterceptorRunner> interceptorRunner = interceptorRunnerService.tryGet(interceptorRunnerName);
+        if (interceptorRunner.isPresent()) {
+            ImportAction importAction = handleExisting(newInterceptorRunner, resolutionPolicy, interceptorRunnerName);
+            return new ImportComponent<>(importAction, interceptorRunner.get(), newInterceptorRunner);
         } else {
-            return create(newInterceptorRunner, isPreview);
+            interceptorRunnerService.create(newInterceptorRunner);
+            return new ImportComponent<>(CREATE, null, newInterceptorRunner);
         }
     }
 
     private ImportAction handleExisting(InterceptorRunner newInterceptorRunner,
                                         ConflictResolutionPolicy resolutionPolicy,
-                                        String interceptorRunnerName,
-                                        boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing interceptor runner will remain unchanged.
-                return SKIP;
-            }
+                                        String interceptorRunnerName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing interceptor runner will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    interceptorRunnerService.update(interceptorRunnerName, newInterceptorRunner);
-                }
-                return UPDATE;
+                interceptorRunnerService.update(interceptorRunnerName, newInterceptorRunner);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
+        };
     }
 
-    private ImportAction create(InterceptorRunner newInterceptorRunner, boolean isPreview) {
-        if (!isPreview) {
-            interceptorRunnerService.create(newInterceptorRunner);
+    public List<ImportComponent<InterceptorRunner>> getActualImportedInterceptorRunners(Collection<ImportComponent<InterceptorRunner>> importComponents) {
+        List<String> names = importComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(InterceptorRunner::getName)
+                .toList();
+        Map<String, InterceptorRunner> importedInterceptorRunnersByNames = interceptorRunnerService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(InterceptorRunner::getName, Function.identity()));
+
+        return importComponents.stream()
+                .map(importComponent -> {
+                    var next = importedInterceptorRunnersByNames.get(importComponent.getNext().getName());
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(InterceptorRunner interceptorRunner) {
+        if (interceptorRunner != null) {
+            interceptorRunner.setCreatedAt(null);
+            interceptorRunner.setUpdatedAt(null);
         }
-        return CREATE;
     }
 }

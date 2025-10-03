@@ -48,7 +48,7 @@ class RouteImporterTest {
         when(mapper.mapRoute(any(CoreRoute.class), any(ShareResourceLimit.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
-        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, true))
+        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions))
                 // then
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Route 'routeName' invalid: paths must not be empty");
@@ -68,7 +68,7 @@ class RouteImporterTest {
         when(mapper.mapRoute(any(CoreRoute.class), any(ShareResourceLimit.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
-        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, false))
+        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions))
                 // then
                 .isInstanceOf(IllegalArgumentException.class);
     }

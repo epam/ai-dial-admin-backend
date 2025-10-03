@@ -2,57 +2,40 @@
   "roles": [],
   "keys": [],
   "interceptors": [],
-  "interceptorRunners": null,
   "applicationRunners": [],
   "routes": [],
   "adapters": [
     {
       "importAction": "CREATE",
-      "value": {
-        "name": "<will be defined during import>",
-        "displayName": "<will be defined during import>",
+      "next": {
+        "name": "<will be defined during import 0>",
+        "displayName": "<will be defined during import 0>",
         "baseEndpoint": "http://endpoint2/",
-        "description": null,
-        "createdAt": null,
-        "updatedAt": null,
-        "models": []
+        "models": [
+          "testModel2"
+        ]
       }
     }
   ],
   "models": [
     {
       "importAction": "CREATE",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
           "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {
-            "minute": null,
-            "day": null,
-            "week": null,
-            "month": null,
-            "requestHour": null,
-            "requestDay": null
-          },
+          "defaultRoleLimit": {},
           "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": null,
             "invitationTtl": 259200
           }
         },
         "endpoint": "http://endpoint2/testModel2/embeddings",
-        "description": null,
         "displayName": "Test Model2",
         "displayVersion": "2.0.0",
-        "iconUrl": null,
-        "reference": null,
         "forwardAuthToken": false,
         "features": {
-          "rateEndpoint": null,
-          "tokenizeEndpoint": null,
-          "truncatePromptEndpoint": null,
-          "configurationEndpoint": null,
           "systemPromptSupported": true,
           "toolsSupported": false,
           "seedSupported": false,
@@ -68,63 +51,39 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
-        "inputAttachmentTypes": null,
-        "maxInputAttachments": null,
         "defaults": {},
-        "interceptors": [],
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
-        "createdAt": null,
-        "updatedAt": null,
         "dependencies": [],
         "type": "EMBEDDING",
-        "tokenizerModel": null,
-        "limits": null,
-        "pricing": null,
         "upstreams": [],
-        "overrideName": null,
         "fieldsHashingOrder": [],
         "source": {
           "$type": "adapter",
-          "adapterName": "<will be defined during import>",
+          "adapterName": "<will be defined during import 0>",
           "completionEndpointPath": "testModel2/embeddings"
         }
       }
     },
     {
       "importAction": "CREATE",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel1",
           "roleLimits": [],
           "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {
-            "minute": null,
-            "day": null,
-            "week": null,
-            "month": null,
-            "requestHour": null,
-            "requestDay": null
-          },
+          "defaultRoleLimit": {},
           "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": null,
             "invitationTtl": 259200
           }
         },
         "endpoint": "http://endpoint1/testModel1/embeddings",
-        "description": null,
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
-        "iconUrl": null,
-        "reference": null,
         "forwardAuthToken": false,
         "features": {
-          "rateEndpoint": null,
-          "tokenizeEndpoint": null,
-          "truncatePromptEndpoint": null,
-          "configurationEndpoint": null,
           "systemPromptSupported": true,
           "toolsSupported": false,
           "seedSupported": false,
@@ -140,25 +99,16 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
-        "inputAttachmentTypes": null,
-        "maxInputAttachments": null,
         "defaults": {},
-        "interceptors": [],
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
-        "createdAt": null,
-        "updatedAt": null,
         "dependencies": [
           "dep1",
           "dep2"
         ],
         "type": "EMBEDDING",
-        "tokenizerModel": null,
-        "limits": null,
-        "pricing": null,
         "upstreams": [],
-        "overrideName": null,
         "fieldsHashingOrder": [
           "prompt",
           "temperature"

@@ -47,8 +47,8 @@ class RoleCoreMapperTest {
         deployment.setDefaultRoleLimit(new Limit());
         deployment.setRoleLimits(List.of(roleLimit));
 
-        CoreLimit expectedLimit = new CoreLimit();
-        expectedLimit.setDay(10);
+        CoreLimit expectedLimit = CoreLimit.empty();
+        expectedLimit.setDay(10L);
 
         CoreRole expected = new CoreRole();
         expected.setName("testRole");

@@ -6,6 +6,8 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -18,8 +20,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -30,34 +34,31 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @LogExecution
 @RequiredArgsConstructor
-public class ApplicationImporter extends RoleBasedImporter {
+public class ApplicationImporter extends DeploymentHolderImporter {
 
     private final ApplicationService applicationService;
     private final ApplicationCoreMapper applicationCoreMapper;
 
     public Collection<ImportComponent<Application>> importApplications(Map<String, CoreApplication> coreApplications,
                                                                        Map<String, Role> roles,
-                                                                       ConfigImportOptions importOptions,
-                                                                       boolean isPreview) {
+                                                                       ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(coreApplications)) {
             Map<String, Application> applications = coreApplications.entrySet()
                     .stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue())));
-            return importAdminApplications(applications, roles, importOptions, isPreview);
+            return importAdminApplications(applications, roles, importOptions);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<Application>> importAdminApplications(Map<String, Application> applications,
                                                                             Map<String, Role> roles,
-                                                                            ConfigImportOptions importOptions,
-                                                                            boolean isPreview) {
+                                                                            ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(applications)) {
             return applications.entrySet().stream()
                     .map((appEntry) -> {
                                 var application = appEntry.getValue();
-                                var importAction = processApplication(appEntry.getKey(), application, roles, importOptions.conflictResolutionPolicy(), isPreview);
-                                return new ImportComponent<>(importAction, application);
+                                return processApplication(appEntry.getKey(), application, roles, importOptions.conflictResolutionPolicy());
                             }
                     )
                     .toList();
@@ -65,46 +66,33 @@ public class ApplicationImporter extends RoleBasedImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processApplication(String applicationName,
-                                            Application newApplication,
-                                            Map<String, Role> roles,
-                                            ConflictResolutionPolicy resolutionPolicy,
-                                            boolean isPreview) {
+    private ImportComponent<Application> processApplication(String applicationName,
+                                                            Application newApplication,
+                                                            Map<String, Role> roles,
+                                                            ConflictResolutionPolicy resolutionPolicy) {
         Optional<Application> application = applicationService.tryGetApplication(applicationName);
         if (application.isPresent()) {
             Application existingApplication = application.get();
-            setLimits(applicationName, existingApplication.getDeployment(), roles, newApplication.getDeployment(), isPreview);
-            return handleExisting(newApplication, resolutionPolicy, applicationName, isPreview);
+            setLimits(applicationName, existingApplication.getDeployment(), roles, newApplication.getDeployment());
+            ImportAction importAction = handleExisting(newApplication, resolutionPolicy, applicationName);
+            return new ImportComponent<>(importAction, existingApplication, newApplication);
         } else {
-            setLimits(applicationName, roles, newApplication.getDeployment(), isPreview);
-            return create(newApplication, isPreview);
+            setLimits(applicationName, roles, newApplication.getDeployment());
+            applicationService.createApplication(newApplication);
+            return new ImportComponent<>(CREATE, null, newApplication);
         }
     }
 
     private ImportAction handleExisting(Application newApplication,
                                         ConflictResolutionPolicy resolutionPolicy,
-                                        String applicationName,
-                                        boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing application will remain unchanged.
-                return SKIP;
-            }
+                                        String applicationName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing application will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    applicationService.updateApplication(applicationName, newApplication);
-                }
-                return UPDATE;
+                applicationService.updateApplication(applicationName, newApplication);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
-    }
-
-    private ImportAction create(Application application, boolean isPreview) {
-        if (!isPreview) {
-            applicationService.createApplication(application);
-        }
-        return CREATE;
+        };
     }
 
     private Application map(String appName, CoreApplication application) {
@@ -114,4 +102,33 @@ public class ApplicationImporter extends RoleBasedImporter {
         return applicationCoreMapper.mapApplication(application, shareResourceLimit);
     }
 
+    public List<ImportComponent<Application>> getActualImportedApplications(Collection<ImportComponent<Application>> applicationImportComponents,
+                                                                            Collection<ImportComponent<Role>> roleImportComponents) {
+        List<String> names = getNextImportComponentNames(applicationImportComponents);
+        Map<String, Application> importedApplicationsByNames = applicationService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(application -> application.getDeployment().getName(), Function.identity()));
+
+        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
+        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
+        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+
+        return applicationImportComponents.stream()
+                .map(importComponent -> {
+                    var next = importedApplicationsByNames.get(importComponent.getNext().getDeployment().getName());
+                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Application application) {
+        if (application != null) {
+            application.setCreatedAt(null);
+            application.setUpdatedAt(null);
+        }
+    }
 }
