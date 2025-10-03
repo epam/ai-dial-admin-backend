@@ -17,20 +17,22 @@ public class KeyValidator {
 
     private final IdFieldValidator idFieldValidator;
     private final TransactionTimestampContext transactionTimestampContext;
+    private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String keyNameValidationPattern;
 
     public KeyValidator(IdFieldValidator idFieldValidator,
                         TransactionTimestampContext transactionTimestampContext,
-                        @Value("${validation.key.name:}") String keyNameValidationPattern) {
+                        DisplayFieldsValidator displayFieldsValidator, @Value("${validation.key.name:}") String keyNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.transactionTimestampContext = transactionTimestampContext;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.keyNameValidationPattern = keyNameValidationPattern;
     }
 
     public void validateCreation(Key key) {
         validateKeyName(key);
-
+        displayFieldsValidator.validateDisplayName(key.getDisplayName());
         long now = transactionTimestampContext.getTimestamp();
         Long expiresAt = key.getExpiresAt();
         if (expiresAt != null && expiresAt <= now) {
@@ -58,7 +60,7 @@ public class KeyValidator {
         if (!Objects.equals(keyName, key.getName())) {
             throw new IllegalArgumentException("Key with name: '" + keyName + "' can not be renamed. New key name: '" + key.getName() + "'");
         }
-
+        displayFieldsValidator.validateDisplayName(key.getDisplayName());
         Long expiresAt = key.getExpiresAt();
         long createdAt = existingEntity.getCreatedAt();
         if (expiresAt != null && expiresAt <= createdAt) {

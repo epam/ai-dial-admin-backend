@@ -29,27 +29,37 @@ class DisplayFieldsValidatorTest {
     @ParameterizedTest
     @CsvSource({"''", "' '"})
     void validateDisplayNameDisplayVersion_shouldThrowExceptionWhenDisplayVersionIsBlank(String displayVersion) {
-        assertThatThrownBy(() -> displayFieldsValidator.validateDisplayNameDisplayVersion(null, displayVersion))
+        assertThatThrownBy(() -> displayFieldsValidator.validateDisplayNameDisplayVersion("test", displayVersion))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid display version: '" + displayVersion + "'");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"''", "' '"})
+    void validateDisplayName_shouldThrowExceptionWhenDisplayNameIsBlank(String displayName) {
+        assertThatThrownBy(() -> displayFieldsValidator.validateDisplayName(displayName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid display name: '" + displayName + "'");
+    }
+
+    @Test
+    void validateDisplayName_shouldThrowExceptionWhenDisplayNameIsNull() {
+        assertThatThrownBy(() -> displayFieldsValidator.validateDisplayName(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid display name: 'null'");
     }
 
     @Test
     void validateDisplayNameDisplayVersion_shouldThrowExceptionWhenDisplayNameIsNullAndDisplayVersionIsNotNull() {
         assertThatThrownBy(() -> displayFieldsValidator.validateDisplayNameDisplayVersion(null, "1.0"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Display version: '1.0' can not be specified without display name");
+                .hasMessage("Invalid display name: 'null'");
 
     }
 
     @Test
     void validateDisplayNameDisplayVersion_shouldDoNothingWhenDisplayNameIsNotNullAndDisplayVersionIsNull() {
         assertThatNoException().isThrownBy(() -> displayFieldsValidator.validateDisplayNameDisplayVersion("text", null));
-    }
-
-    @Test
-    void validateDisplayNameDisplayVersion_shouldDoNothingWhenDisplayNameIsNullAndDisplayVersionIsNull() {
-        assertThatNoException().isThrownBy(() -> displayFieldsValidator.validateDisplayNameDisplayVersion(null, null));
     }
 
     @Test

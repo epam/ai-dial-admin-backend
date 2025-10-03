@@ -15,6 +15,7 @@ public class KeyDto {
     private String name;
     @NotBlank(message = "Key is required")
     private String key;
+    @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String project;
     private boolean secured;

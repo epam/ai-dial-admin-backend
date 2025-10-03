@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -127,6 +128,8 @@ public class FunctionalTestHelper {
         keyDto.setKey("keyValue" + suffix);
         keyDto.setDescription("key" + suffix);
         keyDto.setDisplayName("key" + suffix);
+        keyDto.setProjectContactPoint("test@mail.com");
+        keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
         return keyDto;
     }
 
