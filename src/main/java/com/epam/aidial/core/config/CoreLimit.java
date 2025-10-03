@@ -39,11 +39,11 @@ public class CoreLimit {
     @JsonIgnore
     public boolean isUnlimited() {
         return isUnlimited(minute)
-                || isUnlimited(day)
-                || isUnlimited(week)
-                || isUnlimited(month)
-                || isUnlimited(requestHour)
-                || isUnlimited(requestDay);
+                && isUnlimited(day)
+                && isUnlimited(week)
+                && isUnlimited(month)
+                && isUnlimited(requestHour)
+                && isUnlimited(requestDay);
     }
 
     @JsonIgnore
