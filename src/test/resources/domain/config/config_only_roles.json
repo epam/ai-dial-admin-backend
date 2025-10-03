@@ -26,7 +26,8 @@
           "minute": 20,
           "day": 2000,
           "month": 1000
-        }
+        },
+        "sampleDeployment5": {}
       },
       "share": {},
       "costLimit": {

@@ -35,4 +35,19 @@ public class CoreLimit {
     public boolean isEmpty() {
         return minute == null && day == null && week == null && month == null && requestDay == null && requestHour == null;
     }
+
+    @JsonIgnore
+    public boolean isUnlimited() {
+        return isUnlimited(minute)
+                || isUnlimited(day)
+                || isUnlimited(week)
+                || isUnlimited(month)
+                || isUnlimited(requestHour)
+                || isUnlimited(requestDay);
+    }
+
+    @JsonIgnore
+    private boolean isUnlimited(Long value) {
+        return value != null && value == Long.MAX_VALUE;
+    }
 }
