@@ -52,10 +52,9 @@ public interface RoleCoreMapper {
                     var deploymentName = entry.getKey();
                     boolean enabled = deploymentNames.contains(deploymentName);
 
-                    var roleLimit = toLimit(entry.getValue(), coreRole.getName(), deploymentName, enabled);
-                    boolean isDisabledEmptyLimit = !roleLimit.isEnabled() && roleLimit.getLimit().isEmpty();
-
-                    return isDisabledEmptyLimit ? null : roleLimit;
+                    return entry.getValue() != null
+                            ? toLimit(entry.getValue(), coreRole.getName(), deploymentName, enabled)
+                            : null;
                 })
                 .filter(Objects::nonNull)
                 .toList();

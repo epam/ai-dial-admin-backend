@@ -9,6 +9,7 @@ import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Component;
 
@@ -81,11 +82,11 @@ public class CoreRolesMerger {
     }
 
     private void addRoleLimitsFromUserRoles(CoreRole coreRole, Map<String, Set<String>> deploymentNamesByUserRole) {
-        Map<String, CoreLimit> limits = new HashMap<>(coreRole.getLimits());
+        Map<String, CoreLimit> limits = new HashMap<>(MapUtils.emptyIfNull(coreRole.getLimits()));
         Set<String> deploymentNames = SetUtils.emptyIfNull(deploymentNamesByUserRole.get(coreRole.getName()));
 
         for (String deploymentName : deploymentNames) {
-            limits.putIfAbsent(deploymentName, new CoreLimit());
+            limits.putIfAbsent(deploymentName, CoreLimit.empty());
         }
 
         coreRole.setLimits(limits);

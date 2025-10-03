@@ -3,13 +3,57 @@
     "testModel1": {
       "userRoles": [
         "userRole",
+        "userRoleInRolesSectionWithoutLimits",
+        "userRoleInRolesSectionWithNullLimits",
+        "userRoleInRolesSectionWithEmptyLimits",
+        "userRoleInRolesSectionWithNullLimit",
         "userRoleInRolesSectionWithEmptyLimit",
         "userRoleInRolesSectionWithNonEmptyLimit"
       ]
     }
   },
   "roles": {
+    "userRoleInRolesSectionWithoutLimits": {
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    },
+    "userRoleInRolesSectionWithNullLimits": {
+      "limits": null,
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    },
+    "userRoleInRolesSectionWithEmptyLimits": {
+      "limits": {},
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    },
+    "userRoleInRolesSectionWithNullLimit": {
+      "limits": {
+        "testModel1": null
+      },
+      "share": {
+        "testModel1": {
+          "maxAcceptedUsers": 10,
+          "invitationTtl": 120
+        }
+      }
+    },
     "userRoleInRolesSectionWithEmptyLimit": {
+      "limits": {
+        "testModel1": {}
+      },
       "share": {
         "testModel1": {
           "maxAcceptedUsers": 10,
@@ -24,7 +68,22 @@
         }
       }
     },
+    "roleInRolesSectionWithoutLimits": {},
+    "roleInRolesSectionWithNullLimits": {
+      "limits": null
+    },
+    "roleInRolesSectionWithEmptyLimits": {
+      "limits": {}
+    },
+    "roleInRolesSectionWithNullLimit": {
+      "limits": {
+        "testModel1": null
+      }
+    },
     "roleInRolesSectionWithEmptyLimit": {
+      "limits": {
+        "testModel1": {}
+      }
     },
     "roleInRolesSectionWithNonEmptyLimit": {
       "limits": {
