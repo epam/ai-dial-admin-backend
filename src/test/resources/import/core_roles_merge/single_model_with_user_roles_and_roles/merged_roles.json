@@ -1,32 +1,15 @@
 {
   "userRoleInRolesSectionWithoutLimits": {
     "name": "userRoleInRolesSectionWithoutLimits",
-    "description": null,
     "displayName": "userRoleInRolesSectionWithoutLimits",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "userRoleInRolesSectionWithoutLimits",
         "deploymentName": "testModel1",
         "enabled": true,
-        "limit": {
-          "minute": null,
-          "day": null,
-          "week": null,
-          "month": null,
-          "requestHour": null,
-          "requestDay": null
-        }
+        "limit": {}
       }
     ],
-    "keys": null,
-    "costLimit": {
-      "minute": 111,
-      "day": 222,
-      "week": 333,
-      "month": 444
-    },
     "share": [
       {
         "role": "userRoleInRolesSectionWithoutLimits",
@@ -36,36 +19,25 @@
           "invitationTtl": 120
         }
       }
-    ]
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
   },
   "userRoleInRolesSectionWithNullLimits": {
     "name": "userRoleInRolesSectionWithNullLimits",
-    "description": null,
     "displayName": "userRoleInRolesSectionWithNullLimits",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "userRoleInRolesSectionWithNullLimits",
         "deploymentName": "testModel1",
         "enabled": true,
-        "limit": {
-          "minute": null,
-          "day": null,
-          "week": null,
-          "month": null,
-          "requestHour": null,
-          "requestDay": null
-        }
+        "limit": {}
       }
     ],
-    "keys": null,
-    "costLimit": {
-      "minute": 111,
-      "day": 222,
-      "week": 333,
-      "month": 444
-    },
     "share": [
       {
         "role": "userRoleInRolesSectionWithNullLimits",
@@ -75,36 +47,25 @@
           "invitationTtl": 120
         }
       }
-    ]
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
   },
   "userRoleInRolesSectionWithEmptyLimits": {
     "name": "userRoleInRolesSectionWithEmptyLimits",
-    "description": null,
     "displayName": "userRoleInRolesSectionWithEmptyLimits",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "userRoleInRolesSectionWithEmptyLimits",
         "deploymentName": "testModel1",
         "enabled": true,
-        "limit": {
-          "minute": null,
-          "day": null,
-          "week": null,
-          "month": null,
-          "requestHour": null,
-          "requestDay": null
-        }
+        "limit": {}
       }
     ],
-    "keys": null,
-    "costLimit": {
-      "minute": 111,
-      "day": 222,
-      "week": 333,
-      "month": 444
-    },
     "share": [
       {
         "role": "userRoleInRolesSectionWithEmptyLimits",
@@ -114,36 +75,25 @@
           "invitationTtl": 120
         }
       }
-    ]
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
   },
   "userRoleInRolesSectionWithNullLimit": {
     "name": "userRoleInRolesSectionWithNullLimit",
-    "description": null,
     "displayName": "userRoleInRolesSectionWithNullLimit",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "userRoleInRolesSectionWithNullLimit",
         "deploymentName": "testModel1",
         "enabled": true,
-        "limit": {
-          "minute": null,
-          "day": null,
-          "week": null,
-          "month": null,
-          "requestHour": null,
-          "requestDay": null
-        }
+        "limit": {}
       }
     ],
-    "keys": null,
-    "costLimit": {
-      "minute": 111,
-      "day": 222,
-      "week": 333,
-      "month": 444
-    },
     "share": [
       {
         "role": "userRoleInRolesSectionWithNullLimit",
@@ -153,14 +103,17 @@
           "invitationTtl": 120
         }
       }
-    ]
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
   },
   "userRoleInRolesSectionWithEmptyLimit": {
     "name": "userRoleInRolesSectionWithEmptyLimit",
-    "description": null,
     "displayName": "userRoleInRolesSectionWithEmptyLimit",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "userRoleInRolesSectionWithEmptyLimit",
@@ -176,13 +129,6 @@
         }
       }
     ],
-    "keys": null,
-    "costLimit": {
-      "minute": 111,
-      "day": 222,
-      "week": 333,
-      "month": 444
-    },
     "share": [
       {
         "role": "userRoleInRolesSectionWithEmptyLimit",
@@ -192,14 +138,17 @@
           "invitationTtl": 120
         }
       }
-    ]
+    ],
+    "costLimit": {
+      "minute": "111",
+      "day": "222",
+      "week": "333",
+      "month": "444"
+    }
   },
   "userRoleInRolesSectionWithNonEmptyLimit": {
     "name": "userRoleInRolesSectionWithNonEmptyLimit",
-    "description": null,
     "displayName": "userRoleInRolesSectionWithNonEmptyLimit",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "userRoleInRolesSectionWithNonEmptyLimit",
@@ -215,85 +164,65 @@
         }
       }
     ],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   },
   "roleInRolesSectionWithoutLimits": {
     "name": "roleInRolesSectionWithoutLimits",
-    "description": null,
     "displayName": "roleInRolesSectionWithoutLimits",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   },
   "roleInRolesSectionWithNullLimits": {
     "name": "roleInRolesSectionWithNullLimits",
-    "description": null,
     "displayName": "roleInRolesSectionWithNullLimits",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   },
   "roleInRolesSectionWithEmptyLimits": {
     "name": "roleInRolesSectionWithEmptyLimits",
-    "description": null,
     "displayName": "roleInRolesSectionWithEmptyLimits",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   },
   "roleInRolesSectionWithNullLimit": {
     "name": "roleInRolesSectionWithNullLimit",
-    "description": null,
     "displayName": "roleInRolesSectionWithNullLimit",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   },
   "roleInRolesSectionWithEmptyLimit": {
     "name": "roleInRolesSectionWithEmptyLimit",
-    "description": null,
     "displayName": "roleInRolesSectionWithEmptyLimit",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "roleInRolesSectionWithEmptyLimit",
@@ -309,21 +238,17 @@
         }
       }
     ],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   },
   "roleInRolesSectionWithNonEmptyLimit": {
     "name": "roleInRolesSectionWithNonEmptyLimit",
-    "description": null,
     "displayName": "roleInRolesSectionWithNonEmptyLimit",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "roleInRolesSectionWithNonEmptyLimit",
@@ -339,43 +264,31 @@
         }
       }
     ],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   },
   "userRole": {
     "name": "userRole",
-    "description": null,
     "displayName": "userRole",
-    "createdAt": null,
-    "updatedAt": null,
     "limits": [
       {
         "role": "userRole",
         "deploymentName": "testModel1",
         "enabled": true,
-        "limit": {
-          "minute": null,
-          "day": null,
-          "week": null,
-          "month": null,
-          "requestHour": null,
-          "requestDay": null
-        }
+        "limit": {}
       }
     ],
-    "keys": null,
+    "share": [],
     "costLimit": {
-      "minute": 9223372036854775807,
-      "day": 9223372036854775807,
-      "week": 9223372036854775807,
-      "month": 9223372036854775807
-    },
-    "share": []
+      "minute": "9223372036854775807",
+      "day": "9223372036854775807",
+      "week": "9223372036854775807",
+      "month": "9223372036854775807"
+    }
   }
 }
