@@ -17,8 +17,8 @@ update application_entity_aud set display_name = deployment_name where (display_
 alter table application_entity alter column display_name set not null;
 
 --  Application type schema tables. Fill the display_name with values from the old 'schema_id' column
-update application_type_schema_entity set application_type_display_name = schema_id where display_name is null or trim(display_name) = '';
-update application_type_schema_entity_aud set application_type_display_name = schema_id where (display_name is null or trim(display_name) = '') and revtype != 2;
+update application_type_schema_entity set application_type_display_name = schema_id where application_type_display_name is null or trim(application_type_display_name) = '';
+update application_type_schema_entity_aud set application_type_display_name = schema_id where (application_type_display_name is null or trim(application_type_display_name) = '') and revtype != 2;
 --  Application type schema tables. Set the column as not null after all nulls are filled
 alter table application_type_schema_entity alter column application_type_display_name set not null;
 
