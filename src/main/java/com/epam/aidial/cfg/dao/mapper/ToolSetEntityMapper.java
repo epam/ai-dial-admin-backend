@@ -10,7 +10,7 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
-import com.epam.aidial.cfg.utils.AuthSettingsComparator;
+import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {
-        DeploymentEntityMapper.class, ToolSetContainerEntityMapper.class
+        DeploymentEntityMapper.class, ToolSetContainerEntityMapper.class, ResourceAuthSettingsEntityMapper.class
 })
 public abstract class ToolSetEntityMapper {
 
@@ -29,6 +29,8 @@ public abstract class ToolSetEntityMapper {
     private DeploymentEntityMapper deploymentEntityMapper;
     @Autowired
     private ToolSetContainerEntityMapper toolSetContainerEntityMapper;
+    @Autowired
+    private ResourceAuthSettingsEntityMapper authSettingsEntityMapper;
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     public abstract ToolSet toDomain(ToolSetEntity entity);
@@ -58,11 +60,12 @@ public abstract class ToolSetEntityMapper {
 
         var domainAuthSettings = domain.getDeployment() != null ? domain.getDeployment().getAuthSettings() : null;
         var entityAuthSettings = entity.getDeployment() != null ? entity.getDeployment().getAuthSettings() : null;
+        var mappedEntityAuthSettings = authSettingsEntityMapper.toDomain(entityAuthSettings);
 
         ToolSetEntity updatedEntity = update(domain, entity);
 
         // Auth Settings update is not reflected in ToolSet's audit table, so provoking a dirty entity by manually setting 'updatedAt'
-        if (AuthSettingsComparator.isChanged(domainAuthSettings, entityAuthSettings)) {
+        if (!Objects.equal(domainAuthSettings, mappedEntityAuthSettings)) {
             updatedEntity.setUpdatedAt(System.currentTimeMillis());
         }
 

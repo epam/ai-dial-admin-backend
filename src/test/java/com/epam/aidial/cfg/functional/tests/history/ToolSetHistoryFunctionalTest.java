@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
@@ -72,6 +73,8 @@ public abstract class ToolSetHistoryFunctionalTest {
         var authSettingsDto = new ResourceAuthSettingsDto();
         String clientId = "some-client-id";
         authSettingsDto.setClientId(clientId);
+        authSettingsDto.setAuthenticationType(AuthenticationTypeDto.OAUTH);
+        authSettingsDto.setScopesSupported(List.of("one", "two"));
 
         ToolSetDto toolSetDto = createDto("1");
         toolSetDto.setSource(containerSourceDto);
