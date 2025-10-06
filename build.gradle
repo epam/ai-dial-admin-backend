@@ -4,6 +4,9 @@ buildscript {
             classpath ('org.apache.commons:commons-lang3:3.18.0') {
                 because("previous versions have vulnerabilities")
             }
+            classpath ('org.springframework:spring-core:6.2.11') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
@@ -173,6 +176,9 @@ dependencies {
         implementation ('io.netty:netty-codec-http2:4.2.4.Final') {
             because("previous versions have vulnerabilities")
         }
+        implementation("io.grpc:grpc-netty-shaded:1.75.0") {
+                because("previous versions have vulnerabilities)")
+        }
         implementation ('io.netty:netty-codec:4.2.5.Final') {
             because("previous versions have vulnerabilities")
         }
@@ -180,6 +186,12 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.springframework:spring-webmvc:6.2.10') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('org.springframework.security:spring-security-core:6.5.4') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('org.springframework:spring-core:6.2.11') {
             because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {

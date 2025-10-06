@@ -21,39 +21,34 @@
         "role": "admin",
         "deploymentName": "sampleDeployment2",
         "enabled": true,
-        "limit": {
-          "minute": 20,
-          "day": 2000,
-          "week": 10000,
-          "month": 40000,
-          "requestHour": 200,
-          "requestDay": 1000
-        }
+        "limit": {}
       },
       {
         "role": "admin",
         "deploymentName": "sampleDeployment3",
-        "enabled": true
+        "enabled": true,
+        "limit": {}
       },
       {
         "role": "admin",
         "deploymentName": "sampleDeployment4",
         "enabled": true,
-        "limit": {}
+        "limit": {
+          "minute": 20,
+          "day": 2000
+        }
       },
       {
         "role": "admin",
         "deploymentName": "sampleDeployment5",
         "enabled": true,
-        "limit": {}
-      },
-      {
-        "role": "admin",
-        "deploymentName": "sampleDeployment6",
-        "enabled": true,
         "limit": {
-          "minute": 20,
-          "day": 2000
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
         }
       }
     ],

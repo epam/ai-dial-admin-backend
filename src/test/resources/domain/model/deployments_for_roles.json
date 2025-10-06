@@ -4,25 +4,24 @@
     "defaultRoleLimit": {}
   },
   {
+    "name": "sampleDeployment2",
+    "defaultRoleLimit": {
+      "minute": 23
+    }
+  },
+  {
     "name": "sampleDeployment3",
-    "defaultRoleLimit": {
-      "minute": 23
-    }
+    "defaultRoleLimit": {}
   },
   {
-    "name": "sampleDeployment4"
-  },
-  {
-    "name": "sampleDeployment5",
-    "defaultRoleLimit": {
-      "minute": 23
-    }
-  },
-  {
-    "name": "sampleDeployment6",
+    "name": "sampleDeployment4",
     "defaultRoleLimit": {
       "day": 23,
       "month": 1000
     }
+  },
+  {
+    "name": "sampleDeployment5",
+    "defaultRoleLimit": {}
   }
 ]
