@@ -6,7 +6,7 @@
   "routes": [],
   "adapters": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "<will be defined during import 0>",
         "displayName": "<will be defined during import 0>",
@@ -19,7 +19,7 @@
   ],
   "models": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testModel2",
@@ -56,7 +56,7 @@
         "maxRetryAttempts": 5,
         "author": "test-author",
         "dependencies": [],
-        "type": "EMBEDDING",
+        "type": "embedding",
         "upstreams": [],
         "fieldsHashingOrder": [],
         "source": {
@@ -67,7 +67,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testModel1",
@@ -107,7 +107,7 @@
           "dep1",
           "dep2"
         ],
-        "type": "EMBEDDING",
+        "type": "embedding",
         "upstreams": [],
         "fieldsHashingOrder": [
           "prompt",

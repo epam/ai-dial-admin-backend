@@ -7,26 +7,26 @@
         "displayName": "default",
         "limits": [],
         "keys": [],
+        "share": [],
         "costLimit": {
-          "minute": 9223372036854775807,
-          "day": 9223372036854775807,
-          "week": 9223372036854775807,
-          "month": 9223372036854775807
-        },
-        "share": []
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       },
       "next": {
         "name": "default",
         "displayName": "default",
         "limits": [],
         "keys": [],
+        "share": [],
         "costLimit": {
-          "minute": 9223372036854775807,
-          "day": 9223372036854775807,
-          "week": 9223372036854775807,
-          "month": 9223372036854775807
-        },
-        "share": []
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     },
     {
@@ -67,12 +67,6 @@
           }
         ],
         "keys": [],
-        "costLimit": {
-          "minute": 111.222333444,
-          "day": 222,
-          "week": 333,
-          "month": 444
-        },
         "share": [
           {
             "role": "testRole3",
@@ -82,7 +76,13 @@
               "invitationTtl": 120
             }
           }
-        ]
+        ],
+        "costLimit": {
+          "minute": "111.222333444",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
@@ -123,13 +123,13 @@
           }
         ],
         "keys": [],
+        "share": [],
         "costLimit": {
-          "minute": 9223372036854775807,
-          "day": 9223372036854775807,
-          "week": 9223372036854775807,
-          "month": 9223372036854775807
-        },
-        "share": []
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     },
     {
@@ -175,13 +175,13 @@
           "testKey2",
           "testKey1"
         ],
+        "share": [],
         "costLimit": {
-          "minute": 9223372036854775807,
-          "day": 9223372036854775807,
-          "week": 9223372036854775807,
-          "month": 9223372036854775807
-        },
-        "share": []
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     }
   ],
@@ -218,10 +218,12 @@
       "importAction": "create",
       "next": {
         "name": "testInterceptor1",
+        "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
         "displayName": "Test Interceptor1",
         "forwardAuthToken": false,
         "author": "test-author",
+        "dependencies": [],
         "features": {
           "systemPromptSupported": true,
           "toolsSupported": false,
@@ -239,7 +241,6 @@
           "parallelToolCallsSupported": true
         },
         "defaults": {},
-        "dependencies": [],
         "entities": [
           "testApplication1",
           "testModel1"
@@ -256,6 +257,7 @@
         "displayName": "Test Interceptor2",
         "forwardAuthToken": false,
         "author": "test-author",
+        "dependencies": [],
         "features": {
           "systemPromptSupported": true,
           "toolsSupported": false,
@@ -273,7 +275,6 @@
           "parallelToolCallsSupported": true
         },
         "defaults": {},
-        "dependencies": [],
         "entities": [],
         "source": {
           "$type": "runner",
@@ -311,6 +312,9 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
+        "$defs": {},
+        "properties": {},
+        "required": [],
         "applicationTypeRoutes": [
           {
             "deployment": {
@@ -328,8 +332,8 @@
               "/second"
             ],
             "methods": [
-              "POST",
-              "GET"
+              "GET",
+              "POST"
             ],
             "upstreams": [
               {
@@ -345,8 +349,8 @@
             "maxRetryAttempts": 5,
             "order": 1,
             "permissions": [
-              "WRITE",
-              "READ"
+              "write",
+              "read"
             ],
             "attachmentPaths": {
               "requestBody": [
@@ -359,12 +363,9 @@
             }
           }
         ],
-        "properties": {},
-        "required": [],
         "applications": [
           "testApplication1"
-        ],
-        "$defs": {}
+        ]
       }
     }
   ],
@@ -487,7 +488,6 @@
             "invitationTtl": 259200
           }
         },
-        "endpoint": "https://endpoint2/embeddings",
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,
@@ -510,19 +510,12 @@
         "defaults": {},
         "topics": [],
         "maxRetryAttempts": 5,
-        "author": "test-author",
-        "dependencies": [
-          "dep1",
-          "dep2"
-        ],
-        "type": "EMBEDDING",
+        "type": "embedding",
         "upstreams": [],
-        "fieldsHashingOrder": [
-          "prompt",
-          "temperature",
-          "seed",
-          "system"
-        ],
+        "author": "test-author",
+        "dependencies": ["dep1", "dep2"],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+        "endpoint": "https://endpoint2/embeddings",
         "source": {
           "$type": "endpoints"
         }
@@ -574,6 +567,11 @@
             "invitationTtl": 259200
           }
         },
+        "source": {
+          "$type": "adapter",
+          "adapterName": "adapter1",
+          "completionEndpointPath": "embeddings"
+        },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -599,24 +597,11 @@
         ],
         "topics": [],
         "maxRetryAttempts": 5,
-        "author": "test-author",
-        "dependencies": [
-          "dep1",
-          "dep2"
-        ],
-        "type": "EMBEDDING",
+        "type": "embedding",
         "upstreams": [],
-        "fieldsHashingOrder": [
-          "prompt",
-          "temperature",
-          "seed",
-          "system"
-        ],
-        "source": {
-          "$type": "adapter",
-          "adapterName": "adapter1",
-          "completionEndpointPath": "embeddings"
-        }
+        "author": "test-author",
+        "dependencies": ["dep1", "dep2"],
+        "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
     }
   ],
@@ -658,14 +643,11 @@
         "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
+        "viewerUrl": "https://viewer.test.com/app1",
+        "editorUrl": "https://editor.test.com/app1",
         "defaults": {},
         "interceptors": [
           "testInterceptor1"
-        ],
-        "author": "test-author",
-        "dependencies": [
-          "dep1",
-          "dep2"
         ],
         "features": {
           "systemPromptSupported": true,
@@ -685,8 +667,8 @@
         },
         "applicationProperties": {},
         "applicationTypeSchemaId": "https://test-schema-id.example",
-        "viewerUrl": "https://viewer.test.com/app1",
-        "editorUrl": "https://editor.test.com/app1",
+        "author": "test-author",
+        "dependencies": ["dep1", "dep2"],
         "routes": []
       }
     },
@@ -764,8 +746,8 @@
               "/second"
             ],
             "methods": [
-              "POST",
-              "GET"
+              "GET",
+              "POST"
             ],
             "upstreams": [
               {
@@ -781,8 +763,8 @@
             "maxRetryAttempts": 5,
             "order": 1,
             "permissions": [
-              "WRITE",
-              "READ"
+              "write",
+              "read"
             ],
             "attachmentPaths": {
               "requestBody": [

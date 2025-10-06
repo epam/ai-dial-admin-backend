@@ -1,7 +1,7 @@
 {
   "roles": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testRole1",
         "displayName": "testRole1",
@@ -75,12 +75,6 @@
           "<will be defined during import 0>",
           "<will be defined during import 1>"
         ],
-        "costLimit": {
-          "minute": 111,
-          "day": 222,
-          "week": 333,
-          "month": 444
-        },
         "share": [
           {
             "role": "testRole1",
@@ -90,11 +84,17 @@
               "invitationTtl": 120
             }
           }
-        ]
+        ],
+        "costLimit": {
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testRole2",
         "displayName": "testRole2",
@@ -153,17 +153,17 @@
           }
         ],
         "keys": [],
+        "share": [],
         "costLimit": {
-          "minute": 111,
-          "day": 222,
-          "week": 333,
-          "month": 444
-        },
-        "share": []
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testRole3",
         "displayName": "testRole3",
@@ -222,29 +222,29 @@
           }
         ],
         "keys": [],
+        "share": [],
         "costLimit": {
-          "minute": 111,
-          "day": 222,
-          "week": 333,
-          "month": 444
-        },
-        "share": []
+          "minute": "111",
+          "day": "222",
+          "week": "333",
+          "month": "444"
+        }
       }
     },
     {
-      "importAction": "UPDATE",
+      "importAction": "update",
       "prev": {
         "name": "default",
         "displayName": "default",
         "limits": [],
         "keys": [],
+        "share": [],
         "costLimit": {
           "minute": 9223372036854775807,
           "day": 9223372036854775807,
           "week": 9223372036854775807,
           "month": 9223372036854775807
-        },
-        "share": []
+        }
       },
       "next": {
         "name": "default",
@@ -304,19 +304,19 @@
           }
         ],
         "keys": [],
+        "share": [],
         "costLimit": {
-          "minute": 9223372036854775807,
-          "day": 9223372036854775807,
-          "week": 9223372036854775807,
-          "month": 9223372036854775807
-        },
-        "share": []
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
       }
     }
   ],
   "keys": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "<will be defined during import 0>",
         "displayName": "<will be defined during import 0>",
@@ -329,7 +329,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "<will be defined during import 1>",
         "displayName": "<will be defined during import 1>",
@@ -344,13 +344,17 @@
   ],
   "interceptors": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testInterceptor1",
-        "endpoint": "https://endpoint.test.com/interceptor",
         "displayName": "Test Interceptor1",
+        "endpoint": "https://endpoint.test.com/interceptor",
         "forwardAuthToken": false,
         "author": "test-author",
+        "dependencies": [],
+        "defaults": {
+          "defaults_key": "defaults_value"
+        },
         "features": {
           "systemPromptSupported": true,
           "toolsSupported": false,
@@ -364,10 +368,6 @@
           "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
-        "defaults": {
-          "defaults_key": "defaults_value"
-        },
-        "dependencies": [],
         "entities": [
           "testApplication1",
           "testModel1"
@@ -380,12 +380,10 @@
   ],
   "applicationRunners": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "schemaId": "https://test-schema-id.example",
         "schema": "https://dial.epam.com/application_type_schemas/schema#",
-        "type": "OBJECT",
-        "title": "Sample Schema",
         "applicationTypeEditorUrl": "https://test.com/billings",
         "applicationTypeViewerUrl": "https://test.com/claims",
         "applicationTypeDisplayName": "runner display name",
@@ -436,9 +434,7 @@
             ],
             "maxRetryAttempts": 3,
             "order": 1,
-            "permissions": [
-              "WRITE"
-            ],
+            "permissions": ["WRITE"],
             "attachmentPaths": {
               "requestBody": [
                 "/first",
@@ -450,18 +446,20 @@
             }
           }
         ],
+        "$defs": {},
         "properties": {},
         "required": [],
+        "type": "object",
+        "title": "Sample Schema",
         "applications": [
           "testApplication1"
-        ],
-        "$defs": {}
+        ]
       }
     }
   ],
   "routes": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "test_route1",
@@ -521,7 +519,7 @@
   ],
   "adapters": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "<will be defined during import 0>",
         "displayName": "<will be defined during import 0>",
@@ -532,7 +530,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "<will be defined during import 1>",
         "displayName": "<will be defined during import 1>",
@@ -545,7 +543,7 @@
   ],
   "models": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testModel2",
@@ -610,7 +608,6 @@
             "invitationTtl": 259200
           }
         },
-        "endpoint": "https://endpoint2/embeddings",
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,
@@ -630,19 +627,20 @@
         "defaults": {},
         "topics": [],
         "maxRetryAttempts": 5,
+        "type": "embedding",
+        "upstreams": [],
         "author": "test-author",
         "dependencies": [
           "dep1",
           "dep2"
         ],
-        "type": "EMBEDDING",
-        "upstreams": [],
         "fieldsHashingOrder": [
           "prompt",
           "temperature",
           "seed",
           "system"
         ],
+        "endpoint": "https://endpoint2/embeddings",
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import 0>",
@@ -651,7 +649,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testModel1",
@@ -725,7 +723,6 @@
             "invitationTtl": 259200
           }
         },
-        "endpoint": "https://endpoint1/embeddings",
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -750,16 +747,17 @@
         ],
         "topics": [],
         "maxRetryAttempts": 5,
+        "type": "embedding",
+        "upstreams": [],
         "author": "test-author",
         "dependencies": [],
-        "type": "EMBEDDING",
-        "upstreams": [],
         "fieldsHashingOrder": [
           "prompt",
           "temperature",
           "seed",
           "system"
         ],
+        "endpoint": "https://endpoint1/embeddings",
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import 1>",
@@ -770,7 +768,7 @@
   ],
   "applications": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testApplication1",
@@ -838,17 +836,14 @@
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
+        "viewerUrl": "https://viewer.test.com/app1",
+        "editorUrl": "https://editor.test.com/app1",
         "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
         "defaults": {},
         "interceptors": [
           "testInterceptor1"
-        ],
-        "author": "test-author",
-        "dependencies": [
-          "dep1",
-          "dep2"
         ],
         "features": {
           "systemPromptSupported": true,
@@ -865,13 +860,16 @@
         },
         "applicationProperties": {},
         "applicationTypeSchemaId": "https://test-schema-id.example",
-        "viewerUrl": "https://viewer.test.com/app1",
-        "editorUrl": "https://editor.test.com/app1",
-        "routes": []
+        "routes": [],
+        "author": "test-author",
+        "dependencies": [
+          "dep1",
+          "dep2"
+        ]
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testApplication2",
@@ -967,7 +965,7 @@
   ],
   "addons": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testAddon1",
@@ -999,7 +997,7 @@
   "assistants": [],
   "toolSets": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "toolset1",
@@ -1027,19 +1025,17 @@
             ]
           }
         },
-        "endpoint": "http://sample-endpoint/api",
         "displayName": "ToolSet1",
+        "forwardAuthToken": false,
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
+        "endpoint": "http://sample-endpoint/api",
+        "transport": "sse",
+        "allowedTools": ["branch", "remote"],
+        "author": "test-author",
         "source": {
           "$type": "endpoints"
-        },
-        "author": "test-author",
-        "transport": "SSE",
-        "allowedTools": [
-          "branch",
-          "remote"
-        ]
+        }
       }
     }
   ]
