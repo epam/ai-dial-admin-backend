@@ -37,6 +37,19 @@
           "minute": 20,
           "day": 2000
         }
+      },
+      {
+        "role": "admin",
+        "deploymentName": "sampleDeployment5",
+        "enabled": true,
+        "limit": {
+          "minute": 9223372036854775807,
+          "day": 9223372036854775807,
+          "week": 9223372036854775807,
+          "month": 9223372036854775807,
+          "requestHour": 9223372036854775807,
+          "requestDay": 9223372036854775807
+        }
       }
     ],
     "roles": [],
