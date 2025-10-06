@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapper;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -37,14 +36,12 @@ public class ToolSetFacade {
     }
 
     public void createToolSet(ToolSetDto toolSetDto) {
-        setDefaultRoleShareResourceLimitIfMissing(toolSetDto);
         Optional.of(toolSetDto)
                 .map(mapper::toDomain)
                 .ifPresent(toolSetService::create);
     }
 
     public void updateToolSet(String toolSetName, ToolSetDto toolSetDto) {
-        setDefaultRoleShareResourceLimitIfMissing(toolSetDto);
         ToolSet value = mapper.toDomain(toolSetDto);
         toolSetService.update(toolSetName, value);
     }
@@ -71,13 +68,5 @@ public class ToolSetFacade {
 
     public void refreshEndpoints() {
         toolSetService.refreshEndpoints();
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(ToolSetDto toolSetDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = toolSetDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            toolSetDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }

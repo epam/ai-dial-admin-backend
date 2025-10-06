@@ -72,7 +72,6 @@ public abstract class ApplicationHistoryFunctionalTest {
         defaultShareResourceLimitDto.setMaxAcceptedUsers(10);
         expected.setDescription("new application description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(defaultShareResourceLimitDto);
         expected.setDefaults(Map.of());
         expected.setInterceptors(List.of());
         expected.setEndpoint("endpoint2");
@@ -83,11 +82,9 @@ public abstract class ApplicationHistoryFunctionalTest {
         // 3 add roles to application1
         updatedApplication.setMaxRetryAttempts(3);
         updatedApplication.setDefaultRoleLimit(new LimitDto());
-        updatedApplication.setDefaultRoleShareResourceLimit(defaultShareResourceLimitDto);
         updatedApplication.setDefaults(Map.of());
         updatedApplication.setInterceptors(List.of());
         updatedApplication.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedApplication.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         updatedApplication.setRoutes(List.of());
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
         actual = applicationFacade.getApplication(applicationDto.getName());
@@ -99,7 +96,6 @@ public abstract class ApplicationHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedApplication.setRoleLimits(Map.of("role3", limitDto));
-        updatedApplication.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
         var actualAtOldRevision = applicationFacade.getAllApplications();
         actual = applicationFacade.getApplication(applicationDto.getName());
@@ -111,7 +107,6 @@ public abstract class ApplicationHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete application 1
         applicationFacade.deleteApplication(applicationDto.getName());
@@ -276,9 +271,6 @@ public abstract class ApplicationHistoryFunctionalTest {
         applicationDto.setDescription("description" + suffix);
         applicationDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
-        ));
-        applicationDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
         ));
         return applicationDto;
     }

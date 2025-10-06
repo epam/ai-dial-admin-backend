@@ -6,7 +6,6 @@
         "name": "default",
         "limits": [],
         "keys": [],
-        "share": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -18,7 +17,6 @@
         "name": "default",
         "limits": [],
         "keys": [],
-        "share": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -64,16 +62,12 @@
           }
         ],
         "keys": [],
-        "share": [
-          {
-            "role": "testRole3",
-            "deploymentName": "testModel1",
-            "limit": {
-              "maxAcceptedUsers": 10,
-              "invitationTtl": 120
-            }
+        "share": {
+          "APPLICATION": {
+            "maxAcceptedUsers": 10,
+            "invitationTtl": 120
           }
-        ],
+        },
         "costLimit": {
           "minute": "111.222333444",
           "day": "222",
@@ -119,7 +113,6 @@
           }
         ],
         "keys": [],
-        "share": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -170,7 +163,6 @@
           "testKey2",
           "testKey1"
         ],
-        "share": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -386,12 +378,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "response": {
           "status": 200,
@@ -470,12 +458,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": true,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
@@ -537,23 +521,9 @@
               }
             }
           ],
-          "roleShareResourceLimits": [
-            {
-              "role": "testRole3",
-              "deploymentName": "testModel1",
-              "limit": {
-                "maxAcceptedUsers": 10,
-                "invitationTtl": 120
-              }
-            }
-          ],
           "isPublic": false,
           "defaultRoleLimit": {
             "day": 3
-          },
-          "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": 15,
-            "invitationTtl": 259200
           }
         },
         "source": {
@@ -620,12 +590,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
@@ -686,12 +652,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
         "displayName": "Test Application2",

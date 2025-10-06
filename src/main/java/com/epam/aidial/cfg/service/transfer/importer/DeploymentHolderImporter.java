@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.model.DeploymentHolder;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,7 +14,6 @@ public abstract class DeploymentHolderImporter {
 
     protected void setLimits(String deploymentName, Map<String, Role> roles, Deployment newDeployment) {
         setRoleLimits(deploymentName, List.of(), roles, newDeployment);
-        setRoleShareResourceLimits(deploymentName, List.of(), roles, newDeployment);
     }
 
     protected void setLimits(String deploymentName,
@@ -23,7 +21,6 @@ public abstract class DeploymentHolderImporter {
                              Map<String, Role> roles,
                              Deployment newDeployment) {
         setRoleLimits(deploymentName, existingDeployment.getRoleLimits(), roles, newDeployment);
-        setRoleShareResourceLimits(deploymentName, existingDeployment.getRoleShareResourceLimits(), roles, newDeployment);
     }
 
     private void setRoleLimits(String deploymentName,
@@ -58,37 +55,6 @@ public abstract class DeploymentHolderImporter {
                 && limit1.getDeploymentName().equals(limit2.getDeploymentName());
     }
 
-    private void setRoleShareResourceLimits(String deploymentName,
-                                            List<RoleShareResourceLimit> existingRoleShareResourceLimits,
-                                            Map<String, Role> roles,
-                                            Deployment newDeployment) {
-        // For the deployment we need to leave only those role share resource limits which role is present in config.
-        // It means that:
-        // 1. If role share resource limit already exists - we save its new state here during deployment update and
-        //    then during role update. If we try to remove it here and re-add it later during role import, we get
-        //    org.hibernate.ObjectDeletedException: deleted instance passed to merge.
-        // 2. If role share resource limit doesn't exist - we save it later
-        //    during role import. If we try to save it here and during role import, we get
-        //    org.hibernate.NonUniqueObjectException: A different object with the same identifier value was already
-        //    associated with the session.
-        List<RoleShareResourceLimit> roleShareResourceLimits = roles.values().stream()
-                .flatMap(role -> role.getShare().stream())
-                .filter(roleShareResourceLimit -> roleShareResourceLimit.getDeploymentName().equals(deploymentName))
-                .filter(roleShareResourceLimit -> isExistingRoleShareResourceLimit(roleShareResourceLimit, existingRoleShareResourceLimits))
-                .toList();
-
-        newDeployment.setRoleShareResourceLimits(roleShareResourceLimits);
-    }
-
-    private boolean isExistingRoleShareResourceLimit(RoleShareResourceLimit limit, List<RoleShareResourceLimit> existingLimits) {
-        return existingLimits.stream()
-                .anyMatch(existingRoleLimit -> isSameRoleShareResourceLimit(existingRoleLimit, limit));
-    }
-
-    private boolean isSameRoleShareResourceLimit(RoleShareResourceLimit limit1, RoleShareResourceLimit limit2) {
-        return limit1.getRole().equals(limit2.getRole())
-                && limit1.getDeploymentName().equals(limit2.getDeploymentName());
-    }
 
     protected <T extends DeploymentHolder> List<String> getNextImportComponentNames(Collection<ImportComponent<T>> importComponents) {
         return importComponents.stream()
@@ -98,31 +64,19 @@ public abstract class DeploymentHolderImporter {
                 .toList();
     }
 
-    protected ImportedLimits getImportedLimits(Collection<ImportComponent<Role>> roleImportComponents) {
+    protected List<RoleLimit> getImportedLimits(Collection<ImportComponent<Role>> roleImportComponents) {
         Collection<Role> importedRoles = roleImportComponents.stream().map(ImportComponent::getNext).toList();
-        List<RoleLimit> importedRoleLimits = importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedRoles.stream().map(Role::getShare).flatMap(Collection::stream).toList();
-        return new ImportedLimits(importedRoleLimits, importedRoleShareResourceLimits);
+        return importedRoles.stream().map(Role::getLimits).flatMap(Collection::stream).toList();
     }
 
-    protected void setImportedLimits(DeploymentHolder deploymentHolder,
-                                     List<RoleLimit> importedRoleLimits,
-                                     List<RoleShareResourceLimit> importedRoleShareResourceLimits) {
+    protected void setImportedLimits(DeploymentHolder deploymentHolder, List<RoleLimit> importedRoleLimits) {
         String name = deploymentHolder.getDeployment().getName();
 
         List<RoleLimit> roleLimits = importedRoleLimits.stream()
                 .filter(roleLimit -> roleLimit.getDeploymentName().equals(name))
                 .toList();
-        List<RoleShareResourceLimit> roleShareResourceLimits = importedRoleShareResourceLimits.stream()
-                .filter(roleShareResourceLimit -> roleShareResourceLimit.getDeploymentName().equals(name))
-                .toList();
 
         deploymentHolder.getDeployment().setRoleLimits(roleLimits);
-        deploymentHolder.getDeployment().setRoleShareResourceLimits(roleShareResourceLimits);
-    }
-
-    protected record ImportedLimits(List<RoleLimit> importedRoleLimits,
-                                    List<RoleShareResourceLimit> importedRoleShareResourceLimits) {
     }
 
 }

@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -56,12 +55,7 @@ public abstract class RolesHistoryFunctionalTest {
         limit1.setMinute(10L);
         LimitDto limit2 = new LimitDto();
         limit2.setMinute(20L);
-        ShareResourceLimitDto shareResourceLimit1 = new ShareResourceLimitDto();
-        shareResourceLimit1.setMaxAcceptedUsers(10);
-        ShareResourceLimitDto shareResourceLimit2 = new ShareResourceLimitDto();
-        shareResourceLimit2.setInvitationTtl(20L);
         updatedRole.setLimits(Map.of("model1", limit1, "model2", limit2));
-        updatedRole.setShare(Map.of("model1", shareResourceLimit1, "model2", shareResourceLimit2));
         updatedRole.setGrantedKeys(List.of("key1", "key2"));
         roleFacade.updateRole(roleDto.getName(), updatedRole);
 
@@ -113,7 +107,6 @@ public abstract class RolesHistoryFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateRoleWithoutDeletion() {
-
         ModelDto model1 = createModelDto("1");
         ModelDto model2 = createModelDto("2");
         modelFacade.createModel(model1);
@@ -137,12 +130,7 @@ public abstract class RolesHistoryFunctionalTest {
         limit1.setMinute(10L);
         LimitDto limit2 = new LimitDto();
         limit2.setMinute(20L);
-        ShareResourceLimitDto shareResourceLimit1 = new ShareResourceLimitDto();
-        shareResourceLimit1.setMaxAcceptedUsers(10);
-        ShareResourceLimitDto shareResourceLimit2 = new ShareResourceLimitDto();
-        shareResourceLimit2.setInvitationTtl(20L);
         updatedRole.setLimits(Map.of("model1", limit1, "model2", limit2));
-        updatedRole.setShare(Map.of("model1", shareResourceLimit1, "model2", shareResourceLimit2));
         updatedRole.setGrantedKeys(List.of("key1", "key2"));
         roleFacade.updateRole(roleDto.getName(), updatedRole);
 
@@ -158,10 +146,7 @@ public abstract class RolesHistoryFunctionalTest {
 
         limit1.setMinute(100L);
         limit2.setMinute(200L);
-        shareResourceLimit1.setMaxAcceptedUsers(100);
-        shareResourceLimit2.setInvitationTtl(200L);
         updatedRole.setLimits(Map.of("model1", limit1, "model2", limit2));
-        updatedRole.setShare(Map.of("model1", shareResourceLimit1, "model2", shareResourceLimit2));
         updatedRole.setDescription("new new role description");
         updatedRole.setGrantedKeys(List.of("key2", "key3"));
         roleFacade.updateRole(roleDto.getName(), updatedRole);
@@ -208,7 +193,6 @@ public abstract class RolesHistoryFunctionalTest {
         roleDto.setDescription("description" + suffix);
         roleDto.setDisplayName("displayName" + suffix);
         roleDto.setLimits(Map.of());
-        roleDto.setShare(Map.of());
         roleDto.setGrantedKeys(List.of());
         return roleDto;
     }

@@ -67,7 +67,6 @@ public abstract class ModelHistoryFunctionalTest {
         expected.setDescription("new model description");
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setMaxRetryAttempts(1);
         assertModel(actual, expected);
 
@@ -75,9 +74,7 @@ public abstract class ModelHistoryFunctionalTest {
         updatedModel.setMaxRetryAttempts(3);
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
-        updatedModel.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedModel.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedModel.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         actual = modelFacade.getModel(modelDto.getName());
         assertModel(actual, updatedModel);
@@ -88,7 +85,6 @@ public abstract class ModelHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
-        updatedModel.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         var actualAtRevision = modelFacade.getModel(modelDto.getName());
         assertModel(actualAtRevision, updatedModel);
@@ -99,7 +95,6 @@ public abstract class ModelHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = modelFacade.getModel(modelDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // delete model 1
         modelFacade.deleteModel(modelDto.getName());
@@ -274,9 +269,6 @@ public abstract class ModelHistoryFunctionalTest {
         modelDto.setDescription("description" + suffix);
         modelDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
-        ));
-        modelDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
         ));
         modelDto.setSource(new ModelEndpointsSourceDto());
         modelDto.setEndpoint("https://endpoint1/chat/completions");
