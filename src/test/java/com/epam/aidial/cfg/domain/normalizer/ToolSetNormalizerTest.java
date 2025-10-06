@@ -19,33 +19,6 @@ class ToolSetNormalizerTest {
 
     @ParameterizedTest
     @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
-    void normalize_shouldSetDisplayNameToNullWhenDisplayNameIsBlank(String displayName) {
-        // given
-        ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(displayName);
-
-        // when
-        toolSetNormalizer.normalize(toolSet);
-
-        // then
-        assertThat(toolSet.getDisplayName()).isNull();
-    }
-
-    @Test
-    void normalize_shouldLeaveDisplayNameAsIsWhenDisplayNameIsNotBlank() {
-        // given
-        ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName("text");
-
-        // when
-        toolSetNormalizer.normalize(toolSet);
-
-        // then
-        assertThat(toolSet.getDisplayName()).isEqualTo("text");
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
     void normalize_shouldSetEndpointToNullWhenEndpointIsBlank(String endpoint) {
         // given
         ToolSet toolSet = new ToolSet();

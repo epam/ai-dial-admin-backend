@@ -43,7 +43,6 @@ public class RoleImporter {
                     .map(roleEntry -> {
                                 var role = roleEntry.getValue();
                                 role.setName(roleEntry.getKey());
-                                role.setDisplayName(roleEntry.getKey());
                                 return importRole(roleEntry.getKey(), role, resolutionPolicy);
                             }
                     )

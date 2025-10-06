@@ -71,11 +71,9 @@ public class KeyImporter {
     private ImportComponent<Key> processKey(Key key, ConflictResolutionPolicy resolutionPolicy) {
         Optional<Key> existingKey = keyService.tryGetKey(key.getName());
         if (existingKey.isPresent()) {
-            key.setDisplayName(existingKey.get().getDisplayName());
             ImportAction importAction = handleExisting(key, resolutionPolicy);
             return new ImportComponent<>(importAction, existingKey.get(), key);
         } else {
-            key.setDisplayName(key.getKey());
             ImportAction importAction = create(key);
             return new ImportComponent<>(importAction, null, key);
         }

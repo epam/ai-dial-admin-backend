@@ -1,7 +1,7 @@
 {
   "roles": [
     {
-      "importAction": "UPDATE",
+      "importAction": "update",
       "prev": {
         "name": "default",
         "displayName": "default",
@@ -30,7 +30,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testRole3",
         "displayName": "testRole3",
@@ -86,7 +86,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testRole2",
         "displayName": "testRole2",
@@ -133,7 +133,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testRole1",
         "displayName": "testRole1",
@@ -187,7 +187,7 @@
   ],
   "keys": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testKey2",
         "displayName": "testKey2",
@@ -200,7 +200,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testKey1",
         "displayName": "testKey1",
@@ -215,7 +215,7 @@
   ],
   "interceptors": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testInterceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
@@ -250,7 +250,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testInterceptor2",
         "displayName": "Test Interceptor2",
@@ -284,7 +284,7 @@
   ],
   "interceptorRunners": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "testRunner1",
         "displayName": "testRunner1",
@@ -298,7 +298,7 @@
   ],
   "applicationRunners": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "schemaId": "https://test-schema-id.example",
         "schema": "https://dial.epam.com/application_type_schemas/schema#",
@@ -370,7 +370,7 @@
   ],
   "routes": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "test_route1",
@@ -436,13 +436,13 @@
         ],
         "maxRetryAttempts": 3,
         "order": 2147483647,
-        "displayName": "test_route1"
+        "displayName": "route1"
       }
     }
   ],
   "adapters": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "name": "adapter1",
         "displayName": "adapter1",
@@ -456,7 +456,7 @@
   ],
   "models": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testModel2",
@@ -529,7 +529,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testModel1",
@@ -622,7 +622,7 @@
   ],
   "applications": [
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testApplication1",
@@ -691,7 +691,7 @@
       }
     },
     {
-      "importAction": "CREATE",
+      "importAction": "create",
       "next": {
         "deployment": {
           "name": "testApplication2",

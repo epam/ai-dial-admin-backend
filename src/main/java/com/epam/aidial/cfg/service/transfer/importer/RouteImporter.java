@@ -84,14 +84,12 @@ public class RouteImporter extends DeploymentHolderImporter {
         Optional<Route> route = routeService.tryGetRoute(routeName);
         if (route.isPresent()) {
             Route existingRoute = route.get();
-            newRoute.setDisplayName(existingRoute.getDisplayName());
             setLimits(routeName, existingRoute.getDeployment(), roles, newRoute.getDeployment());
             ImportAction importAction = handleExisting(newRoute, resolutionPolicy, routeName);
             return new ImportComponent<>(importAction, existingRoute, newRoute);
         } else {
             validate(routeName, newRoute);
             setLimits(routeName, roles, newRoute.getDeployment());
-            newRoute.setDisplayName(routeName);
             routeService.create(newRoute);
             return new ImportComponent<>(CREATE, null, newRoute);
         }

@@ -38,7 +38,6 @@ public class InterceptorRunnerImporter {
                     .map(interceptorRunnerEntry -> {
                                 var interceptorRunner = interceptorRunnerEntry.getValue();
                                 interceptorRunner.setName(interceptorRunnerEntry.getKey());
-                                interceptorRunner.setDisplayName(interceptorRunnerEntry.getKey());
                                 return processInterceptorRunner(interceptorRunnerEntry.getKey(), interceptorRunner, resolutionPolicy);
                             }
                     )

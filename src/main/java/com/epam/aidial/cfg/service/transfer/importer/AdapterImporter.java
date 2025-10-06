@@ -71,12 +71,11 @@ public class AdapterImporter {
                 adapter.setBaseEndpoint(endpoint);
                 if (!isPreview) {
                     adapter.setName(UUID.randomUUID().toString());
-                    adapter.setDisplayName(adapter.getName());
                 } else {
                     adapter.setName("<will be defined during import " + i + ">");
-                    adapter.setDisplayName(adapter.getName());
                     i++;
                 }
+                adapter.setDisplayName(adapter.getName());
                 adapterService.create(adapter);
                 result.add(new ImportComponent<>(CREATE, null, adapter));
             }
@@ -128,11 +127,9 @@ public class AdapterImporter {
                                                     ConflictResolutionPolicy conflictResolutionPolicy) {
         Optional<Adapter> existingAdapter = adapterService.tryGet(adapterName);
         if (existingAdapter.isPresent()) {
-            adapter.setDisplayName(existingAdapter.get().getDisplayName());
             ImportAction importAction = handleExistingAdapter(adapter, conflictResolutionPolicy, adapterName);
             return new ImportComponent<>(importAction, existingAdapter.get(), adapter);
         } else {
-            adapter.setDisplayName(adapterName);
             adapterService.create(adapter);
             return new ImportComponent<>(CREATE, null, adapter);
         }

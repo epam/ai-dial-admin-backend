@@ -35,18 +35,11 @@ class DisplayFieldsValidatorTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"''", "' '"})
-    void validateDisplayName_shouldThrowExceptionWhenDisplayNameIsBlank(String displayName) {
+    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
+    void validateDisplayName_shouldThrowExceptionWhenDisplayNameIsNullOrBlank(String displayName) {
         assertThatThrownBy(() -> displayFieldsValidator.validateDisplayName(displayName))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid display name: '" + displayName + "'");
-    }
-
-    @Test
-    void validateDisplayName_shouldThrowExceptionWhenDisplayNameIsNull() {
-        assertThatThrownBy(() -> displayFieldsValidator.validateDisplayName(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid display name: 'null'");
     }
 
     @Test
