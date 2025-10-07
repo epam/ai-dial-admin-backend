@@ -48,8 +48,6 @@ public abstract class ApplicationHistoryFunctionalTest {
     }
 
     @Test
-    @Disabled
-    //TODO fix the test
     public void shouldSuccessfullyCreateAndUpdateApplication() {
         initRoles();
 
@@ -61,7 +59,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
         updatedApplication.setDescription("new application description");
         updatedApplication.setEndpoint("endpoint2");
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
 
         // verify application1
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
@@ -75,8 +73,6 @@ public abstract class ApplicationHistoryFunctionalTest {
         expected.setEndpoint("endpoint2");
         expected.setRoutes(List.of());
         expected.setMaxRetryAttempts(1);
-        expected.setCreatedAt(actual.getCreatedAt());
-        expected.setUpdatedAt(actual.getUpdatedAt());
         assertApplication(actual, expected);
 
         // 3 add roles to application1
@@ -86,7 +82,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         updatedApplication.setInterceptors(List.of());
         updatedApplication.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
         updatedApplication.setRoutes(List.of());
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
         actual = applicationFacade.getApplication(applicationDto.getName());
         assertApplication(actual, updatedApplication);
 
@@ -96,7 +92,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedApplication.setRoleLimits(Map.of("role3", limitDto));
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
         var actualAtOldRevision = applicationFacade.getAllApplications();
         actual = applicationFacade.getApplication(applicationDto.getName());
         assertApplication(actual, updatedApplication);
@@ -117,10 +113,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         applicationFacade.createApplication(applicationDto2);
 
         // 8 create role3
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("3"));
 
         // 9 create application3 with assigned role3
         ApplicationDto applicationDto3 = createApplicationDtoWithEndpointAndLimits("3");
@@ -159,7 +152,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // update application
         applicationDto.setInterceptors(List.of(interceptor2.getName()));
-        applicationFacade.updateApplication(applicationDto.getName(), applicationDto);
+        applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -195,7 +188,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // update application
         applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto2.getId()));
-        applicationFacade.updateApplication(applicationDto.getName(), applicationDto);
+        applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -228,7 +221,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         application1Dto.setCustomAppSchemaId(null);
         application1Dto.setEndpoint("endpoint");
-        applicationFacade.updateApplication(application1Dto.getName(), application1Dto);
+        applicationFacade.updateApplication(application1Dto.getName(), application1Dto, "*");
 
         ApplicationDto application2Dto = createBaseApplicationDto("2");
         application2Dto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));

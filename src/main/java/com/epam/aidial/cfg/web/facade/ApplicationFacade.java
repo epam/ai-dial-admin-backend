@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,15 +34,20 @@ public class ApplicationFacade {
         return mapper.toDto(application);
     }
 
+    public DtoWithDomainHash<ApplicationDto> getApplicationWithHash(String applicationName) {
+        var applicationWithHash = applicationService.getApplicationWithHash(applicationName);
+        return new DtoWithDomainHash<>(mapper.toDto(applicationWithHash.model()), applicationWithHash.hash());
+    }
+
     public void createApplication(ApplicationDto applicationDto) {
         Optional.of(applicationDto)
                 .map(mapper::toDomain)
                 .ifPresent(applicationService::createApplication);
     }
 
-    public void updateApplication(String applicationName, ApplicationDto applicationDto) {
+    public String updateApplication(String applicationName, ApplicationDto applicationDto, String hash) {
         Application value = mapper.toDomain(applicationDto);
-        applicationService.updateApplication(applicationName, value);
+        return applicationService.updateApplication(applicationName, value, hash);
     }
 
     public void deleteApplication(String applicationName) {

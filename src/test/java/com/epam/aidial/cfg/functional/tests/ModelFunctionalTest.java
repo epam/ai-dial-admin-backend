@@ -303,7 +303,7 @@ public abstract class ModelFunctionalTest {
         modelFacade.createModel(modelDto2);
 
         interceptorDto1.setEntities(List.of("model2"));
-        interceptorFacade.updateInterceptor(interceptorDto1.getName(), interceptorDto1);
+        interceptorFacade.updateInterceptor(interceptorDto1.getName(), interceptorDto1, "*");
 
         ModelDto actualModel1 = modelFacade.getModel(modelDto1.getName());
         Assertions.assertEquals(List.of("interceptor2"), actualModel1.getInterceptors());
@@ -312,7 +312,7 @@ public abstract class ModelFunctionalTest {
         Assertions.assertEquals(List.of("interceptor1", "interceptor1", "interceptor2"), actualModel2.getInterceptors());
 
         interceptorDto2.setEntities(null);
-        interceptorFacade.updateInterceptor(interceptorDto2.getName(), interceptorDto2);
+        interceptorFacade.updateInterceptor(interceptorDto2.getName(), interceptorDto2, "*");
 
         actualModel1 = modelFacade.getModel(modelDto1.getName());
         Assertions.assertNull(actualModel1.getInterceptors());
