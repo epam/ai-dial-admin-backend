@@ -63,7 +63,7 @@ public class ApplicationController {
     public ResponseEntity<Void> updateApplication(@PathVariable("applicationName") String applicationName,
                                                   @RequestBody @Valid ApplicationDto applicationDto,
                                                   @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = applicationFacade.updateApplication(applicationName, applicationDto, previousHash);
+        var newHash = applicationFacade.updateApplication(applicationName, applicationDto, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 

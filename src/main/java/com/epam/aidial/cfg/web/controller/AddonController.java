@@ -67,7 +67,7 @@ public class AddonController {
     public ResponseEntity<Void> updateAddon(@PathVariable("addonName") String addonName,
                                             @RequestBody @Valid AddonDto addonDto,
                                             @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = addonFacade.updateAddon(addonName, addonDto, previousHash);
+        var newHash = addonFacade.updateAddon(addonName, addonDto, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
