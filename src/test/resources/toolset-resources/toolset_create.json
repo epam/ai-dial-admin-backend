@@ -1,0 +1,16 @@
+{
+  "name": "test_toolset",
+  "version": "1",
+  "folderId": "test_folder",
+  "endpoint": "https://test",
+  "displayName": null,
+  "displayVersion": null,
+  "iconUrl": null,
+  "description": "dsggs",
+  "maxInputAttachments": null,
+  "descriptionKeywords": null,
+  "maxRetryAttempts": 10,
+  "transport": "HTTP",
+  "allowedTools": null,
+  "authSettings": null
+}

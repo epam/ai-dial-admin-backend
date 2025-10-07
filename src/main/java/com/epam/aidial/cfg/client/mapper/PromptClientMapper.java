@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.client.dto.PromptDto;
 import com.epam.aidial.cfg.client.dto.PromptMetadataDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.CreatePrompt;
-import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Prompt;
 import com.epam.aidial.cfg.model.PromptExim;
@@ -13,17 +12,11 @@ import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.core.util.UrlUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
-@Mapper(componentModel = "spring", uses = FolderUrlMapper.class)
+@Mapper(componentModel = "spring")
 @Slf4j
 public abstract class PromptClientMapper {
 
@@ -104,20 +97,6 @@ public abstract class PromptClientMapper {
         return PathUtils.parseVersionedPath(pathDecoded);
     }
 
-    @Mapping(target = "path", source = "url", qualifiedByName = "mapUrl")
-    @Mapping(target = "items", source = "items", qualifiedByName = "mapItems")
-    public abstract FolderInfo toFolderInfo(PromptMetadataDto promptMetadataDto, @Context String prefix);
-
-    @Named("mapItems")
-    protected List<FolderInfo> mapItems(List<PromptMetadataDto> items) {
-        return Optional.ofNullable(items)
-                .orElse(Collections.emptyList())
-                .stream()
-                .filter(metadata -> Objects.equals(NodeTypeDto.FOLDER, metadata.getNodeType()))
-                .map(metadata -> toFolderInfo(metadata, PROMPTS_PREFIX))
-                .toList();
-    }
-
     private static String extractPath(String path) {
         return UrlUtil.decodePath(removePromptsPrefix(path));
     }
@@ -137,11 +116,6 @@ public abstract class PromptClientMapper {
                 .description(createPrompt.getDescription())
                 .content(createPrompt.getContent())
                 .build();
-    }
-
-    public String toPath(CreatePrompt createPrompt) {
-        var folderId = StringUtils.stripEnd(createPrompt.getFolderId(), "/");
-        return folderId + "/" + createPrompt.getName() + "__" + createPrompt.getVersion();
     }
 
 }

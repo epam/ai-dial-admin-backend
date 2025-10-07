@@ -144,11 +144,12 @@ Applied when: config.export.keyvault.type=vault
 
 ## DIAL Core Configuration
 
-| Setting                                  | Environment Variable                     | Default | Required | Applied when | Description                                                                               |
-|------------------------------------------|------------------------------------------|---------|----------|-----------|-------------------------------------------------------------------------------------------|
-| core.client.url                          | CORE_CLIENT_URL                          | localhost:8081 | No (recommended to adjust for target environment) | - | URL of the DIAL Core service                                                              |
-| core.prompts.metadata.default.limit      | CORE_PROMPTS_METADATA_DEFAULT_LIMIT      | 256 | No | - | Default limit on the number of items in the prompts metadata response from DIAL Core      |
+| Setting                                  | Environment Variable                     | Default | Required | Applied when | Description                                                                              |
+|------------------------------------------|------------------------------------------|---------|----------|-----------|------------------------------------------------------------------------------------------|
+| core.client.url                          | CORE_CLIENT_URL                          | localhost:8081 | No (recommended to adjust for target environment) | - | URL of the DIAL Core service                                                             |
+| core.prompts.metadata.default.limit      | CORE_PROMPTS_METADATA_DEFAULT_LIMIT      | 256 | No | - | Default limit on the number of items in the prompts metadata response from DIAL Core     |
 | core.applications.metadata.default.limit | CORE_APPLICATIONS_METADATA_DEFAULT_LIMIT | 256 | No | - | Default limit on the number of items in the applications metadata response from DIAL Core |
+| core.toolsets.metadata.default.limit     | CORE_TOOLSETS_METADATA_DEFAULT_LIMIT     | 256 | No | - | Default limit on the number of items in the toolsets metadata response from DIAL Core    |
 
 ## OpenTelemetry Configuration
 

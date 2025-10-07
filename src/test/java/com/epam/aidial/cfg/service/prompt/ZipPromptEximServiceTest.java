@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.service.prompt;
 
 import com.epam.aidial.cfg.client.PromptClient;
-import com.epam.aidial.cfg.client.mapper.FolderUrlMapperImpl;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.PromptEximDto;
@@ -41,7 +40,6 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {
         JsonMapperConfiguration.class,
         PromptClientMapperImpl.class,
-        FolderUrlMapperImpl.class,
         ZipPromptEximService.class,
 })
 class ZipPromptEximServiceTest {
