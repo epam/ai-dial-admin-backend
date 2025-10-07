@@ -37,7 +37,7 @@ public abstract class RouteCoreMapper {
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "displayName", ignore = true)
+    @Mapping(target = "displayName", source = "name")
     public abstract Route mapRoute(CoreRoute route);
 
     @Mapping(target = "deployment.name", source = "name")

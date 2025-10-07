@@ -28,7 +28,7 @@ public interface RoleCoreMapper {
     CoreRole mapRole(Role role, @Context Collection<Deployment> deployments);
 
     @Mapping(target = "keys", ignore = true)
-    @Mapping(target = "displayName", ignore = true)
+    @Mapping(target = "displayName", source = "role.name")
     @Mapping(target = "limits", ignore = true)
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

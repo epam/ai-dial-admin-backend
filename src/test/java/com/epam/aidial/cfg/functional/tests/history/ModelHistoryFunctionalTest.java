@@ -8,7 +8,6 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
-import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
@@ -22,6 +21,11 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 
 public abstract class ModelHistoryFunctionalTest {
 
@@ -39,12 +43,9 @@ public abstract class ModelHistoryFunctionalTest {
     private AdapterFacade adapterFacade;
 
     private void initRoles() {
-        RoleDto role1 = createRoleDto("1");
-        RoleDto role2 = createRoleDto("2");
-        RoleDto role3 = createRoleDto("3");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
+        roleFacade.createRole(createRoleDto("3"));
     }
 
     @Test
@@ -52,18 +53,18 @@ public abstract class ModelHistoryFunctionalTest {
         initRoles();
 
         // create model1
-        ModelDto modelDto = createDto("1");
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelFacade.createModel(modelDto);
 
         // update model1 description
-        ModelDto updatedModel = createDto("1");
+        ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 
         // verify model1
         ModelDto actual = modelFacade.getModel(modelDto.getName());
-        var expected = createDto("1");
+        var expected = createModelDtoWithLimitsAndEndpoint("1");
         expected.setDescription("new model description");
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
@@ -100,16 +101,14 @@ public abstract class ModelHistoryFunctionalTest {
         modelFacade.deleteModel(modelDto.getName());
 
         // create model 2
-        modelFacade.createModel(createDto("2"));
+        modelFacade.createModel(createModelDtoWithLimitsAndEndpoint("2"));
 
         // create role3
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
+        RoleDto role3 = createRoleDto("3");
         roleFacade.createRole(role3);
 
         // create model3 with assigned role3
-        modelFacade.createModel(createDto("3"));
+        modelFacade.createModel(createModelDtoWithLimitsAndEndpoint("3"));
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -126,10 +125,10 @@ public abstract class ModelHistoryFunctionalTest {
         initRoles();
 
         // create interceptor1
-        InterceptorDto interceptor1 = createInterceptor("1");
+        InterceptorDto interceptor1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptor1);
         // create model1
-        ModelDto modelDto = createDto("1");
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelDto.setInterceptors(List.of(interceptor1.getName()));
         modelFacade.createModel(modelDto);
 
@@ -137,7 +136,7 @@ public abstract class ModelHistoryFunctionalTest {
         var actualAtRevision = modelFacade.getAll();
 
         // create interceptor1
-        InterceptorDto interceptor2 = createInterceptor("2");
+        InterceptorDto interceptor2 = createInterceptorDto("2");
         interceptorFacade.createInterceptor(interceptor2);
 
         // update model
@@ -159,10 +158,10 @@ public abstract class ModelHistoryFunctionalTest {
         initRoles();
 
         // create interceptor1
-        InterceptorDto interceptor1 = createInterceptor("1");
+        InterceptorDto interceptor1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptor1);
         // create model1
-        ModelDto modelDto = createDto("1");
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelDto.setInterceptors(List.of(interceptor1.getName()));
         modelFacade.createModel(modelDto);
 
@@ -189,10 +188,10 @@ public abstract class ModelHistoryFunctionalTest {
         initRoles();
 
         // create adapter1
-        AdapterDto adapter1 = createAdapter("1");
+        AdapterDto adapter1 = createAdapterDto("1");
         adapterFacade.createAdapter(adapter1);
         // create model1
-        ModelDto modelDto = createDto("1");
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelDto.setEndpoint(null);
         modelDto.setSource(new AdapterSourceDto(adapter1.getName(), "/chat/completions"));
         modelFacade.createModel(modelDto);
@@ -201,7 +200,7 @@ public abstract class ModelHistoryFunctionalTest {
         var actualAtRevision = modelFacade.getAll();
 
         // create adapter2
-        AdapterDto adapter2 = createAdapter("2");
+        AdapterDto adapter2 = createAdapterDto("2");
         adapterFacade.createAdapter(adapter2);
 
         // update model
@@ -228,7 +227,7 @@ public abstract class ModelHistoryFunctionalTest {
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
 
-        ModelDto modelDto = createDto("1");
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelDto.setRoleLimits(Map.of("role1", limitDto));
         modelFacade.createModel(modelDto);
 
@@ -237,7 +236,7 @@ public abstract class ModelHistoryFunctionalTest {
         Collection<ModelDto> actualAtRevision = modelFacade.getAll();
 
         // remove model role limit
-        ModelDto updatedModel = createDto("1");
+        ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
         updatedModel.setRoleLimits(null);
         modelFacade.updateModel(updatedModel.getName(), updatedModel, "*");
 
@@ -251,42 +250,7 @@ public abstract class ModelHistoryFunctionalTest {
         Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
     }
 
-    private InterceptorDto createInterceptor(String suffix) {
-        InterceptorDto interceptorDto = new InterceptorDto();
-        interceptorDto.setName("interceptor" + suffix);
-        interceptorDto.setDescription("int description" + suffix);
-        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
-        return interceptorDto;
-    }
-
     private void assertModel(ModelDto actual, ModelDto expected) {
         Assertions.assertEquals(expected, actual);
-    }
-
-    private ModelDto createDto(String suffix) {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setName("model" + suffix);
-        modelDto.setDescription("description" + suffix);
-        modelDto.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        modelDto.setSource(new ModelEndpointsSourceDto());
-        modelDto.setEndpoint("https://endpoint1/chat/completions");
-        return modelDto;
-    }
-
-    private RoleDto createRoleDto(String suffix) {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role" + suffix);
-        role1.setDescription("role" + suffix);
-        return role1;
-    }
-
-    private AdapterDto createAdapter(String suffix) {
-        AdapterDto adapterDto = new AdapterDto();
-        adapterDto.setName("adapter" + suffix);
-        adapterDto.setBaseEndpoint("adapter" + suffix + "/endpoint");
-        adapterDto.setDescription("adapter" + suffix);
-        return adapterDto;
     }
 }

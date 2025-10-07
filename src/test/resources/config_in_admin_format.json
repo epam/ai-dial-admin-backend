@@ -1,6 +1,7 @@
 {
 	"routes": {
 		"test_route1": {
+			"displayName" : "route1",
 			"deployment": {
 				"name": "test_route1",
 				"isPublic": false,
@@ -248,6 +249,7 @@
 	"roles": {
 		"default": {
 			"name": "default",
+			"displayName": "default",
 			"limits": [],
           "costLimit": {
             "minute": "9223372036854775807",
@@ -258,6 +260,7 @@
 		},
 		"testRole3": {
 			"name": "testRole3",
+			"displayName": "testRole3",
 			"limits": [
 				{
 					"role": "testRole3",
@@ -305,6 +308,7 @@
 		},
 		"testRole2": {
 			"name": "testRole2",
+			"displayName": "testRole2",
 			"limits": [
 				{
 					"role": "testRole2",
@@ -346,6 +350,7 @@
 		},
 		"testRole1": {
 			"name": "testRole1",
+			"displayName": "testRole1",
 			"limits": [
 				{
 					"role": "testRole1",
@@ -391,6 +396,7 @@
 	"keys": {
 		"testKey2": {
 			"name": "testKey2",
+			"displayName": "testKey2",
 			"key": "testKey2",
 			"project": "testProject1",
 			"secured": true,
@@ -402,6 +408,7 @@
 		},
 		"testKey1": {
 			"name": "testKey1",
+			"displayName": "testKey1",
 			"key": "testKey1",
 			"project": "testProject1",
 			"secured": true,
@@ -538,6 +545,7 @@
 	"interceptorRunners": {
 		"testRunner1": {
 			"name": "testRunner1",
+			"displayName": "testRunner1",
 			"completionEndpoint": "https://template.test.com/api",
 			"configurationEndpoint": "https://template.test.com/conf"
 		}
@@ -545,6 +553,7 @@
 	"adapters": {
 		"adapter1": {
 			"name": "adapter1",
+			"displayName": "adapter1",
 			"baseEndpoint": "http://endpoint1/",
 			"description": "test adapter",
 			"author": "test-author",

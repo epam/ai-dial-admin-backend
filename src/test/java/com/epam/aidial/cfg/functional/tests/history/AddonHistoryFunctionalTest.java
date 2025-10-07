@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -16,6 +15,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAddonDtoWithAllLimits;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+
 public abstract class AddonHistoryFunctionalTest {
 
     @Autowired
@@ -26,18 +28,9 @@ public abstract class AddonHistoryFunctionalTest {
     private TestHistoryFacade historyFacade;
 
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
+        roleFacade.createRole(createRoleDto("3"));
     }
 
     @Test
@@ -45,17 +38,17 @@ public abstract class AddonHistoryFunctionalTest {
         initRoles();
 
         // 1 create addon1
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonDtoWithAllLimits("1");
         addonFacade.createAddon(addonDto);
 
         // 2 update addon1 description
-        AddonDto updatedAddon = createDto("1");
+        AddonDto updatedAddon = createAddonDtoWithAllLimits("1");
         updatedAddon.setDescription("new addon description");
         addonFacade.updateAddon(addonDto.getName(), updatedAddon);
 
         // verify addon1
         AddonDto actual = addonFacade.getAddon(addonDto.getName());
-        var expected = createDto("1");
+        var expected = createAddonDtoWithAllLimits("1");
         expected.setDescription("new addon description");
         expected.setDefaultRoleLimit(new LimitDto());
         assertAddon(actual, expected);
@@ -88,16 +81,13 @@ public abstract class AddonHistoryFunctionalTest {
         addonFacade.deleteAddon(addonDto.getName());
 
         // 7 create addon 2
-        addonFacade.createAddon(createDto("2"));
+        addonFacade.createAddon(createAddonDtoWithAllLimits("2"));
 
         // 8 create role3
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("3"));
 
         // 9 create addon3 with assigned role3
-        addonFacade.createAddon(createDto("3"));
+        addonFacade.createAddon(createAddonDtoWithAllLimits("3"));
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -111,15 +101,5 @@ public abstract class AddonHistoryFunctionalTest {
 
     private void assertAddon(AddonDto actual, AddonDto expected) {
         Assertions.assertEquals(expected, actual);
-    }
-
-    private AddonDto createDto(String suffix) {
-        AddonDto addonDto = new AddonDto();
-        addonDto.setName("addon" + suffix);
-        addonDto.setDescription("description" + suffix);
-        addonDto.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        return addonDto;
     }
 }

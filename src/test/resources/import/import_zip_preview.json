@@ -4,6 +4,7 @@
       "importAction": "update",
       "prev": {
         "name": "default",
+        "displayName": "default",
         "limits": [],
         "keys": [],
         "costLimit": {
@@ -15,6 +16,7 @@
       },
       "next": {
         "name": "default",
+        "displayName": "default",
         "limits": [],
         "keys": [],
         "costLimit": {
@@ -29,6 +31,7 @@
       "importAction": "create",
       "next": {
         "name": "testRole3",
+        "displayName": "testRole3",
         "limits": [
           {
             "role": "testRole3",
@@ -80,6 +83,7 @@
       "importAction": "create",
       "next": {
         "name": "testRole2",
+        "displayName": "testRole2",
         "limits": [
           {
             "role": "testRole2",
@@ -125,6 +129,7 @@
       "importAction": "create",
       "next": {
         "name": "testRole1",
+        "displayName": "testRole1",
         "limits": [
           {
             "role": "testRole1",
@@ -177,6 +182,7 @@
       "importAction": "create",
       "next": {
         "name": "testKey2",
+        "displayName": "testKey2",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
@@ -189,6 +195,7 @@
       "importAction": "create",
       "next": {
         "name": "testKey1",
+        "displayName": "testKey1",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
@@ -205,6 +212,7 @@
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
+        "displayName": "Test Interceptor1",
         "forwardAuthToken": false,
         "author": "test-author",
         "dependencies": [],
@@ -272,6 +280,7 @@
       "importAction": "create",
       "next": {
         "name": "testRunner1",
+        "displayName": "testRunner1",
         "completionEndpoint": "https://template.test.com/api",
         "configurationEndpoint": "https://template.test.com/conf",
         "interceptors": [
@@ -415,7 +424,8 @@
           }
         ],
         "maxRetryAttempts": 3,
-        "order": 2147483647
+        "order": 2147483647,
+        "displayName": "route1"
       }
     }
   ],
@@ -424,6 +434,7 @@
       "importAction": "create",
       "next": {
         "name": "adapter1",
+        "displayName": "adapter1",
         "baseEndpoint": "http://endpoint1/",
         "description": "test adapter",
         "models": [
