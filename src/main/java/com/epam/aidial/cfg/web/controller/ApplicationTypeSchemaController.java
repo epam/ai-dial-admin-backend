@@ -2,9 +2,8 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.exception.PreconditionRequiredException;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -44,12 +43,11 @@ public class ApplicationTypeSchemaController {
         if (StringUtils.isEmpty(id)) {
             return ResponseEntity.ok(applicationTypeSchemaFacade.getAll());
         }
-        var schemaDto = applicationTypeSchemaFacade.getSchemaWithHash(id);
-        if (schemaDto == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (StringUtils.isEmpty(previousHash)) {
+            throw new PreconditionRequiredException("Header 'If-None-Match' is required when 'id' parameter is provided");
         }
-        return previousHash == null
-                || (!schemaDto.hash().equals(StringUtils.unwrap(previousHash, '"')))
+        var schemaDto = applicationTypeSchemaFacade.getSchemaWithHash(id);
+        return !schemaDto.hash().equals(StringUtils.unwrap(previousHash, '"'))
                 ? ResponseEntity.status(HttpStatus.OK).eTag(schemaDto.hash()).body(schemaDto.dto())
                 : ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(schemaDto.hash()).build();
     }

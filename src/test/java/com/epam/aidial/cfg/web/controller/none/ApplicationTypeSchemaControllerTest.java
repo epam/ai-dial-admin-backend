@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller.none;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ApplicationTypeSchemaController;
@@ -84,6 +85,33 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
                 .andExpect(status().isNotModified())
                 .andExpect(header().exists(HEADER_ETAG))
                 .andExpect(header().string(HEADER_ETAG, "\"1\""));
+    }
+
+    @Test
+    void testGetSchemaWithoutHeaderIfNoneMatch() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
+        });
+        mockMvc.perform(get(SCHEMA_BASE_API_PATH)
+                        .param(ID, TEST_SCHEMA_NAME))
+                .andExpect(status().isPreconditionFailed())
+                .andExpect(jsonPath("$.message")
+                        .value("Header 'If-None-Match' is required when 'id' parameter is provided"));
+    }
+
+    @Test
+    void testGetSchemaByIdWhenSchemaNotExist() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
+        });
+        doThrow(new EntityNotFoundException("Not found"))
+                .when(schemaFacade).getSchemaWithHash(eq(TEST_SCHEMA_NAME));
+
+        mockMvc.perform(get(SCHEMA_BASE_API_PATH, TEST_SCHEMA_NAME)
+                        .param(ID, TEST_SCHEMA_NAME)
+                        .header(HEADER_IF_NONE_MATCH, "1"))
+                .andExpect(jsonPath("$.message")
+                        .value("Not found"));
     }
 
     @Test
