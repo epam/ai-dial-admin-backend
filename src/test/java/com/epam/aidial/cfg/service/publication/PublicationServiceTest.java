@@ -86,6 +86,7 @@ class PublicationServiceTest {
             case FILE -> "file_pending";
             case APPLICATION -> "application_pending";
             case CONVERSATION -> "conversation_pending";
+            case TOOL_SET -> "toolset_pending";
         };
         var dtoJson = ResourceUtils.readResource("/publications/client/publications.json");
         var dto = OBJECT_MAPPER.readValue(dtoJson, new TypeReference<PublicationInfosDto>() {
@@ -149,6 +150,13 @@ class PublicationServiceTest {
                         .author("John Dough")
                         .createdAt(12345)
                         .resourceTypes(List.of(ResourceType.CONVERSATION))
+                        .build(),
+                PublicationInfo.builder()
+                        .path("bucket/toolset_pending_id")
+                        .requestName("toolset_pending")
+                        .author("John Dough")
+                        .createdAt(12345)
+                        .resourceTypes(List.of(ResourceType.TOOL_SET))
                         .build()
         );
     }

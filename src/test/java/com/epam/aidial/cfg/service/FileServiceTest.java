@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.dto.FileMetadataDto;
 import com.epam.aidial.cfg.client.dto.MoveResourceDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
-import com.epam.aidial.cfg.client.mapper.FolderUrlMapperImpl;
+import com.epam.aidial.cfg.client.mapper.FolderMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapperImpl;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.FileNodeInfo;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {
         ResourceClientMapperImpl.class,
         FileClientMapperImpl.class,
-        FolderUrlMapperImpl.class,
+        FolderMapperImpl.class,
         FileService.class
 })
 @TestPropertySource(properties = {

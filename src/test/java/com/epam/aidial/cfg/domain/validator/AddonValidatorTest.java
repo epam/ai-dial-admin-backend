@@ -22,12 +22,14 @@ class AddonValidatorTest {
 
     @Mock
     private DeploymentValidator deploymentValidator;
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
 
     private AddonValidator addonValidator;
 
     @BeforeEach
     void setUp() {
-        addonValidator = new AddonValidator(deploymentValidator, null);
+        addonValidator = new AddonValidator(deploymentValidator, displayFieldsValidator, null);
     }
 
     @Test

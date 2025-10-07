@@ -3,8 +3,6 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
@@ -20,6 +18,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpointAndLimits;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+
 public abstract class ApplicationFunctionalTest {
 
     @Autowired
@@ -30,14 +32,8 @@ public abstract class ApplicationFunctionalTest {
     private RoleFacade roleFacade;
 
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
     }
 
     @Test
@@ -52,17 +48,17 @@ public abstract class ApplicationFunctionalTest {
 
         assertApplicationWithDefaults(actual, expected);
 
-        applicationFacade.createApplication(createDto("2"));
+        applicationFacade.createApplication(createApplicationDtoWithEndpointAndLimits("2"));
 
         Collection<ApplicationInfoDto> actualApplications = applicationFacade.getAllApplications();
 
-        assertApp(actualApplications, List.of(createDto("1"), createDto("2")));
+        assertApp(actualApplications, List.of(createApplicationDtoWithEndpointAndLimits("1"), createApplicationDtoWithEndpointAndLimits("2")));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndDeleteApplication() {
         initRoles();
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
 
         applicationFacade.deleteApplication(applicationDto.getName());
@@ -74,15 +70,15 @@ public abstract class ApplicationFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndUpdateApplication() {
         initRoles();
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
-        ApplicationDto updatedApplication = createDto("1");
+        ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
         updatedApplication.setDescription("new application description");
 
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
-        var expected = createDto("1");
+        var expected = createApplicationDtoWithEndpointAndLimits("1");
         expected.setDescription("new application description");
         assertApplication(actual, expected);
     }
@@ -91,33 +87,30 @@ public abstract class ApplicationFunctionalTest {
     public void shouldSuccessfullyCreateAndAddInterceptor() {
         initRoles();
 
-        InterceptorDto interceptorDto = new InterceptorDto();
-        interceptorDto.setName("int1");
-        interceptorDto.setDescription("int1_dsc");
-        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
+        InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto);
 
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
-        ApplicationDto updatedApplication = createDto("1");
+        ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
 
         updatedApplication.setDescription("new model description");
         updatedApplication.setDefaults(Map.of());
-        updatedApplication.setInterceptors(List.of("int1"));
+        updatedApplication.setInterceptors(List.of("interceptor1"));
 
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
 
-        Assertions.assertTrue(actual.getInterceptors().contains("int1"));
+        Assertions.assertTrue(actual.getInterceptors().contains("interceptor1"));
     }
 
     @Test
     public void shouldThrowExceptionWhenRenameApplication() {
         initRoles();
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
-        ApplicationDto updatedApplication = createDto("2");
+        ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("2");
         updatedApplication.setDescription("new application description");
 
         IllegalArgumentException exception = Assertions.assertThrows(
@@ -131,13 +124,13 @@ public abstract class ApplicationFunctionalTest {
     public void shouldSuccessfullyCreateWithInterceptor() {
         initRoles();
 
-        InterceptorDto interceptorDto = new InterceptorDto();
+        InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorDto.setName("int1");
         interceptorDto.setDescription("int1_dsc");
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         interceptorFacade.createInterceptor(interceptorDto);
 
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationDto.setInterceptors(List.of("int1"));
         applicationFacade.createApplication(applicationDto);
 
@@ -150,111 +143,111 @@ public abstract class ApplicationFunctionalTest {
     public void shouldSuccessfullyCreateAndUpdateWithInterceptors() {
         initRoles();
 
-        InterceptorDto interceptorDto1 = interceptorDto("1");
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 
-        InterceptorDto interceptorDto2 = interceptorDto("2");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
         interceptorFacade.createInterceptor(interceptorDto2);
 
-        ApplicationDto applicationDto = createDto("1");
-        applicationDto.setInterceptors(List.of("int1", "int2", "int1", "int1", "int2"));
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
+        applicationDto.setInterceptors(List.of("interceptor1", "interceptor2", "interceptor1", "interceptor1", "interceptor2"));
         applicationFacade.createApplication(applicationDto);
 
         ApplicationDto actualApplication = applicationFacade.getApplication(applicationDto.getName());
-        Assertions.assertEquals(List.of("int1", "int2", "int1", "int1", "int2"), actualApplication.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor1", "interceptor2", "interceptor1", "interceptor1", "interceptor2"), actualApplication.getInterceptors());
 
-        applicationDto.setInterceptors(List.of("int2", "int2", "int1", "int1"));
+        applicationDto.setInterceptors(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1"));
         applicationFacade.updateApplication(applicationDto.getName(), applicationDto);
 
         actualApplication = applicationFacade.getApplication(applicationDto.getName());
-        Assertions.assertEquals(List.of("int2", "int2", "int1", "int1"), actualApplication.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1"), actualApplication.getInterceptors());
     }
 
     @Test
     public void shouldSuccessfullyAddNewInterceptorToTheEndOfTheInterceptorsList() {
         initRoles();
 
-        InterceptorDto interceptorDto1 = interceptorDto("1");
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 
-        InterceptorDto interceptorDto2 = interceptorDto("2");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
         interceptorFacade.createInterceptor(interceptorDto2);
 
-        ApplicationDto applicationDto1 = createDto("1");
-        applicationDto1.setInterceptors(List.of("int2", "int2", "int1", "int1"));
+        ApplicationDto applicationDto1 = createApplicationDtoWithEndpointAndLimits("1");
+        applicationDto1.setInterceptors(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1"));
         applicationFacade.createApplication(applicationDto1);
 
-        ApplicationDto applicationDto2 = createDto("2");
-        applicationDto2.setInterceptors(List.of("int1", "int2", "int2"));
+        ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
+        applicationDto2.setInterceptors(List.of("interceptor1", "interceptor2", "interceptor2"));
         applicationFacade.createApplication(applicationDto2);
 
-        InterceptorDto interceptorDto3 = interceptorDto("3");
+        InterceptorDto interceptorDto3 = createInterceptorDto("3");
         interceptorDto3.setEntities(List.of("application1", "application2", "application1"));
         interceptorFacade.createInterceptor(interceptorDto3);
 
         ApplicationDto actualApplication1 = applicationFacade.getApplication(applicationDto1.getName());
-        Assertions.assertEquals(List.of("int2", "int2", "int1", "int1", "int3"), actualApplication1.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1", "interceptor3"), actualApplication1.getInterceptors());
 
         ApplicationDto actualApplication2 = applicationFacade.getApplication(applicationDto2.getName());
-        Assertions.assertEquals(List.of("int1", "int2", "int2", "int3"), actualApplication2.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor1", "interceptor2", "interceptor2", "interceptor3"), actualApplication2.getInterceptors());
     }
 
     @Test
     public void shouldSuccessfullyRemoveDeletedInterceptorFromTheInterceptorsList() {
         initRoles();
 
-        InterceptorDto interceptorDto1 = interceptorDto("1");
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 
-        InterceptorDto interceptorDto2 = interceptorDto("2");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
         interceptorFacade.createInterceptor(interceptorDto2);
 
-        InterceptorDto interceptorDto3 = interceptorDto("3");
+        InterceptorDto interceptorDto3 = createInterceptorDto("3");
         interceptorFacade.createInterceptor(interceptorDto3);
 
-        ApplicationDto applicationDto1 = createDto("1");
-        applicationDto1.setInterceptors(List.of("int2", "int2", "int1", "int1", "int3"));
+        ApplicationDto applicationDto1 = createApplicationDtoWithEndpointAndLimits("1");
+        applicationDto1.setInterceptors(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1", "interceptor3"));
         applicationFacade.createApplication(applicationDto1);
 
-        ApplicationDto applicationDto2 = createDto("2");
-        applicationDto2.setInterceptors(List.of("int1", "int2", "int2", "int3"));
+        ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
+        applicationDto2.setInterceptors(List.of("interceptor1", "interceptor2", "interceptor2", "interceptor3"));
         applicationFacade.createApplication(applicationDto2);
 
-        interceptorFacade.deleteInterceptor("int1");
+        interceptorFacade.deleteInterceptor("interceptor1");
 
         ApplicationDto actualApplication1 = applicationFacade.getApplication(applicationDto1.getName());
-        Assertions.assertEquals(List.of("int2", "int2", "int3"), actualApplication1.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor2", "interceptor2", "interceptor3"), actualApplication1.getInterceptors());
 
         ApplicationDto actualApplication2 = applicationFacade.getApplication(applicationDto2.getName());
-        Assertions.assertEquals(List.of("int2", "int2", "int3"), actualApplication2.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor2", "interceptor2", "interceptor3"), actualApplication2.getInterceptors());
     }
 
     @Test
     public void shouldSuccessfullyRemoveUpdatedInterceptorFromTheInterceptorsList() {
         initRoles();
 
-        InterceptorDto interceptorDto1 = interceptorDto("1");
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 
-        InterceptorDto interceptorDto2 = interceptorDto("2");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
         interceptorFacade.createInterceptor(interceptorDto2);
 
-        ApplicationDto applicationDto1 = createDto("1");
-        applicationDto1.setInterceptors(List.of("int1", "int1", "int2"));
+        ApplicationDto applicationDto1 = createApplicationDtoWithEndpointAndLimits("1");
+        applicationDto1.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
         applicationFacade.createApplication(applicationDto1);
 
-        ApplicationDto applicationDto2 = createDto("2");
-        applicationDto2.setInterceptors(List.of("int1", "int1", "int2"));
+        ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
+        applicationDto2.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
         applicationFacade.createApplication(applicationDto2);
 
         interceptorDto1.setEntities(List.of("application2"));
         interceptorFacade.updateInterceptor(interceptorDto1.getName(), interceptorDto1);
 
         ApplicationDto actualApplication1 = applicationFacade.getApplication(applicationDto1.getName());
-        Assertions.assertEquals(List.of("int2"), actualApplication1.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor2"), actualApplication1.getInterceptors());
 
         ApplicationDto actualApplication2 = applicationFacade.getApplication(applicationDto2.getName());
-        Assertions.assertEquals(List.of("int1", "int1", "int2"), actualApplication2.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor1", "interceptor1", "interceptor2"), actualApplication2.getInterceptors());
 
         interceptorDto2.setEntities(null);
         interceptorFacade.updateInterceptor(interceptorDto2.getName(), interceptorDto2);
@@ -263,7 +256,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(actualApplication1.getInterceptors(), List.of());
 
         actualApplication2 = applicationFacade.getApplication(applicationDto2.getName());
-        Assertions.assertEquals(List.of("int1", "int1"), actualApplication2.getInterceptors());
+        Assertions.assertEquals(List.of("interceptor1", "interceptor1"), actualApplication2.getInterceptors());
     }
 
 
@@ -271,12 +264,12 @@ public abstract class ApplicationFunctionalTest {
     public void shouldThrowExceptionWhenCreateApplicationWithExistingDisplayNameAndDisplayVersion() {
         initRoles();
 
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationDto.setDisplayName("display_name");
         applicationDto.setDisplayVersion("1.0");
         applicationFacade.createApplication(applicationDto);
 
-        ApplicationDto applicationDto2 = createDto("2");
+        ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
         applicationDto2.setDisplayName("display_name");
         applicationDto2.setDisplayVersion("1.0");
 
@@ -291,11 +284,11 @@ public abstract class ApplicationFunctionalTest {
     public void shouldThrowExceptionWhenUpdateApplicationWithExistingDisplayNameAndDisplayVersion() {
         initRoles();
 
-        ApplicationDto applicationDto = createDto("1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationDto.setDisplayName("display_name");
         applicationFacade.createApplication(applicationDto);
 
-        ApplicationDto applicationDto2 = createDto("2");
+        ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
         applicationDto2.setDisplayName("display_name_2");
         applicationFacade.createApplication(applicationDto2);
 
@@ -308,19 +301,8 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals("Application with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
     }
 
-    private ApplicationDto createDto(String suffix) {
-        ApplicationDto applicationDto = new ApplicationDto();
-        applicationDto.setName("application" + suffix);
-        applicationDto.setDescription("description" + suffix);
-        applicationDto.setEndpoint("endpoint");
-        applicationDto.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        return applicationDto;
-    }
-
     private ApplicationDto createDtoWithDefaults(String suffix) {
-        ApplicationDto applicationDto = createDto(suffix);
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits(suffix);
         applicationDto.setDefaults(Map.of("max_tokens", 8000));
         return applicationDto;
     }
@@ -354,13 +336,4 @@ public abstract class ApplicationFunctionalTest {
         return dtos.stream()
                 .collect(Collectors.toMap(getName, Function.identity()));
     }
-
-    private InterceptorDto interceptorDto(String suffix) {
-        InterceptorDto interceptorDto = new InterceptorDto();
-        interceptorDto.setName("int" + suffix);
-        interceptorDto.setDescription("int" + suffix + "_dsc");
-        interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
-        return interceptorDto;
-    }
-
 }

@@ -21,6 +21,8 @@ public class PublicationResourceTypeResolver {
             return ResourceType.PROMPT;
         } else if (resourceTypes.contains(ResourceTypeDto.FILE)) {
             return ResourceType.FILE;
+        } else if (resourceTypes.contains(ResourceTypeDto.TOOL_SET)) {
+            return ResourceType.TOOL_SET;
         } else {
             return null;
         }

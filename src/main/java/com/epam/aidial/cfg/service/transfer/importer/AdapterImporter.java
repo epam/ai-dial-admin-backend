@@ -75,6 +75,7 @@ public class AdapterImporter {
                     adapter.setName("<will be defined during import " + i + ">");
                     i++;
                 }
+                adapter.setDisplayName(adapter.getName());
                 adapterService.create(adapter);
                 result.add(new ImportComponent<>(CREATE, null, adapter));
             }
