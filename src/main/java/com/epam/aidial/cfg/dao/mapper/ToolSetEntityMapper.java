@@ -66,7 +66,7 @@ public abstract class ToolSetEntityMapper {
         ResourceAuthSettings mappedEntityAuthSettings = authSettingsEntityMapper.toDomain(entityAuthSettings);
 
         boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer = deploymentEntityMapper
-                .isMappedDefaultRoleLimitOrShareResourceLimitDiffer(securedResource, securedResourceEntity);
+                .isDefaultRoleLimitDifferent(securedResource, securedResourceEntity);
 
         ToolSetEntity updatedEntity = update(domain, entity);
 

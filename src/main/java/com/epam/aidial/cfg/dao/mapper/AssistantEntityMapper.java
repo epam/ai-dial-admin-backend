@@ -27,7 +27,7 @@ public abstract class AssistantEntityMapper {
         List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer = deploymentEntityMapper
-                .isMappedDefaultRoleLimitOrShareResourceLimitDiffer(domain.getDeployment(), entity.getDeployment());
+                .isDefaultRoleLimitDifferent(domain.getDeployment(), entity.getDeployment());
 
         AssistantEntity updatedEntity = update(domain, entity);
 

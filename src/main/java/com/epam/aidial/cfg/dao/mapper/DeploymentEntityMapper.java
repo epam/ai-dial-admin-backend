@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
 import com.epam.aidial.cfg.dao.model.SecuredResourceEntity;
-import com.epam.aidial.cfg.dao.model.ShareResourceLimitEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
@@ -37,11 +36,7 @@ public abstract class DeploymentEntityMapper {
     @Autowired
     private RoleLimitEntityMapper roleLimitEntityMapper;
     @Autowired
-    private RoleShareResourceLimitEntityMapper roleShareResourceLimitEntityMapper;
-    @Autowired
     private LimitEntityMapper limitEntityMapper;
-    @Autowired
-    private ShareResourceLimitEntityMapper shareResourceLimitEntityMapper;
 
     @Autowired
     private RoleJpaRepository roleJpaRepository;
@@ -104,26 +99,11 @@ public abstract class DeploymentEntityMapper {
         }
     }
 
-    public boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer(Deployment deployment, DeploymentEntity deploymentEntity) {
-        Limit defaultRoleLimit = null;
-        ShareResourceLimit defaultRoleShareResourceLimit = null;
-        if (deployment != null) {
-            defaultRoleLimit = deployment.getDefaultRoleLimit();
-            defaultRoleShareResourceLimit = deployment.getDefaultRoleShareResourceLimit();
-        }
-
-        LimitEntity entityDefaultRoleLimit = null;
-        ShareResourceLimitEntity entityDefaultRoleShareResourceLimit = null;
-        if (deploymentEntity != null) {
-            entityDefaultRoleLimit = deploymentEntity.getDefaultRoleLimit();
-            entityDefaultRoleShareResourceLimit = deploymentEntity.getDefaultRoleShareResourceLimit();
-        }
-
+    public boolean isDefaultRoleLimitDifferent(Deployment deployment, DeploymentEntity deploymentEntity) {
+        Limit defaultRoleLimit = deployment != null ? deployment.getDefaultRoleLimit() : null;
+        LimitEntity entityDefaultRoleLimit = deploymentEntity != null ? deploymentEntity.getDefaultRoleLimit() : null;
         Limit mappedEntityDefaultRoleLimit = limitEntityMapper.toDomain(entityDefaultRoleLimit);
-        ShareResourceLimit mappedEntityDefaultRoleShareResourceLimit = shareResourceLimitEntityMapper.toDomain(entityDefaultRoleShareResourceLimit);
-
-        return !Objects.equal(defaultRoleLimit, mappedEntityDefaultRoleLimit)
-                || !Objects.equal(defaultRoleShareResourceLimit, mappedEntityDefaultRoleShareResourceLimit);
+        return !Objects.equal(defaultRoleLimit, mappedEntityDefaultRoleLimit);
     }
 
     private RoleLimitEntity mapToRoleLimitEntity(RoleLimit roleLimit,

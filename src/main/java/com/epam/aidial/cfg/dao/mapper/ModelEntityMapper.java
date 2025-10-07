@@ -107,7 +107,7 @@ public abstract class ModelEntityMapper {
         }
 
         boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer = deploymentEntityMapper
-                .isMappedDefaultRoleLimitOrShareResourceLimitDiffer(domain.getDeployment(), entity.getDeployment());
+                .isDefaultRoleLimitDifferent(domain.getDeployment(), entity.getDeployment());
 
         AdapterEntity adapterEntity = findAdapter(adapterName);
 
