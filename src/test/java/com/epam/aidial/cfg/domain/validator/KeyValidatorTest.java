@@ -164,7 +164,7 @@ class KeyValidatorTest {
         // when/then
         assertThatThrownBy(() -> keyValidator.validateCreation(key))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid project: '" + project + "'");
+                .hasMessage("Project is required. Key name: key_name");
     }
 
     @ParameterizedTest
@@ -180,7 +180,7 @@ class KeyValidatorTest {
         // when/then
         assertThatThrownBy(() -> keyValidator.validateUpdate("key_name", key, keyEntity))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid project: '" + project + "'");
+                .hasMessage("Project is required. Key name: key_name");
     }
 
 }
