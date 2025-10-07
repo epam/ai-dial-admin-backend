@@ -5,8 +5,7 @@
 			"deployment": {
 				"name": "test_route1",
 				"isPublic": false,
-				"defaultRoleLimit": {},
-				"defaultRoleShareResourceLimit": {}
+				"defaultRoleLimit": {}
 			},
 			"response": {
 				"status": 200,
@@ -45,8 +44,7 @@
 			"deployment": {
 				"name": "testApplication1",
 				"isPublic": false,
-				"defaultRoleLimit": {},
-				"defaultRoleShareResourceLimit": {}
+				"defaultRoleLimit": {}
 			},
 			"displayName": "Test Application1",
 			"displayVersion": "2.0.0",
@@ -86,8 +84,7 @@
 			"deployment": {
 				"name": "testApplication2",
 				"isPublic": false,
-				"defaultRoleLimit": {},
-				"defaultRoleShareResourceLimit": {}
+				"defaultRoleLimit": {}
 			},
 			"endpoint": "endpoint",
 			"displayName": "Test Application2",
@@ -169,8 +166,7 @@
 			"deployment": {
 				"name": "testModel2",
 				"isPublic": true,
-				"defaultRoleLimit": {},
-				"defaultRoleShareResourceLimit": {}
+				"defaultRoleLimit": {}
 			},
 			"displayName": "Test Model2",
 			"displayVersion": "1.0.0",
@@ -209,9 +205,6 @@
 				"isPublic": false,
 				"defaultRoleLimit": {
 					"day": 3
-				},
-				"defaultRoleShareResourceLimit": {
-					"maxAcceptedUsers": 15
 				}
 			},
 			"displayName": "Test Model1",
@@ -258,7 +251,6 @@
 			"name": "default",
 			"displayName": "default",
 			"limits": [],
-            "share": [],
           "costLimit": {
             "minute": "9223372036854775807",
             "day": "9223372036854775807",
@@ -301,16 +293,12 @@
 					"limit": {}
 				}
 			],
-			"share": [
-				{
-					"role": "testRole3",
-                	"deploymentName": "testModel1",
-                	"limit": {
-                		"maxAcceptedUsers": 10,
-                		"invitationTtl": 120
-					}
-				}
-			],
+			"share": {
+                "APPLICATION": {
+                    "maxAcceptedUsers": 10,
+                    "invitationTtl": 120
+                }
+            },
 			"costLimit": {
 				"minute": "111.222333444",
 				"day": "222",
@@ -353,7 +341,6 @@
 					"limit": {}
 				}
 			],
-			"share": [],
           "costLimit": {
             "minute": "9223372036854775807",
             "day": "9223372036854775807",
@@ -398,7 +385,6 @@
 					"limit": {}
 				}
 			],
-			"share": [],
           "costLimit": {
             "minute": "9223372036854775807",
             "day": "9223372036854775807",

@@ -9,7 +9,6 @@ import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
@@ -47,9 +46,6 @@ public class FunctionalTestHelper {
         modelDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
-        modelDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
-        ));
         modelDto.setSource(new ModelEndpointsSourceDto());
         return modelDto;
     }
@@ -73,9 +69,6 @@ public class FunctionalTestHelper {
         toolSet.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
-        toolSet.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
-        ));
         toolSet.setMaxRetryAttempts(1);
         return toolSet;
     }
@@ -92,9 +85,6 @@ public class FunctionalTestHelper {
         RouteDto routeDto = createRouteDto(suffix);
         routeDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
-        ));
-        routeDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
         ));
         return routeDto;
     }
@@ -115,11 +105,7 @@ public class FunctionalTestHelper {
     }
 
     public static AddonDto createAddonDtoWithAllLimits(String suffix) {
-        AddonDto addonDto = createAddonWithRoleLimitsDto(suffix);
-        addonDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
-        ));
-        return addonDto;
+        return createAddonWithRoleLimitsDto(suffix);
     }
 
     public static KeyDto createKeyDto(String suffix) {
@@ -174,9 +160,6 @@ public class FunctionalTestHelper {
         applicationDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
-        applicationDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
-        ));
         return applicationDto;
     }
 
@@ -187,9 +170,6 @@ public class FunctionalTestHelper {
         assistantDto.setDescription("description" + suffix);
         assistantDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
-        ));
-        assistantDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
         ));
         return assistantDto;
     }

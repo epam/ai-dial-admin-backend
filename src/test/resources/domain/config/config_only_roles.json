@@ -29,7 +29,6 @@
         },
         "sampleDeployment5": {}
       },
-      "share": {},
       "costLimit": {
         "minute": 9223372036854775807,
         "day": 9223372036854775807,

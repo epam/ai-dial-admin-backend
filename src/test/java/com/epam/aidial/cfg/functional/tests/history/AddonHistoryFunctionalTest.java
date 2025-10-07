@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -16,7 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAddonDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAddonDtoWithAllLimits;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 
@@ -53,14 +51,11 @@ public abstract class AddonHistoryFunctionalTest {
         var expected = createAddonDtoWithAllLimits("1");
         expected.setDescription("new addon description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         assertAddon(actual, expected);
 
         // 3 add roles to addon1
         updatedAddon.setDefaultRoleLimit(new LimitDto());
-        updatedAddon.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedAddon.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedAddon.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         addonFacade.updateAddon(addonDto.getName(), updatedAddon);
         actual = addonFacade.getAddon(addonDto.getName());
         assertAddon(actual, updatedAddon);
@@ -71,7 +66,6 @@ public abstract class AddonHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedAddon.setRoleLimits(Map.of("role3", limitDto));
-        updatedAddon.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         addonFacade.updateAddon(addonDto.getName(), updatedAddon);
         var actualAtRevision = addonFacade.getAddon(addonDto.getName());
         assertAddon(actualAtRevision, updatedAddon);
@@ -82,7 +76,6 @@ public abstract class AddonHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = addonFacade.getAddon(addonDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete addon 1
         addonFacade.deleteAddon(addonDto.getName());
