@@ -8,16 +8,8 @@ import org.springframework.stereotype.Component;
 public class ApplicationNormalizer {
 
     public void normalize(Application application) {
-        setDisplayNameToNullIfBlank(application);
         setDisplayVersionToNullIfBlank(application);
         setEndpointToNullIfBlank(application);
-    }
-
-    private void setDisplayNameToNullIfBlank(Application application) {
-        String displayName = application.getDisplayName();
-        if (StringUtils.isBlank(displayName)) {
-            application.setDisplayName(null);
-        }
     }
 
     private void setDisplayVersionToNullIfBlank(Application application) {

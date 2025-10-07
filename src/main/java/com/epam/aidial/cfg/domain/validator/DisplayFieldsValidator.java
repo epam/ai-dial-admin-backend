@@ -9,14 +9,10 @@ public class DisplayFieldsValidator {
     public void validateDisplayNameDisplayVersion(String displayName, String displayVersion) {
         validateDisplayName(displayName);
         validateDisplayVersion(displayVersion);
-
-        if (displayName == null && displayVersion != null) {
-            throw new IllegalArgumentException("Display version: '" + displayVersion + "' can not be specified without display name");
-        }
     }
 
-    private void validateDisplayName(String displayName) {
-        if (displayName != null && StringUtils.isBlank(displayName)) {
+    public void validateDisplayName(String displayName) {
+        if (StringUtils.isBlank(displayName)) {
             throw new IllegalArgumentException("Invalid display name: '" + displayName + "'");
         }
     }

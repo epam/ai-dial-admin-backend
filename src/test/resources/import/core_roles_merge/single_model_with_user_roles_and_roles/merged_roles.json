@@ -1,6 +1,7 @@
 {
   "userRoleInRolesSectionWithoutLimits": {
     "name": "userRoleInRolesSectionWithoutLimits",
+    "displayName": "userRoleInRolesSectionWithoutLimits",
     "limits": [
       {
         "role": "userRoleInRolesSectionWithoutLimits",
@@ -28,6 +29,7 @@
   },
   "userRoleInRolesSectionWithNullLimits": {
     "name": "userRoleInRolesSectionWithNullLimits",
+    "displayName": "userRoleInRolesSectionWithNullLimits",
     "limits": [
       {
         "role": "userRoleInRolesSectionWithNullLimits",
@@ -55,6 +57,7 @@
   },
   "userRoleInRolesSectionWithEmptyLimits": {
     "name": "userRoleInRolesSectionWithEmptyLimits",
+    "displayName": "userRoleInRolesSectionWithEmptyLimits",
     "limits": [
       {
         "role": "userRoleInRolesSectionWithEmptyLimits",
@@ -82,6 +85,7 @@
   },
   "userRoleInRolesSectionWithNullLimit": {
     "name": "userRoleInRolesSectionWithNullLimit",
+    "displayName": "userRoleInRolesSectionWithNullLimit",
     "limits": [
       {
         "role": "userRoleInRolesSectionWithNullLimit",
@@ -109,6 +113,7 @@
   },
   "userRoleInRolesSectionWithEmptyLimit": {
     "name": "userRoleInRolesSectionWithEmptyLimit",
+    "displayName": "userRoleInRolesSectionWithEmptyLimit",
     "limits": [
       {
         "role": "userRoleInRolesSectionWithEmptyLimit",
@@ -143,6 +148,7 @@
   },
   "userRoleInRolesSectionWithNonEmptyLimit": {
     "name": "userRoleInRolesSectionWithNonEmptyLimit",
+    "displayName": "userRoleInRolesSectionWithNonEmptyLimit",
     "limits": [
       {
         "role": "userRoleInRolesSectionWithNonEmptyLimit",
@@ -168,6 +174,7 @@
   },
   "roleInRolesSectionWithoutLimits": {
     "name": "roleInRolesSectionWithoutLimits",
+    "displayName": "roleInRolesSectionWithoutLimits",
     "limits": [],
     "share": [],
     "costLimit": {
@@ -179,6 +186,7 @@
   },
   "roleInRolesSectionWithNullLimits": {
     "name": "roleInRolesSectionWithNullLimits",
+    "displayName": "roleInRolesSectionWithNullLimits",
     "limits": [],
     "share": [],
     "costLimit": {
@@ -190,6 +198,7 @@
   },
   "roleInRolesSectionWithEmptyLimits": {
     "name": "roleInRolesSectionWithEmptyLimits",
+    "displayName": "roleInRolesSectionWithEmptyLimits",
     "limits": [],
     "share": [],
     "costLimit": {
@@ -201,6 +210,7 @@
   },
   "roleInRolesSectionWithNullLimit": {
     "name": "roleInRolesSectionWithNullLimit",
+    "displayName": "roleInRolesSectionWithNullLimit",
     "limits": [],
     "share": [],
     "costLimit": {
@@ -212,6 +222,7 @@
   },
   "roleInRolesSectionWithEmptyLimit": {
     "name": "roleInRolesSectionWithEmptyLimit",
+    "displayName": "roleInRolesSectionWithEmptyLimit",
     "limits": [
       {
         "role": "roleInRolesSectionWithEmptyLimit",
@@ -237,6 +248,7 @@
   },
   "roleInRolesSectionWithNonEmptyLimit": {
     "name": "roleInRolesSectionWithNonEmptyLimit",
+    "displayName": "roleInRolesSectionWithNonEmptyLimit",
     "limits": [
       {
         "role": "roleInRolesSectionWithNonEmptyLimit",
@@ -262,6 +274,7 @@
   },
   "userRole": {
     "name": "userRole",
+    "displayName": "userRole",
     "limits": [
       {
         "role": "userRole",

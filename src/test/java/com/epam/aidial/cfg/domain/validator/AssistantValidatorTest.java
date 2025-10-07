@@ -18,13 +18,14 @@ class AssistantValidatorTest {
 
     @Mock
     private DeploymentValidator deploymentValidator;
-
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
     @InjectMocks
     private AssistantValidator assistantValidator;
 
     @BeforeEach
     void setUp() {
-        assistantValidator = new AssistantValidator(deploymentValidator, null);
+        assistantValidator = new AssistantValidator(deploymentValidator, displayFieldsValidator, null);
     }
 
     @Test

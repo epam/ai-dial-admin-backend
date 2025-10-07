@@ -8,15 +8,7 @@ import org.springframework.stereotype.Component;
 public class ToolSetNormalizer {
 
     public void normalize(ToolSet toolSet) {
-        setDisplayNameToNullIfBlank(toolSet);
         setEndpointToNullIfBlank(toolSet);
-    }
-
-    private void setDisplayNameToNullIfBlank(ToolSet toolSet) {
-        String displayName = toolSet.getDisplayName();
-        if (StringUtils.isBlank(displayName)) {
-            toolSet.setDisplayName(null);
-        }
     }
 
     private void setEndpointToNullIfBlank(ToolSet toolSet) {

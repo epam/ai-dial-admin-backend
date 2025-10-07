@@ -4,6 +4,7 @@
       "importAction": "create",
       "next": {
         "name": "testRole1",
+        "displayName": "testRole1",
         "limits": [
           {
             "role": "testRole1",
@@ -96,6 +97,7 @@
       "importAction": "create",
       "next": {
         "name": "testRole2",
+        "displayName": "testRole2",
         "limits": [
           {
             "role": "testRole2",
@@ -164,6 +166,7 @@
       "importAction": "create",
       "next": {
         "name": "testRole3",
+        "displayName": "testRole3",
         "limits": [
           {
             "role": "testRole3",
@@ -232,6 +235,7 @@
       "importAction": "update",
       "prev": {
         "name": "default",
+        "displayName": "default",
         "limits": [],
         "keys": [],
         "share": [],
@@ -244,6 +248,7 @@
       },
       "next": {
         "name": "default",
+        "displayName": "default",
         "limits": [
           {
             "role": "default",
@@ -314,6 +319,7 @@
       "importAction": "create",
       "next": {
         "name": "<will be defined during import 0>",
+        "displayName": "<will be defined during import 0>",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
@@ -326,6 +332,7 @@
       "importAction": "create",
       "next": {
         "name": "<will be defined during import 1>",
+        "displayName": "<will be defined during import 1>",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
@@ -505,7 +512,8 @@
           }
         ],
         "maxRetryAttempts": 3,
-        "order": 2
+        "order": 2,
+        "displayName": "test_route1"
       }
     }
   ],
@@ -514,6 +522,7 @@
       "importAction": "create",
       "next": {
         "name": "<will be defined during import 0>",
+        "displayName": "<will be defined during import 0>",
         "baseEndpoint": "https://endpoint2/",
         "models": [
           "testModel2"
@@ -524,6 +533,7 @@
       "importAction": "create",
       "next": {
         "name": "<will be defined during import 1>",
+        "displayName": "<will be defined during import 1>",
         "baseEndpoint": "https://endpoint1/",
         "models": [
           "testModel1"
