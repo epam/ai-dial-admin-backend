@@ -1,11 +1,15 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
+import com.epam.aidial.cfg.dao.model.ResourceAuthSettingsEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.dao.model.SecuredResourceEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
+import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
@@ -58,14 +62,21 @@ public abstract class ToolSetEntityMapper {
             toolSetContainer = toolSetContainerEntityMapper.toEntity(containerSource);
         }
 
-        var domainAuthSettings = domain.getDeployment() != null ? domain.getDeployment().getAuthSettings() : null;
-        var entityAuthSettings = entity.getDeployment() != null ? entity.getDeployment().getAuthSettings() : null;
-        var mappedEntityAuthSettings = authSettingsEntityMapper.toDomain(entityAuthSettings);
+        SecuredResource securedResource = domain.getDeployment();
+        ResourceAuthSettings domainAuthSettings = securedResource != null ? securedResource.getAuthSettings() : null;
+
+        SecuredResourceEntity securedResourceEntity = entity.getDeployment();
+        ResourceAuthSettingsEntity entityAuthSettings = securedResourceEntity != null ? securedResourceEntity.getAuthSettings() : null;
+        ResourceAuthSettings mappedEntityAuthSettings = authSettingsEntityMapper.toDomain(entityAuthSettings);
+
+        boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer = deploymentEntityMapper
+                .isMappedDefaultRoleLimitOrShareResourceLimitDiffer(securedResource, securedResourceEntity);
 
         ToolSetEntity updatedEntity = update(domain, entity);
 
-        // Auth Settings update is not reflected in ToolSet's audit table, so provoking a dirty entity by manually setting 'updatedAt'
-        if (!Objects.equal(domainAuthSettings, mappedEntityAuthSettings)) {
+        // Embedded entities update is not reflected in ToolSet's audit table, so provoking a dirty entity by manually setting 'updatedAt'
+        if (!Objects.equal(domainAuthSettings, mappedEntityAuthSettings)
+                || isMappedDefaultRoleLimitOrShareResourceLimitDiffer) {
             updatedEntity.setUpdatedAt(System.currentTimeMillis());
         }
 

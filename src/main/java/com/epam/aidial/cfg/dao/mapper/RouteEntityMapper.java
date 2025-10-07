@@ -29,7 +29,14 @@ public abstract class RouteEntityMapper {
         List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
         List<RoleEntity> rolesForResourceShareLimits = deploymentEntityMapper.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
 
+        boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer = deploymentEntityMapper
+                .isMappedDefaultRoleLimitOrShareResourceLimitDiffer(domain.getDeployment(), entity.getDeployment());
+
         RouteEntity updatedEntity = update(domain, entity);
+
+        if (isMappedDefaultRoleLimitOrShareResourceLimitDiffer) {
+            updatedEntity.setUpdatedAt(System.currentTimeMillis());
+        }
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
