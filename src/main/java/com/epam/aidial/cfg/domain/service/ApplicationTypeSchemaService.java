@@ -106,7 +106,6 @@ public class ApplicationTypeSchemaService {
         return jpaRepository.save(mapper.toEntity(schema, applicationTypeSchemaEntity));
     }
 
-
     @Transactional
     public void delete(String id, boolean removeApplication) {
         ApplicationTypeSchemaEntity applicationTypeSchema = findBySchemaId(id);
