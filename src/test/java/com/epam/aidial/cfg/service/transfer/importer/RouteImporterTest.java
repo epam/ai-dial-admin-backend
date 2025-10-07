@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -45,7 +44,7 @@ class RouteImporterTest {
         Route route = new Route();
         Deployment deployment = new Deployment("routeName");
         route.setDeployment(deployment);
-        when(mapper.mapRoute(any(CoreRoute.class), any(ShareResourceLimit.class))).thenReturn(route);
+        when(mapper.mapRoute(any(CoreRoute.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
         Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions))
@@ -65,7 +64,7 @@ class RouteImporterTest {
         Deployment deployment = new Deployment("routeName");
         route.setDeployment(deployment);
         route.setPaths(paths);
-        when(mapper.mapRoute(any(CoreRoute.class), any(ShareResourceLimit.class))).thenReturn(route);
+        when(mapper.mapRoute(any(CoreRoute.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
         Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions))

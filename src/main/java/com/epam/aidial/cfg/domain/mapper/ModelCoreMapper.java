@@ -1,12 +1,10 @@
 package com.epam.aidial.cfg.domain.mapper;
 
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreUpstream;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -37,7 +35,7 @@ public abstract class ModelCoreMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "features", source = "model.features")
-    public abstract Model mapModel(CoreModel model, ModelSource source, @Context ShareResourceLimit defaultShareResourceLimit);
+    public abstract Model mapModel(CoreModel model, ModelSource source);
 
     @Mapping(target = "id", ignore = true)
     abstract Upstream map(CoreUpstream upstream);

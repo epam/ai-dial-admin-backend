@@ -84,7 +84,6 @@ public abstract class ToolSetHistoryFunctionalTest {
         var expected = createToolSetDto("1");
         expected.setDescription("New ToolSet description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setEndpoint(containerUrl + endpointPath);
         expected.setSource(containerSourceDto);
         expected.setAuthSettings(authSettingsDto);
@@ -95,9 +94,7 @@ public abstract class ToolSetHistoryFunctionalTest {
         updatedToolSet.setAuthSettings(authSettingsDto);
         updatedToolSet.setEndpoint(containerUrl + endpointPath);
         updatedToolSet.setDefaultRoleLimit(new LimitDto());
-        updatedToolSet.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedToolSet.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedToolSet.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         assertToolSet(actual, updatedToolSet);
@@ -108,7 +105,6 @@ public abstract class ToolSetHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedToolSet.setRoleLimits(Map.of("role3", limitDto));
-        updatedToolSet.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
         var actualAtOldRevision = toolSetFacade.getAllToolSets();
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
@@ -134,7 +130,6 @@ public abstract class ToolSetHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 8. Delete ToolSet1
         toolSetFacade.deleteToolSet(toolSetDto.getName());

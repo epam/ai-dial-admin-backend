@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,14 +40,12 @@ public class ModelFacade {
     }
 
     public void createModel(ModelDto modelDto) {
-        setDefaultRoleShareResourceLimitIfMissing(modelDto);
         Optional.of(modelDto)
                 .map(mapper::toDomain)
                 .ifPresent(modelService::createModel);
     }
 
     public String updateModel(String modelName, ModelDto modelDto, String hash) {
-        setDefaultRoleShareResourceLimitIfMissing(modelDto);
         Model value = mapper.toDomain(modelDto);
         return modelService.updateModel(modelName, value, hash);
     }
@@ -67,13 +64,5 @@ public class ModelFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(ModelDto modelDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = modelDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            modelDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }

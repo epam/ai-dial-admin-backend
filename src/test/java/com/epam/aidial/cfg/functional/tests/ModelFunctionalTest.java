@@ -100,19 +100,15 @@ public abstract class ModelFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setMaxRetryAttempts(1);
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
-        updatedModel.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         assertModel(actual, expected);
 
         updatedModel.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedModel.setRoleShareResourceLimits(Map.of("role1", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        expected.setRoleShareResourceLimits(Map.of("role1", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         assertModel(actual, expected);
 
         LimitDto limitDto = new LimitDto();
@@ -120,12 +116,10 @@ public abstract class ModelFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
-        updatedModel.setRoleShareResourceLimits(Map.of("role2", shareResourceLimitDto));
         updatedModel.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role3", limitDto));
-        expected.setRoleShareResourceLimits(Map.of("role2", shareResourceLimitDto));
         expected.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
         assertModel(actual, expected);
 
@@ -133,7 +127,6 @@ public abstract class ModelFunctionalTest {
 
         actual = modelFacade.getModel(modelDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertFalse(actual.getRoleShareResourceLimits().isEmpty());
     }
 
     @Test
@@ -395,12 +388,8 @@ public abstract class ModelFunctionalTest {
         modelDto.setRoleLimits(Map.of(
                 "role1", new LimitDto()
         ));
-        modelDto.setRoleShareResourceLimits(Map.of(
-                "role1", new ShareResourceLimitDto()
-        ));
         modelDto.setDefaults(Map.of());
         modelDto.setDefaultRoleLimit(new LimitDto());
-        modelDto.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         modelDto.setSource(new ModelEndpointsSourceDto());
         modelDto.setEndpoint("https://endpoint1/chat/completions");
         return modelDto;
@@ -418,11 +407,7 @@ public abstract class ModelFunctionalTest {
         modelDto1.setRoleLimits(Map.of(
                 "role1", new LimitDto()
         ));
-        modelDto1.setRoleShareResourceLimits(Map.of(
-                "role1", new ShareResourceLimitDto()
-        ));
         modelDto1.setDefaultRoleLimit(new LimitDto());
-        modelDto1.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         modelDto1.setDefaults(Map.of("max_tokens", 8000));
         modelDto1.setEndpoint("https://endpoint1/chat/completions");
         modelDto1.setSource(new ModelEndpointsSourceDto());
@@ -432,11 +417,7 @@ public abstract class ModelFunctionalTest {
         modelDto2.setRoleLimits(Map.of(
                 "role2", new LimitDto()
         ));
-        modelDto2.setRoleShareResourceLimits(Map.of(
-                "role2", new ShareResourceLimitDto()
-        ));
         modelDto2.setDefaultRoleLimit(new LimitDto());
-        modelDto2.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         modelDto2.setDefaults(Map.of());
         modelDto2.setEndpoint("https://endpoint1/chat/completions");
         modelDto2.setSource(new ModelEndpointsSourceDto());

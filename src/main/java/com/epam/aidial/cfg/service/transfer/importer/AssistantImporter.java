@@ -8,8 +8,6 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.AssistantService;
 import com.epam.aidial.cfg.domain.service.AssistantsPropertyService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -152,7 +150,7 @@ public class AssistantImporter extends DeploymentHolderImporter {
 
     private Assistant map(String assistantName, CoreAssistant assistant) {
         assistant.setName(assistantName);
-        return mapper.mapAssistant(assistant, new ShareResourceLimit());
+        return mapper.mapAssistant(assistant);
     }
 
     public List<ImportComponent<Assistant>> getActualImportedAssistants(Collection<ImportComponent<Assistant>> assistantImportComponents,
@@ -162,14 +160,12 @@ public class AssistantImporter extends DeploymentHolderImporter {
                 .stream()
                 .collect(Collectors.toMap(assistant -> assistant.getDeployment().getName(), Function.identity()));
 
-        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
-        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
 
         return assistantImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedAssistantsByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);
