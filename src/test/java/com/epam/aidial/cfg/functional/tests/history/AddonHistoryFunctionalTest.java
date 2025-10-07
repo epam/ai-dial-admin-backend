@@ -44,7 +44,7 @@ public abstract class AddonHistoryFunctionalTest {
         // 2 update addon1 description
         AddonDto updatedAddon = createAddonDtoWithAllLimits("1");
         updatedAddon.setDescription("new addon description");
-        addonFacade.updateAddon(addonDto.getName(), updatedAddon);
+        addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
 
         // verify addon1
         AddonDto actual = addonFacade.getAddon(addonDto.getName());
@@ -56,7 +56,7 @@ public abstract class AddonHistoryFunctionalTest {
         // 3 add roles to addon1
         updatedAddon.setDefaultRoleLimit(new LimitDto());
         updatedAddon.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        addonFacade.updateAddon(addonDto.getName(), updatedAddon);
+        addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
         actual = addonFacade.getAddon(addonDto.getName());
         assertAddon(actual, updatedAddon);
 
@@ -66,7 +66,7 @@ public abstract class AddonHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedAddon.setRoleLimits(Map.of("role3", limitDto));
-        addonFacade.updateAddon(addonDto.getName(), updatedAddon);
+        addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
         var actualAtRevision = addonFacade.getAddon(addonDto.getName());
         assertAddon(actualAtRevision, updatedAddon);
 

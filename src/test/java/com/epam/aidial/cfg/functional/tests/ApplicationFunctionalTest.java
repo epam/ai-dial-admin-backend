@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -75,7 +76,7 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
         updatedApplication.setDescription("new application description");
 
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createApplicationDtoWithEndpointAndLimits("1");
@@ -98,7 +99,7 @@ public abstract class ApplicationFunctionalTest {
         updatedApplication.setDefaults(Map.of());
         updatedApplication.setInterceptors(List.of("interceptor1"));
 
-        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication);
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
 
@@ -115,9 +116,65 @@ public abstract class ApplicationFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> applicationFacade.updateApplication(applicationDto.getName(), updatedApplication)
+                () -> applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*")
         );
         Assertions.assertEquals("Application with name: 'application1' can not be renamed. New name: 'application2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenApplicationConcurrencyOverwrite() {
+        initRoles();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
+        applicationFacade.createApplication(applicationDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: applicationName:'application1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        initRoles();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
+        applicationFacade.createApplication(applicationDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Application:application1.",
+                exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateApplicationWithCorrectHash() {
+        initRoles();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
+        applicationFacade.createApplication(applicationDto);
+        ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
+        updatedApplication.setDescription("new application description");
+
+        var hash = applicationFacade.getApplicationWithHash(applicationDto.getName()).hash();
+
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, hash);
+
+        var actual = applicationFacade.getApplication(applicationDto.getName());
+        var expected = createApplicationDtoWithEndpointAndLimits("1");
+        expected.setDescription("new application description");
+        assertApplication(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateApplicationWithIncorrectHash() {
+        initRoles();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
+        applicationFacade.createApplication(applicationDto);
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "test"));
     }
 
     @Test
@@ -157,7 +214,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(List.of("interceptor1", "interceptor2", "interceptor1", "interceptor1", "interceptor2"), actualApplication.getInterceptors());
 
         applicationDto.setInterceptors(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1"));
-        applicationFacade.updateApplication(applicationDto.getName(), applicationDto);
+        applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
 
         actualApplication = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertEquals(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1"), actualApplication.getInterceptors());
@@ -241,7 +298,7 @@ public abstract class ApplicationFunctionalTest {
         applicationFacade.createApplication(applicationDto2);
 
         interceptorDto1.setEntities(List.of("application2"));
-        interceptorFacade.updateInterceptor(interceptorDto1.getName(), interceptorDto1);
+        interceptorFacade.updateInterceptor(interceptorDto1.getName(), interceptorDto1, "*");
 
         ApplicationDto actualApplication1 = applicationFacade.getApplication(applicationDto1.getName());
         Assertions.assertEquals(List.of("interceptor2"), actualApplication1.getInterceptors());
@@ -250,7 +307,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(List.of("interceptor1", "interceptor1", "interceptor2"), actualApplication2.getInterceptors());
 
         interceptorDto2.setEntities(null);
-        interceptorFacade.updateInterceptor(interceptorDto2.getName(), interceptorDto2);
+        interceptorFacade.updateInterceptor(interceptorDto2.getName(), interceptorDto2, "*");
 
         actualApplication1 = applicationFacade.getApplication(applicationDto1.getName());
         Assertions.assertEquals(actualApplication1.getInterceptors(), List.of());
@@ -296,7 +353,7 @@ public abstract class ApplicationFunctionalTest {
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
                 EntityAlreadyExistsException.class,
-                () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto)
+                () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*")
         );
         Assertions.assertEquals("Application with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
     }
