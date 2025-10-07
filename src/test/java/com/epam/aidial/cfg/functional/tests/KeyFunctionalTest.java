@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDtoWithRole;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
@@ -39,25 +42,15 @@ public abstract class KeyFunctionalTest {
     }
 
     private void initRoles() {
-        RoleDto role1 = roleDto("1");
-        RoleDto role2 = roleDto("2");
-        RoleDto role3 = roleDto("3");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
-        roleFacade.createRole(role3);
-    }
-
-    private RoleDto roleDto(String suffix) {
-        RoleDto roleDto = new RoleDto();
-        roleDto.setName("role" + suffix);
-        roleDto.setDescription("role" + suffix);
-        return roleDto;
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
+        roleFacade.createRole(createRoleDto("3"));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndGetKeys() {
         doReturn(1L).when(transactionTimestampContext).getTimestamp();
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
@@ -66,7 +59,7 @@ public abstract class KeyFunctionalTest {
         assertKey(actual, keyDto);
 
         doReturn(2L).when(transactionTimestampContext).getTimestamp();
-        KeyDto keyDto2 = createDto("2");
+        KeyDto keyDto2 = createKeyDtoWithRole("2");
         keyFacade.createKey(keyDto2);
 
         Collection<KeyDto> actualKeys = keyFacade.getAllKeys();
@@ -86,14 +79,14 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateWithEmptyRolesAndGetKeys() {
-        KeyDto keyDto = createDtoWithoutRoles("1");
+        KeyDto keyDto = createKeyDto("1");
         keyFacade.createKey(keyDto);
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
         keyDto.setRoles(List.of());
         assertKeyExcludingGeneratedFields(actual, keyDto);
 
-        KeyDto keyDto2 = createDtoWithoutRoles("2");
+        KeyDto keyDto2 = createKeyDto("2");
         keyFacade.createKey(keyDto2);
 
         Collection<KeyDto> actualKeys = keyFacade.getAllKeys();
@@ -104,7 +97,7 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndDeleteKey() {
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
         keyFacade.deleteKey(keyDto.getName());
@@ -117,9 +110,9 @@ public abstract class KeyFunctionalTest {
     public void shouldSuccessfullyCreateAndUpdateKey() {
         doReturn(1L).when(transactionTimestampContext).getTimestamp();
 
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
-        KeyDto updatedKey = createDto("1");
+        KeyDto updatedKey = createKeyDtoWithRole("1");
         updatedKey.setDescription("new key description");
 
         KeyDto createdKey = keyFacade.getKey(keyDto.getName());
@@ -131,7 +124,7 @@ public abstract class KeyFunctionalTest {
         keyFacade.updateKey(keyDto.getName(), updatedKey, "*");
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
-        var expected = createDto("1");
+        var expected = createKeyDtoWithRole("1");
         expected.setDescription("new key description");
         assertKeyExcludingGeneratedFields(actual, expected);
 
@@ -141,9 +134,9 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenRenameKey() {
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
-        KeyDto updatedKey = createDto("2");
+        KeyDto updatedKey = createKeyDtoWithRole("2");
         updatedKey.setDescription("new key description");
 
         IllegalArgumentException exception = Assertions.assertThrows(
@@ -155,9 +148,9 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenCreateKeyWithExistingValue() {
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
-        KeyDto keyDto2 = createDto("2");
+        KeyDto keyDto2 = createKeyDtoWithRole("2");
         keyDto2.setKey("keyValue1");
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
@@ -170,7 +163,7 @@ public abstract class KeyFunctionalTest {
     @Test
     public void shouldUpdateKeyGeneratedAtFieldWhenUpdateKeyValue() {
         doReturn(1L).when(transactionTimestampContext).getTimestamp();
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
         doReturn(2L).when(transactionTimestampContext).getTimestamp();
@@ -179,7 +172,7 @@ public abstract class KeyFunctionalTest {
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
 
-        var expected = createDto("1");
+        var expected = createKeyDtoWithRole("1");
         expected.setKey("new keyValue");
         expected.setCreatedAt(Instant.ofEpochMilli(1L));
         expected.setKeyGeneratedAt(Instant.ofEpochMilli(2L));
@@ -190,9 +183,11 @@ public abstract class KeyFunctionalTest {
     @Test
     public void shouldSuccessfullyUpdateRoles() {
         // create key1: roles=[role1, role2]; key2: roles=[role1, role3]
-        KeyDto keyDto = createDto("1", List.of("role1", "role2"));
+        KeyDto keyDto = createKeyDto("1");
+        keyDto.setRoles(List.of("role1", "role2"));
         keyFacade.createKey(keyDto);
-        KeyDto keyDto2 = createDto("2", List.of("role1", "role3"));
+        KeyDto keyDto2 = createKeyDto("2");
+        keyDto2.setRoles(List.of("role1", "role3"));
         keyFacade.createKey(keyDto2);
 
         // check role1: keys=[key1, key2]; role2: keys=[key1]; role3: keys=[key2]
@@ -204,7 +199,8 @@ public abstract class KeyFunctionalTest {
         assertEquals(List.of("key2"), role3.getGrantedKeys());
 
         // update key1: roles=[role2, role3]
-        KeyDto updatedKeyDto = createDto("1", List.of("role2", "role3"));
+        KeyDto updatedKeyDto = createKeyDto("1");
+        updatedKeyDto.setRoles(List.of("role2", "role3"));
         keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto, "*");
 
         // check key1: roles=[role2, role3]
@@ -223,7 +219,8 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenCreatingWithNonExistentRoles() {
-        KeyDto keyDto = createDto("1", List.of("role1", "role4", "role5"));
+        KeyDto keyDto = createKeyDto("1");
+        keyDto.setRoles(List.of("role1", "role4", "role5"));
         EntityNotFoundException exception = Assertions.assertThrows(
                 EntityNotFoundException.class,
                 () -> keyFacade.createKey(keyDto)
@@ -234,10 +231,12 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenUpdatingWithNonExistentRoles() {
-        KeyDto keyDto = createDto("1", List.of("role1", "role2"));
+        KeyDto keyDto = createKeyDto("1");
+        keyDto.setRoles(List.of("role1", "role2"));
         keyFacade.createKey(keyDto);
 
-        KeyDto updatedKeyDto = createDto("1", List.of("role1", "role4", "role5"));
+        KeyDto updatedKeyDto = createKeyDto("1");
+        updatedKeyDto.setRoles(List.of("role1", "role4", "role5"));
         EntityNotFoundException exception = Assertions.assertThrows(
                 EntityNotFoundException.class,
                 () -> keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto, "*")
@@ -249,9 +248,11 @@ public abstract class KeyFunctionalTest {
     @Test
     public void shouldSuccessfullyUpdateKeysWhenDeleteRole() {
         // create key1: roles=[role1, role2]; key2: roles=[role1, role3]
-        KeyDto keyDto = createDto("1", List.of("role1", "role2"));
+        KeyDto keyDto = createKeyDtoWithRole("1");
+        keyDto.setRoles(List.of("role1", "role2"));
         keyFacade.createKey(keyDto);
-        KeyDto keyDto2 = createDto("2", List.of("role1", "role3"));
+        KeyDto keyDto2 = createKeyDtoWithRole("2");
+        keyDto2.setRoles(List.of("role1", "role3"));
         keyFacade.createKey(keyDto2);
 
         // check role1: keys=[key1, key2]; role2: keys=[key1]; role3: keys=[key2]
@@ -266,8 +267,10 @@ public abstract class KeyFunctionalTest {
         roleFacade.deleteRole("role1");
 
         // check key1: roles=[role2]; key2: roles=[role3]
-        KeyDto expectedKeyDto1 = createDto("1", List.of("role2"));
-        KeyDto expectedKeyDto2 = createDto("2", List.of("role3"));
+        KeyDto expectedKeyDto1 = createKeyDto("1");
+        expectedKeyDto1.setRoles(List.of("role2"));
+        KeyDto expectedKeyDto2 = createKeyDto("2");
+        expectedKeyDto2.setRoles(List.of("role3"));
         KeyDto actualKey1 = keyFacade.getKey("key1");
         KeyDto actualKey2 = keyFacade.getKey("key2");
         assertKeyExcludingGeneratedFields(actualKey1, expectedKeyDto1);
@@ -277,9 +280,11 @@ public abstract class KeyFunctionalTest {
     @Test
     public void shouldSuccessfullyUpdateRolesWhenDeleteKey() {
         // create key1: roles=[role1, role2]; key2: roles=[role1, role3]
-        KeyDto keyDto = createDto("1", List.of("role1", "role2"));
+        KeyDto keyDto = createKeyDto("1");
+        keyDto.setRoles(List.of("role1", "role2"));
         keyFacade.createKey(keyDto);
-        KeyDto keyDto2 = createDto("2", List.of("role1", "role3"));
+        KeyDto keyDto2 = createKeyDto("2");
+        keyDto2.setRoles(List.of("role1", "role3"));
         keyFacade.createKey(keyDto2);
 
         // check role1: keys=[key1, key2]; role2: keys=[key1]; role3: keys=[key2]
@@ -304,12 +309,12 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenCreateKeyWithExistingKeyName() {
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
                 EntityAlreadyExistsException.class,
-                () -> keyFacade.createKey(createDto("1"))
+                () -> keyFacade.createKey(createKeyDtoWithRole("1"))
         );
 
         assertEquals("Key with name key1 already exists", exception.getMessage());
@@ -317,10 +322,10 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenUpdateKeyWithExistingKeyName() {
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
-        KeyDto keyDto2 = createDto("2");
+        KeyDto keyDto2 = createKeyDtoWithRole("2");
         keyFacade.createKey(keyDto2);
 
         keyDto.setName("key2");
@@ -335,10 +340,10 @@ public abstract class KeyFunctionalTest {
 
     @Test
     public void shouldSuccessfullyUpdateKeyWithCorrectHash() {
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
-        KeyDto updatedKeyDto = createDto("1");
+        KeyDto updatedKeyDto = createKeyDtoWithRole("1");
         updatedKeyDto.setDisplayName("updated DisplayName");
 
         var hash = keyFacade.getKeyWithHash(keyDto.getName()).hash();
@@ -346,17 +351,17 @@ public abstract class KeyFunctionalTest {
         keyFacade.updateKey(keyDto.getName(), updatedKeyDto, hash);
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
-        var expected = createDto("1");
+        var expected = createKeyDtoWithRole("1");
         expected.setDisplayName("updated DisplayName");
         assertKeyExcludingGeneratedFields(actual, expected);
     }
 
     @Test
     public void shouldThrowWhenUpdateKeyWithIncorrectHash() {
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
-        KeyDto updatedKeyDto = createDto("1");
+        KeyDto updatedKeyDto = createKeyDtoWithRole("1");
         updatedKeyDto.setDisplayName("updatedDisplayName");
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
@@ -393,25 +398,5 @@ public abstract class KeyFunctionalTest {
 
     private void assertKey(KeyDto actual, KeyDto expected) {
         assertThat(actual).isEqualTo(expected);
-    }
-
-    private KeyDto createDtoWithoutRoles(String suffix) {
-        return createDto(suffix, null);
-    }
-
-    private KeyDto createDto(String suffix) {
-        return createDto(suffix, List.of("role" + suffix));
-    }
-
-    private KeyDto createDto(String suffix, List<String> roles) {
-        KeyDto keyDto = new KeyDto();
-        keyDto.setName("key" + suffix);
-        keyDto.setKey("keyValue" + suffix);
-        keyDto.setDisplayName("displayName" + suffix);
-        keyDto.setDescription("description" + suffix);
-        keyDto.setRoles(roles);
-        keyDto.setProjectContactPoint("test@mail.com");
-        keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
-        return keyDto;
     }
 }

@@ -6,7 +6,7 @@ import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -18,8 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -30,34 +32,31 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @Slf4j
 @LogExecution
 @RequiredArgsConstructor
-public class AddonImporter extends RoleBasedImporter {
+public class AddonImporter extends DeploymentHolderImporter {
 
     private final AddonService addonService;
     private final AddonCoreMapper addonCoreMapper;
 
     public Collection<ImportComponent<Addon>> importAddons(Map<String, CoreAddon> coreAddons,
                                                            Map<String, Role> roles,
-                                                           ConfigImportOptions importOptions,
-                                                           boolean isPreview) {
+                                                           ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(coreAddons)) {
             Map<String, Addon> addons = coreAddons.entrySet()
                     .stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue())));
-            return importAdminAddons(addons, roles, importOptions, isPreview);
+            return importAdminAddons(addons, roles, importOptions);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<Addon>> importAdminAddons(Map<String, Addon> addons,
                                                                 Map<String, Role> roles,
-                                                                ConfigImportOptions importOptions,
-                                                                boolean isPreview) {
+                                                                ConfigImportOptions importOptions) {
         if (MapUtils.isNotEmpty(addons)) {
             return addons.entrySet().stream()
                     .map(addonEntry -> {
                                 var addon = addonEntry.getValue();
-                                var importAction = processAddon(addonEntry.getKey(), addon, roles, importOptions.conflictResolutionPolicy(), isPreview);
-                                return new ImportComponent<>(importAction, addon);
+                                return processAddon(addonEntry.getKey(), addon, roles, importOptions.conflictResolutionPolicy());
                             }
                     )
                     .toList();
@@ -65,46 +64,65 @@ public class AddonImporter extends RoleBasedImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processAddon(String addonName,
-                                      Addon newAddon,
-                                      Map<String, Role> roles,
-                                      ConflictResolutionPolicy resolutionPolicy,
-                                      boolean isPreview) {
+    private ImportComponent<Addon> processAddon(String addonName,
+                                                Addon newAddon,
+                                                Map<String, Role> roles,
+                                                ConflictResolutionPolicy resolutionPolicy) {
         Optional<Addon> addon = addonService.tryGetAddon(addonName);
         if (addon.isPresent()) {
             Addon existingAddon = addon.get();
-            setLimits(addonName, existingAddon.getDeployment(), roles, newAddon.getDeployment(), isPreview);
-            return handleExisting(newAddon, resolutionPolicy, addonName, isPreview);
+            setLimits(addonName, existingAddon.getDeployment(), roles, newAddon.getDeployment());
+            ImportAction importAction = handleExisting(newAddon, resolutionPolicy, addonName);
+            return new ImportComponent<>(importAction, existingAddon, newAddon);
         } else {
-            setLimits(addonName, roles, newAddon.getDeployment(), isPreview);
-            if (!isPreview) {
-                addonService.createAddon(newAddon);
-            }
-            return CREATE;
+            setLimits(addonName, roles, newAddon.getDeployment());
+            addonService.createAddon(newAddon);
+            return new ImportComponent<>(CREATE, null, newAddon);
         }
     }
 
     private ImportAction handleExisting(Addon newAddon,
                                         ConflictResolutionPolicy resolutionPolicy,
-                                        String addonName,
-                                        boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing addon will remain unchanged.
-                return SKIP;
-            }
+                                        String addonName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing addon will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    addonService.updateAddon(addonName, newAddon);
-                }
-                return UPDATE;
+                addonService.updateAddon(addonName, newAddon);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
+        };
     }
 
     private Addon map(String addonName, CoreAddon addon) {
         addon.setName(addonName);
-        return addonCoreMapper.mapAddon(addon, new ShareResourceLimit());
+        return addonCoreMapper.mapAddon(addon);
+    }
+
+    public List<ImportComponent<Addon>> getActualImportedAddons(Collection<ImportComponent<Addon>> addonImportComponents,
+                                                                Collection<ImportComponent<Role>> roleImportComponents) {
+        List<String> names = getNextImportComponentNames(addonImportComponents);
+        Map<String, Addon> importedAddonsByNames = addonService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(addon -> addon.getDeployment().getName(), Function.identity()));
+
+        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
+
+        return addonImportComponents.stream()
+                .map(importComponent -> {
+                    var next = importedAddonsByNames.get(importComponent.getNext().getDeployment().getName());
+                    setImportedLimits(next, importedRoleLimits);
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Addon addon) {
+        if (addon != null) {
+            addon.setCreatedAt(null);
+            addon.setUpdatedAt(null);
+        }
     }
 }

@@ -24,6 +24,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
+
 public abstract class ApplicationTypeSchemaFunctionalTest {
 
     @Autowired
@@ -54,12 +57,10 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndGetApplicationTypeSchemaWithApplication() {
         // given
-        ApplicationDto applicationDto = new ApplicationDto();
-        applicationDto.setName("application");
-        applicationDto.setEndpoint("endpoint");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationFacade.createApplication(applicationDto);
 
-        dto.setApplications(List.of("application"));
+        dto.setApplications(List.of("application1"));
         dto.setApplicationTypeRoutes(List.of());
 
         // when
@@ -94,6 +95,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationDto applicationDto = new ApplicationDto();
         applicationDto.setName("application");
+        applicationDto.setDisplayName("application");
         applicationDto.setCustomAppSchemaId(new URI("https://test-schema.example"));
         applicationFacade.createApplication(applicationDto);
         // when
@@ -112,8 +114,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         // given
         typeSchemaFacade.create(dto);
 
-        ApplicationDto applicationDto = new ApplicationDto();
-        applicationDto.setName("application");
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
         applicationDto.setCustomAppSchemaId(new URI("https://test-schema.example"));
         applicationFacade.createApplication(applicationDto);
         // when
@@ -125,7 +126,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         Assertions.assertThat(all).isEmpty();
 
         ApplicationDto updatedApplication = applicationFacade.getApplication(applicationDto.getName());
-        Assertions.assertThat(updatedApplication.getName()).isEqualTo("application");
+        Assertions.assertThat(updatedApplication.getName()).isEqualTo("application1");
         Assertions.assertThat(updatedApplication.getCustomAppSchemaId()).isNull();
         Assertions.assertThat(updatedApplication.getEndpoint()).isEqualTo("https://test-schema.example");
     }
@@ -151,12 +152,10 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     @Test
     public void shouldNotUpdateSchemaApplicationsWhenTheyMissingInRequest() {
         // given
-        ApplicationDto applicationDto = new ApplicationDto();
-        applicationDto.setName("application");
-        applicationDto.setEndpoint("endpoint");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationFacade.createApplication(applicationDto);
 
-        dto.setApplications(List.of("application"));
+        dto.setApplications(List.of("application1"));
         typeSchemaFacade.create(dto);
 
         dto.setApplications(null);
@@ -167,7 +166,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         // then
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
-        dto.setApplications(List.of("application"));
+        dto.setApplications(List.of("application1"));
         Assertions.assertThat(actual).isEqualTo(dto);
     }
 
@@ -206,12 +205,10 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenCreatingWithNonExistentApplications() {
-        ApplicationDto applicationDto = new ApplicationDto();
-        applicationDto.setName("application");
-        applicationDto.setEndpoint("endpoint");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationFacade.createApplication(applicationDto);
 
-        dto.setApplications(List.of("application", "application2", "application3"));
+        dto.setApplications(List.of("application1", "application2", "application3"));
 
         Assertions.assertThatThrownBy(() -> typeSchemaFacade.create(dto))
                 .isInstanceOf(EntityNotFoundException.class)

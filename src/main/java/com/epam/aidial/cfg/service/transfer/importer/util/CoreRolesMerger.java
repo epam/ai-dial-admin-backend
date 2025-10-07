@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.core.config.Assistants;
 import com.epam.aidial.core.config.Config;
-import com.epam.aidial.core.config.CoreCostLimit;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.RequiredArgsConstructor;
@@ -44,9 +43,6 @@ public class CoreRolesMerger {
         for (String roleName : allRoleNames) {
             CoreRole coreRole = resolveCoreRole(roleName, roles, createRoleIfAbsent);
             coreRole.setName(roleName);
-            if (coreRole.getCostLimit() == null) {
-                coreRole.setCostLimit(new CoreCostLimit());
-            }
             addRoleLimitsFromUserRoles(coreRole, deploymentNamesByUserRole);
 
             Role role = roleCoreMapper.mapToRole(coreRole, deploymentNamesByUserRole);
@@ -90,11 +86,11 @@ public class CoreRolesMerger {
     }
 
     private void addRoleLimitsFromUserRoles(CoreRole coreRole, Map<String, Set<String>> deploymentNamesByUserRole) {
-        Map<String, CoreLimit> limits = new HashMap<>(coreRole.getLimits());
+        Map<String, CoreLimit> limits = new HashMap<>(MapUtils.emptyIfNull(coreRole.getLimits()));
         Set<String> deploymentNames = SetUtils.emptyIfNull(deploymentNamesByUserRole.get(coreRole.getName()));
 
         for (String deploymentName : deploymentNames) {
-            limits.putIfAbsent(deploymentName, new CoreLimit());
+            limits.putIfAbsent(deploymentName, CoreLimit.empty());
         }
 
         coreRole.setLimits(limits);

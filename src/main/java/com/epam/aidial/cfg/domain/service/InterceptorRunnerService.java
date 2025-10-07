@@ -51,10 +51,15 @@ public class InterceptorRunnerService {
     }
 
     @Transactional(readOnly = true)
-    public InterceptorRunner get(String interceptorRunnerName) {
-        return Optional.ofNullable(interceptorRunnerName)
-                .flatMap(interceptorRunnerJpaRepository::findById)
+    public Collection<InterceptorRunner> getAllByNames(List<String> names) {
+        return StreamSupport.stream(interceptorRunnerJpaRepository.findAllById(names).spliterator(), false)
                 .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public InterceptorRunner get(String interceptorRunnerName) {
+        return tryGet(interceptorRunnerName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorRunnerName)));
     }
 
@@ -62,6 +67,13 @@ public class InterceptorRunnerService {
     public DomainObjectWithHash<InterceptorRunner> getInterceptorRunnerWithHash(String id) {
         var interceptorRunner = get(id);
         return new DomainObjectWithHash<>(interceptorRunner, calculator.calculateHash(interceptorRunner));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<InterceptorRunner> tryGet(String interceptorRunnerName) {
+        return Optional.ofNullable(interceptorRunnerName)
+                .flatMap(interceptorRunnerJpaRepository::findById)
+                .map(mapper::toDomain);
     }
 
     @Transactional

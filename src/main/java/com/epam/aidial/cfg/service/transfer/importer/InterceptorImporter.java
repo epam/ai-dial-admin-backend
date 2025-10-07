@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -37,26 +40,23 @@ public class InterceptorImporter {
     private final DeploymentManagerService deploymentManagerService;
 
     public Collection<ImportComponent<Interceptor>> importInterceptors(Map<String, CoreInterceptor> coreInterceptors,
-                                                                       ConflictResolutionPolicy resolutionPolicy,
-                                                                       boolean isPreview) {
+                                                                       ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(coreInterceptors)) {
             Map<String, Interceptor> interceptors = coreInterceptors.entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getValue())));
-            return importAdminInterceptors(interceptors, resolutionPolicy, isPreview);
+            return importAdminInterceptors(interceptors, resolutionPolicy);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<Interceptor>> importAdminInterceptors(Map<String, Interceptor> interceptors,
-                                                                            ConflictResolutionPolicy resolutionPolicy,
-                                                                            boolean isPreview) {
+                                                                            ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(interceptors)) {
             return interceptors.entrySet().stream()
                     .map(interceptorEntry -> {
                                 var interceptor = interceptorEntry.getValue();
                                 interceptor.setName(interceptorEntry.getKey());
-                                var importAction = processInterceptor(interceptorEntry.getKey(), interceptor, resolutionPolicy, isPreview);
-                                return new ImportComponent<>(importAction, interceptor);
+                                return processInterceptor(interceptorEntry.getKey(), interceptor, resolutionPolicy);
                             }
                     )
                     .toList();
@@ -64,15 +64,18 @@ public class InterceptorImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processInterceptor(String interceptorName,
-                                            Interceptor newInterceptor,
-                                            ConflictResolutionPolicy resolutionPolicy,
-                                            boolean isPreview) {
+    private ImportComponent<Interceptor> processInterceptor(String interceptorName,
+                                                            Interceptor newInterceptor,
+                                                            ConflictResolutionPolicy resolutionPolicy) {
         removeContainerSourceDependencyIfContainerIsAbsent(newInterceptor);
-        if (interceptorService.exists(interceptorName)) {
-            return handleExisting(newInterceptor, resolutionPolicy, interceptorName, isPreview);
+
+        Optional<Interceptor> interceptor = interceptorService.tryGet(interceptorName);
+        if (interceptor.isPresent()) {
+            ImportAction importAction = handleExisting(newInterceptor, resolutionPolicy, interceptorName);
+            return new ImportComponent<>(importAction, interceptor.get(), newInterceptor);
         } else {
-            return create(newInterceptor, isPreview);
+            interceptorService.create(newInterceptor);
+            return new ImportComponent<>(CREATE, null, newInterceptor);
         }
     }
 
@@ -98,32 +101,44 @@ public class InterceptorImporter {
 
     private ImportAction handleExisting(Interceptor newInterceptor,
                                         ConflictResolutionPolicy resolutionPolicy,
-                                        String interceptorName,
-                                        boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing interceptor will remain unchanged.
-                return SKIP;
-            }
+                                        String interceptorName) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing interceptor will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    interceptorService.update(interceptorName, newInterceptor);
-                }
-                return UPDATE;
+                interceptorService.update(interceptorName, newInterceptor);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
-    }
-
-
-    private ImportAction create(Interceptor newInterceptor, boolean isPreview) {
-        if (!isPreview) {
-            interceptorService.create(newInterceptor);
-        }
-        return CREATE;
+        };
     }
 
     private Interceptor map(CoreInterceptor interceptor) {
         return interceptorCoreMapper.mapInterceptor(interceptor);
+    }
+
+    public List<ImportComponent<Interceptor>> getActualImportedInterceptors(Collection<ImportComponent<Interceptor>> importComponents) {
+        List<String> names = importComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(Interceptor::getName)
+                .toList();
+        Map<String, Interceptor> importedInterceptorsByNames = interceptorService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(Interceptor::getName, Function.identity()));
+
+        return importComponents.stream()
+                .map(importComponent -> {
+                    var next = importedInterceptorsByNames.get(importComponent.getNext().getName());
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Interceptor interceptor) {
+        if (interceptor != null) {
+            interceptor.setCreatedAt(null);
+            interceptor.setUpdatedAt(null);
+        }
     }
 }

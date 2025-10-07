@@ -19,33 +19,6 @@ class ModelNormalizerTest {
 
     @ParameterizedTest
     @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
-    void normalize_shouldSetDisplayNameToNullWhenDisplayNameIsBlank(String displayName) {
-        // given
-        Model model = new Model();
-        model.setDisplayName(displayName);
-
-        // when
-        modelNormalizer.normalize(model);
-
-        // then
-        assertThat(model.getDisplayName()).isNull();
-    }
-
-    @Test
-    void normalize_shouldLeaveDisplayNameAsIsWhenDisplayNameIsNotBlank() {
-        // given
-        Model model = new Model();
-        model.setDisplayName("text");
-
-        // when
-        modelNormalizer.normalize(model);
-
-        // then
-        assertThat(model.getDisplayName()).isEqualTo("text");
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
     void normalize_shouldSetDisplayVersionToNullWhenDisplayVersionIsBlank(String displayVersion) {
         // given
         Model model = new Model();

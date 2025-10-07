@@ -20,10 +20,8 @@ public class SecuredResource extends Deployment {
     public SecuredResource(Deployment deployment, ResourceAuthSettings authSettings) {
         this.setName(deployment.getName());
         this.setRoleLimits(deployment.getRoleLimits());
-        this.setRoleShareResourceLimits(deployment.getRoleShareResourceLimits());
         this.setIsPublic(deployment.getIsPublic());
         this.setDefaultRoleLimit(deployment.getDefaultRoleLimit());
-        this.setDefaultRoleShareResourceLimit(deployment.getDefaultRoleShareResourceLimit());
         this.authSettings = authSettings;
     }
 }

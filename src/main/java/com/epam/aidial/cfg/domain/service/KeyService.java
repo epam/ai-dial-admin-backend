@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,10 +49,22 @@ public class KeyService {
     }
 
     @Transactional(readOnly = true)
-    public Key getKey(String keyName) {
-        return keyJpaRepository.findById(keyName)
+    public Collection<Key> getAllByNames(List<String> names) {
+        return StreamSupport.stream(keyJpaRepository.findAllById(names).spliterator(), false)
                 .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Key getKey(String keyName) {
+        return tryGetKey(keyName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(keyName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Key> tryGetKey(String keyName) {
+        return keyJpaRepository.findById(keyName)
+                .map(mapper::toDomain);
     }
 
     @Transactional(readOnly = true)

@@ -43,8 +43,15 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
         return toolSetJpaRepository.findAll().stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<ToolSet> getAllByNames(List<String> names) {
+        return toolSetJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -67,9 +74,9 @@ public class ToolSetService {
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
         resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
-                    .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
-                    .map(toolSetJpaRepository::save)
-                    .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
+                .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
+                .map(toolSetJpaRepository::save)
+                .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
     }
 
     @Transactional
@@ -105,9 +112,9 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAllAtRevision(Integer revision) {
         return historyService.getEntitiesAtRevision(revision, ToolSetEntity.class)
-                    .stream()
-                    .map(mapper::toDomain)
-                    .collect(Collectors.toList());
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

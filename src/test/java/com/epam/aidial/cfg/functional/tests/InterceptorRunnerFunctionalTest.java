@@ -201,6 +201,7 @@ public abstract class InterceptorRunnerFunctionalTest {
     private InterceptorDto createInterceptorDto(String suffix, String runnerName) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
+        interceptorDto.setDisplayName("interceptor" + suffix);
         interceptorDto.setDescription("description" + suffix);
         interceptorDto.setSource(new InterceptorRunnerSourceDto(runnerName));
         return interceptorDto;

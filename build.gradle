@@ -19,7 +19,7 @@ plugins {
 }
 
 group = 'com.epam.aidial'
-version = "0.9.0-rc"
+version = "0.10.0-rc"
 
 java {
     toolchain {
@@ -178,7 +178,7 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
-            because("previous versions have vulnerabilities)")
+                because("previous versions have vulnerabilities)")
         }
         implementation ('io.netty:netty-codec:4.2.5.Final') {
             because("previous versions have vulnerabilities")
