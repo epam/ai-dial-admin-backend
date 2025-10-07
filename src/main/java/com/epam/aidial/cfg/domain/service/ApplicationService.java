@@ -66,7 +66,6 @@ public class ApplicationService {
         return new DomainObjectWithHash<>(application, calculator.calculateHash(application));
     }
 
-
     @Transactional(readOnly = true)
     public Optional<Application> tryGetApplication(String applicationName) {
         return Optional.ofNullable(applicationName)
@@ -143,7 +142,6 @@ public class ApplicationService {
                     + "%s'. Reload the data.", entity.getDeploymentName()));
         }
     }
-
 
     private void assertExists(String name) {
         boolean exists = applicationJpaRepository.existsById(name);
