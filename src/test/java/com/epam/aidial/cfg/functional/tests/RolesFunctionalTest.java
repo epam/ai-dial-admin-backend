@@ -6,8 +6,10 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -99,13 +101,68 @@ public abstract class RolesFunctionalTest {
         RoleDto updatedRole = createDto("1");
         updatedRole.setDescription("new role description");
 
-        roleFacade.updateRole(roleDto.getName(), updatedRole);
+        roleFacade.updateRole(roleDto.getName(), updatedRole, "*");
 
         RoleDto actual = roleFacade.getRole(roleDto.getName());
         var expected = createDto("1");
         expected.setDescription("new role description");
         assertRole(actual, expected);
     }
+
+    @Test
+    public void shouldSuccessfullyUpdateRoleWithCorrectHash() {
+        RoleDto roleDto = createDto("1");
+        roleFacade.createRole(roleDto);
+        RoleDto updatedRole = createDto("1");
+        updatedRole.setDescription("new role description");
+
+        var hash = roleFacade.getRoleWithHash(roleDto.getName()).hash();
+
+        roleFacade.updateRole(roleDto.getName(), updatedRole, hash);
+
+        RoleDto actual = roleFacade.getRole(roleDto.getName());
+        var expected = createDto("1");
+        expected.setDescription("new role description");
+        assertRole(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateRoleWithIncorrectHash() {
+        RoleDto roleDto = createDto("1");
+        roleFacade.createRole(roleDto);
+        RoleDto updatedRole = createDto("1");
+        updatedRole.setDescription("new role description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> roleFacade.updateRole(roleDto.getName(), updatedRole, "test"));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRoleConcurrencyOverwrite() {
+        RoleDto roleDto = createDto("1");
+        roleFacade.createRole(roleDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> roleFacade.updateRole(roleDto.getName(), roleDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: roleName:'role1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        RoleDto roleDto = createDto("1");
+        roleFacade.createRole(roleDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> roleFacade.updateRole(roleDto.getName(), roleDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Role:role1.",
+                exception.getMessage());
+    }
+
 
     @ParameterizedTest
     @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
@@ -129,7 +186,7 @@ public abstract class RolesFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> roleFacade.updateRole(roleDto.getName(), updatedRole)
+                () -> roleFacade.updateRole(roleDto.getName(), updatedRole, "*")
         );
         Assertions.assertEquals("Role with name: 'role1' can not be renamed. New role name: 'role2'", exception.getMessage());
     }
@@ -152,7 +209,7 @@ public abstract class RolesFunctionalTest {
 
         // update role1: keys=[key2, key3]
         RoleDto updatedRoleDto = createDtoWithKeys("1", List.of("key2", "key3"));
-        roleFacade.updateRole(updatedRoleDto.getName(), updatedRoleDto);
+        roleFacade.updateRole(updatedRoleDto.getName(), updatedRoleDto, "*");
 
         // check role1: keys=[key2, key3]
         RoleDto actual = roleFacade.getRole(updatedRoleDto.getName());
@@ -248,7 +305,7 @@ public abstract class RolesFunctionalTest {
         LimitDto weekLimit = new LimitDto();
         weekLimit.setWeek(20L);
         RoleDto updatedRoleDto = createDtoWithLimits("1", Map.of("addon2", weekLimit, "addon3", weekLimit));
-        roleFacade.updateRole(updatedRoleDto.getName(), updatedRoleDto);
+        roleFacade.updateRole(updatedRoleDto.getName(), updatedRoleDto, "*");
 
         // check role1: limits=[addon2:week=20, addon3:week=20]
         RoleDto actual = roleFacade.getRole(updatedRoleDto.getName());
@@ -371,7 +428,7 @@ public abstract class RolesFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> roleFacade.updateRole("role1", roleDto)
+                () -> roleFacade.updateRole("role1", roleDto, "*")
         );
 
         Assertions.assertEquals("Role with name: 'role1' can not be renamed. New role name: 'role2'", exception.getMessage());

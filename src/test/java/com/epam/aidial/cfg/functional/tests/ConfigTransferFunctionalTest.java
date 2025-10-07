@@ -509,7 +509,7 @@ public abstract class ConfigTransferFunctionalTest {
         roleDto.setShare(Map.of(ResourceTypeDto.APPLICATION, shareResourceLimitDto));
         roleDto.setLimits(Map.of("model1", new LimitDto()));
 
-        roleFacade.updateRole("role1", roleDto);
+        roleFacade.updateRole("role1", roleDto, "*");
 
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
@@ -698,7 +698,7 @@ public abstract class ConfigTransferFunctionalTest {
         roleDto.setShare(Map.of(ResourceTypeDto.APPLICATION, shareResourceLimitDto));
         roleDto.setLimits(Map.of("model1", limitDto));
 
-        roleFacade.updateRole("role1", roleDto);
+        roleFacade.updateRole("role1", roleDto, "*");
 
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
