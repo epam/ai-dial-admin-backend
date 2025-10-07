@@ -5,3 +5,5 @@ alter table deployment_entity drop column max_accepted_users;
 alter table deployment_entity_aud drop column max_accepted_users;
 alter table deployment_entity drop column invitation_ttl;
 alter table deployment_entity_aud drop column invitation_ttl;
+
+delete from audit_activity_entity where resource_type = 'RoleShareResourceLimit';

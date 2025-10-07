@@ -5,3 +5,5 @@ alter table if exists deployment_entity drop column if exists max_accepted_users
 alter table if exists deployment_entity_aud drop column if exists max_accepted_users;
 alter table if exists deployment_entity drop column if exists invitation_ttl;
 alter table if exists deployment_entity_aud drop column if exists invitation_ttl;
+
+delete from audit_activity_entity where resource_type = 'RoleShareResourceLimit';
