@@ -507,7 +507,7 @@ public abstract class ConfigTransferFunctionalTest {
         shareResourceLimitDto.setInvitationTtl(120L);
         shareResourceLimitDto.setMaxAcceptedUsers(10);
         roleDto.setShare(Map.of(ResourceTypeDto.APPLICATION, shareResourceLimitDto));
-        roleDto.setLimits(Map.of("modelName", new LimitDto()));
+        roleDto.setLimits(Map.of("model1", new LimitDto()));
 
         roleFacade.updateRole("role1", roleDto);
 
