@@ -7,8 +7,6 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
@@ -97,9 +95,7 @@ public class ApplicationImporter extends DeploymentHolderImporter {
 
     private Application map(String appName, CoreApplication application) {
         application.setName(appName);
-        ShareResourceLimit shareResourceLimit = new ShareResourceLimit();
-        shareResourceLimit.setMaxAcceptedUsers(10);
-        return applicationCoreMapper.mapApplication(application, shareResourceLimit);
+        return applicationCoreMapper.mapApplication(application);
     }
 
     public List<ImportComponent<Application>> getActualImportedApplications(Collection<ImportComponent<Application>> applicationImportComponents,
@@ -109,14 +105,12 @@ public class ApplicationImporter extends DeploymentHolderImporter {
                 .stream()
                 .collect(Collectors.toMap(application -> application.getDeployment().getName(), Function.identity()));
 
-        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
-        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
 
         return applicationImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedApplicationsByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);

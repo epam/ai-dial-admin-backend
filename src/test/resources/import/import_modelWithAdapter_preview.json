@@ -24,12 +24,8 @@
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "endpoint": "http://endpoint2/testModel2/embeddings",
         "displayName": "Test Model2",
@@ -72,12 +68,8 @@
         "deployment": {
           "name": "testModel1",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "endpoint": "http://endpoint1/testModel1/embeddings",
         "displayName": "Test Model1",

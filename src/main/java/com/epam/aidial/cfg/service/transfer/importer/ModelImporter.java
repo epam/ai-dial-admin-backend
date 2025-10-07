@@ -9,8 +9,6 @@ import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
@@ -140,7 +138,7 @@ public class ModelImporter extends DeploymentHolderImporter {
         ModelSource source = new ModelEndpointsSource();
         ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
         if (modelEndpointComponents == null) {
-            return modelMapper.mapModel(model, source, new ShareResourceLimit());
+            return modelMapper.mapModel(model, source);
         }
 
         Adapter adapter = resolveAdapter(modelEndpointComponents);
@@ -148,7 +146,7 @@ public class ModelImporter extends DeploymentHolderImporter {
             source = new AdapterSource(adapter.getName(), modelEndpointComponents.completionEndpointPath());
         }
 
-        return modelMapper.mapModel(model, source, new ShareResourceLimit());
+        return modelMapper.mapModel(model, source);
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {
@@ -170,14 +168,12 @@ public class ModelImporter extends DeploymentHolderImporter {
                 .stream()
                 .collect(Collectors.toMap(model -> model.getDeployment().getName(), Function.identity()));
 
-        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
-        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
 
         return modelImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedModelsByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);

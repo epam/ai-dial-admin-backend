@@ -30,6 +30,7 @@ import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
+import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
@@ -47,6 +48,7 @@ import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.FullExportRequest;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
@@ -208,7 +210,6 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(modelDto.getDefaults())
                     .containsExactlyInAnyOrderEntriesOf(Map.of("max_tokens", 8000));
             Assertions.assertThat(modelDto.getFeatures()).isEqualTo(new FeaturesDto());
-            Assertions.assertThat(modelDto.getDefaultRoleShareResourceLimit()).isEqualTo(new ShareResourceLimitDto());
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
@@ -216,16 +217,8 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
         Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
-        Assertions.assertThat(applicationDto.getDefaultRoleShareResourceLimit()).satisfies(shareResourceLimitDto -> {
-            Assertions.assertThat(shareResourceLimitDto.getMaxAcceptedUsers()).isEqualTo(10);
-            Assertions.assertThat(shareResourceLimitDto.getInvitationTtl()).isEqualTo(259200L);
-        });
         ApplicationDto applicationDto2 = applicationFacade.getApplication("testApplication2");
         Assertions.assertThat(applicationDto2.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
-        Assertions.assertThat(applicationDto2.getDefaultRoleShareResourceLimit()).satisfies(shareResourceLimitDto -> {
-            Assertions.assertThat(shareResourceLimitDto.getMaxAcceptedUsers()).isEqualTo(10);
-            Assertions.assertThat(shareResourceLimitDto.getInvitationTtl()).isEqualTo(259200L);
-        });
 
         Collection<InterceptorDto> interceptors = interceptorFacade.getAllInterceptors();
         Assertions.assertThat(interceptors).isNotEmpty().hasSize(1).first().satisfies(i -> {
@@ -239,7 +232,7 @@ public abstract class ConfigTransferFunctionalTest {
         );
 
         Assertions.assertThat(roleFacade.getRole("testRole1").getShare()).hasSize(1).satisfies(share -> {
-            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            ShareResourceLimitDto shareResourceLimit = share.get(ResourceTypeDto.APPLICATION);
             Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
             Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
@@ -513,7 +506,7 @@ public abstract class ConfigTransferFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(120L);
         shareResourceLimitDto.setMaxAcceptedUsers(10);
-        roleDto.setShare(Map.of("model1", shareResourceLimitDto));
+        roleDto.setShare(Map.of(ResourceTypeDto.APPLICATION, shareResourceLimitDto));
         roleDto.setLimits(Map.of("model1", new LimitDto()));
 
         roleFacade.updateRole("role1", roleDto);
@@ -530,19 +523,17 @@ public abstract class ConfigTransferFunctionalTest {
                         Model model = models.get("model1");
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptor1");
                         Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
-                        Assertions.assertThat(model.getDeployment().getRoleShareResourceLimits()).isNull();
                         Assertions.assertThat(model.getSource()).isNull();
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptor1");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("role1");
             Assertions.assertThat(config.getRoles().get("role1").getLimits()).isNotEmpty().hasSize(1).first()
                     .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("model1"));
-            Assertions.assertThat(config.getRoles().get("role1").getShare()).isNotEmpty().hasSize(1).first()
+            Assertions.assertThat(config.getRoles().get("role1").getShare()).isNotEmpty().hasSize(1)
                     .satisfies(share -> {
-                        Assertions.assertThat(share.getDeploymentName()).isEqualTo("model1");
-                        Assertions.assertThat(share.getLimit()).isNotNull();
-                        Assertions.assertThat(share.getLimit().getMaxAcceptedUsers()).isEqualTo(10);
-                        Assertions.assertThat(share.getLimit().getInvitationTtl()).isEqualTo(120);
+                        Assertions.assertThat(share.get(ResourceType.APPLICATION)).isNotNull();
+                        Assertions.assertThat(share.get(ResourceType.APPLICATION).getMaxAcceptedUsers()).isEqualTo(10);
+                        Assertions.assertThat(share.get(ResourceType.APPLICATION).getInvitationTtl()).isEqualTo(120);
                     });
             Assertions.assertThat(config.getApplications()).isEmpty();
             Assertions.assertThat(config.getAdapters()).isEmpty();
@@ -704,7 +695,7 @@ public abstract class ConfigTransferFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(120L);
         shareResourceLimitDto.setMaxAcceptedUsers(10);
-        roleDto.setShare(Map.of("model1", shareResourceLimitDto));
+        roleDto.setShare(Map.of(ResourceTypeDto.APPLICATION, shareResourceLimitDto));
         roleDto.setLimits(Map.of("model1", limitDto));
 
         roleFacade.updateRole("role1", roleDto);
@@ -721,19 +712,17 @@ public abstract class ConfigTransferFunctionalTest {
                         Model model = models.get("model1");
                         Assertions.assertThat(model.getInterceptors()).containsExactlyInAnyOrder("interceptor1");
                         Assertions.assertThat(model.getDeployment().getRoleLimits()).isNull();
-                        Assertions.assertThat(model.getDeployment().getRoleShareResourceLimits()).isNull();
                         Assertions.assertThat(model.getSource()).isEqualTo(new AdapterSource("adapter1", "/chat/completions"));
                     });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("interceptor1");
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("role1");
             Assertions.assertThat(config.getRoles().get("role1").getLimits()).isNotEmpty().hasSize(1).first()
                     .satisfies(limit -> Assertions.assertThat(limit.getDeploymentName()).isEqualTo("model1"));
-            Assertions.assertThat(config.getRoles().get("role1").getShare()).isNotEmpty().hasSize(1).first()
+            Assertions.assertThat(config.getRoles().get("role1").getShare()).isNotEmpty().hasSize(1)
                     .satisfies(share -> {
-                        Assertions.assertThat(share.getDeploymentName()).isEqualTo("model1");
-                        Assertions.assertThat(share.getLimit()).isNotNull();
-                        Assertions.assertThat(share.getLimit().getMaxAcceptedUsers()).isEqualTo(10);
-                        Assertions.assertThat(share.getLimit().getInvitationTtl()).isEqualTo(120);
+                        Assertions.assertThat(share.get(ResourceType.APPLICATION)).isNotNull();
+                        Assertions.assertThat(share.get(ResourceType.APPLICATION).getMaxAcceptedUsers()).isEqualTo(10);
+                        Assertions.assertThat(share.get(ResourceType.APPLICATION).getInvitationTtl()).isEqualTo(120);
                     });
             Assertions.assertThat(config.getApplications()).isEmpty();
             Assertions.assertThat(config.getAdapters()).isNotEmpty().hasSize(1)
@@ -762,7 +751,6 @@ public abstract class ConfigTransferFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setMaxAcceptedUsers(10);
         routeDto.setRoleLimits(Map.of("role1", limitDto));
-        routeDto.setRoleShareResourceLimits(Map.of("role1", shareResourceLimitDto));
 
         roleFacade.createRole(roleDto);
         routeFacade.createRoute(routeDto);
@@ -773,7 +761,6 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(result).isNotNull().satisfies(config -> {
             Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("route1").satisfies(routes -> {
                         Assertions.assertThat(routes.get("route1").getDeployment().getRoleLimits()).isNull();
-                        Assertions.assertThat(routes.get("route1").getDeployment().getRoleShareResourceLimits()).isNull();
                     }
             );
             Assertions.assertThat(config.getRoles()).isNotEmpty().containsKey("role1");
@@ -950,7 +937,6 @@ public abstract class ConfigTransferFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setMaxAcceptedUsers(10);
         applicationDto.setRoleLimits(Map.of("role1", limitDto));
-        applicationDto.setRoleShareResourceLimits(Map.of("role1", shareResourceLimitDto));
         URI customAppSchemaId = new URI("https://test-schema-id.example");
         applicationDto.setCustomAppSchemaId(customAppSchemaId);
         var dto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
@@ -968,7 +954,6 @@ public abstract class ConfigTransferFunctionalTest {
                     .satisfies(apps -> {
                         Assertions.assertThat(apps.get("application1").getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
                         Assertions.assertThat(apps.get("application1").getDeployment().getRoleLimits()).isNull();
-                        Assertions.assertThat(apps.get("application1").getDeployment().getRoleShareResourceLimits()).isNull();
                     });
 
             Assertions.assertThat(config.getApplicationRunners()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
@@ -1087,18 +1072,18 @@ public abstract class ConfigTransferFunctionalTest {
         request.setAddSecrets(addSecrets);
         request.setExportFormat(ExportFormat.CORE);
         request.setComponents(List.of(new ExportConfigComponent(
-                testKey1Name,
-                ExportConfigComponentType.KEY,
-                Set.of(ExportConfigComponentType.APPLICATION,
-                        ExportConfigComponentType.MODEL,
-                        ExportConfigComponentType.ROUTE,
-                        ExportConfigComponentType.ROLE,
-                        ExportConfigComponentType.INTERCEPTOR,
-                        ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)),
+                        testKey1Name,
+                        ExportConfigComponentType.KEY,
+                        Set.of(ExportConfigComponentType.APPLICATION,
+                                ExportConfigComponentType.MODEL,
+                                ExportConfigComponentType.ROUTE,
+                                ExportConfigComponentType.ROLE,
+                                ExportConfigComponentType.INTERCEPTOR,
+                                ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)),
                 new ExportConfigComponent(
-                    "toolset1",
-                    ExportConfigComponentType.TOOL_SET,
-                    Set.of()
+                        "toolset1",
+                        ExportConfigComponentType.TOOL_SET,
+                        Set.of()
                 )
         ));
         // when
@@ -1226,7 +1211,7 @@ public abstract class ConfigTransferFunctionalTest {
     @Test
     void testImport_ImportModelWithAdapterConflictingByBaseEndpoint() throws IOException {
         // given
-        AdapterDto adapterDto1 =  createAdapterDto("1");
+        AdapterDto adapterDto1 = createAdapterDto("1");
         adapterDto1.setBaseEndpoint("http://endpoint1/");
         AdapterDto adapterDto2 = createAdapterDto("2");
         adapterDto2.setBaseEndpoint("http://endpoint1/");
@@ -1415,9 +1400,6 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(modelDto.getDefaultRoleLimit()).satisfies(limit -> {
                 Assertions.assertThat(limit.getDay()).isEqualTo(3);
             });
-            Assertions.assertThat(modelDto.getDefaultRoleShareResourceLimit()).satisfies(limit -> {
-                Assertions.assertThat(limit.getMaxAcceptedUsers()).isEqualTo(15);
-            });
         });
         Assertions.assertThat(models.get("testModel2"))
                 .satisfies(modelDto -> Assertions.assertThat(modelDto.getIsPublic()).isTrue());
@@ -1468,7 +1450,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         Assertions.assertThat(roleFacade.getRole("testRole3")).satisfies(role -> {
             Assertions.assertThat(role.getShare()).hasSize(1).satisfies(share -> {
-                ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+                ShareResourceLimitDto shareResourceLimit = share.get(ResourceTypeDto.APPLICATION);
                 Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
                 Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
             });
@@ -1561,7 +1543,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(appTypeSchemaRoute).isEqualTo(expectedRoute);
 
         Assertions.assertThat(roleFacade.getRole("testRole3").getShare()).hasSize(1).satisfies(share -> {
-            ShareResourceLimitDto shareResourceLimit = share.get("testModel1");
+            ShareResourceLimitDto shareResourceLimit = share.get(ResourceTypeDto.APPLICATION);
             Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
             Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
@@ -1958,7 +1940,8 @@ public abstract class ConfigTransferFunctionalTest {
         String schemaDtoJson = ResourceUtils.readResource("/filtering/app_type_schema_dto.json");
         ApplicationTypeSchemaDto schemaDto = jsonMapper.readValue(
                 schemaDtoJson,
-                new TypeReference<>() {}
+                new TypeReference<>() {
+                }
         );
 
         applicationTypeSchemaFacade.create(schemaDto);

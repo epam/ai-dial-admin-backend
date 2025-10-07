@@ -7,8 +7,6 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -139,7 +137,7 @@ public class ToolSetImporter extends DeploymentHolderImporter {
 
     private ToolSet map(String toolSetName, CoreToolSet toolSet) {
         toolSet.setName(toolSetName);
-        return toolSetCoreMapper.mapToolSet(toolSet, new ShareResourceLimit());
+        return toolSetCoreMapper.mapToolSet(toolSet);
     }
 
     private void validate(String toolSetName, ToolSet toolSet) {
@@ -162,14 +160,12 @@ public class ToolSetImporter extends DeploymentHolderImporter {
                 .stream()
                 .collect(Collectors.toMap(toolSet -> toolSet.getDeployment().getName(), Function.identity()));
 
-        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
-        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
 
         return toolSetImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedToolSetsByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);

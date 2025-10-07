@@ -6,8 +6,6 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -110,7 +108,7 @@ public class RouteImporter extends DeploymentHolderImporter {
 
     private Route map(String routeName, CoreRoute route) {
         route.setName(routeName);
-        return routeCoreMapper.mapRoute(route, new ShareResourceLimit());
+        return routeCoreMapper.mapRoute(route);
     }
 
     private void validate(String routeName, Route route) {
@@ -132,14 +130,12 @@ public class RouteImporter extends DeploymentHolderImporter {
                 .stream()
                 .collect(Collectors.toMap(route -> route.getDeployment().getName(), Function.identity()));
 
-        ImportedLimits importedLimits = getImportedLimits(roleImportComponents);
-        List<RoleLimit> importedRoleLimits = importedLimits.importedRoleLimits();
-        List<RoleShareResourceLimit> importedRoleShareResourceLimits = importedLimits.importedRoleShareResourceLimits();
+        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
 
         return routeImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedRoutesByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits, importedRoleShareResourceLimits);
+                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);
