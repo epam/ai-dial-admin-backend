@@ -42,7 +42,6 @@ import com.epam.aidial.cfg.web.facade.mapper.ResponseDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleBasedDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RoleLimitDtoMapperImpl;
-import com.epam.aidial.cfg.web.facade.mapper.RoleShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapperImpl;
@@ -82,7 +81,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         InterceptorDtoMapperImpl.class, ModelDtoMapperImpl.class, ApplicationDtoMapperImpl.class, ApplicationTypeSchemaDtoMapperImpl.class,
         AddonDtoMapperImpl.class, AssistantDtoMapperImpl.class, RouteDtoMapperImpl.class, RoleLimitDtoMapperImpl.class,
         LimitDtoMapperImpl.class, UpstreamDtoMapperImpl.class, RoleBasedDtoMapperImpl.class, ResponseDtoMapperImpl.class,
-        AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class, RoleShareResourceLimitDtoMapperImpl.class,
+        AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
         InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class, AttachmentPathDtoMapperImpl.class,
         ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class, ResourceAuthSettingsDtoMapperImpl.class, CostLimitDtoMapperImpl.class,
         ToolSetSourceDtoMapperImpl.class
@@ -358,8 +357,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 
         // when
         mockMvc.perform(post("/api/v1/configs/export/preview")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 // then
                 .andExpect(status().isOk())
                 .andExpect(content().json(expected, JsonCompareMode.LENIENT));

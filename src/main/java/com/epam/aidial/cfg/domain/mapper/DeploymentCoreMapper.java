@@ -5,10 +5,8 @@ import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.core.config.CoreSecuredResource;
 import com.epam.aidial.core.config.RoleBasedEntity;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,17 +29,16 @@ public abstract class DeploymentCoreMapper {
                 .collect(Collectors.toSet());
     }
 
-    public Deployment toDeployment(RoleBasedEntity roleBasedEntity, @Context ShareResourceLimit defaultShareResourceLimit) {
+    public Deployment toDeployment(RoleBasedEntity roleBasedEntity) {
         Deployment deployment = new Deployment(roleBasedEntity.getName());
         deployment.setIsPublic(roleBasedEntity.getUserRoles() == null);
         deployment.setDefaultRoleLimit(new Limit());
-        deployment.setDefaultRoleShareResourceLimit(defaultShareResourceLimit);
 
         return deployment;
     }
 
-    public SecuredResource toSecuredResource(CoreSecuredResource coreSecuredResource, @Context ShareResourceLimit defaultShareResourceLimit) {
-        Deployment deployment = toDeployment(coreSecuredResource, defaultShareResourceLimit);
+    public SecuredResource toSecuredResource(CoreSecuredResource coreSecuredResource) {
+        Deployment deployment = toDeployment(coreSecuredResource);
         ResourceAuthSettings authSettings = resourceAuthSettingsCoreMapper.toResourceAuthSettings(coreSecuredResource.getAuthSettings());
         return new SecuredResource(deployment, authSettings);
     }

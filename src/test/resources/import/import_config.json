@@ -71,7 +71,7 @@
         "testAssistant1": {}
       },
       "share": {
-        "testModel1": {
+        "APPLICATION": {
           "maxAcceptedUsers": 10,
           "invitationTtl": 120
         }

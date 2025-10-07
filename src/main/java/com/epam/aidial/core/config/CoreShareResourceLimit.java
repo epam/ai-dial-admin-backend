@@ -12,9 +12,9 @@ import lombok.Data;
 public class CoreShareResourceLimit {
 
     @JsonAlias({"maxAcceptedUsers", "max_accepted_users"})
-    int maxAcceptedUsers;
+    Integer maxAcceptedUsers;
     @JsonAlias({"invitationTtl", "invitation_ttl"})
-    long invitationTtl;
+    Long invitationTtl;
 
     public CoreShareResourceLimit() {
 

@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
 import lombok.RequiredArgsConstructor;
@@ -41,14 +40,12 @@ public class RouteFacade {
     }
 
     public void createRoute(RouteDto routeDto) {
-        setDefaultRoleShareResourceLimitIfMissing(routeDto);
         Optional.of(routeDto)
                 .map(mapper::toDomain)
                 .ifPresent(routeService::create);
     }
 
     public String updateRoute(String routeName, RouteDto routeDto, String hash) {
-        setDefaultRoleShareResourceLimitIfMissing(routeDto);
         Route value = mapper.toDomain(routeDto);
         return routeService.update(routeName, value, hash);
     }
@@ -67,13 +64,5 @@ public class RouteFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(RouteDto routeDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = routeDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            routeDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }

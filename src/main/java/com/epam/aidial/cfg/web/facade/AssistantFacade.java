@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.domain.service.AssistantService;
 import com.epam.aidial.cfg.dto.AssistantDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.mapper.AssistantDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,6 @@ public class AssistantFacade {
     }
 
     public void createAssistant(AssistantDto assistantDto) {
-        setDefaultRoleShareResourceLimitIfMissing(assistantDto);
         Optional.of(assistantDto)
                 .map(mapper::toDomain)
                 .ifPresent(assistantService::createAssistant);
@@ -59,13 +57,5 @@ public class AssistantFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(AssistantDto assistantDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = assistantDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            assistantDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }

@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
@@ -394,7 +395,7 @@ public abstract class RolesFunctionalTest {
                 "1",
                 List.of("key1", "key2"),
                 Map.of("addon1", dayLimit, "addon2", dayLimit),
-                Map.of("addon1", shareResourceLimit, "addon3", shareResourceLimit)
+                Map.of(ResourceTypeDto.APPLICATION, shareResourceLimit, ResourceTypeDto.FILE, shareResourceLimit)
         );
         roleFacade.createRole(roleDto);
 
@@ -490,7 +491,7 @@ public abstract class RolesFunctionalTest {
     private RoleDto createDtoWithKeysAndLimits(String suffix,
                                                List<String> keys,
                                                Map<String, LimitDto> limits,
-                                               Map<String, ShareResourceLimitDto> shareResourceLimits) {
+                                               Map<ResourceTypeDto, ShareResourceLimitDto> shareResourceLimits) {
         RoleDto roleDto = new RoleDto();
         roleDto.setName("role" + suffix);
         roleDto.setDisplayName("displayName" + suffix);

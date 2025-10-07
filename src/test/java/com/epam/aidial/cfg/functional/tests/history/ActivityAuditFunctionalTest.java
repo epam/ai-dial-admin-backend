@@ -75,8 +75,6 @@ public abstract class ActivityAuditFunctionalTest {
         // assert model creation
         prevTotal = assertAudit(prevTotal, List.of(
                 new AuditActivityEntityId("Update", "Role", "roleActivityAudit1"),
-                new AuditActivityEntityId("Create", "RoleShareResourceLimit",
-                        "RoleShareResourceLimitId(deploymentName=modelActivityAudit1, roleName=roleActivityAudit1)"),
                 new AuditActivityEntityId("Create", "Model", "modelActivityAudit1")));
 
         // update model1 description
@@ -129,11 +127,8 @@ public abstract class ActivityAuditFunctionalTest {
         modelFacade.deleteModel(modelDto.getName());
 
         assertAudit(prevTotal, List.of(
-                new AuditActivityEntityId("Update", "Role", "roleActivityAudit1"),
-                new AuditActivityEntityId("Delete", "RoleShareResourceLimit",
-                        "RoleShareResourceLimitId(deploymentName=modelActivityAudit1, roleName=roleActivityAudit1)"),
                 new AuditActivityEntityId("Delete", "Model", "modelActivityAudit1")
-               ));
+        ));
     }
 
     private long assertAudit(long prevTotal, List<AuditActivityEntityId> expected) {

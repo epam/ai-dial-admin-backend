@@ -52,16 +52,13 @@ public abstract class AssistantHistoryFunctionalTest {
         var expected = createAssistantDto("1");
         expected.setDescription("new assistant description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setDefaults(Map.of());
         assertAssistant(actual, expected);
 
         // 3 add roles to assistant1
         updatedAssistant.setDefaultRoleLimit(new LimitDto());
-        updatedAssistant.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedAssistant.setDefaults(Map.of());
         updatedAssistant.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedAssistant.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
         actual = assistantFacade.getAssistant(assistantDto.getName());
         assertAssistant(actual, updatedAssistant);
@@ -72,7 +69,6 @@ public abstract class AssistantHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedAssistant.setRoleLimits(Map.of("role3", limitDto));
-        updatedAssistant.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
         var actualAtRevision7 = assistantFacade.getAssistant(assistantDto.getName());
         assertAssistant(actualAtRevision7, updatedAssistant);
@@ -83,7 +79,6 @@ public abstract class AssistantHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = assistantFacade.getAssistant(assistantDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete assistant 1
         assistantFacade.deleteAssistant(assistantDto.getName());
