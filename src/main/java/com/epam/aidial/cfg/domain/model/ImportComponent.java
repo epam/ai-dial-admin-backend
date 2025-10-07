@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor// for tests
 public class ImportComponent<T> {
     private ImportAction importAction;
-    private T value;
+    private T prev;
+    private T next;
 }

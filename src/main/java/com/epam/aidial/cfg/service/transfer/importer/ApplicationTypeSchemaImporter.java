@@ -14,7 +14,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
@@ -31,66 +34,79 @@ public class ApplicationTypeSchemaImporter {
     private final ApplicationTypeSchemaCoreMapper mapper;
 
     public Collection<ImportComponent<ApplicationTypeSchema>> importSchemas(Map<String, String> schemas,
-                                                                            ConflictResolutionPolicy resolutionPolicy,
-                                                                            boolean isPreview) {
+                                                                            ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(schemas)) {
             Map<String, ApplicationTypeSchema> applicationTypeSchemas = schemas.entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getValue())));
-            return importAdminSchemas(applicationTypeSchemas, resolutionPolicy, isPreview);
+            return importAdminSchemas(applicationTypeSchemas, resolutionPolicy);
         }
         return Collections.emptyList();
     }
 
     public Collection<ImportComponent<ApplicationTypeSchema>> importAdminSchemas(Map<String, ApplicationTypeSchema> schemas,
-                                                                                 ConflictResolutionPolicy resolutionPolicy,
-                                                                                 boolean isPreview) {
+                                                                                 ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(schemas)) {
             return schemas.entrySet().stream()
                     .map((schemaEntry) -> {
                         var schema = schemaEntry.getValue();
-                        var importAction = process(schemaEntry.getKey(), schema, resolutionPolicy, isPreview);
-                        return new ImportComponent<>(importAction, schema);
+                        return process(schemaEntry.getKey(), schema, resolutionPolicy);
                     })
                     .toList();
         }
         return Collections.emptyList();
     }
 
-    private ImportAction process(String schemaId,
-                                 ApplicationTypeSchema schema,
-                                 ConflictResolutionPolicy resolutionPolicy,
-                                 boolean isPreview) {
-        if (service.exists(schemaId)) {
-            return handleExisting(schema, resolutionPolicy, schemaId, isPreview);
+    private ImportComponent<ApplicationTypeSchema> process(String schemaId,
+                                                           ApplicationTypeSchema schema,
+                                                           ConflictResolutionPolicy resolutionPolicy) {
+        Optional<ApplicationTypeSchema> existingApplicationTypeSchema = service.tryGet(schemaId);
+        if (existingApplicationTypeSchema.isPresent()) {
+            ImportAction importAction = handleExisting(schema, resolutionPolicy, schemaId);
+            return new ImportComponent<>(importAction, existingApplicationTypeSchema.get(), schema);
         } else {
-            return create(schema, isPreview);
-        }
-    }
-
-    private ImportAction handleExisting(ApplicationTypeSchema newSchema, ConflictResolutionPolicy resolutionPolicy, String schemaId, boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing applicationTypeSchema will remain unchanged.
-                return SKIP;
-            }
-            case OVERRIDE -> {
-                if (!isPreview) {
-                    service.update(schemaId, newSchema);
-                }
-                return UPDATE;
-            }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
-    }
-
-    private ImportAction create(ApplicationTypeSchema schema, boolean isPreview) {
-        if (!isPreview) {
             service.create(schema);
+            return new ImportComponent<>(CREATE, null, schema);
         }
-        return CREATE;
+    }
+
+    private ImportAction handleExisting(ApplicationTypeSchema newSchema, ConflictResolutionPolicy resolutionPolicy, String schemaId) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing applicationTypeSchema will remain unchanged.
+            case OVERRIDE -> {
+                service.update(schemaId, newSchema);
+                yield UPDATE;
+            }
+        };
     }
 
     private ApplicationTypeSchema map(String schema) {
         return mapper.mapToSchema(schema);
+    }
+
+    public List<ImportComponent<ApplicationTypeSchema>> getActualImportedApplicationTypeSchemas(Collection<ImportComponent<ApplicationTypeSchema>> importComponents) {
+        List<String> ids = importComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(ApplicationTypeSchema::getSchemaId)
+                .toList();
+        Map<String, ApplicationTypeSchema> importedApplicationTypeSchemasByIds = service.getAllByIds(ids)
+                .stream()
+                .collect(Collectors.toMap(ApplicationTypeSchema::getSchemaId, Function.identity()));
+
+        return importComponents.stream()
+                .map(importComponent -> {
+                    var next = importedApplicationTypeSchemasByIds.get(importComponent.getNext().getSchemaId());
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(ApplicationTypeSchema applicationTypeSchema) {
+        if (applicationTypeSchema != null) {
+            applicationTypeSchema.setCreatedAt(null);
+            applicationTypeSchema.setUpdatedAt(null);
+        }
     }
 }

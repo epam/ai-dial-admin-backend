@@ -46,11 +46,23 @@ public class AdapterService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<Adapter> getAllByNames(List<String> names) {
+        return StreamSupport.stream(adapterJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Adapter get(String adapterName) {
+        return tryGet(adapterName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(adapterName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Adapter> tryGet(String adapterName) {
         return Optional.ofNullable(adapterName)
                 .flatMap(adapterJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(adapterName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional(readOnly = true)
