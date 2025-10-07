@@ -44,6 +44,8 @@ class KeyValidatorTest {
         when(transactionTimestampContext.getTimestamp()).thenReturn(2L);
 
         Key key = new Key();
+        key.setName("key_name");
+        key.setProject("project");
         key.setExpiresAt(expiresAt);
 
         assertThatThrownBy(() -> keyValidator.validateCreation(key))
@@ -57,6 +59,8 @@ class KeyValidatorTest {
         when(transactionTimestampContext.getTimestamp()).thenReturn(2L);
 
         Key key = new Key();
+        key.setName("key_name");
+        key.setProject("project");
         key.setExpiresAt(expiresAt);
 
         assertThatNoException().isThrownBy(() -> keyValidator.validateCreation(key));
@@ -77,6 +81,7 @@ class KeyValidatorTest {
     void validateUpdate_shouldThrowExceptionWhenExpiresAtIsNotGreaterThanKeyCreatedAt(long expiresAt) {
         Key key = new Key();
         key.setName("key_name");
+        key.setProject("project");
         key.setExpiresAt(expiresAt);
 
         KeyEntity keyEntity = new KeyEntity();
@@ -92,6 +97,7 @@ class KeyValidatorTest {
     void validateUpdate_shouldDoNothingWhenKeyNameIsNotUpdatedAndExpiresAtIsGreaterThanKeyCreatedAtOrNull(Long expiresAt) {
         Key key = new Key();
         key.setName("key_name");
+        key.setProject("project");
         key.setExpiresAt(expiresAt);
 
         KeyEntity keyEntity = new KeyEntity();
@@ -109,6 +115,7 @@ class KeyValidatorTest {
 
         Key key = new Key();
         key.setName(name);
+        key.setProject("project");
         key.setExpiresAt(3L);
 
         // when/then
@@ -144,6 +151,36 @@ class KeyValidatorTest {
         // when/then
         Assertions.assertThatThrownBy(() -> keyValidator.validateCreation(key))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
+    void validateCreation_shouldThrowExceptionWhenProjectIsBlank(String project) {
+        // given
+        Key key = new Key();
+        key.setName("key_name");
+        key.setProject(project);
+
+        // when/then
+        assertThatThrownBy(() -> keyValidator.validateCreation(key))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid project: '" + project + "'");
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
+    void validateUpdate_shouldThrowExceptionWhenProjectIsBlank(String project) {
+        // given
+        Key key = new Key();
+        key.setName("key_name");
+        key.setProject(project);
+
+        KeyEntity keyEntity = new KeyEntity();
+
+        // when/then
+        assertThatThrownBy(() -> keyValidator.validateUpdate("key_name", key, keyEntity))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid project: '" + project + "'");
     }
 
 }
