@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -123,6 +124,32 @@ class KeyControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
+    void testCreateKey_withoutProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_without_project.json");
+
+        mockMvc.perform(post("/api/v1/keys")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
+    }
+
+    @Test
+    void testCreateKey_withEmptyProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_with_empty_project.json");
+
+        mockMvc.perform(post("/api/v1/keys")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
+    }
+
+    @Test
     void testUpdateKey() throws Exception {
 
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
@@ -168,6 +195,32 @@ class KeyControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
                         .value("Required request header 'If-Match' for method parameter type String is not present"));
+    }
+
+    @Test
+    void testUpdateKey_withoutProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_without_project.json");
+
+        mockMvc.perform(put(KEY_API_PATH, TEST_KEY_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
+    }
+
+    @Test
+    void testUpdateKey_withEmptyProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_with_empty_project.json");
+
+        mockMvc.perform(put(KEY_API_PATH, TEST_KEY_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
     }
 
     @Test
