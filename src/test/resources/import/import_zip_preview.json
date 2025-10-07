@@ -2,10 +2,23 @@
   "roles": [
     {
       "importAction": "update",
-      "value": {
+      "prev": {
         "name": "default",
+        "displayName": "default",
         "limits": [],
-        "share": [],
+        "keys": [],
+        "costLimit": {
+          "minute": "9223372036854775807",
+          "day": "9223372036854775807",
+          "week": "9223372036854775807",
+          "month": "9223372036854775807"
+        }
+      },
+      "next": {
+        "name": "default",
+        "displayName": "default",
+        "limits": [],
+        "keys": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -16,8 +29,9 @@
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testRole3",
+        "displayName": "testRole3",
         "limits": [
           {
             "role": "testRole3",
@@ -50,16 +64,13 @@
             "limit": {}
           }
         ],
-        "share": [
-          {
-            "role": "testRole3",
-            "deploymentName": "testModel1",
-            "limit": {
-              "maxAcceptedUsers": 10,
-              "invitationTtl": 120
-            }
+        "keys": [],
+        "share": {
+          "APPLICATION": {
+            "maxAcceptedUsers": 10,
+            "invitationTtl": 120
           }
-        ],
+        },
         "costLimit": {
           "minute": "111.222333444",
           "day": "222",
@@ -70,8 +81,9 @@
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testRole2",
+        "displayName": "testRole2",
         "limits": [
           {
             "role": "testRole2",
@@ -104,7 +116,7 @@
             "limit": {}
           }
         ],
-        "share": [],
+        "keys": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -115,8 +127,9 @@
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testRole1",
+        "displayName": "testRole1",
         "limits": [
           {
             "role": "testRole1",
@@ -151,7 +164,10 @@
             "limit": {}
           }
         ],
-        "share": [],
+        "keys": [
+          "testKey2",
+          "testKey1"
+        ],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -164,72 +180,41 @@
   "keys": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testKey2",
+        "displayName": "testKey2",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
         "roles": [
           "testRole1"
-        ],
-        "createdAt": 1746705584619,
-        "keyGeneratedAt": 1746705584619
+        ]
       }
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testKey1",
+        "displayName": "testKey1",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
         "roles": [
           "testRole1"
-        ],
-        "createdAt": 1746705584619,
-        "keyGeneratedAt": 1746705584619
+        ]
       }
     }
   ],
   "interceptors": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
+        "displayName": "Test Interceptor1",
         "forwardAuthToken": false,
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
-        "dependencies": [],
-        "features": {
-          "systemPromptSupported": true,
-          "toolsSupported": false,
-          "seedSupported": false,
-          "urlAttachmentsSupported": false,
-          "folderAttachmentsSupported": false,
-          "allowResume": false,
-          "accessibleByPerRequestKey": true,
-          "contentPartsSupported": false,
-          "temperatureSupported": true,
-          "addonsSupported": false,
-          "cacheSupported": false,
-          "autoCachingSupported": true,
-          "consentRequired": false,
-          "parallelToolCallsSupported": true
-        }
-      }
-    },
-    {
-      "importAction": "create",
-      "value": {
-        "name": "testInterceptor2",
-        "displayName": "Test Interceptor2",
-        "forwardAuthToken": false,
-        "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": [],
         "features": {
           "systemPromptSupported": true,
@@ -247,6 +232,42 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
+        "defaults": {},
+        "entities": [
+          "testApplication1",
+          "testModel1"
+        ],
+        "source": {
+          "$type": "endpoints"
+        }
+      }
+    },
+    {
+      "importAction": "create",
+      "next": {
+        "name": "testInterceptor2",
+        "displayName": "Test Interceptor2",
+        "forwardAuthToken": false,
+        "author": "test-author",
+        "dependencies": [],
+        "features": {
+          "systemPromptSupported": true,
+          "toolsSupported": false,
+          "seedSupported": false,
+          "urlAttachmentsSupported": false,
+          "folderAttachmentsSupported": false,
+          "allowResume": false,
+          "accessibleByPerRequestKey": true,
+          "contentPartsSupported": false,
+          "temperatureSupported": true,
+          "addonsSupported": false,
+          "cacheSupported": false,
+          "autoCachingSupported": true,
+          "consentRequired": false,
+          "parallelToolCallsSupported": true
+        },
+        "defaults": {},
+        "entities": [],
         "source": {
           "$type": "runner",
           "runnerName": "testRunner1"
@@ -257,17 +278,21 @@
   "interceptorRunners": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "testRunner1",
+        "displayName": "testRunner1",
         "completionEndpoint": "https://template.test.com/api",
-        "configurationEndpoint": "https://template.test.com/conf"
+        "configurationEndpoint": "https://template.test.com/conf",
+        "interceptors": [
+          "testInterceptor2"
+        ]
       }
     }
   ],
   "applicationRunners": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "schemaId": "https://test-schema-id.example",
         "schema": "https://dial.epam.com/application_type_schemas/schema#",
         "applicationTypeEditorUrl": "https://test.com/billings",
@@ -279,7 +304,7 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
-        "defs": {},
+        "$defs": {},
         "properties": {},
         "required": [],
         "applicationTypeRoutes": [
@@ -329,6 +354,9 @@
               ]
             }
           }
+        ],
+        "applications": [
+          "testApplication1"
         ]
       }
     }
@@ -336,7 +364,7 @@
   "routes": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "test_route1",
           "roleLimits": [
@@ -359,10 +387,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "response": {
           "status": 200,
@@ -381,41 +407,46 @@
           {
             "endpoint": "http://upstream1.example.com",
             "key": "upstream-key-1",
-            "extraData": "{\"custom\":\"data1\"}",
+            "extraData": {
+              "custom": "data1"
+            },
             "weight": 1,
             "tier": 0
           },
           {
             "endpoint": "http://upstream2.example.com",
             "key": "upstream-key-2",
-            "extraData": "{\"custom\":\"data2\"}",
+            "extraData": {
+              "custom": "data2"
+            },
             "weight": 2,
             "tier": 1
           }
         ],
-        "maxRetryAttempts": 3
+        "maxRetryAttempts": 3,
+        "order": 2147483647,
+        "displayName": "route1"
       }
     }
   ],
   "adapters": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "name": "adapter1",
+        "displayName": "adapter1",
         "baseEndpoint": "http://endpoint1/",
         "description": "test adapter",
-        "models": [],
-        "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
-        "dependencies": []
+        "models": [
+          "testModel1"
+        ]
       }
     }
   ],
   "models": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel2",
           "roleLimits": [
@@ -438,10 +469,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": true,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
@@ -468,16 +497,17 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"],
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
-        "endpoint": "https://endpoint2/embeddings"
+        "endpoint": "https://endpoint2/embeddings",
+        "source": {
+          "$type": "endpoints"
+        }
       }
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel1",
           "roleLimits": [
@@ -502,22 +532,9 @@
               }
             }
           ],
-          "roleShareResourceLimits": [
-            {
-              "role": "testRole3",
-              "deploymentName": "testModel1",
-              "limit": {
-                "maxAcceptedUsers": 10,
-                "invitationTtl": 120
-              }
-            }
-          ],
           "isPublic": false,
           "defaultRoleLimit": {
             "day": 3
-          },
-          "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": 15
           }
         },
         "source": {
@@ -553,8 +570,6 @@
         "type": "embedding",
         "upstreams": [],
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
         "dependencies": ["dep1", "dep2"],
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"]
       }
@@ -563,7 +578,7 @@
   "applications": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testApplication1",
           "roleLimits": [
@@ -586,10 +601,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
@@ -621,14 +634,13 @@
         "applicationProperties": {},
         "applicationTypeSchemaId": "https://test-schema-id.example",
         "author": "test-author",
-        "createdAt": 12345,
-        "updatedAt": 12345,
-        "dependencies": ["dep1", "dep2"]
+        "dependencies": ["dep1", "dep2"],
+        "routes": []
       }
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testApplication2",
           "roleLimits": [
@@ -651,10 +663,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
         "displayName": "Test Application2",

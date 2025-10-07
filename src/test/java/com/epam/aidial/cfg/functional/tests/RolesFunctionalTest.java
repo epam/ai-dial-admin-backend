@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -23,6 +24,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAddonDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+
 public abstract class RolesFunctionalTest {
 
     @Autowired
@@ -39,35 +44,15 @@ public abstract class RolesFunctionalTest {
     }
 
     private void initKeys() {
-        KeyDto key1 = keyDto("1");
-        KeyDto key2 = keyDto("2");
-        KeyDto key3 = keyDto("3");
-        keyFacade.createKey(key1);
-        keyFacade.createKey(key2);
-        keyFacade.createKey(key3);
-    }
-
-    private KeyDto keyDto(String suffix) {
-        KeyDto keyDto = new KeyDto();
-        keyDto.setName("key" + suffix);
-        keyDto.setKey("keyValue" + suffix);
-        keyDto.setDescription("key" + suffix);
-        return keyDto;
+        keyFacade.createKey(createKeyDto("1"));
+        keyFacade.createKey(createKeyDto("2"));
+        keyFacade.createKey(createKeyDto("3"));
     }
 
     private void initAddons() {
-        AddonDto addonDto1 = addonDto("1");
-        AddonDto addonDto2 = addonDto("2");
-        AddonDto addonDto3 = addonDto("3");
-        addonFacade.createAddon(addonDto1);
-        addonFacade.createAddon(addonDto2);
-        addonFacade.createAddon(addonDto3);
-    }
-
-    private AddonDto addonDto(String suffix) {
-        AddonDto addonDto = new AddonDto();
-        addonDto.setName("addon" + suffix);
-        return addonDto;
+        addonFacade.createAddon(createAddonDto("1"));
+        addonFacade.createAddon(createAddonDto("2"));
+        addonFacade.createAddon(createAddonDto("3"));
     }
 
     @Test
@@ -82,7 +67,7 @@ public abstract class RolesFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndGetRoles() {
-        RoleDto roleDto = createDto("1");
+        RoleDto roleDto = createRoleDto("1");
 
         roleFacade.createRole(roleDto);
 
@@ -90,7 +75,7 @@ public abstract class RolesFunctionalTest {
 
         assertRole(actual, expectedDto1());
 
-        roleFacade.createRole(createDto("2"));
+        roleFacade.createRole(createRoleDto("2"));
 
         Collection<RoleDto> actualRoles = roleFacade.getAllRoles();
 
@@ -353,7 +338,7 @@ public abstract class RolesFunctionalTest {
                 "1",
                 List.of("key1", "key2"),
                 Map.of("addon1", dayLimit, "addon2", dayLimit),
-                Map.of("addon1", shareResourceLimit, "addon3", shareResourceLimit)
+                Map.of(ResourceTypeDto.APPLICATION, shareResourceLimit, ResourceTypeDto.FILE, shareResourceLimit)
         );
         roleFacade.createRole(roleDto);
 
@@ -414,17 +399,17 @@ public abstract class RolesFunctionalTest {
     private RoleDto expectedDto1() {
         RoleDto roleDto = new RoleDto();
         roleDto.setName("role1");
-        roleDto.setDescription("description1");
+        roleDto.setDescription("role1");
         return roleDto;
     }
 
     private Collection<RoleDto> expectedDtos() {
         RoleDto roleDto1 = new RoleDto();
         roleDto1.setName("role1");
-        roleDto1.setDescription("description1");
+        roleDto1.setDescription("role1");
         RoleDto roleDto2 = new RoleDto();
         roleDto2.setName("role2");
-        roleDto2.setDescription("description2");
+        roleDto2.setDescription("role2");
         RoleDto defaultRole = new RoleDto();
         defaultRole.setName("default");
         return List.of(roleDto1, roleDto2, defaultRole);
@@ -449,7 +434,7 @@ public abstract class RolesFunctionalTest {
     private RoleDto createDtoWithKeysAndLimits(String suffix,
                                                List<String> keys,
                                                Map<String, LimitDto> limits,
-                                               Map<String, ShareResourceLimitDto> shareResourceLimits) {
+                                               Map<ResourceTypeDto, ShareResourceLimitDto> shareResourceLimits) {
         RoleDto roleDto = new RoleDto();
         roleDto.setName("role" + suffix);
         roleDto.setDisplayName("displayName" + suffix);

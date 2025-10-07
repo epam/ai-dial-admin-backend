@@ -15,6 +15,7 @@ public class RoleDto {
     @NotBlank(message = "Name is required")
     private String name;
     private String description;
+    @NotBlank(message = "DisplayName is required")
     private String displayName;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;
@@ -23,7 +24,7 @@ public class RoleDto {
     @Valid
     private Map<@NotBlank(message = "Deployment name is required") String, @Valid LimitDto> limits;
     @Valid
-    private Map<@NotBlank(message = "Deployment name is required") String, @Valid ShareResourceLimitDto> share;
+    private Map<@NotBlank(message = "Resource type is required") ResourceTypeDto, @Valid ShareResourceLimitDto> share;
 
     private List<String> grantedKeys;
     private CostLimitDto costLimit = new CostLimitDto();

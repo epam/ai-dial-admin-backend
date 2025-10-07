@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.prompt;
 import com.epam.aidial.cfg.client.PromptClient;
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.dto.PromptMetadataDto;
+import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
@@ -29,6 +30,7 @@ import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.client.mapper.PromptClientMapper.PROMPTS_PREFIX;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
+import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 
 @Slf4j
 @Service
@@ -41,6 +43,7 @@ public class PromptService implements ResourceService {
     private final PromptClientMapper promptClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
+    private final FolderMapper folderMapper;
 
     private final int promptsMetadataDefaultLimit;
 
@@ -48,11 +51,13 @@ public class PromptService implements ResourceService {
                          PromptClientMapper promptClientMapper,
                          ResourceClient resourceClient,
                          ResourceClientMapper resourceClientMapper,
+                         FolderMapper folderMapper,
                          @Value("${core.prompts.metadata.default.limit}") int promptsMetadataDefaultLimit) {
         this.promptClient = promptClient;
         this.promptClientMapper = promptClientMapper;
         this.resourceClient = resourceClient;
         this.resourceClientMapper = resourceClientMapper;
+        this.folderMapper = folderMapper;
         this.promptsMetadataDefaultLimit = promptsMetadataDefaultLimit;
     }
 
@@ -65,7 +70,7 @@ public class PromptService implements ResourceService {
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         try {
             var promptsMetadataResponse = getMetadata(request);
-            return promptClientMapper.toFolderInfo(promptsMetadataResponse, PROMPTS_PREFIX);
+            return folderMapper.toFolderInfo(promptsMetadataResponse, PROMPTS_PREFIX);
         } catch (ResourceNotFoundException notFound) {
             return null;
         }
@@ -98,7 +103,8 @@ public class PromptService implements ResourceService {
 
     public Prompt createPrompt(CreatePrompt createPrompt, boolean allowOverride, String etag) {
         var promptDto = promptClientMapper.toPromptDto(createPrompt);
-        var path = promptClientMapper.toPath(createPrompt);
+        var path = buildPath(createPrompt.getFolderId(), createPrompt.getName(),
+                createPrompt.getVersion());
         var headers = createHeadersForCreate(allowOverride, etag);
         var promptMetadata = promptClient.createPrompt(path, promptDto, headers);
         return promptClientMapper.toPrompt(promptDto, promptMetadata);

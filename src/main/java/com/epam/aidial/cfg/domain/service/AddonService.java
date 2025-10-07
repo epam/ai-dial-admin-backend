@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -39,6 +40,13 @@ public class AddonService {
     @Transactional(readOnly = true)
     public Collection<Addon> getAllAddons() {
         return StreamSupport.stream(addonJpaRepository.findAll().spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Addon> getAllByNames(List<String> names) {
+        return StreamSupport.stream(addonJpaRepository.findAllById(names).spliterator(), false)
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

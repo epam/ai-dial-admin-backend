@@ -19,7 +19,7 @@ import java.util.Map;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         RoleLimitMapperImpl.class,
-        RoleShareResourceLimitMapperImpl.class,
+        ShareResourceLimitCoreMapperImpl.class,
         RoleCoreMapperImpl.class,
         CostLimitCoreMapperImpl.class
 })
@@ -47,13 +47,12 @@ class RoleCoreMapperTest {
         deployment.setDefaultRoleLimit(new Limit());
         deployment.setRoleLimits(List.of(roleLimit));
 
-        CoreLimit expectedLimit = new CoreLimit();
-        expectedLimit.setDay(10);
+        CoreLimit expectedLimit = CoreLimit.empty();
+        expectedLimit.setDay(10L);
 
         CoreRole expected = new CoreRole();
         expected.setName("testRole");
         expected.setLimits(Map.of("testModel", expectedLimit));
-        expected.setShare(Map.of());
 
         // when
         CoreRole result = mapper.mapRole(role, List.of(deployment));

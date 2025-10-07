@@ -14,7 +14,6 @@ public enum ActivityResourceType {
     Model,
     Role,
     RoleLimit,
-    RoleShareResourceLimit,
     Route,
     SecuredResource,
     Tokenizer,

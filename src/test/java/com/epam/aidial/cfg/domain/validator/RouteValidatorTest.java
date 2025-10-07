@@ -24,12 +24,13 @@ class RouteValidatorTest {
 
     @Mock
     private DeploymentValidator deploymentValidator;
-
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
     private RouteValidator routeValidator;
 
     @BeforeEach
     void setUp() {
-        routeValidator = new RouteValidator(deploymentValidator, null);
+        routeValidator = new RouteValidator(deploymentValidator, displayFieldsValidator, null);
     }
 
     @Test

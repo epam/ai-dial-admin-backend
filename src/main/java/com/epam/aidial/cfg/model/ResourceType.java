@@ -5,4 +5,5 @@ public enum ResourceType {
     FILE,
     APPLICATION,
     CONVERSATION,
+    TOOL_SET
 }

@@ -3,24 +3,17 @@ package com.epam.aidial.cfg.client.mapper;
 import com.epam.aidial.cfg.client.dto.FileMetadataDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.FileNodeInfo;
-import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.NodeType;
 import lombok.Builder;
 import lombok.Data;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.extractFolderId;
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.extractPath;
 
-@Mapper(componentModel = "spring", uses = FolderUrlMapper.class)
+@Mapper(componentModel = "spring")
 public interface FileClientMapper {
 
     String FILES_PREFIX = "files/";
@@ -88,20 +81,6 @@ public interface FileClientMapper {
         private String path;
         private String folderId;
         private String name;
-    }
-
-    @Mapping(target = "path", source = "url", qualifiedByName = "mapUrl")
-    @Mapping(target = "items", source = "items", qualifiedByName = "mapItems")
-    FolderInfo toFolderInfo(FileMetadataDto fileMetadataDto, @Context String prefix);
-
-    @Named("mapItems")
-    default List<FolderInfo> mapItems(List<FileMetadataDto> items) {
-        return Optional.ofNullable(items)
-                .orElse(Collections.emptyList())
-                .stream()
-                .filter(metadata -> Objects.equals(NodeTypeDto.FOLDER, metadata.getNodeType()))
-                .map(metadata -> toFolderInfo(metadata, FILES_PREFIX))
-                .toList();
     }
 
 }

@@ -8,15 +8,7 @@ import org.springframework.stereotype.Component;
 public class ModelNormalizer {
 
     public void normalize(Model model) {
-        setDisplayNameToNullIfBlank(model);
         setDisplayVersionToNullIfBlank(model);
-    }
-
-    private void setDisplayNameToNullIfBlank(Model model) {
-        String displayName = model.getDisplayName();
-        if (StringUtils.isBlank(displayName)) {
-            model.setDisplayName(null);
-        }
     }
 
     private void setDisplayVersionToNullIfBlank(Model model) {

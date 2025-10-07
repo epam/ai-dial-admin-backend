@@ -48,11 +48,23 @@ public class InterceptorService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<Interceptor> getAllByNames(List<String> names) {
+        return interceptorJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Interceptor get(String interceptorName) {
+        return tryGet(interceptorName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName)));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Interceptor> tryGet(String interceptorName) {
         return Optional.ofNullable(interceptorName)
                 .flatMap(interceptorJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional(readOnly = true)

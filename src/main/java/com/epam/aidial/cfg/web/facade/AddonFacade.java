@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.mapper.AddonDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,14 +39,12 @@ public class AddonFacade {
     }
 
     public void createAddon(AddonDto addonDto) {
-        setDefaultRoleShareResourceLimitIfMissing(addonDto);
         Optional.of(addonDto)
                 .map(mapper::toDomain)
                 .ifPresent(addonService::createAddon);
     }
 
     public String updateAddon(String addonName, AddonDto addonDto, String hash) {
-        setDefaultRoleShareResourceLimitIfMissing(addonDto);
         Addon value = mapper.toDomain(addonDto);
         return addonService.updateAddon(addonName, value, hash);
     }
@@ -66,13 +63,5 @@ public class AddonFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(AddonDto addonDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = addonDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            addonDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }
