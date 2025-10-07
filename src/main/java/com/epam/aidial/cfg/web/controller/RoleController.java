@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -29,48 +30,38 @@ import java.util.Collection;
 @Validated
 @LogExecution
 @Slf4j
+@RequiredArgsConstructor
 public class RoleController {
 
     private final RoleFacade roleFacade;
 
-    public RoleController(RoleFacade roleFacade) {
-        this.roleFacade = roleFacade;
-    }
-
-    @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<RoleDto> getAll() {
-        Collection<RoleDto> dtos = roleFacade.getAllRoles();
-        return dtos;
+        return roleFacade.getAllRoles();
     }
 
-    @GetMapping(path = "/{roleName}",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{roleName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleDto> getRole(@PathVariable("roleName") String roleName,
-                           @RequestHeader(value = "If-None-Match") String previousHash) {
+                                           @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = roleFacade.getRoleWithHash(roleName);
         return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
                 ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
                 : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
     }
 
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createRole(@RequestBody @Valid RoleDto roleDto) {
         roleFacade.createRole(roleDto);
     }
 
-    @DeleteMapping(path = "/{roleName}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "/{roleName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRole(@PathVariable("roleName") String roleName) {
         roleFacade.deleteRole(roleName);
     }
 
-    @PutMapping(path = "/{roleName}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateRole(@PathVariable("roleName") String roleName,
                                            @RequestBody @Valid RoleDto roleDto,
                                            @RequestHeader(value = "If-Match") String previousHash) {
@@ -78,8 +69,7 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
-    @GetMapping(path = "/{roleName}/revision/{revision}",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{roleName}/revision/{revision}", produces = MediaType.APPLICATION_JSON_VALUE)
     public RoleDto getSnapshot(@PathVariable String roleName, @PathVariable Integer revision) {
         return roleFacade.getSnapshot(roleName, revision);
     }

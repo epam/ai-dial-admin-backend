@@ -3,7 +3,7 @@
   "description": "testRoleDescription",
   "displayName": "testRoleDisplayName",
   "share": {
-    "application": {
+    "": {
       "maxAcceptedUsers": 10,
       "invitationTtl": 120
     }
