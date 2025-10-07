@@ -9,6 +9,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "baseEndpoint": "http://endpoint2/",
         "models": []
       }

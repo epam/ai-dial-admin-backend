@@ -4,6 +4,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole1",
+        "displayName": "testRole1",
         "limits": [
           {
             "role": "testRole1",
@@ -92,6 +93,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole2",
+        "displayName": "testRole2",
         "limits": [
           {
             "role": "testRole2",
@@ -159,6 +161,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole3",
+        "displayName": "testRole3",
         "limits": [
           {
             "role": "testRole3",
@@ -226,6 +229,7 @@
       "importAction": "update",
       "value": {
         "name": "default",
+        "displayName": "default",
         "limits": [
           {
             "role": "default",
@@ -295,6 +299,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
@@ -307,6 +312,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
@@ -478,7 +484,8 @@
           }
         ],
         "maxRetryAttempts": 3,
-        "order": 2
+        "order": 2,
+        "displayName": "test_route1"
       }
     }
   ],
@@ -487,6 +494,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "baseEndpoint": "https://endpoint2/",
         "models": []
       }
@@ -495,6 +503,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "baseEndpoint": "https://endpoint1/",
         "models": []
       }

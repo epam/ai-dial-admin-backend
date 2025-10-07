@@ -24,7 +24,8 @@ public interface KeyCoreMapper {
     @Mapping(target = "expiresAt", ignore = true)
     @Mapping(target = "keyGeneratedAt", ignore = true)
     @Mapping(target = "description", ignore = true)
-    @Mapping(target = "displayName", ignore = true)
+    @Mapping(target = "displayName", source = "name")
+    @Mapping(target = "name", source = "name")
     Key mapKey(CoreKey key, String name);
 
     @AfterMapping

@@ -1,8 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.AddonDto;
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
@@ -17,6 +15,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAddonWithRoleLimitsDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 
@@ -30,39 +30,34 @@ public abstract class AddonFunctionalTest {
     private FeatureFlagGateEvaluationAspect featureFlagAspect;
 
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndGetAddons() {
         initRoles();
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonWithRoleLimitsDto("1");
 
         addonFacade.createAddon(addonDto);
 
         AddonDto actual = addonFacade.getAddon(addonDto.getName());
-        AddonDto expected = createDto("1");
+        AddonDto expected = createAddonWithRoleLimitsDto("1");
 
         assertAddon(actual, expected);
 
-        addonFacade.createAddon(createDto("2"));
+        addonFacade.createAddon(createAddonWithRoleLimitsDto("2"));
 
         Collection<AddonDto> actualAddons = addonFacade.getAllAddons();
 
-        assertAddons(actualAddons, List.of(createDto("1"), createDto("2")));
+        assertAddons(actualAddons, List.of(createAddonWithRoleLimitsDto("1"),
+                createAddonWithRoleLimitsDto("2")));
     }
 
     @Test
     void testCreate_UnsupportedException() {
         // given
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         doThrow(new UnsupportedOperationException("Feature flag 'addonsSupported' is disabled.")).when(featureFlagAspect).evaluate(any(), any());
         // when
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> addonFacade.createAddon(addonDto))
@@ -85,7 +80,7 @@ public abstract class AddonFunctionalTest {
     @Test
     void testUpdateAddon_UnsupportedException() {
         // given
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         doThrow(new UnsupportedOperationException("Feature flag 'addonsSupported' is disabled.")).when(featureFlagAspect).evaluate(any(), any());
         // when
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> addonFacade.updateAddon(addonDto.getName(), addonDto))
@@ -98,7 +93,7 @@ public abstract class AddonFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndDeleteAddon() {
         initRoles();
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
 
         addonFacade.deleteAddon(addonDto.getName());
@@ -110,15 +105,15 @@ public abstract class AddonFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndUpdateAddon() {
         initRoles();
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
-        AddonDto updatedAddon = createDto("1");
+        AddonDto updatedAddon = createAddonWithRoleLimitsDto("1");
         updatedAddon.setDescription("new addon description");
 
         addonFacade.updateAddon(addonDto.getName(), updatedAddon);
 
         AddonDto actual = addonFacade.getAddon(addonDto.getName());
-        var expected = createDto("1");
+        var expected = createAddonWithRoleLimitsDto("1");
         expected.setDescription("new addon description");
         assertAddon(actual, expected);
     }
@@ -126,16 +121,16 @@ public abstract class AddonFunctionalTest {
     @Test
     public void shouldSuccessfullyUpdateAddon() {
         initRoles();
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
-        AddonDto updatedAddon = createDto("1");
+        AddonDto updatedAddon = createAddonWithRoleLimitsDto("1");
         updatedAddon.setDescription("new addon description");
 
         addonFacade.updateAddon(addonDto.getName(), updatedAddon);
 
         AddonDto actual = addonFacade.getAddon(updatedAddon.getName());
 
-        var expected = createDto("1");
+        var expected = createAddonWithRoleLimitsDto("1");
         expected.setDescription("new addon description");
         assertAddon(actual, expected);
     }
@@ -144,10 +139,10 @@ public abstract class AddonFunctionalTest {
     public void shouldThrowExceptionWhenRenameAddon() {
         initRoles();
 
-        AddonDto addonDto = createDto("1");
+        AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
 
-        AddonDto updatedAddon = createDto("2");
+        AddonDto updatedAddon = createAddonWithRoleLimitsDto("2");
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
@@ -160,16 +155,6 @@ public abstract class AddonFunctionalTest {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
-    }
-
-    private AddonDto createDto(String suffix) {
-        AddonDto addonDto = new AddonDto();
-        addonDto.setName("addon" + suffix);
-        addonDto.setDescription("description" + suffix);
-        addonDto.setRoleLimits(Map.of(
-                "role2", new LimitDto()
-        ));
-        return addonDto;
     }
 
     private Map<String, AddonDto> toMap(Collection<AddonDto> dtos) {

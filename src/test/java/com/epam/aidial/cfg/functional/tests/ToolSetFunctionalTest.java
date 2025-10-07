@@ -4,8 +4,6 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
@@ -27,6 +25,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
 import static org.mockito.ArgumentMatchers.eq;
 
 public abstract class ToolSetFunctionalTest {
@@ -42,38 +42,30 @@ public abstract class ToolSetFunctionalTest {
 
     @BeforeEach
     public void beforeEach() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndGetToolSets() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
-        ToolSetDto expected = createDto("1");
+        ToolSetDto expected = createToolSetDto("1");
 
         assertToolSet(actual, expected);
 
-        toolSetFacade.createToolSet(createDto("2"));
+        toolSetFacade.createToolSet(createToolSetDto("2"));
 
         Collection<ToolSetDto> actualToolSets = toolSetFacade.getAllToolSets();
 
-        assertToolSets(actualToolSets, List.of(createDto("1"), createDto("2")));
+        assertToolSets(actualToolSets, List.of(createToolSetDto("1"), createToolSetDto("2")));
     }
 
     @Test
     public void shouldSuccessfullyCreateToolSetAndGetDiscoveredTools() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setTransport(TransportDto.HTTP);
         toolSetFacade.createToolSet(toolSetDto);
 
@@ -94,7 +86,7 @@ public abstract class ToolSetFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndDeleteToolSet() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
         toolSetFacade.deleteToolSet(toolSetDto.getName());
 
@@ -104,17 +96,17 @@ public abstract class ToolSetFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateToolSet() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
 
-        ToolSetDto updatedToolSet = createDto("1");
+        ToolSetDto updatedToolSet = createToolSetDto("1");
         updatedToolSet.setDescription("New ToolSet description");
 
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
-        var expected = createDto("1");
+        var expected = createToolSetDto("1");
         expected.setDescription("New ToolSet description");
 
         assertToolSet(actual, expected);
@@ -122,9 +114,9 @@ public abstract class ToolSetFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenRenameToolSet() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
-        ToolSetDto updatedToolSet = createDto("2");
+        ToolSetDto updatedToolSet = createToolSetDto("2");
         updatedToolSet.setDescription("New ToolSet description");
 
         IllegalArgumentException exception = Assertions.assertThrows(
@@ -149,7 +141,7 @@ public abstract class ToolSetFunctionalTest {
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
 
-        ToolSetDto toolSetDto = new ToolSetDto();
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName("container-toolset");
         toolSetDto.setDescription("Container toolset");
 
@@ -199,8 +191,9 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(updatedDeploymentInfo)
                 .thenReturn(updatedDeploymentInfo);
 
-        ToolSetDto toolSetDto = new ToolSetDto();
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName(refreshedToolSetName);
+
         toolSetDto.setDescription("Refresh toolset");
 
         ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
@@ -223,15 +216,6 @@ public abstract class ToolSetFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
 
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
-    }
-
-    private ToolSetDto createDto(String suffix) {
-        ToolSetDto toolSetDto = new ToolSetDto();
-        toolSetDto.setName("ToolSet" + suffix);
-        toolSetDto.setDescription("Description" + suffix);
-        toolSetDto.setEndpoint("http://test-endpoint/api");
-        toolSetDto.setRoleLimits(Map.of("role" + suffix, new LimitDto()));
-        return toolSetDto;
     }
 
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {

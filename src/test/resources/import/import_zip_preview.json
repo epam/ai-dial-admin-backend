@@ -4,6 +4,7 @@
       "importAction": "update",
       "value": {
         "name": "default",
+        "displayName": "default",
         "limits": [],
         "share": [],
         "costLimit": {
@@ -18,6 +19,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole3",
+        "displayName": "testRole3",
         "limits": [
           {
             "role": "testRole3",
@@ -72,6 +74,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole2",
+        "displayName": "testRole2",
         "limits": [
           {
             "role": "testRole2",
@@ -117,6 +120,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole1",
+        "displayName": "testRole1",
         "limits": [
           {
             "role": "testRole1",
@@ -166,6 +170,7 @@
       "importAction": "create",
       "value": {
         "name": "testKey2",
+        "displayName": "testKey2",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
@@ -180,6 +185,7 @@
       "importAction": "create",
       "value": {
         "name": "testKey1",
+        "displayName": "testKey1",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
@@ -259,6 +265,7 @@
       "importAction": "create",
       "value": {
         "name": "testRunner1",
+        "displayName": "testRunner1",
         "completionEndpoint": "https://template.test.com/api",
         "configurationEndpoint": "https://template.test.com/conf"
       }
@@ -393,7 +400,8 @@
             "tier": 1
           }
         ],
-        "maxRetryAttempts": 3
+        "maxRetryAttempts": 3,
+        "displayName": "route1"
       }
     }
   ],
@@ -402,6 +410,7 @@
       "importAction": "create",
       "value": {
         "name": "adapter1",
+        "displayName": "adapter1",
         "baseEndpoint": "http://endpoint1/",
         "description": "test adapter",
         "models": [],
