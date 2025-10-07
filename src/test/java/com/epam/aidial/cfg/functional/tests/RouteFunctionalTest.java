@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import org.junit.jupiter.api.Assertions;
@@ -67,12 +68,41 @@ public abstract class RouteFunctionalTest {
         RouteDto updatedRoute = createRouteDtoWithLimits("1");
         updatedRoute.setDescription("new route description");
 
-        routeFacade.updateRoute(routeDto.getName(), updatedRoute);
+        routeFacade.updateRoute(routeDto.getName(), updatedRoute, "*");
 
         RouteDto actual = routeFacade.getRoute(routeDto.getName());
         var expected = createRouteDtoWithLimits("1");
         expected.setDescription("new route description");
         assertRoute(actual, expected);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateRouteWithCorrectHash() {
+        RouteDto routeDto = createRouteDtoWithLimits("1");
+        routeFacade.createRoute(routeDto);
+        RouteDto updatedRoute = createRouteDtoWithLimits("1");
+        updatedRoute.setDescription("new route description");
+
+        var hash = routeFacade.getRouteWithHash(routeDto.getName()).hash();
+
+        routeFacade.updateRoute(routeDto.getName(), updatedRoute, hash);
+
+        RouteDto actual = routeFacade.getRoute(routeDto.getName());
+        var expected = createRouteDtoWithLimits("1");
+        expected.setDescription("new route description");
+        assertRoute(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateRouteWithIncorrectHash() {
+        RouteDto routeDto = createRouteDtoWithLimits("1");
+        routeFacade.createRoute(routeDto);
+
+        RouteDto updatedRoute = createRouteDtoWithLimits("1");
+        updatedRoute.setDescription("new route description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> routeFacade.updateRoute(routeDto.getName(), updatedRoute, "test"));
     }
 
     @Test
@@ -84,9 +114,35 @@ public abstract class RouteFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> routeFacade.updateRoute(routeDto.getName(), updatedRoute)
+                () -> routeFacade.updateRoute(routeDto.getName(), updatedRoute, "*")
         );
         Assertions.assertEquals("Route with name: 'route1' can not be renamed. New name: 'route2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRouteConcurrencyOverwrite() {
+        RouteDto routeDto = createRouteDtoWithLimits("1");
+        routeFacade.createRoute(routeDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> routeFacade.updateRoute(routeDto.getName(), routeDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: routeName:'route1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        RouteDto routeDto = createRouteDtoWithLimits("1");
+        routeFacade.createRoute(routeDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> routeFacade.updateRoute(routeDto.getName(), routeDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Route:route1.",
+                exception.getMessage());
     }
 
     private void assertRoute(RouteDto actual, RouteDto expected) {

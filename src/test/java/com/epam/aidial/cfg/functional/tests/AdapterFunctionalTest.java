@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import org.junit.jupiter.api.Assertions;
@@ -65,12 +66,40 @@ public abstract class AdapterFunctionalTest {
         AdapterDto updatedAdapter = createAdapterDto("1");
         updatedAdapter.setBaseEndpoint("new adapter endpoint");
 
-        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter);
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*");
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
         var expected = createAdapterDto("1");
         expected.setBaseEndpoint("new adapter endpoint");
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateAdapterWithCorrectHash() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+        AdapterDto updatedAdapter = createAdapterDto("1");
+        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+
+        var hash = adapterFacade.getAdapterWithHash(adapterDto.getName()).hash();
+
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, hash);
+
+        AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
+        var expected = createAdapterDto("1");
+        expected.setBaseEndpoint("new adapter endpoint");
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateAdapterWithIncorrectHash() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+        AdapterDto updatedAdapter = createAdapterDto("1");
+        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "test"));
     }
 
     @Test
@@ -80,7 +109,8 @@ public abstract class AdapterFunctionalTest {
         AdapterDto updatedAdapter = createAdapterDto("2");
         updatedAdapter.setBaseEndpoint("new adapter endpoint");
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*"));
     }
 
     @Test
@@ -170,7 +200,7 @@ public abstract class AdapterFunctionalTest {
         // remove model from adapter
         adapterDto1.setModels(List.of());
 
-        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1);
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
         AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel2 = modelFacade.getModel(model1.getName());
 
@@ -185,6 +215,32 @@ public abstract class AdapterFunctionalTest {
         expectedModel2.setSource(new ModelEndpointsSourceDto());
         expectedModel2.setEndpoint("https://endpoint.test.com/adapter1/chat/completions");
         Assertions.assertEquals(expectedModel2, actualModel2);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenAdapterConcurrencyOverwrite() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: adapterName:'adapter1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Adapter:adapter1.",
+                exception.getMessage());
     }
 
     private void assertAdapters(Collection<AdapterDto> actual, Collection<AdapterDto> expected) {

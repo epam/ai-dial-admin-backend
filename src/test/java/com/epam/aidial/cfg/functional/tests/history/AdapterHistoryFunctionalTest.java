@@ -39,7 +39,7 @@ public abstract class AdapterHistoryFunctionalTest {
         // update adapter1 description
         AdapterDto updatedAdapter = createAdapterDto("1");
         updatedAdapter.setDescription("new adapter description");
-        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter);
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*");
 
         // verify adapter1
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
@@ -51,7 +51,7 @@ public abstract class AdapterHistoryFunctionalTest {
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
         updatedAdapter.setDescription("new new adapter description");
-        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter);
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*");
 
         // delete adapter 1
         adapterFacade.deleteAdapter(adapterDto.getName(), false);
@@ -92,7 +92,7 @@ public abstract class AdapterHistoryFunctionalTest {
 
         // update adapter
         adapter1.setModels(List.of(model2.getName()));
-        adapterFacade.updateAdapter(adapter1.getName(), adapter1);
+        adapterFacade.updateAdapter(adapter1.getName(), adapter1, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
