@@ -20,12 +20,14 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = KeyController.class)
@@ -84,6 +86,32 @@ class KeyControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
+    void testCreateKey_withoutProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_without_project.json");
+
+        mockMvc.perform(post("/api/v1/keys")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
+    }
+
+    @Test
+    void testCreateKey_withEmptyProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_with_empty_project.json");
+
+        mockMvc.perform(post("/api/v1/keys")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
+    }
+
+    @Test
     void testUpdateKey() throws Exception {
 
         var dtoJson = ResourceUtils.readResource("/key_dto.json");
@@ -95,6 +123,32 @@ class KeyControllerTest extends AbstractControllerNoneSecureTest {
                         .content(dtoJson))
                 .andExpect(status().isNoContent());
         verify(keyFacade).updateKey(eq("test_key"), eq(dto));
+    }
+
+    @Test
+    void testUpdateKey_withoutProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_without_project.json");
+
+        mockMvc.perform(put("/api/v1/keys/{keyName}", "test_key")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
+    }
+
+    @Test
+    void testUpdateKey_withEmptyProject_badRequest() throws Exception {
+        var dtoJson = ResourceUtils.readResource("/key_dto_with_empty_project.json");
+
+        mockMvc.perform(put("/api/v1/keys/{keyName}", "test_key")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("project: Project is required"));
+
+        verifyNoInteractions(keyFacade);
     }
 
     @Test

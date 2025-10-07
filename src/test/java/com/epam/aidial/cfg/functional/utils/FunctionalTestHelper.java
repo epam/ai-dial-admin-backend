@@ -114,6 +114,7 @@ public class FunctionalTestHelper {
         keyDto.setKey("keyValue" + suffix);
         keyDto.setDescription("key" + suffix);
         keyDto.setDisplayName("key" + suffix);
+        keyDto.setProject("project" + suffix);
         keyDto.setProjectContactPoint("test@mail.com");
         keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
         return keyDto;
