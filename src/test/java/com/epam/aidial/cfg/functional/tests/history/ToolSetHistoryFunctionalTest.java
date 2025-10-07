@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -102,8 +101,10 @@ public abstract class ToolSetHistoryFunctionalTest {
         // 5. Update ToolSet1 role limits
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
-        ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
-        shareResourceLimitDto.setInvitationTtl(20L);
+        LimitDto defaultRoleLimit = new LimitDto();
+        defaultRoleLimit.setMinute(111L);
+        defaultRoleLimit.setDay(222L);
+        updatedToolSet.setDefaultRoleLimit(defaultRoleLimit);
         updatedToolSet.setRoleLimits(Map.of("role3", limitDto));
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
         var actualAtOldRevision = toolSetFacade.getAllToolSets();
@@ -112,19 +113,25 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
-        // 6. Update authSettings
+        // 6. Update authSettings & defaultRoleLimit
         final long activitiesNum = historyFacade.getActivities().getTotal();
 
         authSettingsDto.setClientId(clientId + '1');
         updatedToolSet.setAuthSettings(authSettingsDto);
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
 
+        Long newMinutes = 333L;
+        defaultRoleLimit.setMinute(newMinutes);
+        updatedToolSet.setDefaultRoleLimit(defaultRoleLimit);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         Assertions.assertEquals(actual.getAuthSettings().getClientId(), clientId + '1');
+        Assertions.assertEquals(actual.getDefaultRoleLimit().getMinute(), newMinutes);
 
         // Using activities total instead of rev num because revisions include records from deployment_entity_aud table, while activities filter them
         final long activitiesNumAfterUpdate = historyFacade.getActivities().getTotal();
-        Assertions.assertEquals(activitiesNum + 1, activitiesNumAfterUpdate);
+        Assertions.assertEquals(activitiesNum + 2, activitiesNumAfterUpdate);
 
         // 7. Delete role3
         roleFacade.deleteRole("role3");
