@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -39,6 +40,13 @@ public class RoleService {
     @Transactional(readOnly = true)
     public Collection<Role> getAllRoles() {
         return StreamSupport.stream(roleJpaRepository.findAll().spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Role> getAllByNames(List<String> names) {
+        return StreamSupport.stream(roleJpaRepository.findAllById(names).spliterator(), false)
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

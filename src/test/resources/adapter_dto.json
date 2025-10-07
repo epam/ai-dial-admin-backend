@@ -1,4 +1,5 @@
   {
     "name": "test_adapter",
+    "displayName": "test_adapter",
     "baseEndpoint": "baseEndpoint1"
   }

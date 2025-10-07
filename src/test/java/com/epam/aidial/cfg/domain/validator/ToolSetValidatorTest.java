@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,6 +35,8 @@ public class ToolSetValidatorTest {
     private DeploymentValidator deploymentValidator;
     @Mock
     private DeploymentManagerService deploymentManagerService;
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
 
     private ToolSetValidator toolSetValidator;
 
@@ -44,6 +47,7 @@ public class ToolSetValidatorTest {
                 deploymentManagerService,
                 new DeploymentInfoValidator(),
                 deploymentValidator,
+                displayFieldsValidator,
                 null
         );
     }

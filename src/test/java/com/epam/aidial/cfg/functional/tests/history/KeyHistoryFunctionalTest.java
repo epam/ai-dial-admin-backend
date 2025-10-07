@@ -13,6 +13,9 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collection;
 import java.util.List;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDtoWithRole;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+
 public abstract class KeyHistoryFunctionalTest {
 
     @Autowired
@@ -23,21 +26,9 @@ public abstract class KeyHistoryFunctionalTest {
     private TestHistoryFacade historyFacade;
 
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        role1.setDisplayName("displayNameRole1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        role1.setDisplayName("displayNameRole2");
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
-        role1.setDisplayName("displayNameRole3");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
+        roleFacade.createRole(createRoleDto("3"));
     }
 
     @Test
@@ -45,17 +36,17 @@ public abstract class KeyHistoryFunctionalTest {
         initRoles();
 
         // create key1
-        KeyDto keyDto = createDto("1");
+        KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
         // update key1 description
-        KeyDto updatedKey = createDto("1");
+        KeyDto updatedKey = createKeyDtoWithRole("1");
         updatedKey.setDescription("new key description");
         keyFacade.updateKey(keyDto.getName(), updatedKey);
 
         // verify key1
         KeyDto actual = keyFacade.getKey(keyDto.getName());
-        var expected = createDto("1");
+        var expected = createKeyDtoWithRole("1");
         expected.setDescription("new key description");
         assertKey(actual, expected);
 
@@ -72,22 +63,20 @@ public abstract class KeyHistoryFunctionalTest {
 
         // delete role3
         roleFacade.deleteRole("role3");
-        actual = keyFacade.getKey(keyDto.getName());
+        keyFacade.getKey(keyDto.getName());
 
         // delete key 1
         keyFacade.deleteKey(keyDto.getName());
 
         // create key 2
-        keyFacade.createKey(createDto("2"));
+        keyFacade.createKey(createKeyDtoWithRole("2"));
 
         // create role3
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
+        RoleDto role3 = createRoleDto("3");
         roleFacade.createRole(role3);
 
         // create key3 with assigned role3
-        keyFacade.createKey(createDto("3"));
+        keyFacade.createKey(createKeyDtoWithRole("3"));
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -119,14 +108,5 @@ public abstract class KeyHistoryFunctionalTest {
         Assertions.assertEquals(expected.isSecured(), actual.isSecured());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoles(), actual.getRoles());
-    }
-
-    private KeyDto createDto(String suffix) {
-        KeyDto keyDto = new KeyDto();
-        keyDto.setName("keyName" + suffix);
-        keyDto.setKey("key" + suffix);
-        keyDto.setDescription("description" + suffix);
-        keyDto.setRoles(List.of("role" + suffix));
-        return keyDto;
     }
 }

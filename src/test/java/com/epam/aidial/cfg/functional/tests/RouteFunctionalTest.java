@@ -1,8 +1,5 @@
 package com.epam.aidial.cfg.functional.tests;
 
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -19,6 +16,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRouteDtoWithLimits;
+
 public abstract class RouteFunctionalTest {
 
     @Autowired
@@ -28,37 +28,31 @@ public abstract class RouteFunctionalTest {
 
     @BeforeEach
     public void beforeEach() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndGetRoutes() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto =  createRouteDtoWithLimits("1");
 
         routeFacade.createRoute(routeDto);
 
         RouteDto actual = routeFacade.getRoute(routeDto.getName());
-        RouteDto expected = createDto("1");
+        RouteDto expected = createRouteDtoWithLimits("1");
 
         assertRoute(actual, expected);
 
-        routeFacade.createRoute(createDto("2"));
+        routeFacade.createRoute(createRouteDtoWithLimits("2"));
 
         Collection<RouteDto> actualRoutes = routeFacade.getAllRoutes();
 
-        assertRoutes(actualRoutes, List.of(createDto("1"), createDto("2")));
+        assertRoutes(actualRoutes, List.of(createRouteDtoWithLimits("1"), createRouteDtoWithLimits("2")));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndDeleteRoute() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
         routeFacade.createRoute(routeDto);
 
         routeFacade.deleteRoute(routeDto.getName());
@@ -69,24 +63,24 @@ public abstract class RouteFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateRoute() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
         routeFacade.createRoute(routeDto);
-        RouteDto updatedRoute = createDto("1");
+        RouteDto updatedRoute = createRouteDtoWithLimits("1");
         updatedRoute.setDescription("new route description");
 
         routeFacade.updateRoute(routeDto.getName(), updatedRoute, "*");
 
         RouteDto actual = routeFacade.getRoute(routeDto.getName());
-        var expected = createDto("1");
+        var expected = createRouteDtoWithLimits("1");
         expected.setDescription("new route description");
         assertRoute(actual, expected);
     }
 
     @Test
     public void shouldSuccessfullyUpdateRouteWithCorrectHash() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
         routeFacade.createRoute(routeDto);
-        RouteDto updatedRoute = createDto("1");
+        RouteDto updatedRoute = createRouteDtoWithLimits("1");
         updatedRoute.setDescription("new route description");
 
         var hash = routeFacade.getRouteWithHash(routeDto.getName()).hash();
@@ -94,17 +88,17 @@ public abstract class RouteFunctionalTest {
         routeFacade.updateRoute(routeDto.getName(), updatedRoute, hash);
 
         RouteDto actual = routeFacade.getRoute(routeDto.getName());
-        var expected = createDto("1");
+        var expected = createRouteDtoWithLimits("1");
         expected.setDescription("new route description");
         assertRoute(actual, expected);
     }
 
     @Test
     public void shouldThrowWhenUpdateRouteWithIncorrectHash() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
         routeFacade.createRoute(routeDto);
 
-        RouteDto updatedRoute = createDto("1");
+        RouteDto updatedRoute = createRouteDtoWithLimits("1");
         updatedRoute.setDescription("new route description");
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
@@ -113,9 +107,9 @@ public abstract class RouteFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenRenameRoute() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
         routeFacade.createRoute(routeDto);
-        RouteDto updatedRoute = createDto("2");
+        RouteDto updatedRoute = createRouteDtoWithLimits("2");
         updatedRoute.setDescription("new route description");
 
         IllegalArgumentException exception = Assertions.assertThrows(
@@ -127,7 +121,7 @@ public abstract class RouteFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenRouteConcurrencyOverwrite() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
         routeFacade.createRoute(routeDto);
 
         OptimisticLockConflictException exception = Assertions.assertThrows(
@@ -140,7 +134,7 @@ public abstract class RouteFunctionalTest {
 
     @Test
     public void shouldThrowExceptionWhenHashIsNull() {
-        RouteDto routeDto = createDto("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
         routeFacade.createRoute(routeDto);
 
         IllegalArgumentException exception = Assertions.assertThrows(
@@ -149,18 +143,6 @@ public abstract class RouteFunctionalTest {
         );
         Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Route:route1.",
                 exception.getMessage());
-    }
-
-
-    private RouteDto createDto(String suffix) {
-        RouteDto routeDto = new RouteDto();
-        routeDto.setName("route" + suffix);
-        routeDto.setDescription("description" + suffix);
-        routeDto.setDisplayName("displayName" + suffix);
-        routeDto.setRoleLimits(Map.of(
-                "role2", new LimitDto()
-        ));
-        return routeDto;
     }
 
     private void assertRoute(RouteDto actual, RouteDto expected) {

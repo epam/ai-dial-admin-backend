@@ -19,33 +19,6 @@ class ApplicationNormalizerTest {
 
     @ParameterizedTest
     @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
-    void normalize_shouldSetDisplayNameToNullWhenDisplayNameIsBlank(String displayName) {
-        // given
-        Application application = new Application();
-        application.setDisplayName(displayName);
-
-        // when
-        applicationNormalizer.normalize(application);
-
-        // then
-        assertThat(application.getDisplayName()).isNull();
-    }
-
-    @Test
-    void normalize_shouldLeaveDisplayNameAsIsWhenDisplayNameIsNotBlank() {
-        // given
-        Application application = new Application();
-        application.setDisplayName("text");
-
-        // when
-        applicationNormalizer.normalize(application);
-
-        // then
-        assertThat(application.getDisplayName()).isEqualTo("text");
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
     void normalize_shouldSetDisplayVersionToNullWhenDisplayVersionIsBlank(String displayVersion) {
         // given
         Application application = new Application();

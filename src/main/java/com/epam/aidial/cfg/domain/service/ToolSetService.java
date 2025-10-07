@@ -54,6 +54,13 @@ public class ToolSetService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<ToolSet> getAllByNames(List<String> names) {
+        return toolSetJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public ToolSet get(String toolSetName) {
         return tryGetToolSet(toolSetName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));

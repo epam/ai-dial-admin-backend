@@ -1,5 +1,6 @@
 {
   "name": "testName1",
+  "displayName": "testName1",
   "key": "testKey1",
   "project": "testProject1",
   "roles": [

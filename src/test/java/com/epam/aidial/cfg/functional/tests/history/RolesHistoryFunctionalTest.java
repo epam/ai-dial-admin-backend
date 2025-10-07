@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
-import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
@@ -18,6 +17,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 
 public abstract class RolesHistoryFunctionalTest {
 
@@ -38,19 +41,16 @@ public abstract class RolesHistoryFunctionalTest {
         modelFacade.createModel(model1);
         modelFacade.createModel(model2);
 
-        KeyDto key1 = createKeyDto("1");
-        KeyDto key2 = createKeyDto("2");
-        KeyDto key3 = createKeyDto("3");
-        keyFacade.createKey(key1);
-        keyFacade.createKey(key2);
-        keyFacade.createKey(key3);
+        keyFacade.createKey(createKeyDto("1"));
+        keyFacade.createKey(createKeyDto("2"));
+        keyFacade.createKey(createKeyDto("3"));
 
         // create role1
-        RoleDto roleDto = createDto("1");
+        RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
         // update role1 description
-        RoleDto updatedRole = createDto("1");
+        RoleDto updatedRole = createRoleDto("1");
         updatedRole.setDescription("new role description");
         LimitDto limit1 = new LimitDto();
         limit1.setMinute(10L);
@@ -88,10 +88,10 @@ public abstract class RolesHistoryFunctionalTest {
         roleFacade.deleteRole(roleDto.getName());
 
         // create role 2
-        roleFacade.createRole(createDto("2"));
+        roleFacade.createRole(createRoleDto("2"));
 
         // create role3
-        roleFacade.createRole(createDto("3"));
+        roleFacade.createRole(createRoleDto("3"));
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -113,25 +113,19 @@ public abstract class RolesHistoryFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateRoleWithoutDeletion() {
+        modelFacade.createModel(createModelDto("1"));
+        modelFacade.createModel(createModelDto("2"));
 
-        ModelDto model1 = createModelDto("1");
-        ModelDto model2 = createModelDto("2");
-        modelFacade.createModel(model1);
-        modelFacade.createModel(model2);
-
-        KeyDto key1 = createKeyDto("1");
-        KeyDto key2 = createKeyDto("2");
-        KeyDto key3 = createKeyDto("3");
-        keyFacade.createKey(key1);
-        keyFacade.createKey(key2);
-        keyFacade.createKey(key3);
+        keyFacade.createKey(createKeyDto("1"));
+        keyFacade.createKey(createKeyDto("2"));
+        keyFacade.createKey(createKeyDto("3"));
 
         // create role1
-        RoleDto roleDto = createDto("1");
+        RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
         // update role1 description
-        RoleDto updatedRole = createDto("1");
+        RoleDto updatedRole = createRoleDto("1");
         updatedRole.setDescription("new role description");
         LimitDto limit1 = new LimitDto();
         limit1.setMinute(10L);
@@ -182,34 +176,8 @@ public abstract class RolesHistoryFunctionalTest {
         Assertions.assertEquals(actualRoleAtRevision, actualRole);
     }
 
-    private ModelDto createModelDto(String suffix) {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setName("model" + suffix);
-        modelDto.setDescription("description" + suffix);
-        return modelDto;
-    }
-
-    private KeyDto createKeyDto(String suffix) {
-        KeyDto keyDto = new KeyDto();
-        keyDto.setName("key" + suffix);
-        keyDto.setKey("key value" + suffix);
-        keyDto.setDisplayName("displayName" + suffix);
-        keyDto.setDescription("description" + suffix);
-        return keyDto;
-    }
-
     private void assertRole(RoleDto actual, RoleDto expected) {
         Assertions.assertEquals(expected, actual);
     }
 
-    private RoleDto createDto(String suffix) {
-        RoleDto roleDto = new RoleDto();
-        roleDto.setName("role" + suffix);
-        roleDto.setDescription("description" + suffix);
-        roleDto.setDisplayName("displayName" + suffix);
-        roleDto.setLimits(Map.of());
-        roleDto.setShare(Map.of());
-        roleDto.setGrantedKeys(List.of());
-        return roleDto;
-    }
 }
