@@ -106,16 +106,9 @@ public abstract class ModelEntityMapper {
             }
         }
 
-        boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer = deploymentEntityMapper
-                .isDefaultRoleLimitDifferent(domain.getDeployment(), entity.getDeployment());
-
         AdapterEntity adapterEntity = findAdapter(adapterName);
 
         ModelEntity updatedEntity = update(domain, entity);
-
-        if (isMappedDefaultRoleLimitOrShareResourceLimitDiffer) {
-            updatedEntity.setUpdatedAt(System.currentTimeMillis());
-        }
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getModels().remove(updatedEntity));
         duplicatedInterceptors.forEach(interceptor -> interceptor.getModels().add(updatedEntity));

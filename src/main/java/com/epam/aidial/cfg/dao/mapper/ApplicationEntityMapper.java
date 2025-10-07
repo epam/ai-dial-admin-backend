@@ -72,14 +72,7 @@ public abstract class ApplicationEntityMapper {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        boolean isMappedDefaultRoleLimitOrShareResourceLimitDiffer = deploymentEntityMapper
-                .isDefaultRoleLimitDifferent(domain.getDeployment(), entity.getDeployment());
-
         ApplicationEntity updatedEntity = update(domain, entity);
-
-        if (isMappedDefaultRoleLimitOrShareResourceLimitDiffer) {
-            updatedEntity.setUpdatedAt(System.currentTimeMillis());
-        }
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getApplications().remove(updatedEntity));
         duplicatedInterceptors.forEach(interceptor -> interceptor.getApplications().add(updatedEntity));
