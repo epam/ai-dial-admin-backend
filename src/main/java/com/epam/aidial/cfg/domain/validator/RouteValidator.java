@@ -16,30 +16,33 @@ public class RouteValidator {
     private static final String MUST_CONFORM_ERROR_MESSAGE = "Route '%s' must have '%s' specified to conform with meta schema";
 
     private final DeploymentValidator deploymentValidator;
+    private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String routeNameValidationPattern;
 
     public RouteValidator(DeploymentValidator deploymentValidator,
+                          DisplayFieldsValidator displayFieldsValidator,
                           @Value("${validation.route.name:}") String routeNameValidationPattern) {
         this.deploymentValidator = deploymentValidator;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.routeNameValidationPattern = routeNameValidationPattern;
     }
 
     public void validateRouteCreation(Route route) {
         final String routeName = route.getDeployment().getName();
-
         deploymentValidator.validateCreation("Route", routeName);
-
         if (StringUtils.isEmpty(routeNameValidationPattern)) {
             log.debug("Route name validation pattern is empty, skipping name pattern validation for route: {}", routeName);
         } else if (!Pattern.matches(routeNameValidationPattern, routeName)) {
             throw new IllegalArgumentException("Route name '" + routeName
                     + "' does not match the required pattern: " + routeNameValidationPattern);
         }
+        displayFieldsValidator.validateDisplayName(route.getDisplayName());
     }
 
     public void validateUpdate(String routeName, Route route) {
         deploymentValidator.validateUpdate(routeName, route.getDeployment(), "Route");
+        displayFieldsValidator.validateDisplayName(route.getDisplayName());
     }
 
     public void validateDependentRoute(DependentRoute dependentRoute) {

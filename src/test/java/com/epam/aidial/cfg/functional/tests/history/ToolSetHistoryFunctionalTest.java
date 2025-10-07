@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
+
 public abstract class ToolSetHistoryFunctionalTest {
 
     @Autowired
@@ -35,21 +38,9 @@ public abstract class ToolSetHistoryFunctionalTest {
     private DeploymentManagerService deploymentManagerService;
 
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
-
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
+        roleFacade.createRole(createRoleDto("3"));
     }
 
     @Test
@@ -76,13 +67,13 @@ public abstract class ToolSetHistoryFunctionalTest {
         authSettingsDto.setAuthenticationType(AuthenticationTypeDto.OAUTH);
         authSettingsDto.setScopesSupported(List.of("one", "two"));
 
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setSource(containerSourceDto);
         toolSetDto.setAuthSettings(authSettingsDto);
         toolSetFacade.createToolSet(toolSetDto);
 
         // 2. Update ToolSet1 description
-        ToolSetDto updatedToolSet = createDto("1");
+        ToolSetDto updatedToolSet = createToolSetDto("1");
         updatedToolSet.setDescription("New ToolSet description");
         updatedToolSet.setSource(containerSourceDto);
         updatedToolSet.setAuthSettings(authSettingsDto);
@@ -90,7 +81,7 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         // 3. Verify ToolSet1
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
-        var expected = createDto("1");
+        var expected = createToolSetDto("1");
         expected.setDescription("New ToolSet description");
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
@@ -149,18 +140,16 @@ public abstract class ToolSetHistoryFunctionalTest {
         toolSetFacade.deleteToolSet(toolSetDto.getName());
 
         // 9. Create ToolSet2
-        ToolSetDto toolSetDto2 = createDto("2");
+        ToolSetDto toolSetDto2 = createToolSetDto("2");
         toolSetDto2.setEndpoint("https://test-endpoint3");
         toolSetFacade.createToolSet(toolSetDto2);
 
         // 10. Create role3
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
+        RoleDto role3 = createRoleDto("3");
         roleFacade.createRole(role3);
 
         // 11. Create ToolSet3 with assigned role3
-        ToolSetDto toolSetDto3 = createDto("3");
+        ToolSetDto toolSetDto3 = createToolSetDto("3");
         toolSetDto3.setEndpoint("https://test-endpoint4");
         toolSetFacade.createToolSet(toolSetDto3);
 
@@ -176,19 +165,5 @@ public abstract class ToolSetHistoryFunctionalTest {
 
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {
         Assertions.assertEquals(expected, actual);
-    }
-
-    private ToolSetDto createDto(String suffix) {
-        ToolSetDto toolSet = new ToolSetDto();
-        toolSet.setName("ToolSet" + suffix);
-        toolSet.setDescription("description" + suffix);
-        toolSet.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        toolSet.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
-        ));
-        toolSet.setMaxRetryAttempts(1);
-        return toolSet;
     }
 }

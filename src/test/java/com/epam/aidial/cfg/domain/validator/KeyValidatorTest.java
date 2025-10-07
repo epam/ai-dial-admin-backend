@@ -28,12 +28,14 @@ class KeyValidatorTest {
     private TransactionTimestampContext transactionTimestampContext;
     @Mock
     private IdFieldValidator idFieldValidator;
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
 
     private KeyValidator keyValidator;
 
     @BeforeEach
     void setUp() {
-        keyValidator = new KeyValidator(idFieldValidator, transactionTimestampContext, null);
+        keyValidator = new KeyValidator(idFieldValidator, transactionTimestampContext, displayFieldsValidator, null);
     }
 
     @ParameterizedTest

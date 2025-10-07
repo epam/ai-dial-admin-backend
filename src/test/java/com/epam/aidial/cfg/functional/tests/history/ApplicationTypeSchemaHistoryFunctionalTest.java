@@ -85,6 +85,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         ApplicationTypeSchemaDto applicationDto = new ApplicationTypeSchemaDto();
         applicationDto.setId("id" + suffix);
         applicationDto.setDescription("description" + suffix);
+        applicationDto.setApplicationTypeDisplayName("id" + suffix);
         return applicationDto;
     }
 }

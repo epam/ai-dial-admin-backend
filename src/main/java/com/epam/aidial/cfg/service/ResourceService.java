@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
-import feign.FeignException;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Collections;

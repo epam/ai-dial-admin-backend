@@ -8,6 +8,7 @@ public enum ResourceTypeDto {
     FILE,
     APPLICATION,
     CONVERSATION,
+    TOOL_SET
     ;
 
     @JsonCreator
