@@ -1,7 +1,7 @@
 {
-  "name": "test_role",
-  "description": "roleDescription",
-  "displayName": "roleDisplayName",
+  "name": "testRole",
+  "description": "testRoleDescription",
+  "displayName": "testRoleDisplayName",
   "share": {
     "application": {
       "maxAcceptedUsers": "10",

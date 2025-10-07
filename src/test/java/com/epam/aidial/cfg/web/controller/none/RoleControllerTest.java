@@ -41,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class RoleControllerTest extends AbstractControllerNoneSecureTest {
     private static final String DTO_JSON_PATH = "/role_dto.json";
+    private static final String DTO_RESPONSE_JSON_PATH = "/role_dto_response.json";
     private static final String TEST_ROLE_NAME = "testRole";
     private static final String ROLE_BASE_API_PATH = "/api/v1/roles";
     private static final String ROLE_API_PATH = ROLE_BASE_API_PATH + "/{roleName}";
@@ -95,6 +96,8 @@ class RoleControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, new TypeReference<RoleDto>() {
         });
 
+        var dtoResponseJson = ResourceUtils.readResource(DTO_RESPONSE_JSON_PATH);
+
         when(roleFacade.getRoleWithHash(eq(TEST_ROLE_NAME))).thenReturn(
                 new DtoWithDomainHash<>(dto, "2"));
 
@@ -104,7 +107,7 @@ class RoleControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(header().exists(HEADER_ETAG))
                 .andExpect(header().string(HEADER_ETAG, "\"2\""))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+                .andExpect(content().json(dtoResponseJson, JsonCompareMode.LENIENT));
     }
 
     @Test

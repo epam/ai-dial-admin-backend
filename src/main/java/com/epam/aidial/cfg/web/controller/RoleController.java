@@ -40,8 +40,7 @@ public class RoleController {
         return roleFacade.getAllRoles();
     }
 
-    @GetMapping(path = "/{roleName}",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{roleName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleDto> getRole(@PathVariable("roleName") String roleName,
                                            @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = roleFacade.getRoleWithHash(roleName);
