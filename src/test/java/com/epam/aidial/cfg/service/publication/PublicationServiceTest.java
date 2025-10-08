@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -78,15 +78,16 @@ class PublicationServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(ResourceType.class)
-    void getAllPublications_ReturnsOnlyResourceTypedPublications(ResourceType resourceType) throws JsonProcessingException {
+    @CsvSource({
+            "PROMPT, prompt_pending",
+            "FILE, file_pending",
+            "APPLICATION, application_pending",
+            "CONVERSATION, conversation_pending"
+    })
+    void getAllPublications_ReturnsOnlyResourceTypedPublications(String resourceTypeAsString, String requestName) throws JsonProcessingException {
         // given
-        String requestName = switch (resourceType) {
-            case PROMPT -> "prompt_pending";
-            case FILE -> "file_pending";
-            case APPLICATION -> "application_pending";
-            case CONVERSATION -> "conversation_pending";
-        };
+        ResourceType resourceType = ResourceType.valueOf(resourceTypeAsString);
+
         var dtoJson = ResourceUtils.readResource("/publications/client/publications.json");
         var dto = OBJECT_MAPPER.readValue(dtoJson, new TypeReference<PublicationInfosDto>() {
         });
