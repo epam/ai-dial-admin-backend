@@ -67,7 +67,6 @@ public class ApplicationTypeSchemaController {
     public ResponseEntity<Void> update(@RequestParam(name = "id") String id,
                                        @RequestBody @Valid ApplicationTypeSchemaDto dto,
                                        @RequestHeader(value = "If-Match") String previousHash) {
-
         var newHash = applicationTypeSchemaFacade.update(id, dto, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
