@@ -34,6 +34,8 @@ public class ToolSetValidatorTest {
     private DeploymentValidator deploymentValidator;
     @Mock
     private DeploymentManagerService deploymentManagerService;
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
 
     private ToolSetValidator toolSetValidator;
 
@@ -44,6 +46,7 @@ public class ToolSetValidatorTest {
                 deploymentManagerService,
                 new DeploymentInfoValidator(),
                 deploymentValidator,
+                displayFieldsValidator,
                 null
         );
     }

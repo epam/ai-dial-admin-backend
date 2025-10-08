@@ -9,6 +9,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "baseEndpoint": "http://endpoint2/",
         "models": []
       }
@@ -21,10 +22,8 @@
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "source": {
           "$type": "adapter",
@@ -68,10 +67,8 @@
         "deployment": {
           "name": "testModel1",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "source": {
           "$type": "adapter",

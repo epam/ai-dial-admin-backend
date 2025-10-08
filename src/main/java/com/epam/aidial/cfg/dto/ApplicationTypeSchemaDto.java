@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,7 @@ public class ApplicationTypeSchemaDto {
     private String applicationTypeViewerUrl;
 
     @JsonProperty("dial:applicationTypeDisplayName")
+    @NotBlank(message = "ApplicationTypeDisplayName is required")
     private String applicationTypeDisplayName;
 
     @JsonProperty("dial:applicationTypeCompletionEndpoint")

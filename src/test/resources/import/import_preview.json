@@ -4,6 +4,7 @@
       "importAction": "create",
       "value": {
         "name": "testRole1",
+        "displayName": "testRole1",
         "limits": [
           {
             "role": "testRole1",
@@ -13,23 +14,55 @@
           },
           {
             "role": "testRole1",
+            "deploymentName": "testModel2",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "testRole1",
             "deploymentName": "testApplication1",
             "enabled": true,
-            "limit": {}
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
           },
           {
             "role": "testRole1",
             "deploymentName": "testModel1",
             "enabled": true,
             "limit": {
-              "day": 1
+              "minute": 9223372036854775807,
+              "day": 1,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
             }
           },
           {
             "role": "testRole1",
             "deploymentName": "testApplication2",
             "enabled": true,
-            "limit": {}
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
           },
           {
             "role": "testRole1",
@@ -38,16 +71,12 @@
             "limit": {}
           }
         ],
-        "share": [
-          {
-            "role": "testRole1",
-            "deploymentName": "testModel1",
-            "limit": {
-              "maxAcceptedUsers": 10,
-              "invitationTtl": 120
-            }
+        "share": {
+          "APPLICATION": {
+            "maxAcceptedUsers": 10,
+            "invitationTtl": 120
           }
-        ],
+        },
         "costLimit": {
           "minute": "111",
           "day": "222",
@@ -60,8 +89,61 @@
       "importAction": "create",
       "value": {
         "name": "testRole2",
-        "limits": [],
-        "share": [],
+        "displayName": "testRole2",
+        "limits": [
+          {
+            "role": "testRole2",
+            "deploymentName": "testModel2",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "testRole2",
+            "deploymentName": "testApplication1",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "testRole2",
+            "deploymentName": "testModel1",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "testRole2",
+            "deploymentName": "testApplication2",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          }
+        ],
         "costLimit": {
           "minute": "111",
           "day": "222",
@@ -74,15 +156,61 @@
       "importAction": "create",
       "value": {
         "name": "testRole3",
+        "displayName": "testRole3",
         "limits": [
+          {
+            "role": "testRole3",
+            "deploymentName": "testModel2",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "testRole3",
+            "deploymentName": "testApplication1",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
           {
             "role": "testRole3",
             "deploymentName": "testModel1",
             "enabled": true,
-            "limit": {}
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "testRole3",
+            "deploymentName": "testApplication2",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
           }
         ],
-        "share": [],
         "costLimit": {
           "minute": "111",
           "day": "222",
@@ -95,17 +223,61 @@
       "importAction": "update",
       "value": {
         "name": "default",
+        "displayName": "default",
         "limits": [
+          {
+            "role": "default",
+            "deploymentName": "testModel2",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "default",
+            "deploymentName": "testApplication1",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
           {
             "role": "default",
             "deploymentName": "testModel1",
             "enabled": false,
             "limit": {
-              "day": 3
+              "minute": 9223372036854775807,
+              "day": 3,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
+            }
+          },
+          {
+            "role": "default",
+            "deploymentName": "testApplication2",
+            "enabled": false,
+            "limit": {
+              "minute": 9223372036854775807,
+              "day": 9223372036854775807,
+              "week": 9223372036854775807,
+              "month": 9223372036854775807,
+              "requestHour": 9223372036854775807,
+              "requestDay": 9223372036854775807
             }
           }
         ],
-        "share": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -120,6 +292,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "key": "testKey1",
         "project": "testProject1",
         "secured": true,
@@ -132,6 +305,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "key": "testKey2",
         "project": "testProject1",
         "secured": true,
@@ -226,7 +400,9 @@
             ],
             "maxRetryAttempts": 3,
             "order": 1,
-            "permissions": ["WRITE"],
+            "permissions": [
+              "WRITE"
+            ],
             "attachmentPaths": {
               "requestBody": [
                 "/first",
@@ -260,12 +436,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "response": {
           "status": 200,
@@ -301,7 +473,8 @@
           }
         ],
         "maxRetryAttempts": 3,
-        "order": 2
+        "order": 2,
+        "displayName": "test_route1"
       }
     }
   ],
@@ -310,6 +483,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "baseEndpoint": "https://endpoint2/",
         "models": []
       }
@@ -318,6 +492,7 @@
       "importAction": "create",
       "value": {
         "name": "<will be defined during import>",
+        "displayName": "<will be defined during import>",
         "baseEndpoint": "https://endpoint1/",
         "models": []
       }
@@ -329,13 +504,62 @@
       "value": {
         "deployment": {
           "name": "testModel2",
-          "roleLimits": [],
-          "roleShareResourceLimits": [],
+          "roleLimits": [
+            {
+              "role": "testRole1",
+              "deploymentName": "testModel2",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testModel2",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "testRole3",
+              "deploymentName": "testModel2",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "default",
+              "deploymentName": "testModel2",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            }
+          ],
           "isPublic": true,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
@@ -389,39 +613,56 @@
               "deploymentName": "testModel1",
               "enabled": true,
               "limit": {
-                "day": 1
+                "minute": 9223372036854775807,
+                "day": 1,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testModel1",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
               }
             },
             {
               "role": "testRole3",
               "deploymentName": "testModel1",
               "enabled": true,
-              "limit": {}
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
             },
             {
               "role": "default",
               "deploymentName": "testModel1",
               "enabled": false,
               "limit": {
-                "day": 3
-              }
-            }
-          ],
-          "roleShareResourceLimits": [
-            {
-              "role": "testRole1",
-              "deploymentName": "testModel1",
-              "limit": {
-                "maxAcceptedUsers": 10,
-                "invitationTtl": 120
+                "minute": 9223372036854775807,
+                "day": 3,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
               }
             }
           ],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
@@ -477,16 +718,57 @@
               "role": "testRole1",
               "deploymentName": "testApplication1",
               "enabled": true,
-              "limit": {}
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testApplication1",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "testRole3",
+              "deploymentName": "testApplication1",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "default",
+              "deploymentName": "testApplication1",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": 10,
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
@@ -530,16 +812,57 @@
               "role": "testRole1",
               "deploymentName": "testApplication2",
               "enabled": true,
-              "limit": {}
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "testRole2",
+              "deploymentName": "testApplication2",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "testRole3",
+              "deploymentName": "testApplication2",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
+            },
+            {
+              "role": "default",
+              "deploymentName": "testApplication2",
+              "enabled": false,
+              "limit": {
+                "minute": 9223372036854775807,
+                "day": 9223372036854775807,
+                "week": 9223372036854775807,
+                "month": 9223372036854775807,
+                "requestHour": 9223372036854775807,
+                "requestDay": 9223372036854775807
+              }
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": 10,
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
         "displayName": "Test Application2",
@@ -581,12 +904,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "endpoint": "https://endpoint.test.com/embeddings",
         "iconUrl": "https://test.com/icon",
@@ -606,12 +925,8 @@
         "deployment": {
           "name": "toolset1",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          },
           "authSettings": {
             "authenticationType": "API_KEY",
             "clientId": "some-client-id",
@@ -635,7 +950,10 @@
         "maxRetryAttempts": 1,
         "endpoint": "http://sample-endpoint/api",
         "transport": "sse",
-        "allowedTools": ["branch", "remote"],
+        "allowedTools": [
+          "branch",
+          "remote"
+        ],
         "author": "test-author"
       }
     }

@@ -13,12 +13,14 @@ import java.util.regex.Pattern;
 public class AssistantValidator {
 
     private final DeploymentValidator deploymentValidator;
-
+    private final DisplayFieldsValidator displayFieldsValidator;
     private final String assistantNameValidationPattern;
 
     public AssistantValidator(DeploymentValidator deploymentValidator,
+                              DisplayFieldsValidator displayFieldsValidator,
                               @Value("${validation.assistant.name:}") String assistantNameValidationPattern) {
         this.deploymentValidator = deploymentValidator;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.assistantNameValidationPattern = assistantNameValidationPattern;
     }
 
@@ -29,17 +31,16 @@ public class AssistantValidator {
 
         if (StringUtils.isEmpty(assistantNameValidationPattern)) {
             log.debug("Assistant name validation pattern is empty, skipping validation for assistant: {}", assistantName);
-            return;
-        }
-
-        if (!Pattern.matches(assistantNameValidationPattern, assistantName)) {
+        } else if (!Pattern.matches(assistantNameValidationPattern, assistantName)) {
             throw new IllegalArgumentException("Assistant name '" + assistantName
                     + "' does not match the required pattern: " + assistantNameValidationPattern);
         }
+        displayFieldsValidator.validateDisplayName(assistant.getDisplayName());
     }
 
     public void validateUpdate(String assistantName, Assistant assistant) {
         deploymentValidator.validateUpdate(assistantName, assistant.getDeployment(), "Assistant");
+        displayFieldsValidator.validateDisplayName(assistant.getDisplayName());
     }
 
 }

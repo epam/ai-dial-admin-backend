@@ -42,15 +42,9 @@ public class DeploymentEntity extends AbstractEntity<String> {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "deployment", orphanRemoval = true)
     @AuditJoinTable
     private List<RoleLimitEntity> roleLimits = new ArrayList<>();
-    @ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "deployment", orphanRemoval = true)
-    @AuditJoinTable
-    private List<RoleShareResourceLimitEntity> roleShareResourceLimits = new ArrayList<>();
     private Boolean isPublic;
     @Embedded
     private LimitEntity defaultRoleLimit;
-    @Embedded
-    private ShareResourceLimitEntity defaultRoleShareResourceLimit;
 
     public DeploymentEntity(String name) {
         this.name = name;

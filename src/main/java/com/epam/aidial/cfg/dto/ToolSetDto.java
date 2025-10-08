@@ -19,6 +19,7 @@ public class ToolSetDto extends RoleBasedDto {
     private String endpoint;
     private String iconUrl;
     private String description;
+    @NotBlank(message = "DisplayName is required")
     private String displayName;
     private List<String> descriptionKeywords;
     @Positive(message = "Max retry attempts should be greater than 0")
