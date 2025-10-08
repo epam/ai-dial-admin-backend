@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,15 +33,21 @@ public class RouteFacade {
         return mapper.toDto(route);
     }
 
+    public DtoWithDomainHash<RouteDto> getRouteWithHash(String toolSetName) {
+        var routeWithHash = routeService.getRouteWithHash(toolSetName);
+        RouteDto dto = mapper.toDto(routeWithHash.model());
+        return new DtoWithDomainHash<>(dto, routeWithHash.hash());
+    }
+
     public void createRoute(RouteDto routeDto) {
         Optional.of(routeDto)
                 .map(mapper::toDomain)
                 .ifPresent(routeService::create);
     }
 
-    public void updateRoute(String routeName, RouteDto routeDto) {
+    public String updateRoute(String routeName, RouteDto routeDto, String hash) {
         Route value = mapper.toDomain(routeDto);
-        routeService.update(routeName, value);
+        return routeService.update(routeName, value, hash);
     }
 
     public void deleteRoute(String routeName) {

@@ -2,11 +2,11 @@ package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
-import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.epam.aidial.cfg.web.controller.RouteController;
-import com.epam.aidial.cfg.web.facade.RouteFacade;
+import com.epam.aidial.cfg.web.controller.RoleController;
+import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -33,59 +33,57 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = RouteController.class)
+@WebMvcTest(controllers = RoleController.class)
 @Import({
         JsonMapperConfiguration.class,
 })
-class RouteControllerTest extends AbstractControllerNoneSecureTest {
-    private static final String DTO_JSON_PATH = "/route_dto.json";
-    private static final String TEST_ROUTE_NAME = "test_route";
-    private static final String ROUTE_BASE_API_PATH = "/api/v1/routes";
-    private static final String ROUTE_API_PATH = ROUTE_BASE_API_PATH + "/{routeName}";
+class RoleControllerTest extends AbstractControllerNoneSecureTest {
+    private static final String DTO_JSON_PATH = "/role_dto.json";
+    private static final String DTO_RESPONSE_JSON_PATH = "/role_dto_response.json";
+    private static final String TEST_ROLE_NAME = "testRole";
+    private static final String ROLE_BASE_API_PATH = "/api/v1/roles";
+    private static final String ROLE_API_PATH = ROLE_BASE_API_PATH + "/{roleName}";
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private RouteFacade routeFacade;
+    private RoleFacade roleFacade;
 
     @Test
-    void testGetAllRoutes() throws Exception {
-        // given
-        var dtosJson = ResourceUtils.readResource("/route_dtos.json");
-        var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<RouteDto>>() {
+    void testGetAllRoles() throws Exception {
+        var dtosJson = ResourceUtils.readResource("/role_dtos.json");
+        var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<RoleDto>>() {
         });
 
-        when(routeFacade.getAllRoutes()).thenReturn(dtos);
-        // when
-        mockMvc.perform(get(ROUTE_BASE_API_PATH))
-                //then
+        when(roleFacade.getAllRoles()).thenReturn(dtos);
+
+        mockMvc.perform(get(ROLE_BASE_API_PATH))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtosJson, JsonCompareMode.LENIENT));
 
     }
 
     @Test
-    void testGetRouteWithoutHeaderIfNoneMatch() throws Exception {
-        mockMvc.perform(get(ROUTE_API_PATH, TEST_ROUTE_NAME))
+    void testGetRoleWithoutHeaderIfNoneMatch() throws Exception {
+        mockMvc.perform(get(ROLE_API_PATH, TEST_ROLE_NAME))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
                         .value("Required request header 'If-None-Match' for method parameter type String is not present"));
     }
 
     @Test
-    void testGetRouteWithSameHash() throws Exception {
+    void testGetRoleWithSameHash() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<RouteDto>() {
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<RoleDto>() {
         });
 
-        when(routeFacade.getRouteWithHash(eq(TEST_ROUTE_NAME))).thenReturn(
+        when(roleFacade.getRoleWithHash(eq(TEST_ROLE_NAME))).thenReturn(
                 new DtoWithDomainHash<>(dto, "1"));
 
-        mockMvc.perform(get(ROUTE_API_PATH, TEST_ROUTE_NAME)
+        mockMvc.perform(get(ROLE_API_PATH, TEST_ROLE_NAME)
                         .header(HEADER_IF_NONE_MATCH, "1"))
                 .andExpect(status().isNotModified())
                 .andExpect(header().exists(HEADER_ETAG))
@@ -93,108 +91,107 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testGetRouteWithDifferentHash() throws Exception {
+    void testGetRoleWithDifferentHash() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<RouteDto>() {
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<RoleDto>() {
         });
 
-        when(routeFacade.getRouteWithHash(eq(TEST_ROUTE_NAME))).thenReturn(
+        var dtoResponseJson = ResourceUtils.readResource(DTO_RESPONSE_JSON_PATH);
+
+        when(roleFacade.getRoleWithHash(eq(TEST_ROLE_NAME))).thenReturn(
                 new DtoWithDomainHash<>(dto, "2"));
 
-        mockMvc.perform(get(ROUTE_API_PATH, TEST_ROUTE_NAME)
+        mockMvc.perform(get(ROLE_API_PATH, TEST_ROLE_NAME)
                         .header(HEADER_IF_NONE_MATCH, "1"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HEADER_ETAG))
                 .andExpect(header().string(HEADER_ETAG, "\"2\""))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+                .andExpect(content().json(dtoResponseJson, JsonCompareMode.LENIENT));
     }
 
     @Test
-    void testCreateRoute() throws Exception {
-        // given
+    void testCreateRole() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
-        doNothing().when(routeFacade).createRoute(any());
-        // when
-        mockMvc.perform(post(ROUTE_BASE_API_PATH)
+        doNothing().when(roleFacade).createRole(any());
+        mockMvc.perform(post(ROLE_BASE_API_PATH)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
-                // then
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    void testCreateRoute_WithEmptyPaths_BadRequest() throws Exception {
+    void testCreateRole_WithInvalidResourceTypeInShare_BadRequest() throws Exception {
         // given
-        var dtoJson = ResourceUtils.readResource("/route_dto_with_empty_paths.json");
-
-        doNothing().when(routeFacade).createRoute(any());
-        // when
-        mockMvc.perform(post(ROUTE_BASE_API_PATH)
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                        .content(dtoJson))
-                // then
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void testCreateRoute_WithInvalidPath_BadRequest() throws Exception {
-        // given
-        var dtoJson = ResourceUtils.readResource("/route_dto_with_invalid_path.json");
-
-        doNothing().when(routeFacade).createRoute(any());
+        var dtoJson = ResourceUtils.readResource("/role_dto_with_invalid_resource_type_in_share.json");
 
         // when
-        mockMvc.perform(post("/api/v1/routes")
+        mockMvc.perform(post("/api/v1/roles")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("paths[0].<list element>: Invalid regular expression pattern"));
+                .andExpect(jsonPath("$.message").value("JSON parse error: Cannot deserialize "
+                        + "Map key of type `com.epam.aidial.cfg.dto.ResourceTypeDto` from String \"invalid\": "
+                        + "not a valid representation, problem: (java.lang.IllegalArgumentException) Invalid resource type: invalid"));
     }
 
     @Test
-    void testUpdateRoute() throws Exception {
+    void testCreateRole_WithEmptyResourceTypeInShare_BadRequest() throws Exception {
         // given
+        var dtoJson = ResourceUtils.readResource("/role_dto_with_empty_resource_type_in_share.json");
+
+        // when
+        mockMvc.perform(post("/api/v1/roles")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("JSON parse error: Cannot deserialize "
+                        + "Map key of type `com.epam.aidial.cfg.dto.ResourceTypeDto` from String \"\": "
+                        + "not a valid representation, problem: (java.lang.IllegalArgumentException) Invalid resource type: "));
+    }
+
+    @Test
+    void testUpdateRole() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
-        when(routeFacade.updateRoute(eq(TEST_ROUTE_NAME), any(), eq("1")))
+        when(roleFacade.updateRole(eq(TEST_ROLE_NAME), any(), eq("1")))
                 .thenReturn("2");
-        // when
-        mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
+
+        mockMvc.perform(put(ROLE_API_PATH, TEST_ROLE_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
-                // then
                 .andExpect(status().isNoContent())
                 .andExpect(header().exists(HEADER_ETAG))
                 .andExpect(header().string(HEADER_ETAG, "\"2\""));
     }
 
     @Test
-    void testUpdateRouteWithNotMatchHash() throws Exception {
+    void testUpdateRoleWithNotMatchHash() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<RouteDto>() {
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<RoleDto>() {
         });
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(routeFacade).updateRoute(eq(TEST_ROUTE_NAME), any(), eq("1"));
+                .when(roleFacade).updateRole(eq(TEST_ROLE_NAME), any(), eq("1"));
 
-        mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
+        mockMvc.perform(put(ROLE_API_PATH, TEST_ROLE_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
                 .andExpect(status().isPreconditionFailed())
                 .andExpect(jsonPath("$.message").value("Conflict Exception"));
-        verify(routeFacade).updateRoute(eq(TEST_ROUTE_NAME), eq(dto), eq("1"));
+        verify(roleFacade).updateRole(eq(TEST_ROLE_NAME), eq(dto), eq("1"));
     }
 
     @Test
-    void testUpdateRouteWithoutHeaderIfMatch() throws Exception {
+    void testUpdateRoleWithoutHeaderIfMatch() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
-        mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
+        mockMvc.perform(put(ROLE_API_PATH, TEST_ROLE_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isBadRequest())
@@ -203,12 +200,10 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testDeleteRoute() throws Exception {
-        // given
-        doNothing().when(routeFacade).deleteRoute(any());
-        // when
-        mockMvc.perform(delete(ROUTE_API_PATH, TEST_ROUTE_NAME))
-                // then
+    void testDeleteRole() throws Exception {
+        doNothing().when(roleFacade).deleteRole(any());
+        mockMvc.perform(delete(ROLE_API_PATH, TEST_ROLE_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isNoContent());
     }
 }

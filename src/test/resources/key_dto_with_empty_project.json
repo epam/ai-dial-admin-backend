@@ -1,0 +1,12 @@
+{
+  "name": "testName1",
+  "displayName": "testName1",
+  "key": "testKey1",
+  "project": "",
+  "roles": [
+    "testRole1"
+  ],
+  "secured": true,
+  "description": "key description",
+  "projectContactPoint": "owner@mail.com"
+}

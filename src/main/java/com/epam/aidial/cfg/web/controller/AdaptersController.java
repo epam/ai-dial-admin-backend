@@ -5,8 +5,10 @@ import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,8 +41,12 @@ public class AdaptersController {
 
     @GetMapping(path = "/{adapterName}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public AdapterDto getAdapter(@PathVariable String adapterName) {
-        return adapterFacade.getAdapter(adapterName);
+    public ResponseEntity<AdapterDto> getAdapter(@PathVariable String adapterName,
+                                                 @RequestHeader(value = "If-None-Match") String previousHash) {
+        var dtoWithHash = adapterFacade.getAdapterWithHash(adapterName);
+        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -57,10 +64,11 @@ public class AdaptersController {
 
     @PutMapping(path = "/{adapterName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateAdapter(@PathVariable String adapterName,
-                              @RequestBody @Valid AdapterDto adapterDto) {
-        adapterFacade.updateAdapter(adapterName, adapterDto);
+    public ResponseEntity<Void> updateAdapter(@PathVariable String adapterName,
+                                              @RequestBody @Valid AdapterDto adapterDto,
+                                              @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = adapterFacade.updateAdapter(adapterName, adapterDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     @GetMapping(path = "/{adapterName}/revision/{revision}",
