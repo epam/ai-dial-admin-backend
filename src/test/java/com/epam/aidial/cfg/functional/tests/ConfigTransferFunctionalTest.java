@@ -76,6 +76,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -97,6 +98,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -1126,6 +1128,37 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1");
             Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
         });
+    }
+
+    @Test
+    void testExport_CoreFormatAll_FullRequest() throws IOException, JSONException {
+        // given
+        String importConfig = ResourceUtils.readResource("/import_for_export.json");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        String expectedConfig = ResourceUtils.readResource("/full_core_export.json");
+
+        doReturn(123L).when(transactionTimestampContext).getTimestamp();
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Arrays.stream(ExportConfigComponentType.values()).collect(Collectors.toSet()));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        // then
+        JSONAssert.assertEquals(expectedConfig, outputStream.toString(), true);
     }
 
     @ParameterizedTest
