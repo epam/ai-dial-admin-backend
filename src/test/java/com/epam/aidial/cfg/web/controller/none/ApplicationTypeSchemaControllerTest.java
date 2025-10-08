@@ -89,12 +89,9 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
 
     @Test
     void testGetSchemaWithoutHeaderIfNoneMatch() throws Exception {
-        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
-        });
         mockMvc.perform(get(SCHEMA_BASE_API_PATH)
                         .param(ID, TEST_SCHEMA_NAME))
-                .andExpect(status().isPreconditionFailed())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
                         .value("Header 'If-None-Match' is required when 'id' parameter is provided"));
     }

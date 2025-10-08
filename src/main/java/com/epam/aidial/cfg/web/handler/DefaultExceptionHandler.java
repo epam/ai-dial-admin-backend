@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
-import com.epam.aidial.cfg.exception.PreconditionRequiredException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -57,7 +55,6 @@ public class DefaultExceptionHandler {
     public ErrorView handleEntityNotFoundError(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.NOT_FOUND, ex.getMessage());
     }
-
 
     @ResponseBody
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
@@ -153,7 +150,7 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler({OptimisticLockConflictException.class, ResourcePreconditionFailedException.class, PreconditionRequiredException.class})
+    @ExceptionHandler({OptimisticLockConflictException.class, ResourcePreconditionFailedException.class})
     public ErrorView handlePreconditionFailedException(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.PRECONDITION_FAILED, ex.getMessage());
     }

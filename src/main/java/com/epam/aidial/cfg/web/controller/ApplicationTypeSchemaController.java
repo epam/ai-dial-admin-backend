@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
-import com.epam.aidial.cfg.exception.PreconditionRequiredException;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,7 @@ public class ApplicationTypeSchemaController {
             return ResponseEntity.ok(applicationTypeSchemaFacade.getAll());
         }
         if (StringUtils.isEmpty(previousHash)) {
-            throw new PreconditionRequiredException("Header 'If-None-Match' is required when 'id' parameter is provided");
+            throw new IllegalArgumentException("Header 'If-None-Match' is required when 'id' parameter is provided");
         }
         var schemaDto = applicationTypeSchemaFacade.getSchemaWithHash(id);
         return !schemaDto.hash().equals(StringUtils.unwrap(previousHash, '"'))
