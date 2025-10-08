@@ -118,12 +118,12 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         authSettingsDto.setClientId(clientId + '1');
         updatedToolSet.setAuthSettings(authSettingsDto);
-        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         Long newMinutes = 333L;
         defaultRoleLimit.setMinute(newMinutes);
         updatedToolSet.setDefaultRoleLimit(defaultRoleLimit);
-        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         actual = toolSetFacade.getToolSet(toolSetDto.getName());
         Assertions.assertEquals(actual.getAuthSettings().getClientId(), clientId + '1');
