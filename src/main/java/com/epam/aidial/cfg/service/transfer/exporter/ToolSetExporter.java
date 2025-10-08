@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
-import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
@@ -92,11 +91,10 @@ public class ToolSetExporter {
     }
 
     private ToolSet removeDependency(ToolSet toolSet, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
-        // Exclude role limits and role share resource limits from deployment for Admin export format in order to have unidirectional association
-        // between deployments and roles, so it means that role with its limits and share resource limits will be defined only under "roles" section
+        // Exclude role limits from deployment for Admin export format in order to have unidirectional association
+        // between deployments and roles, so it means that role with its limits will be defined only under "roles" section
         if (!componentTypes.contains(ExportConfigComponentType.ROLE) || exportFormat == ExportFormat.ADMIN) {
             toolSet.getDeployment().setRoleLimits(null);
-            toolSet.getDeployment().setRoleShareResourceLimits(null);
         }
         return toolSet;
     }

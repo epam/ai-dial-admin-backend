@@ -10,7 +10,6 @@ import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
@@ -62,7 +61,7 @@ public abstract class ModelEntityMapper {
 
         if (adapterEntity != null && containerEntity != null) {
             throw new IllegalStateException(
-                "Model cannot have both adapter and container set. Model: " + entity.getId()
+                    "Model cannot have both adapter and container set. Model: " + entity.getId()
             );
         }
 
@@ -93,9 +92,6 @@ public abstract class ModelEntityMapper {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
-        List<RoleEntity> rolesForResourceShareLimits = deploymentEntityMapper.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
-
         String adapterName = null;
         String completionEndpointPath = null;
         ModelContainerEntity modelContainer = null;
@@ -120,7 +116,6 @@ public abstract class ModelEntityMapper {
         updatedEntity.getInterceptors().addAll(duplicatedInterceptors);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
-        deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
 
         AdapterEntity currentAdapter = updatedEntity.getAdapter();
         if (currentAdapter != null) {

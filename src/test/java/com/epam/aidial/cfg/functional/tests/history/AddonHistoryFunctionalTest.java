@@ -51,14 +51,11 @@ public abstract class AddonHistoryFunctionalTest {
         var expected = createAddonDtoWithAllLimits("1");
         expected.setDescription("new addon description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         assertAddon(actual, expected);
 
         // 3 add roles to addon1
         updatedAddon.setDefaultRoleLimit(new LimitDto());
-        updatedAddon.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedAddon.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedAddon.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         addonFacade.updateAddon(addonDto.getName(), updatedAddon);
         actual = addonFacade.getAddon(addonDto.getName());
         assertAddon(actual, updatedAddon);
@@ -69,7 +66,6 @@ public abstract class AddonHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedAddon.setRoleLimits(Map.of("role3", limitDto));
-        updatedAddon.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         addonFacade.updateAddon(addonDto.getName(), updatedAddon);
         var actualAtRevision = addonFacade.getAddon(addonDto.getName());
         assertAddon(actualAtRevision, updatedAddon);
@@ -80,7 +76,6 @@ public abstract class AddonHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = addonFacade.getAddon(addonDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete addon 1
         addonFacade.deleteAddon(addonDto.getName());

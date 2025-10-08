@@ -125,7 +125,7 @@
         "name": "role1",
         "limits": {},
         "share": {
-          "model1": {
+          "APPLICATION": {
             "maxAcceptedUsers": 10,
             "invitationTtl": 120
           }

@@ -71,16 +71,12 @@
             "limit": {}
           }
         ],
-        "share": [
-          {
-            "role": "testRole1",
-            "deploymentName": "testModel1",
-            "limit": {
-              "maxAcceptedUsers": 10,
-              "invitationTtl": 120
-            }
+        "share": {
+          "APPLICATION": {
+            "maxAcceptedUsers": 10,
+            "invitationTtl": 120
           }
-        ],
+        },
         "costLimit": {
           "minute": "111",
           "day": "222",
@@ -148,7 +144,6 @@
             }
           }
         ],
-        "share": [],
         "costLimit": {
           "minute": "111",
           "day": "222",
@@ -216,7 +211,6 @@
             }
           }
         ],
-        "share": [],
         "costLimit": {
           "minute": "111",
           "day": "222",
@@ -284,7 +278,6 @@
             }
           }
         ],
-        "share": [],
         "costLimit": {
           "minute": "9223372036854775807",
           "day": "9223372036854775807",
@@ -443,12 +436,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "response": {
           "status": 200,
@@ -569,12 +558,8 @@
               }
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": true,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Model2",
         "displayVersion": "1.0.0",
@@ -676,21 +661,8 @@
               }
             }
           ],
-          "roleShareResourceLimits": [
-            {
-              "role": "testRole1",
-              "deploymentName": "testModel1",
-              "limit": {
-                "maxAcceptedUsers": 10,
-                "invitationTtl": 120
-              }
-            }
-          ],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
@@ -795,13 +767,8 @@
               }
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": 10,
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "displayName": "Test Application1",
         "displayVersion": "2.0.0",
@@ -894,13 +861,8 @@
               }
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "maxAcceptedUsers": 10,
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
         "displayName": "Test Application2",
@@ -942,12 +904,8 @@
               "limit": {}
             }
           ],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          }
+          "defaultRoleLimit": {}
         },
         "endpoint": "https://endpoint.test.com/embeddings",
         "iconUrl": "https://test.com/icon",
@@ -967,12 +925,8 @@
         "deployment": {
           "name": "toolset1",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
           "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {
-            "invitationTtl": 259200
-          },
           "authSettings": {
             "authenticationType": "API_KEY",
             "clientId": "some-client-id",

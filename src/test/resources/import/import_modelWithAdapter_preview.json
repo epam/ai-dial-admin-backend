@@ -22,10 +22,8 @@
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "source": {
           "$type": "adapter",
@@ -69,10 +67,8 @@
         "deployment": {
           "name": "testModel1",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
+          "defaultRoleLimit": {}
         },
         "source": {
           "$type": "adapter",

@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Role;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -147,7 +146,7 @@ public class ToolSetImporter extends RoleBasedImporter {
 
     private ToolSet map(String toolSetName, CoreToolSet toolSet) {
         toolSet.setName(toolSetName);
-        return toolSetCoreMapper.mapToolSet(toolSet, new ShareResourceLimit());
+        return toolSetCoreMapper.mapToolSet(toolSet);
     }
 
     private void validate(String toolSetName, ToolSet toolSet) {

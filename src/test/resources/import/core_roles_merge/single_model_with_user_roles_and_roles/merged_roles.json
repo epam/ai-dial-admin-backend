@@ -10,16 +10,12 @@
         "limit": {}
       }
     ],
-    "share": [
-      {
-        "role": "userRoleInRolesSectionWithoutLimits",
-        "deploymentName": "testModel1",
-        "limit": {
-          "maxAcceptedUsers": 10,
-          "invitationTtl": 120
-        }
+    "share": {
+      "APPLICATION": {
+        "maxAcceptedUsers": 10,
+        "invitationTtl": 120
       }
-    ],
+    },
     "costLimit": {
       "minute": "111",
       "day": "222",
@@ -38,16 +34,12 @@
         "limit": {}
       }
     ],
-    "share": [
-      {
-        "role": "userRoleInRolesSectionWithNullLimits",
-        "deploymentName": "testModel1",
-        "limit": {
-          "maxAcceptedUsers": 10,
-          "invitationTtl": 120
-        }
+    "share": {
+      "APPLICATION": {
+        "maxAcceptedUsers": 10,
+        "invitationTtl": 120
       }
-    ],
+    },
     "costLimit": {
       "minute": "111",
       "day": "222",
@@ -66,16 +58,12 @@
         "limit": {}
       }
     ],
-    "share": [
-      {
-        "role": "userRoleInRolesSectionWithEmptyLimits",
-        "deploymentName": "testModel1",
-        "limit": {
-          "maxAcceptedUsers": 10,
-          "invitationTtl": 120
-        }
+    "share": {
+      "APPLICATION": {
+        "maxAcceptedUsers": 10,
+        "invitationTtl": 120
       }
-    ],
+    },
     "costLimit": {
       "minute": "111",
       "day": "222",
@@ -94,16 +82,12 @@
         "limit": {}
       }
     ],
-    "share": [
-      {
-        "role": "userRoleInRolesSectionWithNullLimit",
-        "deploymentName": "testModel1",
-        "limit": {
-          "maxAcceptedUsers": 10,
-          "invitationTtl": 120
-        }
+    "share": {
+      "APPLICATION": {
+        "maxAcceptedUsers": 10,
+        "invitationTtl": 120
       }
-    ],
+    },
     "costLimit": {
       "minute": "111",
       "day": "222",
@@ -129,16 +113,12 @@
         }
       }
     ],
-    "share": [
-      {
-        "role": "userRoleInRolesSectionWithEmptyLimit",
-        "deploymentName": "testModel1",
-        "limit": {
-          "maxAcceptedUsers": 10,
-          "invitationTtl": 120
-        }
+    "share": {
+      "APPLICATION": {
+        "maxAcceptedUsers": 10,
+        "invitationTtl": 120
       }
-    ],
+    },
     "costLimit": {
       "minute": "111",
       "day": "222",
@@ -164,7 +144,6 @@
         }
       }
     ],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",
@@ -176,7 +155,6 @@
     "name": "roleInRolesSectionWithoutLimits",
     "displayName": "roleInRolesSectionWithoutLimits",
     "limits": [],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",
@@ -188,7 +166,6 @@
     "name": "roleInRolesSectionWithNullLimits",
     "displayName": "roleInRolesSectionWithNullLimits",
     "limits": [],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",
@@ -200,7 +177,6 @@
     "name": "roleInRolesSectionWithEmptyLimits",
     "displayName": "roleInRolesSectionWithEmptyLimits",
     "limits": [],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",
@@ -212,7 +188,6 @@
     "name": "roleInRolesSectionWithNullLimit",
     "displayName": "roleInRolesSectionWithNullLimit",
     "limits": [],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",
@@ -238,7 +213,6 @@
         }
       }
     ],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",
@@ -264,7 +238,6 @@
         }
       }
     ],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",
@@ -283,7 +256,6 @@
         "limit": {}
       }
     ],
-    "share": [],
     "costLimit": {
       "minute": "9223372036854775807",
       "day": "9223372036854775807",

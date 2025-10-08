@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -137,9 +136,7 @@ public abstract class AdapterFunctionalTest {
         expectedModel1.setSource(source2);
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
-        expectedModel1.setRoleShareResourceLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
-        expectedModel1.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
     }
 
@@ -166,9 +163,7 @@ public abstract class AdapterFunctionalTest {
         expectedModel1.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
-        expectedModel1.setRoleShareResourceLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
-        expectedModel1.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
 
         // remove model from adapter
@@ -185,9 +180,7 @@ public abstract class AdapterFunctionalTest {
         ModelDto expectedModel2 = createModelDto("1");
         expectedModel2.setDefaults(Map.of());
         expectedModel2.setRoleLimits(Map.of());
-        expectedModel2.setRoleShareResourceLimits(Map.of());
         expectedModel2.setDefaultRoleLimit(new LimitDto());
-        expectedModel2.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expectedModel2.setSource(new ModelEndpointsSourceDto());
         expectedModel2.setEndpoint("https://endpoint.test.com/adapter1/chat/completions");
         Assertions.assertEquals(expectedModel2, actualModel2);
