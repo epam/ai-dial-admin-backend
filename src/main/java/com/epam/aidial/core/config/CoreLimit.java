@@ -1,15 +1,23 @@
 package com.epam.aidial.core.config;
 
+import com.epam.aidial.core.config.databind.OmitLongMaxValueFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 @Data
 public class CoreLimit {
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = OmitLongMaxValueFilter.class)
     private Long minute = Long.MAX_VALUE;
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = OmitLongMaxValueFilter.class)
     private Long day = Long.MAX_VALUE;
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = OmitLongMaxValueFilter.class)
     private Long week = Long.MAX_VALUE;
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = OmitLongMaxValueFilter.class)
     private Long month = Long.MAX_VALUE;
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = OmitLongMaxValueFilter.class)
     private Long requestHour = Long.MAX_VALUE;
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = OmitLongMaxValueFilter.class)
     private Long requestDay = Long.MAX_VALUE;
 
     @JsonIgnore
@@ -34,20 +42,5 @@ public class CoreLimit {
     @JsonIgnore
     public boolean isEmpty() {
         return minute == null && day == null && week == null && month == null && requestDay == null && requestHour == null;
-    }
-
-    @JsonIgnore
-    public boolean isUnlimited() {
-        return isUnlimited(minute)
-                && isUnlimited(day)
-                && isUnlimited(week)
-                && isUnlimited(month)
-                && isUnlimited(requestHour)
-                && isUnlimited(requestDay);
-    }
-
-    @JsonIgnore
-    private boolean isUnlimited(Long value) {
-        return value != null && value == Long.MAX_VALUE;
     }
 }
