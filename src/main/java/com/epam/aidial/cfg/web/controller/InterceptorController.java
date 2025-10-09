@@ -61,7 +61,7 @@ public class InterceptorController {
     public ResponseEntity<Void> updateInterceptor(@PathVariable("interceptorName") String interceptorName,
                                                   @RequestBody @Valid InterceptorDto interceptorDto,
                                                   @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = interceptorFacade.updateInterceptor(interceptorName, interceptorDto, previousHash);
+        var newHash = interceptorFacade.updateInterceptor(interceptorName, interceptorDto, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 

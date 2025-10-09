@@ -45,7 +45,6 @@ public abstract class RoleLimitMapper {
                     CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
 
                     if (!mappedLimit.isEmpty()) {
-                        mappedLimit = mappedLimit.isUnlimited() ? CoreLimit.empty() : mappedLimit;
                         result.put(roleLimit.getDeploymentName(), mappedLimit);
                     }
                 });

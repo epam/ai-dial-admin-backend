@@ -42,7 +42,7 @@ public abstract class KeyHistoryFunctionalTest {
         // update key1 description
         KeyDto updatedKey = createKeyDtoWithRole("1");
         updatedKey.setDescription("new key description");
-        keyFacade.updateKey(keyDto.getName(), updatedKey);
+        keyFacade.updateKey(keyDto.getName(), updatedKey, "*");
 
         // verify key1
         KeyDto actual = keyFacade.getKey(keyDto.getName());
@@ -52,7 +52,7 @@ public abstract class KeyHistoryFunctionalTest {
 
         // add roles to key1
         updatedKey.setRoles(List.of("role1", "role2", "role3"));
-        keyFacade.updateKey(keyDto.getName(), updatedKey);
+        keyFacade.updateKey(keyDto.getName(), updatedKey, "*");
         actual = keyFacade.getKey(keyDto.getName());
         assertKey(actual, updatedKey);
 

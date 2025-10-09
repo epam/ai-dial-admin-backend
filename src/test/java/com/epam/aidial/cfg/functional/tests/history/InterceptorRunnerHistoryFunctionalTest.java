@@ -29,7 +29,7 @@ public abstract class InterceptorRunnerHistoryFunctionalTest {
         // update interceptorRunner1 description
         InterceptorRunnerDto updatedInterceptorRunner = createDto("1");
         updatedInterceptorRunner.setDescription("new interceptorRunner description");
-        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner);
+        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner, "*");
 
         // verify interceptorRunner1
         InterceptorRunnerDto actual = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
@@ -40,7 +40,7 @@ public abstract class InterceptorRunnerHistoryFunctionalTest {
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
         updatedInterceptorRunner.setDescription("new new interceptorRunner description");
-        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner);
+        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner, "*");
 
         // delete interceptorRunner 1
         interceptorRunnerFacade.deleteInterceptorRunner(interceptorRunnerDto.getName(), false);
