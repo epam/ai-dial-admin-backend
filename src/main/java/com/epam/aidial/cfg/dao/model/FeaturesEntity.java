@@ -43,4 +43,5 @@ public class FeaturesEntity {
     private Boolean autoCachingSupported;
     private Boolean consentRequired;
     private boolean parallelToolCallsSupported = true;
+    private boolean assistantAttachmentsInRequestSupported;
 }
