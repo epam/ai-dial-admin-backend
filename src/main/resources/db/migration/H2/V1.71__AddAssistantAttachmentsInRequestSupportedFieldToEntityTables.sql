@@ -1,9 +1,3 @@
--- add AssistantAttachmentsInRequestSupported field to features_entity table
-alter table if exists features_entity add column if not exists assistant_attachments_in_request_supported boolean;
-
--- add AssistantAttachmentsInRequestSupported field to features_entity_aud table
-alter table if exists features_entity_aud add column if not exists assistant_attachments_in_request_supported boolean;
-
 -- add AssistantAttachmentsInRequestSupported field to application_entity table
 alter table if exists application_entity add column if not exists assistant_attachments_in_request_supported boolean;
 
