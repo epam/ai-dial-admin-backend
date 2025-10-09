@@ -1,14 +1,14 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.KeyDto;
-import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,8 +42,12 @@ public class KeyController {
     }
 
     @GetMapping(path = "/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public KeyDto getKey(@PathVariable String name) {
-        return keyFacade.getKey(name);
+    public ResponseEntity<KeyDto> getKey(@PathVariable String name,
+                                         @RequestHeader(value = "If-None-Match") String previousHash) {
+        var dtoWithHash = keyFacade.getKeyWithHash(name);
+        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -52,9 +57,11 @@ public class KeyController {
     }
 
     @PutMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateKey(@PathVariable String name, @RequestBody @Valid KeyDto keyDto) {
-        keyFacade.updateKey(name, keyDto);
+    public ResponseEntity<Void> updateKey(@PathVariable String name,
+                                          @RequestBody @Valid KeyDto keyDto,
+                                          @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = keyFacade.updateKey(name, keyDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     @DeleteMapping(path = "/{name}")

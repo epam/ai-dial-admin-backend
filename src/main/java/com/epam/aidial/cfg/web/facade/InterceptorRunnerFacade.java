@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.InterceptorRunner;
 import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorRunnerDtoMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,15 +33,20 @@ public class InterceptorRunnerFacade {
         return mapper.toDto(interceptorRunner);
     }
 
+    public DtoWithDomainHash<InterceptorRunnerDto> getInterceptorRunnerWithHash(String id) {
+        var interceptorRunnerWithHash = interceptorRunnerService.getInterceptorRunnerWithHash(id);
+        return new DtoWithDomainHash<>(mapper.toDto(interceptorRunnerWithHash.model()), interceptorRunnerWithHash.hash());
+    }
+
     public void createInterceptorRunner(InterceptorRunnerDto interceptorRunnerDto) {
         Optional.of(interceptorRunnerDto)
                 .map(mapper::toDomain)
                 .ifPresent(interceptorRunnerService::create);
     }
 
-    public void updateInterceptorRunner(String interceptorRunnerName, InterceptorRunnerDto interceptorRunnerDto) {
+    public String updateInterceptorRunner(String interceptorRunnerName, InterceptorRunnerDto interceptorRunnerDto, String hash) {
         InterceptorRunner value = mapper.toDomain(interceptorRunnerDto);
-        interceptorRunnerService.update(interceptorRunnerName, value);
+        return interceptorRunnerService.update(interceptorRunnerName, value, hash);
     }
 
     public void deleteInterceptorRunner(String interceptorRunnerName, boolean removeInterceptor) {
