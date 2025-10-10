@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
-import com.epam.aidial.cfg.dao.model.LimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
@@ -13,7 +12,6 @@ import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
-import com.google.common.base.Objects;
 import org.apache.commons.collections4.SetUtils;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
@@ -35,8 +33,6 @@ public abstract class DeploymentEntityMapper {
 
     @Autowired
     private RoleLimitEntityMapper roleLimitEntityMapper;
-    @Autowired
-    private LimitEntityMapper limitEntityMapper;
 
     @Autowired
     private RoleJpaRepository roleJpaRepository;
@@ -97,13 +93,6 @@ public abstract class DeploymentEntityMapper {
                 }
             }
         }
-    }
-
-    public boolean isDefaultRoleLimitDifferent(Deployment deployment, DeploymentEntity deploymentEntity) {
-        Limit defaultRoleLimit = deployment != null ? deployment.getDefaultRoleLimit() : null;
-        LimitEntity entityDefaultRoleLimit = deploymentEntity != null ? deploymentEntity.getDefaultRoleLimit() : null;
-        Limit mappedEntityDefaultRoleLimit = limitEntityMapper.toDomain(entityDefaultRoleLimit);
-        return !Objects.equal(defaultRoleLimit, mappedEntityDefaultRoleLimit);
     }
 
     private RoleLimitEntity mapToRoleLimitEntity(RoleLimit roleLimit,
