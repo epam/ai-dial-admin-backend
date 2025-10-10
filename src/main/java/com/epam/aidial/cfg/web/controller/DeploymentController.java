@@ -1,11 +1,15 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.service.CoreDeploymentService;
 import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 
@@ -16,10 +20,16 @@ import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
 public class DeploymentController {
 
     private final DeploymentFacade deploymentFacade;
+    private final CoreDeploymentService coreDeploymentService;
 
     @RequestMapping(method = HEAD, path = "/{deploymentName}")
     public void ensureExists(@PathVariable String deploymentName) {
         deploymentFacade.ensureExists(deploymentName);
+    }
+
+    @GetMapping(path = "/{deploymentName}/configuration")
+    public Map<String, Object> getConfiguration(@PathVariable String deploymentName) {
+        return coreDeploymentService.getConfiguration(deploymentName);
     }
 
 }
