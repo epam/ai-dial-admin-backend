@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {
-        DeploymentEntityMapper.class, ToolSetContainerEntityMapper.class, ResourceAuthSettingsEntityMapper.class
+        DeploymentEntityMapper.class, ToolSetContainerEntityMapper.class
 })
 public abstract class ToolSetEntityMapper {
 
@@ -27,8 +27,6 @@ public abstract class ToolSetEntityMapper {
     private DeploymentEntityMapper deploymentEntityMapper;
     @Autowired
     private ToolSetContainerEntityMapper toolSetContainerEntityMapper;
-    @Autowired
-    private ResourceAuthSettingsEntityMapper authSettingsEntityMapper;
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     public abstract ToolSet toDomain(ToolSetEntity entity);
