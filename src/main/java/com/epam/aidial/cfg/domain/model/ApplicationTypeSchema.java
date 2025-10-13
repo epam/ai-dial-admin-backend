@@ -32,6 +32,7 @@ public class ApplicationTypeSchema {
     private String applicationTypeIconUrl;
     private List<DependentRoute> applicationTypeRoutes;
     private Boolean applicationTypePlaybackSupport;
+    private CopyAppBucketOptions applicationTypeBucketCopy;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
@@ -51,5 +52,10 @@ public class ApplicationTypeSchema {
     public enum Type {
         OBJECT,
         BOOLEAN,
+    }
+
+    public enum CopyAppBucketOptions {
+        ENABLED,
+        DISABLED,
     }
 }
