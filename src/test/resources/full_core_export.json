@@ -107,7 +107,8 @@
         "content_parts_supported": false,
         "temperature_supported": true,
         "addons_supported": true,
-        "parallel_tool_calls_supported": true
+        "parallel_tool_calls_supported": true,
+        "assistant_attachments_in_request_supported": false
       },
       "defaults": {},
       "interceptors": [],
@@ -135,7 +136,9 @@
         "content_parts_supported": false,
         "temperature_supported": true,
         "addons_supported": true,
-        "parallel_tool_calls_supported": true
+        "parallel_tool_calls_supported": true,
+        "assistant_attachments_in_request_supported": false
+
       },
       "defaults": {},
       "interceptors": [
@@ -178,7 +181,8 @@
         "content_parts_supported": false,
         "temperature_supported": true,
         "addons_supported": true,
-        "parallel_tool_calls_supported": true
+        "parallel_tool_calls_supported": true,
+        "assistant_attachments_in_request_supported": false
       },
       "defaults": {},
       "interceptors": [
@@ -216,7 +220,8 @@
         "content_parts_supported": false,
         "temperature_supported": true,
         "addons_supported": true,
-        "parallel_tool_calls_supported": true
+        "parallel_tool_calls_supported": true,
+        "assistant_attachments_in_request_supported": false
       },
       "defaults": {},
       "interceptors": [],
@@ -316,7 +321,8 @@
         "content_parts_supported": false,
         "temperature_supported": true,
         "addons_supported": true,
-        "parallel_tool_calls_supported": true
+        "parallel_tool_calls_supported": true,
+        "assistant_attachments_in_request_supported": false
       },
       "defaults": {},
       "interceptors": [],

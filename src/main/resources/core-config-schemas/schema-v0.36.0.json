@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Core Config Schema v0.35.0",
+  "title": "Core Config Schema v0.36.0",
   "type": "object",
   "properties": {
     "models": {
@@ -409,7 +409,8 @@
         "cacheSupported": {"type": "boolean"},
         "autoCachingSupported": {"type": "boolean"},
         "consentRequired": {"type": "boolean"},
-        "parallelToolCallsSupported": {"type": "boolean"}
+        "parallelToolCallsSupported": {"type": "boolean"},
+        "assistantAttachmentsInRequestSupported": {"type": "boolean"}
       }
     },
     "CoreSecuredResource": {
