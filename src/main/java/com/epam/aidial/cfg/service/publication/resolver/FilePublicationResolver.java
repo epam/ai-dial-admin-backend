@@ -13,7 +13,6 @@ import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.FileService;
-import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,12 +21,11 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @LogExecution
-public class FilePublicationResolver implements PublicationResolver {
+public class FilePublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final FileClientMapper fileClientMapper;
     private final FileService fileService;
-    private final PublicationResourceUrlResolver publicationResourceUrlResolver;
 
     @Override
     public Publication resolvePublication(PublicationDto publicationDto) {
@@ -63,7 +61,7 @@ public class FilePublicationResolver implements PublicationResolver {
     }
 
     private String extractFilePath(PublicationResourceDto publicationResource, PublicationStatusDto status) {
-        var path = publicationResourceUrlResolver.resolveUrl(publicationResource, status);
+        var path = resolver.resolveUrl(publicationResource, status);
         return fileClientMapper.parsePath(path).getPath();
     }
 }

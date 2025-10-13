@@ -27,6 +27,9 @@ import com.epam.aidial.cfg.model.PublicationInfo;
 import com.epam.aidial.cfg.model.PublicationInfos;
 import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.Rule;
+import com.epam.aidial.cfg.model.ToolSetPublication;
+import com.epam.aidial.cfg.model.ToolSetPublicationResource;
+import com.epam.aidial.cfg.model.ToolSetResource;
 import org.apache.commons.collections4.MapUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -163,5 +166,20 @@ public interface PublicationClientMapper {
     default String decodePath(String path) {
         return CoreMetadataUtils.decodePath(path);
     }
+
+    default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<String> files) {
+        var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
+        return toToolSetPublication(dto, path, resources, files);
+    }
+
+    @Mapping(target = "requestName", source = "dto.name")
+    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "resources", source = "resources")
+    @Mapping(target = "files", source = "files")
+    ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files);
+
+    @Mapping(target = "sourceUrl", ignore = true)
+    @Mapping(target = "targetUrl", ignore = true)
+    ToolSetPublicationResource toToolSetPublicationResource(PublicationResourceActionDto action, ToolSetResource toolSetResource);
 
 }
