@@ -42,6 +42,8 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private boolean appendApplicationPropertiesHeader = true;
     private String applicationTypeIconUrl;
     private Boolean applicationTypePlaybackSupport;
+    @Enumerated(EnumType.STRING)
+    private CopyAppBucketOptionsEntity applicationTypeBucketCopy;
 
     @Column(columnDefinition = "CLOB")
     private String defs;
@@ -68,5 +70,10 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     public enum TypeEntity {
         OBJECT,
         BOOLEAN,
+    }
+
+    public enum CopyAppBucketOptionsEntity {
+        ENABLED,
+        DISABLED,
     }
 }

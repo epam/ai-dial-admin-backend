@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Core Config Schema v0.36.0",
+  "title": "Core Config Schema v0.37.0",
   "type": "object",
   "properties": {
     "models": {
@@ -299,6 +299,7 @@
             "dial:applicationTypeIconUrl": {"type": "string"},
             "dial:applicationTypeRoutes": {"type": "object"},
             "dial:applicationTypePlaybackSupport": {"type": "boolean"},
+            "dial:applicationTypeBucketCopy": {"type": "string", "enum": ["ENABLED", "DISABLED"]},
             "$defs": {"type": "object"},
             "properties": {"type": "object"},
             "required": {
