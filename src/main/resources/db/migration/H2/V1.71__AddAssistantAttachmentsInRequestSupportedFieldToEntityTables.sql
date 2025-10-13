@@ -24,7 +24,7 @@ update assistants_property_entity_aud set assistant_attachments_in_request_suppo
 
 -- add AssistantAttachmentsInRequestSupported field to interceptor_entity table
 alter table if exists interceptor_entity add column if not exists assistant_attachments_in_request_supported boolean;
-update interceptor_entity set assistant_attachments_in_request_supported = false where assistant_attachments_in_request_supported;
+update interceptor_entity set assistant_attachments_in_request_supported = false where assistant_attachments_in_request_supported is null;
 
 -- add AssistantAttachmentsInRequestSupported field to interceptor_entity_aud table
 alter table if exists interceptor_entity_aud add column if not exists assistant_attachments_in_request_supported boolean;
