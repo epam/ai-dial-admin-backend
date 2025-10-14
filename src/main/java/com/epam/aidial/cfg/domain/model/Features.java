@@ -41,4 +41,5 @@ public class Features {
     private Boolean autoCachingSupported;
     private Boolean consentRequired;
     private boolean parallelToolCallsSupported = true;
+    private boolean assistantAttachmentsInRequestSupported;
 }

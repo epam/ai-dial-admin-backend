@@ -72,6 +72,9 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypePlaybackSupport")
     private Boolean applicationTypePlaybackSupport;
 
+    @JsonProperty("dial:applicationTypeBucketCopy")
+    private CopyAppBucketOptionsDto applicationTypeBucketCopy;
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)
@@ -94,6 +97,13 @@ public class ApplicationTypeSchemaDto {
         BOOLEAN,
     }
 
+    public enum CopyAppBucketOptionsDto {
+        @JsonProperty("ENABLED")
+        ENABLED,
+        @JsonProperty("DISABLED")
+        DISABLED,
+    }
+
     public ApplicationTypeSchemaDto(ApplicationTypeSchemaDto other) {
         this.schema = other.schema;
         this.id = other.id;
@@ -112,6 +122,7 @@ public class ApplicationTypeSchemaDto {
         this.applicationTypeIconUrl = other.applicationTypeIconUrl;
         this.applicationTypeRoutes = other.applicationTypeRoutes != null ? new ArrayList<>(other.applicationTypeRoutes) : null;
         this.applicationTypePlaybackSupport = other.applicationTypePlaybackSupport;
+        this.applicationTypeBucketCopy = other.applicationTypeBucketCopy;
         this.defs = other.defs != null ? new HashMap<>(other.defs) : null;
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;

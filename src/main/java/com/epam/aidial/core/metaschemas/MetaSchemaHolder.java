@@ -1,11 +1,11 @@
 package com.epam.aidial.core.metaschemas;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import com.networknt.schema.JsonMetaSchema;
 import com.networknt.schema.NonValidationKeyword;
 import lombok.experimental.UtilityClass;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @UtilityClass
 public class MetaSchemaHolder {
@@ -23,7 +23,7 @@ public class MetaSchemaHolder {
     }
 
     public static JsonMetaSchema.Builder getMetaschemaBuilder() {
-        return JsonMetaSchema.builder(MetaSchemaHolder.CUSTOM_APPLICATION_META_SCHEMA_ID,  JsonMetaSchema.getV7())
+        return JsonMetaSchema.builder(MetaSchemaHolder.CUSTOM_APPLICATION_META_SCHEMA_ID, JsonMetaSchema.getV7())
                 .keyword(new NonValidationKeyword("dial:applicationTypeEditorUrl"))
                 .keyword(new NonValidationKeyword("dial:applicationTypeViewerUrl"))
                 .keyword(new NonValidationKeyword("dial:applicationTypeDisplayName"))
@@ -36,6 +36,7 @@ public class MetaSchemaHolder {
                 .keyword(new NonValidationKeyword("dial:applicationTypeIconUrl"))
                 .keyword(new NonValidationKeyword("dial:applicationTypeRoutes"))
                 .keyword(new NonValidationKeyword("dial:applicationTypePlaybackSupport"))
+                .keyword(new NonValidationKeyword("dial:applicationTypeBucketCopy"))
                 .keyword(new NonValidationKeyword("dial:propertyKind"))
                 .keyword(new NonValidationKeyword("dial:propertyOrder"))
                 .keyword(new NonValidationKeyword("$defs"))

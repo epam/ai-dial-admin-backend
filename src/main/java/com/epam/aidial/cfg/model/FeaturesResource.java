@@ -28,4 +28,5 @@ public class FeaturesResource {
     private Boolean cacheSupported;
     private Boolean autoCachingSupported;
     private Boolean parallelToolCallsSupported;
+    private Boolean assistantAttachmentsInRequestSupported;
 }

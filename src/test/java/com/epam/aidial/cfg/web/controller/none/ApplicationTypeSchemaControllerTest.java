@@ -73,7 +73,6 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
     void testGetSchemaWithSameHash() throws Exception {
         // given
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var expected = ResourceUtils.readResource(DTOS_JSON_PATH);
         var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
         });
 
@@ -98,9 +97,6 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
 
     @Test
     void testGetSchemaByIdWhenSchemaNotExist() throws Exception {
-        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
-        });
         doThrow(new EntityNotFoundException("Not found"))
                 .when(schemaFacade).getSchemaWithHash(eq(TEST_SCHEMA_NAME));
 

@@ -72,7 +72,7 @@ public class ConfigRevisionListener implements EntityTrackingRevisionListener, A
             RoleLimitId roleLimitId = (RoleLimitId) entityId;
             return issueDeploymentAuditActivity(roleLimitId.getDeploymentName(), revEntity, roleLimitId.getRoleName());
         }
-        if (revisionType == RevisionType.MOD && DeploymentEntity.class == entityClass) {
+        if (revisionType == RevisionType.MOD && DeploymentEntity.class.isAssignableFrom(entityClass)) {
             String deploymentName = (String) entityId;
             DeploymentEntity deploymentEntity = findDeployment(deploymentName);
             return List.of(buildDeploymentActivity(revEntity, deploymentEntity));

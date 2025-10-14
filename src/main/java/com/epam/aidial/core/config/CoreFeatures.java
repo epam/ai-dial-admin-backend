@@ -51,4 +51,7 @@ public class CoreFeatures {
 
     @JsonAlias({"parallelToolCallsSupported", "parallel_tool_calls_supported"})
     private Boolean parallelToolCallsSupported; // 0.29.0
+
+    @JsonAlias({"assistantAttachmentsInRequestSupported", "assistant_attachments_in_request_supported"})
+    private Boolean assistantAttachmentsInRequestSupported; //0.37.0
 }

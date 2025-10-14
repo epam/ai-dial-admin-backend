@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 
 import java.time.Instant;
@@ -122,7 +123,7 @@ public class FunctionalTestHelper {
 
     public static KeyDto createKeyDtoWithRole(String suffix) {
         KeyDto keyDto = createKeyDto(suffix);
-        keyDto.setRoles(List.of("role" + suffix));;
+        keyDto.setRoles(List.of("role" + suffix));
         return keyDto;
     }
 
@@ -133,6 +134,7 @@ public class FunctionalTestHelper {
         interceptorDto.setDisplayName("displayName" + suffix);
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         interceptorDto.setEntities(List.of());
+        interceptorDto.setSource(new InterceptorEndpointsSourceDto());
         return interceptorDto;
     }
 
