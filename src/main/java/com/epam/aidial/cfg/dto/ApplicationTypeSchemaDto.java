@@ -98,7 +98,9 @@ public class ApplicationTypeSchemaDto {
     }
 
     public enum CopyAppBucketOptionsDto {
+        @JsonProperty("ENABLED")
         ENABLED,
+        @JsonProperty("DISABLED")
         DISABLED,
     }
 
