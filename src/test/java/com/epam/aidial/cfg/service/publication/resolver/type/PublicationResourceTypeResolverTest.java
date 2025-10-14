@@ -33,7 +33,6 @@ class PublicationResourceTypeResolverTest {
         return Stream.of(
                 Arguments.of(List.of(ResourceTypeDto.PROMPT), ResourceType.PROMPT),
                 Arguments.of(List.of(ResourceTypeDto.TOOL_SET), ResourceType.TOOL_SET),
-                Arguments.of(List.of(ResourceTypeDto.PROMPT), ResourceType.PROMPT),
                 Arguments.of(List.of(ResourceTypeDto.FILE), ResourceType.FILE),
                 Arguments.of(List.of(ResourceTypeDto.APPLICATION), ResourceType.APPLICATION),
                 Arguments.of(List.of(ResourceTypeDto.CONVERSATION), ResourceType.CONVERSATION),

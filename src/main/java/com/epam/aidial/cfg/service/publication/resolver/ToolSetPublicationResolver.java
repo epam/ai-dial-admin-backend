@@ -10,18 +10,25 @@ import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
-import lombok.RequiredArgsConstructor;
+import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@RequiredArgsConstructor
 @LogExecution
 public class ToolSetPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final ToolSetResourceService toolSetResourceService;
+
+    protected ToolSetPublicationResolver(PublicationResourceUrlResolver resolver,
+                                         PublicationClientMapper mapper,
+                                         ToolSetResourceService toolSetResourceService) {
+        super(resolver);
+        this.mapper = mapper;
+        this.toolSetResourceService = toolSetResourceService;
+    }
 
     @Override
     public Publication resolvePublication(PublicationDto publicationDto) {

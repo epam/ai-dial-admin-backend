@@ -10,7 +10,6 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 import java.util.function.Function;
@@ -18,8 +17,11 @@ import java.util.function.Predicate;
 
 public abstract class PublicationResolver {
 
-    @Autowired
-    protected PublicationResourceUrlResolver resolver;
+    protected final PublicationResourceUrlResolver resolver;
+
+    protected PublicationResolver(PublicationResourceUrlResolver resolver) {
+        this.resolver = resolver;
+    }
 
     public abstract Publication resolvePublication(PublicationDto publicationDto);
 

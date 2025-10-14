@@ -10,18 +10,25 @@ import com.epam.aidial.cfg.model.ConversationPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.ConversationService;
-import lombok.RequiredArgsConstructor;
+import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@RequiredArgsConstructor
 @LogExecution
 public class ConversationPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final ConversationService conversationService;
+
+    protected ConversationPublicationResolver(PublicationResourceUrlResolver resolver,
+                                              PublicationClientMapper mapper,
+                                              ConversationService conversationService) {
+        super(resolver);
+        this.mapper = mapper;
+        this.conversationService = conversationService;
+    }
 
     @Override
     public Publication resolvePublication(PublicationDto publicationDto) {

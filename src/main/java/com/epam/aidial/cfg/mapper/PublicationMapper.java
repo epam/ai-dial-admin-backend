@@ -114,19 +114,19 @@ public interface PublicationMapper {
                                                             PublicationResourceAction action,
                                                             List<ConversationDto> conversations);
 
-    ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model,
-                                                          PublicationResourceAction action,
-                                                          List<ToolSetResourceDto> toolSetResources);
-
     default ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model, PublicationResourceAction action) {
         List<ToolSetResourceDto> toolSetResources = model.getResources()
                 .stream()
                 .map(ToolSetPublicationResource::getToolSetResource)
-                .map(this::toToolSetResource)
+                .map(this::toToolSetResourceDto)
                 .toList();
 
         return toToolSetPublicationDto(model, action, toolSetResources);
     }
+
+    ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model,
+                                                          PublicationResourceAction action,
+                                                          List<ToolSetResourceDto> toolSetResources);
 
     private PublicationResourceAction getAction(Publication model) {
         return model.getResources()
@@ -144,9 +144,9 @@ public interface PublicationMapper {
 
     ApplicationResourceDto toApplicationResourceDto(ApplicationResource model);
 
-    ToolSetResourceDto toToolSetResource(ToolSetResource model);
-
     ConversationDto toConversationDto(Conversation model);
+
+    ToolSetResourceDto toToolSetResourceDto(ToolSetResource model);
 
     ResourceType toResourceType(ResourceTypeDto dto);
 

@@ -11,18 +11,25 @@ import com.epam.aidial.cfg.model.PromptPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.prompt.PromptService;
-import lombok.RequiredArgsConstructor;
+import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@RequiredArgsConstructor
 @LogExecution
 public class PromptPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final PromptService promptService;
+
+    protected PromptPublicationResolver(PublicationResourceUrlResolver resolver,
+                                        PublicationClientMapper mapper,
+                                        PromptService promptService) {
+        super(resolver);
+        this.mapper = mapper;
+        this.promptService = promptService;
+    }
 
     @Override
     public Publication resolvePublication(PublicationDto publicationDto) {

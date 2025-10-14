@@ -16,14 +16,12 @@ import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.ConversationService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -43,12 +41,6 @@ class ConversationPublicationResolverTest {
 
     @InjectMocks
     private ConversationPublicationResolver conversationPublicationResolver;
-
-    @BeforeEach
-    void setUp() {
-        conversationPublicationResolver = new ConversationPublicationResolver(publicationClientMapper, conversationService);
-        ReflectionTestUtils.setField(conversationPublicationResolver, "resolver", publicationResourceUrlResolver);
-    }
 
     @Test
     void resolvePublicationShouldReturnCorrectConversationPublication() {
