@@ -100,6 +100,7 @@ public class InterceptorService {
 
     private InterceptorEntity performUpdate(String interceptorName, Interceptor interceptor, String hash) {
         interceptorValidator.validateUpdate(interceptorName, interceptor);
+        resolveEndpointsIfContainerSource(interceptor);
         var interceptorEntity = interceptorJpaRepository.findById(interceptorName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName)));
         assertNotConcurrencyOverwrite(interceptorEntity, hash);
