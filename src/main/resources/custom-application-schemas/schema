@@ -66,8 +66,8 @@
         },
         "dial:applicationTypeBucketCopy": {
           "type": "string",
-          "enum": ["enabled", "disabled"],
-          "default": "disabled",
+          "enum": ["ENABLED", "DISABLED"],
+          "default": "DISABLED",
           "description": "If this flag is set to enabled, files are copied from source to destination of the application's bucket"
         },
         "dial:applicationTypeRoutes": {

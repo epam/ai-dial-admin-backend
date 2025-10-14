@@ -86,8 +86,10 @@ public class CoreApplicationTypeSchema {
 
     public enum CopyAppBucketOptions {
         @JsonAlias("ENABLED")
+        @JsonProperty("ENABLED")
         ENABLED,
         @JsonAlias("DISABLED")
+        @JsonProperty("DISABLED")
         DISABLED,
     }
 }
