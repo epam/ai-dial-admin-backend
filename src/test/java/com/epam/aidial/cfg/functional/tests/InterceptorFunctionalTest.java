@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
+import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
@@ -261,6 +262,45 @@ public abstract class InterceptorFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyUpdateInterceptorWithNewContainerSource() {
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationFacade.createApplication(applicationDto);
+        InterceptorDto interceptorDto = createInterceptorDtoWithEntities("1");
+        interceptorFacade.createInterceptor(interceptorDto);
+        assertAppInterceptors(applicationDto.getName(), List.of("interceptor1"));
+
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerUrl = "https://container-url.com/";
+        String completionPath = "api/completion";
+        String configPath = "api/config";
+        String containerName = "Test Container";
+
+        InterceptorDto updatedInterceptor = createInterceptorDtoWithEntities("1");
+        InterceptorContainerSourceDto source = new InterceptorContainerSourceDto(containerId, containerName, completionPath, configPath);
+        updatedInterceptor.setSource(source);
+
+        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        deploymentInfoDto.setId(UUID.fromString(containerId));
+        deploymentInfoDto.setName(containerName);
+        deploymentInfoDto.setUrl(containerUrl);
+
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        var hash = interceptorFacade.getInterceptorWithHash(interceptorDto.getName()).hash();
+
+        interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, hash);
+
+        InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
+        var expected = createInterceptorDtoWithEntities("1");
+        expected.setSource(source);
+        expected.setEndpoint(containerUrl + completionPath);
+        var features = new FeaturesDto();
+        features.setConfigurationEndpoint(containerUrl + configPath);
+        expected.setFeatures(features);
+        assertInterceptor(actual, expected);
+    }
+
+    @Test
     public void shouldThrowWhenUpdateInterceptorWithIncorrectHash() {
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationFacade.createApplication(applicationDto);
@@ -291,6 +331,8 @@ public abstract class InterceptorFunctionalTest {
     private void assertInterceptor(InterceptorDto actual, InterceptorDto expected) {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getEntities(), actual.getEntities());
+        Assertions.assertEquals(expected.getEndpoint(), actual.getEndpoint());
+        Assertions.assertEquals(expected.getSource(), actual.getSource());
     }
 
     private Map<String, InterceptorDto> toMap(Collection<InterceptorDto> dtos) {
