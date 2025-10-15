@@ -38,6 +38,7 @@ class PublicationResourceTypeResolverTest {
                 Arguments.of(List.of(ResourceTypeDto.CONVERSATION), ResourceType.CONVERSATION),
                 Arguments.of(List.of(ResourceTypeDto.APPLICATION, ResourceTypeDto.FILE), ResourceType.APPLICATION),
                 Arguments.of(List.of(ResourceTypeDto.PROMPT, ResourceTypeDto.FILE), ResourceType.PROMPT),
+                Arguments.of(List.of(ResourceTypeDto.TOOL_SET, ResourceTypeDto.FILE), ResourceType.TOOL_SET),
                 Arguments.of(List.of(ResourceTypeDto.CONVERSATION, ResourceTypeDto.FILE), ResourceType.CONVERSATION),
                 Arguments.of(List.of(ResourceTypeDto.CONVERSATION, ResourceTypeDto.PROMPT), ResourceType.CONVERSATION)
         );
