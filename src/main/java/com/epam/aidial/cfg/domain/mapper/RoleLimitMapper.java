@@ -42,10 +42,12 @@ public abstract class RoleLimitMapper {
         CollectionUtils.emptyIfNull(roleLimits)
                 .forEach(roleLimit -> {
                     Deployment deployment = deploymentsByName.get(roleLimit.getDeploymentName());
-                    CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
+                    if (deployment != null) {
+                        CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
 
-                    if (!mappedLimit.isEmpty()) {
-                        result.put(roleLimit.getDeploymentName(), mappedLimit);
+                        if (!mappedLimit.isEmpty()) {
+                            result.put(roleLimit.getDeploymentName(), mappedLimit);
+                        }
                     }
                 });
 
@@ -53,9 +55,9 @@ public abstract class RoleLimitMapper {
     }
 
     private CoreLimit mapLimit(Limit limit, Deployment deployment) {
-        if (limit == null || deployment == null) {
-            log.warn("Limit or deployment is null. Limit: {}, deployment: {}", limit, deployment);
-            throw new IllegalStateException("Limit or deployment is null");
+        if (limit == null) {
+            log.warn("Limit is null. Deployment: {}", deployment);
+            throw new IllegalStateException("Limit is null");
         }
 
         Limit defaultLimit = deployment.getDefaultRoleLimit();

@@ -1131,6 +1131,47 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExport_CoreFormatRoleWithoutDependencies_SelectedItemsExportRequest() throws IOException {
+        // given
+        String importConfig = ResourceUtils.readResource("/import_for_export.json");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponents(List.of(
+                new ExportConfigComponent("testRole1", ExportConfigComponentType.ROLE, Set.of())
+        ));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getKeys()).isEmpty();
+            Assertions.assertThat(config.getModels()).isEmpty();
+            Assertions.assertThat(config.getApplications()).isEmpty();
+            Assertions.assertThat(config.getRoutes()).isEmpty();
+            Assertions.assertThat(config.getRoles()).containsOnlyKeys("testRole1")
+                    .satisfies(roles -> {
+                        var role = roles.get("testRole1");
+                        Assertions.assertThat(role).isNotNull();
+                        Assertions.assertThat(role.getLimits()).isEmpty();
+                    });
+        });
+    }
+
+    @Test
     void testExport_CoreFormatAll_FullRequest() throws IOException, JSONException {
         // given
         String importConfig = ResourceUtils.readResource("/import_for_export.json");
