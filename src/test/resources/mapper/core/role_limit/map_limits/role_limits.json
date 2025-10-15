@@ -64,5 +64,12 @@
     "limit": {
       "day": 9223372036854775807
     }
+  },
+  {
+    "role": "role1",
+    "deploymentName": "missingDeployment",
+    "limit": {
+      "day": 5
+    }
   }
 ]
