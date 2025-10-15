@@ -32,11 +32,13 @@ class PublicationResourceTypeResolverTest {
     private static Stream<Arguments> resolveResourceTypeShouldReturnCorrectResourceTypeTestParams() {
         return Stream.of(
                 Arguments.of(List.of(ResourceTypeDto.PROMPT), ResourceType.PROMPT),
+                Arguments.of(List.of(ResourceTypeDto.TOOL_SET), ResourceType.TOOL_SET),
                 Arguments.of(List.of(ResourceTypeDto.FILE), ResourceType.FILE),
                 Arguments.of(List.of(ResourceTypeDto.APPLICATION), ResourceType.APPLICATION),
                 Arguments.of(List.of(ResourceTypeDto.CONVERSATION), ResourceType.CONVERSATION),
                 Arguments.of(List.of(ResourceTypeDto.APPLICATION, ResourceTypeDto.FILE), ResourceType.APPLICATION),
                 Arguments.of(List.of(ResourceTypeDto.PROMPT, ResourceTypeDto.FILE), ResourceType.PROMPT),
+                Arguments.of(List.of(ResourceTypeDto.TOOL_SET, ResourceTypeDto.FILE), ResourceType.TOOL_SET),
                 Arguments.of(List.of(ResourceTypeDto.CONVERSATION, ResourceTypeDto.FILE), ResourceType.CONVERSATION),
                 Arguments.of(List.of(ResourceTypeDto.CONVERSATION, ResourceTypeDto.PROMPT), ResourceType.CONVERSATION)
         );
