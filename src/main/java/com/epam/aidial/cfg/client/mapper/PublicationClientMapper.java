@@ -113,6 +113,17 @@ public interface PublicationClientMapper {
     @Mapping(target = "files", source = "files")
     ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<String> files);
 
+    default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<String> files) {
+        var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
+        return toToolSetPublication(dto, path, resources, files);
+    }
+
+    @Mapping(target = "requestName", source = "dto.name")
+    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "resources", source = "resources")
+    @Mapping(target = "files", source = "files")
+    ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files);
+
     @Mapping(target = "sourceUrl", ignore = true)
     @Mapping(target = "targetUrl", ignore = true)
     PromptPublicationResource toPromptPublicationResource(PublicationResourceActionDto action, Prompt prompt);
@@ -128,17 +139,6 @@ public interface PublicationClientMapper {
     @Mapping(target = "sourceUrl", ignore = true)
     @Mapping(target = "targetUrl", ignore = true)
     ConversationPublicationResource toConversationPublicationResource(PublicationResourceActionDto action, Conversation conversation);
-
-    default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<String> files) {
-        var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toToolSetPublication(dto, path, resources, files);
-    }
-
-    @Mapping(target = "requestName", source = "dto.name")
-    @Mapping(target = "folderId", source = "dto.targetFolder")
-    @Mapping(target = "resources", source = "resources")
-    @Mapping(target = "files", source = "files")
-    ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files);
 
     @Mapping(target = "sourceUrl", ignore = true)
     @Mapping(target = "targetUrl", ignore = true)
