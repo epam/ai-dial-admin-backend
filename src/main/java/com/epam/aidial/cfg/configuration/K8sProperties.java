@@ -31,5 +31,6 @@ public class K8sProperties {
         private int requestTimeout;
         private int withWebsocketPingInterval;
         private int withWatchReconnectLimit;
+        private int operationTimeoutMs;
     }
 }
