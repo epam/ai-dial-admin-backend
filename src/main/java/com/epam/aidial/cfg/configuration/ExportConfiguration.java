@@ -35,6 +35,7 @@ import org.springframework.vault.core.VaultTemplate;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 @Configuration
 @EnableScheduling
@@ -90,7 +91,7 @@ public class ExportConfiguration {
     @Bean
     @ConditionalOnExpression(("'${config.export.storageType}' == 'CONFIG_MAP' OR '${config.export.storageType}' == 'KUBE_SECRET'"))
     public K8ConfigService k8ConfigService(K8sProperties k8sProperties) {
-        return new K8ConfigService(k8sProperties);
+        return new K8ConfigService(k8sProperties, Executors.newCachedThreadPool());
     }
 
     @Bean
