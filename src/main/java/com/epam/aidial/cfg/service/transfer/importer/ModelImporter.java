@@ -25,6 +25,7 @@ import com.epam.aidial.core.config.CoreModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -115,7 +116,8 @@ public class ModelImporter extends DeploymentHolderImporter {
                     .formatted(containerId, newModel.getDeployment().getName()), e);
         }
 
-        if (deploymentInfo == null) {
+        if (deploymentInfo == null || StringUtils.isBlank(deploymentInfo.getUrl())) {
+            log.debug("Container is missing or not deployed. ContainerId: {}, deploymentInfo: {}", containerId, deploymentInfo);
             newModel.setSource(null);
         }
     }

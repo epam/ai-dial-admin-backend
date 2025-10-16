@@ -22,6 +22,7 @@ import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -117,7 +118,8 @@ public class ToolSetImporter extends DeploymentHolderImporter {
                     .formatted(containerId, newToolSet.getDeployment().getName()), e);
         }
 
-        if (deploymentInfo == null) {
+        if (deploymentInfo == null || StringUtils.isBlank(deploymentInfo.getUrl())) {
+            log.debug("Container is missing or not deployed. ContainerId: {}, deploymentInfo: {}", containerId, deploymentInfo);
             newToolSet.setSource(null);
         }
     }
