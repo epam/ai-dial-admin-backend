@@ -68,6 +68,7 @@ Applied when: config.export.storageType=CONFIG_MAP|KUBE_SECRET
 | kubernetes-config.client.requestTimeout | KUBERNETES_CONFIG_CLIENT_REQUESTTIMEOUT | 20000 | No | - | Request timeout in milliseconds |
 | kubernetes-config.client.withWebsocketPingInterval | KUBERNETES_CONFIG_CLIENT_WITHWEBSOCKETPINGINTERVAL | 120000 | No | - | WebSocket ping interval in milliseconds |
 | kubernetes-config.client.withWatchReconnectLimit | KUBERNETES_CONFIG_CLIENT_WITHWATCHRECONNECTLIMIT | 16 | No | - | Maximum number of WebSocket watch reconnection attempts |
+| kubernetes-config.client.operationTimeoutMs | KUBERNETES_CONFIG_CLIENT_OPERATIONTIMEOUTMS | 300000 | No | - | Kubernetes operation timeout (update config map, read secret, etc.) |
 
 Additional Kubernetes client configuration options are available from the [Fabric8 Kubernetes Client documentation](https://github.com/fabric8io/kubernetes-client?tab=readme-ov-file#configuring-the-client).
 

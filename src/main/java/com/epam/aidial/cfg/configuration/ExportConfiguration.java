@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -35,6 +36,7 @@ import org.springframework.vault.core.VaultTemplate;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 @Configuration
 @EnableScheduling
@@ -90,7 +92,10 @@ public class ExportConfiguration {
     @Bean
     @ConditionalOnExpression(("'${config.export.storageType}' == 'CONFIG_MAP' OR '${config.export.storageType}' == 'KUBE_SECRET'"))
     public K8ConfigService k8ConfigService(K8sProperties k8sProperties) {
-        return new K8ConfigService(k8sProperties);
+        BasicThreadFactory factory = BasicThreadFactory.builder()
+                .namingPattern("k8-client-pool-%d")
+                .build();
+        return new K8ConfigService(k8sProperties, Executors.newCachedThreadPool(factory));
     }
 
     @Bean
