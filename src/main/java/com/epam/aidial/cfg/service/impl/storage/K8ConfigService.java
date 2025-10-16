@@ -15,6 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 @Slf4j
@@ -24,8 +30,15 @@ public class K8ConfigService {
     private final K8sProperties k8sProperties;
 
     public <T> T withClient(Function<KubernetesClient, T> task) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         try (KubernetesClient client = createKubernetesClient(k8sProperties)) {
-            return task.apply(client);
+            Future<T> future = executorService.submit(() -> task.apply(client));
+            return future.get(k8sProperties.getClient().getRequestTimeout(), TimeUnit.MILLISECONDS);
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            log.warn("Exception occurred during interaction with kubernetes client.", e);
+            throw new RuntimeException(e);
+        } finally {
+            executorService.shutdownNow();
         }
     }
 
