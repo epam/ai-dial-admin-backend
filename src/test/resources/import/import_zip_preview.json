@@ -184,7 +184,7 @@
         "name": "testKey2",
         "displayName": "testKey2",
         "key": "testKey2",
-        "project": "testProject1",
+        "project": "_UNDEFINED_",
         "secured": true,
         "roles": [
           "testRole1"
@@ -210,9 +210,8 @@
       "importAction": "create",
       "next": {
         "name": "testInterceptor1",
-        "displayName": "Test Interceptor1",
+        "displayName": "testInterceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
-        "displayName": "Test Interceptor1",
         "forwardAuthToken": false,
         "author": "test-author",
         "dependencies": [],

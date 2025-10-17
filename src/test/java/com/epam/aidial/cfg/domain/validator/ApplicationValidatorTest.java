@@ -39,7 +39,7 @@ class ApplicationValidatorTest {
     void validateCreation_shouldDelegateToDisplayFieldsValidator() {
         // given
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         Deployment deployment = new Deployment("text");
@@ -49,7 +49,7 @@ class ApplicationValidatorTest {
         applicationValidator.validateCreation(application);
 
         // then
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "text");
     }
 
     @ParameterizedTest
@@ -57,7 +57,7 @@ class ApplicationValidatorTest {
     void validateCreation_shouldThrowExceptionWhenEndpointIsNotNullButBlank(String endpoint) {
         // given
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
         Deployment deployment = new Deployment("text");
@@ -68,7 +68,7 @@ class ApplicationValidatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid endpoint: '" + endpoint + "'. Application: text");
 
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "text");
     }
 
     @ParameterizedTest
@@ -78,7 +78,7 @@ class ApplicationValidatorTest {
         URI applicationTypeSchemaId = applicationTypeSchemaIdAsString != null ? URI.create(applicationTypeSchemaIdAsString) : null;
 
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
         application.setApplicationTypeSchemaId(applicationTypeSchemaId);
@@ -91,7 +91,7 @@ class ApplicationValidatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Missing endpoint and application type schema id. Only one of them should be specified. Application: deploymentName");
 
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
     }
 
     @Test
@@ -120,7 +120,7 @@ class ApplicationValidatorTest {
         Deployment deployment = new Deployment(deploymentName);
 
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setDeployment(deployment);
         application.setEndpoint("test");
@@ -130,7 +130,7 @@ class ApplicationValidatorTest {
 
         // then
         verify(deploymentValidator).validateUpdate(deploymentName, deployment, "Application");
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", deploymentName);
     }
 
     @ParameterizedTest
@@ -138,7 +138,7 @@ class ApplicationValidatorTest {
     void validateUpdate_shouldThrowExceptionWhenEndpointIsNotNullButBlank(String endpoint) {
         // given
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
 
@@ -150,7 +150,7 @@ class ApplicationValidatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid endpoint: '" + endpoint + "'. Application: deploymentName");
 
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
     }
 
     @ParameterizedTest

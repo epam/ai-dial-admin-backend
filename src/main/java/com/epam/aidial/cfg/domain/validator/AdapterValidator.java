@@ -35,13 +35,13 @@ public class AdapterValidator {
             throw new IllegalArgumentException("Adapter name '" + adapterName
                     + "' does not match the required pattern: " + adapterNameValidationPattern);
         }
-        displayFieldsValidator.validateDisplayName(adapter.getDisplayName());
+        displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
     }
 
     public void validateUpdate(String adapterName, Adapter adapter) {
         if (!Objects.equals(adapterName, adapter.getName())) {
             throw new IllegalArgumentException("Adapter with name: '" + adapterName + "' can not be renamed. New adapter name: '" + adapter.getName() + "'");
         }
-        displayFieldsValidator.validateDisplayName(adapter.getDisplayName());
+        displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
     }
 }

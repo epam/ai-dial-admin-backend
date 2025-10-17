@@ -1490,8 +1490,10 @@ public abstract class ConfigTransferFunctionalTest {
 
         Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
 
-        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
-                Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i -> {
+            Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
+            Assertions.assertThat(i.getDisplayName()).isEqualTo("testInterceptor1");
+        });
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
                 Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
         );
@@ -1504,9 +1506,9 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
         });
 
-        Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
-
-        Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
+        Map<String, KeyDto> keys = keyFacade.getAllKeys().stream().collect(Collectors.toMap(KeyDto::getName, Function.identity()));
+        Assertions.assertThat(keys.keySet()).containsExactlyInAnyOrder("testKey1", "testKey2");
+        Assertions.assertThat(keys.get("testKey2")).satisfies(key -> Assertions.assertThat(key.getProject()).isEqualTo("_UNDEFINED_"));
 
         Map<String, AdapterDto> adapters = adapterFacade.getAllAdapters().stream().collect(Collectors.toMap(AdapterDto::getName, a -> a));
 
@@ -1584,8 +1586,10 @@ public abstract class ConfigTransferFunctionalTest {
 
         Map<String, InterceptorDto> interceptors = interceptorFacade.getAllInterceptors().stream().collect(Collectors.toMap(InterceptorDto::getName, i -> i));
 
-        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i ->
-                Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1"));
+        Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i -> {
+            Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
+            Assertions.assertThat(i.getDisplayName()).isEqualTo("testInterceptor1");
+        });
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
                 Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
         );
@@ -1598,9 +1602,9 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(r.getConfigurationEndpoint()).isEqualTo("https://template.test.com/conf");
         });
 
-        Collection<String> allKeys = keyFacade.getAllKeys().stream().map(KeyDto::getName).toList();
-
-        Assertions.assertThat(allKeys).containsExactlyInAnyOrder("testKey1", "testKey2");
+        Map<String, KeyDto> keys = keyFacade.getAllKeys().stream().collect(Collectors.toMap(KeyDto::getName, Function.identity()));
+        Assertions.assertThat(keys.keySet()).containsExactlyInAnyOrder("testKey1", "testKey2");
+        Assertions.assertThat(keys.get("testKey2")).satisfies(key -> Assertions.assertThat(key.getProject()).isEqualTo("_UNDEFINED_"));
 
         Map<String, AdapterDto> adapters = adapterFacade.getAllAdapters().stream().collect(Collectors.toMap(AdapterDto::getName, a -> a));
 

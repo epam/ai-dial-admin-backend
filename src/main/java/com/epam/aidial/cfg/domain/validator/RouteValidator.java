@@ -37,12 +37,12 @@ public class RouteValidator {
             throw new IllegalArgumentException("Route name '" + routeName
                     + "' does not match the required pattern: " + routeNameValidationPattern);
         }
-        displayFieldsValidator.validateDisplayName(route.getDisplayName());
+        displayFieldsValidator.validateDisplayName(route.getDisplayName(), "Route", routeName);
     }
 
     public void validateUpdate(String routeName, Route route) {
         deploymentValidator.validateUpdate(routeName, route.getDeployment(), "Route");
-        displayFieldsValidator.validateDisplayName(route.getDisplayName());
+        displayFieldsValidator.validateDisplayName(route.getDisplayName(), "Route", routeName);
     }
 
     public void validateDependentRoute(DependentRoute dependentRoute) {

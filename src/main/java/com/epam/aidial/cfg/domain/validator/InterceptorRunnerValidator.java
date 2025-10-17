@@ -28,7 +28,7 @@ public class InterceptorRunnerValidator {
 
     public void validateCreation(InterceptorRunner runner) {
         validateInterceptorRunnerName(runner);
-        displayFieldsValidator.validateDisplayName(runner.getDisplayName());
+        displayFieldsValidator.validateDisplayName(runner.getDisplayName(), "InterceptorRunner", runner.getName());
         validateEndpoints(runner.getCompletionEndpoint(), runner.getConfigurationEndpoint(), runner.getName());
     }
 
@@ -37,7 +37,7 @@ public class InterceptorRunnerValidator {
             throw new IllegalArgumentException("Interceptor runner with name: '%s' can not be renamed. New interceptor runner name: '%s'"
                     .formatted(interceptorRunnerName, runner.getName()));
         }
-        displayFieldsValidator.validateDisplayName(runner.getDisplayName());
+        displayFieldsValidator.validateDisplayName(runner.getDisplayName(), "InterceptorRunner", runner.getName());
         validateEndpoints(runner.getCompletionEndpoint(), runner.getConfigurationEndpoint(), runner.getName());
     }
 

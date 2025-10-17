@@ -43,7 +43,7 @@ public class InterceptorValidator {
 
     public void validateCreation(Interceptor interceptor) {
         validateInterceptorName(interceptor);
-        displayFieldsValidator.validateDisplayName(interceptor.getDisplayName());
+        displayFieldsValidator.validateDisplayName(interceptor.getDisplayName(), "Interceptor", interceptor.getName());
         validateInterceptorSource(interceptor);
     }
 
@@ -52,7 +52,7 @@ public class InterceptorValidator {
             throw new IllegalArgumentException("Interceptor with name: '%s' can not be renamed. New interceptor name: '%s'"
                     .formatted(interceptorName, interceptor.getName()));
         }
-        displayFieldsValidator.validateDisplayName(interceptor.getDisplayName());
+        displayFieldsValidator.validateDisplayName(interceptor.getDisplayName(), "Interceptor", interceptor.getName());
         validateInterceptorSource(interceptor);
     }
 

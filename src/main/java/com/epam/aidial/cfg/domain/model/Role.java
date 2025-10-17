@@ -15,6 +15,6 @@ public class Role {
     private Long updatedAt;
     private List<RoleLimit> limits;
     private List<String> keys;
-    private CostLimit costLimit;
+    private CostLimit costLimit = new CostLimit();
     private Map<ResourceType, ShareResourceLimit> share;
 }

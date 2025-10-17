@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.transfer.importer.compatibility.backward.AdminConfigImportBackwardCompatibilityHandler;
 import com.epam.aidial.cfg.service.transfer.importer.util.CoreRolesMerger;
 import com.epam.aidial.core.config.Config;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,8 @@ public class ConfigImporter {
     private final AssistantImporter assistantImporter;
     private final AdapterImporter adapterImporter;
     private final ToolSetImporter toolSetImporter;
+
+    private final AdminConfigImportBackwardCompatibilityHandler adminConfigImportBackwardCompatibilityHandler;
 
     @Transactional
     public ImportConfigPreview importPreview(Config config, ConfigImportOptions importOptions) {
@@ -87,6 +90,8 @@ public class ConfigImporter {
         // mark that transaction should be rolled back. This is a trick to get actual state of importing objects
         // with all associations but doesn't save the state into DB
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+
+        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
 
         var importOptions = new ConfigImportOptions(resolutionPolicy, false, false);
 
@@ -146,6 +151,8 @@ public class ConfigImporter {
 
     @Transactional
     public void importAdminConfig(ExportConfig config, ConfigImportOptions importOptions) {
+        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
+
         var resolutionPolicy = importOptions.conflictResolutionPolicy();
 
         interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);

@@ -46,13 +46,13 @@ public class ToolSetValidator {
             throw new IllegalArgumentException("toolSet name '" + toolSetName
                         + "' does not match the required pattern: " + toolSetNameValidationPattern);
         }
-        displayFieldsValidator.validateDisplayName(toolSet.getDisplayName());
+        displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 
     public void validateUpdate(String toolSetName, ToolSet toolSet) {
         deploymentValidator.validateUpdate(toolSetName, toolSet.getDeployment(), "ToolSet");
-        displayFieldsValidator.validateDisplayName(toolSet.getDisplayName());
+        displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 

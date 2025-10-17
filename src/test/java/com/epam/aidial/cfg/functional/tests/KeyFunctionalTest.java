@@ -133,6 +133,22 @@ public abstract class KeyFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyCreateTwoKeysWithNullKeyValue() {
+        KeyDto keyDto = createKeyDto("1");
+        keyDto.setKey(null);
+        keyFacade.createKey(keyDto);
+
+        KeyDto keyDto2 = createKeyDto("2");
+        keyDto2.setKey(null);
+        keyFacade.createKey(keyDto2);
+
+        Collection<KeyDto> actualKeys = keyFacade.getAllKeys();
+        Collection<KeyDto> expectedDtos = List.of(keyDto, keyDto2);
+        expectedDtos.forEach(dto -> dto.setRoles(List.of()));
+        assertKeys(actualKeys, expectedDtos, true);
+    }
+
+    @Test
     public void shouldThrowExceptionWhenRenameKey() {
         KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);

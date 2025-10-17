@@ -36,14 +36,14 @@ public class RoleValidator {
             throw new IllegalArgumentException("Role name '" + roleName
                     + "' does not match the required pattern: " + roleNameValidationPattern);
         }
-        displayFieldsValidator.validateDisplayName(role.getDisplayName());
+        displayFieldsValidator.validateDisplayName(role.getDisplayName(), "Role", roleName);
     }
 
     public void validateRoleUpdate(String roleName, Role role) {
         if (!Objects.equals(roleName, role.getName())) {
             throw new IllegalArgumentException("Role with name: '" + roleName + "' can not be renamed. New role name: '" + role.getName() + "'");
         }
-        displayFieldsValidator.validateDisplayName(role.getDisplayName());
+        displayFieldsValidator.validateDisplayName(role.getDisplayName(), "Role", roleName);
     }
 
     public void validateRoleDeletion(String roleName) {

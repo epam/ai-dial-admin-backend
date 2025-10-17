@@ -47,7 +47,7 @@ class ModelValidatorTest {
     void validateCreation_shouldDelegateToDisplayFieldsValidator() {
         // given
         Model model = new Model();
-        model.setDisplayName("text");
+        model.setDisplayName("display name");
         model.setDisplayVersion("1.0");
         Deployment deployment = new Deployment("text");
         model.setDeployment(deployment);
@@ -56,7 +56,7 @@ class ModelValidatorTest {
         modelValidator.validateCreation(model);
 
         // then
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Model", "text");
     }
 
     @Test
@@ -67,7 +67,7 @@ class ModelValidatorTest {
         Deployment deployment = new Deployment(deploymentName);
 
         Model model = new Model();
-        model.setDisplayName("text");
+        model.setDisplayName("display name");
         model.setDisplayVersion("1.0");
         model.setDeployment(deployment);
 
@@ -76,7 +76,7 @@ class ModelValidatorTest {
 
         // then
         verify(deploymentValidator).validateUpdate(deploymentName, deployment, "Model");
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("text", "1.0");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Model", "deploymentName");
     }
 
     @ParameterizedTest

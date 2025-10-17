@@ -33,7 +33,7 @@ public class KeyValidator {
     public void validateCreation(Key key) {
         validateKeyName(key);
         validateProject(key);
-        displayFieldsValidator.validateDisplayName(key.getDisplayName());
+        displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         long now = transactionTimestampContext.getTimestamp();
         Long expiresAt = key.getExpiresAt();
         if (expiresAt != null && expiresAt <= now) {
@@ -62,7 +62,7 @@ public class KeyValidator {
             throw new IllegalArgumentException("Key with name: '" + keyName + "' can not be renamed. New key name: '" + key.getName() + "'");
         }
         validateProject(key);
-        displayFieldsValidator.validateDisplayName(key.getDisplayName());
+        displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         Long expiresAt = key.getExpiresAt();
         long createdAt = existingEntity.getCreatedAt();
         if (expiresAt != null && expiresAt <= createdAt) {

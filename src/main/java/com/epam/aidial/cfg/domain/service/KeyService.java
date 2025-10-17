@@ -177,7 +177,7 @@ public class KeyService {
     }
 
     private void assertNotExistsByKeyValue(String keyValue) {
-        if (keyJpaRepository.existsByKey(keyValue)) {
+        if (keyValue != null && keyJpaRepository.existsByKey(keyValue)) {
             throw new EntityAlreadyExistsException("Key with value " + keyValue + " already exists");
         }
     }

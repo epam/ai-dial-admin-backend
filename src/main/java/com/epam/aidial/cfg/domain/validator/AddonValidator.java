@@ -34,12 +34,12 @@ public class AddonValidator {
             throw new IllegalArgumentException("Addon name '" + addonName
                     + "' does not match the required pattern: " + addonNameValidationPattern);
         }
-        displayFieldsValidator.validateDisplayName(addon.getDisplayName());
+        displayFieldsValidator.validateDisplayName(addon.getDisplayName(), "Addon", addonName);
     }
 
     public void validateUpdate(String addonName, Addon addon) {
         deploymentValidator.validateUpdate(addonName, addon.getDeployment(), "Addon");
-        displayFieldsValidator.validateDisplayName(addon.getDisplayName());
+        displayFieldsValidator.validateDisplayName(addon.getDisplayName(), "Addon", addonName);
     }
 
 }
