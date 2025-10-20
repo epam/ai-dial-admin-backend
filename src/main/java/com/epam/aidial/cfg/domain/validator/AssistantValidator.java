@@ -35,12 +35,12 @@ public class AssistantValidator {
             throw new IllegalArgumentException("Assistant name '" + assistantName
                     + "' does not match the required pattern: " + assistantNameValidationPattern);
         }
-        displayFieldsValidator.validateDisplayName(assistant.getDisplayName());
+        displayFieldsValidator.validateDisplayName(assistant.getDisplayName(), "Assistant", assistantName);
     }
 
     public void validateUpdate(String assistantName, Assistant assistant) {
         deploymentValidator.validateUpdate(assistantName, assistant.getDeployment(), "Assistant");
-        displayFieldsValidator.validateDisplayName(assistant.getDisplayName());
+        displayFieldsValidator.validateDisplayName(assistant.getDisplayName(), "Assistant", assistantName);
     }
 
 }

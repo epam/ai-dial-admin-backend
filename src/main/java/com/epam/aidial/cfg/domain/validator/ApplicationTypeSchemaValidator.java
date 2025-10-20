@@ -42,7 +42,7 @@ public class ApplicationTypeSchemaValidator {
             throw new IllegalArgumentException("ApplicationTypeSchema ID '" + schemaId
                     + "' does not match the required pattern: " + applicationTypeSchemaIdValidationPattern);
         }
-        displayFieldsValidator.validateDisplayName(applicationTypeSchema.getApplicationTypeDisplayName());
+        displayFieldsValidator.validateDisplayName(applicationTypeSchema.getApplicationTypeDisplayName(), "ApplicationTypeSchema", schemaId);
         validateRoutes(applicationTypeSchema.getApplicationTypeRoutes());
     }
 
@@ -51,7 +51,7 @@ public class ApplicationTypeSchemaValidator {
             throw new IllegalArgumentException("Schema id can not be updated for application type schema "
                     + "with schema id: '" + schemaId + "'. New schema id: '" + applicationTypeSchema.getSchemaId() + "'");
         }
-        displayFieldsValidator.validateDisplayName(applicationTypeSchema.getApplicationTypeDisplayName());
+        displayFieldsValidator.validateDisplayName(applicationTypeSchema.getApplicationTypeDisplayName(), "ApplicationTypeSchema", schemaId);
         validateRoutes(applicationTypeSchema.getApplicationTypeRoutes());
     }
 

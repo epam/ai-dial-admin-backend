@@ -21,13 +21,13 @@ public class IdFieldValidator {
         }
     }
 
-    public void validateId(String domainObjectClassName, Object id, String idFieldName) {
+    public void validateId(String domainObjectType, Object id, String idFieldName) {
         if (id == null) {
-            throw new IllegalArgumentException("%s %s must not be empty".formatted(domainObjectClassName, idFieldName));
+            throw new IllegalArgumentException("%s %s must not be empty".formatted(domainObjectType, idFieldName));
         }
 
         if (id instanceof String stringId && StringUtils.isBlank(stringId)) {
-            throw new IllegalArgumentException("%s %s must not be empty".formatted(domainObjectClassName, idFieldName));
+            throw new IllegalArgumentException("%s %s must not be empty".formatted(domainObjectType, idFieldName));
         }
     }
 }

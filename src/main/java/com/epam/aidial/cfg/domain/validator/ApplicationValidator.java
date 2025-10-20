@@ -31,13 +31,13 @@ public class ApplicationValidator {
 
     public void validateCreation(Application application) {
         validateApplicationName(application);
-        displayFieldsValidator.validateDisplayNameDisplayVersion(application.getDisplayName(), application.getDisplayVersion());
+        validateDisplayNameDisplayVersion(application);
         validateApplicationFields(application);
     }
 
     public void validateUpdate(String applicationName, Application application) {
         deploymentValidator.validateUpdate(applicationName, application.getDeployment(), "Application");
-        displayFieldsValidator.validateDisplayNameDisplayVersion(application.getDisplayName(), application.getDisplayVersion());
+        validateDisplayNameDisplayVersion(application);
         validateApplicationFields(application);
     }
 
@@ -55,6 +55,16 @@ public class ApplicationValidator {
             throw new IllegalArgumentException("Application name '" + applicationName
                     + "' does not match the required pattern: " + applicationNameValidationPattern);
         }
+    }
+
+    private void validateDisplayNameDisplayVersion(Application application) {
+        String applicationName = application.getDeployment().getName();
+        displayFieldsValidator.validateDisplayNameDisplayVersion(
+                application.getDisplayName(),
+                application.getDisplayVersion(),
+                "Application",
+                applicationName
+        );
     }
 
     private void validateApplicationFields(Application application) {

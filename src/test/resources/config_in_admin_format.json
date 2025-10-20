@@ -398,7 +398,6 @@
 			"name": "testKey2",
 			"displayName": "testKey2",
 			"key": "testKey2",
-			"project": "testProject1",
 			"secured": true,
 			"roles": [
 				"testRole1"
@@ -488,7 +487,6 @@
 	"interceptors": {
 		"testInterceptor1": {
 			"name": "testInterceptor1",
-			"displayName": "Test Interceptor1",
             "endpoint": "https://endpoint.test.com/interceptor",
 			"forwardAuthToken": false,
 			"author": "test-author",

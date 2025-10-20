@@ -50,13 +50,13 @@ public class ModelValidator {
 
     public void validateCreation(Model model) {
         validateModelName(model);
-        displayFieldsValidator.validateDisplayNameDisplayVersion(model.getDisplayName(), model.getDisplayVersion());
+        validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
     }
 
     public void validateUpdate(String modelName, Model model) {
         deploymentValidator.validateUpdate(modelName, model.getDeployment(), "Model");
-        displayFieldsValidator.validateDisplayNameDisplayVersion(model.getDisplayName(), model.getDisplayVersion());
+        validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
     }
 
@@ -74,6 +74,16 @@ public class ModelValidator {
             throw new IllegalArgumentException("Model name '" + modelName
                     + "' does not match the required pattern: " + modelNameValidationPattern);
         }
+    }
+
+    private void validateDisplayNameDisplayVersion(Model model) {
+        String modelName = model.getDeployment().getName();
+        displayFieldsValidator.validateDisplayNameDisplayVersion(
+                model.getDisplayName(),
+                model.getDisplayVersion(),
+                "Model",
+                modelName
+        );
     }
 
     private void validateModelSource(Model model) {
