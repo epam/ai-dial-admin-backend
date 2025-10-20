@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
@@ -18,6 +20,7 @@ import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +47,7 @@ public class ToolSetResourceService implements ResourceService {
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
+    private final ToolDiscoveryService toolDiscoveryService;
 
     @Value("${core.toolsets.metadata.default.limit}")
     private int toolSetsMetadataDefaultLimit;
@@ -143,6 +147,12 @@ public class ToolSetResourceService implements ResourceService {
                                       String etag) {
         var headers = createIfMatchHeaders(etag);
         toolSetClient.deleteToolSetResource(path, headers);
+    }
+
+    public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
+        var toolSet = getToolSetResource(path);
+        return toolDiscoveryService.discoverTools(toolSet.getEndpoint(),
+                ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor);
     }
 
 }

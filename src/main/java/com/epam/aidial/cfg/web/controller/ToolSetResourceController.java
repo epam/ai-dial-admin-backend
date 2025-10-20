@@ -11,8 +11,10 @@ import com.epam.aidial.cfg.dto.ToolSetResourceNodeInfoDto;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.mapper.ToolSetResourceMapper;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -93,6 +96,12 @@ public class ToolSetResourceController {
     public void moveToolSetResource(@RequestBody MoveResourceDto movePromptDto) {
         var movePrompt = resourceMapper.toMoveResource(movePromptDto);
         toolSetResourceService.move(movePrompt);
+    }
+
+    @PostMapping(path = "/discovered-tools", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.ListToolsResult getDiscoveredTools(@RequestBody ResourcePathDto toolSetPath,
+                                                        @RequestParam(required = false) String nextCursor) {
+        return toolSetResourceService.getDiscoveredTools(toolSetPath.getPath(), nextCursor);
     }
 
 }
