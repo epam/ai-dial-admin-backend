@@ -20,6 +20,7 @@ import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ToolSetResourceController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -64,8 +65,10 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     private static final String DELETE_BULK_API_PATH = APP_RESOURCE_BASE_API_PATH + "/delete/bulk";
     private static final String LIST_API_PATH = APP_RESOURCE_BASE_API_PATH + "/list";
     private static final String MOVE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/move";
+    private static final String DISCOVERY_API_PATH = APP_RESOURCE_BASE_API_PATH + "/discovered-tools";
     private static final String TEST_ETAG = "etag123";
     private static final String RETURNED_TEST_ETAG = "\"etag123\"";
+    private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -387,5 +390,20 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         verify(toolSetResourceService).move(moveToolSet);
     }
 
-}
+    @Test
+    void testDiscoverTools() throws Exception {
+        var dtoJson = ResourceUtils.readResource(TOOLS_DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<McpSchema.ListToolsResult>() {
+        });
 
+        when(toolSetResourceService.getDiscoveredTools(any(), any())).thenReturn(dto);
+
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+        mockMvc.perform(post(DISCOVERY_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+}
