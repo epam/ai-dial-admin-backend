@@ -33,6 +33,7 @@ import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.RoleBasedEntity;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CoreConfigAggregatorService {
 
     private final ApplicationService applicationService;
@@ -120,7 +122,14 @@ public class CoreConfigAggregatorService {
 
     private Map<String, CoreKey> getKeys() {
         return keyService.getAllKeys().stream()
-                .filter(key -> StringUtils.isNotBlank(key.getKey()))
+                .filter(key -> {
+                    if (StringUtils.isNotBlank(key.getKey())) {
+                        return true;
+                    } else {
+                        log.warn("getKeys. remove invalid key with blank key value, key name: {}", key.getName());
+                        return false;
+                    }
+                })
                 .map(keyMapper::mapKey)
                 .collect(Collectors.toMap(CoreKey::getKey, model -> model));
     }

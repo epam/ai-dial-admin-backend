@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @LogExecution
 @RequiredArgsConstructor
+@Slf4j
 public class KeyExporter {
 
     private final KeyService keyService;
@@ -100,9 +102,15 @@ public class KeyExporter {
     }
 
     private Key removeCoreKey(Key key, ExportRequest exportRequest) {
-        return (!exportRequest.isAddSecrets() || StringUtils.isBlank(key.getKey()))
-                ? null
-                : key;
+        boolean isBlankKeyValue = StringUtils.isBlank(key.getKey());
+        if (!exportRequest.isAddSecrets() || isBlankKeyValue) {
+            if (isBlankKeyValue) {
+                log.warn("Remove invalid key with blank key value, key name: {}", key.getName());
+            }
+            return null;
+        }
+
+        return key;
     }
 
     private Key removeAdminKey(Key key, ExportRequest exportRequest) {
