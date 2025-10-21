@@ -33,6 +33,7 @@ import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.RoleBasedEntity;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,6 +120,7 @@ public class CoreConfigAggregatorService {
 
     private Map<String, CoreKey> getKeys() {
         return keyService.getAllKeys().stream()
+                .filter(key -> StringUtils.isNotBlank(key.getKey()))
                 .map(keyMapper::mapKey)
                 .collect(Collectors.toMap(CoreKey::getKey, model -> model));
     }
