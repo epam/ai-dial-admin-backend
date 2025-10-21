@@ -126,7 +126,7 @@ public class CoreConfigAggregatorService {
                     if (StringUtils.isNotBlank(key.getKey())) {
                         return true;
                     } else {
-                        log.warn("getKeys. remove invalid key with blank key value, key name: {}", key.getName());
+                        log.debug("getKeys. remove invalid key with blank key value, key name: {}", key.getName());
                         return false;
                     }
                 })

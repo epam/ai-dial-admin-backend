@@ -105,7 +105,7 @@ public class KeyExporter {
         boolean isBlankKeyValue = StringUtils.isBlank(key.getKey());
         if (!exportRequest.isAddSecrets() || isBlankKeyValue) {
             if (isBlankKeyValue) {
-                log.warn("Remove invalid key with blank key value, key name: {}", key.getName());
+                log.debug("Remove invalid key with blank key value, key name: {}", key.getName());
             }
             return null;
         }
