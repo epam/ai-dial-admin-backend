@@ -22,6 +22,10 @@ RUN adduser -u 1001 --disabled-password --gecos "" appuser && \
 
 COPY --from=builder --chown=appuser:appuser /build-workspace/build/libs/ai-dial-admin-backend*.jar ./app.jar
 
+COPY --chown=appuser:appuser docker-entrypoint.sh /usr/local/bin/
+
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 USER appuser
 
 EXPOSE 8080 9464
