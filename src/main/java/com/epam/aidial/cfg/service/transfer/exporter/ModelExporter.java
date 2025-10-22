@@ -65,8 +65,7 @@ public class ModelExporter {
                 .stream()
                 .map(component -> {
                     Model model = getModel(component.getName());
-                    Model modelWithRemovedDependencies = removeDependency(model, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
-                    return resolveEndpoint(modelWithRemovedDependencies, selectedItemsExportRequest.getExportFormat());
+                    return removeDependency(model, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
                 .map(model -> removeUpstreamKey(model, addSecrets))
                 .toList();
@@ -76,7 +75,6 @@ public class ModelExporter {
         return getModels().stream()
                 .map(model -> removeUpstreamKey(model, fullExportRequest.isAddSecrets()))
                 .map(model -> removeDependency(model, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
-                .map(model -> resolveEndpoint(model, fullExportRequest.getExportFormat()))
                 .toList();
     }
 
@@ -105,12 +103,15 @@ public class ModelExporter {
         if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {
             model.setInterceptors(null);
         }
-        if (!componentTypes.contains(ExportConfigComponentType.ADAPTER)
-                && exportFormat != ExportFormat.CORE
-                && model.getSource() != null
-                && model.getSource() instanceof AdapterSource) {
-            model.setSource(null);
+
+        if (model.getSource() != null && model.getSource() instanceof AdapterSource adapterSource) {
+            if (exportFormat == ExportFormat.CORE || !componentTypes.contains(ExportConfigComponentType.ADAPTER)) {
+                var adapter = adapterService.get(adapterSource.getAdapterName());
+                model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
+                model.setSource(null);
+            }
         }
+
         return model;
     }
 
@@ -120,16 +121,6 @@ public class ModelExporter {
             for (Upstream upstream : upstreams) {
                 upstream.setKey(null);
             }
-        }
-        return model;
-    }
-
-    private Model resolveEndpoint(Model model, ExportFormat exportFormat) {
-        if (exportFormat == ExportFormat.CORE
-                && model.getSource() != null
-                && model.getSource() instanceof AdapterSource adapterSource) {
-            var adapter = adapterService.get(adapterSource.getAdapterName());
-            model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
         }
         return model;
     }
