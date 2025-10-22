@@ -104,9 +104,9 @@ public class ModelExporter {
             model.setInterceptors(null);
         }
 
-        if (model.getSource() != null
-                && model.getSource() instanceof AdapterSource adapterSource
-                && (exportFormat == ExportFormat.CORE || !componentTypes.contains(ExportConfigComponentType.ADAPTER))) {
+        if ((exportFormat == ExportFormat.CORE || !componentTypes.contains(ExportConfigComponentType.ADAPTER))
+                && model.getSource() != null
+                && model.getSource() instanceof AdapterSource adapterSource) {
             var adapter = adapterService.get(adapterSource.getAdapterName());
             model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
             model.setSource(null);
