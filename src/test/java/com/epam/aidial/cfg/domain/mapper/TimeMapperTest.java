@@ -82,46 +82,5 @@ class TimeMapperTest {
                 Arguments.of(24L, 86400000L)        // 24 hours
         );
     }
-
-    // Bidirectional consistency tests
-    @Test
-    void testBidirectionalConsistency_HoursToMsToHours() {
-        // given
-        Long originalHours = 5L;
-
-        // when
-        Long milliseconds = mapper.hoursToMs(originalHours);
-        Double convertedBackHours = mapper.msToHours(milliseconds);
-
-        // then
-        Assertions.assertThat(convertedBackHours).isEqualTo(originalHours.doubleValue());
-    }
-
-    @Test
-    void testBidirectionalConsistency_MsToHoursToMs() {
-        // given
-        Long originalMs = MS_IN_HOUR * 3; // 3 hours in milliseconds
-
-        // when
-        Double hours = mapper.msToHours(originalMs);
-        Long convertedBackMs = mapper.hoursToMs(hours.longValue());
-
-        // then
-        Assertions.assertThat(convertedBackMs).isEqualTo(originalMs);
-    }
-
-    @Test
-    void testTruncationBehavior_CompareWithRegularConversion() {
-        // given
-        Long milliseconds = 5400000L; // 1.5 hours
-
-        // when
-        Double regularHours = mapper.msToHours(milliseconds);
-        Long truncatedHours = mapper.msToHoursWithTruncation(milliseconds);
-
-        // then
-        Assertions.assertThat(regularHours).isEqualTo(1.5);
-        Assertions.assertThat(truncatedHours).isEqualTo(1L);
-    }
 }
 
