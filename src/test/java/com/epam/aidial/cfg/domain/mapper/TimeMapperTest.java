@@ -3,11 +3,14 @@ package com.epam.aidial.cfg.domain.mapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TimeMapperImpl.class})
@@ -19,174 +22,65 @@ class TimeMapperTest {
     private static final long MS_IN_HOUR = 3600000L; // 1 hour in milliseconds
 
     // Tests for msToHours() method
-    @Test
-    void testMsToHours_ValidInput() {
-        // given
-        Long milliseconds = 3600000L; // 1 hour in milliseconds
-
+    @ParameterizedTest
+    @MethodSource("msToHoursTestData")
+    void testMsToHours(Long milliseconds, Double expectedHours) {
         // when
         Double result = mapper.msToHours(milliseconds);
 
         // then
-        Assertions.assertThat(result).isEqualTo(1.0);
+        Assertions.assertThat(result).isEqualTo(expectedHours);
     }
 
-    @Test
-    void testMsToHours_NullInput() {
-        // given
-        Long milliseconds = null;
-
-        // when
-        Double result = mapper.msToHours(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isNull();
-    }
-
-    @Test
-    void testMsToHours_ZeroInput() {
-        // given
-        Long milliseconds = 0L;
-
-        // when
-        Double result = mapper.msToHours(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(0.0);
-    }
-
-    @Test
-    void testMsToHours_LargeValues() {
-        // given
-        Long milliseconds = 86400000L; // 24 hours in milliseconds
-
-        // when
-        Double result = mapper.msToHours(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(24.0);
-    }
-
-    @Test
-    void testMsToHours_FractionalHours() {
-        // given
-        Long milliseconds = 1800000L; // 0.5 hours in milliseconds
-
-        // when
-        Double result = mapper.msToHours(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(0.5);
+    static Stream<Arguments> msToHoursTestData() {
+        return Stream.of(
+                Arguments.of(3600000L, 1.0),        // 1 hour
+                Arguments.of(null, null),           // null input
+                Arguments.of(0L, 0.0),              // zero input
+                Arguments.of(86400000L, 24.0),      // 24 hours
+                Arguments.of(1800000L, 0.5)         // 0.5 hours
+        );
     }
 
     // Tests for msToHoursWithTruncation() method
-    @Test
-    void testMsToHoursWithTruncation_ValidInput() {
-        // given
-        Long milliseconds = 3600000L; // 1 hour in milliseconds
-
+    @ParameterizedTest
+    @MethodSource("msToHoursWithTruncationTestData")
+    void testMsToHoursWithTruncation(Long milliseconds, Long expectedHours) {
         // when
         Long result = mapper.msToHoursWithTruncation(milliseconds);
 
         // then
-        Assertions.assertThat(result).isEqualTo(1L);
+        Assertions.assertThat(result).isEqualTo(expectedHours);
     }
 
-    @Test
-    void testMsToHoursWithTruncation_NullInput() {
-        // given
-        Long milliseconds = null;
-
-        // when
-        Long result = mapper.msToHoursWithTruncation(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isNull();
-    }
-
-    @Test
-    void testMsToHoursWithTruncation_FractionalHours() {
-        // given
-        Long milliseconds = 5400000L; // 1.5 hours in milliseconds
-
-        // when
-        Long result = mapper.msToHoursWithTruncation(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(1L); // Should truncate to 1
-    }
-
-    @Test
-    void testMsToHoursWithTruncation_ZeroInput() {
-        // given
-        Long milliseconds = 0L;
-
-        // when
-        Long result = mapper.msToHoursWithTruncation(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(0L);
-    }
-
-    @Test
-    void testMsToHoursWithTruncation_AlmostTwoHours() {
-        // given
-        Long milliseconds = 7199000L; // 1.9997... hours in milliseconds
-
-        // when
-        Long result = mapper.msToHoursWithTruncation(milliseconds);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(1L); // Should truncate to 1
+    static Stream<Arguments> msToHoursWithTruncationTestData() {
+        return Stream.of(
+                Arguments.of(3600000L, 1L),         // 1 hour
+                Arguments.of(null, null),           // null input
+                Arguments.of(5400000L, 1L),         // 1.5 hours -> truncated to 1
+                Arguments.of(0L, 0L),               // zero input
+                Arguments.of(7199000L, 1L)          // 1.9997... hours -> truncated to 1
+        );
     }
 
     // Tests for hoursToMs() method
-    @Test
-    void testHoursToMs_ValidInput() {
-        // given
-        Long hours = 1L;
-
+    @ParameterizedTest
+    @MethodSource("hoursToMsTestData")
+    void testHoursToMs(Long hours, Long expectedMilliseconds) {
         // when
         Long result = mapper.hoursToMs(hours);
 
         // then
-        Assertions.assertThat(result).isEqualTo(3600000L);
+        Assertions.assertThat(result).isEqualTo(expectedMilliseconds);
     }
 
-    @Test
-    void testHoursToMs_NullInput() {
-        // given
-        Long hours = null;
-
-        // when
-        Long result = mapper.hoursToMs(hours);
-
-        // then
-        Assertions.assertThat(result).isNull();
-    }
-
-    @Test
-    void testHoursToMs_ZeroInput() {
-        // given
-        Long hours = 0L;
-
-        // when
-        Long result = mapper.hoursToMs(hours);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(0L);
-    }
-
-    @Test
-    void testHoursToMs_LargeValues() {
-        // given
-        Long hours = 24L;
-
-        // when
-        Long result = mapper.hoursToMs(hours);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(86400000L);
+    static Stream<Arguments> hoursToMsTestData() {
+        return Stream.of(
+                Arguments.of(1L, 3600000L),         // 1 hour
+                Arguments.of(null, null),           // null input
+                Arguments.of(0L, 0L),               // zero input
+                Arguments.of(24L, 86400000L)        // 24 hours
+        );
     }
 
     // Bidirectional consistency tests
@@ -243,3 +137,4 @@ class TimeMapperTest {
         Assertions.assertThat(result).isEqualTo(1.0);
     }
 }
+
