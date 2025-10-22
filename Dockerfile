@@ -26,11 +26,8 @@ USER appuser
 
 EXPOSE 8080 9464
 
-ENV DEBUG_OPTS=""
-
-ENV JAVA_OPTS=""
-
 HEALTHCHECK --start-period=30s --interval=1m --timeout=3s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/health || exit 1
 
-ENTRYPOINT ["sh", "-c", "java ${DEBUG_OPTS} ${JAVA_OPTS} -jar app.jar"]
+ENTRYPOINT ["docker-entrypoint.sh"]
+
