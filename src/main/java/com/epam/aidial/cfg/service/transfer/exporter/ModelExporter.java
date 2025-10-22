@@ -104,12 +104,12 @@ public class ModelExporter {
             model.setInterceptors(null);
         }
 
-        if (model.getSource() != null && model.getSource() instanceof AdapterSource adapterSource) {
-            if (exportFormat == ExportFormat.CORE || !componentTypes.contains(ExportConfigComponentType.ADAPTER)) {
-                var adapter = adapterService.get(adapterSource.getAdapterName());
-                model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
-                model.setSource(null);
-            }
+        if (model.getSource() != null
+                && model.getSource() instanceof AdapterSource adapterSource
+                && (exportFormat == ExportFormat.CORE || !componentTypes.contains(ExportConfigComponentType.ADAPTER))) {
+            var adapter = adapterService.get(adapterSource.getAdapterName());
+            model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
+            model.setSource(null);
         }
 
         return model;
