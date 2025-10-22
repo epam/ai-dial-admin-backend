@@ -737,7 +737,7 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
-    void testExport_AdminFormatModelWithAdapter_SelectedItemsExportRequest() throws IOException {
+    void testExport_AdminFormatModelWithoutAdapter_SelectedItemsExportRequest() throws IOException {
         // given
         AdapterDto adapterDto = createAdapterDto("1");
 
