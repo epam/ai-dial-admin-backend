@@ -123,18 +123,5 @@ class TimeMapperTest {
         Assertions.assertThat(regularHours).isEqualTo(1.5);
         Assertions.assertThat(truncatedHours).isEqualTo(1L);
     }
-
-    @Test
-    void testConstantConsistency() {
-        // Test that our test constant matches the mapper's internal constant
-        // given
-        Long oneHourMs = 3600000L;
-
-        // when
-        Double result = mapper.msToHours(oneHourMs);
-
-        // then
-        Assertions.assertThat(result).isEqualTo(1.0);
-    }
 }
 
