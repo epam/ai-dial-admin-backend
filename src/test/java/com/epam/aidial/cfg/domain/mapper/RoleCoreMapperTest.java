@@ -22,7 +22,8 @@ import java.util.Map;
         RoleLimitMapperImpl.class,
         ShareResourceLimitCoreMapperImpl.class,
         RoleCoreMapperImpl.class,
-        CostLimitCoreMapperImpl.class
+        CostLimitCoreMapperImpl.class,
+        TimeMapperImpl.class
 })
 class RoleCoreMapperTest {
 

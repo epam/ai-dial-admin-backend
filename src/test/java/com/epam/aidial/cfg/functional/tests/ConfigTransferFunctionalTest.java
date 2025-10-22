@@ -235,7 +235,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         Assertions.assertThat(roleFacade.getRole("testRole1").getShare()).hasSize(1).satisfies(share -> {
             ShareResourceLimitDto shareResourceLimit = share.get(ResourceTypeDto.APPLICATION);
-            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(432000000);
             Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
 

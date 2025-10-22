@@ -78,7 +78,7 @@
         "share": {
           "APPLICATION": {
             "maxAcceptedUsers": 10,
-            "invitationTtl": 120
+            "invitationTtl": 432000000
           }
         },
         "costLimit": {
