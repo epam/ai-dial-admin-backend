@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service.transfer.exporter;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
-import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -11,6 +10,8 @@ import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @LogExecution
 @RequiredArgsConstructor
+@Slf4j
 public class KeyExporter {
 
     private final KeyService keyService;
@@ -93,16 +95,28 @@ public class KeyExporter {
     }
 
     private Key removeKey(Key key, ExportRequest exportRequest) {
-        if (exportRequest.isAddSecrets()) {
-            return key;
+        return switch (exportRequest.getExportFormat()) {
+            case CORE -> removeCoreKey(key, exportRequest);
+            case ADMIN -> removeAdminKey(key, exportRequest);
+        };
+    }
+
+    private Key removeCoreKey(Key key, ExportRequest exportRequest) {
+        boolean isBlankKeyValue = StringUtils.isBlank(key.getKey());
+        if (!exportRequest.isAddSecrets() || isBlankKeyValue) {
+            if (isBlankKeyValue) {
+                log.debug("Remove invalid key with blank key value, key name: {}", key.getName());
+            }
+            return null;
         }
 
-        return switch (exportRequest.getExportFormat()) {
-            case CORE -> null;
-            case ADMIN -> {
-                key.setKey(null);
-                yield key;
-            }
-        };
+        return key;
+    }
+
+    private Key removeAdminKey(Key key, ExportRequest exportRequest) {
+        if (!exportRequest.isAddSecrets()) {
+            key.setKey(null);
+        }
+        return key;
     }
 }
