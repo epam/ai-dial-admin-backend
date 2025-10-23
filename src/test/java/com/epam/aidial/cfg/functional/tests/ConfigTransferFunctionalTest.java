@@ -235,7 +235,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         Assertions.assertThat(roleFacade.getRole("testRole1").getShare()).hasSize(1).satisfies(share -> {
             ShareResourceLimitDto shareResourceLimit = share.get(ResourceTypeDto.APPLICATION);
-            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(120);
+            Assertions.assertThat(shareResourceLimit.getInvitationTtl()).isEqualTo(432000000);
             Assertions.assertThat(shareResourceLimit.getMaxAcceptedUsers()).isEqualTo(10);
         });
 
@@ -733,6 +733,47 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(adapter.getName()).isEqualTo("adapter1");
                         Assertions.assertThat(adapter.getModels()).isEmpty();
                     });
+        });
+    }
+
+    @Test
+    void testExport_AdminFormatModelWithoutAdapter_SelectedItemsExportRequest() throws IOException {
+        // given
+        AdapterDto adapterDto = createAdapterDto("1");
+
+        String completionEndpointPath = "/chat/completions";
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new AdapterSourceDto("adapter1", completionEndpointPath));
+
+        String expectedEndpoint = adapterDto.getBaseEndpoint() + completionEndpointPath;
+
+        adapterFacade.createAdapter(adapterDto);
+        modelFacade.createModel(modelDto);
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponents(List.of(new ExportConfigComponent(
+                "model1",
+                ExportConfigComponentType.MODEL,
+                Set.of()
+        )));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getModels())
+                    .isNotEmpty()
+                    .containsOnlyKeys("model1")
+                    .satisfies(models -> {
+                        Model model = models.get("model1");
+                        Assertions.assertThat(model.getSource()).isNull();
+                        Assertions.assertThat(model.getEndpoint()).isEqualTo(expectedEndpoint);
+                    });
+            Assertions.assertThat(config.getAdapters()).isEmpty();
         });
     }
 
