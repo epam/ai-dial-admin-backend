@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.web.security;
 
 import com.epam.aidial.cfg.utils.SecretUtils;
 import com.nimbusds.jwt.SignedJWT;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -13,10 +12,13 @@ import java.text.ParseException;
 import java.util.Map;
 
 @Slf4j
-@RequiredArgsConstructor
 public class MultiIssuerJwtDecoder implements JwtDecoder {
 
     private final Map<String, JwtDecoder> issuerToDecoderMap;
+
+    public MultiIssuerJwtDecoder(Map<String, JwtDecoder> issuerToDecoderMap) {
+        this.issuerToDecoderMap = Map.copyOf(issuerToDecoderMap);
+    }
 
     @Override
     public Jwt decode(final String token) throws JwtException {

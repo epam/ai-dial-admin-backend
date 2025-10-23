@@ -1,52 +1,30 @@
 package com.epam.aidial.cfg.web.security;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@RequiredArgsConstructor
 public class IssuerToDecoderMapFactory {
-
     private static final String AUDIENCE_PREFIX = "api://";
-    private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
-    private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0/";
-
-    private final String[] acceptedIssuers;
-    private final String[] acceptedAudiences;
-    private final String[] acceptedIssuersAliases;
 
     @NotNull
-    public Map<String, JwtDecoder> createIssuerToDecoderMap(final NimbusJwtDecoder jwtDecoder) {
+    public Map<String, JwtDecoder> createIssuerToDecoderMap(final NimbusJwtDecoder jwtDecoder,
+                                                            JwtProvidersProperties.ProviderConfig config) {
         final var issuerToDecoderMap = new HashMap<String, JwtDecoder>();
-        for (final String issuer : acceptedIssuers) {
-            final HashSet<String> allAcceptedIssuers = new HashSet<>();
-
-            if (isValidUrlWithProtocol(issuer)) {
-                issuerToDecoderMap.put(issuer, jwtDecoder);
-                allAcceptedIssuers.add(issuer);
-            } else {
-                for (final var aadAlias : acceptedIssuersAliases) {
-                    final var issuerV1Format = String.format(V1_ISSUER_FORMAT, aadAlias, issuer);
-                    final var issuerV2Format = String.format(V2_ISSUER_FORMAT, aadAlias, issuer);
-                    issuerToDecoderMap.put(issuerV1Format, jwtDecoder);
-                    issuerToDecoderMap.put(issuerV2Format, jwtDecoder);
-                    allAcceptedIssuers.add(issuerV1Format);
-                    allAcceptedIssuers.add(issuerV2Format);
-                }
-            }
-
-            addTokenDecoderValidators(jwtDecoder, allAcceptedIssuers, getAcceptedAudiences());
+        final var acceptedIssues = ProviderUtils.getAcceptedIssues(config);
+        for (final String issuer : acceptedIssues) {
+            issuerToDecoderMap.put(issuer, jwtDecoder);
         }
+        addTokenDecoderValidators(jwtDecoder, acceptedIssues, getAcceptedAudiences(config.getAudiences()));
+
         return issuerToDecoderMap;
     }
 
@@ -59,20 +37,7 @@ public class IssuerToDecoderMapFactory {
         jwtDecoder.setJwtValidator(tokenValidator);
     }
 
-    private boolean isValidUrlWithProtocol(final String urlString) {
-        if (urlString == null || urlString.isEmpty()) {
-            return false;
-        }
-
-        try {
-            final var protocol = new URL(urlString).getProtocol();
-            return protocol != null && !protocol.isEmpty();
-        } catch (final MalformedURLException e) {
-            return false;
-        }
-    }
-
-    private Set<String> getAcceptedAudiences() {
+    private Set<String> getAcceptedAudiences(List<String> acceptedAudiences) {
         final Set<String> allAcceptedAudiences = new HashSet<>();
         for (final String audience : acceptedAudiences) {
             allAcceptedAudiences.add(audience);

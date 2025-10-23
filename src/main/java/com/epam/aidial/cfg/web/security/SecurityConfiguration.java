@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,10 @@ import java.util.stream.Stream;
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @ConditionalOnProperty(value = "config.rest.security.mode", havingValue = "oidc", matchIfMissing = true)
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final JwtProvidersProperties providers;
 
     @Value("${config.rest.security.allowedRoles}")
     protected String[] allowedRoles;
@@ -28,22 +32,18 @@ public class SecurityConfiguration {
     protected boolean disableSwaggerAuthorization;
 
     @Bean
-    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.roles-claim}") String rolesClaim,
-                                                                               @Value("${config.rest.security.principal-claim}") String principalClaim) {
-        return new JwtAuthenticationConverterFactory(rolesClaim, principalClaim);
+    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim) {
+        return new JwtAuthenticationConverterFactory(providers.getProviders(), principalClaim);
     }
 
     @Bean
-    public IssuerToDecoderMapFactory issuerToDecoderMapFactory(@Value("${config.rest.security.accepted-issuers}") String[] acceptedIssuers,
-                                                               @Value("${config.rest.security.accepted-audiences}") String[] acceptedAudiences,
-                                                               @Value("${config.rest.security.accepted-issuers-aliases}") String[] acceptedIssuersAliases) {
-        return new IssuerToDecoderMapFactory(acceptedIssuers, acceptedAudiences, acceptedIssuersAliases);
+    public IssuerToDecoderMapFactory issuerToDecoderMapFactory() {
+        return new IssuerToDecoderMapFactory();
     }
 
     @Bean
-    public TokenDecoderFactory tokenDecoderFactory(@Value("${config.rest.security.jwk-key-uris}") String[] keySetUris,
-                                                   IssuerToDecoderMapFactory issuerToDecoderMapFactory) {
-        return new TokenDecoderFactoryImpl(keySetUris, issuerToDecoderMapFactory);
+    public TokenDecoderFactory tokenDecoderFactory(IssuerToDecoderMapFactory issuerToDecoderMapFactory) {
+        return new TokenDecoderFactoryImpl(providers.getProviders(), issuerToDecoderMapFactory);
     }
 
     @Bean
@@ -52,13 +52,17 @@ public class SecurityConfiguration {
                                                    JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers(publicPathPatterns()).permitAll()
-                    .requestMatchers("/api/v1/**").hasAnyAuthority(allowedRoles)
-                    .anyRequest().denyAll())
+                        .requestMatchers(publicPathPatterns()).permitAll()
+                        .requestMatchers("/api/v1/**").hasAnyAuthority(allowedRoles)
+                        .anyRequest().denyAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
-                    .jwt(jwt -> jwt.decoder(tokenDecoderFactory.createJwtDecoder())
-                        .jwtAuthenticationConverter(jwtAuthenticationConverterFactory.create())));
+                        .jwt(jwt -> jwt.decoder(tokenDecoderFactory.createJwtDecoder())
+                                .jwtAuthenticationConverter(token -> {
+                                    var issue = token.getIssuer().toString();
+                                    var converter = jwtAuthenticationConverterFactory.getConverter(issue);
+                                    return converter.convert(token);
+                                })));
         return http.build();
     }
 
