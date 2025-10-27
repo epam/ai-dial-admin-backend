@@ -132,7 +132,7 @@ public class ConfigImporter {
     }
 
     @Transactional
-    public void importConfig(Config config) {
+    public void importConfigWithOverride(Config config) {
         importConfig(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
     }
 

@@ -91,6 +91,6 @@ public class RoleFacade {
         Config config = new Config();
         config.setRoles(coreRoles);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }

@@ -88,6 +88,6 @@ public class ApplicationFacade {
         Config config = new Config();
         config.setApplications(coreApplications);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }

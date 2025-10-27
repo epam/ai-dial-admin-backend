@@ -28,7 +28,7 @@ public class CoreConfigAutoImportOnBootstrapService {
             if (databaseService.isInitializedEmptyDatabase()) {
                 log.info("Auto import of core config started");
                 Config config = coreConfigRetriever.getConfig(true);
-                configImporter.importConfig(config);
+                configImporter.importConfigWithOverride(config);
                 log.info("Auto import of core config finished");
             } else {
                 log.info("Database is not empty. Skipping auto import of core config");

@@ -88,6 +88,6 @@ public class ModelFacade {
         Config config = new Config();
         config.setModels(coreModels);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }

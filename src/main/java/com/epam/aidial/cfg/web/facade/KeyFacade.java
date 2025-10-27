@@ -87,6 +87,6 @@ public class KeyFacade {
         Config config = new Config();
         config.setKeys(coreKeys);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }

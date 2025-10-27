@@ -90,6 +90,6 @@ public class ApplicationTypeSchemaFacade {
         Config config = new Config();
         config.setApplicationTypeSchemas(coreApplicationTypeSchemas);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }

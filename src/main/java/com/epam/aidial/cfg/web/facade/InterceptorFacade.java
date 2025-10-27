@@ -91,6 +91,6 @@ public class InterceptorFacade {
         Config config = new Config();
         config.setInterceptors(coreInterceptors);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }

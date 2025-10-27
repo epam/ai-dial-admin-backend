@@ -87,6 +87,6 @@ public class RouteFacade {
         Config config = new Config();
         config.setRoutes(coreRoutes);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }

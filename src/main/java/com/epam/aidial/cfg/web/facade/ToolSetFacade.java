@@ -99,6 +99,6 @@ public class ToolSetFacade {
         Config config = new Config();
         config.setToolsets(coreToolSets);
 
-        configImporter.importConfig(config);
+        configImporter.importConfigWithOverride(config);
     }
 }
