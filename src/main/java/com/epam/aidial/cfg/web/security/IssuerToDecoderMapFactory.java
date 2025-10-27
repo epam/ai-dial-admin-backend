@@ -17,7 +17,7 @@ public class IssuerToDecoderMapFactory {
 
     @NotNull
     public Map<String, JwtDecoder> createIssuerToDecoderMap(final NimbusJwtDecoder jwtDecoder,
-                                                            JwtProvidersProperties.ProviderConfig config) {
+                                                            final JwtProvidersProperties.ProviderConfig config) {
         final var issuerToDecoderMap = new HashMap<String, JwtDecoder>();
         final var acceptedIssues = ProviderUtils.getAcceptedIssues(config);
         for (final String issuer : acceptedIssues) {

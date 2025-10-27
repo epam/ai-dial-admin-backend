@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,7 @@ public class JwtProvidersProperties {
             var name = next.getKey();
             var provider = next.getValue();
 
-            if (isBlank(provider.getIssuer()) || isBlank(provider.getJwkSetUri())) {
+            if (StringUtils.isBlank(provider.getIssuer()) || StringUtils.isBlank(provider.getJwkSetUri())) {
                 log.warn("Skipping provider '{}' — missing issuer or jwkSetUri", name);
                 iterator.remove();
             }
@@ -48,9 +49,5 @@ public class JwtProvidersProperties {
             );
         }
         log.info("Loaded {} provider configurations", providers.size());
-    }
-
-    private boolean isBlank(String s) {
-        return s == null || s.isBlank();
     }
 }
