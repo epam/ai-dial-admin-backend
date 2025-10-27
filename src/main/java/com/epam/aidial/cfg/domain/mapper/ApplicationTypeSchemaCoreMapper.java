@@ -35,7 +35,7 @@ public abstract class ApplicationTypeSchemaCoreMapper {
     }
 
     @Mapping(target = "id", source = "schemaId")
-    abstract CoreApplicationTypeSchema mapToCoreApplicationTypeSchema(ApplicationTypeSchema applicationTypeSchema);
+    public abstract CoreApplicationTypeSchema mapToCoreApplicationTypeSchema(ApplicationTypeSchema applicationTypeSchema);
 
     public ApplicationTypeSchema mapToSchema(String applicationTypeSchema) {
         if (StringUtils.isEmpty(applicationTypeSchema)) {
@@ -52,7 +52,7 @@ public abstract class ApplicationTypeSchemaCoreMapper {
     @Mapping(target = "topics", ignore = true)
     abstract ApplicationTypeSchema mapToApplicationTypeSchema(CoreApplicationTypeSchema coreApplicationTypeSchema);
 
-    private String toApplicationTypeSchemaAsString(CoreApplicationTypeSchema applicationTypeSchema) {
+    public String toApplicationTypeSchemaAsString(CoreApplicationTypeSchema applicationTypeSchema) {
         if (applicationTypeSchema == null) {
             return null;
         }

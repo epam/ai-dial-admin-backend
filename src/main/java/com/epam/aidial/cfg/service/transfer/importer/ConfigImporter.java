@@ -132,6 +132,11 @@ public class ConfigImporter {
     }
 
     @Transactional
+    public void importConfig(Config config) {
+        importConfig(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
+    }
+
+    @Transactional
     public void importConfig(Config config, ConfigImportOptions importOptions) {
         var resolutionPolicy = importOptions.conflictResolutionPolicy();
         var configRoles = coreRolesMerger.mergeCoreRoles(config, importOptions.createRoleIfAbsent());

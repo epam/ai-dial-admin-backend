@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
+import com.epam.aidial.core.config.CoreInterceptor;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -81,5 +82,15 @@ public class InterceptorController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<InterceptorDto> getAllAtRevision(@PathVariable Integer revision) {
         return interceptorFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/core/{interceptorName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreInterceptor getCoreInterceptor(@PathVariable String interceptorName) {
+        return interceptorFacade.getCoreInterceptor(interceptorName);
+    }
+
+    @PutMapping(path = "/core/{interceptorName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCoreInterceptor(@PathVariable String interceptorName, @RequestBody @Valid CoreInterceptor coreInterceptor) {
+        interceptorFacade.updateCoreInterceptor(interceptorName, coreInterceptor);
     }
 }

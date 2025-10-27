@@ -127,7 +127,8 @@ public class RoleService {
         return roleJpaRepository.existsById(roleName);
     }
 
-    private void assertExists(String name) {
+    @Transactional(readOnly = true)
+    public void assertExists(String name) {
         boolean exists = roleJpaRepository.existsById(name);
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));

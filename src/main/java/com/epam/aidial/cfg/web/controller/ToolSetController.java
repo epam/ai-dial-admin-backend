@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -70,8 +71,7 @@ public class ToolSetController {
         toolSetFacade.deleteToolSet(toolSetName);
     }
 
-    @GetMapping(path = "/{toolSetName}/revision/{revision}",
-                produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{toolSetName}/revision/{revision}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ToolSetDto getSnapshot(@PathVariable String toolSetName, @PathVariable Integer revision) {
         return toolSetFacade.getSnapshot(toolSetName, revision);
     }
@@ -83,7 +83,17 @@ public class ToolSetController {
 
     @GetMapping(path = "/{toolSetName}/discovered-tools", produces = MediaType.APPLICATION_JSON_VALUE)
     public McpSchema.ListToolsResult getDiscoveredTools(@PathVariable("toolSetName") String toolSetName,
-                                              @RequestParam(required = false) String nextCursor) {
+                                                        @RequestParam(required = false) String nextCursor) {
         return toolSetFacade.getDiscoveredTools(toolSetName, nextCursor);
+    }
+
+    @GetMapping(path = "/core/{toolSetName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreToolSet getCoreToolSet(@PathVariable String toolSetName) {
+        return toolSetFacade.getCoreToolSet(toolSetName);
+    }
+
+    @PutMapping(path = "/core/{toolSetName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCoreToolSet(@PathVariable String toolSetName, @RequestBody @Valid CoreToolSet coreToolSet) {
+        toolSetFacade.updateCoreToolSet(toolSetName, coreToolSet);
     }
 }

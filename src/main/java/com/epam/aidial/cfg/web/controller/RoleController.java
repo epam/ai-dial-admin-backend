@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,5 +78,15 @@ public class RoleController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<RoleDto> getAllAtRevision(@PathVariable Integer revision) {
         return roleFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/core/{roleName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreRole getCoreRole(@PathVariable String roleName) {
+        return roleFacade.getCoreRole(roleName);
+    }
+
+    @PutMapping(path = "/core/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCoreRole(@PathVariable String roleName, @RequestBody @Valid CoreRole coreRole) {
+        roleFacade.updateCoreRole(roleName, coreRole);
     }
 }

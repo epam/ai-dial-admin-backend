@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreKey;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -382,6 +383,22 @@ public abstract class KeyFunctionalTest {
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
                 () -> keyFacade.updateKey(keyDto.getName(), updatedKeyDto, "test"));
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreKey() {
+        KeyDto keyDto = createKeyDtoWithRole("1");
+        keyFacade.createKey(keyDto);
+
+        CoreKey expected = new CoreKey();
+        expected.setKey(keyDto.getKey());
+        expected.setProject(keyDto.getProject());
+        expected.setSecured(keyDto.isSecured());
+        expected.setRoles(keyDto.getRoles());
+
+        CoreKey actual = keyFacade.getCoreKey(keyDto.getName());
+
+        assertThat(actual).isEqualTo(expected);
     }
 
     private void assertKeys(Collection<KeyDto> actual, Collection<KeyDto> expected, boolean excludeGeneratedFields) {

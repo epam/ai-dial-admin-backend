@@ -1,15 +1,21 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapper;
+import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -20,6 +26,8 @@ public class InterceptorFacade {
 
     private final InterceptorService interceptorService;
     private final InterceptorDtoMapper mapper;
+    private final InterceptorCoreMapper interceptorCoreMapper;
+    private final ConfigImporter configImporter;
 
     public Collection<InterceptorDto> getAllInterceptors() {
         return interceptorService.getAll()
@@ -67,5 +75,22 @@ public class InterceptorFacade {
 
     public void refreshEndpoints() {
         interceptorService.refreshEndpoints();
+    }
+
+    public CoreInterceptor getCoreInterceptor(String interceptorName) {
+        Interceptor interceptor = interceptorService.get(interceptorName);
+        return interceptorCoreMapper.mapInterceptor(interceptor);
+    }
+
+    public void updateCoreInterceptor(String interceptorName, CoreInterceptor coreInterceptor) {
+        interceptorService.assertExists(interceptorName);
+
+        Map<String, CoreInterceptor> coreInterceptors = new HashMap<>(1);
+        coreInterceptors.put(interceptorName, coreInterceptor);
+
+        Config config = new Config();
+        config.setInterceptors(coreInterceptors);
+
+        configImporter.importConfig(config);
     }
 }

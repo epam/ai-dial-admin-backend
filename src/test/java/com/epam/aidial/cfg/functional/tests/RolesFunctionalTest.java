@@ -6,13 +6,16 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
-import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreCostLimit;
+import com.epam.aidial.core.config.CoreLimit;
+import com.epam.aidial.core.config.CoreRole;
+import com.epam.aidial.core.config.CoreShareResourceLimit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -432,6 +435,53 @@ public abstract class RolesFunctionalTest {
         );
 
         Assertions.assertEquals("Role with name: 'role1' can not be renamed. New role name: 'role2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreRole() {
+        LimitDto dayLimit = new LimitDto();
+        dayLimit.setDay(10L);
+
+        ShareResourceLimitDto shareResourceLimit = new ShareResourceLimitDto();
+        shareResourceLimit.setMaxAcceptedUsers(30);
+        shareResourceLimit.setInvitationTtl(72000000L);
+
+        RoleDto roleDto = createDtoWithKeysAndLimits(
+                "1",
+                List.of("key1", "key2"),
+                Map.of("addon1", dayLimit, "addon2", dayLimit),
+                Map.of(ResourceTypeDto.APPLICATION, shareResourceLimit, ResourceTypeDto.FILE, shareResourceLimit)
+        );
+        roleFacade.createRole(roleDto);
+
+        CoreLimit coreLimit1 = CoreLimit.empty();
+        coreLimit1.setDay(10L);
+        CoreLimit coreLimit2 = CoreLimit.empty();
+        coreLimit2.setDay(10L);
+
+        Map<String, CoreLimit> expectedLimits = Map.of("addon1", coreLimit1, "addon2", coreLimit2);
+
+        CoreShareResourceLimit coreShareResourceLimit1 = new CoreShareResourceLimit();
+        coreShareResourceLimit1.setMaxAcceptedUsers(30);
+        coreShareResourceLimit1.setInvitationTtl(20L);
+        CoreShareResourceLimit coreShareResourceLimit2 = new CoreShareResourceLimit();
+        coreShareResourceLimit2.setMaxAcceptedUsers(30);
+        coreShareResourceLimit2.setInvitationTtl(20L);
+
+        Map<String, CoreShareResourceLimit> expectedShare = Map.of(
+                "APPLICATION", coreShareResourceLimit1,
+                "FILE", coreShareResourceLimit2
+        );
+
+        CoreRole expected = new CoreRole();
+        expected.setName(roleDto.getName());
+        expected.setLimits(expectedLimits);
+        expected.setCostLimit(new CoreCostLimit());
+        expected.setShare(expectedShare);
+
+        CoreRole actual = roleFacade.getCoreRole(roleDto.getName());
+
+        Assertions.assertEquals(expected, actual);
     }
 
     private void assertRoles(Collection<RoleDto> actual, Collection<RoleDto> expected) {

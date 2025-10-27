@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
+import com.epam.aidial.core.config.CoreRoute;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -143,6 +144,22 @@ public abstract class RouteFunctionalTest {
         );
         Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Route:route1.",
                 exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreRoute() {
+        RouteDto routeDto = createRouteDtoWithLimits("1");
+        routeFacade.createRoute(routeDto);
+
+        CoreRoute expected = new CoreRoute();
+        expected.setRewritePath(routeDto.isRewritePath());
+        expected.setName(routeDto.getName());
+        expected.setPaths(null);
+        expected.setUserRoles(routeDto.getRoleLimits().keySet());
+
+        CoreRoute actual = routeFacade.getCoreRoute(routeDto.getName());
+
+        Assertions.assertEquals(expected, actual);
     }
 
     private void assertRoute(RouteDto actual, RouteDto expected) {

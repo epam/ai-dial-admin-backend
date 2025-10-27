@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -81,5 +82,15 @@ public class ApplicationTypeSchemaController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationTypeSchemaDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationTypeSchemaFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/core", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreApplicationTypeSchema getCore(@RequestParam(name = "id") String id) {
+        return applicationTypeSchemaFacade.getCore(id);
+    }
+
+    @PutMapping(path = "/core", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCore(@RequestParam(name = "id") String id, @RequestBody @Valid CoreApplicationTypeSchema coreApplicationTypeSchema) {
+        applicationTypeSchemaFacade.updateCore(id, coreApplicationTypeSchema);
     }
 }

@@ -126,7 +126,8 @@ public class RouteService {
         return routeJpaRepository.existsById(routeName);
     }
 
-    private void assertExists(String name) {
+    @Transactional(readOnly = true)
+    public void assertExists(String name) {
         boolean exists = routeJpaRepository.existsById(name);
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));

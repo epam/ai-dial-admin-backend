@@ -129,6 +129,14 @@ public class ApplicationTypeSchemaService {
     }
 
     @Transactional(readOnly = true)
+    public void assertExists(String schemaId) {
+        boolean exists = jpaRepository.existsById(schemaId);
+        if (!exists) {
+            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(schemaId));
+        }
+    }
+
+    @Transactional(readOnly = true)
     public ApplicationTypeSchema getSnapshot(String id, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, id, ApplicationTypeSchemaEntity.class);
         return mapper.toDomain(entity);

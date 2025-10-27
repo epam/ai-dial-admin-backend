@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreApplication;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpointAndLimits;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
 
 public abstract class ApplicationFunctionalTest {
 
@@ -356,6 +358,30 @@ public abstract class ApplicationFunctionalTest {
                 () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*")
         );
         Assertions.assertEquals("Application with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreApplication() {
+        initRoles();
+
+        ApplicationDto applicationDto = createDtoWithDefaults("1");
+        applicationFacade.createApplication(applicationDto);
+
+        CoreApplication expected = new CoreApplication();
+        expected.setName(applicationDto.getName());
+        expected.setDisplayName(applicationDto.getDisplayName());
+        expected.setDescription(applicationDto.getDescription());
+        expected.setEndpoint(applicationDto.getEndpoint());
+        expected.setDefaults(applicationDto.getDefaults());
+        expected.setApplicationProperties(applicationDto.getApplicationProperties());
+        expected.setFeatures(defaultCoreFeatures());
+        expected.setUserRoles(applicationDto.getRoleLimits().keySet());
+
+        CoreApplication actual = applicationFacade.getCoreApplication(applicationDto.getName());
+        actual.setCreatedAt(null);
+        actual.setUpdatedAt(null);
+
+        Assertions.assertEquals(expected, actual);
     }
 
     private ApplicationDto createDtoWithDefaults(String suffix) {

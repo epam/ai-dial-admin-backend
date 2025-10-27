@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreModel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createIn
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
 
 public abstract class ModelFunctionalTest {
 
@@ -360,6 +362,31 @@ public abstract class ModelFunctionalTest {
                 () -> modelFacade.updateModel(modelDto.getName(), modelDto, "*")
         );
         Assertions.assertEquals("Model with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreModel() {
+        initRoles();
+
+        ModelDto modelDto = createDtoWithDefaults("1");
+        modelFacade.createModel(modelDto);
+
+        CoreModel expected = new CoreModel();
+        expected.setTokenizerModel(modelDto.getTokenizerModel());
+        expected.setName(modelDto.getName());
+        expected.setDisplayName(modelDto.getDisplayName());
+        expected.setDescription(modelDto.getDescription());
+        expected.setEndpoint(modelDto.getEndpoint());
+        expected.setDefaults(modelDto.getDefaults());
+        expected.setFeatures(defaultCoreFeatures());
+        expected.setMaxRetryAttempts(modelDto.getMaxRetryAttempts());
+        expected.setUserRoles(modelDto.getRoleLimits().keySet());
+
+        CoreModel actual = modelFacade.getCoreModel(modelDto.getName());
+        actual.setCreatedAt(null);
+        actual.setUpdatedAt(null);
+
+        Assertions.assertEquals(expected, actual);
     }
 
     private void assertModels(Collection<ModelDto> actual, Collection<ModelDto> expected) {

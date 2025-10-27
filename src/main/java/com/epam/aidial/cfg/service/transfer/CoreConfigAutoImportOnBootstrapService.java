@@ -1,8 +1,6 @@
 package com.epam.aidial.cfg.service.transfer;
 
 import com.epam.aidial.cfg.domain.service.DatabaseService;
-import com.epam.aidial.cfg.model.ConfigImportOptions;
-import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
@@ -30,7 +28,7 @@ public class CoreConfigAutoImportOnBootstrapService {
             if (databaseService.isInitializedEmptyDatabase()) {
                 log.info("Auto import of core config started");
                 Config config = coreConfigRetriever.getConfig(true);
-                configImporter.importConfig(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
+                configImporter.importConfig(config);
                 log.info("Auto import of core config finished");
             } else {
                 log.info("Database is not empty. Skipping auto import of core config");

@@ -177,7 +177,8 @@ public class ModelService {
         }
     }
 
-    private void assertExists(String name) {
+    @Transactional(readOnly = true)
+    public void assertExists(String name) {
         boolean exists = modelJpaRepository.existsById(name);
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));

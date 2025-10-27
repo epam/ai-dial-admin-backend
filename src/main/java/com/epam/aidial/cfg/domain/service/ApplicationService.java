@@ -143,7 +143,8 @@ public class ApplicationService {
         }
     }
 
-    private void assertExists(String name) {
+    @Transactional(readOnly = true)
+    public void assertExists(String name) {
         boolean exists = applicationJpaRepository.existsById(name);
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));

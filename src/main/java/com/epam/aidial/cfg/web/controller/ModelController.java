@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
+import com.epam.aidial.core.config.CoreModel;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -69,8 +70,7 @@ public class ModelController {
         modelFacade.deleteModel(modelName);
     }
 
-    @GetMapping(path = "/{modelName}/revision/{revision}",
-                produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{modelName}/revision/{revision}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelDto getSnapshot(@PathVariable String modelName, @PathVariable Integer revision) {
         return modelFacade.getSnapshot(modelName, revision);
     }
@@ -78,5 +78,15 @@ public class ModelController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ModelDto> getAllAtRevision(@PathVariable Integer revision) {
         return modelFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/core/{modelName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreModel getCoreModel(@PathVariable String modelName) {
+        return modelFacade.getCoreModel(modelName);
+    }
+
+    @PutMapping(path = "/core/{modelName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCoreModel(@PathVariable String modelName, @RequestBody @Valid CoreModel coreModel) {
+        modelFacade.updateCoreModel(modelName, coreModel);
     }
 }

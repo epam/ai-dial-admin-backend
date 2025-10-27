@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
+import com.epam.aidial.core.config.CoreApplication;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -82,5 +83,15 @@ public class ApplicationController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/core/{applicationName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreApplication getCoreApplication(@PathVariable String applicationName) {
+        return applicationFacade.getCoreApplication(applicationName);
+    }
+
+    @PutMapping(path = "/core/{applicationName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCoreApplication(@PathVariable String applicationName, @RequestBody @Valid CoreApplication coreApplication) {
+        applicationFacade.updateCoreApplication(applicationName, coreApplication);
     }
 }

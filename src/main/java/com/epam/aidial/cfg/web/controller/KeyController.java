@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
+import com.epam.aidial.core.config.CoreKey;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -79,5 +80,15 @@ public class KeyController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<KeyDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
         return keyFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/core/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreKey getCoreKey(@PathVariable String name) {
+        return keyFacade.getCoreKey(name);
+    }
+
+    @PutMapping(path = "/core/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCoreKey(@PathVariable String name, @RequestBody @Valid CoreKey coreKey) {
+        keyFacade.updateCoreKey(name, coreKey);
     }
 }

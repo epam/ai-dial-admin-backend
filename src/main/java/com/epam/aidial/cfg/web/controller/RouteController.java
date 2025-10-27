@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
+import com.epam.aidial.core.config.CoreRoute;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -80,5 +81,15 @@ public class RouteController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<RouteDto> getAllAtRevision(@PathVariable Integer revision) throws Exception {
         return routeFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/core/{routeName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CoreRoute getCoreRoute(@PathVariable String routeName) {
+        return routeFacade.getCoreRoute(routeName);
+    }
+
+    @PutMapping(path = "/core/{routeName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCoreRoute(@PathVariable String routeName, @RequestBody @Valid CoreRoute coreRoute) {
+        routeFacade.updateCoreRoute(routeName, coreRoute);
     }
 }
