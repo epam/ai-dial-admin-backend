@@ -18,7 +18,7 @@
       "applicationResource": {
         "path": "Folder 1/Application 1",
         "folderId": "Folder 1",
-        "updateTime": 1741595170582,
+        "updatedAt": 1741595170582,
         "name": "Application 1",
         "endpoint": "https://app1.test.com",
         "viewerUrl": "https://viewer.app1.test.com",
@@ -49,7 +49,7 @@
       "applicationResource": {
         "path": "Folder 1/Application 2",
         "folderId": "Folder 1",
-        "updateTime": 1741595170789,
+        "updatedAt": 1741595170789,
         "name": "Application 2",
         "endpoint": "https://app2.test.com",
         "viewerUrl": "https://viewer.app2.test.com",

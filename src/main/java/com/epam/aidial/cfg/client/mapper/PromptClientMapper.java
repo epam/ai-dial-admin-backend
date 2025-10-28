@@ -81,7 +81,7 @@ public abstract class PromptClientMapper {
                 .name(itemParts.getName())
                 .version(itemParts.getVersion())
                 .folderId(itemParts.getFolderId())
-                .updateTime(metadataDto.getUpdatedAt())
+                .updatedAt(metadataDto.getUpdatedAt())
                 .author(metadataDto.getAuthor())
                 .description(promptDto.getDescription())
                 .content(promptDto.getContent())

@@ -36,7 +36,7 @@ public abstract class ApplicationClientMapper {
     }
 
     @Mapping(target = "name", source = "itemParts.name")
-    @Mapping(target = "updateTime", source = "metadataDto.updatedAt")
+    @Mapping(target = "updatedAt", source = "metadataDto.updatedAt")
     @Mapping(target = "folderId", source = "itemParts.folderId")
     @Mapping(target = "author", source = "metadataDto.author")
     @Mapping(target = "routes", source = "dto.routes")

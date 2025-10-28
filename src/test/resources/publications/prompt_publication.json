@@ -20,7 +20,7 @@
         "name": "Prompt 1",
         "folderId": "Folder 1",
         "description": "Description 1",
-        "updateTime": 1741595170582,
+        "updatedAt": 1741595170582,
         "content": "Content 1"
       }
     },
@@ -31,7 +31,7 @@
         "name": "Prompt 2",
         "folderId": "Folder 1",
         "description": "Description 2",
-        "updateTime": 1741595170789,
+        "updatedAt": 1741595170789,
         "content": "Content 2"
       }
     }

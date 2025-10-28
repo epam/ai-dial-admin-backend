@@ -3,14 +3,13 @@ package com.epam.aidial.cfg.dto;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class ToolSetResourceDto {
     private String path;
     private String version;
     private String folderId;
-    private long updateTime;
+    private long updatedAt;
     private String author;
     private String name;
     private String endpoint;
