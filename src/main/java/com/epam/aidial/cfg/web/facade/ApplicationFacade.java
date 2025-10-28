@@ -43,6 +43,10 @@ public class ApplicationFacade {
         return new DtoWithDomainHash<>(mapper.toDto(applicationWithHash.model()), applicationWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreApplication> getCoreApplicationWithHash(String applicationName) {
+        return coreApplicationService.getCoreApplicationWithHash(applicationName);
+    }
+
     public void createApplication(ApplicationDto applicationDto) {
         Optional.of(applicationDto)
                 .map(mapper::toDomain)
@@ -52,6 +56,10 @@ public class ApplicationFacade {
     public String updateApplication(String applicationName, ApplicationDto applicationDto, String hash) {
         Application value = mapper.toDomain(applicationDto);
         return applicationService.updateApplication(applicationName, value, hash);
+    }
+
+    public String updateApplication(String applicationName, CoreApplication coreApplication, String hash) {
+        return coreApplicationService.updateApplication(applicationName, coreApplication, hash);
     }
 
     public void deleteApplication(String applicationName) {
@@ -68,13 +76,5 @@ public class ApplicationFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    public CoreWithDomainHash<CoreApplication> getCoreApplicationWithHash(String applicationName) {
-        return coreApplicationService.getCoreApplicationWithHash(applicationName);
-    }
-
-    public String updateApplication(String applicationName, CoreApplication coreApplication, String hash) {
-        return coreApplicationService.updateApplication(applicationName, coreApplication, hash);
     }
 }

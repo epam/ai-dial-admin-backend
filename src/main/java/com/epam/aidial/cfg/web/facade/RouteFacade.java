@@ -43,6 +43,10 @@ public class RouteFacade {
         return new DtoWithDomainHash<>(dto, routeWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreRoute> getCoreRouteWithHash(String routeName) {
+        return coreRouteService.getCoreRouteWithHash(routeName);
+    }
+
     public void createRoute(RouteDto routeDto) {
         Optional.of(routeDto)
                 .map(mapper::toDomain)
@@ -52,6 +56,10 @@ public class RouteFacade {
     public String updateRoute(String routeName, RouteDto routeDto, String hash) {
         Route value = mapper.toDomain(routeDto);
         return routeService.update(routeName, value, hash);
+    }
+
+    public String updateRoute(String routeName, CoreRoute coreRoute, String hash) {
+        return coreRouteService.updateRoute(routeName, coreRoute, hash);
     }
 
     public void deleteRoute(String routeName) {
@@ -68,13 +76,5 @@ public class RouteFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    public CoreWithDomainHash<CoreRoute> getCoreRouteWithHash(String routeName) {
-        return coreRouteService.getCoreRouteWithHash(routeName);
-    }
-
-    public String updateRoute(String routeName, CoreRoute coreRoute, String hash) {
-        return coreRouteService.updateRoute(routeName, coreRoute, hash);
     }
 }

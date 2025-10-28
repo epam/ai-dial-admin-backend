@@ -48,6 +48,14 @@ public class RouteController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @GetMapping(path = "/core/{routeName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreRoute> getCoreRoute(@PathVariable String routeName,
+                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = routeFacade.getCoreRouteWithHash(routeName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createRoute(@RequestBody @Valid RouteDto routeDto) {
@@ -60,6 +68,14 @@ public class RouteController {
                                             @RequestBody @Valid RouteDto routeDto,
                                             @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = routeFacade.updateRoute(routeName, routeDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{routeName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateRoute(@PathVariable String routeName,
+                                            @RequestBody @Valid CoreRoute coreRoute,
+                                            @RequestHeader(value = "If-Match") String previousHash) {
+        String newHash = routeFacade.updateRoute(routeName, coreRoute, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
@@ -78,21 +94,6 @@ public class RouteController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<RouteDto> getAllAtRevision(@PathVariable Integer revision) throws Exception {
         return routeFacade.getAllAtRevision(revision);
-    }
-
-    @GetMapping(path = "/core/{routeName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CoreRoute> getCoreRoute(@PathVariable String routeName,
-                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
-        var coreWithHash = routeFacade.getCoreRouteWithHash(routeName);
-        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
-    }
-
-    @PutMapping(path = "/core/{routeName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateCoreRoute(@PathVariable String routeName,
-                                                @RequestBody @Valid CoreRoute coreRoute,
-                                                @RequestHeader(value = "If-Match") String previousHash) {
-        String newHash = routeFacade.updateRoute(routeName, coreRoute, StringUtils.unwrap(previousHash, '"'));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {

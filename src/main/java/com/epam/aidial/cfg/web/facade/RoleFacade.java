@@ -42,6 +42,10 @@ public class RoleFacade {
         return new DtoWithDomainHash<>(mapper.toDto(roleWithHash.model()), roleWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreRole> getCoreRoleWithHash(String roleName) {
+        return coreRoleService.getCoreRoleWithHash(roleName);
+    }
+
     public void createRole(RoleDto roleDto) {
         Optional.of(roleDto)
                 .map(mapper::toDomain)
@@ -51,6 +55,10 @@ public class RoleFacade {
     public String updateRole(String roleName, RoleDto roleDto, String hash) {
         Role role = mapper.toDomain(roleDto);
         return roleService.updateRole(roleName, role, hash);
+    }
+
+    public String updateRole(String roleName, CoreRole coreRole, String hash) {
+        return coreRoleService.updateRole(roleName, coreRole, hash);
     }
 
     public void deleteRole(String role) {
@@ -67,13 +75,5 @@ public class RoleFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    public CoreWithDomainHash<CoreRole> getCoreRoleWithHash(String roleName) {
-        return coreRoleService.getCoreRoleWithHash(roleName);
-    }
-
-    public String updateRole(String roleName, CoreRole coreRole, String hash) {
-        return coreRoleService.updateRole(roleName, coreRole, hash);
     }
 }

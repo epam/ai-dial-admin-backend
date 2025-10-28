@@ -43,6 +43,10 @@ public class KeyFacade {
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreKey> getCoreKeyWithHash(String keyName) {
+        return coreKeyService.getCoreKeyWithHash(keyName);
+    }
+
     public void createKey(KeyDto keyDto) {
         Optional.of(keyDto)
                 .map(mapper::toDomain)
@@ -51,6 +55,10 @@ public class KeyFacade {
 
     public String updateKey(String keyName, KeyDto keyDto, String hash) {
         return keyService.updateKey(keyName, mapper.toDomain(keyDto), hash);
+    }
+
+    public String updateKey(String keyName, CoreKey coreKey, String hash) {
+        return coreKeyService.updateKey(keyName, coreKey, hash);
     }
 
     public void deleteKey(String keyName) {
@@ -67,13 +75,5 @@ public class KeyFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    public CoreWithDomainHash<CoreKey> getCoreKeyWithHash(String keyName) {
-        return coreKeyService.getCoreKeyWithHash(keyName);
-    }
-
-    public String updateKey(String keyName, CoreKey coreKey, String hash) {
-        return coreKeyService.updateKey(keyName, coreKey, hash);
     }
 }

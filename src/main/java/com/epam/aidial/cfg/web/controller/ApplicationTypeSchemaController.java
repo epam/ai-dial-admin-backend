@@ -50,9 +50,16 @@ public class ApplicationTypeSchemaController {
         return responseEntityForGet(schemaDto.dto(), schemaDto.hash(), previousHash);
     }
 
+    @GetMapping(path = "/core", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreApplicationTypeSchema> getCore(@RequestParam(name = "id") String id,
+                                                             @RequestHeader(value = "If-None-Match", required = false) String previousHash) {
+        var coreWithDomainHash = applicationTypeSchemaFacade.getCoreSchemaWithHash(id);
+        return responseEntityForGet(coreWithDomainHash.core(), coreWithDomainHash.hash(), previousHash);
+    }
+
     @GetMapping(path = "/snapshot", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApplicationTypeSchemaDto get(@RequestParam(name = "id") String id,
-                                        @RequestParam(name = "revision") Integer revision) {
+    public ApplicationTypeSchemaDto getSnapshot(@RequestParam(name = "id") String id,
+                                                @RequestParam(name = "revision") Integer revision) {
         return applicationTypeSchemaFacade.getSnapshot(id, revision);
     }
 
@@ -70,6 +77,14 @@ public class ApplicationTypeSchemaController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @PutMapping(path = "/core", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> update(@RequestParam(name = "id") String id,
+                                       @RequestBody @Valid CoreApplicationTypeSchema coreApplicationTypeSchema,
+                                       @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = applicationTypeSchemaFacade.update(id, coreApplicationTypeSchema, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@RequestParam(name = "id") String id,
@@ -80,21 +95,6 @@ public class ApplicationTypeSchemaController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationTypeSchemaDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationTypeSchemaFacade.getAllAtRevision(revision);
-    }
-
-    @GetMapping(path = "/core", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CoreApplicationTypeSchema> getCore(@RequestParam(name = "id") String id,
-                                                             @RequestHeader(value = "If-None-Match", required = false) String previousHash) {
-        var coreWithDomainHash = applicationTypeSchemaFacade.getCoreSchemaWithHash(id);
-        return responseEntityForGet(coreWithDomainHash.core(), coreWithDomainHash.hash(), previousHash);
-    }
-
-    @PutMapping(path = "/core", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> update(@RequestParam(name = "id") String id,
-                                       @RequestBody @Valid CoreApplicationTypeSchema coreApplicationTypeSchema,
-                                       @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = applicationTypeSchemaFacade.update(id, coreApplicationTypeSchema, StringUtils.unwrap(previousHash, '"'));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {

@@ -47,6 +47,13 @@ public class ModelController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @GetMapping(path = "/core/{modelName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreModel> getCoreModel(@PathVariable String modelName,
+                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = modelFacade.getCoreModelWithHash(modelName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createModel(@RequestBody @Valid ModelDto modelDto) {
@@ -59,6 +66,14 @@ public class ModelController {
                                             @RequestBody @Valid ModelDto modelDto,
                                             @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = modelFacade.updateModel(modelName, modelDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{modelName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateModel(@PathVariable String modelName,
+                                            @RequestBody @Valid CoreModel coreModel,
+                                            @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = modelFacade.updateModel(modelName, coreModel, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
@@ -76,21 +91,6 @@ public class ModelController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ModelDto> getAllAtRevision(@PathVariable Integer revision) {
         return modelFacade.getAllAtRevision(revision);
-    }
-
-    @GetMapping(path = "/core/{modelName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CoreModel> getCoreModel(@PathVariable String modelName,
-                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
-        var coreWithHash = modelFacade.getCoreModelWithHash(modelName);
-        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
-    }
-
-    @PutMapping(path = "/core/{modelName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateModel(@PathVariable String modelName,
-                                            @RequestBody @Valid CoreModel coreModel,
-                                            @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = modelFacade.updateModel(modelName, coreModel, StringUtils.unwrap(previousHash, '"'));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {

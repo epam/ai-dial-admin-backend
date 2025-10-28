@@ -51,6 +51,13 @@ public class ApplicationController {
 
     }
 
+    @GetMapping(path = "/core/{applicationName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreApplication> getCoreApplication(@PathVariable String applicationName,
+                                                              @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = applicationFacade.getCoreApplicationWithHash(applicationName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createApplication(@RequestBody @Valid ApplicationDto applicationDto) {
@@ -63,6 +70,14 @@ public class ApplicationController {
                                                   @RequestBody @Valid ApplicationDto applicationDto,
                                                   @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = applicationFacade.updateApplication(applicationName, applicationDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{applicationName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateApplication(@PathVariable String applicationName,
+                                                  @RequestBody @Valid CoreApplication coreApplication,
+                                                  @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = applicationFacade.updateApplication(applicationName, coreApplication, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
@@ -81,21 +96,6 @@ public class ApplicationController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationFacade.getAllAtRevision(revision);
-    }
-
-    @GetMapping(path = "/core/{applicationName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CoreApplication> getCoreApplication(@PathVariable String applicationName,
-                                                              @RequestHeader(value = "If-None-Match") String previousHash) {
-        var coreWithHash = applicationFacade.getCoreApplicationWithHash(applicationName);
-        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
-    }
-
-    @PutMapping(path = "/core/{applicationName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateApplication(@PathVariable String applicationName,
-                                                  @RequestBody @Valid CoreApplication coreApplication,
-                                                  @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = applicationFacade.updateApplication(applicationName, coreApplication, StringUtils.unwrap(previousHash, '"'));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {

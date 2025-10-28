@@ -46,6 +46,10 @@ public class ToolSetFacade {
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreToolSet> getCoreToolSetWithHash(String toolSetName) {
+        return coreToolSetService.getCoreToolSetWithHash(toolSetName);
+    }
+
     public void createToolSet(ToolSetDto toolSetDto) {
         Optional.of(toolSetDto)
                 .map(mapper::toDomain)
@@ -55,6 +59,10 @@ public class ToolSetFacade {
     public String updateToolSet(String toolSetName, ToolSetDto toolSetDto, String hash) {
         ToolSet value = mapper.toDomain(toolSetDto);
         return toolSetService.update(toolSetName, value, hash);
+    }
+
+    public String updateToolSet(String toolSetName, CoreToolSet coreToolSet, String toolSet) {
+        return coreToolSetService.updateToolSet(toolSetName, coreToolSet, toolSet);
     }
 
     public void deleteToolSet(String toolSetName) {
@@ -79,13 +87,5 @@ public class ToolSetFacade {
 
     public void refreshEndpoints() {
         toolSetService.refreshEndpoints();
-    }
-
-    public CoreWithDomainHash<CoreToolSet> getCoreToolSetWithHash(String toolSetName) {
-        return coreToolSetService.getCoreToolSetWithHash(toolSetName);
-    }
-
-    public String updateToolSet(String toolSetName, CoreToolSet coreToolSet, String toolSet) {
-        return coreToolSetService.updateToolSet(toolSetName, coreToolSet, toolSet);
     }
 }

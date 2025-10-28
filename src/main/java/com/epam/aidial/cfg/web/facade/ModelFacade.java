@@ -38,6 +38,10 @@ public class ModelFacade {
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreModel> getCoreModelWithHash(String modelName) {
+        return coreModelService.getCoreModelWithHash(modelName);
+    }
+
     public ModelDto getModel(String modelName) {
         Model model = modelService.getModel(modelName);
         return mapper.toDto(model);
@@ -54,6 +58,10 @@ public class ModelFacade {
         return modelService.updateModel(modelName, value, hash);
     }
 
+    public String updateModel(String modelName, CoreModel coreModel, String hash) {
+        return coreModelService.updateModel(modelName, coreModel, hash);
+    }
+
     public void deleteModel(String model) {
         modelService.deleteModel(model);
     }
@@ -68,13 +76,5 @@ public class ModelFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    public CoreWithDomainHash<CoreModel> getCoreModelWithHash(String modelName) {
-        return coreModelService.getCoreModelWithHash(modelName);
-    }
-
-    public String updateModel(String modelName, CoreModel coreModel, String hash) {
-        return coreModelService.updateModel(modelName, coreModel, hash);
     }
 }

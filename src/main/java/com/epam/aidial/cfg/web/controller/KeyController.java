@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.core.config.CoreKey;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -49,6 +48,13 @@ public class KeyController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @GetMapping(path = "/core/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreKey> getCoreKey(@PathVariable String name,
+                                              @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = keyFacade.getCoreKeyWithHash(name);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createKey(@RequestBody @Valid KeyDto keyDto) {
@@ -60,6 +66,14 @@ public class KeyController {
                                           @RequestBody @Valid KeyDto keyDto,
                                           @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = keyFacade.updateKey(name, keyDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateKey(@PathVariable String name,
+                                          @RequestBody @Valid CoreKey coreKey,
+                                          @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = keyFacade.updateKey(name, coreKey, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
@@ -76,23 +90,8 @@ public class KeyController {
     }
 
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<KeyDto> getAllAtRevision(HttpServletResponse response, @PathVariable Integer revision) throws Exception {
+    public Collection<KeyDto> getAllAtRevision(@PathVariable Integer revision) throws Exception {
         return keyFacade.getAllAtRevision(revision);
-    }
-
-    @GetMapping(path = "/core/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CoreKey> getCoreKey(@PathVariable String name,
-                                              @RequestHeader(value = "If-None-Match") String previousHash) {
-        var coreWithHash = keyFacade.getCoreKeyWithHash(name);
-        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
-    }
-
-    @PutMapping(path = "/core/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateKey(@PathVariable String name,
-                                          @RequestBody @Valid CoreKey coreKey,
-                                          @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = keyFacade.updateKey(name, coreKey, StringUtils.unwrap(previousHash, '"'));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {

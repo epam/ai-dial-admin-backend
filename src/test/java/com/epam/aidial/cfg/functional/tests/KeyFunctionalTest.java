@@ -402,7 +402,7 @@ public abstract class KeyFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyUpdateCoreKey() {
+    public void shouldSuccessfullyUpdateKeyByCoreKey() {
         KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 

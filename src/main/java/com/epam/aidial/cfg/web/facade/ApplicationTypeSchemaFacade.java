@@ -43,6 +43,10 @@ public class ApplicationTypeSchemaFacade {
         return new DtoWithDomainHash<>(mapper.toDto(schemaWithHash.model()), schemaWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreApplicationTypeSchema> getCoreSchemaWithHash(String id) {
+        return coreApplicationTypeSchemaService.getCoreSchemaWithHash(id);
+    }
+
     public void create(@Valid ApplicationTypeSchemaDto schemaDto) {
         Optional.of(schemaDto)
                 .map(mapper::toDomain)
@@ -52,6 +56,10 @@ public class ApplicationTypeSchemaFacade {
     public String update(String id, @Valid ApplicationTypeSchemaDto dto, String hash) {
         ApplicationTypeSchema value = mapper.toDomain(dto);
         return schemaService.update(id, value, hash);
+    }
+
+    public String update(String id, CoreApplicationTypeSchema coreApplicationTypeSchema, String hash) {
+        return coreApplicationTypeSchemaService.updateSchema(id, coreApplicationTypeSchema, hash);
     }
 
     public void delete(String schemaId, boolean removeApplication) {
@@ -68,13 +76,5 @@ public class ApplicationTypeSchemaFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    public CoreWithDomainHash<CoreApplicationTypeSchema> getCoreSchemaWithHash(String id) {
-        return coreApplicationTypeSchemaService.getCoreSchemaWithHash(id);
-    }
-
-    public String update(String id, CoreApplicationTypeSchema coreApplicationTypeSchema, String hash) {
-        return coreApplicationTypeSchemaService.updateSchema(id, coreApplicationTypeSchema, hash);
     }
 }

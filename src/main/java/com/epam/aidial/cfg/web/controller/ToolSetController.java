@@ -48,6 +48,13 @@ public class ToolSetController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @GetMapping(path = "/core/{toolSetName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreToolSet> getCoreToolSet(@PathVariable String toolSetName,
+                                                      @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = toolSetFacade.getCoreToolSetWithHash(toolSetName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createToolSet(@RequestBody @Valid ToolSetDto toolSetName) {
@@ -60,6 +67,14 @@ public class ToolSetController {
                                               @RequestBody @Valid ToolSetDto toolSetDto,
                                               @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = toolSetFacade.updateToolSet(toolSetName, toolSetDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{toolSetName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateToolSet(@PathVariable String toolSetName,
+                                              @RequestBody @Valid CoreToolSet coreToolSet,
+                                              @RequestHeader(value = "If-Match") String previousHash) {
+        String newHash = toolSetFacade.updateToolSet(toolSetName, coreToolSet, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
@@ -83,21 +98,6 @@ public class ToolSetController {
     public McpSchema.ListToolsResult getDiscoveredTools(@PathVariable("toolSetName") String toolSetName,
                                                         @RequestParam(required = false) String nextCursor) {
         return toolSetFacade.getDiscoveredTools(toolSetName, nextCursor);
-    }
-
-    @GetMapping(path = "/core/{toolSetName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CoreToolSet> getCoreToolSet(@PathVariable String toolSetName,
-                                                      @RequestHeader(value = "If-None-Match") String previousHash) {
-        var coreWithHash = toolSetFacade.getCoreToolSetWithHash(toolSetName);
-        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
-    }
-
-    @PutMapping(path = "/core/{toolSetName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateCoreToolSet(@PathVariable String toolSetName,
-                                                  @RequestBody @Valid CoreToolSet coreToolSet,
-                                                  @RequestHeader(value = "If-Match") String previousHash) {
-        String newHash = toolSetFacade.updateToolSet(toolSetName, coreToolSet, StringUtils.unwrap(previousHash, '"'));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {

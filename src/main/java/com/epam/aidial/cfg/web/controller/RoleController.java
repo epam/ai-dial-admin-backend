@@ -48,6 +48,13 @@ public class RoleController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @GetMapping(path = "/core/{roleName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreRole> getCoreRole(@PathVariable String roleName,
+                                                @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = roleFacade.getCoreRoleWithHash(roleName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createRole(@RequestBody @Valid RoleDto roleDto) {
@@ -68,6 +75,14 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @PutMapping(path = "/core/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateRole(@PathVariable String roleName,
+                                           @RequestBody @Valid CoreRole coreRole,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = roleFacade.updateRole(roleName, coreRole, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
     @GetMapping(path = "/{roleName}/revision/{revision}", produces = MediaType.APPLICATION_JSON_VALUE)
     public RoleDto getSnapshot(@PathVariable String roleName, @PathVariable Integer revision) {
         return roleFacade.getSnapshot(roleName, revision);
@@ -76,21 +91,6 @@ public class RoleController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<RoleDto> getAllAtRevision(@PathVariable Integer revision) {
         return roleFacade.getAllAtRevision(revision);
-    }
-
-    @GetMapping(path = "/core/{roleName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CoreRole> getCoreRole(@PathVariable String roleName,
-                                                @RequestHeader(value = "If-None-Match") String previousHash) {
-        var coreWithHash = roleFacade.getCoreRoleWithHash(roleName);
-        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
-    }
-
-    @PutMapping(path = "/core/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateCoreRole(@PathVariable String roleName,
-                                               @RequestBody @Valid CoreRole coreRole,
-                                               @RequestHeader(value = "If-Match") String previousHash) {
-        var newHash = roleFacade.updateRole(roleName, coreRole, StringUtils.unwrap(previousHash, '"'));
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {

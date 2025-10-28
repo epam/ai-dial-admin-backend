@@ -42,6 +42,10 @@ public class InterceptorFacade {
         return new DtoWithDomainHash<>(mapper.toDto(interceptorWithHash.model()), interceptorWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreInterceptor> getCoreInterceptorWithHash(String interceptorName) {
+        return coreInterceptorService.getCoreInterceptorWithHash(interceptorName);
+    }
+
     public void createInterceptor(InterceptorDto interceptorDto) {
         Optional.of(interceptorDto)
                 .map(mapper::toDomain)
@@ -51,6 +55,10 @@ public class InterceptorFacade {
     public String updateInterceptor(String interceptorName, InterceptorDto interceptorDto, String hash) {
         Interceptor value = mapper.toDomain(interceptorDto);
         return interceptorService.update(interceptorName, value, hash);
+    }
+
+    public String updateInterceptor(String interceptorName, CoreInterceptor coreInterceptor, String hash) {
+        return coreInterceptorService.updateInterceptor(interceptorName, coreInterceptor, hash);
     }
 
     public void deleteInterceptor(String interceptorName) {
@@ -71,13 +79,5 @@ public class InterceptorFacade {
 
     public void refreshEndpoints() {
         interceptorService.refreshEndpoints();
-    }
-
-    public CoreWithDomainHash<CoreInterceptor> getCoreInterceptorWithHash(String interceptorName) {
-        return coreInterceptorService.getCoreInterceptorWithHash(interceptorName);
-    }
-
-    public String updateInterceptor(String interceptorName, CoreInterceptor coreInterceptor, String hash) {
-        return coreInterceptorService.updateInterceptor(interceptorName, coreInterceptor, hash);
     }
 }
