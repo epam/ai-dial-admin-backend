@@ -17,7 +17,7 @@
     {
       "path": "Folder 1/File 1.txt",
       "name": "File 1.txt",
-      "updateTime": 1741595170582,
+      "updatedAt": 1741595170582,
       "author": "File Author",
       "contentLength": 12345,
       "contentType": "text/plain"
@@ -25,7 +25,7 @@
     {
       "path": "Folder 1/Prompt 2.txt",
       "name": "Prompt 2.txt",
-      "updateTime": 1741595170789,
+      "updatedAt": 1741595170789,
       "author": "File Author",
       "contentLength": 12345,
       "contentType": "text/plain"

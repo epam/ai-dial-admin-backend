@@ -20,7 +20,7 @@
       "conversation": {
         "path": "Folder 1/Conversation 1",
         "folderId": "Folder 1",
-        "updateTime": 1741595170582,
+        "updatedAt": 1741595170582,
         "name": "Conversation 1",
         "model": {
           "id": "gpt-4"
@@ -70,7 +70,7 @@
       "conversation": {
         "path": "Folder 1/Conversation 2",
         "folderId": "Folder 1",
-        "updateTime": 1741595180582,
+        "updatedAt": 1741595180582,
         "name": "Conversation 2",
         "model": {
           "id": "gpt-4"

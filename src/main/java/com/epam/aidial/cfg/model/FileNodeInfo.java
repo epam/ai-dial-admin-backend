@@ -17,7 +17,7 @@ public class FileNodeInfo {
     private String path;
     private String name;
     private String folderId;
-    private Long updateTime;
+    private Long updatedAt;
     private String author;
     private long contentLength;
     private String contentType;

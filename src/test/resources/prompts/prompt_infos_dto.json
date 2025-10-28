@@ -4,13 +4,13 @@
       "path": "public/Prompt 1__0.0.1",
       "name": "Prompt 1",
       "version": "0.0.1",
-      "updateTime": 1740482013356
+      "updatedAt": 1740482013356
     },
     {
       "path": "public/sub1/sub2/Prompt 4__0.0.1",
       "name": "Prompt 4",
       "version": "0.0.1",
-      "updateTime": 1740563854661
+      "updatedAt": 1740563854661
     }
   ]
 }
