@@ -455,7 +455,6 @@ public abstract class InterceptorFunctionalTest {
         expected.setDisplayName(interceptorDto.getDisplayName());
         expected.setDescription(interceptorDto.getDescription());
         expected.setEndpoint(interceptorDto.getEndpoint());
-        expected.setDefaults(Map.of());
         expected.setFeatures(defaultCoreFeatures());
 
         CoreInterceptor actual = interceptorFacade.getCoreInterceptor(interceptorDto.getName());
