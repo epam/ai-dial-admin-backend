@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.net.MalformedURLException;
@@ -7,6 +8,7 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
+@Slf4j
 public class ProviderUtils {
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0/";
@@ -36,6 +38,7 @@ public class ProviderUtils {
             final var protocol = new URL(urlString).getProtocol();
             return protocol != null && !protocol.isEmpty();
         } catch (final MalformedURLException e) {
+            log.debug("Invalid url format for url: {}", urlString, e);
             return false;
         }
     }

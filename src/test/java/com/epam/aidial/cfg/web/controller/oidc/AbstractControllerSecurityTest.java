@@ -65,7 +65,7 @@ public abstract class AbstractControllerSecurityTest {
             ))
 
             .add(Arguments.of(
-                JwtUtils.generateTestToken(
+                    JwtUtils.generateTestTokenAsString(
                     WRONG_TEST_AUDIENCE,
                     TEST_ISSUER,
                     Map.of(
@@ -77,7 +77,7 @@ public abstract class AbstractControllerSecurityTest {
             ))
 
             .add(Arguments.of(
-                JwtUtils.generateTestToken(
+                    JwtUtils.generateTestTokenAsString(
                     TEST_AUDIENCE,
                     WRONG_TEST_ISSUER,
                     Map.of(
@@ -98,7 +98,7 @@ public abstract class AbstractControllerSecurityTest {
             .<Arguments>builder()
 
             .add(Arguments.of(
-                JwtUtils.generateTestToken(
+                    JwtUtils.generateTestTokenAsString(
                     TEST_AUDIENCE,
                     TEST_ISSUER,
                     Map.of(
