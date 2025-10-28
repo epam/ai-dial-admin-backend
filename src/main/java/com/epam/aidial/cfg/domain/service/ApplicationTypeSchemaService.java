@@ -28,7 +28,7 @@ import java.util.stream.StreamSupport;
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @LogExecution
-@Service("coreApplicationTypeSchemaService")
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationTypeSchemaService {
@@ -126,14 +126,6 @@ public class ApplicationTypeSchemaService {
     @Transactional(readOnly = true)
     public boolean exists(String schemaId) {
         return jpaRepository.existsById(schemaId);
-    }
-
-    @Transactional(readOnly = true)
-    public void assertExists(String schemaId) {
-        boolean exists = jpaRepository.existsById(schemaId);
-        if (!exists) {
-            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(schemaId));
-        }
     }
 
     @Transactional(readOnly = true)

@@ -157,7 +157,7 @@ public abstract class RouteFunctionalTest {
         expected.setPaths(null);
         expected.setUserRoles(routeDto.getRoleLimits().keySet());
 
-        CoreRoute actual = routeFacade.getCoreRoute(routeDto.getName());
+        CoreRoute actual = routeFacade.getCoreRouteWithHash(routeDto.getName()).core();
 
         Assertions.assertEquals(expected, actual);
     }

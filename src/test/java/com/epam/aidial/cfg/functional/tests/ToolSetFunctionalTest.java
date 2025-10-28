@@ -291,7 +291,7 @@ public abstract class ToolSetFunctionalTest {
         expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());
         expected.setUserRoles(toolSetDto.getRoleLimits().keySet());
 
-        CoreToolSet actual = toolSetFacade.getCoreToolSet(toolSetDto.getName());
+        CoreToolSet actual = toolSetFacade.getCoreToolSetWithHash(toolSetDto.getName()).core();
         actual.setCreatedAt(null);
         actual.setUpdatedAt(null);
 

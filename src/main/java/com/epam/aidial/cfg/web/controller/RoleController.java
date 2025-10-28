@@ -45,9 +45,7 @@ public class RoleController {
     public ResponseEntity<RoleDto> getRole(@PathVariable("roleName") String roleName,
                                            @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = roleFacade.getRoleWithHash(roleName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -81,12 +79,23 @@ public class RoleController {
     }
 
     @GetMapping(path = "/core/{roleName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CoreRole getCoreRole(@PathVariable String roleName) {
-        return roleFacade.getCoreRole(roleName);
+    public ResponseEntity<CoreRole> getCoreRole(@PathVariable String roleName,
+                                                @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = roleFacade.getCoreRoleWithHash(roleName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PutMapping(path = "/core/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateCoreRole(@PathVariable String roleName, @RequestBody @Valid CoreRole coreRole) {
-        roleFacade.updateCoreRole(roleName, coreRole);
+    public ResponseEntity<Void> updateCoreRole(@PathVariable String roleName,
+                                               @RequestBody @Valid CoreRole coreRole,
+                                               @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = roleFacade.updateRole(roleName, coreRole, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
+        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

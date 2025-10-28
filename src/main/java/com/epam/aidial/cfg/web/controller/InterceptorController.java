@@ -46,9 +46,7 @@ public class InterceptorController {
     public ResponseEntity<InterceptorDto> getInterceptor(@PathVariable("interceptorName") String interceptorName,
                                                          @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = interceptorFacade.getInterceptorWithHash(interceptorName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -85,12 +83,23 @@ public class InterceptorController {
     }
 
     @GetMapping(path = "/core/{interceptorName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CoreInterceptor getCoreInterceptor(@PathVariable String interceptorName) {
-        return interceptorFacade.getCoreInterceptor(interceptorName);
+    public ResponseEntity<CoreInterceptor> getCoreInterceptor(@PathVariable String interceptorName,
+                                                              @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = interceptorFacade.getCoreInterceptorWithHash(interceptorName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PutMapping(path = "/core/{interceptorName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateCoreInterceptor(@PathVariable String interceptorName, @RequestBody @Valid CoreInterceptor coreInterceptor) {
-        interceptorFacade.updateCoreInterceptor(interceptorName, coreInterceptor);
+    public ResponseEntity<Void> updateInterceptor(@PathVariable String interceptorName,
+                                                  @RequestBody @Valid CoreInterceptor coreInterceptor,
+                                                  @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = interceptorFacade.updateInterceptor(interceptorName, coreInterceptor, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
+        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

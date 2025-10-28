@@ -157,7 +157,7 @@ class RoleControllerTest extends AbstractControllerNoneSecureTest {
     void testUpdateRole() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
-        when(roleFacade.updateRole(eq(TEST_ROLE_NAME), any(), eq("1")))
+        when(roleFacade.updateRole(eq(TEST_ROLE_NAME), any(RoleDto.class), eq("1")))
                 .thenReturn("2");
 
         mockMvc.perform(put(ROLE_API_PATH, TEST_ROLE_NAME)
@@ -176,7 +176,7 @@ class RoleControllerTest extends AbstractControllerNoneSecureTest {
         });
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(roleFacade).updateRole(eq(TEST_ROLE_NAME), any(), eq("1"));
+                .when(roleFacade).updateRole(eq(TEST_ROLE_NAME), any(RoleDto.class), eq("1"));
 
         mockMvc.perform(put(ROLE_API_PATH, TEST_ROLE_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

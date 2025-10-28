@@ -47,9 +47,7 @@ public class ApplicationController {
     public ResponseEntity<ApplicationDto> getApplication(@PathVariable("applicationName") String applicationName,
                                                          @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = applicationFacade.getApplicationWithHash(applicationName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
 
     }
 
@@ -86,12 +84,23 @@ public class ApplicationController {
     }
 
     @GetMapping(path = "/core/{applicationName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CoreApplication getCoreApplication(@PathVariable String applicationName) {
-        return applicationFacade.getCoreApplication(applicationName);
+    public ResponseEntity<CoreApplication> getCoreApplication(@PathVariable String applicationName,
+                                                              @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = applicationFacade.getCoreApplicationWithHash(applicationName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PutMapping(path = "/core/{applicationName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateCoreApplication(@PathVariable String applicationName, @RequestBody @Valid CoreApplication coreApplication) {
-        applicationFacade.updateCoreApplication(applicationName, coreApplication);
+    public ResponseEntity<Void> updateApplication(@PathVariable String applicationName,
+                                                  @RequestBody @Valid CoreApplication coreApplication,
+                                                  @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = applicationFacade.updateApplication(applicationName, coreApplication, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
+        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

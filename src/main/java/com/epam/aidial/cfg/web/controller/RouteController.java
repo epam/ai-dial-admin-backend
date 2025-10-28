@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.core.config.CoreRoute;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -38,7 +37,7 @@ public class RouteController {
     }
 
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public Collection<RouteDto> getAllRoutes(HttpServletResponse response) {
+    public Collection<RouteDto> getAllRoutes() {
         return routeFacade.getAllRoutes();
     }
 
@@ -46,9 +45,7 @@ public class RouteController {
     public ResponseEntity<RouteDto> getRoute(@PathVariable("routeName") String routeName,
                                              @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = routeFacade.getRouteWithHash(routeName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -84,12 +81,23 @@ public class RouteController {
     }
 
     @GetMapping(path = "/core/{routeName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CoreRoute getCoreRoute(@PathVariable String routeName) {
-        return routeFacade.getCoreRoute(routeName);
+    public ResponseEntity<CoreRoute> getCoreRoute(@PathVariable String routeName,
+                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = routeFacade.getCoreRouteWithHash(routeName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PutMapping(path = "/core/{routeName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateCoreRoute(@PathVariable String routeName, @RequestBody @Valid CoreRoute coreRoute) {
-        routeFacade.updateCoreRoute(routeName, coreRoute);
+    public ResponseEntity<Void> updateCoreRoute(@PathVariable String routeName,
+                                                @RequestBody @Valid CoreRoute coreRoute,
+                                                @RequestHeader(value = "If-Match") String previousHash) {
+        String newHash = routeFacade.updateRoute(routeName, coreRoute, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
+        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

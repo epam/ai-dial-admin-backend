@@ -34,7 +34,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ApplicationController.class)
@@ -147,7 +146,7 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, ApplicationDto.class);
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(applicationFacade).updateApplication(eq(TEST_APPLICATION_NAME), any(), eq("1"));
+                .when(applicationFacade).updateApplication(eq(TEST_APPLICATION_NAME), any(ApplicationDto.class), eq("1"));
 
         mockMvc.perform(put(APPLICATION_API_PATH, TEST_APPLICATION_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -172,7 +171,7 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
     void testUpdateApplication_appRouteWithInvalidPath_BadRequest() throws Exception {
         var dtoJson = ResourceUtils.readResource("/application_dto_with_invalid_app_route_path.json");
 
-        when(applicationFacade.updateApplication(eq("test_application"), any(), any())).thenReturn("test");
+        when(applicationFacade.updateApplication(eq("test_application"), any(ApplicationDto.class), any())).thenReturn("test");
 
         mockMvc.perform(put("/api/v1/applications/{applicationName}", "test_application")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

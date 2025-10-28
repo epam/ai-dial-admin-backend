@@ -479,7 +479,7 @@ public abstract class RolesFunctionalTest {
         expected.setCostLimit(new CoreCostLimit());
         expected.setShare(expectedShare);
 
-        CoreRole actual = roleFacade.getCoreRole(roleDto.getName());
+        CoreRole actual = roleFacade.getCoreRoleWithHash(roleDto.getName()).core();
 
         Assertions.assertEquals(expected, actual);
     }

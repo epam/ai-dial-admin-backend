@@ -1,23 +1,18 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
-import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Role;
-import com.epam.aidial.cfg.domain.service.DeploymentService;
 import com.epam.aidial.cfg.domain.service.RoleService;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
+import com.epam.aidial.cfg.service.core.CoreRoleService;
 import com.epam.aidial.cfg.web.facade.mapper.RoleDtoMapper;
-import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -27,10 +22,8 @@ import java.util.stream.Collectors;
 public class RoleFacade {
 
     private final RoleService roleService;
-    private final DeploymentService deploymentService;
     private final RoleDtoMapper mapper;
-    private final RoleCoreMapper roleCoreMapper;
-    private final ConfigImporter configImporter;
+    private final CoreRoleService coreRoleService;
 
     public Collection<RoleDto> getAllRoles() {
         return roleService.getAllRoles()
@@ -76,21 +69,11 @@ public class RoleFacade {
                 .collect(Collectors.toList());
     }
 
-    public CoreRole getCoreRole(String roleName) {
-        Role role = roleService.getRole(roleName);
-        Collection<Deployment> deployments = deploymentService.getAll();
-        return roleCoreMapper.mapRole(role, deployments);
+    public CoreWithDomainHash<CoreRole> getCoreRoleWithHash(String roleName) {
+        return coreRoleService.getCoreRoleWithHash(roleName);
     }
 
-    public void updateCoreRole(String roleName, CoreRole coreRole) {
-        roleService.assertExists(roleName);
-
-        Map<String, CoreRole> coreRoles = new HashMap<>(1);
-        coreRoles.put(roleName, coreRole);
-
-        Config config = new Config();
-        config.setRoles(coreRoles);
-
-        configImporter.importConfigWithOverride(config);
+    public String updateRole(String roleName, CoreRole coreRole, String hash) {
+        return coreRoleService.updateRole(roleName, coreRole, hash);
     }
 }

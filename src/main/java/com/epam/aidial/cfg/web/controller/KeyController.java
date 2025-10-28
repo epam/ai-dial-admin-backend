@@ -46,9 +46,7 @@ public class KeyController {
     public ResponseEntity<KeyDto> getKey(@PathVariable String name,
                                          @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = keyFacade.getKeyWithHash(name);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -83,12 +81,23 @@ public class KeyController {
     }
 
     @GetMapping(path = "/core/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CoreKey getCoreKey(@PathVariable String name) {
-        return keyFacade.getCoreKey(name);
+    public ResponseEntity<CoreKey> getCoreKey(@PathVariable String name,
+                                              @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = keyFacade.getCoreKeyWithHash(name);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PutMapping(path = "/core/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateCoreKey(@PathVariable String name, @RequestBody @Valid CoreKey coreKey) {
-        keyFacade.updateCoreKey(name, coreKey);
+    public ResponseEntity<Void> updateKey(@PathVariable String name,
+                                          @RequestBody @Valid CoreKey coreKey,
+                                          @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = keyFacade.updateKey(name, coreKey, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
+        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

@@ -457,7 +457,7 @@ public abstract class InterceptorFunctionalTest {
         expected.setEndpoint(interceptorDto.getEndpoint());
         expected.setFeatures(defaultCoreFeatures());
 
-        CoreInterceptor actual = interceptorFacade.getCoreInterceptor(interceptorDto.getName());
+        CoreInterceptor actual = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
         actual.setCreatedAt(null);
         actual.setUpdatedAt(null);
 

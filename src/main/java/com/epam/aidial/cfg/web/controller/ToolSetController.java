@@ -45,9 +45,7 @@ public class ToolSetController {
     public ResponseEntity<ToolSetDto> getToolSet(@PathVariable("toolSetName") String toolSetName,
                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = toolSetFacade.getToolSetWithHash(toolSetName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -88,12 +86,23 @@ public class ToolSetController {
     }
 
     @GetMapping(path = "/core/{toolSetName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CoreToolSet getCoreToolSet(@PathVariable String toolSetName) {
-        return toolSetFacade.getCoreToolSet(toolSetName);
+    public ResponseEntity<CoreToolSet> getCoreToolSet(@PathVariable String toolSetName,
+                                                      @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = toolSetFacade.getCoreToolSetWithHash(toolSetName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PutMapping(path = "/core/{toolSetName}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateCoreToolSet(@PathVariable String toolSetName, @RequestBody @Valid CoreToolSet coreToolSet) {
-        toolSetFacade.updateCoreToolSet(toolSetName, coreToolSet);
+    public ResponseEntity<Void> updateCoreToolSet(@PathVariable String toolSetName,
+                                                  @RequestBody @Valid CoreToolSet coreToolSet,
+                                                  @RequestHeader(value = "If-Match") String previousHash) {
+        String newHash = toolSetFacade.updateToolSet(toolSetName, coreToolSet, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
+        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

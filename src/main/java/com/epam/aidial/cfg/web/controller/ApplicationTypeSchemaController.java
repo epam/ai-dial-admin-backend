@@ -47,9 +47,7 @@ public class ApplicationTypeSchemaController {
             throw new IllegalArgumentException("Header 'If-None-Match' is required when 'id' parameter is provided");
         }
         var schemaDto = applicationTypeSchemaFacade.getSchemaWithHash(id);
-        return !schemaDto.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.OK).eTag(schemaDto.hash()).body(schemaDto.dto())
-                : ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(schemaDto.hash()).build();
+        return responseEntityForGet(schemaDto.dto(), schemaDto.hash(), previousHash);
     }
 
     @GetMapping(path = "/snapshot", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -85,12 +83,23 @@ public class ApplicationTypeSchemaController {
     }
 
     @GetMapping(path = "/core", produces = MediaType.APPLICATION_JSON_VALUE)
-    public CoreApplicationTypeSchema getCore(@RequestParam(name = "id") String id) {
-        return applicationTypeSchemaFacade.getCore(id);
+    public ResponseEntity<CoreApplicationTypeSchema> getCore(@RequestParam(name = "id") String id,
+                                                             @RequestHeader(value = "If-None-Match", required = false) String previousHash) {
+        var coreWithDomainHash = applicationTypeSchemaFacade.getCoreSchemaWithHash(id);
+        return responseEntityForGet(coreWithDomainHash.core(), coreWithDomainHash.hash(), previousHash);
     }
 
     @PutMapping(path = "/core", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void updateCore(@RequestParam(name = "id") String id, @RequestBody @Valid CoreApplicationTypeSchema coreApplicationTypeSchema) {
-        applicationTypeSchemaFacade.updateCore(id, coreApplicationTypeSchema);
+    public ResponseEntity<Void> update(@RequestParam(name = "id") String id,
+                                       @RequestBody @Valid CoreApplicationTypeSchema coreApplicationTypeSchema,
+                                       @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = applicationTypeSchemaFacade.update(id, coreApplicationTypeSchema, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
+        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
+                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
+                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

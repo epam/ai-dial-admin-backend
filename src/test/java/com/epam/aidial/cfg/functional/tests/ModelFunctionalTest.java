@@ -382,7 +382,7 @@ public abstract class ModelFunctionalTest {
         expected.setMaxRetryAttempts(modelDto.getMaxRetryAttempts());
         expected.setUserRoles(modelDto.getRoleLimits().keySet());
 
-        CoreModel actual = modelFacade.getCoreModel(modelDto.getName());
+        CoreModel actual = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
         actual.setCreatedAt(null);
         actual.setUpdatedAt(null);
 

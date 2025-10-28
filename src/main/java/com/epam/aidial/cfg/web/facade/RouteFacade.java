@@ -1,20 +1,18 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.route.RouteDto;
-import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
+import com.epam.aidial.cfg.service.core.CoreRouteService;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
-import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreRoute;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,8 +23,7 @@ public class RouteFacade {
 
     private final RouteService routeService;
     private final RouteDtoMapper mapper;
-    private final RouteCoreMapper routeCoreMapper;
-    private final ConfigImporter configImporter;
+    private final CoreRouteService coreRouteService;
 
     public Collection<RouteDto> getAllRoutes() {
         return routeService.getAll()
@@ -73,20 +70,11 @@ public class RouteFacade {
                 .collect(Collectors.toList());
     }
 
-    public CoreRoute getCoreRoute(String routeName) {
-        Route route = routeService.get(routeName);
-        return routeCoreMapper.mapRoute(route);
+    public CoreWithDomainHash<CoreRoute> getCoreRouteWithHash(String routeName) {
+        return coreRouteService.getCoreRouteWithHash(routeName);
     }
 
-    public void updateCoreRoute(String routeName, CoreRoute coreRoute) {
-        routeService.assertExists(routeName);
-
-        LinkedHashMap<String, CoreRoute> coreRoutes = new LinkedHashMap<>(1);
-        coreRoutes.put(routeName, coreRoute);
-
-        Config config = new Config();
-        config.setRoutes(coreRoutes);
-
-        configImporter.importConfigWithOverride(config);
+    public String updateRoute(String routeName, CoreRoute coreRoute, String hash) {
+        return coreRouteService.updateRoute(routeName, coreRoute, hash);
     }
 }

@@ -275,7 +275,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         expected.setProperties(dto.getProperties());
         expected.setRequired(dto.getRequired());
 
-        CoreApplicationTypeSchema actual = typeSchemaFacade.getCore(dto.getId());
+        CoreApplicationTypeSchema actual = typeSchemaFacade.getCoreSchemaWithHash(dto.getId()).core();
 
         Assertions.assertThat(actual).isEqualTo(expected);
     }

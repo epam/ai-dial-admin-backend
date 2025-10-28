@@ -127,7 +127,7 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
         var dto = objectMapper.readValue(dtoJson, ToolSetDto.class);
 
-        when(toolSetFacade.updateToolSet(eq(TEST_TOOL_SET_NAME), any(), eq("1")))
+        when(toolSetFacade.updateToolSet(eq(TEST_TOOL_SET_NAME), any(ToolSetDto.class), eq("1")))
                 .thenReturn("2");
 
         mockMvc.perform(put(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
@@ -146,7 +146,7 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, ToolSetDto.class);
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(toolSetFacade).updateToolSet(eq(TEST_TOOL_SET_NAME), any(), eq("1"));
+                .when(toolSetFacade).updateToolSet(eq(TEST_TOOL_SET_NAME), any(ToolSetDto.class), eq("1"));
 
         mockMvc.perform(put(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

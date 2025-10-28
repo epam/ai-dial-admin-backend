@@ -377,7 +377,7 @@ public abstract class ApplicationFunctionalTest {
         expected.setFeatures(defaultCoreFeatures());
         expected.setUserRoles(applicationDto.getRoleLimits().keySet());
 
-        CoreApplication actual = applicationFacade.getCoreApplication(applicationDto.getName());
+        CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
         actual.setUpdatedAt(null);
 

@@ -189,19 +189,18 @@ public class ToolSetService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public void assertExists(String name) {
-        boolean exists = toolSetJpaRepository.existsById(name);
-        if (!exists) {
-            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
-        }
-    }
-
     private void resolveEndpointsIfContainerSource(ToolSet toolSet) {
         if (!(toolSet.getSource() instanceof ToolSetContainerSource)) {
             return;
         }
         endpointResolver.processContainerEndpoints(toolSet);
+    }
+
+    private void assertExists(String name) {
+        boolean exists = toolSetJpaRepository.existsById(name);
+        if (!exists) {
+            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
+        }
     }
 
 }

@@ -1,14 +1,13 @@
 package com.epam.aidial.cfg.web.facade;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ToolSetDto;
-import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
+import com.epam.aidial.cfg.service.core.CoreToolSetService;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapper;
-import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,8 +26,7 @@ public class ToolSetFacade {
 
     private final ToolSetService toolSetService;
     private final ToolSetDtoMapper mapper;
-    private final ToolSetCoreMapper toolSetCoreMapper;
-    private final ConfigImporter configImporter;
+    private final CoreToolSetService coreToolSetService;
 
     public Collection<ToolSetDto> getAllToolSets() {
         return toolSetService.getAll()
@@ -85,20 +81,11 @@ public class ToolSetFacade {
         toolSetService.refreshEndpoints();
     }
 
-    public CoreToolSet getCoreToolSet(String toolSetName) {
-        ToolSet toolSet = toolSetService.get(toolSetName);
-        return toolSetCoreMapper.mapToolSet(toolSet);
+    public CoreWithDomainHash<CoreToolSet> getCoreToolSetWithHash(String toolSetName) {
+        return coreToolSetService.getCoreToolSetWithHash(toolSetName);
     }
 
-    public void updateCoreToolSet(String toolSetName, CoreToolSet coreToolSet) {
-        toolSetService.assertExists(toolSetName);
-
-        Map<String, CoreToolSet> coreToolSets = new HashMap<>(1);
-        coreToolSets.put(toolSetName, coreToolSet);
-
-        Config config = new Config();
-        config.setToolsets(coreToolSets);
-
-        configImporter.importConfigWithOverride(config);
+    public String updateToolSet(String toolSetName, CoreToolSet coreToolSet, String toolSet) {
+        return coreToolSetService.updateToolSet(toolSetName, coreToolSet, toolSet);
     }
 }

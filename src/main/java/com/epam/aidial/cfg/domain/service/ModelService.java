@@ -30,7 +30,7 @@ import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @Slf4j
 @LogExecution
-@Service("coreModelService")
+@Service
 @RequiredArgsConstructor
 public class ModelService {
 
@@ -177,8 +177,7 @@ public class ModelService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public void assertExists(String name) {
+    private void assertExists(String name) {
         boolean exists = modelJpaRepository.existsById(name);
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
