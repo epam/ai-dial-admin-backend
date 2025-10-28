@@ -2,13 +2,11 @@ package com.epam.aidial.cfg.service.core.validator;
 
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.core.config.CoreKey;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-@Slf4j
 @Component
 public class CoreKeyValidator {
 
