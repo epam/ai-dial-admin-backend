@@ -30,7 +30,7 @@
     "source": {
       "$type": "adapter",
       "adapterName": "adapter1",
-      "completionEndpointPath": "some-path/embeddings"
+      "completionEndpointPath": "some-path/chat/completions"
     }
   }
 ]

@@ -10,6 +10,9 @@ import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -19,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -113,6 +117,19 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         verify(modelFacade).createModel(eq(dto));
     }
 
+    @ParameterizedTest
+    @MethodSource("invalidModelDto")
+    void testCreateModelWithInvalidDto(String path, String errorMessage) throws Exception {
+        var dtoJson = ResourceUtils.readResource(path);
+
+        mockMvc.perform(post("/api/v1/models")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(errorMessage));
+        ;
+    }
+
     @Test
     void testUpdateModel() throws Exception {
         var dtoJson = ResourceUtils.readResource("/model_dto.json");
@@ -128,6 +145,19 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(header().exists("eTag"))
                 .andExpect(header().string("eTag", "\"2\""));
         verify(modelFacade).updateModel(eq("test_model"), eq(dto), eq("1"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidDto")
+    void testUpdateModelWithInvalidDto(String path, String errorMessage) throws Exception {
+        var dtoJson = ResourceUtils.readResource(path);
+
+        mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(errorMessage));
+        ;
     }
 
     @Test
@@ -176,5 +206,21 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.message").value("JSON parse error: endpoint: Invalid upstream endpoint"));
+    }
+
+    private static Stream<Arguments> invalidModelDto() {
+        return Stream.of(
+                Arguments.of("/model_dto_with_wrong_start_endpoint.json", "endpoint: Must start 'http://' or 'https://' and end '/chat/completions'"),
+                Arguments.of("/model_dto_with_wrong_end_endpoint.json", "endpoint: Must start 'http://' or 'https://' and end '/chat/completions'"),
+                Arguments.of("/model_dto_with_source_wrong_endpoint.json", "JSON parse error: completionEndpointPath: Must end '/chat/completions'")
+        );
+    }
+
+    private static Stream<Arguments> validModelDto() {
+        return Stream.of(
+                Arguments.of("/model_dto_with_wrong_start_endpoint.json", "endpoint: Must start 'http://' or 'https://' and end '/chat/completions'"),
+                Arguments.of("/model_dto_with_wrong_end_endpoint.json", "endpoint: Must start 'http://' or 'https://' and end '/chat/completions'"),
+                Arguments.of("/model_dto_with_source_wrong_endpoint.json", "JSON parse error: completionEndpointPath: Must end '/chat/completions'")
+        );
     }
 }

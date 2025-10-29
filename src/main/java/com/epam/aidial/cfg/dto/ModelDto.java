@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.source.ModelSourceDto;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,6 +20,10 @@ public class ModelDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
+    @Pattern(
+            regexp = "^(https://.+?/chat/completions|http://.+?/chat/completions)?$",
+            message = "Must start 'http://' or 'https://' and end '/chat/completions'"
+    )
     private String endpoint;
     @NotBlank(message = "DisplayName is required")
     private String displayName;

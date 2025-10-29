@@ -22,7 +22,7 @@
   "source": {
     "$type": "adapter",
     "adapterName": "adapter1",
-    "completionEndpointPath": "some-path/chat/completions"
+    "completionEndpointPath": "some-path/chat/embeddings"
   },
   "displayName": "Test Model",
   "description": "It is a test model",

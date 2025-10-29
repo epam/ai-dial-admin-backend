@@ -19,10 +19,9 @@
     }
   ],
   "name": "test_model",
+  "endpoint":"https://test/chat/",
   "source": {
-    "$type": "adapter",
-    "adapterName": "adapter1",
-    "completionEndpointPath": "some-path/chat/completions"
+    "$type": "endpoints"
   },
   "displayName": "Test Model",
   "description": "It is a test model",
