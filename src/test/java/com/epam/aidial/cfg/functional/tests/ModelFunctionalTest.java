@@ -362,6 +362,17 @@ public abstract class ModelFunctionalTest {
         Assertions.assertEquals("Model with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
     }
 
+    @Test
+    public void shouldSaveAndReturnModelWithUniqueTopics() {
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setTopics(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+
+        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getTopics());
+    }
+
     private void assertModels(Collection<ModelDto> actual, Collection<ModelDto> expected) {
         Map<String, ModelDto> actualMap = toMap(actual);
         Map<String, ModelDto> expectedMap = toMap(expected);
