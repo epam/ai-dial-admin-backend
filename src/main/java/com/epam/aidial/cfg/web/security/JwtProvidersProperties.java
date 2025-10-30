@@ -37,7 +37,7 @@ public class JwtProvidersProperties {
             var next = iterator.next();
             var name = next.getKey();
             var provider = next.getValue();
-            log.trace("Validating provider '{}'", provider.toString());
+            log.trace("Validating provider name:'{}', issue:'{}', uri:'{}'", name, provider.issuer, provider.jwkSetUri);
             if (StringUtils.isBlank(provider.getIssuer()) || StringUtils.isBlank(provider.getJwkSetUri())) {
                 log.warn("Skipping provider '{}' — missing issuer or jwkSetUri", name);
                 iterator.remove();
