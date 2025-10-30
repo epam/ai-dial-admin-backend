@@ -35,10 +35,4 @@ public class ResourceAuthSettingsDto {
         SIGNED_OUT,
         FAILED
     }
-
-    public enum AuthenticationType {
-        OAUTH,
-        API_KEY,
-        NONE
-    }
 }

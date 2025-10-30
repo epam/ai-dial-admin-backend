@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.ToolSetClient;
+import com.epam.aidial.cfg.client.dto.ResourceSignInRequestDto;
+import com.epam.aidial.cfg.client.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
@@ -23,6 +25,7 @@ import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +44,7 @@ import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 @LogExecution
 public class ToolSetResourceService implements ResourceService {
     private static final String BASE_PATH = "public/";
-
+    private static final String SIGN_IN_MESSAGE = "For authenticationType %s, the field %s must be provided.";
     private final ToolSetClient toolSetClient;
     private final ToolSetClientMapper toolSetClientMapper;
     private final ResourceClient resourceClient;
@@ -153,6 +156,32 @@ public class ToolSetResourceService implements ResourceService {
         var toolSet = getToolSetResource(path);
         return toolDiscoveryService.discoverTools(toolSet.getEndpoint(),
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor);
+    }
+
+    public void signIn(ResourceSignInRequestDto request) {
+        var authenticationType = request.getAuthenticationType();
+        switch (authenticationType) {
+            case OAUTH -> {
+                if (StringUtils.isBlank(request.getCode())) {
+                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "code"));
+                }
+            }
+            case API_KEY -> {
+                if (StringUtils.isBlank(request.getApiKey())) {
+                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "ApiKey"));
+                }
+            }
+            case NONE -> {
+                if (StringUtils.isNotBlank(request.getApiKey()) || StringUtils.isNotBlank(request.getCode())) {
+                    throw new IllegalArgumentException("Neither Api key nor Code is not required when auth type is None");
+                }
+            }
+        }
+        toolSetClient.signInToolSetResource(request);
+    }
+
+    public void signOut(ResourceSignOutRequestDto request) {
+        toolSetClient.signOutToolSetResource(request);
     }
 
 }

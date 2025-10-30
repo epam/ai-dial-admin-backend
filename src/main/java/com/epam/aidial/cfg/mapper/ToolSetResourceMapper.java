@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.mapper;
 
+import com.epam.aidial.cfg.client.dto.ResourceSignInRequestDto;
+import com.epam.aidial.cfg.client.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceNodeInfoDto;
@@ -16,4 +18,8 @@ public interface ToolSetResourceMapper {
     ToolSetResourceNodeInfoDto toToolSetResourceNodeInfoDto(ToolSetResourceNodeInfo toolSetResourceNodeInfo);
 
     ToolSetResourceDto toToolSetResourceDto(ToolSetResource model);
+
+    ResourceSignInRequestDto toResourceSignInRequest(com.epam.aidial.cfg.dto.ResourceSignInRequestDto dto);
+
+    ResourceSignOutRequestDto toResourceSignOutRequest(com.epam.aidial.cfg.dto.ResourceSignOutRequestDto dto);
 }

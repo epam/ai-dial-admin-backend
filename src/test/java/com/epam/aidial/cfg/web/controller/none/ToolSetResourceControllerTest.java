@@ -1,8 +1,12 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dto.AuthenticationTypeResourceDto;
+import com.epam.aidial.cfg.dto.CredentialsLevelDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
+import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
+import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -52,7 +56,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureTest {
 
-
     private static final String DTO_JSON_BASE_PATH = "/toolset-resources/";
     private static final String JSON_TOOLSET_CREATE_DTO = "toolset_create_dto.json";
     private static final String JSON_TOOLSET_CREATE = "toolset_create.json";
@@ -66,6 +69,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     private static final String LIST_API_PATH = APP_RESOURCE_BASE_API_PATH + "/list";
     private static final String MOVE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/move";
     private static final String DISCOVERY_API_PATH = APP_RESOURCE_BASE_API_PATH + "/discovered-tools";
+    private static final String TOOLSET_SIGN_IN = APP_RESOURCE_BASE_API_PATH + "/sign_in";
+    private static final String TOOLSET_SIGN_OUT = APP_RESOURCE_BASE_API_PATH + "/sign_out";
     private static final String TEST_ETAG = "etag123";
     private static final String RETURNED_TEST_ETAG = "\"etag123\"";
     private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";
@@ -241,7 +246,6 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         var updateToolSet = objectMapper.readValue(updateToolSetJson, new TypeReference<CreateToolSetResource>() {
         });
 
-
         doThrow(new ResourceNotFoundException("Not Found"))
                 .when(toolSetResourceService).putToolSetResource(any(), anyBoolean(), any());
 
@@ -263,7 +267,6 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         var updateToolSetJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE);
         var updateToolSet = objectMapper.readValue(updateToolSetJson, new TypeReference<CreateToolSetResource>() {
         });
-
 
         doThrow(new ResourcePreconditionFailedException("Precondition failed"))
                 .when(toolSetResourceService).putToolSetResource(any(), anyBoolean(), any());
@@ -405,5 +408,63 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testSignIn() throws Exception {
+        var request = new ResourceSignInRequestDto();
+        request.setUrl("testUrl");
+        request.setAuthenticationType(AuthenticationTypeResourceDto.OAUTH);
+        request.setCredentialsLevel(CredentialsLevelDto.GLOBAL);
+
+        mockMvc.perform(post(TOOLSET_SIGN_IN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testSignIn_whenInvalidResourceSignInRequestDto() throws Exception {
+        var request = new ResourceSignInRequestDto();
+        request.setUrl("testUrl");
+        request.setAuthenticationType(AuthenticationTypeResourceDto.OAUTH);
+
+        doThrow(new IllegalArgumentException("Invalid request"))
+                .when(toolSetResourceService).signIn(any());
+        mockMvc.perform(post(TOOLSET_SIGN_IN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("credentialsLevel: credentialsLevel should be specified"));
+    }
+
+    @Test
+    void testSignOut() throws Exception {
+        var request = new ResourceSignOutRequestDto();
+        request.setUrl("testUrl");
+        request.setAuthenticationType(AuthenticationTypeResourceDto.OAUTH);
+        request.setCredentialsLevel(CredentialsLevelDto.GLOBAL);
+
+        mockMvc.perform(post(TOOLSET_SIGN_OUT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testSignOut_whenInvalidResourceSignInRequestDto() throws Exception {
+        var request = new ResourceSignInRequestDto();
+        request.setUrl("testUrl");
+        request.setAuthenticationType(AuthenticationTypeResourceDto.OAUTH);
+
+        doThrow(new IllegalArgumentException("Invalid request"))
+                .when(toolSetResourceService).signIn(any());
+        mockMvc.perform(post(TOOLSET_SIGN_IN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("credentialsLevel: credentialsLevel should be specified"));
     }
 }

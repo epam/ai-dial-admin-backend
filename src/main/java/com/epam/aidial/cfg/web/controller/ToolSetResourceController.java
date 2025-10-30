@@ -6,6 +6,8 @@ import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
+import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
+import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceNodeInfoDto;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -102,6 +105,18 @@ public class ToolSetResourceController {
     public McpSchema.ListToolsResult getDiscoveredTools(@RequestBody ResourcePathDto toolSetPath,
                                                         @RequestParam(required = false) String nextCursor) {
         return toolSetResourceService.getDiscoveredTools(toolSetPath.getPath(), nextCursor);
+    }
+
+    @PostMapping(path = "/sign_in")
+    @ResponseStatus(HttpStatus.OK)
+    public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
+        toolSetResourceService.signIn(toolSetResourceMapper.toResourceSignInRequest(requestDto));
+    }
+
+    @PostMapping(path = "/sign_out")
+    @ResponseStatus(HttpStatus.OK)
+    public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
+        toolSetResourceService.signOut(toolSetResourceMapper.toResourceSignOutRequest(requestDto));
     }
 
 }
