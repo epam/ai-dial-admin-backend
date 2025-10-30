@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class Model extends RoleBased {
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
     private List<String> interceptors;
-    private List<String> topics; //todo: rename to descriptionKeywords
+    private LinkedHashSet<String> topics; //todo: rename to descriptionKeywords
     private Integer maxRetryAttempts;
     private String author;
     private Long createdAt;

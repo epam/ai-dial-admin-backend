@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Limit;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.core.config.CoreCostLimit;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import org.assertj.core.api.Assertions;
@@ -55,7 +54,6 @@ class RoleCoreMapperTest {
         CoreRole expected = new CoreRole();
         expected.setName("testRole");
         expected.setLimits(Map.of("testModel", expectedLimit));
-        expected.setCostLimit(new CoreCostLimit());
 
         // when
         CoreRole result = mapper.mapRole(role, List.of(deployment));

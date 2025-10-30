@@ -30,6 +30,6 @@ public abstract class ConversationClientMapper {
 
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "folderId", source = "itemParts.folderId")
-    @Mapping(target = "updateTime", source = "metadataDto.updatedAt")
+    @Mapping(target = "updatedAt", source = "metadataDto.updatedAt")
     protected abstract Conversation toConversation(ConversationDto dto, ConversationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
 }

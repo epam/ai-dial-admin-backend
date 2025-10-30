@@ -4,8 +4,6 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
@@ -276,6 +274,17 @@ public abstract class ToolSetFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
 
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+    }
+
+    @Test
+    public void shouldSaveAndReturnToolSetWithUniqueDescriptionKeywords() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetDto.setDescriptionKeywords(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getDescriptionKeywords());
     }
 
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {

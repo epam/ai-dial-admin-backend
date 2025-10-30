@@ -9,7 +9,7 @@ public class FileInfoDto {
     private String path;
     private String name;
     private String folderId;
-    private long updateTime;
+    private long updatedAt;
     private String author;
     private long contentLength;
     private String contentType;
