@@ -271,12 +271,6 @@
           "day": 3
         }
       },
-      "costLimit": {
-        "minute": 9223372036854775807,
-        "day": 9223372036854775807,
-        "week": 9223372036854775807,
-        "month": 9223372036854775807
-      },
       "share": {}
     },
     "testRole1": {
@@ -292,8 +286,7 @@
       "costLimit": {
         "minute": 111,
         "day": 222,
-        "week": 333,
-        "month": 444
+        "week": 333
       },
       "share": {
         "APPLICATION": {

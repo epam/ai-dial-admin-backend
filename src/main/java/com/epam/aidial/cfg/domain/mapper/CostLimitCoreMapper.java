@@ -9,7 +9,20 @@ import org.mapstruct.NullValueMappingStrategy;
 @Mapper(componentModel = "spring")
 public interface CostLimitCoreMapper {
 
-    CoreCostLimit toCoreCostLimit(CostLimit costLimit);
+    default CoreCostLimit toCoreCostLimit(CostLimit costLimit) {
+        if (costLimit == null || costLimit.isUnlimited()) {
+            return null;
+        }
+
+        CoreCostLimit coreCostLimit = new CoreCostLimit();
+
+        coreCostLimit.setMinute(costLimit.getMinute());
+        coreCostLimit.setDay(costLimit.getDay());
+        coreCostLimit.setWeek(costLimit.getWeek());
+        coreCostLimit.setMonth(costLimit.getMonth());
+
+        return coreCostLimit;
+    }
 
     @BeanMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
     CostLimit toCostLimit(CoreCostLimit coreCostLimit);
