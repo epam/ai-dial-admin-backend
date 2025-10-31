@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final JwtProvidersProperties providers;
+    private final JwtProvidersProperties jwtProviderProperties;
 
     @Value("${config.rest.security.allowedRoles}")
     protected String[] allowedRoles;
@@ -33,7 +33,7 @@ public class SecurityConfiguration {
 
     @Bean
     public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim) {
-        return new JwtAuthenticationConverterFactory(providers.getProviders(), principalClaim);
+        return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim);
     }
 
     @Bean
@@ -43,7 +43,7 @@ public class SecurityConfiguration {
 
     @Bean
     public TokenDecoderFactory tokenDecoderFactory(IssuerToDecoderMapFactory issuerToDecoderMapFactory) {
-        return new TokenDecoderFactoryImpl(providers.getProviders(), issuerToDecoderMapFactory);
+        return new TokenDecoderFactoryImpl(jwtProviderProperties.getProviders(), issuerToDecoderMapFactory);
     }
 
     @Bean

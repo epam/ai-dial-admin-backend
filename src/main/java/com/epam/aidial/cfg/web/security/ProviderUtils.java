@@ -13,7 +13,7 @@ public class ProviderUtils {
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0/";
 
-    public static Set<String> getAcceptedIssues(JwtProvidersProperties.ProviderConfig config) {
+    public static Set<String> getAcceptedIssuers(JwtProvidersProperties.ProviderConfig config) {
         final HashSet<String> acceptedIssuers = new HashSet<>();
         var issuer = config.getIssuer();
         if (isValidUrlWithProtocol(issuer)) {

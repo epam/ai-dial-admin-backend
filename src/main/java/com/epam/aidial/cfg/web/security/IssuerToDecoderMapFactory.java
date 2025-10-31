@@ -19,11 +19,11 @@ public class IssuerToDecoderMapFactory {
     public Map<String, JwtDecoder> createIssuerToDecoderMap(final NimbusJwtDecoder jwtDecoder,
                                                             final JwtProvidersProperties.ProviderConfig config) {
         final var issuerToDecoderMap = new HashMap<String, JwtDecoder>();
-        final var acceptedIssues = ProviderUtils.getAcceptedIssues(config);
-        for (final String issuer : acceptedIssues) {
+        final var acceptedIssuers = ProviderUtils.getAcceptedIssuers(config);
+        for (final String issuer : acceptedIssuers) {
             issuerToDecoderMap.put(issuer, jwtDecoder);
         }
-        addTokenDecoderValidators(jwtDecoder, acceptedIssues, getAcceptedAudiences(config.getAudiences()));
+        addTokenDecoderValidators(jwtDecoder, acceptedIssuers, getAcceptedAudiences(config.getAudiences()));
 
         return issuerToDecoderMap;
     }

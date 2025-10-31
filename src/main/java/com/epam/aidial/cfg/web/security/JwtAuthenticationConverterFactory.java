@@ -8,20 +8,20 @@ import java.util.Map;
 
 public class JwtAuthenticationConverterFactory {
     private final String principalClaim;
-    private final Map<String, JwtAuthenticationConverter> converters;
+    private final Map<String, JwtAuthenticationConverter> convertersByIssuer;
 
     public JwtAuthenticationConverterFactory(Map<String, JwtProvidersProperties.ProviderConfig> providers,
                                              String principalClaim) {
         this.principalClaim = principalClaim;
-        Map<String, JwtAuthenticationConverter> tmpConverters = new HashMap<>();
+        Map<String, JwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
         providers.forEach((name, config) -> {
             var converter = create(config);
-            var acceptedIssues = ProviderUtils.getAcceptedIssues(config);
-            for (var issuer : acceptedIssues) {
-                tmpConverters.put(issuer, converter);
+            var acceptedIssuers = ProviderUtils.getAcceptedIssuers(config);
+            for (var issuer : acceptedIssuers) {
+                tmpConvertersByIssuer.put(issuer, converter);
             }
         });
-        converters = Map.copyOf(tmpConverters);
+        convertersByIssuer = Map.copyOf(tmpConvertersByIssuer);
     }
 
     private JwtAuthenticationConverter create(JwtProvidersProperties.ProviderConfig config) {
@@ -35,7 +35,7 @@ public class JwtAuthenticationConverterFactory {
         return jwtAuthenticationConverter;
     }
 
-    public JwtAuthenticationConverter getConverter(String iss) {
-        return converters.get(iss);
+    public JwtAuthenticationConverter getConverter(String issuer) {
+        return convertersByIssuer.get(issuer);
     }
 }
