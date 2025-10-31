@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
+import com.epam.aidial.core.config.CoreInterceptor;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/interceptors")
 @Validated
 @LogExecution
-public class InterceptorController {
+public class InterceptorController extends AbstractController {
 
     private final InterceptorFacade interceptorFacade;
 
@@ -45,9 +46,14 @@ public class InterceptorController {
     public ResponseEntity<InterceptorDto> getInterceptor(@PathVariable("interceptorName") String interceptorName,
                                                          @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = interceptorFacade.getInterceptorWithHash(interceptorName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/core/{interceptorName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreInterceptor> getCoreInterceptor(@PathVariable String interceptorName,
+                                                              @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = interceptorFacade.getCoreInterceptorWithHash(interceptorName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -62,6 +68,14 @@ public class InterceptorController {
                                                   @RequestBody @Valid InterceptorDto interceptorDto,
                                                   @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = interceptorFacade.updateInterceptor(interceptorName, interceptorDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{interceptorName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateInterceptor(@PathVariable String interceptorName,
+                                                  @RequestBody @Valid CoreInterceptor coreInterceptor,
+                                                  @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = interceptorFacade.updateInterceptor(interceptorName, coreInterceptor, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 

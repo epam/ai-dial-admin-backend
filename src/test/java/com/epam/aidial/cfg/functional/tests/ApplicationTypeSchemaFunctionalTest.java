@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -246,5 +247,36 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(actual.getDescription()).isEqualTo("new schema description");
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreApplicationTypeSchema() {
+        typeSchemaFacade.create(dto);
+
+        CoreApplicationTypeSchema expected = new CoreApplicationTypeSchema();
+        expected.setSchema(dto.getSchema());
+        expected.setId(dto.getId());
+        expected.setType(CoreApplicationTypeSchema.CoreType.OBJECT);
+        expected.setTitle(dto.getTitle());
+        expected.setDescription(dto.getDescription());
+        expected.setApplicationTypeEditorUrl(dto.getApplicationTypeEditorUrl());
+        expected.setApplicationTypeViewerUrl(dto.getApplicationTypeViewerUrl());
+        expected.setApplicationTypeDisplayName(dto.getApplicationTypeDisplayName());
+        expected.setApplicationTypeCompletionEndpoint(dto.getApplicationTypeCompletionEndpoint());
+        expected.setApplicationTypeConfigurationEndpoint(dto.getApplicationTypeConfigurationEndpoint());
+        expected.setApplicationTypeRateEndpoint(dto.getApplicationTypeRateEndpoint());
+        expected.setApplicationTypeTokenizeEndpoint(dto.getApplicationTypeTokenizeEndpoint());
+        expected.setApplicationTypeTruncatePromptEndpoint(dto.getApplicationTypeTruncatePromptEndpoint());
+        expected.setAppendApplicationPropertiesHeader(dto.getAppendApplicationPropertiesHeader());
+        expected.setApplicationTypeIconUrl(dto.getApplicationTypeIconUrl());
+        expected.setApplicationTypePlaybackSupport(dto.getApplicationTypePlaybackSupport());
+        expected.setApplicationTypeBucketCopy(CoreApplicationTypeSchema.CopyAppBucketOptions.ENABLED);
+        expected.setDefs(dto.getDefs());
+        expected.setProperties(dto.getProperties());
+        expected.setRequired(dto.getRequired());
+
+        CoreApplicationTypeSchema actual = typeSchemaFacade.getCoreSchemaWithHash(dto.getId()).core();
+
+        Assertions.assertThat(actual).isEqualTo(expected);
     }
 }

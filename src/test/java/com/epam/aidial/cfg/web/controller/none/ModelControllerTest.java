@@ -118,7 +118,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         var dtoJson = ResourceUtils.readResource("/model_dto.json");
         var dto = objectMapper.readValue(dtoJson, ModelDto.class);
 
-        when(modelFacade.updateModel(eq("test_model"), any(), eq("1"))).thenReturn("2");
+        when(modelFacade.updateModel(eq("test_model"), any(ModelDto.class), eq("1"))).thenReturn("2");
 
         mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -136,7 +136,7 @@ class ModelControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, ModelDto.class);
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(modelFacade).updateModel(eq("test_model"), any(), eq("1"));
+                .when(modelFacade).updateModel(eq("test_model"), any(ModelDto.class), eq("1"));
 
         mockMvc.perform(put("/api/v1/models/{modelName}", "test_model")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

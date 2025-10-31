@@ -53,6 +53,7 @@ import java.util.Map;
         "com.epam.aidial.cfg.web.facade",
         "com.epam.aidial.cfg.service.transfer",
         "com.epam.aidial.cfg.service.normalizer",
+        "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
 @Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, ValidationConfig.class, HashCalculator.class})

@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
+import com.epam.aidial.core.config.CoreFeatures;
 
 import java.time.Instant;
 import java.util.List;
@@ -175,5 +176,24 @@ public class FunctionalTestHelper {
                 "role" + suffix, new LimitDto()
         ));
         return assistantDto;
+    }
+
+    public static CoreFeatures defaultCoreFeatures() {
+        CoreFeatures features = new CoreFeatures();
+
+        features.setSystemPromptSupported(true);
+        features.setToolsSupported(false);
+        features.setSeedSupported(false);
+        features.setUrlAttachmentsSupported(false);
+        features.setFolderAttachmentsSupported(false);
+        features.setAllowResume(true);
+        features.setAccessibleByPerRequestKey(true);
+        features.setContentPartsSupported(false);
+        features.setTemperatureSupported(true);
+        features.setAddonsSupported(true);
+        features.setParallelToolCallsSupported(true);
+        features.setAssistantAttachmentsInRequestSupported(false);
+
+        return features;
     }
 }

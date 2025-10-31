@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
+import com.epam.aidial.core.config.CoreInterceptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -29,6 +30,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAp
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDtoWithEntities;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithEndpoint;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
 
 public abstract class InterceptorFunctionalTest {
 
@@ -441,5 +443,24 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertEquals(updatedUrl + configPath, refreshedResult.getFeatures().getConfigurationEndpoint());
 
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreInterceptor() {
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        CoreInterceptor expected = new CoreInterceptor();
+        expected.setName(interceptorDto.getName());
+        expected.setDisplayName(interceptorDto.getDisplayName());
+        expected.setDescription(interceptorDto.getDescription());
+        expected.setEndpoint(interceptorDto.getEndpoint());
+        expected.setFeatures(defaultCoreFeatures());
+
+        CoreInterceptor actual = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
+        actual.setCreatedAt(null);
+        actual.setUpdatedAt(null);
+
+        Assertions.assertEquals(expected, actual);
     }
 }

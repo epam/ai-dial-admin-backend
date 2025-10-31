@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/toolSets")
-public class ToolSetController {
+public class ToolSetController extends AbstractController {
 
     private final ToolSetFacade toolSetFacade;
 
@@ -44,9 +45,14 @@ public class ToolSetController {
     public ResponseEntity<ToolSetDto> getToolSet(@PathVariable("toolSetName") String toolSetName,
                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = toolSetFacade.getToolSetWithHash(toolSetName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/core/{toolSetName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreToolSet> getCoreToolSet(@PathVariable String toolSetName,
+                                                      @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = toolSetFacade.getCoreToolSetWithHash(toolSetName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -64,14 +70,21 @@ public class ToolSetController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @PutMapping(path = "/core/{toolSetName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateToolSet(@PathVariable String toolSetName,
+                                              @RequestBody @Valid CoreToolSet coreToolSet,
+                                              @RequestHeader(value = "If-Match") String previousHash) {
+        String newHash = toolSetFacade.updateToolSet(toolSetName, coreToolSet, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
     @DeleteMapping(path = "/{toolSetName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteToolSet(@PathVariable("toolSetName") String toolSetName) {
         toolSetFacade.deleteToolSet(toolSetName);
     }
 
-    @GetMapping(path = "/{toolSetName}/revision/{revision}",
-                produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{toolSetName}/revision/{revision}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ToolSetDto getSnapshot(@PathVariable String toolSetName, @PathVariable Integer revision) {
         return toolSetFacade.getSnapshot(toolSetName, revision);
     }
@@ -83,7 +96,7 @@ public class ToolSetController {
 
     @GetMapping(path = "/{toolSetName}/discovered-tools", produces = MediaType.APPLICATION_JSON_VALUE)
     public McpSchema.ListToolsResult getDiscoveredTools(@PathVariable("toolSetName") String toolSetName,
-                                              @RequestParam(required = false) String nextCursor) {
+                                                        @RequestParam(required = false) String nextCursor) {
         return toolSetFacade.getDiscoveredTools(toolSetName, nextCursor);
     }
 }

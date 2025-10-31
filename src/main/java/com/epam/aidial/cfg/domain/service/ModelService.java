@@ -30,7 +30,7 @@ import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @Slf4j
 @LogExecution
-@Service("coreModelService")
+@Service
 @RequiredArgsConstructor
 public class ModelService {
 

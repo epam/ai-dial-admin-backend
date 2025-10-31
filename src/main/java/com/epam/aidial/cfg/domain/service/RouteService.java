@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
@@ -22,7 +23,8 @@ import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
-@Service("coreRouteService")
+@LogExecution
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class RouteService {
