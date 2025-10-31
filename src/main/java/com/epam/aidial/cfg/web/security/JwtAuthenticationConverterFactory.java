@@ -8,15 +8,17 @@ import java.util.Map;
 
 public class JwtAuthenticationConverterFactory {
     private final String principalClaim;
+    private final ProviderUtils providerUtils;
     private final Map<String, JwtAuthenticationConverter> convertersByIssuer;
 
     public JwtAuthenticationConverterFactory(Map<String, JwtProvidersProperties.ProviderConfig> providers,
-                                             String principalClaim) {
+                                             String principalClaim, ProviderUtils providerUtils) {
         this.principalClaim = principalClaim;
+        this.providerUtils = providerUtils;
         Map<String, JwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
         providers.forEach((name, config) -> {
             var converter = create(config);
-            var acceptedIssuers = ProviderUtils.getAcceptedIssuers(config);
+            var acceptedIssuers = this.providerUtils.getAcceptedIssuers(config);
             for (var issuer : acceptedIssuers) {
                 tmpConvertersByIssuer.put(issuer, converter);
             }

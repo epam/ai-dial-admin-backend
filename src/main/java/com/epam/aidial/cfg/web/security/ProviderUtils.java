@@ -2,18 +2,20 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
+@Component
 @Slf4j
 public class ProviderUtils {
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0/";
 
-    public static Set<String> getAcceptedIssuers(JwtProvidersProperties.ProviderConfig config) {
+    public Set<String> getAcceptedIssuers(JwtProvidersProperties.ProviderConfig config) {
         final HashSet<String> acceptedIssuers = new HashSet<>();
         var issuer = config.getIssuer();
         if (isValidUrlWithProtocol(issuer)) {
@@ -30,7 +32,7 @@ public class ProviderUtils {
         return acceptedIssuers;
     }
 
-    private static boolean isValidUrlWithProtocol(final String urlString) {
+    private boolean isValidUrlWithProtocol(final String urlString) {
         if (urlString == null || urlString.isEmpty()) {
             return false;
         }

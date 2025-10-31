@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.utils;
 
 import com.epam.aidial.cfg.web.security.JwtAuthenticationConverterFactory;
+import com.epam.aidial.cfg.web.security.ProviderUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -17,6 +18,6 @@ public class TestAuthenticationConverterFactory {
 
     public static JwtAuthenticationConverterFactory createJwtAuthenticationConverterFactory() {
         var config = ProviderTestHelper.createProviderConfig();
-        return new JwtAuthenticationConverterFactory(Map.of(config.getIssuer(), config), "oid");
+        return new JwtAuthenticationConverterFactory(Map.of(config.getIssuer(), config), "oid", new ProviderUtils());
     }
 }

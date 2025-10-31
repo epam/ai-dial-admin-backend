@@ -16,11 +16,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtAuthenticationConverterFactoryTest {
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
+    private final ProviderUtils providerUtils = new ProviderUtils();
 
     @Test
     void whenNoProviders_thenThrows() {
         JwtAuthenticationConverterFactory factory = new JwtAuthenticationConverterFactory(
-                Map.of("test", ProviderTestHelper.createProviderConfig()), "testPrincipal");
+                Map.of("test", ProviderTestHelper.createProviderConfig()), "testPrincipal", providerUtils);
         var converter = factory.getConverter(TEST_ISSUER);
         Jwt jwt = generateTestToken(
                 Map.of(
