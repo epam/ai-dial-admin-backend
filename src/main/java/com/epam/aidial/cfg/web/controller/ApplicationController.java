@@ -29,7 +29,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/applications")
 @Validated
 @LogExecution
-public class ApplicationController {
+public class ApplicationController extends AbstractController {
 
     private final ApplicationFacade applicationFacade;
 
@@ -96,11 +96,5 @@ public class ApplicationController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationFacade.getAllAtRevision(revision);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

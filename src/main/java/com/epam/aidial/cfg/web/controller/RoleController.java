@@ -32,7 +32,7 @@ import java.util.Collection;
 @LogExecution
 @Slf4j
 @RequiredArgsConstructor
-public class RoleController {
+public class RoleController extends AbstractController {
 
     private final RoleFacade roleFacade;
 
@@ -91,11 +91,5 @@ public class RoleController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<RoleDto> getAllAtRevision(@PathVariable Integer revision) {
         return roleFacade.getAllAtRevision(revision);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

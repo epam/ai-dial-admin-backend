@@ -20,15 +20,12 @@ public interface KeyCoreMapper {
     @Mapping(target = "role", ignore = true)
     CoreKey mapKey(Key key);
 
-    @Mapping(target = "projectContactPoint", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "expiresAt", ignore = true)
-    @Mapping(target = "keyGeneratedAt", ignore = true)
-    @Mapping(target = "description", ignore = true)
-    @Mapping(target = "displayName", source = "name")
-    @Mapping(target = "name", source = "name")
-    Key mapKey(CoreKey key, String name);
+    default Key mapKey(CoreKey coreKey, String name) {
+        Key key = new Key();
+        key.setName(name);
+        key.setDisplayName(name);
+        return mapKey(coreKey, key);
+    }
 
     @Mapping(target = "projectContactPoint", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

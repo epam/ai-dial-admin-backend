@@ -30,7 +30,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/api/v1/models")
 @RequiredArgsConstructor
-public class ModelController {
+public class ModelController extends AbstractController {
 
     private final ModelFacade modelFacade;
 
@@ -91,11 +91,5 @@ public class ModelController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ModelDto> getAllAtRevision(@PathVariable Integer revision) {
         return modelFacade.getAllAtRevision(revision);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

@@ -28,7 +28,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/keys")
 @Validated
 @LogExecution
-public class KeyController {
+public class KeyController extends AbstractController {
 
     private final KeyFacade keyFacade;
 
@@ -92,11 +92,5 @@ public class KeyController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<KeyDto> getAllAtRevision(@PathVariable Integer revision) throws Exception {
         return keyFacade.getAllAtRevision(revision);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

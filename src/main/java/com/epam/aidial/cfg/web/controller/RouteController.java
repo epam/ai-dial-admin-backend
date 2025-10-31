@@ -28,7 +28,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/routes")
 @Validated
 @LogExecution
-public class RouteController {
+public class RouteController extends AbstractController {
 
     private final RouteFacade routeFacade;
 
@@ -94,11 +94,5 @@ public class RouteController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<RouteDto> getAllAtRevision(@PathVariable Integer revision) throws Exception {
         return routeFacade.getAllAtRevision(revision);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

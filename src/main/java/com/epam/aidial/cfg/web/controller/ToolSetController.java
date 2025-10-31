@@ -32,7 +32,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/toolSets")
-public class ToolSetController {
+public class ToolSetController extends AbstractController {
 
     private final ToolSetFacade toolSetFacade;
 
@@ -98,11 +98,5 @@ public class ToolSetController {
     public McpSchema.ListToolsResult getDiscoveredTools(@PathVariable("toolSetName") String toolSetName,
                                                         @RequestParam(required = false) String nextCursor) {
         return toolSetFacade.getDiscoveredTools(toolSetName, nextCursor);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

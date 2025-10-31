@@ -29,7 +29,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/applicationTypeSchemas")
 @Validated
 @LogExecution
-public class ApplicationTypeSchemaController {
+public class ApplicationTypeSchemaController extends AbstractController {
 
     private final ApplicationTypeSchemaFacade applicationTypeSchemaFacade;
 
@@ -95,11 +95,5 @@ public class ApplicationTypeSchemaController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationTypeSchemaDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationTypeSchemaFacade.getAllAtRevision(revision);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }

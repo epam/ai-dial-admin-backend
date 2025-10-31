@@ -28,7 +28,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/interceptors")
 @Validated
 @LogExecution
-public class InterceptorController {
+public class InterceptorController extends AbstractController {
 
     private final InterceptorFacade interceptorFacade;
 
@@ -95,11 +95,5 @@ public class InterceptorController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<InterceptorDto> getAllAtRevision(@PathVariable Integer revision) {
         return interceptorFacade.getAllAtRevision(revision);
-    }
-
-    private <T> ResponseEntity<T> responseEntityForGet(T obj, String newHash, String previousHash) {
-        return newHash.equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(newHash).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(newHash).body(obj);
     }
 }
