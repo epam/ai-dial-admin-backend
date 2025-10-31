@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ import java.util.Collection;
 @LogExecution
 @Slf4j
 @RequiredArgsConstructor
-public class RoleController {
+public class RoleController extends AbstractController {
 
     private final RoleFacade roleFacade;
 
@@ -44,9 +45,14 @@ public class RoleController {
     public ResponseEntity<RoleDto> getRole(@PathVariable("roleName") String roleName,
                                            @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = roleFacade.getRoleWithHash(roleName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/core/{roleName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreRole> getCoreRole(@PathVariable String roleName,
+                                                @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = roleFacade.getCoreRoleWithHash(roleName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -66,6 +72,14 @@ public class RoleController {
                                            @RequestBody @Valid RoleDto roleDto,
                                            @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = roleFacade.updateRole(roleName, roleDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateRole(@PathVariable String roleName,
+                                           @RequestBody @Valid CoreRole coreRole,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = roleFacade.updateRole(roleName, coreRole, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 

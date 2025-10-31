@@ -109,7 +109,7 @@ public class InterceptorControllerTest extends AbstractControllerNoneSecureTest 
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
         var dto = objectMapper.readValue(dtoJson, InterceptorDto.class);
 
-        when(interceptorFacade.updateInterceptor(eq(TEST_INTERCEPTOR_NAME), any(), eq("1")))
+        when(interceptorFacade.updateInterceptor(eq(TEST_INTERCEPTOR_NAME), any(InterceptorDto.class), eq("1")))
                 .thenReturn("2");
 
         mockMvc.perform(put(INTERCEPTOR_API_PATH, TEST_INTERCEPTOR_NAME)
@@ -128,7 +128,7 @@ public class InterceptorControllerTest extends AbstractControllerNoneSecureTest 
         var dto = objectMapper.readValue(dtoJson, InterceptorDto.class);
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(interceptorFacade).updateInterceptor(eq(TEST_INTERCEPTOR_NAME), any(), eq("1"));
+                .when(interceptorFacade).updateInterceptor(eq(TEST_INTERCEPTOR_NAME), any(InterceptorDto.class), eq("1"));
 
         mockMvc.perform(put(INTERCEPTOR_API_PATH, TEST_INTERCEPTOR_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

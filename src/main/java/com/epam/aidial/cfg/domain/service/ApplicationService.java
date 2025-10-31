@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
-
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
@@ -25,7 +25,8 @@ import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
-@Service("coreApplicationService")
+@LogExecution
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationService {

@@ -85,7 +85,7 @@ public class KeyImporter {
                                             AtomicInteger counter) {
         Optional<Key> existingKey = keyService.tryGetKeyByKeyValue(coreKey.getKey());
         if (existingKey.isPresent()) {
-            Key key = keyCoreMapper.mapKey(coreKey, existingKey.get().getName());
+            Key key = keyCoreMapper.mapKey(coreKey, existingKey.get());
             ImportAction importAction = handleExisting(key, resolutionPolicy);
             return new ImportComponent<>(importAction, existingKey.get(), key);
         } else {

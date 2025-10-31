@@ -30,7 +30,7 @@ import java.util.Collection;
 @Validated
 @LogExecution
 @RequiredArgsConstructor
-public class InterceptorRunnerController {
+public class InterceptorRunnerController extends AbstractController {
 
     private final InterceptorRunnerFacade interceptorRunnerFacade;
 
@@ -44,9 +44,7 @@ public class InterceptorRunnerController {
     public ResponseEntity<InterceptorRunnerDto> getInterceptorRunner(@PathVariable String interceptorRunnerName,
                                                                      @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = interceptorRunnerFacade.getInterceptorRunnerWithHash(interceptorRunnerName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

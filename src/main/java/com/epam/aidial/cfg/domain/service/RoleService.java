@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
-
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RoleEntityMapper;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
@@ -24,7 +24,8 @@ import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
-@Service("coreRoleService")
+@LogExecution
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class RoleService {
