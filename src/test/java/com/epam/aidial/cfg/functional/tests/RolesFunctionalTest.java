@@ -12,7 +12,6 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
-import com.epam.aidial.core.config.CoreCostLimit;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreShareResourceLimit;
@@ -476,7 +475,6 @@ public abstract class RolesFunctionalTest {
         CoreRole expected = new CoreRole();
         expected.setName(roleDto.getName());
         expected.setLimits(expectedLimits);
-        expected.setCostLimit(new CoreCostLimit());
         expected.setShare(expectedShare);
 
         CoreRole actual = roleFacade.getCoreRoleWithHash(roleDto.getName()).core();
