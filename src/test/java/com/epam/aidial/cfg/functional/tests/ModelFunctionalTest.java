@@ -365,6 +365,17 @@ public abstract class ModelFunctionalTest {
     }
 
     @Test
+    public void shouldSaveAndReturnModelWithUniqueTopics() {
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setTopics(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+
+        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getTopics());
+    }
+
+    @Test
     public void shouldSuccessfullyGetCoreModel() {
         initRoles();
 

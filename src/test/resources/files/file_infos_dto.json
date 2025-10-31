@@ -4,14 +4,14 @@
       "path": "public/test.jpg",
       "name": "test.jpg",
       "folderId": "public",
-      "updateTime": 1741339231067,
+      "updatedAt": 1741339231067,
       "contentLength": 493696,
       "contentType": "image/jpeg",
       "nodeType": "item"
     },
     {
       "path": "public/test/",
-      "updateTime": 0,
+      "updatedAt": 0,
       "contentLength": 0,
       "nodeType": "folder"
     }

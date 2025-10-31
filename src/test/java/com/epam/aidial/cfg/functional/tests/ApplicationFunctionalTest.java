@@ -21,6 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpointAndLimits;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
@@ -358,6 +359,18 @@ public abstract class ApplicationFunctionalTest {
                 () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*")
         );
         Assertions.assertEquals("Application with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
+    }
+
+    @Test
+    public void shouldSaveAndReturnApplicationWithUniqueTopics() {
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setEndpoint("http://my-endpoint");
+        applicationDto.setTopics(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+
+        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getTopics());
     }
 
     @Test

@@ -17,7 +17,7 @@ public class PromptNodeInfo {
     private String name;
     private String version;
     private String folderId;
-    private Long updateTime;
+    private Long updatedAt;
     private String author;
     private NodeType nodeType;
     private List<PromptNodeInfo> items;

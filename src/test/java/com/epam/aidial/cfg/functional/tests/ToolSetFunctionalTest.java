@@ -278,6 +278,17 @@ public abstract class ToolSetFunctionalTest {
     }
 
     @Test
+    public void shouldSaveAndReturnToolSetWithUniqueDescriptionKeywords() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetDto.setDescriptionKeywords(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getDescriptionKeywords());
+    }
+
+    @Test
     public void shouldSuccessfullyGetCoreToolSet() {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
