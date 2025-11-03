@@ -1,12 +1,14 @@
 package com.epam.aidial.core.config;
 
 import com.epam.aidial.cfg.utils.SecretUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class CoreKey {
+    @JsonIgnore
     private String key;
     private String project;
     private String role;

@@ -18,7 +18,6 @@ import java.util.List;
 public interface KeyCoreMapper {
 
     @Mapping(target = "role", ignore = true)
-    @Mapping(target = "key", ignore = true)
     CoreKey mapKey(Key key);
 
     default Key mapKey(CoreKey coreKey, String name) {
