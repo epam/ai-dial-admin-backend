@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
@@ -130,8 +131,7 @@ public class CoreConfigAggregatorService {
                         return false;
                     }
                 })
-                .map(keyMapper::mapKey)
-                .collect(Collectors.toMap(CoreKey::getKey, model -> model));
+                .collect(Collectors.toMap(Key::getKey, keyMapper::mapKeyWithoutKeyValue));
     }
 
     private Map<String, CoreRole> getRoles() {
