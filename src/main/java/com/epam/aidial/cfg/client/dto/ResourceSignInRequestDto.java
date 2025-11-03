@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 public class ResourceSignInRequestDto {
 
     private String url;
-    private CredentialsLevel credentialsLevel;
-    private AuthenticationType authenticationType;
+    private CredentialsLevelDto credentialsLevel;
+    private AuthenticationTypeDto authenticationType;
     private String code;
     private String apiKey;
 }

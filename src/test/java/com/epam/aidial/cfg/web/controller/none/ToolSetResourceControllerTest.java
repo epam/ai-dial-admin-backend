@@ -429,8 +429,6 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         request.setUrl("testUrl");
         request.setAuthenticationType(AuthenticationTypeResourceDto.OAUTH);
 
-        doThrow(new IllegalArgumentException("Invalid request"))
-                .when(toolSetResourceService).signIn(any());
         mockMvc.perform(post(TOOLSET_SIGN_IN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -458,8 +456,6 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         request.setUrl("testUrl");
         request.setAuthenticationType(AuthenticationTypeResourceDto.OAUTH);
 
-        doThrow(new IllegalArgumentException("Invalid request"))
-                .when(toolSetResourceService).signIn(any());
         mockMvc.perform(post(TOOLSET_SIGN_IN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

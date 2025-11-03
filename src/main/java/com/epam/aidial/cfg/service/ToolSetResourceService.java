@@ -44,7 +44,7 @@ import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 @LogExecution
 public class ToolSetResourceService implements ResourceService {
     private static final String BASE_PATH = "public/";
-    private static final String SIGN_IN_MESSAGE = "For authenticationType %s, the field %s must be provided.";
+    private static final String SIGN_IN_MESSAGE = "The '%s' field must have a value. Authentication type: '%s'";
     private final ToolSetClient toolSetClient;
     private final ToolSetClientMapper toolSetClientMapper;
     private final ResourceClient resourceClient;
@@ -159,6 +159,15 @@ public class ToolSetResourceService implements ResourceService {
     }
 
     public void signIn(ResourceSignInRequestDto request) {
+        validateSignInRequest(request);
+        toolSetClient.signInToolSetResource(request);
+    }
+
+    public void signOut(ResourceSignOutRequestDto request) {
+        toolSetClient.signOutToolSetResource(request);
+    }
+
+    private void validateSignInRequest(ResourceSignInRequestDto request) {
         var authenticationType = request.getAuthenticationType();
         switch (authenticationType) {
             case OAUTH -> {
@@ -168,7 +177,7 @@ public class ToolSetResourceService implements ResourceService {
             }
             case API_KEY -> {
                 if (StringUtils.isBlank(request.getApiKey())) {
-                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "ApiKey"));
+                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "apiKey"));
                 }
             }
             case NONE -> {
@@ -178,11 +187,5 @@ public class ToolSetResourceService implements ResourceService {
             }
             default -> throw new IllegalArgumentException("Unsupported authentication type: " + authenticationType);
         }
-        toolSetClient.signInToolSetResource(request);
     }
-
-    public void signOut(ResourceSignOutRequestDto request) {
-        toolSetClient.signOutToolSetResource(request);
-    }
-
 }

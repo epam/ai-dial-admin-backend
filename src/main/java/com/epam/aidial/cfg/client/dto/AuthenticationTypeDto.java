@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.client.dto;
 
-public enum AuthenticationType {
+public enum AuthenticationTypeDto {
     OAUTH,
     API_KEY,
     NONE

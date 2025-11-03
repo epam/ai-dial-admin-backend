@@ -9,10 +9,10 @@ public class ResourceSignInRequestDto {
     @NotEmpty
     private String url;
 
-    @NotNull(message = "credentialsLevel should be specified")
+    @NotNull(message = "Credentials level should be specified")
     private CredentialsLevelDto credentialsLevel;
 
-    @NotNull(message = "authenticationType should be specified")
+    @NotNull(message = "Authentication type should be specified")
     private AuthenticationTypeResourceDto authenticationType;
 
     private String code;

@@ -6,12 +6,12 @@ import lombok.Data;
 
 @Data
 public class ResourceSignOutRequestDto {
-    @NotBlank(message = "resource url should be specified")
+    @NotBlank(message = "Resource url should be specified")
     private String url;
 
-    @NotNull(message = "credentialsLevel should be specified")
+    @NotNull(message = "Credentials level should be specified")
     private CredentialsLevelDto credentialsLevel;
 
-    @NotNull(message = "authenticationType should be specified")
+    @NotNull(message = "Authentication type should be specified")
     private AuthenticationTypeResourceDto authenticationType;
 }

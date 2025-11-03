@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.client.dto;
 
-public enum CredentialsLevel {
+public enum CredentialsLevelDto {
     GLOBAL,
     APPLICATION,
     USER
