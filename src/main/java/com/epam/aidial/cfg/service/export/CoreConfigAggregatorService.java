@@ -131,7 +131,7 @@ public class CoreConfigAggregatorService {
                         return false;
                     }
                 })
-                .collect(Collectors.toMap(Key::getKey, keyMapper::mapKeyWithoutKeyValue));
+`                .collect(Collectors.toMap(Key::getKey, keyMapper::mapKey));
     }
 
     private Map<String, CoreRole> getRoles() {

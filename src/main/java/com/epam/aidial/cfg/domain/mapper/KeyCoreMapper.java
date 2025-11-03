@@ -19,9 +19,6 @@ public interface KeyCoreMapper {
 
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "key", ignore = true)
-    CoreKey mapKeyWithoutKeyValue(Key key);
-
-    @Mapping(target = "role", ignore = true)
     CoreKey mapKey(Key key);
 
     default Key mapKey(CoreKey coreKey, String name) {

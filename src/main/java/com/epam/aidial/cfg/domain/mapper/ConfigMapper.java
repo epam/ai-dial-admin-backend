@@ -2,10 +2,8 @@ package com.epam.aidial.cfg.domain.mapper;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
-import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.core.config.Config;
-import com.epam.aidial.core.config.CoreKey;
 import com.epam.aidial.core.config.CoreRole;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
@@ -33,15 +31,12 @@ public abstract class ConfigMapper {
 
     @Autowired
     private RoleCoreMapper roleCoreMapper;
-    @Autowired
-    private KeyCoreMapper keyCoreMapper;
 
     @Mapping(target = "assistant", ignore = true)
     @Mapping(target = "retriableErrorCodes", ignore = true)
     @Mapping(target = "addons", ignore = true)
     @Mapping(target = "applicationTypeSchemas", source = "applicationRunners")
     @Mapping(target = "roles", ignore = true)
-    @Mapping(target = "keys", ignore = true)
     public abstract Config toCoreConfig(ExportConfig config);
 
     @AfterMapping
@@ -60,23 +55,6 @@ public abstract class ConfigMapper {
         }
 
         config.setRoles(coreRoles);
-    }
-
-    @AfterMapping
-    protected void mapKey(@MappingTarget Config config, ExportConfig exportConfig) {
-        Map<String, Key> keys = exportConfig.getKeys();
-        if (keys == null) {
-            return;
-        }
-
-        Map<String, CoreKey> coreKeys = new HashMap<>();
-        for (Map.Entry<String, Key> entry : keys.entrySet()) {
-            String key = entry.getKey();
-            CoreKey value = keyCoreMapper.mapKeyWithoutKeyValue(entry.getValue());
-            coreKeys.put(key, value);
-        }
-
-        config.setKeys(coreKeys);
     }
 
 }
