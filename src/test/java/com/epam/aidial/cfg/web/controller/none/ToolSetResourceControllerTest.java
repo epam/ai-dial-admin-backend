@@ -434,7 +434,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
-                        .value("credentialsLevel: credentialsLevel should be specified"));
+                        .value("credentialsLevel: Credentials level should be specified"));
     }
 
     @Test
@@ -461,6 +461,6 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
-                        .value("credentialsLevel: credentialsLevel should be specified"));
+                        .value("credentialsLevel: Credentials level should be specified"));
     }
 }
