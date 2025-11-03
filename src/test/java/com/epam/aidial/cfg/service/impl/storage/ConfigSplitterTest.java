@@ -37,8 +37,7 @@ class ConfigSplitterTest {
         Config configBody = new Config();
         configBody.setKeys(new HashMap<>());
         for (int i = 0; i < 5; i++) {
-            CoreKey key = generateKey(i);
-            configBody.getKeys().put(key.getKey(), key);
+            configBody.getKeys().put("key" + i, new CoreKey());
         }
         List<ConfigPart> secretConfigs = splitter.splitConfig(configBody, this::encode, 150, 5);
         Assertions.assertEquals(2, secretConfigs.size());
@@ -60,8 +59,7 @@ class ConfigSplitterTest {
         configBody.getAssistant().getAssistants().put("assistant1", generateAssistant());
         configBody.setKeys(new HashMap<>());
         for (int i = 0; i < 5; i++) {
-            CoreKey key = generateKey(i);
-            configBody.getKeys().put(key.getKey(), key);
+            configBody.getKeys().put("key" + i, new CoreKey());
         }
         configBody.getRoles().put("role1", generateRole());
         configBody.getRetriableErrorCodes().add(10);
@@ -103,15 +101,15 @@ class ConfigSplitterTest {
         config = createConfig();
         config.setAssistant(new Assistants());
         config.getAssistant().setAssistants(Map.of("assistant1", generateAssistant()));
-        config.setKeys(Map.of("key1", generateKey(1)));
+        config.setKeys(Map.of("key1", new CoreKey()));
         configs.add(config);
 
         config = createConfig();
-        config.setKeys(Map.of("key2", generateKey(2), "key0", generateKey(0)));
+        config.setKeys(Map.of("key2", new CoreKey(), "key0", new CoreKey()));
         configs.add(config);
 
         config = createConfig();
-        config.setKeys(Map.of("key3", generateKey(3), "key4", generateKey(4)));
+        config.setKeys(Map.of("key3", new CoreKey(), "key4", new CoreKey()));
         configs.add(config);
 
         config = createConfig();
@@ -191,12 +189,6 @@ class ConfigSplitterTest {
         CoreAssistant coreAssistant = new CoreAssistant();
         coreAssistant.setName("assistant1");
         return coreAssistant;
-    }
-
-    private CoreKey generateKey(int i) {
-        CoreKey key = new CoreKey();
-        key.setKey("key" + i);
-        return key;
     }
 
     private CoreToolSet generateToolSet() {

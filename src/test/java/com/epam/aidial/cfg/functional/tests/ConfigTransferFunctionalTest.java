@@ -1140,7 +1140,6 @@ public abstract class ConfigTransferFunctionalTest {
                 Assertions.assertThat(config.getKeys()).containsOnlyKeys("testKey1")
                         .satisfies(keys -> {
                             Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
-                            Assertions.assertThat(keys.get("testKey1").getKey()).isNull();
                         });
                 Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
                         .satisfies(toolsets -> {
