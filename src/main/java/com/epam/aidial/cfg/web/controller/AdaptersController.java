@@ -30,7 +30,7 @@ import java.util.Collection;
 @Validated
 @LogExecution
 @RequiredArgsConstructor
-public class AdaptersController {
+public class AdaptersController extends AbstractController {
 
     private final AdapterFacade adapterFacade;
 
@@ -44,9 +44,7 @@ public class AdaptersController {
     public ResponseEntity<AdapterDto> getAdapter(@PathVariable String adapterName,
                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = adapterFacade.getAdapterWithHash(adapterName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

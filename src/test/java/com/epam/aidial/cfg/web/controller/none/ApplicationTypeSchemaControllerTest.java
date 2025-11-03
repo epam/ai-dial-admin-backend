@@ -143,7 +143,7 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
         // given
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
-        when(schemaFacade.update(any(), any(), any())).thenReturn("2");
+        when(schemaFacade.update(any(), any(ApplicationTypeSchemaDto.class), any())).thenReturn("2");
         // when
         mockMvc.perform(put(SCHEMA_BASE_API_PATH)
                         .param(ID, TEST_SCHEMA_NAME)
@@ -161,7 +161,7 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
         });
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(schemaFacade).update(eq(TEST_SCHEMA_NAME), any(), eq("1"));
+                .when(schemaFacade).update(eq(TEST_SCHEMA_NAME), any(ApplicationTypeSchemaDto.class), eq("1"));
 
         mockMvc.perform(put(SCHEMA_BASE_API_PATH, TEST_SCHEMA_NAME)
                         .param(ID, TEST_SCHEMA_NAME)
