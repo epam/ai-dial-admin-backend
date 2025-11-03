@@ -176,6 +176,7 @@ public class ToolSetResourceService implements ResourceService {
                     throw new IllegalArgumentException("Neither Api key nor Code is not required when auth type is None");
                 }
             }
+            default -> throw new IllegalArgumentException("Unsupported authentication type: " + authenticationType);
         }
         toolSetClient.signInToolSetResource(request);
     }
