@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 public class SecurityConfiguration {
 
     private final JwtProvidersProperties jwtProviderProperties;
-    private final ProviderUtils providerUtils;
+    private final JwtProviderUtils jwtProviderUtils;
 
     @Value("${config.rest.security.allowedRoles}")
     protected String[] allowedRoles;
@@ -34,12 +34,12 @@ public class SecurityConfiguration {
 
     @Bean
     public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim) {
-        return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, providerUtils);
+        return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, jwtProviderUtils);
     }
 
     @Bean
     public IssuerToDecoderMapFactory issuerToDecoderMapFactory() {
-        return new IssuerToDecoderMapFactory(providerUtils);
+        return new IssuerToDecoderMapFactory(jwtProviderUtils);
     }
 
     @Bean

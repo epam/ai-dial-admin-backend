@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
-import com.epam.aidial.cfg.utils.ProviderTestHelper;
+import com.epam.aidial.cfg.utils.JwtProviderTestHelper;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -16,9 +16,9 @@ class JwtProvidersPropertiesTest {
     }
 
     @Test
-    void whenProvidersPresentAndIssueIsBlank_thenThrows() {
+    void whenProvidersPresentAndIssuerIsBlank_thenThrows() {
         JwtProvidersProperties properties = new JwtProvidersProperties();
-        JwtProvidersProperties.ProviderConfig config = ProviderTestHelper.createProviderConfig();
+        JwtProvidersProperties.ProviderConfig config = JwtProviderTestHelper.createProviderConfig();
         config.setIssuer("");
         properties.getProviders().put("test", config);
         assertThrows(IllegalStateException.class, properties::checkProviders);
@@ -27,7 +27,7 @@ class JwtProvidersPropertiesTest {
     @Test
     void whenProvidersPresentAndUriIsBlank_thenThrows() {
         JwtProvidersProperties properties = new JwtProvidersProperties();
-        JwtProvidersProperties.ProviderConfig config = ProviderTestHelper.createProviderConfig();
+        JwtProvidersProperties.ProviderConfig config = JwtProviderTestHelper.createProviderConfig();
         config.setJwkSetUri("");
         properties.getProviders().put("test", config);
         assertThrows(IllegalStateException.class, properties::checkProviders);
@@ -36,7 +36,7 @@ class JwtProvidersPropertiesTest {
     @Test
     void whenProvidersPresentAndUriIsNull_thenNoException() {
         JwtProvidersProperties properties = new JwtProvidersProperties();
-        properties.getProviders().put("test", ProviderTestHelper.createProviderConfig());
+        properties.getProviders().put("test", JwtProviderTestHelper.createProviderConfig());
         assertDoesNotThrow(properties::checkProviders);
     }
 }

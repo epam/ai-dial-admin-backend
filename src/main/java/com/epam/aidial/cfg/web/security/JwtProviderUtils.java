@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Component
 @Slf4j
-public class ProviderUtils {
+public class JwtProviderUtils {
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0/";
 

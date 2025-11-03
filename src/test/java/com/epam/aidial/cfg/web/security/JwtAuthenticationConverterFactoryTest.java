@@ -1,8 +1,7 @@
 package com.epam.aidial.cfg.web.security;
 
-import com.epam.aidial.cfg.utils.ProviderTestHelper;
+import com.epam.aidial.cfg.utils.JwtProviderTestHelper;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -16,21 +15,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtAuthenticationConverterFactoryTest {
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
-    private final ProviderUtils providerUtils = new ProviderUtils();
+    private final JwtProviderUtils jwtProviderUtils = new JwtProviderUtils();
 
     @Test
     void whenNoProviders_thenThrows() {
-        JwtAuthenticationConverterFactory factory = new JwtAuthenticationConverterFactory(
-                Map.of("test", ProviderTestHelper.createProviderConfig()), "testPrincipal", providerUtils);
+        var factory = new JwtAuthenticationConverterFactory(
+                Map.of("test", JwtProviderTestHelper.createProviderConfig()), "testPrincipal", jwtProviderUtils);
         var converter = factory.getConverter(TEST_ISSUER);
-        Jwt jwt = generateTestToken(
+        var jwtToken = generateTestToken(
                 Map.of(
                         "iss", TEST_ISSUER,
                         "roles", List.of("ADMIN", "USER")
                 )
         );
-        AbstractAuthenticationToken token = converter.convert(jwt);
-        var authorities = authoritiesToStrings(token.getAuthorities());
+        var authenticationToken = converter.convert(jwtToken);
+        var authorities = authoritiesToStrings(authenticationToken.getAuthorities());
         assertThat(authorities).containsExactlyInAnyOrder("ADMIN", "USER");
     }
 

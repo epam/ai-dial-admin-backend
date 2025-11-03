@@ -35,7 +35,7 @@ public class TestTokenDecoderFactory implements TokenDecoderFactory {
                 .build();
 
         final var createIssuerToDecoderMap = issuerToDecoderMapFactory.createIssuerToDecoderMap(jwtDecoder,
-                ProviderTestHelper.createProviderConfig());
+                JwtProviderTestHelper.createProviderConfig());
         return new MultiIssuerJwtDecoder(createIssuerToDecoderMap);
     }
 }
