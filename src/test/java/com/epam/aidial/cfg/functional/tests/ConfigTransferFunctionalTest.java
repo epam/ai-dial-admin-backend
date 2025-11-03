@@ -42,7 +42,6 @@ import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
-import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -270,8 +269,8 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
             Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
             Assertions.assertThat(model.getDisplayVersion()).isEqualTo("2.0.0");
-            Assertions.assertThat(model.getEndpoint()).isEqualTo("https://endpoint1");
-            Assertions.assertThat(model.getSource()).isEqualTo(new ModelEndpointsSourceDto());
+            Assertions.assertThat(model.getEndpoint()).isEqualTo("https://endpoint1/embeddings");
+            Assertions.assertThat(model.getSource() instanceof AdapterSourceDto);
         });
     }
 

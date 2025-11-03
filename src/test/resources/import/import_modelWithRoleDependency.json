@@ -36,7 +36,7 @@
       "createdAt": 12345,
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
-      "endpoint": "https://endpoint1/chat/completions"
+      "endpoint": "https://endpoint1/embeddings"
     }
   },
   "addons": {},

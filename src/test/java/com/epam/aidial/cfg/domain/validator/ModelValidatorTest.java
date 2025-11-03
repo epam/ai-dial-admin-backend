@@ -2,6 +2,11 @@ package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.ModelType;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import org.assertj.core.api.Assertions;
@@ -9,10 +14,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,6 +32,12 @@ import static org.mockito.Mockito.verify;
 class ModelValidatorTest {
 
     private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
+
+    private static final String INVALID_COMPLETION_MESSAGE = "Invalid completion endpoint:";
+    private static final String INVALID_COMPLETION_END_MESSAGE =
+            "Completion endpoint path should be provided and end with ";
+    private static final String INVALID_START_MODEL_ENDPOINT = "//upstream1.endpoint.test.com/embeddings";
+    private static final String INVALID_END_MODEL_ENDPOINT = "http://upstream1.endpoint.test.com/";
 
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
@@ -94,7 +109,7 @@ class ModelValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name", 
+    @ValueSource(strings = {"invalid name with spaces", "invalid@name", "invalid#name", "invalid$name",
             "name-that-is-way-too-long-for-validation-pattern"})
     void validateCreation_shouldThrowExceptionForInvalidName(String name) {
         // given
@@ -126,6 +141,70 @@ class ModelValidatorTest {
         // when/then
         Assertions.assertThatThrownBy(() -> modelValidator.validateCreation(model))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidModel")
+    void validateCreation_shouldThrowExceptionForInvalidEndpoint(Model model, String errorMessage) {
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(errorMessage);
+    }
+
+    private static Model createModel(ModelSource source, ModelType type, String endpoint) {
+        Deployment deployment = new Deployment("test");
+        Model model = new Model();
+        model.setDeployment(deployment);
+        model.setType(type);
+        if (source instanceof ModelEndpointsSource) {
+            model.setSource(source);
+            model.setEndpoint(endpoint);
+        } else if (source instanceof AdapterSource adapterSource) {
+            adapterSource.setCompletionEndpointPath(endpoint);
+            adapterSource.setAdapterName("adapterName");
+            model.setSource(adapterSource);
+        } else if (source instanceof ModelContainerSource containerSource) {
+            containerSource.setCompletionEndpointPath(endpoint);
+            model.setSource(containerSource);
+        }
+        ;
+        model.setEndpoint(endpoint);
+        return model;
+    }
+
+    private static Stream<Arguments> invalidModel() {
+        return Stream.of(
+                Arguments.of(
+                        createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, INVALID_END_MODEL_ENDPOINT),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, " "),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, null),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, INVALID_START_MODEL_ENDPOINT),
+                        INVALID_COMPLETION_MESSAGE),
+                Arguments.of(
+                        createModel(new AdapterSource(), ModelType.EMBEDDING, INVALID_END_MODEL_ENDPOINT),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new AdapterSource(), ModelType.EMBEDDING, " "),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new AdapterSource(), ModelType.EMBEDDING, null),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new ModelContainerSource(), ModelType.EMBEDDING, INVALID_END_MODEL_ENDPOINT),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new ModelContainerSource(), ModelType.EMBEDDING, null),
+                        INVALID_COMPLETION_END_MESSAGE),
+                Arguments.of(
+                        createModel(new ModelContainerSource(), ModelType.EMBEDDING, "  "),
+                        INVALID_COMPLETION_END_MESSAGE)
+        );
     }
 
 }
