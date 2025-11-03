@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = RouteController.class)
@@ -159,7 +158,7 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
         // given
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
-        when(routeFacade.updateRoute(eq(TEST_ROUTE_NAME), any(), eq("1")))
+        when(routeFacade.updateRoute(eq(TEST_ROUTE_NAME), any(RouteDto.class), eq("1")))
                 .thenReturn("2");
         // when
         mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
@@ -179,7 +178,7 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
         });
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(routeFacade).updateRoute(eq(TEST_ROUTE_NAME), any(), eq("1"));
+                .when(routeFacade).updateRoute(eq(TEST_ROUTE_NAME), any(RouteDto.class), eq("1"));
 
         mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

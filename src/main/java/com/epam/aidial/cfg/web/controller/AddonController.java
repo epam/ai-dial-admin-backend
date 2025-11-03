@@ -27,7 +27,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/addons")
 @Validated
 @LogExecution
-public class AddonController {
+public class AddonController extends AbstractController {
 
     private final AddonFacade addonFacade;
 
@@ -45,9 +45,7 @@ public class AddonController {
     public ResponseEntity<AddonDto> getAddon(@PathVariable("addonName") String addonName,
                                              @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = addonFacade.getAddonWithHash(addonName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

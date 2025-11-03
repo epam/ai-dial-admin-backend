@@ -156,7 +156,7 @@ class KeyControllerTest extends AbstractControllerNoneSecureTest {
         var dto = objectMapper.readValue(dtoJson, new TypeReference<KeyDto>() {
         });
 
-        when(keyFacade.updateKey(eq(TEST_KEY_NAME), any(), eq("1")))
+        when(keyFacade.updateKey(eq(TEST_KEY_NAME), any(KeyDto.class), eq("1")))
                 .thenReturn("2");
 
         mockMvc.perform(put(KEY_API_PATH, TEST_KEY_NAME)
@@ -174,7 +174,7 @@ class KeyControllerTest extends AbstractControllerNoneSecureTest {
         });
 
         doThrow(new OptimisticLockConflictException("Conflict Exception"))
-                .when(keyFacade).updateKey(eq(TEST_KEY_NAME), any(), eq("1"));
+                .when(keyFacade).updateKey(eq(TEST_KEY_NAME), any(KeyDto.class), eq("1"));
 
         mockMvc.perform(put(KEY_API_PATH, TEST_KEY_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

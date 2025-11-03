@@ -5,8 +5,11 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.service.core.CoreApplicationService;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapper;
+import com.epam.aidial.core.config.CoreApplication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ public class ApplicationFacade {
 
     private final ApplicationService applicationService;
     private final ApplicationDtoMapper mapper;
+    private final CoreApplicationService coreApplicationService;
 
     public Collection<ApplicationInfoDto> getAllApplications() {
         return applicationService.getAllApplications()
@@ -39,6 +43,10 @@ public class ApplicationFacade {
         return new DtoWithDomainHash<>(mapper.toDto(applicationWithHash.model()), applicationWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreApplication> getCoreApplicationWithHash(String applicationName) {
+        return coreApplicationService.getCoreApplicationWithHash(applicationName);
+    }
+
     public void createApplication(ApplicationDto applicationDto) {
         Optional.of(applicationDto)
                 .map(mapper::toDomain)
@@ -48,6 +56,10 @@ public class ApplicationFacade {
     public String updateApplication(String applicationName, ApplicationDto applicationDto, String hash) {
         Application value = mapper.toDomain(applicationDto);
         return applicationService.updateApplication(applicationName, value, hash);
+    }
+
+    public String updateApplication(String applicationName, CoreApplication coreApplication, String hash) {
+        return coreApplicationService.updateApplication(applicationName, coreApplication, hash);
     }
 
     public void deleteApplication(String applicationName) {

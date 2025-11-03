@@ -28,7 +28,7 @@ import java.util.stream.StreamSupport;
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @LogExecution
-@Service("coreApplicationTypeSchemaService")
+@Service
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationTypeSchemaService {

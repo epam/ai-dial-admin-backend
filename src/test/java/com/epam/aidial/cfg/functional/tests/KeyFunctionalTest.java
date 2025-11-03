@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreKey;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -382,6 +383,51 @@ public abstract class KeyFunctionalTest {
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
                 () -> keyFacade.updateKey(keyDto.getName(), updatedKeyDto, "test"));
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreKey() {
+        KeyDto keyDto = createKeyDtoWithRole("1");
+        keyFacade.createKey(keyDto);
+
+        CoreKey expected = new CoreKey();
+        expected.setKey(keyDto.getKey());
+        expected.setProject(keyDto.getProject());
+        expected.setSecured(keyDto.isSecured());
+        expected.setRoles(keyDto.getRoles());
+
+        CoreKey actual = keyFacade.getCoreKeyWithHash(keyDto.getName()).core();
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateKeyByCoreKey() {
+        KeyDto keyDto = createKeyDtoWithRole("1");
+        keyFacade.createKey(keyDto);
+
+        CoreKey coreKey = new CoreKey();
+        coreKey.setKey(keyDto.getKey());
+        coreKey.setProject("newKeyProject");
+        coreKey.setSecured(true);
+        coreKey.setRoles(List.of("role2", "role3"));
+
+        KeyDto expected = new KeyDto();
+        expected.setName(keyDto.getName());
+        expected.setKey(keyDto.getKey());
+        expected.setDisplayName(keyDto.getDisplayName());
+        expected.setProjectContactPoint(keyDto.getProjectContactPoint());
+        expected.setDescription(keyDto.getDescription());
+        expected.setExpiresAt(keyDto.getExpiresAt());
+        expected.setProject("newKeyProject");
+        expected.setSecured(true);
+        expected.setRoles(List.of("role2", "role3"));
+
+        keyFacade.updateKey(keyDto.getName(), coreKey, "*");
+
+        KeyDto actual = keyFacade.getKey(keyDto.getName());
+
+        assertKeyExcludingGeneratedFields(actual, expected);
     }
 
     private void assertKeys(Collection<KeyDto> actual, Collection<KeyDto> expected, boolean excludeGeneratedFields) {

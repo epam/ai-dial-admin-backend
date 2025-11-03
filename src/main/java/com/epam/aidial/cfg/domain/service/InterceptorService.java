@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
@@ -25,8 +26,9 @@ import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
+@LogExecution
 @Slf4j
-@Service("coreInterceptorService")
+@Service
 @RequiredArgsConstructor
 public class InterceptorService {
 
@@ -141,7 +143,7 @@ public class InterceptorService {
             log.debug("Optimistic lock conflict on update: interceptorName={}, expectedHash={}, currentHash={}",
                     entity.getName(), expectedHash, currentHash);
             throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: interceptorName:'"
-                            + "%s'. Reload the data.", entity.getName()));
+                    + "%s'. Reload the data.", entity.getName()));
         }
     }
 
