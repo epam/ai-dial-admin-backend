@@ -146,10 +146,6 @@ class ModelValidatorTest {
     @ParameterizedTest
     @MethodSource("invalidModel")
     void validateCreation_shouldThrowExceptionForInvalidEndpoint(Model model, String errorMessage) {
-        // given
-        ReflectionTestUtils.setField(modelValidator, "modelNameValidationPattern", NAME_VALIDATION_PATTERN);
-
-        // when/then
         assertThatThrownBy(() -> modelValidator.validateCreation(model))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(errorMessage);

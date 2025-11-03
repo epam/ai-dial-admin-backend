@@ -111,7 +111,7 @@ public class ModelValidator {
     private void validateEndpointsSource(Model model) {
         String name = model.getDeployment().getName();
         String completionEndpoint = model.getEndpoint();
-        validateEndEndpoint(model.getType(), completionEndpoint, name);
+        validateEndpointEnding(model.getType(), completionEndpoint, name);
         validateEndpoint(completionEndpoint, name);
     }
 
@@ -122,7 +122,7 @@ public class ModelValidator {
             throw new IllegalArgumentException("Adapter name is required when source type is 'Adapter'. Model: %s"
                     .formatted(name));
         }
-        validateEndEndpoint(model.getType(), adapterSource.getCompletionEndpointPath(), name);
+        validateEndpointEnding(model.getType(), adapterSource.getCompletionEndpointPath(), name);
     }
 
     private void validateContainerSource(ModelContainerSource containerSource, Model model) {
@@ -132,11 +132,11 @@ public class ModelValidator {
 
         String name = model.getDeployment().getName();
         String completionPath = containerSource.getCompletionEndpointPath();
-        validateEndEndpoint(model.getType(), completionPath, name);
-        validateEndpointPath(containerSource.getCompletionEndpointPath(), name);
+        validateEndpointEnding(model.getType(), completionPath, name);
+        validateEndpointPath(completionPath, name);
     }
 
-    private void validateEndEndpoint(ModelType type, String endpoint, String modelName) {
+    private void validateEndpointEnding(ModelType type, String endpoint, String modelName) {
         boolean isChat = modelEndpointUtils.isChat(type);
         String endpointEnding = ENDPOINT_ENDING_MAP.get(isChat);
 
