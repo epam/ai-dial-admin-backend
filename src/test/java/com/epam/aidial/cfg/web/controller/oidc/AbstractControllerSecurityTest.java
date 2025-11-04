@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.web.controller.oidc;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.utils.JwtUtils;
+import com.epam.aidial.cfg.utils.TestAuthenticationConverterFactory;
+import com.epam.aidial.cfg.utils.TestJwtProviderConfig;
 import com.epam.aidial.cfg.utils.TestTokenDecoderFactory;
 import com.epam.aidial.cfg.web.security.SecurityPackage;
 import com.google.common.collect.ImmutableList;
@@ -18,25 +20,22 @@ import java.util.List;
 import java.util.Map;
 
 import static com.epam.aidial.cfg.web.controller.oidc.AbstractControllerSecurityTest.PRINCIPAL_CLAIM;
-import static com.epam.aidial.cfg.web.controller.oidc.AbstractControllerSecurityTest.ROLES_CLAIM;
-import static com.epam.aidial.cfg.web.controller.oidc.AbstractControllerSecurityTest.TEST_AUDIENCE;
-import static com.epam.aidial.cfg.web.controller.oidc.AbstractControllerSecurityTest.TEST_ISSUER;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @TestPropertySource(properties = {
-    "config.rest.security.mode=oidc",
-    "config.rest.security.accepted-issuers=" + TEST_ISSUER,
-    "config.rest.security.accepted-audiences=" + TEST_AUDIENCE,
-    "config.rest.security.principal-claim=" + PRINCIPAL_CLAIM,
-    "config.rest.security.roles-claim=" + ROLES_CLAIM,
+        "config.rest.security.mode=oidc",
+        "config.rest.security.principal-claim=" + PRINCIPAL_CLAIM
 })
 @ComponentScan(basePackageClasses = {
     SecurityPackage.class,
 })
 @Import({
-    JsonMapperConfiguration.class,
-    TestTokenDecoderFactory.class,
+        JsonMapperConfiguration.class,
+        TestTokenDecoderFactory.class,
+        TestAuthenticationConverterFactory.class,
+        TestJwtProviderConfig.class
 })
+@TestPropertySource(properties = "spring.main.allow-bean-definition-overriding=true")
 public abstract class AbstractControllerSecurityTest {
 
     protected static final String TEST_AUDIENCE = "audience_test";
@@ -66,7 +65,7 @@ public abstract class AbstractControllerSecurityTest {
             ))
 
             .add(Arguments.of(
-                JwtUtils.generateTestToken(
+                    JwtUtils.generateTestToken(
                     WRONG_TEST_AUDIENCE,
                     TEST_ISSUER,
                     Map.of(
@@ -78,7 +77,7 @@ public abstract class AbstractControllerSecurityTest {
             ))
 
             .add(Arguments.of(
-                JwtUtils.generateTestToken(
+                    JwtUtils.generateTestToken(
                     TEST_AUDIENCE,
                     WRONG_TEST_ISSUER,
                     Map.of(
@@ -99,7 +98,7 @@ public abstract class AbstractControllerSecurityTest {
             .<Arguments>builder()
 
             .add(Arguments.of(
-                JwtUtils.generateTestToken(
+                    JwtUtils.generateTestToken(
                     TEST_AUDIENCE,
                     TEST_ISSUER,
                     Map.of(
