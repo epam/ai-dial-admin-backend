@@ -56,7 +56,6 @@ class GcpVaultConfigSourceTest {
 
         Config config = new Config();
         CoreKey key = new CoreKey();
-        key.setKey("key");
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
@@ -86,7 +85,6 @@ class GcpVaultConfigSourceTest {
 
         Config config = new Config();
         CoreKey key = new CoreKey();
-        key.setKey("key");
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
@@ -119,7 +117,6 @@ class GcpVaultConfigSourceTest {
 
         Config config = new Config();
         CoreKey key = new CoreKey();
-        key.setKey("key");
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
@@ -141,7 +138,6 @@ class GcpVaultConfigSourceTest {
 
         Config config = new Config();
         CoreKey key = new CoreKey();
-        key.setKey("key");
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
@@ -166,7 +162,6 @@ class GcpVaultConfigSourceTest {
 
         Config config = new Config();
         CoreKey key = new CoreKey();
-        key.setKey("key");
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
