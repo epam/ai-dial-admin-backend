@@ -58,7 +58,8 @@ class ConfigMergerTest {
         Config config1 = createConfig();
         config1.setKeys(new HashMap<>());
         for (int i = 0; i < 3; i++) {
-            config1.getKeys().put("key" + i, new CoreKey());
+            CoreKey key = generateKey(i);
+            config1.getKeys().put("key" + i, key);
         }
         encodedConfigs.add(encode(config1));
 
@@ -66,7 +67,8 @@ class ConfigMergerTest {
         Config config2 = createConfig();
         config2.setKeys(new HashMap<>());
         for (int i = 3; i < 5; i++) {
-            config2.getKeys().put("key" + i, new CoreKey());
+            CoreKey key = generateKey(i);
+            config2.getKeys().put("key" + i, key);
         }
         encodedConfigs.add(encode(config2));
 
@@ -78,7 +80,9 @@ class ConfigMergerTest {
         Assertions.assertEquals(5, result.getKeys().size());
         for (int i = 0; i < 5; i++) {
             String keyName = "key" + i;
+            String projectName = "project" + i;
             Assertions.assertTrue(result.getKeys().containsKey(keyName));
+            Assertions.assertEquals(projectName, result.getKeys().get(keyName).getProject());
         }
     }
 
@@ -134,7 +138,9 @@ class ConfigMergerTest {
         Assertions.assertEquals(5, result.getKeys().size());
         for (int i = 0; i < 5; i++) {
             String keyName = "key" + i;
+            String projectName = "project" + i;
             Assertions.assertTrue(result.getKeys().containsKey(keyName));
+            Assertions.assertEquals(projectName, result.getKeys().get(keyName).getProject());
         }
 
         // Verify roles
@@ -189,17 +195,17 @@ class ConfigMergerTest {
         config = createConfig();
         config.setAssistant(new Assistants());
         config.getAssistant().setAssistants(Map.of("assistant1", generateAssistant()));
-        config.setKeys(Map.of("key1", new CoreKey()));
+        config.setKeys(Map.of("key1", generateKey(1)));
         configs.add(config);
 
         // Config 5: Keys 0 and 2
         config = createConfig();
-        config.setKeys(Map.of("key0", new CoreKey(), "key2", new CoreKey()));
+        config.setKeys(Map.of("key0", generateKey(0), "key2", generateKey(2)));
         configs.add(config);
 
         // Config 6: Keys 3 and 4
         config = createConfig();
-        config.setKeys(Map.of("key3", new CoreKey(), "key4", new CoreKey()));
+        config.setKeys(Map.of("key3", generateKey(3), "key4", generateKey(4)));
         configs.add(config);
 
         // Config 7: Roles and retriable error codes
@@ -330,6 +336,12 @@ class ConfigMergerTest {
         CoreAssistant coreAssistant = new CoreAssistant();
         coreAssistant.setName("assistant1");
         return coreAssistant;
+    }
+
+    private CoreKey generateKey(int i) {
+        CoreKey key = new CoreKey();
+        key.setProject("project" + i);
+        return key;
     }
 
     @SneakyThrows

@@ -47,20 +47,10 @@ public class CoreKeyService {
 
         var keyWithHash = keyService.getKeyWithHash(keyName);
 
-        validate(keyWithHash, hash);
+        assertNotConcurrencyOverwrite(keyWithHash, hash);
         importCoreKey(keyWithHash.model().getKey(), coreKey);
 
         return keyService.getKeyWithHash(keyName).hash();
-    }
-
-    private void validate(DomainObjectWithHash<Key> keyWithHash, String hash) {
-        Key key = keyWithHash.model();
-
-        if (StringUtils.isBlank(key.getKey())) {
-            throw new IllegalArgumentException("Current key can not be updated since it doesn't have key value.");
-        }
-
-        assertNotConcurrencyOverwrite(keyWithHash, hash);
     }
 
     private void assertNotConcurrencyOverwrite(DomainObjectWithHash<Key> keyWithHash, String expectedHash) {
@@ -80,6 +70,10 @@ public class CoreKeyService {
     }
 
     private void importCoreKey(String key, CoreKey coreKey) {
+        if (StringUtils.isBlank(key)) {
+            throw new IllegalArgumentException("Current key can not be updated since it doesn't have key value.");
+        }
+
         Map<String, CoreKey> coreKeys = new HashMap<>(1);
         coreKeys.put(key, coreKey);
 
