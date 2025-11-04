@@ -2,8 +2,6 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.ToolSetClient;
-import com.epam.aidial.cfg.client.dto.ResourceSignInRequestDto;
-import com.epam.aidial.cfg.client.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
@@ -19,6 +17,8 @@ import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.ResourceSignInRequest;
+import com.epam.aidial.cfg.model.ResourceSignOutRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
@@ -158,16 +158,16 @@ public class ToolSetResourceService implements ResourceService {
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor);
     }
 
-    public void signIn(ResourceSignInRequestDto request) {
+    public void signIn(ResourceSignInRequest request) {
         validateSignInRequest(request);
-        toolSetClient.signInToolSetResource(request);
+        toolSetClient.signInToolSetResource(toolSetClientMapper.toResourceSignInRequestDto(request));
     }
 
-    public void signOut(ResourceSignOutRequestDto request) {
-        toolSetClient.signOutToolSetResource(request);
+    public void signOut(ResourceSignOutRequest request) {
+        toolSetClient.signOutToolSetResource(toolSetClientMapper.toResourceSignOutRequestDto(request));
     }
 
-    private void validateSignInRequest(ResourceSignInRequestDto request) {
+    private void validateSignInRequest(ResourceSignInRequest request) {
         var authenticationType = request.getAuthenticationType();
         switch (authenticationType) {
             case OAUTH -> {
