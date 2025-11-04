@@ -19,6 +19,7 @@ import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
+import com.epam.aidial.cfg.utils.PathUtils;
 import feign.FeignException;
 import feign.Response;
 import lombok.RequiredArgsConstructor;
@@ -162,6 +163,16 @@ public class FileService implements ResourceService {
         String targetPath = null;
         try {
             var filename = zipEntry.getName();
+            
+            // Validate zip entry path to prevent path traversal attacks
+            try {
+                PathUtils.validateZipEntryPath(filename);
+            } catch (IllegalArgumentException e) {
+                log.warn("Skipping zip entry with invalid path: {}", filename, e);
+                return ImportResourcesResult.createFailure(filename, null, 
+                    "Invalid zip entry path: " + e.getMessage());
+            }
+            
             sourcePath = StringUtils.removeStart(filename, "files/");
             var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, "public/");
             targetPath = rootPath + "/" + sourcePathWithoutPublic;

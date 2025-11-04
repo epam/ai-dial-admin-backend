@@ -7,6 +7,8 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 @UtilityClass
@@ -88,6 +90,47 @@ public class PathUtils {
     public static String buildPath(String folderId, String name, String version) {
         var cleanFolderId = StringUtils.stripEnd(folderId, "/");
         return cleanFolderId + "/" + name + "__" + version;
+    }
+
+    /**
+     * Validates a zip entry path to prevent path traversal attacks.
+     * Normalizes the path and ensures it doesn't escape the root directory.
+     *
+     * @param zipEntryPath the zip entry path to validate
+     * @return the normalized path if valid
+     * @throws IllegalArgumentException if path traversal is detected
+     */
+    public static String validateZipEntryPath(String zipEntryPath) {
+        if (StringUtils.isBlank(zipEntryPath)) {
+            throw new IllegalArgumentException("Zip entry path cannot be blank");
+        }
+
+        // Normalize path separators (handle both / and \)
+        String normalizedSeparator = zipEntryPath.replace('\\', '/');
+        
+        // Use Path API to normalize and detect traversal
+        Path path = Paths.get(normalizedSeparator);
+        Path normalizedPath = path.normalize();
+        
+        // Check for path traversal attempts
+        // After normalization, if the path starts with ../ or contains .., it's suspicious
+        String normalizedString = normalizedPath.toString().replace('\\', '/');
+        
+        // Check if normalized path would escape root (contains .. or starts with ..)
+        if (normalizedString.contains("../") || normalizedString.startsWith("../") || 
+            normalizedString.equals("..") || normalizedPath.isAbsolute()) {
+            throw new IllegalArgumentException(
+                String.format("Path traversal detected in zip entry: %s (normalized: %s)", 
+                    zipEntryPath, normalizedString));
+        }
+        
+        // Check for null bytes which can be used in path traversal attacks
+        if (zipEntryPath.contains("\0")) {
+            throw new IllegalArgumentException(
+                String.format("Null byte detected in zip entry path: %s", zipEntryPath));
+        }
+        
+        return normalizedString;
     }
 
     @Data
