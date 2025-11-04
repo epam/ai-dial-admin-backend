@@ -52,6 +52,9 @@ public class ToolSetResourceService implements ResourceService {
     @Value("${core.toolsets.metadata.default.limit}")
     private int toolSetsMetadataDefaultLimit;
 
+    @Value("${core.client.url}")
+    private String coreClientUrl;
+
     public ToolSetResourceNodeInfo getToolSetResources(ResourceMetadataRequest request) {
         var toolSetMetadataDto = getMetadata(request);
         return toolSetClientMapper.toToolSetInfo(toolSetMetadataDto);
@@ -151,7 +154,7 @@ public class ToolSetResourceService implements ResourceService {
 
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
         var toolSet = getToolSetResource(path);
-        return toolDiscoveryService.discoverTools(toolSet.getEndpoint(),
+        return toolDiscoveryService.discoverTools(String.format(coreClientUrl + "/v1/toolset/%s/mcp", toolSet.getName()),
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor);
     }
 
