@@ -20,13 +20,14 @@ public interface KeyCoreMapper {
     @Mapping(target = "role", ignore = true)
     CoreKey mapKey(Key key);
 
-    default Key mapKey(CoreKey coreKey, String name) {
+    default Key mapKey(CoreKey coreKey, String keyValue, String name) {
         Key key = new Key();
         key.setName(name);
         key.setDisplayName(name);
-        return mapKey(coreKey, key);
+        return mapKey(coreKey, keyValue, key);
     }
 
+    @Mapping(target = "key", source = "keyValue")
     @Mapping(target = "projectContactPoint", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -36,7 +37,7 @@ public interface KeyCoreMapper {
     @Mapping(target = "displayName", ignore = true)
     @Mapping(target = "name", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Key mapKey(CoreKey coreKey, @MappingTarget Key key);
+    Key mapKey(CoreKey coreKey, String keyValue, @MappingTarget Key key);
 
     @AfterMapping
     default void addRole(@MappingTarget Key key, CoreKey coreKey) {
