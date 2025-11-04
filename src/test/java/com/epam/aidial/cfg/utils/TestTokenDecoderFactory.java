@@ -34,7 +34,8 @@ public class TestTokenDecoderFactory implements TokenDecoderFactory {
                     SignatureAlgorithm.HS256.getValue()))
                 .build();
 
-        final var createIssuerToDecoderMap = issuerToDecoderMapFactory.createIssuerToDecoderMap(jwtDecoder);
+        final var createIssuerToDecoderMap = issuerToDecoderMapFactory.createIssuerToDecoderMap(jwtDecoder,
+                JwtProviderTestHelper.createProviderConfig());
         return new MultiIssuerJwtDecoder(createIssuerToDecoderMap);
     }
 }

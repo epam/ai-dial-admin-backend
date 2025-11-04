@@ -80,22 +80,21 @@ The system supports two authentication methods:
    - Enable with:
      ```properties
      config.rest.security.mode=basic
-     com.c4-soft.springaddons.oidc.resourceserver.enabled=false
      ```
 
 2. **JWT Authentication**
-   - Configure Identity Provider settings:
+  - Configure Identity Provider settings in the configuration file application-iam-providers.properties separately for
+    each provider (example for Azure Provider):
      ```properties
-     com.c4-soft.springaddons.oidc.resourceserver.enabled=true
-     com.c4-soft.springaddons.oidc.ops[0].iss=your_issuer
-     com.c4-soft.springaddons.oidc.ops[0].authorities[0].path=your_authorities_path
-     com.c4-soft.springaddons.oidc.ops[0].username-claim=your_username_claim
-     com.c4-soft.springaddons.oidc.ops[0].jwk-set-uri=your_jwk_set_uri
-     ```
+      providers.azure.issuer=your_issuer
+      providers.azure.jwk-set-uri=your_jwk_set_uri
+      providers.azure.aliases=your_aliases
+      providers.azure.audiences=your_audiences
+      providers.azure.role-claims=your_role_claims
+        ```
    - Enable with:
      ```properties
      config.rest.security.mode=oidc
-     com.c4-soft.springaddons.oidc.resourceserver.enabled=true
      ```
 
 ### Keycloak
