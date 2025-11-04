@@ -69,8 +69,8 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     private static final String LIST_API_PATH = APP_RESOURCE_BASE_API_PATH + "/list";
     private static final String MOVE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/move";
     private static final String DISCOVERY_API_PATH = APP_RESOURCE_BASE_API_PATH + "/discovered-tools";
-    private static final String TOOLSET_SIGN_IN = APP_RESOURCE_BASE_API_PATH + "/sign_in";
-    private static final String TOOLSET_SIGN_OUT = APP_RESOURCE_BASE_API_PATH + "/sign_out";
+    private static final String TOOLSET_SIGN_IN = APP_RESOURCE_BASE_API_PATH + "/sign-in";
+    private static final String TOOLSET_SIGN_OUT = APP_RESOURCE_BASE_API_PATH + "/sign-out";
     private static final String TEST_ETAG = "etag123";
     private static final String RETURNED_TEST_ETAG = "\"etag123\"";
     private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";

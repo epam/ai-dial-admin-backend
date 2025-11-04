@@ -106,12 +106,12 @@ public class ToolSetResourceController {
         return toolSetResourceService.getDiscoveredTools(toolSetPath.getPath(), nextCursor);
     }
 
-    @PostMapping(path = "/sign_in")
+    @PostMapping(path = "/sign-in")
     public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
         toolSetResourceService.signIn(toolSetResourceMapper.toResourceSignInRequest(requestDto));
     }
 
-    @PostMapping(path = "/sign_out")
+    @PostMapping(path = "/sign-out")
     public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
         toolSetResourceService.signOut(toolSetResourceMapper.toResourceSignOutRequest(requestDto));
     }
