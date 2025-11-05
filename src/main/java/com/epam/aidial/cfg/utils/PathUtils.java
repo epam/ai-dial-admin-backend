@@ -16,8 +16,7 @@ public class PathUtils {
 
     public static boolean isAnyPathSegmentEndsWithDot(String path) {
         var segments = path.split("/");
-        return Arrays.stream(segments)
-                .anyMatch(segment -> segment.endsWith("."));
+        return Arrays.stream(segments).anyMatch(segment -> segment.endsWith("."));
     }
 
     public static boolean isPathParseable(String path) {
@@ -41,11 +40,7 @@ public class PathUtils {
         var folderId = path.substring(0, lastSlashIndex + 1);
         var name = path.substring(lastSlashIndex + 1);
 
-        return PathParts.builder()
-                .path(path)
-                .folderId(folderId)
-                .name(name)
-                .build();
+        return PathParts.builder().path(path).folderId(folderId).name(name).build();
     }
 
     public static VersionedPathParts parseEncodedVersionedPath(String path, String prefix) {
@@ -65,12 +60,7 @@ public class PathUtils {
         var rawName = path.substring(lastSlashIndex + 1);
         var nameAndVersion = extractNameAndVersion(rawName);
 
-        return VersionedPathParts.builder()
-                .path(path)
-                .folderId(folderId)
-                .name(nameAndVersion.getLeft())
-                .version(nameAndVersion.getRight())
-                .build();
+        return VersionedPathParts.builder().path(path).folderId(folderId).name(nameAndVersion.getLeft()).version(nameAndVersion.getRight()).build();
     }
 
     private static Pair<String, String> extractNameAndVersion(String rawName) {
@@ -107,29 +97,27 @@ public class PathUtils {
 
         // Normalize path separators (handle both / and \)
         String normalizedSeparator = zipEntryPath.replace('\\', '/');
-        
+
         // Use Path API to normalize and detect traversal
         Path path = Paths.get(normalizedSeparator);
         Path normalizedPath = path.normalize();
-        
+
         // Check for path traversal attempts
         // After normalization, if the path starts with ../ or contains .., it's suspicious
         String normalizedString = normalizedPath.toString().replace('\\', '/');
-        
+
         // Check if normalized path would escape root (contains .. or starts with ..)
-        if (normalizedString.contains("../") || normalizedString.startsWith("../") || 
-            normalizedString.equals("..") || normalizedPath.isAbsolute()) {
-            throw new IllegalArgumentException(
-                String.format("Path traversal detected in zip entry: %s (normalized: %s)", 
+        if (normalizedString.contains("../") || normalizedString.startsWith("../") || normalizedString.equals("..")
+                || normalizedPath.isAbsolute()) {
+            throw new IllegalArgumentException(String.format("Path traversal detected in zip entry: %s (normalized: %s)",
                     zipEntryPath, normalizedString));
         }
-        
+
         // Check for null bytes which can be used in path traversal attacks
         if (zipEntryPath.contains("\0")) {
-            throw new IllegalArgumentException(
-                String.format("Null byte detected in zip entry path: %s", zipEntryPath));
+            throw new IllegalArgumentException(String.format("Null byte detected in zip entry path: %s", zipEntryPath));
         }
-        
+
         return normalizedString;
     }
 

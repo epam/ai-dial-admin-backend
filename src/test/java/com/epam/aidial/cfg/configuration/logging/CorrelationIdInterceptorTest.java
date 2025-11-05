@@ -110,7 +110,7 @@ class CorrelationIdInterceptorTest {
     }
 
     @Test
-    void testPreHandle_withCorrelationIdContainingCRLFInMiddle() {
+    void testPreHandle_withCorrelationIdContainingCrLfInMiddle() {
         // given
         String maliciousCorrelationId = "abc\r\ndefghijklmnop"; // contains CRLF in middle
         request.addHeader(CorrelationIdInterceptor.CORRELATION_ID_HEADER_NAME, maliciousCorrelationId);
