@@ -97,18 +97,15 @@ public class PathUtils {
 
         // Check for null bytes which can be used in path traversal attacks
         if (zipEntryPath.contains("\0")) {
-            throw new IllegalArgumentException(
-                String.format("Null byte detected in zip entry path: %s", zipEntryPath));
+            throw new IllegalArgumentException(String.format("Null byte detected in zip entry path: %s", zipEntryPath));
         }
 
         // Check for absolute paths BEFORE separator normalization
         // Unix-style absolute paths start with /, Windows-style start with drive letter (C:, D:, etc.)
-        if (zipEntryPath.startsWith("/") || 
-            (zipEntryPath.length() >= 2 && zipEntryPath.charAt(1) == ':' && 
-             ((zipEntryPath.charAt(0) >= 'A' && zipEntryPath.charAt(0) <= 'Z') ||
-              (zipEntryPath.charAt(0) >= 'a' && zipEntryPath.charAt(0) <= 'z')))) {
-            throw new IllegalArgumentException(
-                String.format("Path traversal detected in zip entry: %s (absolute path)", zipEntryPath));
+        if (zipEntryPath.startsWith("/") || (zipEntryPath.length() >= 2 && zipEntryPath.charAt(1) == ':'
+                && ((zipEntryPath.charAt(0) >= 'A' && zipEntryPath.charAt(0) <= 'Z')
+                        || (zipEntryPath.charAt(0) >= 'a' && zipEntryPath.charAt(0) <= 'z')))) {
+            throw new IllegalArgumentException(String.format("Path traversal detected in zip entry: %s (absolute path)", zipEntryPath));
         }
 
         // Normalize path separators (handle both / and \)
@@ -116,20 +113,14 @@ public class PathUtils {
 
         // Additional check for absolute paths after separator normalization (Unix-style)
         if (normalizedSeparator.startsWith("/")) {
-            throw new IllegalArgumentException(
-                String.format("Path traversal detected in zip entry: %s (absolute path)", zipEntryPath));
+            throw new IllegalArgumentException(String.format("Path traversal detected in zip entry: %s (absolute path)", zipEntryPath));
         }
 
         // Check for path traversal patterns in the ORIGINAL path BEFORE normalization
         // Path.normalize() resolves ../ sequences, so we must check before normalization
-        if (normalizedSeparator.contains("../") || 
-            normalizedSeparator.contains("./") ||
-            normalizedSeparator.startsWith("../") ||
-            normalizedSeparator.startsWith("./") ||
-            normalizedSeparator.equals("..") ||
-            normalizedSeparator.endsWith("/..")) {
-            throw new IllegalArgumentException(
-                String.format("Path traversal detected in zip entry: %s", zipEntryPath));
+        if (normalizedSeparator.contains("../") || normalizedSeparator.contains("./") || normalizedSeparator.startsWith("../")
+                || normalizedSeparator.startsWith("./") || normalizedSeparator.equals("..") || normalizedSeparator.endsWith("/..")) {
+            throw new IllegalArgumentException(String.format("Path traversal detected in zip entry: %s", zipEntryPath));
         }
 
         // Use Path API to normalize and check for absolute paths (additional safety check)
@@ -137,8 +128,7 @@ public class PathUtils {
 
         // Double-check for absolute paths using Path API
         if (path.isAbsolute()) {
-            throw new IllegalArgumentException(
-                String.format("Path traversal detected in zip entry: %s (absolute path)", zipEntryPath));
+            throw new IllegalArgumentException(String.format("Path traversal detected in zip entry: %s (absolute path)", zipEntryPath));
         }
 
         Path normalizedPath = path.normalize();
@@ -146,9 +136,7 @@ public class PathUtils {
 
         // Additional safety check: verify normalized path doesn't contain .. (shouldn't happen, but double-check)
         if (normalizedString.contains("../") || normalizedString.startsWith("../") || normalizedString.equals("..")) {
-            throw new IllegalArgumentException(
-                String.format("Path traversal detected in zip entry: %s (normalized: %s)",
-                    zipEntryPath, normalizedString));
+            throw new IllegalArgumentException(String.format("Path traversal detected in zip entry: %s (normalized: %s)", zipEntryPath, normalizedString));
         }
 
         return normalizedString;
