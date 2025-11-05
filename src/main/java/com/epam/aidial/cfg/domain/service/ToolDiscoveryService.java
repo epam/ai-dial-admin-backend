@@ -18,7 +18,11 @@ public class ToolDiscoveryService {
     private final McpClientFactory mcpClientFactory;
 
     public McpSchema.ListToolsResult discoverTools(String endpoint, Transport transport, String nextCursor) {
-        try (var mcpClient = mcpClientFactory.create(endpoint, transport)) {
+        return discoverTools(endpoint, transport, nextCursor, null);
+    }
+
+    public McpSchema.ListToolsResult discoverTools(String endpoint, Transport transport, String nextCursor, String apiKey) {
+        try (var mcpClient = mcpClientFactory.create(endpoint, transport, apiKey)) {
             mcpClient.initialize();
             return mcpClient.listTools(nextCursor);
         } catch (Exception e) {
