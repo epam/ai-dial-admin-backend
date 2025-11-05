@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.client.mcp;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
-import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.utils.NullSafeUtils;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
-import java.util.Optional;
+import java.util.Map;
 
 @Component
 @LogExecution
@@ -28,22 +27,18 @@ public class McpClientFactory {
     }
 
     @SneakyThrows
-    public McpSyncClient create(String mcpEndpoint, Transport transport, String apiKey) {
+    public McpSyncClient create(String mcpEndpoint, Transport transport, Map<String, String> customHeaders) {
         var uri = new URI(mcpEndpoint);
         var baseUrl = uri.getScheme() + "://" + uri.getAuthority();
         var relativePath = uri.getPath();
 
         HttpRequest.Builder requestBuilder = null;
 
-        if (apiKey != null) {
-            requestBuilder = NullSafeUtils.createIfNull(requestBuilder, HttpRequest::newBuilder)
-                    .header("API-KEY", apiKey);
-        }
-
-        var currentToken = AuthorizationTokenHolder.getToken();
-        if (currentToken != null) {
-            requestBuilder = NullSafeUtils.createIfNull(requestBuilder, HttpRequest::newBuilder)
-                    .header("Authorization", "Bearer " + currentToken);
+        if (customHeaders != null) {
+            requestBuilder = NullSafeUtils.createIfNull(requestBuilder, HttpRequest::newBuilder);
+            for (var headerKv : customHeaders.entrySet()) {
+                requestBuilder = requestBuilder.header(headerKv.getKey(), headerKv.getValue());
+            }
         }
 
         var clientTransport = switch (transport) {

@@ -20,14 +20,17 @@ import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
+import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.epam.aidial.cfg.client.mapper.ToolSetClientMapper.TOOLSETS_PREFIX;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
@@ -154,8 +157,17 @@ public class ToolSetResourceService implements ResourceService {
 
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
         var toolSet = getToolSetResource(path);
+        var authHeaders = getAuthHeaders();
         return toolDiscoveryService.discoverTools(String.format(coreClientUrl + "/v1/toolset/%s/mcp", toolSet.getName()),
-                ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor);
+                ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor, authHeaders);
+    }
+
+    private Map<String, String> getAuthHeaders() {
+        var token = AuthorizationTokenHolder.getToken();
+        if (StringUtils.isBlank(token)) {
+            return null;
+        }
+        return Map.of("Authorization", "Bearer " + token);
     }
 
 }

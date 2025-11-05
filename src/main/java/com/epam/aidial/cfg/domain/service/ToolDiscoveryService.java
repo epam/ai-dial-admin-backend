@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Slf4j
 @Service
 @LogExecution
@@ -21,8 +23,8 @@ public class ToolDiscoveryService {
         return discoverTools(endpoint, transport, nextCursor, null);
     }
 
-    public McpSchema.ListToolsResult discoverTools(String endpoint, Transport transport, String nextCursor, String apiKey) {
-        try (var mcpClient = mcpClientFactory.create(endpoint, transport, apiKey)) {
+    public McpSchema.ListToolsResult discoverTools(String endpoint, Transport transport, String nextCursor, Map<String, String> customHeaders) {
+        try (var mcpClient = mcpClientFactory.create(endpoint, transport, customHeaders)) {
             mcpClient.initialize();
             return mcpClient.listTools(nextCursor);
         } catch (Exception e) {
