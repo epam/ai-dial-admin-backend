@@ -8,7 +8,6 @@
   },
   "keys": {
     "abc123xyz": {
-      "key": "abc123xyz",
       "project": "SampleProject",
       "secured": true,
       "roles": [

@@ -1095,7 +1095,7 @@ public abstract class ConfigTransferFunctionalTest {
 
     @ParameterizedTest
     @MethodSource("addSecrets")
-    void testExport_CoreFormatKeyWithAllDependencies_SelectedItemsExportRequest(boolean addSecrets, String expectedKey) throws IOException {
+    void testExport_CoreFormatKeyWithAllDependencies_SelectedItemsExportRequest(boolean addSecrets) throws IOException {
         // given
         String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export.json"),
                 StandardCharsets.UTF_8);
@@ -1140,7 +1140,6 @@ public abstract class ConfigTransferFunctionalTest {
                 Assertions.assertThat(config.getKeys()).containsOnlyKeys("testKey1")
                         .satisfies(keys -> {
                             Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
-                            Assertions.assertThat(keys.get("testKey1").getKey()).isEqualTo(expectedKey);
                         });
                 Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
                         .satisfies(toolsets -> {

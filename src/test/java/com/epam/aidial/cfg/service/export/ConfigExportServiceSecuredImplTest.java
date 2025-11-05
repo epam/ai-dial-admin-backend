@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,7 +79,7 @@ class ConfigExportServiceSecuredImplTest {
 
         // Verify secured config contains only secrets
         Config secretConfig = securedConfigCaptor.getValue();
-        assertEquals("api-key-1", secretConfig.getKeys().get("key1").getKey());
+        assertNotNull(secretConfig.getKeys().get("key1"));
         assertEquals("upstream-key-1", secretConfig.getModels().get("model1").getUpstreams().get(0).getKey());
         assertEquals("client-secret-1", secretConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
         assertTrue(secretConfig.getRoles().isEmpty());
@@ -106,7 +107,7 @@ class ConfigExportServiceSecuredImplTest {
 
         // Verify secured config contains only secrets
         Config secretConfig = securedConfigCaptor.getValue();
-        assertEquals("api-key-1", secretConfig.getKeys().get("key1").getKey());
+        assertNotNull(secretConfig.getKeys().get("key1"));
         assertEquals("upstream-key-1", secretConfig.getModels().get("model1").getUpstreams().get(0).getKey());
         assertEquals("client-secret-1", secretConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
         assertTrue(secretConfig.getRoles().isEmpty());
@@ -165,7 +166,7 @@ class ConfigExportServiceSecuredImplTest {
 
         // Verify secured config contains only secrets
         Config secretConfig = securedConfigCaptor.getValue();
-        assertEquals("api-key-1", secretConfig.getKeys().get("key1").getKey());
+        assertNotNull(secretConfig.getKeys().get("key1"));
         assertEquals("upstream-key-1", secretConfig.getModels().get("model1").getUpstreams().get(0).getKey());
         assertEquals("upstream-key-2", secretConfig.getModels().get("model2").getUpstreams().get(0).getKey());
         assertEquals("https://api2.example.com", secretConfig.getModels().get("model2").getUpstreams().get(0).getEndpoint());
@@ -221,7 +222,6 @@ class ConfigExportServiceSecuredImplTest {
         config.setRoles(roles);
 
         CoreKey key = new CoreKey();
-        key.setKey("api-key-1");
 
         Map<String, CoreKey> keys = new HashMap<>();
         keys.put("key1", key);

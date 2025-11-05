@@ -59,7 +59,7 @@ class ConfigMergerTest {
         config1.setKeys(new HashMap<>());
         for (int i = 0; i < 3; i++) {
             CoreKey key = generateKey(i);
-            config1.getKeys().put(key.getKey(), key);
+            config1.getKeys().put("key" + i, key);
         }
         encodedConfigs.add(encode(config1));
 
@@ -68,7 +68,7 @@ class ConfigMergerTest {
         config2.setKeys(new HashMap<>());
         for (int i = 3; i < 5; i++) {
             CoreKey key = generateKey(i);
-            config2.getKeys().put(key.getKey(), key);
+            config2.getKeys().put("key" + i, key);
         }
         encodedConfigs.add(encode(config2));
 
@@ -80,8 +80,9 @@ class ConfigMergerTest {
         Assertions.assertEquals(5, result.getKeys().size());
         for (int i = 0; i < 5; i++) {
             String keyName = "key" + i;
+            String projectName = "project" + i;
             Assertions.assertTrue(result.getKeys().containsKey(keyName));
-            Assertions.assertEquals(keyName, result.getKeys().get(keyName).getKey());
+            Assertions.assertEquals(projectName, result.getKeys().get(keyName).getProject());
         }
     }
 
@@ -137,8 +138,9 @@ class ConfigMergerTest {
         Assertions.assertEquals(5, result.getKeys().size());
         for (int i = 0; i < 5; i++) {
             String keyName = "key" + i;
+            String projectName = "project" + i;
             Assertions.assertTrue(result.getKeys().containsKey(keyName));
-            Assertions.assertEquals(keyName, result.getKeys().get(keyName).getKey());
+            Assertions.assertEquals(projectName, result.getKeys().get(keyName).getProject());
         }
 
         // Verify roles
@@ -338,7 +340,7 @@ class ConfigMergerTest {
 
     private CoreKey generateKey(int i) {
         CoreKey key = new CoreKey();
-        key.setKey("key" + i);
+        key.setProject("project" + i);
         return key;
     }
 

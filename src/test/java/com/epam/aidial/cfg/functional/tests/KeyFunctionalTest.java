@@ -391,7 +391,6 @@ public abstract class KeyFunctionalTest {
         keyFacade.createKey(keyDto);
 
         CoreKey expected = new CoreKey();
-        expected.setKey(keyDto.getKey());
         expected.setProject(keyDto.getProject());
         expected.setSecured(keyDto.isSecured());
         expected.setRoles(keyDto.getRoles());
@@ -407,7 +406,6 @@ public abstract class KeyFunctionalTest {
         keyFacade.createKey(keyDto);
 
         CoreKey coreKey = new CoreKey();
-        coreKey.setKey(keyDto.getKey());
         coreKey.setProject("newKeyProject");
         coreKey.setSecured(true);
         coreKey.setRoles(List.of("role2", "role3"));

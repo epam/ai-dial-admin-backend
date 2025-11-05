@@ -35,12 +35,12 @@ public abstract class ConfigMapper {
     @Mapping(target = "assistant", ignore = true)
     @Mapping(target = "retriableErrorCodes", ignore = true)
     @Mapping(target = "addons", ignore = true)
-    @Mapping(target = "applicationTypeSchemas", source = "config.applicationRunners")
+    @Mapping(target = "applicationTypeSchemas", source = "applicationRunners")
     @Mapping(target = "roles", ignore = true)
     public abstract Config toCoreConfig(ExportConfig config);
 
     @AfterMapping
-    public void mapRoles(@MappingTarget Config config, ExportConfig exportConfig) {
+    protected void mapRoles(@MappingTarget Config config, ExportConfig exportConfig) {
         Map<String, Role> roles = exportConfig.getRoles();
         if (roles == null) {
             return;
