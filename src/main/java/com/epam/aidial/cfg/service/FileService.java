@@ -166,7 +166,7 @@ public class FileService implements ResourceService {
             
             // Validate zip entry path to prevent path traversal attacks
             try {
-                PathUtils.validateZipEntryPath(filename);
+                filename = PathUtils.validateZipEntryPath(filename);
             } catch (IllegalArgumentException e) {
                 log.warn("Skipping zip entry with invalid path: {}", filename, e);
                 return ImportResourcesResult.createFailure(filename, null, 

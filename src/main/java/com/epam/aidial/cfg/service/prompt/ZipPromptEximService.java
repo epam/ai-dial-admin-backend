@@ -83,7 +83,7 @@ public class ZipPromptEximService {
                 
                 // Validate zip entry path to prevent path traversal attacks
                 try {
-                    PathUtils.validateZipEntryPath(zipEntryName);
+                    zipEntryName = PathUtils.validateZipEntryPath(zipEntryName);
                 } catch (IllegalArgumentException e) {
                     log.warn("Skipping zip entry with invalid path: {}", zipEntryName, e);
                     continue;
@@ -118,7 +118,7 @@ public class ZipPromptEximService {
                 
                 // Validate zip entry path to prevent path traversal attacks
                 try {
-                    PathUtils.validateZipEntryPath(zipEntryName);
+                    zipEntryName = PathUtils.validateZipEntryPath(zipEntryName);
                 } catch (IllegalArgumentException e) {
                     log.warn("Skipping zip entry with invalid path: {}", zipEntryName, e);
                     continue;
@@ -126,9 +126,10 @@ public class ZipPromptEximService {
                 
                 if (zipEntryName.startsWith(PROMPTS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
                     var promptsEximDto = jsonMapper.readValue(zipInputStream, PromptsEximDto.class);
+                    String finalZipEntryName = zipEntryName;
                     promptsEximDto.getPrompts().stream()
                             .map(prompt -> getPromptPathParts(importPrompts, prompt))
-                            .map(pathParts -> buildImportResourcePreview(pathParts, zipEntryName))
+                            .map(pathParts -> buildImportResourcePreview(pathParts, finalZipEntryName))
                             .forEach(previews::add);
                 } else {
                     log.info("Ignoring file {} in zip archive during import preview", zipEntryName);

@@ -95,27 +95,44 @@ public class PathUtils {
             throw new IllegalArgumentException("Zip entry path cannot be blank");
         }
 
+        // Check for null bytes which can be used in path traversal attacks
+        if (zipEntryPath.contains("\0")) {
+            throw new IllegalArgumentException(
+                String.format("Null byte detected in zip entry path: %s", zipEntryPath));
+        }
+
         // Normalize path separators (handle both / and \)
         String normalizedSeparator = zipEntryPath.replace('\\', '/');
 
-        // Use Path API to normalize and detect traversal
-        Path path = Paths.get(normalizedSeparator);
-        Path normalizedPath = path.normalize();
-
-        // Check for path traversal attempts
-        // After normalization, if the path starts with ../ or contains .., it's suspicious
-        String normalizedString = normalizedPath.toString().replace('\\', '/');
-
-        // Check if normalized path would escape root (contains .. or starts with ..)
-        if (normalizedString.contains("../") || normalizedString.startsWith("../") || normalizedString.equals("..")
-                || normalizedPath.isAbsolute()) {
-            throw new IllegalArgumentException(String.format("Path traversal detected in zip entry: %s (normalized: %s)",
-                    zipEntryPath, normalizedString));
+        // Check for path traversal patterns in the ORIGINAL path BEFORE normalization
+        // Path.normalize() resolves ../ sequences, so we must check before normalization
+        if (normalizedSeparator.contains("../") || 
+            normalizedSeparator.contains("./") ||
+            normalizedSeparator.startsWith("../") ||
+            normalizedSeparator.startsWith("./") ||
+            normalizedSeparator.equals("..") ||
+            normalizedSeparator.endsWith("/..")) {
+            throw new IllegalArgumentException(
+                String.format("Path traversal detected in zip entry: %s", zipEntryPath));
         }
 
-        // Check for null bytes which can be used in path traversal attacks
-        if (zipEntryPath.contains("\0")) {
-            throw new IllegalArgumentException(String.format("Null byte detected in zip entry path: %s", zipEntryPath));
+        // Use Path API to normalize and check for absolute paths
+        Path path = Paths.get(normalizedSeparator);
+
+        // Check for absolute paths (Unix absolute paths start with /, Windows with drive letter)
+        if (path.isAbsolute()) {
+            throw new IllegalArgumentException(
+                String.format("Path traversal detected in zip entry: %s (absolute path)", zipEntryPath));
+        }
+
+        Path normalizedPath = path.normalize();
+        String normalizedString = normalizedPath.toString().replace('\\', '/');
+
+        // Additional safety check: verify normalized path doesn't contain .. (shouldn't happen, but double-check)
+        if (normalizedString.contains("../") || normalizedString.startsWith("../") || normalizedString.equals("..")) {
+            throw new IllegalArgumentException(
+                String.format("Path traversal detected in zip entry: %s (normalized: %s)",
+                    zipEntryPath, normalizedString));
         }
 
         return normalizedString;
