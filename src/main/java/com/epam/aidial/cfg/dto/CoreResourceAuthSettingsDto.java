@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class CoreResourceAuthSettingsDto {
-    private AuthenticationType authenticationType;
+    private AuthenticationTypeResourceDto authenticationType;
     private String clientId;
     private String clientSecret;
     private String authorizationEndpoint;
@@ -27,9 +27,4 @@ public class CoreResourceAuthSettingsDto {
         FAILED
     }
 
-    public enum AuthenticationType {
-        OAUTH,
-        API_KEY,
-        NONE
-    }
 }

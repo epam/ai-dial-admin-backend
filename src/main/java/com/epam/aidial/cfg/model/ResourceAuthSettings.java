@@ -32,10 +32,4 @@ public class ResourceAuthSettings {
         SIGNED_OUT,
         FAILED;
     }
-
-    public enum AuthenticationType {
-        OAUTH,
-        API_KEY,
-        NONE
-    }
 }
