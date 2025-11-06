@@ -1,8 +1,12 @@
 package com.epam.aidial.cfg.utils;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,5 +47,29 @@ class HeaderUtilsTest {
     void testCreateIfMatchHeaders_whenEtagNull() {
         Map<String, String> headers = HeaderUtils.createIfMatchHeaders(null);
         assertThat(headers).isEmpty();
+    }
+
+    @Test
+    void testSanitizeHeaderValue_whenNull() {
+        String result = HeaderUtils.sanitizeHeaderValue(null);
+        assertThat(result).isNull();
+    }
+
+    @ParameterizedTest
+    @MethodSource("sanitizeHeaderValueTestCases")
+    void testSanitizeHeaderValue(String input, String expected) {
+        String result = HeaderUtils.sanitizeHeaderValue(input);
+        assertThat(result).isEqualTo(expected);
+    }
+
+    private static Stream<Arguments> sanitizeHeaderValueTestCases() {
+        return Stream.of(
+                Arguments.of("validHeaderValue123", "validHeaderValue123"),
+                Arguments.of("header\rvalue", "headervalue"),
+                Arguments.of("header\nvalue", "headervalue"),
+                Arguments.of("header\r\nvalue", "headervalue"),
+                Arguments.of("header\r\nvalue\r\ntest\n\r", "headervaluetest"),
+                Arguments.of("abc123\rxyz\n789", "abc123xyz789")
+        );
     }
 }
