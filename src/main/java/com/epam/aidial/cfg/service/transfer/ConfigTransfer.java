@@ -51,6 +51,7 @@ public class ConfigTransfer {
     private final CoreConfigRetriever coreConfigRetriever;
     private final ConfigMapper configMapper;
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
+    private final ObjectMapper prettyJsonMapper = JsonMapperConfiguration.createPrettyJsonMapper();
     private final ConfigExportProperties properties;
     private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final List<CoreConfigNormalizer> normalizers;
@@ -92,7 +93,7 @@ public class ConfigTransfer {
         Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(fullCoreConfig);
         return outputStream -> {
             try {
-                jsonMapper.writeValue(outputStream, versionedConfig);
+                prettyJsonMapper.writeValue(outputStream, versionedConfig);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to export core config.", e);
             }
@@ -103,7 +104,7 @@ public class ConfigTransfer {
         return outputStream -> {
             try (var zos = new ZipOutputStream(outputStream)) {
                 zos.putNextEntry(new ZipEntry(properties.getExportConfigFileName()));
-                zos.write(jsonMapper.writeValueAsString(config).getBytes());
+                zos.write(prettyJsonMapper.writeValueAsString(config).getBytes());
                 zos.closeEntry();
             } catch (Exception e) {
                 throw new RuntimeException(e);
