@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
 public abstract class ToolSetFunctionalTest {
@@ -78,7 +79,7 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP)))
+        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP), any()))
                 .thenReturn(mcpSyncClient);
 
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
@@ -297,6 +298,7 @@ public abstract class ToolSetFunctionalTest {
         expected.setName(toolSetDto.getName());
         expected.setAuthSettings(null);
         expected.setEndpoint(toolSetDto.getEndpoint());
+        expected.setTransport(CoreToolSet.Transport.HTTP);
         expected.setDisplayName(toolSetDto.getDisplayName());
         expected.setDescription(toolSetDto.getDescription());
         expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());

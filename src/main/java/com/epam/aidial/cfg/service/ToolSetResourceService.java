@@ -160,7 +160,10 @@ public class ToolSetResourceService implements ResourceService {
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
         var toolSet = getToolSetResource(path);
         var authHeaders = getAuthHeaders();
-        return toolDiscoveryService.discoverTools(String.format(coreClientUrl + "/v1/toolset/%s/mcp", toolSet.getName()),
+        var normalizedCoreClientUrl = coreClientUrl.endsWith("/")
+                ? coreClientUrl.substring(0, coreClientUrl.length() - 1)
+                : coreClientUrl;
+        return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getName()),
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor, authHeaders);
     }
 

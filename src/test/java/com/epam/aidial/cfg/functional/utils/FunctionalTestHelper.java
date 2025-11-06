@@ -68,6 +68,8 @@ public class FunctionalTestHelper {
         toolSet.setName("ToolSet" + suffix);
         toolSet.setDisplayName("ToolSet" + suffix);
         toolSet.setDescription("description" + suffix);
+        toolSet.setEndpoint("https://endpoint.test.com/toolset" + suffix);
+        toolSet.setTransport(ToolSetDto.TransportDto.HTTP);
         toolSet.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
