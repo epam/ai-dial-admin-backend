@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ResourceAuthSettingsDto {
-    private AuthenticationType authenticationType;
+    private AuthenticationTypeDto authenticationType;
     private String clientId;
     private String clientSecret;
     private String authorizationEndpoint;
@@ -34,11 +34,5 @@ public class ResourceAuthSettingsDto {
         SIGNED_IN,
         SIGNED_OUT,
         FAILED
-    }
-
-    public enum AuthenticationType {
-        OAUTH,
-        API_KEY,
-        NONE
     }
 }
