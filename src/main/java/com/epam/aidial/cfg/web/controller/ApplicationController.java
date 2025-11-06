@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
+import com.epam.aidial.core.config.CoreApplication;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ import java.util.Collection;
 @RequestMapping("/api/v1/applications")
 @Validated
 @LogExecution
-public class ApplicationController {
+public class ApplicationController extends AbstractController {
 
     private final ApplicationFacade applicationFacade;
 
@@ -46,10 +47,15 @@ public class ApplicationController {
     public ResponseEntity<ApplicationDto> getApplication(@PathVariable("applicationName") String applicationName,
                                                          @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = applicationFacade.getApplicationWithHash(applicationName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
 
+    }
+
+    @GetMapping(path = "/core/{applicationName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreApplication> getCoreApplication(@PathVariable String applicationName,
+                                                              @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = applicationFacade.getCoreApplicationWithHash(applicationName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -64,6 +70,14 @@ public class ApplicationController {
                                                   @RequestBody @Valid ApplicationDto applicationDto,
                                                   @RequestHeader(value = "If-Match") String previousHash) {
         var newHash = applicationFacade.updateApplication(applicationName, applicationDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
+    @PutMapping(path = "/core/{applicationName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateApplication(@PathVariable String applicationName,
+                                                  @RequestBody @Valid CoreApplication coreApplication,
+                                                  @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = applicationFacade.updateApplication(applicationName, coreApplication, StringUtils.unwrap(previousHash, '"'));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 

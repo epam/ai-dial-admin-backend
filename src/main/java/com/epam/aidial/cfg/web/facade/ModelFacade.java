@@ -3,9 +3,12 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.service.ModelService;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.service.core.CoreModelService;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapper;
+import com.epam.aidial.core.config.CoreModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,7 @@ public class ModelFacade {
 
     private final ModelService modelService;
     private final ModelDtoMapper mapper;
+    private final CoreModelService coreModelService;
 
     public Collection<ModelDto> getAll() {
         return modelService.getAll()
@@ -32,6 +36,10 @@ public class ModelFacade {
         var modelWithHash = modelService.getModelWithHash(modelName);
         ModelDto dto = mapper.toDto(modelWithHash.model());
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
+    }
+
+    public CoreWithDomainHash<CoreModel> getCoreModelWithHash(String modelName) {
+        return coreModelService.getCoreModelWithHash(modelName);
     }
 
     public ModelDto getModel(String modelName) {
@@ -48,6 +56,10 @@ public class ModelFacade {
     public String updateModel(String modelName, ModelDto modelDto, String hash) {
         Model value = mapper.toDomain(modelDto);
         return modelService.updateModel(modelName, value, hash);
+    }
+
+    public String updateModel(String modelName, CoreModel coreModel, String hash) {
+        return coreModelService.updateModel(modelName, coreModel, hash);
     }
 
     public void deleteModel(String model) {

@@ -4,8 +4,6 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
@@ -13,6 +11,7 @@ import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Assertions;
@@ -276,6 +275,38 @@ public abstract class ToolSetFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
 
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+    }
+
+    @Test
+    public void shouldSaveAndReturnToolSetWithUniqueDescriptionKeywords() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetDto.setDescriptionKeywords(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getDescriptionKeywords());
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreToolSet() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        CoreToolSet expected = new CoreToolSet();
+        expected.setName(toolSetDto.getName());
+        expected.setAuthSettings(null);
+        expected.setEndpoint(toolSetDto.getEndpoint());
+        expected.setDisplayName(toolSetDto.getDisplayName());
+        expected.setDescription(toolSetDto.getDescription());
+        expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());
+        expected.setUserRoles(toolSetDto.getRoleLimits().keySet());
+
+        CoreToolSet actual = toolSetFacade.getCoreToolSetWithHash(toolSetDto.getName()).core();
+        actual.setCreatedAt(null);
+        actual.setUpdatedAt(null);
+
+        Assertions.assertEquals(expected, actual);
     }
 
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {

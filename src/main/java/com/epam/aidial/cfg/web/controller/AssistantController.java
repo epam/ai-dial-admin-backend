@@ -1,9 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
-import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

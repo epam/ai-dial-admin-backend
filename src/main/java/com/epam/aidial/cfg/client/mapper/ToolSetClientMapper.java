@@ -1,10 +1,14 @@
 package com.epam.aidial.cfg.client.mapper;
 
+import com.epam.aidial.cfg.client.dto.ResourceSignInRequestDto;
+import com.epam.aidial.cfg.client.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
 import com.epam.aidial.cfg.client.dto.ToolSetResourceDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
 import com.epam.aidial.cfg.model.NodeType;
+import com.epam.aidial.cfg.model.ResourceSignInRequest;
+import com.epam.aidial.cfg.model.ResourceSignOutRequest;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
 import com.epam.aidial.cfg.utils.PathUtils;
@@ -36,7 +40,7 @@ public abstract class ToolSetClientMapper {
     }
 
     @Mapping(target = "name", source = "itemParts.name")
-    @Mapping(target = "updateTime", source = "metadataDto.updatedAt")
+    @Mapping(target = "updatedAt", source = "metadataDto.updatedAt")
     @Mapping(target = "folderId", source = "itemParts.folderId")
     @Mapping(target = "author", source = "metadataDto.author")
     protected abstract ToolSetResource toToolSetResource(ToolSetResourceDto dto, ToolSetMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
@@ -52,7 +56,7 @@ public abstract class ToolSetClientMapper {
                     .name(null)
                     .version(null)
                     .folderId(null)
-                    .updateTime(dto.getUpdatedAt())
+                    .updatedAt(dto.getUpdatedAt())
                     .author(dto.getAuthor())
                     .nodeType(toNodeType(dto.getNodeType()))
                     .nextToken(dto.getNextToken())
@@ -65,7 +69,7 @@ public abstract class ToolSetClientMapper {
                         .name(itemParts.getName())
                         .version(itemParts.getVersion())
                         .folderId(itemParts.getFolderId())
-                        .updateTime(dto.getUpdatedAt())
+                        .updatedAt(dto.getUpdatedAt())
                         .author(dto.getAuthor())
                         .nodeType(toNodeType(dto.getNodeType()))
                         .nextToken(dto.getNextToken())
@@ -89,4 +93,7 @@ public abstract class ToolSetClientMapper {
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
 
+    public abstract ResourceSignInRequestDto toResourceSignInRequestDto(ResourceSignInRequest request);
+
+    public abstract ResourceSignOutRequestDto toResourceSignOutRequestDto(ResourceSignOutRequest request);
 }

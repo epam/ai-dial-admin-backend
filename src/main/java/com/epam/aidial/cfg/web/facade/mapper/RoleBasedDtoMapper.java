@@ -54,6 +54,7 @@ public abstract class RoleBasedDtoMapper {
                 .map(e -> {
                     Limit limit = limitDtoMapper.toLimit(e.getValue());
                     RoleLimit roleLimit = new RoleLimit();
+                    roleLimit.setEnabled(e.getValue().isEnabled());
                     roleLimit.setRole(e.getKey());
                     roleLimit.setLimit(limit);
                     return roleLimit;

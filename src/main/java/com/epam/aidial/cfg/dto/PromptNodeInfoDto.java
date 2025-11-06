@@ -11,7 +11,7 @@ public class PromptNodeInfoDto {
     private String name;
     private String version;
     private String folderId;
-    private Long updateTime;
+    private Long updatedAt;
     private String author;
     private NodeTypeDto nodeType;
     private String nextToken;

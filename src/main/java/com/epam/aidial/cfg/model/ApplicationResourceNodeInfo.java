@@ -17,7 +17,7 @@ public class ApplicationResourceNodeInfo {
     private String name;
     private String version;
     private String folderId;
-    private Long updateTime;
+    private Long updatedAt;
     private String author;
     private NodeType nodeType;
     private List<ApplicationResourceNodeInfo> items;

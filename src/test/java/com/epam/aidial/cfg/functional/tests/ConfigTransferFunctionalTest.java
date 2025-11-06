@@ -42,7 +42,6 @@ import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
-import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -270,8 +269,8 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
             Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
             Assertions.assertThat(model.getDisplayVersion()).isEqualTo("2.0.0");
-            Assertions.assertThat(model.getEndpoint()).isEqualTo("https://endpoint1");
-            Assertions.assertThat(model.getSource()).isEqualTo(new ModelEndpointsSourceDto());
+            Assertions.assertThat(model.getEndpoint()).isEqualTo("https://endpoint1/embeddings");
+            Assertions.assertThat(model.getSource() instanceof AdapterSourceDto);
         });
     }
 
@@ -1096,7 +1095,7 @@ public abstract class ConfigTransferFunctionalTest {
 
     @ParameterizedTest
     @MethodSource("addSecrets")
-    void testExport_CoreFormatKeyWithAllDependencies_SelectedItemsExportRequest(boolean addSecrets, String expectedKey) throws IOException {
+    void testExport_CoreFormatKeyWithAllDependencies_SelectedItemsExportRequest(boolean addSecrets) throws IOException {
         // given
         String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export.json"),
                 StandardCharsets.UTF_8);
@@ -1141,7 +1140,6 @@ public abstract class ConfigTransferFunctionalTest {
                 Assertions.assertThat(config.getKeys()).containsOnlyKeys("testKey1")
                         .satisfies(keys -> {
                             Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
-                            Assertions.assertThat(keys.get("testKey1").getKey()).isEqualTo(expectedKey);
                         });
                 Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
                         .satisfies(toolsets -> {

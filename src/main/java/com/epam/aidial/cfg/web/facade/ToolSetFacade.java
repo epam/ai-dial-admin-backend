@@ -3,9 +3,12 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.service.core.CoreToolSetService;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapper;
+import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ public class ToolSetFacade {
 
     private final ToolSetService toolSetService;
     private final ToolSetDtoMapper mapper;
+    private final CoreToolSetService coreToolSetService;
 
     public Collection<ToolSetDto> getAllToolSets() {
         return toolSetService.getAll()
@@ -42,6 +46,10 @@ public class ToolSetFacade {
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreToolSet> getCoreToolSetWithHash(String toolSetName) {
+        return coreToolSetService.getCoreToolSetWithHash(toolSetName);
+    }
+
     public void createToolSet(ToolSetDto toolSetDto) {
         Optional.of(toolSetDto)
                 .map(mapper::toDomain)
@@ -51,6 +59,10 @@ public class ToolSetFacade {
     public String updateToolSet(String toolSetName, ToolSetDto toolSetDto, String hash) {
         ToolSet value = mapper.toDomain(toolSetDto);
         return toolSetService.update(toolSetName, value, hash);
+    }
+
+    public String updateToolSet(String toolSetName, CoreToolSet coreToolSet, String toolSet) {
+        return coreToolSetService.updateToolSet(toolSetName, coreToolSet, toolSet);
     }
 
     public void deleteToolSet(String toolSetName) {

@@ -44,8 +44,7 @@ public class KeyImporter {
             return coreKeys.entrySet().stream()
                     .map(keyEntry -> {
                                 var coreKey = keyEntry.getValue();
-                                coreKey.setKey(keyEntry.getKey());
-                                return processKey(coreKey, resolutionPolicy, isPreview, counter);
+                                return processKey(keyEntry.getKey(), coreKey, resolutionPolicy, isPreview, counter);
                             }
                     )
                     .toList();
@@ -79,19 +78,20 @@ public class KeyImporter {
         }
     }
 
-    private ImportComponent<Key> processKey(CoreKey coreKey,
+    private ImportComponent<Key> processKey(String keyValue,
+                                            CoreKey coreKey,
                                             ConflictResolutionPolicy resolutionPolicy,
                                             boolean isPreview,
                                             AtomicInteger counter) {
-        Optional<Key> existingKey = keyService.tryGetKeyByKeyValue(coreKey.getKey());
+        Optional<Key> existingKey = keyService.tryGetKeyByKeyValue(keyValue);
         if (existingKey.isPresent()) {
-            Key key = keyCoreMapper.mapKey(coreKey, existingKey.get().getName());
+            Key key = keyCoreMapper.mapKey(coreKey, keyValue, existingKey.get());
             ImportAction importAction = handleExisting(key, resolutionPolicy);
             return new ImportComponent<>(importAction, existingKey.get(), key);
         } else {
             int i = counter.getAndIncrement();
             String name = isPreview ? "<will be defined during import " + i + ">" : UUID.randomUUID().toString();
-            Key key = keyCoreMapper.mapKey(coreKey, name);
+            Key key = keyCoreMapper.mapKey(coreKey, keyValue, name);
             ImportAction importAction = create(key);
             return new ImportComponent<>(importAction, null, key);
         }
