@@ -25,6 +25,17 @@ public class JsonMapperConfiguration {
     }
 
     public static JsonMapper createJsonMapper() {
+        return createDefaultJsonMapperBuilder()
+                .build();
+    }
+
+    public static JsonMapper createPrettyJsonMapper() {
+        return createDefaultJsonMapperBuilder()
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
+    }
+
+    private static JsonMapper.Builder createDefaultJsonMapperBuilder() {
         return JsonMapper.builder()
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .enable(EnumFeature.WRITE_ENUMS_TO_LOWERCASE)
@@ -34,8 +45,6 @@ public class JsonMapperConfiguration {
                 .addModule(new QueryLanguageModule())
                 .addModule(new ValidationModule())
                 .addModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .build();
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
-
 }
