@@ -40,7 +40,11 @@ public class PathUtils {
         var folderId = path.substring(0, lastSlashIndex + 1);
         var name = path.substring(lastSlashIndex + 1);
 
-        return PathParts.builder().path(path).folderId(folderId).name(name).build();
+        return PathParts.builder()
+                .path(path)
+                .folderId(folderId)
+                .name(name)
+                .build();
     }
 
     public static VersionedPathParts parseEncodedVersionedPath(String path, String prefix) {
@@ -60,7 +64,12 @@ public class PathUtils {
         var rawName = path.substring(lastSlashIndex + 1);
         var nameAndVersion = extractNameAndVersion(rawName);
 
-        return VersionedPathParts.builder().path(path).folderId(folderId).name(nameAndVersion.getLeft()).version(nameAndVersion.getRight()).build();
+        return VersionedPathParts.builder()
+                .path(path)
+                .folderId(folderId)
+                .name(nameAndVersion.getLeft())
+                .version(nameAndVersion.getRight())
+                .build();
     }
 
     private static Pair<String, String> extractNameAndVersion(String rawName) {

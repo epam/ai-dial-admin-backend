@@ -14,12 +14,11 @@ class PathUtilsTest {
 
     @ParameterizedTest
     @MethodSource("validZipEntryPaths")
-    void testValidateZipEntryPath_ValidPaths_ShouldNotThrow(String zipEntryPath) {
+    void testValidateZipEntryPath_ValidPaths_ShouldNotThrow(String zipEntryPath, String normalizedPath) {
         // given
         // when & then
         assertThat(PathUtils.validateZipEntryPath(zipEntryPath))
-                .isNotNull()
-                .isNotEmpty();
+                .isEqualTo(normalizedPath);
     }
 
     @ParameterizedTest
@@ -95,23 +94,23 @@ class PathUtilsTest {
 
     private static Stream<Arguments> validZipEntryPaths() {
         return Stream.of(
-                Arguments.of("files/test.txt"),
-                Arguments.of("files/subdir/file.txt"),
-                Arguments.of("files/subdir/nested/file.txt"),
-                Arguments.of("prompts/prompt.json"),
-                Arguments.of("prompts/public/prompt.json"),
-                Arguments.of("file.txt"),
-                Arguments.of("subdir/file.txt"),
-                Arguments.of("files/"),
-                Arguments.of("files/test"),
-                Arguments.of("files/test.json"),
-                Arguments.of("files/test-file.txt"),
-                Arguments.of("files/test_file.txt"),
-                Arguments.of("files/test.file.txt"),
-                Arguments.of("files/123/test.txt"),
-                Arguments.of("files/abc123/test.txt"),
-                Arguments.of("files/中文/test.txt"),
-                Arguments.of("a/b/c/d/e/f/g.txt")
+                Arguments.of("files/test.txt", "files/test.txt"),
+                Arguments.of("files/subdir/file.txt", "files/subdir/file.txt"),
+                Arguments.of("files/subdir/nested/file.txt", "files/subdir/nested/file.txt"),
+                Arguments.of("prompts/prompt.json", "prompts/prompt.json"),
+                Arguments.of("prompts/public/prompt.json", "prompts/public/prompt.json"),
+                Arguments.of("file.txt", "file.txt"),
+                Arguments.of("subdir/file.txt", "subdir/file.txt"),
+                Arguments.of("files/", "files"),
+                Arguments.of("files/test", "files/test"),
+                Arguments.of("files/test.json", "files/test.json"),
+                Arguments.of("files/test-file.txt", "files/test-file.txt"),
+                Arguments.of("files/test_file.txt", "files/test_file.txt"),
+                Arguments.of("files/test.file.txt", "files/test.file.txt"),
+                Arguments.of("files/123/test.txt", "files/123/test.txt"),
+                Arguments.of("files/abc123/test.txt", "files/abc123/test.txt"),
+                Arguments.of("files/中文/test.txt", "files/中文/test.txt"),
+                Arguments.of("a/b/c/d/e/f/g.txt", "a/b/c/d/e/f/g.txt")
         );
     }
 
