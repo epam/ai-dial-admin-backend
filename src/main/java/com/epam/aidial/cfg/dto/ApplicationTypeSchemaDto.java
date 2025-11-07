@@ -75,6 +75,9 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypeBucketCopy")
     private CopyAppBucketOptionsDto applicationTypeBucketCopy;
 
+    @JsonProperty("dial:applicationTypeInterceptors")
+    private List<String> applicationTypeInterceptors;
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)

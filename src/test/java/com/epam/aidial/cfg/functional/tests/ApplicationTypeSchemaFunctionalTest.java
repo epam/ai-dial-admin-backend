@@ -52,6 +52,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
+        dto.setApplicationTypeInterceptors(List.of());
         Assertions.assertThat(actual).isEqualTo(dto);
     }
 
@@ -63,6 +64,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         dto.setApplications(List.of("application1"));
         dto.setApplicationTypeRoutes(List.of());
+        dto.setApplicationTypeInterceptors(List.of());
 
         // when
         typeSchemaFacade.create(dto);
@@ -139,6 +141,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
+        dto.setApplicationTypeInterceptors(List.of());
         ApplicationTypeSchemaDto schemaDto = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(schemaDto).isEqualTo(dto);
         dto.setDescription("newDescription");
@@ -161,6 +164,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         dto.setApplications(null);
         dto.setApplicationTypeRoutes(List.of());
+        dto.setApplicationTypeInterceptors(List.of());
 
         // when
         typeSchemaFacade.update(dto.getId(), dto, "*");
@@ -271,6 +275,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         expected.setApplicationTypeIconUrl(dto.getApplicationTypeIconUrl());
         expected.setApplicationTypePlaybackSupport(dto.getApplicationTypePlaybackSupport());
         expected.setApplicationTypeBucketCopy(CoreApplicationTypeSchema.CopyAppBucketOptions.ENABLED);
+        expected.setApplicationTypeInterceptors(List.of());
         expected.setDefs(dto.getDefs());
         expected.setProperties(dto.getProperties());
         expected.setRequired(dto.getRequired());
