@@ -126,6 +126,7 @@ public class ApplicationTypeSchemaDto {
         this.applicationTypeRoutes = other.applicationTypeRoutes != null ? new ArrayList<>(other.applicationTypeRoutes) : null;
         this.applicationTypePlaybackSupport = other.applicationTypePlaybackSupport;
         this.applicationTypeBucketCopy = other.applicationTypeBucketCopy;
+        this.applicationTypeInterceptors = other.applicationTypeInterceptors != null ? new ArrayList<>(other.applicationTypeInterceptors) : null;
         this.defs = other.defs != null ? new HashMap<>(other.defs) : null;
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;
