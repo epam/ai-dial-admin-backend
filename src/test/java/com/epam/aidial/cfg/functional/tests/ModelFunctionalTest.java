@@ -1,10 +1,13 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelContainerSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -14,10 +17,12 @@ import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreModel;
+import jakarta.validation.constraints.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +35,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createMo
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
+import static org.mockito.Mockito.when;
 
 public abstract class ModelFunctionalTest {
 
@@ -41,6 +47,8 @@ public abstract class ModelFunctionalTest {
     private ModelFacade modelFacade;
     @Autowired
     private AdapterFacade adapterFacade;
+    @Autowired
+    private DeploymentManagerService deploymentManagerService;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -398,6 +406,52 @@ public abstract class ModelFunctionalTest {
         actual.setUpdatedAt(null);
 
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldResetAdapterToNullWhenChangingModelSourceFromAdapterToContainer() {
+        initRoles();
+        
+        // Create an adapter
+        adapterFacade.createAdapter(createAdapterDto("1"));
+        
+        // Create a model with adapter source
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
+        modelDto.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
+        modelFacade.createModel(modelDto);
+        
+        // Verify the model has adapter source
+        ModelDto actualModel = modelFacade.getModel(modelDto.getName());
+        Assertions.assertNotNull(actualModel.getSource());
+        Assertions.assertInstanceOf(AdapterSourceDto.class, actualModel.getSource());
+        AdapterSourceDto adapterSource = (AdapterSourceDto) actualModel.getSource();
+        Assertions.assertEquals("adapter1", adapterSource.adapterName());
+        
+        // Verify the adapter has the model in its models list
+        var adapter = adapterFacade.getAdapter("adapter1");
+        Assertions.assertTrue(adapter.getModels().contains("model1"));
+        
+        // Update the model to container source
+        final String containerId = "container-123";
+        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        deploymentInfo.setUrl("http://dial-test-host-name.ooops/yes/no/true/false");
+        when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfo);
+
+        ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
+        updatedModel.setSource(new ModelContainerSourceDto(containerId, "test-container", "/chat/completions"));
+        modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
+        
+        // Verify the model now has container source (not adapter source)
+        actualModel = modelFacade.getModel(modelDto.getName());
+        Assertions.assertNotNull(actualModel.getSource());
+        Assertions.assertInstanceOf(ModelContainerSourceDto.class, actualModel.getSource());
+        ModelContainerSourceDto containerSource = (ModelContainerSourceDto) actualModel.getSource();
+        Assertions.assertEquals("container-123", containerSource.containerId());
+        
+        // Verify the adapter no longer has the model in its models list
+        adapter = adapterFacade.getAdapter("adapter1");
+        Assertions.assertFalse(adapter.getModels().contains("model1"), 
+                "Adapter should not contain the model after switching to container source");
     }
 
     private void assertModels(Collection<ModelDto> actual, Collection<ModelDto> expected) {
