@@ -106,13 +106,7 @@ public class RouteService {
 
     private RouteEntity save(RouteEntity routeEntity) {
         RouteEntity savedRouteEntity = routeJpaRepository.save(routeEntity);
-        savedRouteEntity.getDeployment().getRoleLimits()
-                .forEach(roleLimit -> {
-                    var roleLimits = roleLimit.getRole().getLimits();
-                    if (!roleLimits.contains(roleLimit)) {
-                        roleLimits.add(roleLimit);
-                    }
-                });
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedRouteEntity.getDeployment());
         return savedRouteEntity;
     }
 

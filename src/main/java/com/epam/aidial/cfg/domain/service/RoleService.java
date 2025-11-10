@@ -118,13 +118,12 @@ public class RoleService {
 
     private RoleEntity save(RoleEntity roleEntity) {
         RoleEntity savedRoleEntity = roleJpaRepository.save(roleEntity);
-        savedRoleEntity.getLimits()
-                .forEach(roleLimit -> {
-                    var roleLimits = roleLimit.getDeployment().getRoleLimits();
-                    if (!roleLimits.contains(roleLimit)) {
-                        roleLimits.add(roleLimit);
-                    }
-                });
+        savedRoleEntity.getLimits().forEach(roleLimit -> {
+            var roleLimits = roleLimit.getDeployment().getRoleLimits();
+            if (!roleLimits.contains(roleLimit)) {
+                roleLimits.add(roleLimit);
+            }
+        });
         return savedRoleEntity;
     }
 

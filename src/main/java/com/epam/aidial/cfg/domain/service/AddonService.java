@@ -108,13 +108,7 @@ public class AddonService {
 
     private AddonEntity save(AddonEntity addonEntity) {
         AddonEntity savedAddonEntity = addonJpaRepository.save(addonEntity);
-        savedAddonEntity.getDeployment().getRoleLimits()
-                .forEach(roleLimit -> {
-                    var roleLimits = roleLimit.getRole().getLimits();
-                    if (!roleLimits.contains(roleLimit)) {
-                        roleLimits.add(roleLimit);
-                    }
-                });
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedAddonEntity.getDeployment());
         return savedAddonEntity;
     }
 

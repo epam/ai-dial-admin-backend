@@ -118,13 +118,7 @@ public class ToolSetService {
 
     private ToolSetEntity save(ToolSetEntity toolSetEntity) {
         ToolSetEntity savedToolSetEntity = toolSetJpaRepository.save(toolSetEntity);
-        savedToolSetEntity.getDeployment().getRoleLimits()
-                .forEach(roleLimit -> {
-                    var roleLimits = roleLimit.getRole().getLimits();
-                    if (!roleLimits.contains(roleLimit)) {
-                        roleLimits.add(roleLimit);
-                    }
-                });
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedToolSetEntity.getDeployment());
         return savedToolSetEntity;
     }
 

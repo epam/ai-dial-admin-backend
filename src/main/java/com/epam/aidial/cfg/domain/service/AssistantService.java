@@ -81,13 +81,7 @@ public class AssistantService {
 
     private AssistantEntity save(AssistantEntity assistantEntity) {
         AssistantEntity savedAssistantEntity = assistantJpaRepository.save(assistantEntity);
-        savedAssistantEntity.getDeployment().getRoleLimits()
-                .forEach(roleLimit -> {
-                    var roleLimits = roleLimit.getRole().getLimits();
-                    if (!roleLimits.contains(roleLimit)) {
-                        roleLimits.add(roleLimit);
-                    }
-                });
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedAssistantEntity.getDeployment());
         return savedAssistantEntity;
     }
 

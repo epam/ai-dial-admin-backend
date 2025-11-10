@@ -114,13 +114,7 @@ public class ApplicationService {
 
     private ApplicationEntity save(ApplicationEntity applicationEntity) {
         ApplicationEntity savedApplicationEntity = applicationJpaRepository.save(applicationEntity);
-        savedApplicationEntity.getDeployment().getRoleLimits()
-                .forEach(roleLimit -> {
-                    var roleLimits = roleLimit.getRole().getLimits();
-                    if (!roleLimits.contains(roleLimit)) {
-                        roleLimits.add(roleLimit);
-                    }
-                });
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedApplicationEntity.getDeployment());
         return savedApplicationEntity;
     }
 

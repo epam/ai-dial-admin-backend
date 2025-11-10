@@ -125,13 +125,7 @@ public class ModelService {
 
     private ModelEntity save(ModelEntity modelEntity) {
         ModelEntity savedModelEntity = modelJpaRepository.save(modelEntity);
-        savedModelEntity.getDeployment().getRoleLimits()
-                .forEach(roleLimit -> {
-                    var roleLimits = roleLimit.getRole().getLimits();
-                    if (!roleLimits.contains(roleLimit)) {
-                        roleLimits.add(roleLimit);
-                    }
-                });
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedModelEntity.getDeployment());
         return savedModelEntity;
     }
 
