@@ -43,6 +43,7 @@ public abstract class ToolSetClientMapper {
     @Mapping(target = "updatedAt", source = "metadataDto.updatedAt")
     @Mapping(target = "folderId", source = "itemParts.folderId")
     @Mapping(target = "author", source = "metadataDto.author")
+    @Mapping(target = "url", source = "metadataDto.url")
     protected abstract ToolSetResource toToolSetResource(ToolSetResourceDto dto, ToolSetMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
 
     public ToolSetResourceNodeInfo toToolSetInfo(ToolSetMetadataDto dto) {
