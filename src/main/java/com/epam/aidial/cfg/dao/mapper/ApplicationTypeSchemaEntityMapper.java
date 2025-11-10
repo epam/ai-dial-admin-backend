@@ -15,6 +15,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,8 +64,22 @@ public abstract class ApplicationTypeSchemaEntityMapper {
             updatedEntity.getApplications().addAll(applications);
         }
 
-        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getApplicationTypeInterceptors());
-        updatedEntity.setInterceptors(interceptors.isEmpty() ? null : interceptors);
+        boolean shouldUpdateInterceptors = CollectionUtils.isNotEmpty(domain.getApplicationTypeInterceptors());
+        if (shouldUpdateInterceptors) {
+            List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getApplicationTypeInterceptors());
+            updatedEntity.getInterceptors().stream()
+                    .filter(i -> !interceptors.contains(i))
+                    .forEach(interceptor -> interceptor.getApplicationTypeSchemas().remove(updatedEntity));
+
+            interceptors.stream().filter(i -> !updatedEntity.getInterceptors().contains(i))
+                    .forEach(interceptor -> {
+                        var applicationTypeSchemas = new ArrayList<>(interceptor.getApplicationTypeSchemas());
+                        applicationTypeSchemas.add(updatedEntity);
+                        interceptor.setApplicationTypeSchemas(applicationTypeSchemas);
+                    });
+            updatedEntity.getInterceptors().clear();
+            updatedEntity.getInterceptors().addAll(interceptors);
+        }
 
         return updatedEntity;
     }
@@ -109,6 +124,6 @@ public abstract class ApplicationTypeSchemaEntityMapper {
             throw new EntityNotFoundException("unable to find interceptors: " + namesDiff);
         }
 
-        return existingInterceptors;
+        return new ArrayList<>(existingInterceptors);
     }
 }

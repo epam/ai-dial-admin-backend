@@ -1,10 +1,12 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorRunnerJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
@@ -43,6 +45,9 @@ public abstract class InterceptorEntityMapper {
     private ApplicationJpaRepository applicationsJpaRepository;
 
     @Autowired
+    private ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
+
+    @Autowired
     private ModelJpaRepository modelJpaRepository;
 
     @Autowired
@@ -65,6 +70,10 @@ public abstract class InterceptorEntityMapper {
                         getNames(entity.getModels(), m -> m.getDeployment().getName())
                 )
                 .collect(Collectors.toList());
+    }
+
+    protected String mapApplicationTypeSchemaEntityToString(ApplicationTypeSchemaEntity value) {
+        return value != null ? value.getSchemaId() : null;
     }
 
     @Named("mapSource")
@@ -130,6 +139,17 @@ public abstract class InterceptorEntityMapper {
         updatedEntity.getModels().clear();
         updatedEntity.getModels().addAll(models);
 
+        var applicationTypeSchemas = findApplicationTypeSchemaById(domain.getApplicationTypeSchemas());
+        updatedEntity.getApplicationTypeSchemas().stream()
+                .filter(a -> !applicationTypeSchemas.contains(a))
+                .forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().remove(updatedEntity));
+        applicationTypeSchemas.stream()
+                .filter(a -> !updatedEntity.getApplicationTypeSchemas().contains(a))
+                .forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().add(updatedEntity));
+
+        updatedEntity.getApplicationTypeSchemas().clear();
+        updatedEntity.getApplicationTypeSchemas().addAll(applicationTypeSchemas);
+
         InterceptorRunnerEntity currentInterceptorRunner = updatedEntity.getInterceptorRunner();
         if (currentInterceptorRunner != null) {
             currentInterceptorRunner.getInterceptors().remove(updatedEntity);
@@ -145,6 +165,7 @@ public abstract class InterceptorEntityMapper {
 
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "models", ignore = true)
+    @Mapping(target = "applicationTypeSchemas", ignore = true)
     @Mapping(target = "interceptorRunner", ignore = true)
     @Mapping(target = "interceptorContainer", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -172,6 +193,14 @@ public abstract class InterceptorEntityMapper {
 
         return Pair.of(applications, models);
     }
+
+    private List<ApplicationTypeSchemaEntity> findApplicationTypeSchemaById(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return List.of();
+        }
+        return Lists.newArrayList(applicationTypeSchemaJpaRepository.findAllById(ids));
+    }
+
 
     private InterceptorRunnerEntity findInterceptorRunnerEntityByName(String name) {
         if (StringUtils.isBlank(name)) {

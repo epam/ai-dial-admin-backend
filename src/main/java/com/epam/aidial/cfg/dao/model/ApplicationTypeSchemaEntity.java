@@ -57,7 +57,7 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
             inverseJoinColumns = @JoinColumn(name = "interceptor_name")
     )
     @OrderColumn
-    private List<InterceptorEntity> interceptors;
+    private List<InterceptorEntity> interceptors = new ArrayList<>();
 
     @Column(columnDefinition = "CLOB")
     private String defs;

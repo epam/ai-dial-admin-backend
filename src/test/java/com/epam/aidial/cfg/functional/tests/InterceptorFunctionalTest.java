@@ -1,8 +1,10 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
+import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -10,10 +12,15 @@ import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
+import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.core.config.CoreInterceptor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -41,7 +48,10 @@ public abstract class InterceptorFunctionalTest {
     @Autowired
     private ModelFacade modelFacade;
     @Autowired
+    private ApplicationTypeSchemaFacade typeSchemaFacade;
+    @Autowired
     private DeploymentManagerService deploymentManagerService;
+    private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
 
     @Test
     public void shouldSuccessfullyCreateAndGetInterceptors() {
@@ -172,6 +182,30 @@ public abstract class InterceptorFunctionalTest {
 
         ApplicationDto actualApplication1 = applicationFacade.getApplication(applicationDto1.getName());
         Assertions.assertEquals(actualApplication1.getInterceptors(), List.of("interceptor1", "interceptor1", "interceptor1"));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndUpdateInterceptorWithSchemas() throws JsonProcessingException {
+        var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
+        var applicationTypeSchemaDto = objectMapper.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
+        });
+        typeSchemaFacade.create(applicationTypeSchemaDto);
+
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setApplicationTypeSchemas(List.of("https://test-schema.example"));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        InterceptorDto actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
+        Assertions.assertTrue(actualInterceptor.getApplicationTypeSchemas()
+                .contains("https://test-schema.example"));
+
+        interceptorDto.setApplicationTypeSchemas(List.of());
+        interceptorFacade.updateInterceptor("interceptor1", interceptorDto, "*");
+        actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
+        Assertions.assertTrue(actualInterceptor.getApplicationTypeSchemas().isEmpty());
+
+        var actualApplicationTypeSchema = typeSchemaFacade.get("https://test-schema.example");
+        Assertions.assertTrue(actualApplicationTypeSchema.getApplicationTypeInterceptors().isEmpty());
     }
 
     @Test
