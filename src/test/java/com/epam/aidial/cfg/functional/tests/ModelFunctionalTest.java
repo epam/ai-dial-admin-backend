@@ -452,6 +452,22 @@ public abstract class ModelFunctionalTest {
         adapter = adapterFacade.getAdapter("adapter1");
         Assertions.assertFalse(adapter.getModels().contains("model1"), 
                 "Adapter should not contain the model after switching to container source");
+
+        // Add updatedModel (with Container) to Adapter and save adapter. model source should be switched to adapter back
+        // Simulate adding the model (now container source) back to the adapter
+        adapter.setModels(List.of(actualModel.getName()));
+        adapterFacade.updateAdapter(adapter.getName(), adapter, "*");
+
+        // Verify the model now has adapter source again
+        actualModel = modelFacade.getModel(modelDto.getName());
+        Assertions.assertNotNull(actualModel.getSource());
+        Assertions.assertInstanceOf(AdapterSourceDto.class, actualModel.getSource());
+        AdapterSourceDto adapterSourceAgain = (AdapterSourceDto) actualModel.getSource();
+        Assertions.assertEquals("adapter1", adapterSourceAgain.adapterName());
+        // Verify the adapter has the model again in its models list
+        adapter = adapterFacade.getAdapter("adapter1");
+        Assertions.assertTrue(adapter.getModels().contains("model1"),
+                "Adapter should contain the model after switching back to adapter source");
     }
 
     private void assertModels(Collection<ModelDto> actual, Collection<ModelDto> expected) {
