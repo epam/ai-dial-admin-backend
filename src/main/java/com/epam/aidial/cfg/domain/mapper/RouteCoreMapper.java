@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.mapper;
 
+import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.route.Route;
@@ -7,8 +8,12 @@ import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreUpstream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,12 +38,13 @@ public abstract class RouteCoreMapper {
     @Mapping(target = "userRoles", source = "deployment")
     public abstract CoreRoute mapRoute(DependentRoute route);
 
-    @Mapping(target = "deployment", source = "route")
+    @Mapping(target = "deployment", source = "coreRoute", qualifiedByName = "toDeployment")
+    @Mapping(target = "displayName", source = "name")
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "displayName", source = "name")
-    public abstract Route mapRoute(CoreRoute route);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    public abstract Route mapRoute(CoreRoute coreRoute, @Context List<RoleLimit> roleLimits, @MappingTarget Route route);
 
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "description", ignore = true)
@@ -87,5 +93,7 @@ public abstract class RouteCoreMapper {
         }
         return path.pattern();
     }
+
+    public abstract Route copy(Route route);
 
 }

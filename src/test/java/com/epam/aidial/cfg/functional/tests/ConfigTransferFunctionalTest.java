@@ -429,6 +429,375 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testImport_ModelAndRoleExist_ImportModelAndRoleWithDayLimit() {
+        // given
+        importModelAndRole();
+
+        String config = ResourceUtils.readResource("/import/import_modelAndRoleWithDayLimit.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ModelDto kkTestModel2 = modelFacade.getModel("KK_testModel2");
+        Assertions.assertThat(kkTestModel2).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isFalse();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 10L, true)
+                    );
+                }
+        );
+
+        RoleDto kkTestRole2 = roleFacade.getRole("KK_testRole2");
+        Assertions.assertThat(kkTestRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 10L, true)
+                    );
+                }
+        );
+    }
+
+    @Test
+    void testImport_TwoModelsAndRoleExist_ImportModelWithNewUserRolesAndExistingRoleWithNewLimit() {
+        // given
+        var dial22ModelDto = new ModelDto();
+        dial22ModelDto.setName("DIAL22");
+        dial22ModelDto.setDisplayName("DIAL22");
+        dial22ModelDto.setIsPublic(true);
+        modelFacade.createModel(dial22ModelDto);
+
+        importModelAndRole();
+
+        String config = ResourceUtils.readResource("/import/import_modelWithNewUserRolesAndExistingRoleWithNewLimit.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ModelDto kkTestModel2 = modelFacade.getModel("KK_testModel2");
+        Assertions.assertThat(kkTestModel2).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isFalse();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(3);
+
+                    var roleLimit1 = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit1).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+
+                    var roleLimit2 = roleLimits.get("newRole2");
+                    Assertions.assertThat(roleLimit2).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+
+                    var roleLimit3 = roleLimits.get("newRole2");
+                    Assertions.assertThat(roleLimit3).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+                }
+        );
+
+        ModelDto dial22Model = modelFacade.getModel("DIAL22");
+        Assertions.assertThat(dial22Model).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isTrue();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 500L, false)
+                    );
+                }
+        );
+
+        RoleDto kkTestRole2 = roleFacade.getRole("KK_testRole2");
+        Assertions.assertThat(kkTestRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(2);
+
+                    var roleLimit1 = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit1).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+
+                    var roleLimit2 = roleLimits.get("DIAL22");
+                    Assertions.assertThat(roleLimit2).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 500L, false)
+                    );
+                }
+        );
+
+        RoleDto newRole1 = roleFacade.getRole("newRole2");
+        Assertions.assertThat(newRole1).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+                }
+        );
+
+        RoleDto newRole2 = roleFacade.getRole("newRole2");
+        Assertions.assertThat(newRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+                }
+        );
+    }
+
+    @Test
+    void testImport_ModelAndRoleExist_ImportModelWithoutUserRolesAndRoleWithDayLimit() {
+        // given
+        importModelAndRole();
+
+        String config = ResourceUtils.readResource("/import/import_modelWithoutUserRolesAndRoleWithDayLimit.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ModelDto kkTestModel2 = modelFacade.getModel("KK_testModel2");
+        Assertions.assertThat(kkTestModel2).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isTrue();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 10L, false)
+                    );
+                }
+        );
+
+        RoleDto kkTestRole2 = roleFacade.getRole("KK_testRole2");
+        Assertions.assertThat(kkTestRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 10L, false)
+                    );
+                }
+        );
+    }
+
+    @Test
+    void testImport_ModelAndRoleExist_ImportModelWithNewUserRoles() {
+        // given
+        importModelAndRole();
+
+        String config = ResourceUtils.readResource("/import/import_modelWithNewUserRoles.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ModelDto kkTestModel2 = modelFacade.getModel("KK_testModel2");
+        Assertions.assertThat(kkTestModel2).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isFalse();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(3);
+
+                    var roleLimit1 = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit1).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+
+                    var roleLimit2 = roleLimits.get("newRole2");
+                    Assertions.assertThat(roleLimit2).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+
+                    var roleLimit3 = roleLimits.get("newRole2");
+                    Assertions.assertThat(roleLimit3).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+                }
+        );
+
+        RoleDto kkTestRole2 = roleFacade.getRole("KK_testRole2");
+        Assertions.assertThat(kkTestRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+                }
+        );
+
+        RoleDto newRole1 = roleFacade.getRole("newRole2");
+        Assertions.assertThat(newRole1).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+                }
+        );
+
+        RoleDto newRole2 = roleFacade.getRole("newRole2");
+        Assertions.assertThat(newRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertEmptyEnabledRoleLimit);
+                }
+        );
+    }
+
+    @Test
+    void testImport_ModelAndRoleExist_ImportModelWithoutUserRoles() {
+        // given
+        importModelAndRole();
+
+        String config = ResourceUtils.readResource("/import/import_modelWithoutUserRoles.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ModelDto kkTestModel2 = modelFacade.getModel("KK_testModel2");
+        Assertions.assertThat(kkTestModel2).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isTrue();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+                }
+        );
+
+        RoleDto kkTestRole2 = roleFacade.getRole("KK_testRole2");
+        Assertions.assertThat(kkTestRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+                }
+        );
+    }
+
+    @Test
+    void testImport_ModelAndRoleExist_ImportModelWithEmptyUserRoles() {
+        // given
+        importModelAndRole();
+
+        String config = ResourceUtils.readResource("/import/import_modelWithEmptyUserRoles.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ModelDto kkTestModel2 = modelFacade.getModel("KK_testModel2");
+        Assertions.assertThat(kkTestModel2).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isFalse();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+                }
+        );
+
+        RoleDto kkTestRole2 = roleFacade.getRole("KK_testRole2");
+        Assertions.assertThat(kkTestRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(this::assertUnlimitedDisabledRoleLimit);
+                }
+        );
+    }
+
+    @Test
+    void testImport_ModelAndRoleExist_ImportRoleWithDayLimit() {
+        // given
+        importModelAndRole();
+
+        String config = ResourceUtils.readResource("/import/import_roleWithDayLimit.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ModelDto kkTestModel2 = modelFacade.getModel("KK_testModel2");
+        Assertions.assertThat(kkTestModel2).isNotNull().satisfies(model -> {
+                    Assertions.assertThat(model.getIsPublic()).isFalse();
+
+                    var roleLimits = model.getRoleLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testRole2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 10L, true)
+                    );
+                }
+        );
+
+        RoleDto kkTestRole2 = roleFacade.getRole("KK_testRole2");
+        Assertions.assertThat(kkTestRole2).isNotNull().satisfies(role -> {
+                    var roleLimits = role.getLimits();
+                    Assertions.assertThat(roleLimits).hasSize(1);
+
+                    var roleLimit = roleLimits.get("KK_testModel2");
+                    Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto ->
+                            assertDayWithRestUnlimitedRoleLimit(limitDto, 10L, true)
+                    );
+                }
+        );
+    }
+
+    @Test
     void testExport_CoreFormatModelWithInterceptor_FullRequest() throws IOException {
         // given
         Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.MODEL,
@@ -2191,6 +2560,69 @@ public abstract class ConfigTransferFunctionalTest {
                 .map(KeyDto::getName)
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Test failed. Key with project: '" + project + "' doesn't exist"));
+    }
+
+    private void importModelAndRole() {
+        String modelAndRoleConfig = ResourceUtils.readResource("/import/import_modelAndRole.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                modelAndRoleConfig.getBytes()
+        );
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+    }
+
+    private void assertEmptyEnabledRoleLimit(LimitDto roleLimit) {
+        assertEmptyRoleLimit(roleLimit, true);
+    }
+
+    private void assertEmptyDisabledRoleLimit(LimitDto roleLimit) {
+        assertEmptyRoleLimit(roleLimit, false);
+    }
+
+    private void assertEmptyRoleLimit(LimitDto roleLimit, boolean enabled) {
+        Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto -> {
+            Assertions.assertThat(limitDto.isEnabled()).isEqualTo(enabled);
+            Assertions.assertThat(limitDto.getMinute()).isNull();
+            Assertions.assertThat(limitDto.getDay()).isNull();
+            Assertions.assertThat(limitDto.getWeek()).isNull();
+            Assertions.assertThat(limitDto.getMonth()).isNull();
+            Assertions.assertThat(limitDto.getRequestHour()).isNull();
+            Assertions.assertThat(limitDto.getRequestDay()).isNull();
+        });
+    }
+
+    private void assertUnlimitedEnabledRoleLimit(LimitDto roleLimit) {
+        assertUnlimitedRoleLimit(roleLimit, true);
+    }
+
+    private void assertUnlimitedDisabledRoleLimit(LimitDto roleLimit) {
+        assertUnlimitedRoleLimit(roleLimit, false);
+    }
+
+    private void assertUnlimitedRoleLimit(LimitDto roleLimit, boolean enabled) {
+        Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto -> {
+            Assertions.assertThat(limitDto.isEnabled()).isEqualTo(enabled);
+            Assertions.assertThat(limitDto.getMinute()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getDay()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getWeek()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getMonth()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getRequestHour()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getRequestDay()).isEqualTo(Long.MAX_VALUE);
+        });
+    }
+
+    private void assertDayWithRestUnlimitedRoleLimit(LimitDto roleLimit, Long day, boolean enabled) {
+        Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto -> {
+            Assertions.assertThat(limitDto.isEnabled()).isEqualTo(enabled);
+            Assertions.assertThat(limitDto.getMinute()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getDay()).isEqualTo(day);
+            Assertions.assertThat(limitDto.getWeek()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getMonth()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getRequestHour()).isEqualTo(Long.MAX_VALUE);
+            Assertions.assertThat(limitDto.getRequestDay()).isEqualTo(Long.MAX_VALUE);
+        });
     }
 
     private static ConfigImportOptions overrideAndCreateRoleAndCreateNew() {

@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
-import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
@@ -49,45 +48,59 @@ public class RouteImporter extends DeploymentHolderImporter {
     }
 
     public Collection<ImportComponent<Route>> importRoutes(Map<String, CoreRoute> coreRoutes,
-                                                           Map<String, Role> roles,
                                                            ConfigImportOptions importOptions) {
-        if (MapUtils.isNotEmpty(coreRoutes)) {
-            Map<String, Route> routes = coreRoutes.entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue())));
-            return importAdminRoutes(routes, roles, importOptions);
+        if (MapUtils.isEmpty(coreRoutes)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        return coreRoutes.entrySet()
+                .stream()
+                .map(entry -> processRoute(entry.getKey(), entry.getValue(), importOptions.conflictResolutionPolicy()))
+                .toList();
     }
 
     public Collection<ImportComponent<Route>> importAdminRoutes(Map<String, Route> routes,
-                                                                Map<String, Role> roles,
                                                                 ConfigImportOptions importOptions) {
-        if (MapUtils.isNotEmpty(routes)) {
-            return routes.entrySet().stream()
-                    .map(routeEntry -> {
-                                var route = routeEntry.getValue();
-                                return processRoute(routeEntry.getKey(), route, roles, importOptions.conflictResolutionPolicy());
-                            }
-                    )
-                    .toList();
+        if (MapUtils.isEmpty(routes)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        return routes.entrySet().stream()
+                .map(routeEntry -> processRoute(routeEntry.getKey(), routeEntry.getValue(), importOptions.conflictResolutionPolicy()))
+                .toList();
     }
 
     private ImportComponent<Route> processRoute(String routeName,
-                                                Route newRoute,
-                                                Map<String, Role> roles,
+                                                CoreRoute coreRoute,
                                                 ConflictResolutionPolicy resolutionPolicy) {
         Optional<Route> route = routeService.tryGetRoute(routeName);
         if (route.isPresent()) {
             Route existingRoute = route.get();
-            setLimits(routeName, existingRoute.getDeployment(), roles, newRoute.getDeployment());
+            Route existingRouteCopy = routeCoreMapper.copy(existingRoute);
+            List<RoleLimit> roleLimits = getRoleLimits(existingRouteCopy.getDeployment(), coreRoute.getUserRoles());
+            Route newRoute = map(routeName, coreRoute, roleLimits, existingRouteCopy);
+            ImportAction importAction = handleExisting(newRoute, resolutionPolicy, routeName);
+            return new ImportComponent<>(importAction, existingRoute, newRoute);
+        } else {
+            List<RoleLimit> roleLimits = getRoleLimits(routeName, coreRoute.getUserRoles());
+            Route newRoute = map(routeName, coreRoute, roleLimits, new Route());
+            validate(routeName, newRoute);
+            routeService.create(newRoute);
+            return new ImportComponent<>(CREATE, null, newRoute);
+        }
+    }
+
+    private ImportComponent<Route> processRoute(String routeName,
+                                                Route newRoute,
+                                                ConflictResolutionPolicy resolutionPolicy) {
+        Optional<Route> route = routeService.tryGetRoute(routeName);
+        if (route.isPresent()) {
+            Route existingRoute = route.get();
+            newRoute.getDeployment().setRoleLimits(existingRoute.getDeployment().getRoleLimits());
             ImportAction importAction = handleExisting(newRoute, resolutionPolicy, routeName);
             return new ImportComponent<>(importAction, existingRoute, newRoute);
         } else {
             validate(routeName, newRoute);
-            setLimits(routeName, roles, newRoute.getDeployment());
             routeService.create(newRoute);
             return new ImportComponent<>(CREATE, null, newRoute);
         }
@@ -106,9 +119,9 @@ public class RouteImporter extends DeploymentHolderImporter {
         };
     }
 
-    private Route map(String routeName, CoreRoute route) {
-        route.setName(routeName);
-        return routeCoreMapper.mapRoute(route);
+    private Route map(String routeName, CoreRoute coreRoute, List<RoleLimit> roleLimits, Route route) {
+        coreRoute.setName(routeName);
+        return routeCoreMapper.mapRoute(coreRoute, roleLimits, route);
     }
 
     private void validate(String routeName, Route route) {
@@ -123,19 +136,15 @@ public class RouteImporter extends DeploymentHolderImporter {
         }
     }
 
-    public List<ImportComponent<Route>> getActualImportedRoutes(Collection<ImportComponent<Route>> routeImportComponents,
-                                                                Collection<ImportComponent<Role>> roleImportComponents) {
+    public List<ImportComponent<Route>> getActualImportedRoutes(Collection<ImportComponent<Route>> routeImportComponents) {
         List<String> names = getNextImportComponentNames(routeImportComponents);
         Map<String, Route> importedRoutesByNames = routeService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(route -> route.getDeployment().getName(), Function.identity()));
 
-        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
-
         return routeImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedRoutesByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);

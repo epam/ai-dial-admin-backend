@@ -11,8 +11,8 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring", uses = LimitEntityMapper.class)
 public abstract class RoleLimitEntityMapper {
 
-    @Mapping(target = "role", source = "role.name")
-    @Mapping(target = "deploymentName", source = "deployment.name")
+    @Mapping(target = "role", source = "id.roleName")
+    @Mapping(target = "deploymentName", source = "id.deploymentName")
     public abstract RoleLimit toDomain(RoleLimitEntity entity);
 
     @Mapping(target = "id", ignore = true)

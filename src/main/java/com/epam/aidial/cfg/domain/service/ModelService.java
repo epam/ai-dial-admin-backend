@@ -92,7 +92,7 @@ public class ModelService {
         resolveEndpointsIfContainerSource(model);
         Optional.of(model)
                 .map(domainModel -> mapper.toEntity(domainModel, new ModelEntity()))
-                .map(modelJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create model " + model.getDeployment().getName()));
     }
 
@@ -120,7 +120,19 @@ public class ModelService {
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         assertNotConcurrencyOverwrite(modelEntity, hash);
         resolveEndpointsIfContainerSource(model);
-        return modelJpaRepository.save(mapper.toEntity(model, modelEntity));
+        return save(mapper.toEntity(model, modelEntity));
+    }
+
+    private ModelEntity save(ModelEntity modelEntity) {
+        ModelEntity savedModelEntity = modelJpaRepository.save(modelEntity);
+        savedModelEntity.getDeployment().getRoleLimits()
+                .forEach(roleLimit -> {
+                    var roleLimits = roleLimit.getRole().getLimits();
+                    if (!roleLimits.contains(roleLimit)) {
+                        roleLimits.add(roleLimit);
+                    }
+                });
+        return savedModelEntity;
     }
 
     @Transactional
