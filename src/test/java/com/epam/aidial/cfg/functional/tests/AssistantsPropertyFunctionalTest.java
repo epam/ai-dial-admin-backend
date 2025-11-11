@@ -25,7 +25,6 @@ public abstract class AssistantsPropertyFunctionalTest {
 
         assistantsPropertyDto.setEndpoint("test-endpoint");
         assistantsPropertyDto.getFeatures().setAllowResume(true);
-        assistantsPropertyDto.getFeatures().setAddonsSupported(false);
         assistantsPropertyDto.getFeatures().setConfigurationEndpoint("test config endpoint");
         assistantsPropertyFacade.updateAssistantsProperty(assistantsPropertyDto);
         AssistantsPropertyDto actual2 = assistantsPropertyFacade.getAssistantsProperty();
@@ -37,7 +36,6 @@ public abstract class AssistantsPropertyFunctionalTest {
         AssistantsPropertyDto assistantsPropertyDto = new AssistantsPropertyDto();
         assistantsPropertyDto.setEndpoint("test-endpoint2");
         assistantsPropertyDto.getFeatures().setAllowResume(true);
-        assistantsPropertyDto.getFeatures().setAddonsSupported(false);
         assistantsPropertyDto.getFeatures().setConfigurationEndpoint("test config endpoint2");
         assistantsPropertyFacade.updateAssistantsProperty(assistantsPropertyDto);
         AssistantsPropertyDto actual = assistantsPropertyFacade.getAssistantsProperty();

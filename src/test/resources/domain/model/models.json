@@ -24,7 +24,6 @@
       "accessibleByPerRequestKey": true,
       "contentPartsSupported": true,
       "temperatureSupported": true,
-      "addonsSupported": false,
       "cacheSupported": true,
       "autoCachingSupported": false,
       "consentRequired": true,

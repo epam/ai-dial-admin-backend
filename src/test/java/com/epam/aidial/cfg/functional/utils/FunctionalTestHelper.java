@@ -192,7 +192,6 @@ public class FunctionalTestHelper {
         features.setAccessibleByPerRequestKey(true);
         features.setContentPartsSupported(false);
         features.setTemperatureSupported(true);
-        features.setAddonsSupported(true);
         features.setParallelToolCallsSupported(true);
         features.setAssistantAttachmentsInRequestSupported(false);
 

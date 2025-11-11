@@ -351,8 +351,7 @@
         "allowResume": {"type": "boolean"},
         "accessibleByPerRequestKey": {"type": "boolean"},
         "contentPartsSupported": {"type": "boolean"},
-        "temperatureSupported": {"type": "boolean"},
-        "addonsSupported": {"type": "boolean"}
+        "temperatureSupported": {"type": "boolean"}
       }
     }
   }
