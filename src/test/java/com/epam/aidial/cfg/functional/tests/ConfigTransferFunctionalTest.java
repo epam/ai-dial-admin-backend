@@ -542,7 +542,7 @@ public abstract class ConfigTransferFunctionalTest {
                 }
         );
 
-        RoleDto newRole1 = roleFacade.getRole("newRole2");
+        RoleDto newRole1 = roleFacade.getRole("newRole1");
         Assertions.assertThat(newRole1).isNotNull().satisfies(role -> {
                     var roleLimits = role.getLimits();
                     Assertions.assertThat(roleLimits).hasSize(1);
@@ -652,7 +652,7 @@ public abstract class ConfigTransferFunctionalTest {
                 }
         );
 
-        RoleDto newRole1 = roleFacade.getRole("newRole2");
+        RoleDto newRole1 = roleFacade.getRole("newRole1");
         Assertions.assertThat(newRole1).isNotNull().satisfies(role -> {
                     var roleLimits = role.getLimits();
                     Assertions.assertThat(roleLimits).hasSize(1);
