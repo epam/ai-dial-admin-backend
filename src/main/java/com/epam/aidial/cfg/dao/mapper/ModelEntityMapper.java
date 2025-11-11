@@ -108,13 +108,6 @@ public abstract class ModelEntityMapper {
 
         AdapterEntity adapterEntity = findAdapter(adapterName);
 
-        // Validate that both adapter and container are not set simultaneously
-        if (adapterEntity != null && modelContainer != null) {
-            throw new IllegalArgumentException(
-                    "Model cannot have both adapter and container set. Model: " + domain.getDeployment().getName()
-            );
-        }
-
         ModelEntity updatedEntity = update(domain, entity);
 
         updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getModels().remove(updatedEntity));
@@ -128,7 +121,13 @@ public abstract class ModelEntityMapper {
         if (currentAdapter != null) {
             currentAdapter.getModels().remove(updatedEntity);
         }
-        
+
+        // Validate that both adapter and container are not set simultaneously
+        if (adapterEntity != null && modelContainer != null) {
+            throw new IllegalArgumentException(
+                    "Model cannot have both adapter and container set. Model: " + domain.getDeployment().getName()
+            );
+        }
         // Explicitly clear and set adapter/container fields to ensure mutual exclusivity
         if (adapterEntity != null) {
             // Setting adapter: clear container and set adapter
