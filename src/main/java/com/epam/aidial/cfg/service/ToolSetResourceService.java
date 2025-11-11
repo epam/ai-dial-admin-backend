@@ -163,7 +163,7 @@ public class ToolSetResourceService implements ResourceService {
         var normalizedCoreClientUrl = coreClientUrl.endsWith("/")
                 ? coreClientUrl.substring(0, coreClientUrl.length() - 1)
                 : coreClientUrl;
-        return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getName()),
+        return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getUrl()),
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor, authHeaders);
     }
 
