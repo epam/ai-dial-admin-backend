@@ -36,7 +36,6 @@ public class Features {
     private boolean accessibleByPerRequestKey = true;
     private boolean contentPartsSupported;
     private boolean temperatureSupported = true;
-    private boolean addonsSupported = true;
     private Boolean cacheSupported;
     private Boolean autoCachingSupported;
     private Boolean consentRequired;
