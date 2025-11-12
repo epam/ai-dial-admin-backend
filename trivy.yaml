@@ -12,9 +12,8 @@ db:
     - ghcr.io/aquasecurity/trivy-java-db:1
 misconfiguration:
   checks-bundle-repository: mirror.gcr.io/aquasec/trivy-checks:1
-vulnerabilities:
-  - id: CVE-2025-59250
-    paths:
-      - com.microsoft.sqlserver:mssql-jdbc
-    statement: "Fixed version already in use, false positive per https://github.com/aquasecurity/trivy/discussions/9745"
-    expired: "2026-01-01"
+vulnerability:
+  ignore:
+    - id: CVE-2025-59250
+      statement: "Fixed version already in use, false positive per https://github.com/aquasecurity/trivy/discussions/9745"
+      expired: "2026-01-01"
