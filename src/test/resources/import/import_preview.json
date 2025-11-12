@@ -438,7 +438,7 @@
             }
           }
         ],
-        "applicationTypeInterceptors":[],
+        "interceptors":[],
         "$defs": {},
         "properties": {},
         "required": [],

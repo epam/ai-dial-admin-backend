@@ -32,13 +32,13 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         interceptorFacade.createInterceptor(FunctionalTestHelper.createInterceptorDto("1"));
         interceptorFacade.createInterceptor(FunctionalTestHelper.createInterceptorDto("2"));
         ApplicationTypeSchemaDto applicationDto = createDto("1");
-        applicationDto.setApplicationTypeInterceptors(List.of("interceptor1", "interceptor2"));
+        applicationDto.setInterceptors(List.of("interceptor1", "interceptor2"));
         applicationTypeSchemaFacade.create(applicationDto);
         applicationTypeSchemaFacade.get("id1");
 
         // 2 update application1 description
         ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
-        updatedApplicationTypeSchema.setApplicationTypeInterceptors(List.of("interceptor1"));
+        updatedApplicationTypeSchema.setInterceptors(List.of("interceptor1"));
         updatedApplicationTypeSchema.setDescription("new application description");
         applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "*");
 
@@ -51,7 +51,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         expected.setApplications(List.of());
         expected.setApplicationTypeRoutes(List.of());
         expected.setAppendApplicationPropertiesHeader(true);
-        expected.setApplicationTypeInterceptors(List.of("interceptor1"));
+        expected.setInterceptors(List.of("interceptor1"));
         assertApplicationTypeSchema(actual, expected);
 
         var actualAtOldRevision = applicationTypeSchemaFacade.getAll();

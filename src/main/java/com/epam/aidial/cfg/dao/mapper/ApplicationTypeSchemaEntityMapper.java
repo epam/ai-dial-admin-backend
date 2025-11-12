@@ -31,7 +31,6 @@ public abstract class ApplicationTypeSchemaEntityMapper {
     private InterceptorJpaRepository interceptorJpaRepository;
 
     @Mapping(target = "applicationTypeRoutes", source = "routes")
-    @Mapping(target = "applicationTypeInterceptors", source = "interceptors")
     public abstract ApplicationTypeSchema toDomain(ApplicationTypeSchemaEntity entity);
 
     protected String mapApplicationToString(ApplicationEntity value) {
@@ -64,9 +63,9 @@ public abstract class ApplicationTypeSchemaEntityMapper {
             updatedEntity.getApplications().addAll(applications);
         }
 
-        boolean shouldUpdateInterceptors = CollectionUtils.isNotEmpty(domain.getApplicationTypeInterceptors());
+        boolean shouldUpdateInterceptors = CollectionUtils.isNotEmpty(domain.getInterceptors());
         if (shouldUpdateInterceptors) {
-            List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getApplicationTypeInterceptors());
+            List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
             updatedEntity.getInterceptors().stream()
                     .filter(i -> !interceptors.contains(i))
                     .forEach(interceptor -> interceptor.getApplicationTypeSchemas().remove(updatedEntity));

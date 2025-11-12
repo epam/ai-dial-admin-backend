@@ -52,7 +52,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
-        dto.setApplicationTypeInterceptors(List.of());
+        dto.setInterceptors(List.of());
         Assertions.assertThat(actual).isEqualTo(dto);
     }
 
@@ -64,7 +64,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         dto.setApplications(List.of("application1"));
         dto.setApplicationTypeRoutes(List.of());
-        dto.setApplicationTypeInterceptors(List.of());
+        dto.setInterceptors(List.of());
 
         // when
         typeSchemaFacade.create(dto);
@@ -141,7 +141,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
-        dto.setApplicationTypeInterceptors(List.of());
+        dto.setInterceptors(List.of());
         ApplicationTypeSchemaDto schemaDto = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(schemaDto).isEqualTo(dto);
         dto.setDescription("newDescription");
@@ -164,7 +164,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         dto.setApplications(null);
         dto.setApplicationTypeRoutes(List.of());
-        dto.setApplicationTypeInterceptors(List.of());
+        dto.setInterceptors(List.of());
 
         // when
         typeSchemaFacade.update(dto.getId(), dto, "*");

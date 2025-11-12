@@ -33,7 +33,7 @@ public class ApplicationTypeSchema {
     private List<DependentRoute> applicationTypeRoutes;
     private Boolean applicationTypePlaybackSupport;
     private CopyAppBucketOptions applicationTypeBucketCopy;
-    private List<String> applicationTypeInterceptors;
+    private List<String> interceptors;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

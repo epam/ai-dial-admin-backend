@@ -205,7 +205,7 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertTrue(actualInterceptor.getApplicationTypeSchemas().isEmpty());
 
         var actualApplicationTypeSchema = typeSchemaFacade.get("https://test-schema.example");
-        Assertions.assertTrue(actualApplicationTypeSchema.getApplicationTypeInterceptors().isEmpty());
+        Assertions.assertTrue(actualApplicationTypeSchema.getInterceptors().isEmpty());
     }
 
     @Test
