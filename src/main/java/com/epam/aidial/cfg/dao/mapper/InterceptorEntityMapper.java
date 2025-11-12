@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
@@ -20,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -85,6 +87,18 @@ public abstract class InterceptorEntityMapper {
         }
 
         return new InterceptorEndpointsSource();
+    }
+
+    @AfterMapping
+    protected void populateEndpointsFromRunner(@MappingTarget Interceptor interceptor, InterceptorEntity entity) {
+        InterceptorRunnerEntity runnerEntity = entity.getInterceptorRunner();
+        if (runnerEntity != null) {
+            interceptor.setEndpoint(runnerEntity.getCompletionEndpoint());
+            if (interceptor.getFeatures() == null) {
+                interceptor.setFeatures(new Features());
+            }
+            interceptor.getFeatures().setConfigurationEndpoint(runnerEntity.getConfigurationEndpoint());
+        }
     }
 
     private <T> Stream<String> getNames(Collection<T> entities, Function<T, String> modelEntityStringFunction) {

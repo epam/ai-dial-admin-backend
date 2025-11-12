@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
+import com.epam.aidial.core.config.CoreInterceptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,24 @@ public abstract class InterceptorRunnerFunctionalTest {
 
         Assertions.assertThrows(EntityNotFoundException.class, () -> interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName()));
         Assertions.assertTrue(interceptorRunnerFacade.getAllInterceptorRunners().isEmpty());
+    }
+
+    @Test
+    public void shouldSuccessfullyPopulateCoreInterceptorPropertiesFromTemplate() {
+        // Step 1: Create interceptorRunner
+        InterceptorRunnerDto runnerDto = createDto("template");
+        interceptorRunnerFacade.createInterceptorRunner(runnerDto);
+        
+        // Step 2: Create Interceptor with runner as source
+        InterceptorDto interceptorDto = createInterceptorDto("test", runnerDto.getName());
+        interceptorFacade.createInterceptor(interceptorDto);
+        
+        // Step 3: Get interceptor in core format
+        CoreInterceptor coreInterceptor = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
+        
+        // Step 4: Validate endpoints inherited from runner
+        Assertions.assertEquals(runnerDto.getCompletionEndpoint(), coreInterceptor.getEndpoint());
+        Assertions.assertEquals(runnerDto.getConfigurationEndpoint(), coreInterceptor.getFeatures().getConfigurationEndpoint());
     }
     
     @Test
