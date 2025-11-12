@@ -662,7 +662,6 @@ public abstract class ConfigTransferFunctionalTest {
                 }
         );
 
-
         RoleDto newRole2 = roleFacade.getRole("newRole2");
         Assertions.assertThat(newRole2).isNotNull().satisfies(role -> {
                     var roleLimits = role.getLimits();
