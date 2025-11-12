@@ -357,7 +357,6 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "entities": [
@@ -607,7 +606,6 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "defaults": {},
@@ -709,7 +707,6 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "defaults": {
@@ -823,7 +820,6 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "applicationProperties": {},
@@ -918,7 +914,6 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": true,
           "parallelToolCallsSupported": true
         },
         "applicationProperties": {},
