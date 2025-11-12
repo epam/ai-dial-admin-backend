@@ -1,0 +1,2 @@
+#Fixed version already in use, false positive per https://github.com/aquasecurity/trivy/discussions/9745
+CVE-2025-59250 pkg:maven/com.microsoft.sqlserver/mssql-jdbc exp:2026-01-01
