@@ -189,23 +189,34 @@ public abstract class InterceptorFunctionalTest {
         var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
         var applicationTypeSchemaDto = objectMapper.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
         });
+        var applicationTypeSchemaDto2 = objectMapper.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
+        });
+        applicationTypeSchemaDto2.setId(applicationTypeSchemaDto2.getId() + 2);
         typeSchemaFacade.create(applicationTypeSchemaDto);
+        typeSchemaFacade.create(applicationTypeSchemaDto2);
 
         InterceptorDto interceptorDto = createInterceptorDto("1");
-        interceptorDto.setApplicationTypeSchemas(List.of("https://test-schema.example"));
+        interceptorDto.setApplicationTypeSchemas(List.of("https://test-schema.example", "https://test-schema.example2"));
         interceptorFacade.createInterceptor(interceptorDto);
 
         InterceptorDto actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
-        Assertions.assertTrue(actualInterceptor.getApplicationTypeSchemas()
-                .contains("https://test-schema.example"));
+        Assertions.assertEquals(actualInterceptor.getApplicationTypeSchemas(), List.of("https://test-schema.example", "https://test-schema.example2"));
+
+        interceptorDto.setApplicationTypeSchemas(List.of("https://test-schema.example2"));
+        interceptorFacade.updateInterceptor("interceptor1", interceptorDto, "*");
+        actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
+        Assertions.assertEquals(actualInterceptor.getApplicationTypeSchemas(), List.of("https://test-schema.example2"));
+
+        var actualApplicationTypeSchema = typeSchemaFacade.get("https://test-schema.example");
+        Assertions.assertTrue(actualApplicationTypeSchema.getInterceptors().isEmpty());
 
         interceptorDto.setApplicationTypeSchemas(List.of());
         interceptorFacade.updateInterceptor("interceptor1", interceptorDto, "*");
         actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
         Assertions.assertTrue(actualInterceptor.getApplicationTypeSchemas().isEmpty());
 
-        var actualApplicationTypeSchema = typeSchemaFacade.get("https://test-schema.example");
-        Assertions.assertTrue(actualApplicationTypeSchema.getInterceptors().isEmpty());
+        var actualApplicationTypeSchema2 = typeSchemaFacade.get("https://test-schema.example2");
+        Assertions.assertTrue(actualApplicationTypeSchema2.getInterceptors().isEmpty());
     }
 
     @Test
