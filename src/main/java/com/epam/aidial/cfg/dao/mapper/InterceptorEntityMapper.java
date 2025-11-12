@@ -30,6 +30,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -212,7 +213,15 @@ public abstract class InterceptorEntityMapper {
         if (CollectionUtils.isEmpty(ids)) {
             return List.of();
         }
-        return Lists.newArrayList(applicationTypeSchemaJpaRepository.findAllById(ids));
+        var existingApplicationTypeSchemas = Lists.newArrayList(applicationTypeSchemaJpaRepository.findAllById(ids));
+        Set<String> existingApplicationTypeSchemasIds = existingApplicationTypeSchemas.stream()
+                .map(ApplicationTypeSchemaEntity::getSchemaId)
+                .collect(Collectors.toSet());
+        Set<String> idsDiff = SetUtils.difference(new HashSet<>(ids), existingApplicationTypeSchemasIds);
+        if (!idsDiff.isEmpty()) {
+            throw new EntityNotFoundException("unable to find application type schemas: " + idsDiff);
+        }
+        return new ArrayList<>(existingApplicationTypeSchemas);
     }
 
 

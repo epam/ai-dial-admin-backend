@@ -18,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {PropertiesEntityMapper.class, DependentRouteEntityMapper.class})
@@ -63,22 +65,17 @@ public abstract class ApplicationTypeSchemaEntityMapper {
             updatedEntity.getApplications().addAll(applications);
         }
 
-        boolean shouldUpdateInterceptors = CollectionUtils.isNotEmpty(domain.getInterceptors());
-        if (shouldUpdateInterceptors) {
-            List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
-            updatedEntity.getInterceptors().stream()
-                    .filter(i -> !interceptors.contains(i))
-                    .forEach(interceptor -> interceptor.getApplicationTypeSchemas().remove(updatedEntity));
-
-            interceptors.stream().filter(i -> !updatedEntity.getInterceptors().contains(i))
-                    .forEach(interceptor -> {
-                        var applicationTypeSchemas = new ArrayList<>(interceptor.getApplicationTypeSchemas());
-                        applicationTypeSchemas.add(updatedEntity);
-                        interceptor.setApplicationTypeSchemas(applicationTypeSchemas);
-                    });
-            updatedEntity.getInterceptors().clear();
-            updatedEntity.getInterceptors().addAll(interceptors);
-        }
+        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+        Map<String, InterceptorEntity> interceptorsByName = interceptors.stream()
+                .collect(Collectors.toMap(InterceptorEntity::getName, Function.identity()));
+        List<InterceptorEntity> duplicatedInterceptors = CollectionUtils.emptyIfNull(domain.getInterceptors())
+                .stream()
+                .map(interceptorsByName::get)
+                .toList();
+        updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getApplicationTypeSchemas().remove(updatedEntity));
+        duplicatedInterceptors.forEach(interceptor -> interceptor.getApplicationTypeSchemas().add(updatedEntity));
+        updatedEntity.getInterceptors().clear();
+        updatedEntity.getInterceptors().addAll(duplicatedInterceptors);
 
         return updatedEntity;
     }

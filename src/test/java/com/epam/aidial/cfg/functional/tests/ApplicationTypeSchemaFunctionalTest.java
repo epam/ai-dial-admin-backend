@@ -4,12 +4,14 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -27,6 +29,7 @@ import java.util.Set;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 
 public abstract class ApplicationTypeSchemaFunctionalTest {
 
@@ -34,14 +37,21 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     private ApplicationTypeSchemaFacade typeSchemaFacade;
     @Autowired
     private ApplicationFacade applicationFacade;
+    @Autowired
+    private InterceptorFacade interceptorFacade;
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
     private ApplicationTypeSchemaDto dto;
+    private ApplicationTypeSchemaDto dto2;
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
         var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
         dto = objectMapper.readValue(dtosJson, new TypeReference<>() {
         });
+        dto2 = objectMapper.readValue(dtosJson, new TypeReference<>() {
+        });
+        dto2.setId(dto.getId() + 2);
+
     }
 
     @Test
@@ -75,6 +85,121 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationDto updatedApplication = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertThat(updatedApplication.getEndpoint()).isNull();
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationTypeSchemaWithInterceptors() {
+
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
+        ;
+
+        dto.setApplications(List.of());
+        dto.setApplicationTypeRoutes(List.of());
+        dto.setInterceptors(List.of("interceptor1", "interceptor2", "interceptor1", "interceptor1"));
+
+        // when
+        typeSchemaFacade.create(dto);
+
+        // then
+        ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(List.of("interceptor1", "interceptor2", "interceptor1", "interceptor1")).isEqualTo(actual.getInterceptors());
+
+        dto.setInterceptors(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor2"));
+        typeSchemaFacade.update(dto.getId(), dto, "*");
+
+        actual = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor2")).isEqualTo(actual.getInterceptors());
+    }
+
+    @Test
+    public void shouldSuccessfullyAddNewInterceptorToTheEndOfTheInterceptorsList() {
+
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        dto.setInterceptors(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1"));
+        typeSchemaFacade.create(dto);
+
+        dto2.setInterceptors(List.of("interceptor1", "interceptor2", "interceptor2"));
+        typeSchemaFacade.create(dto2);
+
+        InterceptorDto interceptorDto3 = createInterceptorDto("3");
+        interceptorDto3.setApplicationTypeSchemas(List.of("https://test-schema.example", "https://test-schema.example2", "https://test-schema.example"));
+        interceptorFacade.createInterceptor(interceptorDto3);
+
+        ApplicationTypeSchemaDto actualDto1 = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(List.of("interceptor2", "interceptor2", "interceptor1", "interceptor1", "interceptor3")).isEqualTo(actualDto1.getInterceptors());
+
+        ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
+        Assertions.assertThat(List.of("interceptor1", "interceptor2", "interceptor2", "interceptor3")).isEqualTo(actualDto2.getInterceptors());
+    }
+
+    @Test
+    public void shouldSuccessfullyRemoveDeletedInterceptorFromTheInterceptorsList() throws JsonProcessingException {
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        InterceptorDto interceptorDto3 = createInterceptorDto("3");
+        interceptorFacade.createInterceptor(interceptorDto3);
+
+        dto.setInterceptors(List.of("interceptor2", "interceptor1", "interceptor2", "interceptor3"));
+        typeSchemaFacade.create(dto);
+
+        dto2.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
+        typeSchemaFacade.create(dto2);
+
+        interceptorFacade.deleteInterceptor("interceptor1");
+
+        ApplicationTypeSchemaDto actualDto1 = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(List.of("interceptor2", "interceptor2", "interceptor3")).isEqualTo(actualDto1.getInterceptors());
+
+        ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
+        Assertions.assertThat(List.of("interceptor2")).isEqualTo(actualDto2.getInterceptors());
+
+    }
+
+    @Test
+    public void shouldSuccessfullyRemoveUpdatedInterceptorFromTheInterceptorsList() throws JsonProcessingException {
+
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        dto.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
+        typeSchemaFacade.create(dto);
+
+        dto2.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
+        typeSchemaFacade.create(dto2);
+
+        interceptorDto1.setApplicationTypeSchemas(List.of("https://test-schema.example2"));
+        interceptorFacade.updateInterceptor(interceptorDto1.getName(), interceptorDto1, "*");
+
+        ApplicationTypeSchemaDto actualDto1 = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(List.of("interceptor2")).isEqualTo(actualDto1.getInterceptors());
+
+        ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
+        Assertions.assertThat(List.of("interceptor1", "interceptor1", "interceptor2")).isEqualTo(actualDto2.getInterceptors());
+
+        interceptorDto2.setEntities(null);
+        interceptorFacade.updateInterceptor(interceptorDto2.getName(), interceptorDto2, "*");
+
+        actualDto1 = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(List.of()).isEqualTo(actualDto1.getInterceptors());
+
+        actualDto2 = typeSchemaFacade.get(dto2.getId());
+        Assertions.assertThat(List.of("interceptor1", "interceptor1")).isEqualTo(actualDto2.getInterceptors());
     }
 
     @Test
