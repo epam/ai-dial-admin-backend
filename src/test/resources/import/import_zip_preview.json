@@ -245,6 +245,7 @@
       "next": {
         "name": "testInterceptor2",
         "displayName": "Test Interceptor2",
+        "endpoint": "https://template.test.com/api",
         "forwardAuthToken": false,
         "author": "test-author",
         "dependencies": [],
@@ -261,7 +262,8 @@
           "cacheSupported": false,
           "autoCachingSupported": true,
           "consentRequired": false,
-          "parallelToolCallsSupported": true
+          "parallelToolCallsSupported": true,
+          "configurationEndpoint": "https://template.test.com/conf"
         },
         "defaults": {},
         "entities": [],
