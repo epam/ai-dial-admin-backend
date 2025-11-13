@@ -77,7 +77,7 @@ public class AddonService {
         deploymentService.assertDeploymentNotExists(addon.getDeployment().getName());
         Optional.of(addon)
                 .map(domainAddon -> mapper.toEntity(domainAddon, new AddonEntity()))
-                .map(addonJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create addon " + addon.getDeployment().getName()));
     }
 
@@ -103,7 +103,13 @@ public class AddonService {
         var addonEntity = addonJpaRepository.findById(addonName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(addonName)));
         assertNotConcurrencyOverwrite(addonEntity, hash);
-        return addonJpaRepository.save(mapper.toEntity(addon, addonEntity));
+        return save(mapper.toEntity(addon, addonEntity));
+    }
+
+    private AddonEntity save(AddonEntity addonEntity) {
+        AddonEntity savedAddonEntity = addonJpaRepository.save(addonEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedAddonEntity.getDeployment());
+        return savedAddonEntity;
     }
 
     @FeatureFlagGate(featureFlag = "addonsSupported")

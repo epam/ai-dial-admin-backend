@@ -87,7 +87,7 @@ public class ToolSetService {
         resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
                 .map(domainModel -> mapper.toEntity(domainModel, new ToolSetEntity()))
-                .map(toolSetJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create ToolSet " + toolSet.getDeployment().getName()));
     }
 
@@ -113,7 +113,13 @@ public class ToolSetService {
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
         assertNotConcurrencyOverwrite(toolSetEntity, hash);
         resolveEndpointsIfContainerSource(toolSet);
-        return toolSetJpaRepository.save(mapper.toEntity(toolSet, toolSetEntity));
+        return save(mapper.toEntity(toolSet, toolSetEntity));
+    }
+
+    private ToolSetEntity save(ToolSetEntity toolSetEntity) {
+        ToolSetEntity savedToolSetEntity = toolSetJpaRepository.save(toolSetEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedToolSetEntity.getDeployment());
+        return savedToolSetEntity;
     }
 
     private void assertNotConcurrencyOverwrite(ToolSetEntity entity, String expectedHash) {
