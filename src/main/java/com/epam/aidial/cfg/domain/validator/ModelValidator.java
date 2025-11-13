@@ -90,6 +90,11 @@ public class ModelValidator {
         ModelSource source = model.getSource();
         String modelName = model.getDeployment().getName();
 
+        // Model source types are mutually exclusive: a model can have either AdapterSource,
+        // ModelContainerSource, or ModelEndpointsSource, but not multiple sources simultaneously.
+        // This is enforced by the type system (Model has a single 'source' field of type ModelSource).
+        // Additional validation in ModelEntityMapper.toEntity() ensures adapter and container
+        // are not both set at the entity level.
         if (source != null) {
             if (source instanceof ModelEndpointsSource) {
                 validateEndpointsSource(model);

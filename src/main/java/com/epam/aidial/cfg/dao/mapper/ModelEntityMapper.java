@@ -121,13 +121,31 @@ public abstract class ModelEntityMapper {
         if (currentAdapter != null) {
             currentAdapter.getModels().remove(updatedEntity);
         }
-        if (adapterEntity != null) {
-            adapterEntity.getModels().add(updatedEntity);
-        }
-        updatedEntity.setModelContainer(modelContainer);
 
-        updatedEntity.setAdapter(adapterEntity);
-        updatedEntity.setAdapterCompletionEndpointPath(completionEndpointPath);
+        // Validate that both adapter and container are not set simultaneously
+        if (adapterEntity != null && modelContainer != null) {
+            throw new IllegalArgumentException(
+                    "Model cannot have both adapter and container set. Model: " + domain.getDeployment().getName()
+            );
+        }
+        // Explicitly clear and set adapter/container fields to ensure mutual exclusivity
+        if (adapterEntity != null) {
+            // Setting adapter: clear container and set adapter
+            updatedEntity.setModelContainer(null);
+            adapterEntity.getModels().add(updatedEntity);
+            updatedEntity.setAdapter(adapterEntity);
+            updatedEntity.setAdapterCompletionEndpointPath(completionEndpointPath);
+        } else if (modelContainer != null) {
+            // Setting container: clear adapter and set container
+            updatedEntity.setAdapter(null);
+            updatedEntity.setAdapterCompletionEndpointPath(null);
+            updatedEntity.setModelContainer(modelContainer);
+        } else {
+            // Neither adapter nor container: clear both
+            updatedEntity.setAdapter(null);
+            updatedEntity.setAdapterCompletionEndpointPath(null);
+            updatedEntity.setModelContainer(null);
+        }
 
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.MODEL);
         return updatedEntity;

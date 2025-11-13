@@ -40,8 +40,13 @@ public abstract class AdapterEntityMapper {
             updatedEntity.getModels().forEach(model -> {
                 model.setAdapter(null);
                 model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(updatedEntity.getBaseEndpoint(), model.getAdapterCompletionEndpointPath()));
+                // Clear container and adapter completion endpoint path when removing from adapter
+                model.setModelContainer(null);
+                model.setAdapterCompletionEndpointPath(null);
             });
             models.forEach(app -> {
+                // Clear container when setting adapter to ensure mutual exclusivity
+                app.setModelContainer(null);
                 app.setAdapter(updatedEntity);
                 app.setEndpoint(null);
             });
