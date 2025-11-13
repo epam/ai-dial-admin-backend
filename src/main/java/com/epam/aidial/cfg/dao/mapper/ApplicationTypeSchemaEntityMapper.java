@@ -50,6 +50,7 @@ public abstract class ApplicationTypeSchemaEntityMapper {
                 ? findApplicationsByNames(domain.getApplications())
                 : entity.getApplications();
 
+        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
         ApplicationTypeSchemaEntity updatedEntity = update(domain, entity);
 
         if (shouldUpdateApplications) {
@@ -65,7 +66,6 @@ public abstract class ApplicationTypeSchemaEntityMapper {
             updatedEntity.getApplications().addAll(applications);
         }
 
-        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
         Map<String, InterceptorEntity> interceptorsByName = interceptors.stream()
                 .collect(Collectors.toMap(InterceptorEntity::getName, Function.identity()));
         List<InterceptorEntity> duplicatedInterceptors = CollectionUtils.emptyIfNull(domain.getInterceptors())

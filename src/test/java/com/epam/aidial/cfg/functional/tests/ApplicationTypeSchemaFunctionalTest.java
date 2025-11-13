@@ -88,14 +88,12 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyCreateAndGetApplicationTypeSchemaWithInterceptors() {
-
+    public void shouldSuccessfullyCreateAndUpdateApplicationTypeSchemaWithInterceptors() {
         InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 
         InterceptorDto interceptorDto2 = createInterceptorDto("2");
         interceptorFacade.createInterceptor(interceptorDto2);
-        ;
 
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
@@ -117,7 +115,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
     @Test
     public void shouldSuccessfullyAddNewInterceptorToTheEndOfTheInterceptorsList() {
-
         InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 

@@ -154,14 +154,13 @@ public abstract class InterceptorEntityMapper {
         updatedEntity.getModels().clear();
         updatedEntity.getModels().addAll(models);
 
-        var applicationTypeSchemas = findApplicationTypeSchemaById(domain.getApplicationTypeSchemas());
+        var applicationTypeSchemas = findApplicationTypeSchemasById(domain.getApplicationTypeSchemas());
         updatedEntity.getApplicationTypeSchemas().stream()
                 .filter(a -> !applicationTypeSchemas.contains(a))
                 .forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().remove(updatedEntity));
         applicationTypeSchemas.stream()
                 .filter(a -> !updatedEntity.getApplicationTypeSchemas().contains(a))
                 .forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().add(updatedEntity));
-
         updatedEntity.getApplicationTypeSchemas().clear();
         updatedEntity.getApplicationTypeSchemas().addAll(applicationTypeSchemas);
 
@@ -209,7 +208,7 @@ public abstract class InterceptorEntityMapper {
         return Pair.of(applications, models);
     }
 
-    private List<ApplicationTypeSchemaEntity> findApplicationTypeSchemaById(List<String> ids) {
+    private List<ApplicationTypeSchemaEntity> findApplicationTypeSchemasById(List<String> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return List.of();
         }
