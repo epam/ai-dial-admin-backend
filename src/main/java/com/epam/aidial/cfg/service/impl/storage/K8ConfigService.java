@@ -9,12 +9,18 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 @Slf4j
@@ -22,10 +28,19 @@ import java.util.function.Function;
 public class K8ConfigService {
 
     private final K8sProperties k8sProperties;
+    private final ExecutorService executorService;
 
     public <T> T withClient(Function<KubernetesClient, T> task) {
+        Future<T> future = null;
+        int timeoutMs = k8sProperties.getClient().getOperationTimeoutMs();
+
         try (KubernetesClient client = createKubernetesClient(k8sProperties)) {
-            return task.apply(client);
+            future = executorService.submit(() -> task.apply(client));
+            return future.get(timeoutMs, TimeUnit.MILLISECONDS);
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            log.warn("Exception occurred during interaction with kubernetes client. Timeout: {}", timeoutMs, e);
+            future.cancel(true);
+            throw new RuntimeException(e);
         }
     }
 
@@ -132,6 +147,19 @@ public class K8ConfigService {
                 .withName(secretName)
                 .edit(SecretBuilder.class, builder -> builder.getData().replace(secretKey, value));
         log.debug("updateSecretMapEntry. Updated Secret {}, key {} = {}", configMap.getFullResourceName(), secretKey, SecretUtils.mask(value));
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }
 

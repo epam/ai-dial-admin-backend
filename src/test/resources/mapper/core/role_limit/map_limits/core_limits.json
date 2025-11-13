@@ -1,26 +1,82 @@
 {
-  "deployment1": {
-    "minute": 9223372036854775807,
+  "privateDeploymentWithDefaultDayForLimitWithoutDay": {
+    "minute": null,
     "day": 10,
-    "week": 9223372036854775807,
-    "month": 9223372036854775807,
-    "requestHour": 9223372036854775807,
-    "requestDay": 9223372036854775807
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
   },
-  "deployment2": {
-    "minute": 9223372036854775807,
+  "privateDeploymentWithDefaultDayForLimitWithDay": {
+    "minute": null,
     "day": 5,
-    "week": 9223372036854775807,
-    "month": 9223372036854775807,
-    "requestHour": 9223372036854775807,
-    "requestDay": 9223372036854775807
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
   },
-  "deployment5": {
-    "minute": 9223372036854775807,
+  "privateDeploymentWithDefaultDayForLimitWithMaxDay": {
+    "minute": null,
+    "day": 9223372036854775807,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "privateDeploymentWithoutDefaultDayForLimitWithDay": {
+    "minute": null,
     "day": 5,
-    "week": 9223372036854775807,
-    "month": 9223372036854775807,
-    "requestHour": 9223372036854775807,
-    "requestDay": 9223372036854775807
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "privateDeploymentWithoutDefaultDayForLimitWithMaxDay": {
+    "minute": null,
+    "day": 9223372036854775807,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "publicDeploymentWithDefaultDayWithoutLimit": {
+    "minute": null,
+    "day": 10,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "publicDeploymentWithDefaultDayForLimitWithDay": {
+    "minute": null,
+    "day": 5,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "publicDeploymentWithDefaultDayForLimitWithMaxDay": {
+    "minute": null,
+    "day": 9223372036854775807,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "publicDeploymentWithoutDefaultDayForLimitWithDay": {
+    "minute": null,
+    "day": 5,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
+  },
+  "publicDeploymentWithoutDefaultDayForLimitWithMaxDay": {
+    "minute": null,
+    "day": 9223372036854775807,
+    "week": null,
+    "month": null,
+    "requestHour": null,
+    "requestDay": null
   }
 }

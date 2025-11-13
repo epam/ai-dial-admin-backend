@@ -33,13 +33,13 @@ public class DescriptionKeywordsService {
         var modelKeywords = modelService.getAll().stream()
                 .map(Model::getTopics)
                 .filter(Objects::nonNull)
-                .flatMap(List::stream)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
 
         var applicationKeywords = applicationService.getAllApplications().stream()
                 .map(Application::getDescriptionKeywords)
                 .filter(Objects::nonNull)
-                .flatMap(List::stream)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
 
         var appRunnerKeywords = applicationTypeSchemaService.getAll().stream()
@@ -51,7 +51,7 @@ public class DescriptionKeywordsService {
         var toolSetKeywords = toolSetService.getAll().stream()
                 .map(ToolSet::getDescriptionKeywords)
                 .filter(Objects::nonNull)
-                .flatMap(List::stream)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
 
         return combineAndSortSets(modelKeywords, applicationKeywords, appRunnerKeywords, toolSetKeywords);

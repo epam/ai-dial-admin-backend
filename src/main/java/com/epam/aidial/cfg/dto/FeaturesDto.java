@@ -38,9 +38,9 @@ public class FeaturesDto {
     private boolean accessibleByPerRequestKey = true;
     private boolean contentPartsSupported;
     private boolean temperatureSupported = true;
-    private boolean addonsSupported = true;
     private Boolean cacheSupported;
     private Boolean autoCachingSupported;
     private Boolean consentRequired;
     private boolean parallelToolCallsSupported = true;
+    private boolean assistantAttachmentsInRequestSupported;
 }

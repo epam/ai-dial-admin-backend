@@ -10,7 +10,7 @@ public class PromptDto {
     private String version;
     private String folderId;
     private String description;
-    private long updateTime;
+    private long updatedAt;
     private String author;
     private String content;
 

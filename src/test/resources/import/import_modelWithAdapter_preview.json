@@ -7,29 +7,25 @@
   "adapters": [
     {
       "importAction": "create",
-      "value": {
-        "name": "<will be defined during import>",
+      "next": {
+        "name": "<will be defined during import 0>",
+        "displayName": "<will be defined during import 0>",
         "baseEndpoint": "http://endpoint2/",
-        "models": []
+        "models": [
+          "testModel2"
+        ]
       }
     }
   ],
   "models": [
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel2",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
-        },
-        "source": {
-          "$type": "adapter",
-          "adapterName": "<will be defined during import>",
-          "completionEndpointPath": "testModel2/embeddings"
+          "defaultRoleLimit": {}
         },
         "endpoint": "http://endpoint2/testModel2/embeddings",
         "displayName": "Test Model2",
@@ -45,38 +41,34 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
           "cacheSupported": true,
           "autoCachingSupported": false,
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
         "defaults": {},
-        "interceptors": [],
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
         "dependencies": [],
         "type": "embedding",
         "upstreams": [],
-        "fieldsHashingOrder": []
+        "fieldsHashingOrder": [],
+        "source": {
+          "$type": "adapter",
+          "adapterName": "<will be defined during import 0>",
+          "completionEndpointPath": "testModel2/embeddings"
+        }
       }
     },
     {
       "importAction": "create",
-      "value": {
+      "next": {
         "deployment": {
           "name": "testModel1",
           "roleLimits": [],
-          "roleShareResourceLimits": [],
           "isPublic": false,
-          "defaultRoleLimit": {},
-          "defaultRoleShareResourceLimit": {}
-        },
-        "source": {
-          "$type": "adapter",
-          "adapterName": "adapter1",
-          "completionEndpointPath": "testModel1/embeddings"
+          "defaultRoleLimit": {}
         },
         "endpoint": "http://endpoint1/testModel1/embeddings",
         "displayName": "Test Model1",
@@ -92,14 +84,12 @@
           "accessibleByPerRequestKey": true,
           "contentPartsSupported": false,
           "temperatureSupported": true,
-          "addonsSupported": false,
           "cacheSupported": true,
           "autoCachingSupported": false,
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
         "defaults": {},
-        "interceptors": [],
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
@@ -112,7 +102,12 @@
         "fieldsHashingOrder": [
           "prompt",
           "temperature"
-        ]
+        ],
+        "source": {
+          "$type": "adapter",
+          "adapterName": "adapter1",
+          "completionEndpointPath": "testModel1/embeddings"
+        }
       }
     }
   ],

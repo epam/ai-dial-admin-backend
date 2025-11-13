@@ -7,7 +7,8 @@ public enum ResourceTypeDto {
     PROMPT,
     FILE,
     APPLICATION,
-    CONVERSATION
+    CONVERSATION,
+    TOOL_SET
     ;
 
     @JsonCreator

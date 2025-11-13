@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import org.junit.jupiter.api.Assertions;
@@ -19,6 +20,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
+
 public abstract class AdapterFunctionalTest {
 
     @Autowired
@@ -28,25 +32,25 @@ public abstract class AdapterFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndGetAdapters() {
-        AdapterDto adapterDto = createDto("1");
+        AdapterDto adapterDto = createAdapterDto("1");
 
         adapterFacade.createAdapter(adapterDto);
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
-        AdapterDto expected = createDto("1");
+        AdapterDto expected = createAdapterDto("1");
 
         Assertions.assertEquals(expected, actual);
 
-        adapterFacade.createAdapter(createDto("2"));
+        adapterFacade.createAdapter(createAdapterDto("2"));
 
         Collection<AdapterDto> actualAdapters = adapterFacade.getAllAdapters();
 
-        assertAdapters(actualAdapters, List.of(createDto("1"), createDto("2")));
+        assertAdapters(actualAdapters, List.of(createAdapterDto("1"), createAdapterDto("2")));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndDeleteAdapter() {
-        AdapterDto adapterDto = createDto("1");
+        AdapterDto adapterDto = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto);
 
         adapterFacade.deleteAdapter(adapterDto.getName(), false);
@@ -57,47 +61,76 @@ public abstract class AdapterFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateAdapter() {
-        AdapterDto adapterDto = createDto("1");
+        AdapterDto adapterDto = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto);
-        AdapterDto updatedAdapter = createDto("1");
+        AdapterDto updatedAdapter = createAdapterDto("1");
         updatedAdapter.setBaseEndpoint("new adapter endpoint");
 
-        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter);
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*");
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
-        var expected = createDto("1");
+        var expected = createAdapterDto("1");
         expected.setBaseEndpoint("new adapter endpoint");
         Assertions.assertEquals(expected, actual);
     }
 
     @Test
-    public void shouldThrowExceptionWhenRenameAdapter() {
-        AdapterDto adapterDto = createDto("1");
+    public void shouldSuccessfullyUpdateAdapterWithCorrectHash() {
+        AdapterDto adapterDto = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto);
-        AdapterDto updatedAdapter = createDto("2");
+        AdapterDto updatedAdapter = createAdapterDto("1");
         updatedAdapter.setBaseEndpoint("new adapter endpoint");
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter));
+        var hash = adapterFacade.getAdapterWithHash(adapterDto.getName()).hash();
+
+        adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, hash);
+
+        AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
+        var expected = createAdapterDto("1");
+        expected.setBaseEndpoint("new adapter endpoint");
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateAdapterWithIncorrectHash() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+        AdapterDto updatedAdapter = createAdapterDto("1");
+        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "test"));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRenameAdapter() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+        AdapterDto updatedAdapter = createAdapterDto("2");
+        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*"));
     }
 
     @Test
     public void shouldCreateAndAddAdapterToModel() {
-        AdapterDto adapterDto = createDto("1");
+        AdapterDto adapterDto = createAdapterDto("1");
 
         adapterFacade.createAdapter(adapterDto);
 
         AdapterSourceDto sourceDto = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
 
-        ModelDto model1 = createModel("1");
+        ModelDto model1 = createModelDto("1");
         model1.setSource(sourceDto);
         modelFacade.createModel(model1);
 
-        ModelDto model2 = createModel("2");
+        ModelDto model2 = createModelDto("2");
         model2.setSource(sourceDto);
         modelFacade.createModel(model2);
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
-        AdapterDto expected = createDto("1");
+        AdapterDto expected = createAdapterDto("1");
         expected.setModels(List.of("model1", "model2"));
 
         Assertions.assertEquals(expected, actual);
@@ -105,12 +138,12 @@ public abstract class AdapterFunctionalTest {
 
     @Test
     public void shouldChangeModelAdapter() {
-        AdapterDto adapterDto1 = createDto("1");
+        AdapterDto adapterDto1 = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto1);
-        AdapterDto adapterDto2 = createDto("2");
+        AdapterDto adapterDto2 = createAdapterDto("2");
         adapterFacade.createAdapter(adapterDto2);
 
-        ModelDto model1 = createModel("1");
+        ModelDto model1 = createModelDto("1");
         AdapterSourceDto source1 = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
         model1.setSource(source1);
         modelFacade.createModel(model1);
@@ -122,30 +155,28 @@ public abstract class AdapterFunctionalTest {
         AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto2.getName());
         ModelDto actualModel1 = modelFacade.getModel(model1.getName());
 
-        AdapterDto expectedAdapter1 = createDto("1");
+        AdapterDto expectedAdapter1 = createAdapterDto("1");
         expectedAdapter1.setModels(List.of());
         Assertions.assertEquals(expectedAdapter1, actualAdapter1);
 
-        AdapterDto expectedAdapter2 = createDto("2");
+        AdapterDto expectedAdapter2 = createAdapterDto("2");
         expectedAdapter2.setModels(List.of("model1"));
         Assertions.assertEquals(expectedAdapter2, actualAdapter2);
 
-        ModelDto expectedModel1 = createModel("1");
+        ModelDto expectedModel1 = createModelDto("1");
         expectedModel1.setSource(source2);
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
-        expectedModel1.setRoleShareResourceLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
-        expectedModel1.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
     }
 
     @Test
     public void shouldChangeModelsInAdapter() {
-        AdapterDto adapterDto1 = createDto("1");
+        AdapterDto adapterDto1 = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto1);
 
-        ModelDto model1 = createModel("1");
+        ModelDto model1 = createModelDto("1");
         modelFacade.createModel(model1);
 
         model1.setSource(new AdapterSourceDto(adapterDto1.getName(), "/chat/completions"));
@@ -155,54 +186,61 @@ public abstract class AdapterFunctionalTest {
         ModelDto actualModel1 = modelFacade.getModel(model1.getName());
 
         // verify adapter and model
-        AdapterDto expectedAdapter1 = createDto("1");
+        AdapterDto expectedAdapter1 = createAdapterDto("1");
         expectedAdapter1.setModels(List.of("model1"));
         Assertions.assertEquals(expectedAdapter1, actualAdapter1);
 
-        ModelDto expectedModel1 = createModel("1");
+        ModelDto expectedModel1 = createModelDto("1");
         expectedModel1.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
-        expectedModel1.setRoleShareResourceLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
-        expectedModel1.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
 
         // remove model from adapter
         adapterDto1.setModels(List.of());
 
-        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1);
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
         AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel2 = modelFacade.getModel(model1.getName());
 
-        AdapterDto expectedAdapter2 = createDto("1");
+        AdapterDto expectedAdapter2 = createAdapterDto("1");
         expectedAdapter2.setModels(List.of());
         Assertions.assertEquals(expectedAdapter2, actualAdapter2);
 
-        ModelDto expectedModel2 = createModel("1");
+        ModelDto expectedModel2 = createModelDto("1");
         expectedModel2.setDefaults(Map.of());
         expectedModel2.setRoleLimits(Map.of());
-        expectedModel2.setRoleShareResourceLimits(Map.of());
         expectedModel2.setDefaultRoleLimit(new LimitDto());
-        expectedModel2.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expectedModel2.setSource(new ModelEndpointsSourceDto());
-        expectedModel2.setEndpoint("endpoint1/chat/completions");
+        expectedModel2.setEndpoint("https://endpoint.test.com/adapter1/chat/completions");
         Assertions.assertEquals(expectedModel2, actualModel2);
     }
 
-    private AdapterDto createDto(String suffix) {
-        AdapterDto adapterDto = new AdapterDto();
-        adapterDto.setName("adapter" + suffix);
-        adapterDto.setBaseEndpoint("endpoint" + suffix);
-        return adapterDto;
+    @Test
+    public void shouldThrowExceptionWhenAdapterConcurrencyOverwrite() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: adapterName:'adapter1'"
+                + ". Reload the data.", exception.getMessage());
     }
 
-    private ModelDto createModel(String suffix) {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setName("model" + suffix);
-        modelDto.setDescription("description" + suffix);
-        modelDto.setMaxRetryAttempts(1);
-        return modelDto;
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. Adapter:adapter1.",
+                exception.getMessage());
     }
 
     private void assertAdapters(Collection<AdapterDto> actual, Collection<AdapterDto> expected) {

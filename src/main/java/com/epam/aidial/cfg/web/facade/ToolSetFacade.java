@@ -3,9 +3,12 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.service.core.CoreToolSetService;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapper;
+import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ public class ToolSetFacade {
 
     private final ToolSetService toolSetService;
     private final ToolSetDtoMapper mapper;
+    private final CoreToolSetService coreToolSetService;
 
     public Collection<ToolSetDto> getAllToolSets() {
         return toolSetService.getAll()
@@ -36,17 +40,29 @@ public class ToolSetFacade {
         return mapper.toDto(toolSet);
     }
 
+    public DtoWithDomainHash<ToolSetDto> getToolSetWithHash(String toolSetName) {
+        var modelWithHash = toolSetService.getToolSetWithHash(toolSetName);
+        ToolSetDto dto = mapper.toDto(modelWithHash.model());
+        return new DtoWithDomainHash<>(dto, modelWithHash.hash());
+    }
+
+    public CoreWithDomainHash<CoreToolSet> getCoreToolSetWithHash(String toolSetName) {
+        return coreToolSetService.getCoreToolSetWithHash(toolSetName);
+    }
+
     public void createToolSet(ToolSetDto toolSetDto) {
-        setDefaultRoleShareResourceLimitIfMissing(toolSetDto);
         Optional.of(toolSetDto)
                 .map(mapper::toDomain)
                 .ifPresent(toolSetService::create);
     }
 
-    public void updateToolSet(String toolSetName, ToolSetDto toolSetDto) {
-        setDefaultRoleShareResourceLimitIfMissing(toolSetDto);
+    public String updateToolSet(String toolSetName, ToolSetDto toolSetDto, String hash) {
         ToolSet value = mapper.toDomain(toolSetDto);
-        toolSetService.update(toolSetName, value);
+        return toolSetService.update(toolSetName, value, hash);
+    }
+
+    public String updateToolSet(String toolSetName, CoreToolSet coreToolSet, String toolSet) {
+        return coreToolSetService.updateToolSet(toolSetName, coreToolSet, toolSet);
     }
 
     public void deleteToolSet(String toolSetName) {
@@ -69,11 +85,7 @@ public class ToolSetFacade {
         return toolSetService.getDiscoveredTools(toolSetName, nextCursor);
     }
 
-    private void setDefaultRoleShareResourceLimitIfMissing(ToolSetDto toolSetDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = toolSetDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            toolSetDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
+    public void refreshEndpoints() {
+        toolSetService.refreshEndpoints();
     }
 }

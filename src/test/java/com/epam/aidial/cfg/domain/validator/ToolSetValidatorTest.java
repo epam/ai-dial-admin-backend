@@ -1,34 +1,55 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ToolSetValidatorTest {
 
     private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
     private static final String TEST_TOOLSET_NAME = "test-toolset";
+    private static final String TEST_CONTAINER_NAME = "test-container";
+    private static final String TEST_CONTAINER_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final String COMPLETION_PATH = "/api/completion";
 
     @Mock
     private DeploymentValidator deploymentValidator;
+    @Mock
+    private DeploymentManagerService deploymentManagerService;
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
 
     private ToolSetValidator toolSetValidator;
 
     @BeforeEach
     void setUp() {
-        toolSetValidator = new ToolSetValidator(deploymentValidator, null);
+        MockitoAnnotations.openMocks(this);
+        toolSetValidator = new ToolSetValidator(
+                deploymentManagerService,
+                new DeploymentInfoValidator(),
+                deploymentValidator,
+                displayFieldsValidator,
+                null
+        );
     }
 
     @Test
@@ -109,7 +130,7 @@ public class ToolSetValidatorTest {
         toolSet.setDeployment(deployment);
 
         // when & then
-        assertThatNoException().isThrownBy(() -> ReflectionTestUtils.invokeMethod(toolSetValidator, "validateToolSetFields", toolSet));
+        assertThatNoException().isThrownBy(() -> ReflectionTestUtils.invokeMethod(toolSetValidator, "validateToolSetSource", toolSet));
     }
 
     @Test
@@ -122,7 +143,7 @@ public class ToolSetValidatorTest {
         toolSet.setDeployment(deployment);
 
         // when & then
-        assertThatNoException().isThrownBy(() -> ReflectionTestUtils.invokeMethod(toolSetValidator, "validateToolSetFields", toolSet));
+        assertThatNoException().isThrownBy(() -> ReflectionTestUtils.invokeMethod(toolSetValidator, "validateToolSetSource", toolSet));
     }
 
     @ParameterizedTest
@@ -136,8 +157,106 @@ public class ToolSetValidatorTest {
         toolSet.setDeployment(deployment);
 
         // when & then
-        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(toolSetValidator, "validateToolSetFields", toolSet))
+        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(toolSetValidator, "validateToolSetSource", toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid endpoint");
+    }
+
+    @Test
+    void validateEndpointsSource_shouldThrowExceptionWhenCompletionEndpointIsMissing() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint(null);
+        toolSet.setSource(new ToolSetEndpointsSource());
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Endpoint is required when source type is 'Toolset endpoints'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateEndpointsSource_shouldValidateEndpoints() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("invalid-url");
+        toolSet.setSource(new ToolSetEndpointsSource());
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid endpoint: 'invalid-url'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateContainerSource_shouldThrowExceptionWhenContainerNotFound() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(null);
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Container with ID '550e8400-e29b-41d4-a716-446655440000' not found");
+    }
+
+    @Test
+    void validateContainerSource_shouldThrowExceptionWhenDeploymentUrlIsBlank() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        deploymentInfo.setUrl("");
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Container URL is not present, please check if it is deployed. Container ID: 550e8400-e29b-41d4-a716-446655440000");
+    }
+
+    @Test
+    void validateContainerSource_shouldValidateEndpointPaths() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "invalid path with spaces"));
+
+        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid endpoint path: 'invalid path with spaces'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateContainerSource_shouldAcceptValidEndpointPaths() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
     }
 }

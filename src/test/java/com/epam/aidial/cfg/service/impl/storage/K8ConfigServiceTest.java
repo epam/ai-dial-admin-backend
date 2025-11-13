@@ -28,7 +28,7 @@ class K8ConfigServiceTest {
         K8sProperties k8sProperties = new K8sProperties();
         k8sProperties.setNamespace(NAMESPACE);
 
-        k8ConfigService = new K8ConfigService(k8sProperties);
+        k8ConfigService = new K8ConfigService(k8sProperties, null);
     }
 
     @Test

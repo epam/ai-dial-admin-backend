@@ -4,20 +4,28 @@ import com.epam.aidial.cfg.dao.jpa.AddonJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AddonEntityMapper;
 import com.epam.aidial.cfg.dao.model.AddonEntity;
 import com.epam.aidial.cfg.domain.model.Addon;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.validator.AddonValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @Service("coreAddonService")
 @RequiredArgsConstructor
+@Slf4j
 public class AddonService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Addon with name %s does not exist";
@@ -27,6 +35,7 @@ public class AddonService {
     private final DeploymentService deploymentService;
     private final AddonValidator addonValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Addon> getAllAddons() {
@@ -36,9 +45,22 @@ public class AddonService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<Addon> getAllByNames(List<String> names) {
+        return StreamSupport.stream(addonJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Addon getAddon(String addonName) {
         return tryGetAddon(addonName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(addonName)));
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<Addon> getAddonWithHash(String addonName) {
+        var addon = getAddon(addonName);
+        return new DomainObjectWithHash<>(addon, calculator.calculateHash(addon));
     }
 
     @Transactional(readOnly = true)
@@ -62,13 +84,26 @@ public class AddonService {
     @FeatureFlagGate(featureFlag = "addonsSupported")
     @Transactional
     public void updateAddon(String addonName, Addon addon) {
+        performUpdate(addonName, addon, ANY_HASH);
+    }
+
+    @FeatureFlagGate(featureFlag = "addonsSupported")
+    @Transactional
+    public String updateAddon(String addonName, Addon addon, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Addon:%s.", addonName));
+        }
+        var savedAddon = performUpdate(addonName, addon, hash);
+        return calculator.calculateHash(mapper.toDomain(savedAddon));
+    }
+
+    private AddonEntity performUpdate(String addonName, Addon addon, String hash) {
         addonValidator.validateUpdate(addonName, addon);
-        AddonEntity addonEntity = addonJpaRepository.findById(addonName)
+        var addonEntity = addonJpaRepository.findById(addonName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(addonName)));
-        Optional.of(addon)
-                .map(domainAddon -> mapper.toEntity(domainAddon, addonEntity))
-                .map(addonJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("Unable to update addon " + addon.getDeployment().getName()));
+        assertNotConcurrencyOverwrite(addonEntity, hash);
+        return addonJpaRepository.save(mapper.toEntity(addon, addonEntity));
     }
 
     @FeatureFlagGate(featureFlag = "addonsSupported")
@@ -95,6 +130,19 @@ public class AddonService {
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    private void assertNotConcurrencyOverwrite(AddonEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: addonName={}, expectedHash={}, currentHash={}",
+                    entity.getDeploymentName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: addonName:'"
+                    + "%s'. Reload the data.", entity.getDeploymentName()));
+        }
     }
 
     private void assertExists(String addonName) {

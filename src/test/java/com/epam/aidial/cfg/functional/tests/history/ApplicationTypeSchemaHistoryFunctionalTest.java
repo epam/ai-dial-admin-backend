@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import org.junit.jupiter.api.Assertions;
@@ -31,7 +32,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         // 2 update application1 description
         ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
         updatedApplicationTypeSchema.setDescription("new application description");
-        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema);
+        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "*");
 
         // verify application1
         ApplicationTypeSchemaDto actual = applicationTypeSchemaFacade.get(applicationDto.getId());
@@ -50,7 +51,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         // 3 update application type schema
         updatedApplicationTypeSchema = createDto("1");
         updatedApplicationTypeSchema.setDescription("new new application description");
-        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema);
+        applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "*");
 
         // 6 delete application 1
         applicationTypeSchemaFacade.delete(applicationDto.getId(), false);
@@ -85,6 +86,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         ApplicationTypeSchemaDto applicationDto = new ApplicationTypeSchemaDto();
         applicationDto.setId("id" + suffix);
         applicationDto.setDescription("description" + suffix);
+        applicationDto.setApplicationTypeDisplayName("id" + suffix);
         return applicationDto;
     }
 }

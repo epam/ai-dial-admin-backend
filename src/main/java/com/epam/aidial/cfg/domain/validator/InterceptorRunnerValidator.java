@@ -14,17 +14,21 @@ import java.util.regex.Pattern;
 public class InterceptorRunnerValidator {
 
     private final IdFieldValidator idFieldValidator;
+    private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String interceptorRunnerNameValidationPattern;
 
     public InterceptorRunnerValidator(IdFieldValidator idFieldValidator,
+                                      DisplayFieldsValidator displayFieldsValidator,
                                       @Value("${validation.interceptorRunner.name:}") String interceptorRunnerNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.interceptorRunnerNameValidationPattern = interceptorRunnerNameValidationPattern;
     }
 
     public void validateCreation(InterceptorRunner runner) {
         validateInterceptorRunnerName(runner);
+        displayFieldsValidator.validateDisplayName(runner.getDisplayName(), "InterceptorRunner", runner.getName());
         validateEndpoints(runner.getCompletionEndpoint(), runner.getConfigurationEndpoint(), runner.getName());
     }
 
@@ -33,6 +37,7 @@ public class InterceptorRunnerValidator {
             throw new IllegalArgumentException("Interceptor runner with name: '%s' can not be renamed. New interceptor runner name: '%s'"
                     .formatted(interceptorRunnerName, runner.getName()));
         }
+        displayFieldsValidator.validateDisplayName(runner.getDisplayName(), "InterceptorRunner", runner.getName());
         validateEndpoints(runner.getCompletionEndpoint(), runner.getConfigurationEndpoint(), runner.getName());
     }
 

@@ -1,0 +1,11 @@
+{
+  "name": "testRole",
+  "description": "testRoleDescription",
+  "displayName": "testRoleDisplayName",
+  "share": {
+    "": {
+      "maxAcceptedUsers": 10,
+      "invitationTtl": 120
+    }
+  }
+}

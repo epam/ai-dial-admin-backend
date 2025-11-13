@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -38,6 +39,9 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private List<String> descriptionKeywords;
     private int maxRetryAttempts = 1;
     private String author;
+
+    @Embedded
+    private ToolSetContainerEntity toolSetContainer;
 
     @Enumerated(EnumType.STRING)
     private TransportEntity transport;

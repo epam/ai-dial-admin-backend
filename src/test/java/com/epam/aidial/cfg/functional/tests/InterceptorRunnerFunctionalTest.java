@@ -6,8 +6,10 @@ import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
+import com.epam.aidial.core.config.CoreInterceptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +62,24 @@ public abstract class InterceptorRunnerFunctionalTest {
 
         Assertions.assertThrows(EntityNotFoundException.class, () -> interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName()));
         Assertions.assertTrue(interceptorRunnerFacade.getAllInterceptorRunners().isEmpty());
+    }
+
+    @Test
+    public void shouldSuccessfullyPopulateCoreInterceptorPropertiesFromTemplate() {
+        // Step 1: Create interceptorRunner
+        InterceptorRunnerDto runnerDto = createDto("template");
+        interceptorRunnerFacade.createInterceptorRunner(runnerDto);
+        
+        // Step 2: Create Interceptor with runner as source
+        InterceptorDto interceptorDto = createInterceptorDto("test", runnerDto.getName());
+        interceptorFacade.createInterceptor(interceptorDto);
+        
+        // Step 3: Get interceptor in core format
+        CoreInterceptor coreInterceptor = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
+        
+        // Step 4: Validate endpoints inherited from runner
+        Assertions.assertEquals(runnerDto.getCompletionEndpoint(), coreInterceptor.getEndpoint());
+        Assertions.assertEquals(runnerDto.getConfigurationEndpoint(), coreInterceptor.getFeatures().getConfigurationEndpoint());
     }
     
     @Test
@@ -115,7 +135,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         InterceptorRunnerDto updatedInterceptorRunner = createDto("1");
         updatedInterceptorRunner.setDescription("updated description");
 
-        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner);
+        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner, "*");
 
         InterceptorRunnerDto actual = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
         var expected = createDto("1");
@@ -148,13 +168,43 @@ public abstract class InterceptorRunnerFunctionalTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> interceptorRunnerFacade.updateInterceptorRunner("interceptorRunner1", interceptorRunnerDto)
+                () -> interceptorRunnerFacade.updateInterceptorRunner("interceptorRunner1", interceptorRunnerDto, "*")
         );
 
         Assertions.assertEquals(
                 "Interceptor runner with name: 'interceptorRunner1' can not be renamed. New interceptor runner name: 'interceptorRunner2'",
                 exception.getMessage()
         );
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateInterceptorRunnerWithCorrectHash() {
+        InterceptorRunnerDto interceptorRunnerDto = createDto("1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
+
+        InterceptorRunnerDto updatedInterceptorRunner = createDto("1");
+        updatedInterceptorRunner.setDescription("updated description");
+
+        var hash = interceptorRunnerFacade.getInterceptorRunnerWithHash(interceptorRunnerDto.getName()).hash();
+
+        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner, hash);
+
+        InterceptorRunnerDto actual = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
+        var expected = createDto("1");
+        expected.setDescription("updated description");
+        assertInterceptorRunner(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateInterceptorRunnerWithIncorrectHash() {
+        InterceptorRunnerDto interceptorRunnerDto = createDto("1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
+
+        InterceptorRunnerDto updatedInterceptorRunner = createDto("1");
+        updatedInterceptorRunner.setDescription("updated description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner, "test"));
     }
 
     private InterceptorRunnerDto createDto(String suffix) {
@@ -170,6 +220,7 @@ public abstract class InterceptorRunnerFunctionalTest {
     private InterceptorDto createInterceptorDto(String suffix, String runnerName) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
+        interceptorDto.setDisplayName("interceptor" + suffix);
         interceptorDto.setDescription("description" + suffix);
         interceptorDto.setSource(new InterceptorRunnerSourceDto(runnerName));
         return interceptorDto;

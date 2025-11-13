@@ -5,12 +5,13 @@ import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.PageDto;
-import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.page.PageRequestDto;
 import com.epam.aidial.cfg.dto.page.SortDto;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 public abstract class ActivityAuditFunctionalTest {
 
     @Autowired
@@ -26,15 +32,28 @@ public abstract class ActivityAuditFunctionalTest {
     @Autowired
     private ModelFacade modelFacade;
     @Autowired
+    private ToolSetFacade toolSetFacade;
+    @Autowired
     private AuditActivityFacade auditActivityFacade;
 
     private void initRoles() {
-        RoleDto role1 = createRoleDto("ActivityAudit1");
-        RoleDto role2 = createRoleDto("ActivityAudit2");
-        RoleDto role3 = createRoleDto("ActivityAudit3");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("ActivityAudit1"));
+        roleFacade.createRole(createRoleDto("ActivityAudit2"));
+        roleFacade.createRole(createRoleDto("ActivityAudit3"));
+    }
+
+    @Test
+    public void shouldLogAuditActivitiesAndNotShowDeploymentPlusSecuredResource() {
+        initRoles();
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("ActivityAudit1");
+        modelFacade.createModel(modelDto);
+
+        ToolSetDto toolSetDto = createToolSetDto("ActivityAudit1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        boolean isDeploymentActivityPresent = auditActivityFacade.getAuditActivities(queryLastActivities(15)).getData().stream()
+                .anyMatch(a -> "Deployment".equals(a.getResourceType()) || "SecuredResource".equals(a.getResourceType()));
+        assertFalse(isDeploymentActivityPresent);
     }
 
     @Test
@@ -50,7 +69,7 @@ public abstract class ActivityAuditFunctionalTest {
                 new AuditActivityEntityId("Create", "Role", "roleActivityAudit1")));
 
         // create model1
-        ModelDto modelDto = createDto("ActivityAudit1");
+        ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("ActivityAudit1");
         modelFacade.createModel(modelDto);
 
         // assert model creation
@@ -59,7 +78,7 @@ public abstract class ActivityAuditFunctionalTest {
                 new AuditActivityEntityId("Create", "Model", "modelActivityAudit1")));
 
         // update model1 description
-        ModelDto updatedModel = createDto("ActivityAudit1");
+        ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("ActivityAudit1");
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
@@ -108,7 +127,8 @@ public abstract class ActivityAuditFunctionalTest {
         modelFacade.deleteModel(modelDto.getName());
 
         assertAudit(prevTotal, List.of(
-                new AuditActivityEntityId("Delete", "Model", "modelActivityAudit1")));
+                new AuditActivityEntityId("Delete", "Model", "modelActivityAudit1")
+        ));
     }
 
     private long assertAudit(long prevTotal, List<AuditActivityEntityId> expected) {
@@ -126,30 +146,12 @@ public abstract class ActivityAuditFunctionalTest {
     }
 
     private PageRequestDto queryLastActivities(int size) {
-        PageRequestDto pageRequestDto = new PageRequestDto(0, size, List.of(
+        return new PageRequestDto(0, size, List.of(
                 new SortDto("epochTimestampMs", SortDirection.DESC),
                 new SortDto("activityType", SortDirection.DESC),
                 new SortDto("resourceType", SortDirection.DESC),
                 new SortDto("resourceId", SortDirection.DESC)
         ), List.of());
-        return pageRequestDto;
-    }
-
-    private ModelDto createDto(String suffix) {
-        ModelDto modelDto = new ModelDto();
-        modelDto.setName("model" + suffix);
-        modelDto.setDescription("description" + suffix);
-        modelDto.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        return modelDto;
-    }
-
-    private RoleDto createRoleDto(String suffix) {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role" + suffix);
-        role1.setDescription("role" + suffix);
-        return role1;
     }
 
     record AuditActivityEntityId(String activityType, String resourceType, String resourceId) {

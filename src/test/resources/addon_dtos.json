@@ -1,0 +1,13 @@
+[{
+  "name": "test_addon",
+  "endpoint": "https://endpoint.test.com/embeddings",
+  "iconUrl": "https://test.com/icon",
+  "description": "It is a test addon",
+  "displayName": "Test Addon",
+  "forwardAuthToken": false,
+  "roleLimits": {},
+  "author": "test-author",
+  "createdAt": "2025-06-01T12:00:00Z",
+  "updatedAt": "2025-06-01T15:30:00Z",
+  "dependencies": ["dep1", "dep2"]
+}]

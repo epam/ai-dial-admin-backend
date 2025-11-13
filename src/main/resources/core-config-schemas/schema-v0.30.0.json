@@ -371,7 +371,6 @@
         "accessibleByPerRequestKey": {"type": "boolean"},
         "contentPartsSupported": {"type": "boolean"},
         "temperatureSupported": {"type": "boolean"},
-        "addonsSupported": {"type": "boolean"},
         "cacheSupported": {"type": "boolean"},
         "autoCachingSupported": {"type": "boolean"},
         "consentRequired": {"type": "boolean"},

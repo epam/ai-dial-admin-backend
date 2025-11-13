@@ -19,6 +19,8 @@ public class PublicationResourceTypeResolver {
             return ResourceType.CONVERSATION;
         } else if (resourceTypes.contains(ResourceTypeDto.PROMPT)) {
             return ResourceType.PROMPT;
+        } else if (resourceTypes.contains(ResourceTypeDto.TOOL_SET)) {
+            return ResourceType.TOOL_SET;
         } else if (resourceTypes.contains(ResourceTypeDto.FILE)) {
             return ResourceType.FILE;
         } else {

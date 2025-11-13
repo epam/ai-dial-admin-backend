@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto.route;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -8,5 +9,6 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class RouteDto extends BaseRouteDto {
-    private String displayName;
+    @NotBlank(message = "DisplayName is required")
+        private String displayName;
 }

@@ -19,7 +19,6 @@
         "accessible_by_per_request_key": true,
         "content_parts_supported": false,
         "temperature_supported": true,
-        "addons_supported": false,
         "parallel_tool_calls_supported": true
       },
       "defaults": {},

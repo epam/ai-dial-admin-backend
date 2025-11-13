@@ -4,14 +4,15 @@ import com.epam.aidial.cfg.client.ConversationClient;
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.dto.ConversationMetadataDto;
 import com.epam.aidial.cfg.client.mapper.ConversationClientMapper;
+import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,13 +27,14 @@ public class ConversationService implements ResourceService {
     private final ConversationClientMapper conversationClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
+    private final FolderMapper folderMapper;
 
     @Override
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         try {
             ConversationMetadataDto conversationMetadata = getMetadata(request);
-            return conversationClientMapper.toFolderInfo(conversationMetadata, CONVERSATIONS_PREFIX);
-        } catch (FeignException.FeignClientException.NotFound notFound) {
+            return folderMapper.toFolderInfo(conversationMetadata, CONVERSATIONS_PREFIX);
+        } catch (ResourceNotFoundException notFound) {
             return null;
         }
     }

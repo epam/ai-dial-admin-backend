@@ -9,8 +9,7 @@ import org.mapstruct.Mapping;
         componentModel = "spring",
         uses = {
                 LimitDtoMapper.class, UpstreamDtoMapper.class, RoleBasedDtoMapper.class,
-                InstantMapper.class, FeaturesDtoMapper.class, ShareResourceLimitDtoMapper.class,
-                ModelSourceDtoMapper.class
+                InstantMapper.class, FeaturesDtoMapper.class, ModelSourceDtoMapper.class
         }
 )
 public interface ModelDtoMapper {

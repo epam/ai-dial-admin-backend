@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
@@ -33,6 +34,8 @@ import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.RoleBasedEntity;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +47,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CoreConfigAggregatorService {
 
     private final ApplicationService applicationService;
@@ -119,8 +123,15 @@ public class CoreConfigAggregatorService {
 
     private Map<String, CoreKey> getKeys() {
         return keyService.getAllKeys().stream()
-                .map(keyMapper::mapKey)
-                .collect(Collectors.toMap(CoreKey::getKey, model -> model));
+                .filter(key -> {
+                    if (StringUtils.isNotBlank(key.getKey())) {
+                        return true;
+                    } else {
+                        log.debug("getKeys. remove invalid key with blank key value, key name: {}", key.getName());
+                        return false;
+                    }
+                })
+                .collect(Collectors.toMap(Key::getKey, keyMapper::mapKey));
     }
 
     private Map<String, CoreRole> getRoles() {

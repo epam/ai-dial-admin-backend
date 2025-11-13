@@ -5,8 +5,11 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.service.core.CoreApplicationService;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapper;
+import com.epam.aidial.core.config.CoreApplication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ public class ApplicationFacade {
 
     private final ApplicationService applicationService;
     private final ApplicationDtoMapper mapper;
+    private final CoreApplicationService coreApplicationService;
 
     public Collection<ApplicationInfoDto> getAllApplications() {
         return applicationService.getAllApplications()
@@ -34,17 +38,28 @@ public class ApplicationFacade {
         return mapper.toDto(application);
     }
 
+    public DtoWithDomainHash<ApplicationDto> getApplicationWithHash(String applicationName) {
+        var applicationWithHash = applicationService.getApplicationWithHash(applicationName);
+        return new DtoWithDomainHash<>(mapper.toDto(applicationWithHash.model()), applicationWithHash.hash());
+    }
+
+    public CoreWithDomainHash<CoreApplication> getCoreApplicationWithHash(String applicationName) {
+        return coreApplicationService.getCoreApplicationWithHash(applicationName);
+    }
+
     public void createApplication(ApplicationDto applicationDto) {
-        setDefaultRoleShareResourceLimitIfMissing(applicationDto);
         Optional.of(applicationDto)
                 .map(mapper::toDomain)
                 .ifPresent(applicationService::createApplication);
     }
 
-    public void updateApplication(String applicationName, ApplicationDto applicationDto) {
-        setDefaultRoleShareResourceLimitIfMissing(applicationDto);
+    public String updateApplication(String applicationName, ApplicationDto applicationDto, String hash) {
         Application value = mapper.toDomain(applicationDto);
-        applicationService.updateApplication(applicationName, value);
+        return applicationService.updateApplication(applicationName, value, hash);
+    }
+
+    public String updateApplication(String applicationName, CoreApplication coreApplication, String hash) {
+        return coreApplicationService.updateApplication(applicationName, coreApplication, hash);
     }
 
     public void deleteApplication(String applicationName) {
@@ -61,14 +76,5 @@ public class ApplicationFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(ApplicationDto applicationDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = applicationDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            defaultRoleShareResourceLimit.setMaxAcceptedUsers(10);
-            applicationDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }

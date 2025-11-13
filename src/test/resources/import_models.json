@@ -16,7 +16,7 @@
       "source": {
         "$type": "endpoints"
       },
-      "endpoint": "https://endpoint1"
+      "endpoint": "https://endpoint1/embeddings"
     },
     "testModel2": {
       "type": "embedding",
@@ -29,7 +29,7 @@
       "source": {
         "$type": "endpoints"
       },
-      "endpoint": "https://endpoint2"
+      "endpoint": "https://endpoint2/embeddings"
     }
   },
   "applications": {},
@@ -40,7 +40,7 @@
         "testModel1": {}
       },
       "share": {
-        "testModel1": {
+        "APPLICATION": {
           "maxAcceptedUsers": 10,
           "invitationTtl": 120
         }

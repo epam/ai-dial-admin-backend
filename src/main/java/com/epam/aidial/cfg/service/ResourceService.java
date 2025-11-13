@@ -2,11 +2,11 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.dto.BaseMetadataDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
-import feign.FeignException;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Collections;
@@ -34,7 +34,7 @@ public interface ResourceService {
                     .build();
             BaseMetadataDto applicationMetadata = getMetadata(request);
             return getResourceUrls(applicationMetadata.getItems());
-        } catch (FeignException.FeignClientException.NotFound notFound) {
+        } catch (ResourceNotFoundException notFound) {
             return Collections.emptySet();
         }
     }

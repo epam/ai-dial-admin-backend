@@ -18,14 +18,17 @@ public class ApplicationTypeSchemaValidator {
 
     private final IdFieldValidator idFieldValidator;
     private final RouteValidator routeValidator;
+    private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String applicationTypeSchemaIdValidationPattern;
 
     public ApplicationTypeSchemaValidator(IdFieldValidator idFieldValidator,
                                           RouteValidator routeValidator,
+                                          DisplayFieldsValidator displayFieldsValidator,
                                           @Value("${validation.applicationTypeSchema.id:}") String applicationTypeSchemaIdValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.routeValidator = routeValidator;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.applicationTypeSchemaIdValidationPattern = applicationTypeSchemaIdValidationPattern;
     }
 
@@ -33,14 +36,13 @@ public class ApplicationTypeSchemaValidator {
         final String schemaId = applicationTypeSchema.getSchemaId();
 
         idFieldValidator.validateId("ApplicationTypeSchema", schemaId, "schemaId");
-
         if (StringUtils.isEmpty(applicationTypeSchemaIdValidationPattern)) {
             log.debug("ApplicationTypeSchema id validation pattern is empty, skipping validation for schema id: {}", schemaId);
         } else if (!Pattern.matches(applicationTypeSchemaIdValidationPattern, schemaId)) {
             throw new IllegalArgumentException("ApplicationTypeSchema ID '" + schemaId
                     + "' does not match the required pattern: " + applicationTypeSchemaIdValidationPattern);
         }
-
+        displayFieldsValidator.validateDisplayName(applicationTypeSchema.getApplicationTypeDisplayName(), "ApplicationTypeSchema", schemaId);
         validateRoutes(applicationTypeSchema.getApplicationTypeRoutes());
     }
 
@@ -49,6 +51,7 @@ public class ApplicationTypeSchemaValidator {
             throw new IllegalArgumentException("Schema id can not be updated for application type schema "
                     + "with schema id: '" + schemaId + "'. New schema id: '" + applicationTypeSchema.getSchemaId() + "'");
         }
+        displayFieldsValidator.validateDisplayName(applicationTypeSchema.getApplicationTypeDisplayName(), "ApplicationTypeSchema", schemaId);
         validateRoutes(applicationTypeSchema.getApplicationTypeRoutes());
     }
 

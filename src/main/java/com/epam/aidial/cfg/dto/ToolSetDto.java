@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.ToolSetSourceDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -18,10 +19,12 @@ public class ToolSetDto extends RoleBasedDto {
     private String endpoint;
     private String iconUrl;
     private String description;
+    @NotBlank(message = "DisplayName is required")
     private String displayName;
     private List<String> descriptionKeywords;
     @Positive(message = "Max retry attempts should be greater than 0")
     private Integer maxRetryAttempts;
+    private ToolSetSourceDto source;
     private String author;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;

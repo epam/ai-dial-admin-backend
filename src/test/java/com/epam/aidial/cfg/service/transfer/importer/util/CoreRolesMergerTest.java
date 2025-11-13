@@ -4,7 +4,8 @@ import com.epam.aidial.cfg.domain.mapper.CostLimitCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.RoleCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.RoleLimitMapperImpl;
-import com.epam.aidial.cfg.domain.mapper.RoleShareResourceLimitMapperImpl;
+import com.epam.aidial.cfg.domain.mapper.ShareResourceLimitCoreMapperImpl;
+import com.epam.aidial.cfg.domain.mapper.TimeMapperImpl;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
@@ -28,9 +29,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         RoleLimitMapperImpl.class,
-        RoleShareResourceLimitMapperImpl.class,
+        ShareResourceLimitCoreMapperImpl.class,
         RoleCoreMapperImpl.class,
-        CostLimitCoreMapperImpl.class
+        CostLimitCoreMapperImpl.class,
+        TimeMapperImpl.class
 })
 class CoreRolesMergerTest {
 

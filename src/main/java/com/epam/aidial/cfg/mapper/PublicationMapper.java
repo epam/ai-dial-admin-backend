@@ -12,6 +12,8 @@ import com.epam.aidial.cfg.dto.PromptPublicationDto;
 import com.epam.aidial.cfg.dto.PublicationDto;
 import com.epam.aidial.cfg.dto.PublicationInfosDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
+import com.epam.aidial.cfg.dto.ToolSetResourceDto;
+import com.epam.aidial.cfg.dto.ToolSetResourcePublicationDto;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
 import com.epam.aidial.cfg.model.ApplicationResource;
@@ -29,6 +31,9 @@ import com.epam.aidial.cfg.model.PublicationInfos;
 import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.ToolSetPublication;
+import com.epam.aidial.cfg.model.ToolSetPublicationResource;
+import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import org.mapstruct.Mapper;
 
@@ -50,8 +55,9 @@ public interface PublicationMapper {
             return toApplicationResourcePublicationDto(applicationPublication, action);
         } else if (model instanceof ConversationPublication conversationPublication) {
             return toConversationPublicationDto(conversationPublication, action);
+        } else if (model instanceof ToolSetPublication toolSetPublication) {
+            return toToolSetPublicationDto(toolSetPublication, action);
         }
-
         throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
                 .formatted(model.getClass(), model));
     }
@@ -108,6 +114,20 @@ public interface PublicationMapper {
                                                             PublicationResourceAction action,
                                                             List<ConversationDto> conversations);
 
+    default ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model, PublicationResourceAction action) {
+        List<ToolSetResourceDto> toolSetResources = model.getResources()
+                .stream()
+                .map(ToolSetPublicationResource::getToolSetResource)
+                .map(this::toToolSetResourceDto)
+                .toList();
+
+        return toToolSetPublicationDto(model, action, toolSetResources);
+    }
+
+    ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model,
+                                                          PublicationResourceAction action,
+                                                          List<ToolSetResourceDto> toolSetResources);
+
     private PublicationResourceAction getAction(Publication model) {
         return model.getResources()
                 .stream()
@@ -125,6 +145,8 @@ public interface PublicationMapper {
     ApplicationResourceDto toApplicationResourceDto(ApplicationResource model);
 
     ConversationDto toConversationDto(Conversation model);
+
+    ToolSetResourceDto toToolSetResourceDto(ToolSetResource model);
 
     ResourceType toResourceType(ResourceTypeDto dto);
 

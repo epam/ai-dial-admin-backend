@@ -16,7 +16,6 @@
         "accessible_by_per_request_key": true,
         "content_parts_supported": false,
         "temperature_supported": true,
-        "addons_supported": false,
         "cacheSupported": true,
         "autoCachingSupported": false,
         "consentRequired": false,
@@ -36,7 +35,7 @@
       "createdAt": 12345,
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
-      "endpoint": "https://endpoint1/chat/completions"
+      "endpoint": "https://endpoint1/embeddings"
     }
   },
   "addons": {},

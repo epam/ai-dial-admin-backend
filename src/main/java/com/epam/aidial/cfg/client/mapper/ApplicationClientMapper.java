@@ -6,42 +6,21 @@ import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
-import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.extractPath;
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.parseEncodedVersionedPath;
 
-@Mapper(componentModel = "spring", uses = {FolderUrlMapper.class, RouteMapper.class})
+@Mapper(componentModel = "spring", uses = {RouteMapper.class})
 @Slf4j
 public abstract class ApplicationClientMapper {
     public static final String APPLICATIONS_PREFIX = "applications/";
-
-    @Mapping(target = "path", source = "url", qualifiedByName = "mapUrl")
-    @Mapping(target = "items", source = "items", qualifiedByName = "mapItems")
-    public abstract FolderInfo toFolderInfo(ApplicationMetadataDto applicationMetadataDto, @Context String prefix);
-
-    @Named("mapItems")
-    public List<FolderInfo> mapItems(List<ApplicationMetadataDto> items) {
-        return Optional.ofNullable(items)
-                .orElse(Collections.emptyList())
-                .stream()
-                .filter(metadata -> Objects.equals(NodeTypeDto.FOLDER, metadata.getNodeType()))
-                .map(metadata -> toFolderInfo(metadata, APPLICATIONS_PREFIX))
-                .toList();
-    }
 
     public ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto, ApplicationMetadataDto metadataDto) {
         if (applicationResourceDto == null || metadataDto == null) {
@@ -57,7 +36,7 @@ public abstract class ApplicationClientMapper {
     }
 
     @Mapping(target = "name", source = "itemParts.name")
-    @Mapping(target = "updateTime", source = "metadataDto.updatedAt")
+    @Mapping(target = "updatedAt", source = "metadataDto.updatedAt")
     @Mapping(target = "folderId", source = "itemParts.folderId")
     @Mapping(target = "author", source = "metadataDto.author")
     @Mapping(target = "routes", source = "dto.routes")
@@ -74,7 +53,7 @@ public abstract class ApplicationClientMapper {
                     .name(null)
                     .version(null)
                     .folderId(null)
-                    .updateTime(dto.getUpdatedAt())
+                    .updatedAt(dto.getUpdatedAt())
                     .author(dto.getAuthor())
                     .nodeType(toNodeType(dto.getNodeType()))
                     .nextToken(dto.getNextToken())
@@ -87,7 +66,7 @@ public abstract class ApplicationClientMapper {
                         .name(itemParts.getName())
                         .version(itemParts.getVersion())
                         .folderId(itemParts.getFolderId())
-                        .updateTime(dto.getUpdatedAt())
+                        .updatedAt(dto.getUpdatedAt())
                         .author(dto.getAuthor())
                         .nodeType(toNodeType(dto.getNodeType()))
                         .nextToken(dto.getNextToken())
@@ -109,11 +88,6 @@ public abstract class ApplicationClientMapper {
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "invalid", ignore = true)
     public abstract ApplicationResourceDto toApplicationResourceDto(CreateApplicationResource createApplicationResource);
-
-    public String toPath(CreateApplicationResource createApplicationResource) {
-        var folderId = StringUtils.stripEnd(createApplicationResource.getFolderId(), "/");
-        return folderId + "/" + createApplicationResource.getName() + "__" + createApplicationResource.getVersion();
-    }
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
 

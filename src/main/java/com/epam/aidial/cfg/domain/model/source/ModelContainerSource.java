@@ -13,5 +13,6 @@ import lombok.ToString;
 @AllArgsConstructor
 public class ModelContainerSource extends ModelSource {
     private String containerId;
+    private String containerName;
     private String completionEndpointPath;
 }

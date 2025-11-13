@@ -7,8 +7,6 @@ import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
-import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
-import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitId;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import com.epam.aidial.cfg.security.SecurityClaimsExtractor;
@@ -74,11 +72,7 @@ public class ConfigRevisionListener implements EntityTrackingRevisionListener, A
             RoleLimitId roleLimitId = (RoleLimitId) entityId;
             return issueDeploymentAuditActivity(roleLimitId.getDeploymentName(), revEntity, roleLimitId.getRoleName());
         }
-        if (RoleShareResourceLimitEntity.class == entityClass) {
-            RoleShareResourceLimitId roleShareResourceLimitId = (RoleShareResourceLimitId) entityId;
-            return issueDeploymentAuditActivity(roleShareResourceLimitId.getDeploymentName(), revEntity, roleShareResourceLimitId.getRoleName());
-        }
-        if (revisionType == RevisionType.MOD && DeploymentEntity.class == entityClass) {
+        if (revisionType == RevisionType.MOD && DeploymentEntity.class.isAssignableFrom(entityClass)) {
             String deploymentName = (String) entityId;
             DeploymentEntity deploymentEntity = findDeployment(deploymentName);
             return List.of(buildDeploymentActivity(revEntity, deploymentEntity));

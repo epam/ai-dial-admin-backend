@@ -28,6 +28,7 @@ class InterceptorValidatorTest {
 
     private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
     private static final String TEST_ENDPOINT = "https://test.endpoint.com";
+    private static final String TEST_CONTAINER_NAME = "test-container";
     private static final String TEST_CONTAINER_ID = "550e8400-e29b-41d4-a716-446655440000";
     private static final String COMPLETION_PATH = "/api/completion";
     private static final String CONFIG_PATH = "/api/config";
@@ -38,6 +39,8 @@ class InterceptorValidatorTest {
     private DeploymentManagerService deploymentManagerService;
     @Mock
     private IdFieldValidator idFieldValidator;
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
 
     @BeforeEach
     void setUp() {
@@ -46,7 +49,7 @@ class InterceptorValidatorTest {
                 deploymentManagerService,
                 new DeploymentInfoValidator(),
                 idFieldValidator,
-                null
+                displayFieldsValidator, null
         );
     }
 
@@ -176,7 +179,7 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH));
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
 
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(null);
 
@@ -191,7 +194,7 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH));
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("");
@@ -208,7 +211,7 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, "invalid path with spaces", CONFIG_PATH));
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "invalid path with spaces", CONFIG_PATH));
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
@@ -225,7 +228,7 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, "invalid path with spaces"));
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, "invalid path with spaces"));
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
@@ -242,7 +245,7 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, COMPLETION_PATH, CONFIG_PATH));
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
@@ -257,7 +260,7 @@ class InterceptorValidatorTest {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, "api/completion", "api/config"));
+        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "api/completion", "api/config"));
 
         DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");

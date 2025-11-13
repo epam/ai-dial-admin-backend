@@ -1,7 +1,9 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ToolSetController;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
@@ -19,14 +21,19 @@ import org.springframework.test.json.JsonCompareMode;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ToolSetController.class)
@@ -60,16 +67,47 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testGetToolSet() throws Exception {
-        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {});
-
-        when(toolSetFacade.getToolSet(eq(TEST_TOOL_SET_NAME))).thenReturn(dto);
-
+    void testGetToolSetWithoutHeaderIfNoneMatch() throws Exception {
         mockMvc.perform(get(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-None-Match' for method parameter type String is not present"));
+    }
+
+    @Test
+    void testGetToolSetWithSameHash() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {
+        });
+
+        when(toolSetFacade.getToolSetWithHash(eq(TEST_TOOL_SET_NAME))).thenReturn(
+                new DtoWithDomainHash<>(dto, "1"));
+
+        mockMvc.perform(get(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
+                        .header(HEADER_IF_NONE_MATCH, "1"))
+                .andExpect(status().isNotModified())
+                .andExpect(header().exists(HEADER_ETAG))
+                .andExpect(header().string(HEADER_ETAG, "\"1\""));
+    }
+
+    @Test
+    void testGetToolSetWithDifferentHash() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {
+        });
+
+        when(toolSetFacade.getToolSetWithHash(eq(TEST_TOOL_SET_NAME))).thenReturn(
+                new DtoWithDomainHash<>(dto, "2"));
+
+        mockMvc.perform(get(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
+                        .header(HEADER_IF_NONE_MATCH, "1"))
                 .andExpect(status().isOk())
+                .andExpect(header().exists(HEADER_ETAG))
+                .andExpect(header().string(HEADER_ETAG, "\"2\""))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
     }
+
 
     @Test
     void testCreateToolSet() throws Exception {
@@ -87,14 +125,48 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testUpdateToolSet() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {});
+        var dto = objectMapper.readValue(dtoJson, ToolSetDto.class);
 
-        doNothing().when(toolSetFacade).updateToolSet(eq(TEST_TOOL_SET_NAME), eq(dto));
+        when(toolSetFacade.updateToolSet(eq(TEST_TOOL_SET_NAME), any(ToolSetDto.class), eq("1")))
+                .thenReturn("2");
+
+        mockMvc.perform(put(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HEADER_IF_MATCH, "1")
+                        .content(dtoJson))
+                .andExpect(status().isNoContent())
+                .andExpect(header().exists(HEADER_ETAG))
+                .andExpect(header().string(HEADER_ETAG, "\"2\""));
+        verify(toolSetFacade).updateToolSet(eq(TEST_TOOL_SET_NAME), eq(dto), eq("1"));
+    }
+
+    @Test
+    void testUpdateToolSetWithNotMatchHash() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, ToolSetDto.class);
+
+        doThrow(new OptimisticLockConflictException("Conflict Exception"))
+                .when(toolSetFacade).updateToolSet(eq(TEST_TOOL_SET_NAME), any(ToolSetDto.class), eq("1"));
+
+        mockMvc.perform(put(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HEADER_IF_MATCH, "1")
+                        .content(dtoJson))
+                .andExpect(status().isPreconditionFailed())
+                .andExpect(jsonPath("$.message").value("Conflict Exception"));
+        verify(toolSetFacade).updateToolSet(eq(TEST_TOOL_SET_NAME), eq(dto), eq("1"));
+    }
+
+    @Test
+    void testUpdateToolSetWithoutHeaderIfMatch() throws Exception {
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
 
         mockMvc.perform(put(TOOL_SET_API_PATH, TEST_TOOL_SET_NAME)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-Match' for method parameter type String is not present"));
     }
 
     @Test

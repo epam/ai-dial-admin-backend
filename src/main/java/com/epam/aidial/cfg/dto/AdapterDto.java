@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +14,7 @@ public class AdapterDto {
 
     @NotEmpty
     private String name;
+    @NotBlank(message = "DisplayName is required")
     private String displayName;
     @NotEmpty
     private String baseEndpoint;

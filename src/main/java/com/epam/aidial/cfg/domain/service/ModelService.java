@@ -30,7 +30,7 @@ import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @Slf4j
 @LogExecution
-@Service("coreModelService")
+@Service
 @RequiredArgsConstructor
 public class ModelService {
 
@@ -54,6 +54,13 @@ public class ModelService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<Model> getAllByNames(List<String> names) {
+        return modelJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Model getModel(String modelName) {
         return getModelOrThrow(modelName);
     }
@@ -66,7 +73,7 @@ public class ModelService {
 
     private Model getModelOrThrow(String modelName) {
         return tryGetModel(modelName)
-            .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
     }
 
     @Transactional(readOnly = true)
@@ -98,7 +105,7 @@ public class ModelService {
     public String updateModel(String modelName, Model model, String hash) {
         if (hash == null) {
             throw new IllegalArgumentException(
-                "Hash must not be null. Use \"*\" to skip optimistic check.");
+                    "Hash must not be null. Use \"*\" to skip optimistic check.");
         }
         var savedModel = performUpdate(modelName, model, hash);
         return calculator.calculateHash(mapper.toDomain(savedModel));
@@ -203,7 +210,7 @@ public class ModelService {
             log.debug("Optimistic lock conflict on update: modelName={}, expectedHash={}, currentHash={}",
                     entity.getDeployment().getName(), expectedHash, currentHash);
             throw new OptimisticLockConflictException("Optimistic lock conflict on update: modelName:'"
-                + entity.getDeployment().getName() + "'. Reload the data.");
+                    + entity.getDeployment().getName() + "'. Reload the data.");
 
         }
     }

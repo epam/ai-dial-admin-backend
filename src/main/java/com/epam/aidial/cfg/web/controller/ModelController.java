@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
+import com.epam.aidial.core.config.CoreModel;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +30,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/api/v1/models")
 @RequiredArgsConstructor
-public class ModelController {
+public class ModelController extends AbstractController {
 
     private final ModelFacade modelFacade;
 
@@ -43,9 +44,14 @@ public class ModelController {
     public ResponseEntity<ModelDto> getModel(@PathVariable("modelName") String modelName,
                                              @RequestHeader(value = "If-None-Match") String previousHash) {
         var dtoWithHash = modelFacade.getModelWithHash(modelName);
-        return dtoWithHash.hash().equals(StringUtils.unwrap(previousHash, '"'))
-                ? ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(dtoWithHash.hash()).build()
-                : ResponseEntity.status(HttpStatus.OK).eTag(dtoWithHash.hash()).body(dtoWithHash.dto());
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/core/{modelName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CoreModel> getCoreModel(@PathVariable String modelName,
+                                                  @RequestHeader(value = "If-None-Match") String previousHash) {
+        var coreWithHash = modelFacade.getCoreModelWithHash(modelName);
+        return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -63,14 +69,21 @@ public class ModelController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @PutMapping(path = "/core/{modelName}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> updateModel(@PathVariable String modelName,
+                                            @RequestBody @Valid CoreModel coreModel,
+                                            @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = modelFacade.updateModel(modelName, coreModel, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
+    }
+
     @DeleteMapping(path = "/{modelName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteModel(@PathVariable("modelName") String modelName) {
         modelFacade.deleteModel(modelName);
     }
 
-    @GetMapping(path = "/{modelName}/revision/{revision}",
-                produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{modelName}/revision/{revision}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelDto getSnapshot(@PathVariable String modelName, @PathVariable Integer revision) {
         return modelFacade.getSnapshot(modelName, revision);
     }

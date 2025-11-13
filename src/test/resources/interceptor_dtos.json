@@ -1,0 +1,11 @@
+[{
+  "name": "test_interceptor",
+  "displayName": "Test Interceptor",
+  "description": "It is a test interceptor",
+  "endpoint": "https://endpoint.test.com/embeddings",
+  "forwardAuthToken": false,
+  "author": "test-author",
+  "createdAt": "2025-06-01T12:00:00Z",
+  "updatedAt": "2025-06-01T15:30:00Z",
+  "dependencies": []
+}]

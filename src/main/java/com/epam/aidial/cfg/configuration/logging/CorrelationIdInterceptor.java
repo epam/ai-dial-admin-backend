@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.configuration.logging;
 
+import com.epam.aidial.cfg.utils.HeaderUtils;
 import io.opentelemetry.api.trace.Span;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +35,7 @@ public class CorrelationIdInterceptor implements HandlerInterceptor {
 
     private String resolveValidCorrelationId(final HttpServletRequest request) {
         var correlationId = request.getHeader(CORRELATION_ID_HEADER_NAME);
+        correlationId = HeaderUtils.sanitizeHeaderValue(correlationId);
         var validCorrelationId = (correlationId != null && CORRELATION_ID_PATTERN.matcher(correlationId).matches())
                 ? correlationId : generateCorrelationId();
         MDC.put("_correlation_id", validCorrelationId);

@@ -38,7 +38,7 @@ class ConfigSplitterTest {
         configBody.setKeys(new HashMap<>());
         for (int i = 0; i < 5; i++) {
             CoreKey key = generateKey(i);
-            configBody.getKeys().put(key.getKey(), key);
+            configBody.getKeys().put("key" + i, key);
         }
         List<ConfigPart> secretConfigs = splitter.splitConfig(configBody, this::encode, 150, 5);
         Assertions.assertEquals(2, secretConfigs.size());
@@ -61,7 +61,7 @@ class ConfigSplitterTest {
         configBody.setKeys(new HashMap<>());
         for (int i = 0; i < 5; i++) {
             CoreKey key = generateKey(i);
-            configBody.getKeys().put(key.getKey(), key);
+            configBody.getKeys().put("key" + i, key);
         }
         configBody.getRoles().put("role1", generateRole());
         configBody.getRetriableErrorCodes().add(10);
@@ -195,7 +195,7 @@ class ConfigSplitterTest {
 
     private CoreKey generateKey(int i) {
         CoreKey key = new CoreKey();
-        key.setKey("key" + i);
+        key.setProject("project" + i);
         return key;
     }
 
