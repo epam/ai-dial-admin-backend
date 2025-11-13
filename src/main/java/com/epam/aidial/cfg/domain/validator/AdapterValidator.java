@@ -25,7 +25,7 @@ public class AdapterValidator {
         this.adapterNameValidationPattern = adapterNameValidationPattern;
     }
 
-    public void validateAdapterCreation(Adapter adapter) {
+    public void validateCreation(Adapter adapter) {
         final String adapterName = adapter.getName();
         idFieldValidator.validateName("Adapter", adapterName);
 
@@ -36,6 +36,7 @@ public class AdapterValidator {
                     + "' does not match the required pattern: " + adapterNameValidationPattern);
         }
         displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
+        validateBaseEndpoint(adapter.getBaseEndpoint(), adapterName);
     }
 
     public void validateUpdate(String adapterName, Adapter adapter) {
@@ -43,5 +44,14 @@ public class AdapterValidator {
             throw new IllegalArgumentException("Adapter with name: '" + adapterName + "' can not be renamed. New adapter name: '" + adapter.getName() + "'");
         }
         displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
+        validateBaseEndpoint(adapter.getBaseEndpoint(), adapterName);
+    }
+
+    private void validateBaseEndpoint(String baseEndpoint, String adapterName) {
+        if (StringUtils.isBlank(baseEndpoint)) {
+            throw new IllegalArgumentException("Blank adapter base endpoint. Adapter: %s".formatted(adapterName));
+        } else if (EndpointValidator.isInvalidUrl(baseEndpoint)) {
+            throw new IllegalArgumentException("Invalid adapter base endpoint: '%s'. Adapter: %s".formatted(baseEndpoint, adapterName));
+        }
     }
 }
