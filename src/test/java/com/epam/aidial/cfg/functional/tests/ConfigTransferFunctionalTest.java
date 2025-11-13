@@ -2094,6 +2094,31 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testImport_AppWithLinkToAlreadyExistingAppRunner() throws IOException {
+        // given
+        var appRunnerDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
+        });
+        applicationTypeSchemaFacade.create(appRunnerDto);
+
+        String application = ResourceUtils.readResource("/import/import_applicationWithLinkToExistingAppRunner.json");
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                application.getBytes()
+        );
+
+        // when
+        configTransfer.importConfig(List.of(file), overrideAndCreateRoleAndCreateNew());
+
+        // then
+        ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
+        Assertions.assertThat(applicationDto).isNotNull().satisfies(app -> {
+            Assertions.assertThat(app.getCustomAppSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
+        });
+    }
+
+    @Test
     void testImportAddons_Successfully() throws IOException {
         // given
         String config = FileUtils.readFileToString(new File("src/test/resources/import/import_addons.json"),
