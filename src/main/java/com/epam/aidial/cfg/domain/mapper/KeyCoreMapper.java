@@ -48,4 +48,6 @@ public interface KeyCoreMapper {
         }
     }
 
+    Key copy(Key key);
+
 }

@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
@@ -53,49 +52,58 @@ public class ModelImporter extends DeploymentHolderImporter {
     private final DeploymentManagerService deploymentManagerService;
 
     public Collection<ImportComponent<Model>> importModels(Map<String, CoreModel> coreModels,
-                                                           Map<String, Role> roles,
                                                            ConfigImportOptions importOptions) {
-        if (MapUtils.isNotEmpty(coreModels)) {
-            Map<String, Model> models = coreModels.entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    entry -> map(entry.getKey(), entry.getValue())
-                            )
-                    );
-            return importAdminModels(models, roles, importOptions);
+        if (MapUtils.isEmpty(coreModels)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        return coreModels.entrySet()
+                .stream()
+                .map(entry -> processModel(entry.getKey(), entry.getValue(), importOptions.conflictResolutionPolicy()))
+                .toList();
     }
 
     public Collection<ImportComponent<Model>> importAdminModels(Map<String, Model> models,
-                                                                Map<String, Role> roles,
                                                                 ConfigImportOptions importOptions) {
-        if (MapUtils.isNotEmpty(models)) {
-            return models.entrySet().stream()
-                    .map(modelEntry -> {
-                                var model = modelEntry.getValue();
-                                return processModel(modelEntry.getKey(), model, roles, importOptions.conflictResolutionPolicy());
-                            }
-                    )
-                    .toList();
+        if (MapUtils.isEmpty(models)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        return models.entrySet().stream()
+                .map(modelEntry -> processModel(modelEntry.getKey(), modelEntry.getValue(), importOptions.conflictResolutionPolicy()))
+                .toList();
+    }
+
+    private ImportComponent<Model> processModel(String modelName,
+                                                CoreModel coreModel,
+                                                ConflictResolutionPolicy resolutionPolicy) {
+        Optional<Model> model = modelService.tryGetModel(modelName);
+        if (model.isPresent()) {
+            Model existingModel = model.get();
+            Model existingModelCopy = modelMapper.copy(existingModel);
+            List<RoleLimit> roleLimits = getRoleLimits(existingModelCopy.getDeployment(), coreModel.getUserRoles());
+            Model newModel = map(modelName, coreModel, roleLimits, existingModelCopy);
+            ImportAction importAction = handleExistingModel(newModel, resolutionPolicy, modelName);
+            return new ImportComponent<>(importAction, existingModel, newModel);
+        } else {
+            List<RoleLimit> roleLimits = getRoleLimits(modelName, coreModel.getUserRoles());
+            Model newModel = map(modelName, coreModel, roleLimits, new Model());
+            modelService.createModel(newModel);
+            return new ImportComponent<>(CREATE, null, newModel);
+        }
     }
 
     private ImportComponent<Model> processModel(String modelName,
                                                 Model newModel,
-                                                Map<String, Role> roles,
                                                 ConflictResolutionPolicy resolutionPolicy) {
         removeContainerSourceDependencyIfContainerIsAbsent(newModel);
         Optional<Model> model = modelService.tryGetModel(modelName);
         if (model.isPresent()) {
             Model existingModel = model.get();
-            setLimits(modelName, existingModel.getDeployment(), roles, newModel.getDeployment());
+            newModel.getDeployment().setRoleLimits(existingModel.getDeployment().getRoleLimits());
             ImportAction importAction = handleExistingModel(newModel, resolutionPolicy, modelName);
             return new ImportComponent<>(importAction, existingModel, newModel);
         } else {
-            setLimits(modelName, roles, newModel.getDeployment());
             modelService.createModel(newModel);
             return new ImportComponent<>(CREATE, null, newModel);
         }
@@ -134,13 +142,13 @@ public class ModelImporter extends DeploymentHolderImporter {
         };
     }
 
-    private Model map(String modelName, CoreModel model) {
-        model.setName(modelName);
+    private Model map(String modelName, CoreModel coreModel, List<RoleLimit> roleLimits, Model model) {
+        coreModel.setName(modelName);
 
         ModelSource source = new ModelEndpointsSource();
-        ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(model);
+        ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(coreModel);
         if (modelEndpointComponents == null) {
-            return modelMapper.mapModel(model, source);
+            return modelMapper.mapModel(coreModel, source, roleLimits, model);
         }
 
         Adapter adapter = resolveAdapter(modelEndpointComponents);
@@ -148,7 +156,7 @@ public class ModelImporter extends DeploymentHolderImporter {
             source = new AdapterSource(adapter.getName(), modelEndpointComponents.completionEndpointPath());
         }
 
-        return modelMapper.mapModel(model, source);
+        return modelMapper.mapModel(coreModel, source, roleLimits, model);
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {
@@ -163,19 +171,15 @@ public class ModelImporter extends DeploymentHolderImporter {
         return adapterService.getByEndpoint(adapterEndpoint);
     }
 
-    public List<ImportComponent<Model>> getActualImportedModels(Collection<ImportComponent<Model>> modelImportComponents,
-                                                                Collection<ImportComponent<Role>> roleImportComponents) {
+    public List<ImportComponent<Model>> getActualImportedModels(Collection<ImportComponent<Model>> modelImportComponents) {
         List<String> names = getNextImportComponentNames(modelImportComponents);
         Map<String, Model> importedModelsByNames = modelService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(model -> model.getDeployment().getName(), Function.identity()));
 
-        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
-
         return modelImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedModelsByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);
