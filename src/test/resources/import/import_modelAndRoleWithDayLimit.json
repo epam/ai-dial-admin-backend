@@ -1,0 +1,35 @@
+{
+  "models": {
+    "KK_testModel2": {
+      "type": "embedding",
+      "name": "KK_testModel2",
+      "displayName": "KK Test Model2",
+      "displayVersion": "2.0.0",
+      "userRoles": [
+        "KK_testRole2"
+      ],
+      "author": "test-author",
+      "dependencies": [
+        "dep1",
+        "dep2"
+      ],
+      "fieldsHashingOrder": [
+        "prompt",
+        "temperature",
+        "seed",
+        "system"
+      ],
+      "endpoint": "https://qwe.com/embeddings"
+    }
+  },
+  "roles": {
+    "KK_testRole2": {
+      "description": "test role 2 description",
+      "limits": {
+        "KK_testModel2": {
+          "day": 10
+        }
+      }
+    }
+  }
+}

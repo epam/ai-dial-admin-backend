@@ -77,7 +77,7 @@ public class RoleService {
         assertNotExists(role.getName());
         Optional.of(role)
                 .map(domainModel -> mapper.toEntity(domainModel, new RoleEntity()))
-                .ifPresent(roleJpaRepository::save);
+                .ifPresent(this::save);
     }
 
     @Transactional
@@ -100,7 +100,7 @@ public class RoleService {
         RoleEntity roleEntity = roleJpaRepository.findById(roleName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(roleName)));
         assertNotConcurrencyOverwrite(roleEntity, hash);
-        return roleJpaRepository.save(mapper.toEntity(role, roleEntity));
+        return save(mapper.toEntity(role, roleEntity));
     }
 
     private void assertNotConcurrencyOverwrite(RoleEntity entity, String expectedHash) {
@@ -114,6 +114,17 @@ public class RoleService {
             throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: roleName:'"
                     + "%s'. Reload the data.", entity.getName()));
         }
+    }
+
+    private RoleEntity save(RoleEntity roleEntity) {
+        RoleEntity savedRoleEntity = roleJpaRepository.save(roleEntity);
+        savedRoleEntity.getLimits().forEach(roleLimit -> {
+            var roleLimits = roleLimit.getDeployment().getRoleLimits();
+            if (!roleLimits.contains(roleLimit)) {
+                roleLimits.add(roleLimit);
+            }
+        });
+        return savedRoleEntity;
     }
 
     @Transactional

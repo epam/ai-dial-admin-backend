@@ -1,0 +1,12 @@
+{
+  "roles": {
+    "KK_testRole2": {
+      "description": "test role 2 description",
+      "limits": {
+        "KK_testModel2": {
+          "day": 10
+        }
+      }
+    }
+  }
+}

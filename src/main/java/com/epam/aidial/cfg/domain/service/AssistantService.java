@@ -63,7 +63,7 @@ public class AssistantService {
         deploymentService.assertDeploymentNotExists(assistant.getDeployment().getName());
         Optional.of(assistant)
                 .map(domainModel -> mapper.toEntity(domainModel, new AssistantEntity()))
-                .map(assistantJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("unable to create assistant " + assistant.getDeployment().getName()));
     }
 
@@ -75,8 +75,14 @@ public class AssistantService {
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(assistantName)));
         Optional.of(assistant)
                 .map(domainModel -> mapper.toEntity(domainModel, assistantEntity))
-                .map(assistantJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("unable to update assistant " + assistant.getDeployment().getName()));
+    }
+
+    private AssistantEntity save(AssistantEntity assistantEntity) {
+        AssistantEntity savedAssistantEntity = assistantJpaRepository.save(assistantEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedAssistantEntity.getDeployment());
+        return savedAssistantEntity;
     }
 
     @FeatureFlagGate(featureFlag = "assistantsSupported")

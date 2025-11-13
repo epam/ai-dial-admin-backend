@@ -82,7 +82,7 @@ public class ApplicationService {
         assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         Optional.of(application)
                 .map(domainModel -> mapper.toEntity(domainModel, new ApplicationEntity()))
-                .map(applicationJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create application " + application.getDeployment().getName()));
     }
 
@@ -109,7 +109,13 @@ public class ApplicationService {
 
         assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, application);
         assertNotConcurrencyOverwrite(applicationEntity, hash);
-        return applicationJpaRepository.save(mapper.toEntity(application, applicationEntity));
+        return save(mapper.toEntity(application, applicationEntity));
+    }
+
+    private ApplicationEntity save(ApplicationEntity applicationEntity) {
+        ApplicationEntity savedApplicationEntity = applicationJpaRepository.save(applicationEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedApplicationEntity.getDeployment());
+        return savedApplicationEntity;
     }
 
     @Transactional
