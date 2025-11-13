@@ -24,7 +24,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @TestPropertySource(properties = {
         "config.rest.security.mode=oidc",
-        "config.rest.security.principal-claim=" + PRINCIPAL_CLAIM
+        "config.rest.security.principal-claim=" + PRINCIPAL_CLAIM,
+        "config.rest.security.default.allowedRoles=ConfigAdmin,admin"
 })
 @ComponentScan(basePackageClasses = {
     SecurityPackage.class,
@@ -88,8 +89,18 @@ public abstract class AbstractControllerSecurityTest {
                 HttpStatus.UNAUTHORIZED
             ))
 
+                .add(Arguments.of(
+                        JwtUtils.generateTestToken(
+                                TEST_AUDIENCE,
+                                TEST_ISSUER,
+                                Map.of(
+                                        PRINCIPAL_CLAIM, "user_test",
+                                        ROLES_CLAIM, "testRole"
+                                )
+                        ),
+                        HttpStatus.OK
+                ))
             .addAll(addForbiddenArguments())
-
             .build();
     }
 
