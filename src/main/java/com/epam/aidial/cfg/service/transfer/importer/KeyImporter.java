@@ -39,17 +39,15 @@ public class KeyImporter {
     public Collection<ImportComponent<Key>> importKeys(Map<String, CoreKey> coreKeys,
                                                        ConflictResolutionPolicy resolutionPolicy,
                                                        boolean isPreview) {
-        if (MapUtils.isNotEmpty(coreKeys)) {
-            AtomicInteger counter = new AtomicInteger();
-            return coreKeys.entrySet().stream()
-                    .map(keyEntry -> {
-                                var coreKey = keyEntry.getValue();
-                                return processKey(keyEntry.getKey(), coreKey, resolutionPolicy, isPreview, counter);
-                            }
-                    )
-                    .toList();
+        if (MapUtils.isEmpty(coreKeys)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        AtomicInteger counter = new AtomicInteger();
+
+        return coreKeys.entrySet().stream()
+                .map(keyEntry -> processKey(keyEntry.getKey(), keyEntry.getValue(), resolutionPolicy, isPreview, counter))
+                .toList();
     }
 
     public Collection<ImportComponent<Key>> importAdminKeys(Map<String, Key> keys,
@@ -85,7 +83,8 @@ public class KeyImporter {
                                             AtomicInteger counter) {
         Optional<Key> existingKey = keyService.tryGetKeyByKeyValue(keyValue);
         if (existingKey.isPresent()) {
-            Key key = keyCoreMapper.mapKey(coreKey, keyValue, existingKey.get());
+            Key existingKeyCopy = keyCoreMapper.copy(existingKey.get());
+            Key key = keyCoreMapper.mapKey(coreKey, keyValue, existingKeyCopy);
             ImportAction importAction = handleExisting(key, resolutionPolicy);
             return new ImportComponent<>(importAction, existingKey.get(), key);
         } else {

@@ -2,11 +2,13 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapper;
+import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -36,10 +38,21 @@ public class DeploymentService {
         }
     }
 
+    @Transactional(readOnly = true)
     public void assertDeploymentNotExists(String name) {
         boolean exists = deploymentJpaRepository.existsById(name);
         if (exists) {
             throw new EntityAlreadyExistsException("Deployment with name " + name + " already exists");
         }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void addDeploymentRoleLimitToRoleIfAbsent(DeploymentEntity deploymentEntity) {
+        deploymentEntity.getRoleLimits().forEach(roleLimit -> {
+            var roleLimits = roleLimit.getRole().getLimits();
+            if (!roleLimits.contains(roleLimit)) {
+                roleLimits.add(roleLimit);
+            }
+        });
     }
 }

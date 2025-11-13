@@ -77,7 +77,7 @@ public class RouteService {
         deploymentService.assertDeploymentNotExists(route.getDeployment().getName());
         Optional.of(route)
                 .map(domainModel -> mapper.toEntity(domainModel, new RouteEntity()))
-                .map(routeJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create route " + route.getDeployment().getName()));
     }
 
@@ -101,7 +101,13 @@ public class RouteService {
         RouteEntity routeEntity = routeJpaRepository.findById(routeName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
         assertNotConcurrencyOverwrite(routeEntity, hash);
-        return routeJpaRepository.save(mapper.toEntity(value, routeEntity));
+        return save(mapper.toEntity(value, routeEntity));
+    }
+
+    private RouteEntity save(RouteEntity routeEntity) {
+        RouteEntity savedRouteEntity = routeJpaRepository.save(routeEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedRouteEntity.getDeployment());
+        return savedRouteEntity;
     }
 
     private void assertNotConcurrencyOverwrite(RouteEntity entity, String expectedHash) {

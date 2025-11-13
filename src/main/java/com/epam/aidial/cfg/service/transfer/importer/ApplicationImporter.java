@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
-import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -38,44 +37,57 @@ public class ApplicationImporter extends DeploymentHolderImporter {
     private final ApplicationCoreMapper applicationCoreMapper;
 
     public Collection<ImportComponent<Application>> importApplications(Map<String, CoreApplication> coreApplications,
-                                                                       Map<String, Role> roles,
                                                                        ConfigImportOptions importOptions) {
-        if (MapUtils.isNotEmpty(coreApplications)) {
-            Map<String, Application> applications = coreApplications.entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getKey(), entry.getValue())));
-            return importAdminApplications(applications, roles, importOptions);
+        if (MapUtils.isEmpty(coreApplications)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        return coreApplications.entrySet()
+                .stream()
+                .map(entry -> processApplication(entry.getKey(), entry.getValue(), importOptions.conflictResolutionPolicy()))
+                .toList();
     }
 
     public Collection<ImportComponent<Application>> importAdminApplications(Map<String, Application> applications,
-                                                                            Map<String, Role> roles,
                                                                             ConfigImportOptions importOptions) {
-        if (MapUtils.isNotEmpty(applications)) {
-            return applications.entrySet().stream()
-                    .map((appEntry) -> {
-                                var application = appEntry.getValue();
-                                return processApplication(appEntry.getKey(), application, roles, importOptions.conflictResolutionPolicy());
-                            }
-                    )
-                    .toList();
+        if (MapUtils.isEmpty(applications)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        return applications.entrySet().stream()
+                .map(entry -> processApplication(entry.getKey(), entry.getValue(), importOptions.conflictResolutionPolicy()))
+                .toList();
     }
 
     private ImportComponent<Application> processApplication(String applicationName,
-                                                            Application newApplication,
-                                                            Map<String, Role> roles,
+                                                            CoreApplication coreApplication,
                                                             ConflictResolutionPolicy resolutionPolicy) {
         Optional<Application> application = applicationService.tryGetApplication(applicationName);
         if (application.isPresent()) {
             Application existingApplication = application.get();
-            setLimits(applicationName, existingApplication.getDeployment(), roles, newApplication.getDeployment());
+            Application existingApplicationCopy = applicationCoreMapper.copy(existingApplication);
+            List<RoleLimit> roleLimits = getRoleLimits(existingApplicationCopy.getDeployment(), coreApplication.getUserRoles());
+            Application newApplication = map(applicationName, coreApplication, roleLimits, existingApplicationCopy);
             ImportAction importAction = handleExisting(newApplication, resolutionPolicy, applicationName);
             return new ImportComponent<>(importAction, existingApplication, newApplication);
         } else {
-            setLimits(applicationName, roles, newApplication.getDeployment());
+            List<RoleLimit> roleLimits = getRoleLimits(applicationName, coreApplication.getUserRoles());
+            Application newApplication = map(applicationName, coreApplication, roleLimits, new Application());
+            applicationService.createApplication(newApplication);
+            return new ImportComponent<>(CREATE, null, newApplication);
+        }
+    }
+
+    private ImportComponent<Application> processApplication(String applicationName,
+                                                            Application newApplication,
+                                                            ConflictResolutionPolicy resolutionPolicy) {
+        Optional<Application> application = applicationService.tryGetApplication(applicationName);
+        if (application.isPresent()) {
+            Application existingApplication = application.get();
+            newApplication.getDeployment().setRoleLimits(existingApplication.getDeployment().getRoleLimits());
+            ImportAction importAction = handleExisting(newApplication, resolutionPolicy, applicationName);
+            return new ImportComponent<>(importAction, existingApplication, newApplication);
+        } else {
             applicationService.createApplication(newApplication);
             return new ImportComponent<>(CREATE, null, newApplication);
         }
@@ -93,24 +105,20 @@ public class ApplicationImporter extends DeploymentHolderImporter {
         };
     }
 
-    private Application map(String appName, CoreApplication application) {
-        application.setName(appName);
-        return applicationCoreMapper.mapApplication(application);
+    private Application map(String appName, CoreApplication coreApplication, List<RoleLimit> roleLimits, Application application) {
+        coreApplication.setName(appName);
+        return applicationCoreMapper.mapApplication(coreApplication, roleLimits, application);
     }
 
-    public List<ImportComponent<Application>> getActualImportedApplications(Collection<ImportComponent<Application>> applicationImportComponents,
-                                                                            Collection<ImportComponent<Role>> roleImportComponents) {
+    public List<ImportComponent<Application>> getActualImportedApplications(Collection<ImportComponent<Application>> applicationImportComponents) {
         List<String> names = getNextImportComponentNames(applicationImportComponents);
         Map<String, Application> importedApplicationsByNames = applicationService.getAllByNames(names)
                 .stream()
                 .collect(Collectors.toMap(application -> application.getDeployment().getName(), Function.identity()));
 
-        List<RoleLimit> importedRoleLimits = getImportedLimits(roleImportComponents);
-
         return applicationImportComponents.stream()
                 .map(importComponent -> {
                     var next = importedApplicationsByNames.get(importComponent.getNext().getDeployment().getName());
-                    setImportedLimits(next, importedRoleLimits);
                     var prev = importComponent.getPrev();
                     clearTxDependentFields(next);
                     clearTxDependentFields(prev);
