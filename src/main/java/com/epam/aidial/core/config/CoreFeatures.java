@@ -38,8 +38,6 @@ public class CoreFeatures {
     private Boolean contentPartsSupported;
     @JsonAlias({"temperatureSupported", "temperature_supported"})
     private Boolean temperatureSupported;
-    @JsonAlias({"addonsSupported", "addons_supported"})
-    private Boolean addonsSupported;
 
     @JsonAlias({"cacheSupported", "cache_supported"})
     private Boolean cacheSupported; // 0.26.0
