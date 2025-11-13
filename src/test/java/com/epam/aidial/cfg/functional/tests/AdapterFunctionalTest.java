@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -64,13 +63,13 @@ public abstract class AdapterFunctionalTest {
         AdapterDto adapterDto = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto);
         AdapterDto updatedAdapter = createAdapterDto("1");
-        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+        updatedAdapter.setBaseEndpoint("http://new-adapter-endpoint");
 
         adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "*");
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
         var expected = createAdapterDto("1");
-        expected.setBaseEndpoint("new adapter endpoint");
+        expected.setBaseEndpoint("http://new-adapter-endpoint");
         Assertions.assertEquals(expected, actual);
     }
 
@@ -79,7 +78,7 @@ public abstract class AdapterFunctionalTest {
         AdapterDto adapterDto = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto);
         AdapterDto updatedAdapter = createAdapterDto("1");
-        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+        updatedAdapter.setBaseEndpoint("http://new-adapter-endpoint");
 
         var hash = adapterFacade.getAdapterWithHash(adapterDto.getName()).hash();
 
@@ -87,7 +86,7 @@ public abstract class AdapterFunctionalTest {
 
         AdapterDto actual = adapterFacade.getAdapter(adapterDto.getName());
         var expected = createAdapterDto("1");
-        expected.setBaseEndpoint("new adapter endpoint");
+        expected.setBaseEndpoint("http://new-adapter-endpoint");
         Assertions.assertEquals(expected, actual);
     }
 
@@ -96,7 +95,7 @@ public abstract class AdapterFunctionalTest {
         AdapterDto adapterDto = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto);
         AdapterDto updatedAdapter = createAdapterDto("1");
-        updatedAdapter.setBaseEndpoint("new adapter endpoint");
+        updatedAdapter.setBaseEndpoint("http://new-adapter-endpoint");
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
                 () -> adapterFacade.updateAdapter(adapterDto.getName(), updatedAdapter, "test"));
