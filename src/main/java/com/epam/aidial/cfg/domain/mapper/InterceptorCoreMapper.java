@@ -19,6 +19,7 @@ public interface InterceptorCoreMapper {
     CoreInterceptor mapInterceptor(Interceptor interceptor);
 
     @Mapping(target = "entities", ignore = true)
+    @Mapping(target = "applicationTypeSchemas", ignore = true)
     @Mapping(target = "source", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

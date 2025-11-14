@@ -35,6 +35,7 @@ public abstract class ApplicationTypeSchemaCoreMapper {
     }
 
     @Mapping(target = "id", source = "schemaId")
+    @Mapping(target = "applicationTypeInterceptors", source = "interceptors")
     public abstract CoreApplicationTypeSchema mapToCoreApplicationTypeSchema(ApplicationTypeSchema applicationTypeSchema);
 
     public ApplicationTypeSchema mapToSchema(String applicationTypeSchema) {
@@ -50,6 +51,7 @@ public abstract class ApplicationTypeSchemaCoreMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "topics", ignore = true)
+    @Mapping(target = "interceptors", source = "applicationTypeInterceptors")
     abstract ApplicationTypeSchema mapToApplicationTypeSchema(CoreApplicationTypeSchema coreApplicationTypeSchema);
 
     public String toApplicationTypeSchemaAsString(CoreApplicationTypeSchema applicationTypeSchema) {

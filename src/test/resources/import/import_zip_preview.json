@@ -235,6 +235,7 @@
           "testApplication1",
           "testModel1"
         ],
+        "applicationTypeSchemas":[],
         "source": {
           "$type": "endpoints"
         }
@@ -267,6 +268,7 @@
         },
         "defaults": {},
         "entities": [],
+        "applicationTypeSchemas": [],
         "source": {
           "$type": "runner",
           "runnerName": "testRunner1"
@@ -303,6 +305,7 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
+        "interceptors":[],
         "$defs": {},
         "properties": {},
         "required": [],
