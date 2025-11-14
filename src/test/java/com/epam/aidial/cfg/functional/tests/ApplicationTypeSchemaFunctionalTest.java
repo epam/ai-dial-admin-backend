@@ -162,12 +162,10 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
         Assertions.assertThat(List.of("interceptor2")).isEqualTo(actualDto2.getInterceptors());
-
     }
 
     @Test
     public void shouldSuccessfullyRemoveUpdatedInterceptorFromTheInterceptorsList() throws JsonProcessingException {
-
         InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
 

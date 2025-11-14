@@ -131,6 +131,7 @@ public abstract class InterceptorEntityMapper {
         }
 
         InterceptorRunnerEntity interceptorRunner = findInterceptorRunnerEntityByName(runnerName);
+        var applicationTypeSchemas = findApplicationTypeSchemasById(domain.getApplicationTypeSchemas());
 
         InterceptorEntity updatedEntity = update(domain, entity);
 
@@ -154,7 +155,6 @@ public abstract class InterceptorEntityMapper {
         updatedEntity.getModels().clear();
         updatedEntity.getModels().addAll(models);
 
-        var applicationTypeSchemas = findApplicationTypeSchemasById(domain.getApplicationTypeSchemas());
         updatedEntity.getApplicationTypeSchemas().stream()
                 .filter(a -> !applicationTypeSchemas.contains(a))
                 .forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().remove(updatedEntity));
