@@ -363,6 +363,7 @@
           "testApplication1",
           "testModel1"
         ],
+        "applicationTypeSchemas":[],
         "source": {
           "$type": "endpoints"
         }
@@ -437,6 +438,7 @@
             }
           }
         ],
+        "interceptors":[],
         "$defs": {},
         "properties": {},
         "required": [],

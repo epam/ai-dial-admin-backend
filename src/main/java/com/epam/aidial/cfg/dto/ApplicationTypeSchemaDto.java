@@ -75,6 +75,9 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypeBucketCopy")
     private CopyAppBucketOptionsDto applicationTypeBucketCopy;
 
+    @JsonProperty("dial:applicationTypeInterceptors")
+    private List<String> interceptors;
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)
@@ -123,6 +126,7 @@ public class ApplicationTypeSchemaDto {
         this.applicationTypeRoutes = other.applicationTypeRoutes != null ? new ArrayList<>(other.applicationTypeRoutes) : null;
         this.applicationTypePlaybackSupport = other.applicationTypePlaybackSupport;
         this.applicationTypeBucketCopy = other.applicationTypeBucketCopy;
+        this.interceptors = other.interceptors != null ? new ArrayList<>(other.interceptors) : null;
         this.defs = other.defs != null ? new HashMap<>(other.defs) : null;
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;

@@ -54,6 +54,7 @@ public abstract class InterceptorHistoryFunctionalTest {
         expected.setDescription("new interceptor description");
         expected.setSource(new InterceptorEndpointsSourceDto());
         expected.setDefaults(Map.of());
+        expected.setApplicationTypeSchemas(List.of());
         assertInterceptor(actual, expected);
 
         var actualAtRevision = actual;

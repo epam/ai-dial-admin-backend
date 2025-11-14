@@ -66,5 +66,6 @@
   },
   "dial:applicationTypePlaybackSupport": true,
   "dial:appendApplicationPropertiesHeader": true,
+  "dial:applicationTypeInterceptors":[],
   "$defs": {}
 }

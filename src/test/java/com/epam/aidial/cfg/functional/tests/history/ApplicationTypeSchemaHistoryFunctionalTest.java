@@ -2,9 +2,10 @@ package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
-import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.functional.utils.FunctionalTestHelper;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
     @Autowired
     private ApplicationTypeSchemaFacade applicationTypeSchemaFacade;
     @Autowired
+    private InterceptorFacade interceptorFacade;
+    @Autowired
     private ApplicationFacade applicationFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
@@ -26,11 +29,16 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndUpdateApplicationTypeSchema() {
         // 1 create application1
+        interceptorFacade.createInterceptor(FunctionalTestHelper.createInterceptorDto("1"));
+        interceptorFacade.createInterceptor(FunctionalTestHelper.createInterceptorDto("2"));
         ApplicationTypeSchemaDto applicationDto = createDto("1");
+        applicationDto.setInterceptors(List.of("interceptor1", "interceptor2"));
         applicationTypeSchemaFacade.create(applicationDto);
+        applicationTypeSchemaFacade.get("id1");
 
         // 2 update application1 description
         ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
+        updatedApplicationTypeSchema.setInterceptors(List.of("interceptor1"));
         updatedApplicationTypeSchema.setDescription("new application description");
         applicationTypeSchemaFacade.update(applicationDto.getId(), updatedApplicationTypeSchema, "*");
 
@@ -43,6 +51,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         expected.setApplications(List.of());
         expected.setApplicationTypeRoutes(List.of());
         expected.setAppendApplicationPropertiesHeader(true);
+        expected.setInterceptors(List.of("interceptor1"));
         assertApplicationTypeSchema(actual, expected);
 
         var actualAtOldRevision = applicationTypeSchemaFacade.getAll();

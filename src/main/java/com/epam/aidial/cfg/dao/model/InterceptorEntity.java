@@ -56,10 +56,15 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     @ManyToMany(mappedBy = "interceptors")
     private List<ModelEntity> models = new ArrayList<>();
 
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "interceptors")
+    private List<ApplicationTypeSchemaEntity> applicationTypeSchemas = new ArrayList<>();
+
     @PreRemove
     public void preRemove() {
         applications.forEach(application -> application.getInterceptors().remove(this));
         models.forEach(model -> model.getInterceptors().remove(this));
+        applicationTypeSchemas.forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().remove(this));
     }
 
     @Override
