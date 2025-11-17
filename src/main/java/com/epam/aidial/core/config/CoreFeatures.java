@@ -52,4 +52,7 @@ public class CoreFeatures {
 
     @JsonAlias({"assistantAttachmentsInRequestSupported", "assistant_attachments_in_request_supported"})
     private Boolean assistantAttachmentsInRequestSupported; //0.37.0
+
+    @JsonAlias({"supportCommentInRateResponse", "support_comment_in_rate_response"})//0.38.0
+    private Boolean supportCommentInRateResponse;
 }

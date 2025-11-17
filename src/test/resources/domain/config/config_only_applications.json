@@ -36,7 +36,8 @@
         "auto_caching_supported": false,
         "consent_required": true,
         "parallel_tool_calls_supported": true,
-        "assistant_attachments_in_request_supported": true
+        "assistant_attachments_in_request_supported": true,
+        "support_comment_in_rate_response": true
       },
       "input_attachment_types": [
         "pdf",
