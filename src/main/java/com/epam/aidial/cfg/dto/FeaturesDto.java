@@ -43,4 +43,5 @@ public class FeaturesDto {
     private Boolean consentRequired;
     private boolean parallelToolCallsSupported = true;
     private boolean assistantAttachmentsInRequestSupported;
+    private Boolean supportCommentInRateResponse;
 }

@@ -32,4 +32,5 @@ public class FeaturesDto {
     private Boolean autoCachingSupported;
     private Boolean parallelToolCallsSupported;
     private Boolean assistantAttachmentsInRequestSupported;
+    private Boolean supportCommentInRateResponse;
 }
