@@ -2,19 +2,24 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
+import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
+import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreApplication;
+import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidationContext;
+import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,9 +39,12 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 public class ApplicationImporter extends DeploymentHolderImporter {
 
     private final ApplicationService applicationService;
+    private final ApplicationTypeSchemaService applicationTypeSchemaService;
     private final ApplicationCoreMapper applicationCoreMapper;
+    private final ApplicationTypeSchemaCoreMapper applicationTypeSchemaCoreMapper;
 
     public Collection<ImportComponent<Application>> importApplications(Map<String, CoreApplication> coreApplications,
+                                                                       Map<String, String> coreApplicationTypeSchemas,
                                                                        ConfigImportOptions importOptions) {
         if (MapUtils.isEmpty(coreApplications)) {
             return Collections.emptyList();
@@ -44,7 +52,12 @@ public class ApplicationImporter extends DeploymentHolderImporter {
 
         return coreApplications.entrySet()
                 .stream()
-                .map(entry -> processApplication(entry.getKey(), entry.getValue(), importOptions.conflictResolutionPolicy()))
+                .map(entry -> processApplication(
+                        entry.getKey(),
+                        entry.getValue(),
+                        coreApplicationTypeSchemas,
+                        importOptions.conflictResolutionPolicy())
+                )
                 .toList();
     }
 
@@ -61,7 +74,10 @@ public class ApplicationImporter extends DeploymentHolderImporter {
 
     private ImportComponent<Application> processApplication(String applicationName,
                                                             CoreApplication coreApplication,
+                                                            Map<String, String> coreApplicationTypeSchemas,
                                                             ConflictResolutionPolicy resolutionPolicy) {
+        validateApplicationConformsToSchema(coreApplication, coreApplicationTypeSchemas);
+
         Optional<Application> application = applicationService.tryGetApplication(applicationName);
         if (application.isPresent()) {
             Application existingApplication = application.get();
@@ -108,6 +124,33 @@ public class ApplicationImporter extends DeploymentHolderImporter {
     private Application map(String appName, CoreApplication coreApplication, List<RoleLimit> roleLimits, Application application) {
         coreApplication.setName(appName);
         return applicationCoreMapper.mapApplication(coreApplication, roleLimits, application);
+    }
+
+    private void validateApplicationConformsToSchema(CoreApplication coreApplication,
+                                                     Map<String, String> coreApplicationTypeSchemas) {
+        URI schemaId = coreApplication.getApplicationTypeSchemaId();
+        if (schemaId == null) {
+            return;
+        }
+
+        String schemaIdAsString = schemaId.toString();
+        String configSchema = coreApplicationTypeSchemas.get(schemaIdAsString);
+        CustomApplicationConformToTypeSchemaValidationContext validationCtx = getValidationContext(configSchema, schemaIdAsString);
+
+        var validationMessages = CustomApplicationConformToTypeSchemaValidator.validate(coreApplication, validationCtx);
+        if (!validationMessages.isEmpty()) {
+            throw new IllegalArgumentException("Application: " + coreApplication.getName() + " doesn't conform to its schema. Details: " + validationMessages);
+        }
+    }
+
+    private CustomApplicationConformToTypeSchemaValidationContext getValidationContext(String configSchema, String schemaIdAsString) {
+        if (configSchema != null) {
+            return new CustomApplicationConformToTypeSchemaValidationContext(Map.of(schemaIdAsString, configSchema));
+        } else {
+            var schema = applicationTypeSchemaService.get(schemaIdAsString);
+            var schemaAsCoreString = applicationTypeSchemaCoreMapper.mapToCoreString(schema);
+            return new CustomApplicationConformToTypeSchemaValidationContext(Map.of(schemaIdAsString, schemaAsCoreString));
+        }
     }
 
     public List<ImportComponent<Application>> getActualImportedApplications(Collection<ImportComponent<Application>> applicationImportComponents) {

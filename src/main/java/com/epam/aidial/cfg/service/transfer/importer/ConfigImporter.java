@@ -51,7 +51,7 @@ public class ConfigImporter {
         var adapters = adapterImporter.importAdapters(config.getModels(), importOptions, true);
         var models = modelImporter.importModels(config.getModels(), importOptions);
         var addons = addonImporter.importAddons(config.getAddons(), importOptions);
-        var applications = applicationImporter.importApplications(config.getApplications(), importOptions);
+        var applications = applicationImporter.importApplications(config.getApplications(), config.getApplicationTypeSchemas(), importOptions);
         var routes = routeImporter.importRoutes(config.getRoutes(), importOptions);
         var assistants = assistantImporter.importAssistants(config.getAssistant(), importOptions);
         var toolSets = toolSetImporter.importToolSets(config.getToolsets(), importOptions);
@@ -146,7 +146,7 @@ public class ConfigImporter {
         adapterImporter.importAdapters(config.getModels(), importOptions, false);
         modelImporter.importModels(config.getModels(), importOptions);
         addonImporter.importAddons(config.getAddons(), importOptions);
-        applicationImporter.importApplications(config.getApplications(), importOptions);
+        applicationImporter.importApplications(config.getApplications(), config.getApplicationTypeSchemas(), importOptions);
         routeImporter.importRoutes(config.getRoutes(), importOptions);
         assistantImporter.importAssistants(config.getAssistant(), importOptions);
         toolSetImporter.importToolSets(config.getToolsets(), importOptions);
