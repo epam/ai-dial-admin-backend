@@ -21,6 +21,7 @@ public class InterceptorDto {
     private String displayName;
     private Boolean forwardAuthToken;
     private List<String> entities;
+    private List<String> applicationTypeSchemas;
     private InterceptorSourceDto source;
     private String author;
     @EqualsAndHashCode.Exclude

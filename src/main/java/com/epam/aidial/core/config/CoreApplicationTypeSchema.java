@@ -66,6 +66,9 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("dial:applicationTypeBucketCopy")
     private CopyAppBucketOptions applicationTypeBucketCopy; // 0.37.0
 
+    @JsonProperty("dial:applicationTypeInterceptors")
+    private List<String> applicationTypeInterceptors; // 0.38.0
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)
