@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ConfigExportDto {
+public class ConfigReloadStatusDto {
 
     private boolean isSuccess;
     private String errorMessage;

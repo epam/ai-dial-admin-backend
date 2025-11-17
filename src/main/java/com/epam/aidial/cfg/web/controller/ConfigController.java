@@ -3,7 +3,9 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ExportConfigMapper;
-import com.epam.aidial.cfg.dto.ConfigExportDto;
+import com.epam.aidial.cfg.dto.ConfigExportStatusDto;
+import com.epam.aidial.cfg.dto.ConfigReloadStatusDto;
+import com.epam.aidial.cfg.dto.ConfigSyncStatusDto;
 import com.epam.aidial.cfg.dto.CoreExportRequestDto;
 import com.epam.aidial.cfg.dto.ExportConfigPreviewDto;
 import com.epam.aidial.cfg.dto.ExportRequestDto;
@@ -12,6 +14,7 @@ import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.export.CoreConfigReloadService;
+import com.epam.aidial.cfg.service.reload.ConfigReloadErrorHandler;
 import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.web.facade.mapper.ImportConfigMapper;
 import jakarta.validation.Valid;
@@ -51,6 +54,7 @@ public class ConfigController {
     private final ConfigExportProperties properties;
     private final int importConfigsMaxCount;
     private final ConfigExportErrorHandler configExportErrorHandler;
+    private final ConfigReloadErrorHandler configReloadErrorHandler;
 
     public ConfigController(Optional<CoreConfigReloadService> coreConfigReloadService,
                             ConfigTransfer configTransfer,
@@ -58,7 +62,8 @@ public class ConfigController {
                             ImportConfigMapper importConfigMapper,
                             ConfigExportProperties properties,
                             @Value("${config.import.configsMaxCount}") int importConfigsMaxCount,
-                            ConfigExportErrorHandler configExportErrorHandler) {
+                            ConfigExportErrorHandler configExportErrorHandler,
+                            ConfigReloadErrorHandler configReloadErrorHandler) {
         this.coreConfigReloadService = coreConfigReloadService;
         this.configTransfer = configTransfer;
         this.exportConfigMapper = exportConfigMapper;
@@ -66,6 +71,7 @@ public class ConfigController {
         this.properties = properties;
         this.importConfigsMaxCount = importConfigsMaxCount;
         this.configExportErrorHandler = configExportErrorHandler;
+        this.configReloadErrorHandler = configReloadErrorHandler;
     }
 
     @GetMapping(path = "/reload")
@@ -77,11 +83,17 @@ public class ConfigController {
         }
     }
 
-    @GetMapping(path = "/export/status")
-    public ConfigExportDto getConfigExportStatus() {
-        String errorMessage = configExportErrorHandler.getLastErrorMessage();
-        boolean isSuccess = !StringUtils.isNotEmpty(errorMessage);
-        return new ConfigExportDto(isSuccess, errorMessage);
+    @GetMapping(path = "/sync/status")
+    public ConfigSyncStatusDto getConfigSyncStatus() {
+        String exportErrorMessage = configExportErrorHandler.getLastErrorMessage();
+        boolean isExportSuccess = !StringUtils.isNotEmpty(exportErrorMessage);
+        ConfigExportStatusDto configExportStatusDto = new ConfigExportStatusDto(isExportSuccess, exportErrorMessage);
+
+        String reloadErrorMessage = configReloadErrorHandler.getLastErrorMessage();
+        boolean isReloadSuccess = !StringUtils.isNotEmpty(reloadErrorMessage);
+        ConfigReloadStatusDto configReloadStatusDto = new ConfigReloadStatusDto(isReloadSuccess, reloadErrorMessage);
+
+        return new ConfigSyncStatusDto(configExportStatusDto, configReloadStatusDto);
     }
 
     @PostMapping(path = "/export", consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
