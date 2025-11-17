@@ -91,6 +91,7 @@ public class SecurityConfiguration {
                                     var converter = jwtAuthenticationConverterFactory.getConverter(issuer);
                                     var authenticationToken = converter.convert(token);
                                     var allowed = allowedRolesByIssuer.getOrDefault(issuer, Set.of());
+                                    log.trace("Allowed roles for issuer:{}.", issuer);
                                     var filtered = authenticationToken.getAuthorities().stream()
                                             .map(GrantedAuthority::getAuthority)
                                             .filter(allowed::contains)

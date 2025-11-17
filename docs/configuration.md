@@ -95,14 +95,19 @@ Additional Kubernetes client configuration options are available from the [Fabri
 | Setting                                            | Environment Variable          | Default           | Required                                          | Applied when                   | Description                                           |
 |----------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|-------------------------------------------------------|
 | config.rest.security.mode                          | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)            |
-| config.rest.security.allowedRoles                  | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions |
+| config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions |
 | config.rest.security.principal-claim               | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | JWT claim name for user identification                |
 | config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                  |
 
 ### Identity Providers Configuration
 
 Applied when: config.rest.security.mode=oidc
-The configuration is defined in environment variables
+<br>The configuration is defined in environment variables
+<br><br>**Note:** `*` represents a wildcard placeholder, meaning **any provider name**.
+<br>**Example:**
+
+- `providers.auth0.issuer`
+- `providers.keycloak.client-id`
 
 | Setting                   | Environment Variable (as example) | Required | Applied when                   | Description                                                                                 |
 |---------------------------|-----------------------------------|----------|--------------------------------|---------------------------------------------------------------------------------------------|
