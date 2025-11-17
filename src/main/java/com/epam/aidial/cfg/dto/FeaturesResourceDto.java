@@ -22,4 +22,5 @@ public class FeaturesResourceDto {
     private Boolean autoCachingSupported;
     private Boolean parallelToolCallsSupported;
     private boolean assistantAttachmentsInRequestSupported;
+    private Boolean supportCommentInRateResponse;
 }

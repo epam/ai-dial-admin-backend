@@ -47,7 +47,8 @@
       "autoCachingSupported": false,
       "consentRequired": true,
       "parallelToolCallsSupported": true,
-      "assistantAttachmentsInRequestSupported": true
+      "assistantAttachmentsInRequestSupported": true,
+      "supportCommentInRateResponse": true
     },
     "applicationProperties": {
       "debug": true,

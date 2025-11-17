@@ -418,7 +418,8 @@
         "autoCachingSupported": {"type": "boolean"},
         "consentRequired": {"type": "boolean"},
         "parallelToolCallsSupported": {"type": "boolean"},
-        "assistantAttachmentsInRequestSupported": {"type": "boolean"}
+        "assistantAttachmentsInRequestSupported": {"type": "boolean"},
+        "supportCommentInRateResponse": {"type": "boolean"}
       }
     },
     "CoreSecuredResource": {
