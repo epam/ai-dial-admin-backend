@@ -96,70 +96,28 @@ Additional Kubernetes client configuration options are available from the [Fabri
 | Setting                                            | Environment Variable          | Default           | Required                                          | Applied when                   | Description                                           |
 |----------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|-------------------------------------------------------|
 | config.rest.security.mode                          | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)            |
-| config.rest.security.allowedRoles                  | SECURITY_ALLOWED_ROLES        | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions |
+| config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions |
 | config.rest.security.principal-claim               | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | JWT claim name for user identification                |
 | config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                  |
 
-### Azure Provider Configuration
+### Identity Providers Configuration
 
-The configuration is defined in the configuration file application-iam-providers.properties
+Applied when: config.rest.security.mode=oidc
+<br>The configuration is defined in environment variables
+<br><br>**Note:** `*` represents a wildcard placeholder, meaning **any provider name**.
+<br>**Example:**
 
-| Setting                     | Environment Variable                  | Default                                                                                                                                                                                                                                                 | Required                                          | Applied when                   | Description                                                                                 |
-|-----------------------------|---------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------|
-| providers.azure.issuer      | SECURITY_JWT_ACCEPTED_ISSUERS_AZURE   | -                                                                                                                                                                                                                                                       | Yes                                               | config.rest.security.mode=oidc | List of accepted JWT token issuers (Azure Provider)                                         |
-| providers.azure.jwk-set-uri | SECURITY_JWT_JWKS_URI_AZURE           | https://login.microsoftonline.com/common/discovery/v2.0/keys                                                                                                                                                                                            | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | URI for JSON Web Key Set (Azure Provider)                                                   |
-| providers.azure.aliases     | SECURITY_JWT_ACCEPTED_ISSUERS_ALIAS   | login.microsoftonline.com, login.windows.net, login.microsoft.com, sts.windows.net, login.partner.microsoftonline.cn, login.chinacloudapi.cn, login.microsoftonline.de, login.microsoftonline.us, login.usgovcloudapi.net, login-us.microsoftonline.com | No                                                | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers (Azure Provider)                                     |
-| providers.azure.audiences   | DIAL_ADMIN_CLIENT_ID                  | -                                                                                                                                                                                                                                                       | Yes                                               | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
-| providers.azure.audiences   | SECURITY_JWT_ACCEPTED_AUDIENCES_AZURE | -                                                                                                                                                                                                                                                       | No                                                | config.rest.security.mode=oidc | List of additional accepted JWT token audiences (Azure Provider)                            |
-| providers.azure.role-claims | SECURITY_ROLES_CLAIM_AZURE            | roles                                                                                                                                                                                                                                                   | No                                                | config.rest.security.mode=oidc | JWT claim name for user roles (Azure Provider)                                              |
+- `providers.auth0.issuer`
+- `providers.keycloak.client-id`
 
-### Keycloak Provider Configuration
-
-The configuration is defined in the configuration file application-iam-providers.properties
-
-| Setting                        | Environment Variable                     | Default | Required                                          | Applied when                   | Description                                                                                 |
-|--------------------------------|------------------------------------------|---------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------|
-| providers.keycloak.issuer      | SECURITY_JWT_ACCEPTED_ISSUERS_KEYCLOAK   | -       | Yes                                               | config.rest.security.mode=oidc | List of accepted JWT token issuers (Keycloak Provider)                                      |
-| providers.keycloak.jwk-set-uri | SECURITY_JWT_JWKS_URI_KEYCLOAK           | -       | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | URI for JSON Web Key Set (Keycloak Provider)                                                |
-| providers.keycloak.audiences   | DIAL_ADMIN_CLIENT_ID                     | -       | Yes                                               | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
-| providers.keycloak.audiences   | SECURITY_JWT_ACCEPTED_AUDIENCES_KEYCLOAK | -       | No                                                | config.rest.security.mode=oidc | List of additional accepted JWT token audiences (Keycloak Provider)                         |
-| providers.keycloak.role-claims | SECURITY_ROLES_CLAIM_KEYCLOAK            | roles   | No                                                | config.rest.security.mode=oidc | JWT claim name for user roles (Keycloak Provider)                                           |
-
-### Auth0 Provider Configuration
-
-The configuration is defined in the configuration file application-iam-providers.properties
-
-| Setting                     | Environment Variable                  | Default | Required                                          | Applied when                   | Description                                                                                 |
-|-----------------------------|---------------------------------------|---------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------|
-| providers.auth0.issuer      | SECURITY_JWT_ACCEPTED_ISSUERS_AUTH0   | -       | Yes                                               | config.rest.security.mode=oidc | List of accepted JWT token issuers (Auth0 Provider)                                         |
-| providers.auth0.jwk-set-uri | SECURITY_JWT_JWKS_URI_AUTH0           | -       | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | URI for JSON Web Key Set (Auth0 Provider)                                                   |
-| providers.auth0.audiences   | DIAL_ADMIN_CLIENT_ID                  | -       | Yes                                               | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
-| providers.auth0.audiences   | SECURITY_JWT_ACCEPTED_AUDIENCES_AUTH0 | -       | No                                                | config.rest.security.mode=oidc | List of additional accepted JWT token audiences (Auth0 Provider)                            |
-| providers.auth0.role-claims | SECURITY_ROLES_CLAIM_AUTH0            | roles   | No                                                | config.rest.security.mode=oidc | JWT claim name for user roles (Auth0 Provider)                                              |
-
-### Okta Provider Configuration
-
-The configuration is defined in the configuration file application-iam-providers.properties
-
-| Setting                    | Environment Variable                 | Default | Required                                          | Applied when                   | Description                                                                                 |
-|----------------------------|--------------------------------------|---------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------|
-| providers.okta.issuer      | SECURITY_JWT_ACCEPTED_ISSUERS_OKTA   | -       | Yes                                               | config.rest.security.mode=oidc | List of accepted JWT token issuers (Okta Provider)                                          |
-| providers.okta.jwk-set-uri | SECURITY_JWT_JWKS_URI_OKTA           | -       | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | URI for JSON Web Key Set (Okta Provider)                                                    |
-| providers.okta.audiences   | DIAL_ADMIN_CLIENT_ID                 | -       | Yes                                               | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
-| providers.okta.audiences   | SECURITY_JWT_ACCEPTED_AUDIENCES_OKTA | -       | No                                                | config.rest.security.mode=oidc | List of additional accepted JWT token audiences (Okta Provider)                             |
-| providers.okta.role-claims | SECURITY_ROLES_CLAIM_OKTA            | roles   | No                                                | config.rest.security.mode=oidc | JWT claim name for user roles (Okta Provider)                                               |
-
-### Cognito Provider Configuration
-
-The configuration is defined in the configuration file application-iam-providers.properties
-
-| Setting                       | Environment Variable                    | Default | Required                                          | Applied when                   | Description                                                                                 |
-|-------------------------------|-----------------------------------------|---------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------|
-| providers.cognito.issuer      | SECURITY_JWT_ACCEPTED_ISSUERS_COGNITO   | -       | Yes                                               | config.rest.security.mode=oidc | List of accepted JWT token issuers (Cognito Provider)                                       |
-| providers.cognito.jwk-set-uri | SECURITY_JWT_JWKS_URI_COGNITO           | -       | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | URI for JSON Web Key Set (Cognito Provider)                                                 |
-| providers.cognito.audiences   | DIAL_ADMIN_CLIENT_ID                    | -       | Yes                                               | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
-| providers.cognito.audiences   | SECURITY_JWT_ACCEPTED_AUDIENCES_COGNITO | -       | No                                                | config.rest.security.mode=oidc | List of additional accepted JWT token audiences (Cognito Provider)                          |
-| providers.cognito.role-claims | SECURITY_ROLES_CLAIM_COGNITO            | roles   | No                                                | config.rest.security.mode=oidc | JWT claim name for user roles (Cognito Provider)                                            |
+| Setting                   | Environment Variable (as example) | Required | Applied when                   | Description                                                                                 |
+|---------------------------|-----------------------------------|----------|--------------------------------|---------------------------------------------------------------------------------------------|
+| providers.*.issuer        | providers.azure.issuer            | Yes      | config.rest.security.mode=oidc | List of accepted JWT token issuers for the provider                                         |
+| providers.*.jwk-set-uri   | providers.azure.jwk-set-uri       | Yes      | config.rest.security.mode=oidc | URI for JSON Web Key Set for the provider                                                   |
+| providers.*.aliases       | providers.azure.aliases           | No       | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers for the provider(only for Azure provider)            |
+| providers.*.audiences     | providers.azure.audiences         | Yes      | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
+| providers.*.role-claims   | providers.azure.role-claims       | No       | config.rest.security.mode=oidc | JWT claim name for user roles for the provider                                              |
+| providers.*.allowed-roles | providers.azure.allowed-roles     | No       | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                      |
 
 ## Cloud Provider Configuration
 

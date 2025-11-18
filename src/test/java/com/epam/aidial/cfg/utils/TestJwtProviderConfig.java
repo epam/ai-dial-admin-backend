@@ -5,12 +5,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import java.util.Set;
+
 @Configuration
 public class TestJwtProviderConfig {
     @Primary
     @Bean
     public JwtProvidersProperties jwtProvidersProperties() {
         var config = JwtProviderTestHelper.createProviderConfig();
+        config.setAllowedRoles(Set.of("testRole"));
 
         var config2 = JwtProviderTestHelper.createProviderConfig();
         config2.setIssuer("https://sts.windows.net/issuer_test2/");
