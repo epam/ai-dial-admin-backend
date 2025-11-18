@@ -90,11 +90,11 @@ public class SecurityConfiguration {
                                     var issuer = token.getIssuer().toString();
                                     var converter = jwtAuthenticationConverterFactory.getConverter(issuer);
                                     var authenticationToken = converter.convert(token);
-                                    var allowed = allowedRolesByIssuer.getOrDefault(issuer, Set.of());
+                                    var allowedRolesForIssuer = allowedRolesByIssuer.getOrDefault(issuer, Set.of());
                                     log.trace("Allowed roles for issuer:{}.", issuer);
                                     var filtered = authenticationToken.getAuthorities().stream()
                                             .map(GrantedAuthority::getAuthority)
-                                            .filter(allowed::contains)
+                                            .filter(allowedRolesForIssuer::contains)
                                             .map(SimpleGrantedAuthority::new)
                                             .toList();
                                     if (filtered.isEmpty()) {
