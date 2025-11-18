@@ -1,4 +1,4 @@
-package com.epam.aidial.cfg.service.transfer.importer;
+package com.epam.aidial.cfg.service.config.transfer.importer;
 
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.Deployment;
@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.config.transfer.importer.RouteImporter;
 import com.epam.aidial.core.config.CoreRoute;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

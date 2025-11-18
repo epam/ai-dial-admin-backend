@@ -1,6 +1,5 @@
-package com.epam.aidial.cfg.service.normalizer.impl;
+package com.epam.aidial.cfg.service.config.normalizer.impl;
 
-import com.epam.aidial.cfg.service.config.normalizer.impl.ApplicationTypeSchemaCoreConfigNormalizer;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
 import org.junit.jupiter.api.BeforeEach;

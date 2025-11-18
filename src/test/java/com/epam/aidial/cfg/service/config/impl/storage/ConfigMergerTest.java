@@ -1,7 +1,6 @@
-package com.epam.aidial.cfg.service.impl.storage;
+package com.epam.aidial.cfg.service.config.impl.storage;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.service.config.impl.storage.ConfigMerger;
 import com.epam.aidial.core.config.Assistants;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreAddon;

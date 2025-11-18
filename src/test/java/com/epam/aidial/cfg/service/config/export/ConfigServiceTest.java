@@ -1,4 +1,4 @@
-package com.epam.aidial.cfg.service.export;
+package com.epam.aidial.cfg.service.config.export;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
@@ -31,7 +31,6 @@ import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
-import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

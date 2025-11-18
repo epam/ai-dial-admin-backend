@@ -1,8 +1,7 @@
-package com.epam.aidial.cfg.service.transfer;
+package com.epam.aidial.cfg.service.config.transfer;
 
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
-import com.epam.aidial.cfg.service.config.transfer.CoreConfigVersionAutoDetectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

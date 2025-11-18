@@ -1,22 +1,13 @@
-package com.epam.aidial.cfg.service.impl.storage;
+package com.epam.aidial.cfg.service.config.impl.storage;
 
-import com.epam.aidial.cfg.service.config.impl.storage.ConfigMerger;
-import com.epam.aidial.cfg.service.config.impl.storage.ConfigPart;
-import com.epam.aidial.cfg.service.config.impl.storage.ConfigSplitter;
-import com.epam.aidial.cfg.service.config.impl.storage.GcpVaultConfigSource;
+import com.azure.core.exception.ResourceNotFoundException;
+import com.azure.security.keyvault.secrets.SecretClient;
+import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.gax.httpjson.HttpJsonStatusCode;
-import com.google.api.gax.rpc.NotFoundException;
-import com.google.api.gax.rpc.StatusCode;
-import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
-import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
-import com.google.cloud.secretmanager.v1.SecretPayload;
-import com.google.cloud.secretmanager.v1.SecretVersionName;
-import com.google.protobuf.ByteString;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,10 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -39,14 +28,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class GcpVaultConfigSourceTest {
+class AzureKeyVaultConfigSourceTest {
 
     @Mock
-    private SecretManagerServiceClient secretClient;
+    private SecretClient secretClient;
     @Captor
-    private ArgumentCaptor<SecretPayload> keyVaultSecretArgumentCaptor;
+    private ArgumentCaptor<KeyVaultSecret> keyVaultSecretArgumentCaptor;
+    private String expirationTimeUnit = "MONTHS";
+    private long expirationPeriod = 3;
     private ObjectMapper objectMapper = new ObjectMapper();
-    private GcpVaultConfigSource source;
+    private AzureKeyVaultConfigSource source;
     @Mock
     private ConfigSplitter configSplitter;
     @Mock
@@ -55,8 +46,9 @@ class GcpVaultConfigSourceTest {
     private VersionAwareFieldFilter versionAwareFieldFilter;
 
     @Test
-    void writeConfig_shouldWriteSecret() throws JsonProcessingException, UnsupportedEncodingException {
-        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+    void writeConfig_shouldWriteSecret() throws JsonProcessingException {
+        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
+            secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -66,26 +58,25 @@ class GcpVaultConfigSourceTest {
 
         when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
-        ByteString body = ByteString.copyFrom("{}", "utf-8");
-        SecretPayload payload = SecretPayload.newBuilder().setData(body).build();
-        AccessSecretVersionResponse response = AccessSecretVersionResponse.newBuilder().setPayload(payload).build();
-        when(secretClient.accessSecretVersion(any(SecretVersionName.class))).thenReturn(response);
+        when(secretClient.getSecret(any(String.class))).thenReturn(new KeyVaultSecret("secret", "{}"));
         Config secretConfig = new Config();
         secretConfig.setKeys(Map.of("key1", key));
 
         source.writeConfig(config, false);
 
         verify(configSplitter, times(0)).splitConfig(any(), any(), anyInt(), eq(1));
-        verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret1"), keyVaultSecretArgumentCaptor.capture());
+        verify(secretClient, times(1)).setSecret(keyVaultSecretArgumentCaptor.capture());
 
-        List<SecretPayload> allValues = keyVaultSecretArgumentCaptor.getAllValues();
+        List<KeyVaultSecret> allValues = keyVaultSecretArgumentCaptor.getAllValues();
         Assertions.assertEquals(allValues.size(), 1);
-        Assertions.assertEquals(objectMapper.readValue(allValues.get(0).getData().toStringUtf8(), Config.class), config);
+        Assertions.assertEquals(allValues.get(0).getName(), "secret1");
+        Assertions.assertEquals(objectMapper.readValue(allValues.get(0).getValue(), Config.class), config);
     }
 
     @Test
-    void writeConfig_shouldWriteWithoutSplit() throws JsonProcessingException, UnsupportedEncodingException {
-        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
+    void writeConfig_shouldWriteWithoutSplit() throws JsonProcessingException {
+        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1", "secret2"),
+            secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -95,10 +86,7 @@ class GcpVaultConfigSourceTest {
 
         when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
-        ByteString body = ByteString.copyFrom("{}", "utf-8");
-        SecretPayload payload = SecretPayload.newBuilder().setData(body).build();
-        AccessSecretVersionResponse response = AccessSecretVersionResponse.newBuilder().setPayload(payload).build();
-        when(secretClient.accessSecretVersion(any(SecretVersionName.class))).thenReturn(response);
+        when(secretClient.getSecret(any(String.class))).thenReturn(new KeyVaultSecret("secret", "{}"));
         Config secretConfig = new Config();
         secretConfig.setKeys(Map.of("key1", key));
         ConfigPart configPart = new ConfigPart(secretConfig, objectMapper.writeValueAsString(secretConfig));
@@ -106,18 +94,20 @@ class GcpVaultConfigSourceTest {
 
         source.writeConfig(config, false);
 
-        verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret1"), keyVaultSecretArgumentCaptor.capture());
-        verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret2"), keyVaultSecretArgumentCaptor.capture());
+        verify(secretClient, times(2)).setSecret(keyVaultSecretArgumentCaptor.capture());
 
-        List<SecretPayload> allValues = keyVaultSecretArgumentCaptor.getAllValues();
+        List<KeyVaultSecret> allValues = keyVaultSecretArgumentCaptor.getAllValues();
         Assertions.assertEquals(allValues.size(), 2);
-        Assertions.assertEquals(objectMapper.readValue(allValues.get(0).getData().toStringUtf8(), Config.class), config);
-        Assertions.assertEquals(objectMapper.readValue(allValues.get(1).getData().toStringUtf8(), Config.class), new Config());
+        Assertions.assertEquals(allValues.get(0).getName(), "secret1");
+        Assertions.assertEquals(objectMapper.readValue(allValues.get(0).getValue(), Config.class), config);
+        Assertions.assertEquals(allValues.get(1).getName(), "secret2");
+        Assertions.assertEquals(objectMapper.readValue(allValues.get(1).getValue(), Config.class), new Config());
     }
 
     @Test
     void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JsonProcessingException {
-        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
+        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1", "secret2"),
+            secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -138,7 +128,8 @@ class GcpVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldCreateResourceWhenTrue() throws JsonProcessingException {
-        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
+            secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -148,21 +139,23 @@ class GcpVaultConfigSourceTest {
 
         when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
-        when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
-                .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
+        when(secretClient.getSecret(any(String.class)))
+                .thenThrow(new ResourceNotFoundException("Secret not found", null));
 
         source.writeConfig(config, true);
 
-        verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret1"), keyVaultSecretArgumentCaptor.capture());
+        verify(secretClient, times(1)).setSecret(keyVaultSecretArgumentCaptor.capture());
 
-        List<SecretPayload> allValues = keyVaultSecretArgumentCaptor.getAllValues();
+        List<KeyVaultSecret> allValues = keyVaultSecretArgumentCaptor.getAllValues();
         Assertions.assertEquals(1, allValues.size());
-        Assertions.assertEquals(config, objectMapper.readValue(allValues.get(0).getData().toStringUtf8(), Config.class));
+        Assertions.assertEquals("secret1", allValues.get(0).getName());
+        Assertions.assertEquals(objectMapper.readValue(allValues.get(0).getValue(), Config.class), config);
     }
 
     @Test
     void writeConfig_shouldThrowExceptionWhenResourceNotFoundAndCreateResourcesFalse() {
-        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
+            secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -172,8 +165,8 @@ class GcpVaultConfigSourceTest {
 
         when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
-        when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
-                .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
+        when(secretClient.getSecret(any(String.class)))
+                .thenThrow(new ResourceNotFoundException("Secret not found", null));
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
@@ -188,4 +181,5 @@ class GcpVaultConfigSourceTest {
         Config config = new Config();
         return new ConfigPart(config, objectMapper.writeValueAsString(config));
     }
+
 }
