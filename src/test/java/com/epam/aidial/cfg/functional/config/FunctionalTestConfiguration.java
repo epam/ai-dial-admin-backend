@@ -51,8 +51,8 @@ import java.util.Map;
         "com.epam.aidial.cfg.dao",
         "com.epam.aidial.cfg.domain",
         "com.epam.aidial.cfg.web.facade",
-        "com.epam.aidial.cfg.service.transfer",
-        "com.epam.aidial.cfg.service.normalizer",
+        "com.epam.aidial.cfg.service.config.transfer",
+        "com.epam.aidial.cfg.service.config.normalizer",
         "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
