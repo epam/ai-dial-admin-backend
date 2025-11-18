@@ -1,7 +1,8 @@
 package com.epam.aidial.cfg.service.export;
 
-import com.epam.aidial.cfg.service.impl.storage.ConfigSource;
-import com.epam.aidial.cfg.service.transfer.ConfigTransferLock;
+import com.epam.aidial.cfg.service.config.export.ConfigExportServiceSecuredImpl;
+import com.epam.aidial.cfg.service.config.impl.storage.ConfigSource;
+import com.epam.aidial.cfg.service.config.transfer.ConfigTransferLock;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import com.epam.aidial.core.config.CoreModel;

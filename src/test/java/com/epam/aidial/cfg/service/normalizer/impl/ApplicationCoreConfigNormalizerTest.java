@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service.normalizer.impl;
 
+import com.epam.aidial.cfg.service.config.normalizer.impl.ApplicationCoreConfigNormalizer;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidationContext;

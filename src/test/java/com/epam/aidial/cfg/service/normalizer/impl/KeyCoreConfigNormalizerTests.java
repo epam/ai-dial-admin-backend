@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service.normalizer.impl;
 
+import com.epam.aidial.cfg.service.config.normalizer.impl.KeyCoreConfigNormalizer;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import org.assertj.core.api.Assertions;

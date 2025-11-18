@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.impl.storage;
 
 import com.epam.aidial.cfg.configuration.K8sProperties;
+import com.epam.aidial.cfg.service.config.impl.storage.K8ConfigService;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;

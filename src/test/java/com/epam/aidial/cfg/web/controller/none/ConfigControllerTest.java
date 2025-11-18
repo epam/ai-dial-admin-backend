@@ -15,11 +15,10 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.dto.FullExportRequestDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
-import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
-import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.export.CoreConfigReloadService;
-import com.epam.aidial.cfg.service.reload.ConfigReloadErrorHandler;
-import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
+import com.epam.aidial.cfg.service.config.ConfigSyncErrorHandler;
+import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.config.export.CoreConfigReloadService;
+import com.epam.aidial.cfg.service.config.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ConfigController;
 import com.epam.aidial.cfg.web.facade.mapper.AdapterDtoMapperImpl;
@@ -102,10 +101,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     private ConfigExportProperties properties;
 
     @MockitoBean
-    private ConfigExportErrorHandler configExportErrorHandler;
-
-    @MockitoBean
-    private ConfigReloadErrorHandler configReloadErrorHandler;
+    private ConfigSyncErrorHandler configSyncErrorHandler;
 
     @Test
     void reload() throws Exception {
@@ -372,17 +368,11 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testGetConfigSyncStatus_isSuccess() throws Exception {
         // given
-        when(configExportErrorHandler.getLastErrorMessage()).thenReturn(null);
-        when(configReloadErrorHandler.getLastErrorMessage()).thenReturn(null);
+        when(configSyncErrorHandler.getPrefixedLastErrorMessage()).thenReturn(null);
 
         String response = """
                 {
-                  "configExportStatusDto": {
                     "success": true
-                  },
-                  "configReloadStatusDto": {
-                    "success": true
-                  }
                 }""";
 
         // when
@@ -393,69 +383,16 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testGetConfigSyncStatus_exportIsNotSuccess() throws Exception {
+    void testGetConfigSyncStatus_isNotSuccess() throws Exception {
         // given
-        when(configExportErrorHandler.getLastErrorMessage()).thenReturn("Some error msg");
-        when(configReloadErrorHandler.getLastErrorMessage()).thenReturn(null);
+        when(configSyncErrorHandler.getPrefixedLastErrorMessage()).thenReturn("Some error msg");
 
         String response = """
                 {
-                  "configExportStatusDto": {
                     "success": false,
-                    "errorMessage": "Some error msg"
-                  },
-                  "configReloadStatusDto": {
-                    "success": true
-                  }
-                }""";
-
-        // when
-        mockMvc.perform(get("/api/v1/configs/sync/status"))
-                //then
-                .andExpect(status().isOk())
-                .andExpect(content().json(response, JsonCompareMode.LENIENT));
-    }
-
-    @Test
-    void testGetConfigSyncStatus_reloadIsNotSuccess() throws Exception {
-        // given
-        when(configExportErrorHandler.getLastErrorMessage()).thenReturn(null);
-        when(configReloadErrorHandler.getLastErrorMessage()).thenReturn("Some error msg");
-
-        String response = """
-                {
-                  "configExportStatusDto": {
-                    "success": true
-                  },
-                  "configReloadStatusDto": {
-                    "success": false,
-                    "errorMessage": "Some error msg"
-                  }
-                }""";
-
-        // when
-        mockMvc.perform(get("/api/v1/configs/sync/status"))
-                //then
-                .andExpect(status().isOk())
-                .andExpect(content().json(response, JsonCompareMode.LENIENT));
-    }
-
-    @Test
-    void testGetConfigSyncStatus_exportAndReloadIsNotSuccess() throws Exception {
-        // given
-        when(configExportErrorHandler.getLastErrorMessage()).thenReturn("Some export error msg");
-        when(configReloadErrorHandler.getLastErrorMessage()).thenReturn("Some reload error msg");
-
-        String response = """
-                {
-                  "configExportStatusDto": {
-                    "success": false,
-                    "errorMessage": "Some export error msg"
-                  },
-                  "configReloadStatusDto": {
-                    "success": false,
-                    "errorMessage": "Some reload error msg"
-                  }
+                    "errors": [
+                        "Some error msg"
+                    ]
                 }""";
 
         // when

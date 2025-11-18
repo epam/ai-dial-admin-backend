@@ -3,19 +3,16 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ExportConfigMapper;
-import com.epam.aidial.cfg.dto.ConfigExportStatusDto;
-import com.epam.aidial.cfg.dto.ConfigReloadStatusDto;
 import com.epam.aidial.cfg.dto.ConfigSyncStatusDto;
 import com.epam.aidial.cfg.dto.CoreExportRequestDto;
 import com.epam.aidial.cfg.dto.ExportConfigPreviewDto;
 import com.epam.aidial.cfg.dto.ExportRequestDto;
 import com.epam.aidial.cfg.dto.ImportConfigPreviewDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
-import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
-import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.export.CoreConfigReloadService;
-import com.epam.aidial.cfg.service.reload.ConfigReloadErrorHandler;
-import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
+import com.epam.aidial.cfg.service.config.ConfigSyncErrorHandler;
+import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.config.export.CoreConfigReloadService;
+import com.epam.aidial.cfg.service.config.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.web.facade.mapper.ImportConfigMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -53,8 +50,7 @@ public class ConfigController {
     private final ImportConfigMapper importConfigMapper;
     private final ConfigExportProperties properties;
     private final int importConfigsMaxCount;
-    private final ConfigExportErrorHandler configExportErrorHandler;
-    private final ConfigReloadErrorHandler configReloadErrorHandler;
+    private final List<ConfigSyncErrorHandler> configExportErrorHandlers;
 
     public ConfigController(Optional<CoreConfigReloadService> coreConfigReloadService,
                             ConfigTransfer configTransfer,
@@ -62,16 +58,14 @@ public class ConfigController {
                             ImportConfigMapper importConfigMapper,
                             ConfigExportProperties properties,
                             @Value("${config.import.configsMaxCount}") int importConfigsMaxCount,
-                            ConfigExportErrorHandler configExportErrorHandler,
-                            ConfigReloadErrorHandler configReloadErrorHandler) {
+                            List<ConfigSyncErrorHandler> configExportErrorHandlers) {
         this.coreConfigReloadService = coreConfigReloadService;
         this.configTransfer = configTransfer;
         this.exportConfigMapper = exportConfigMapper;
         this.importConfigMapper = importConfigMapper;
         this.properties = properties;
         this.importConfigsMaxCount = importConfigsMaxCount;
-        this.configExportErrorHandler = configExportErrorHandler;
-        this.configReloadErrorHandler = configReloadErrorHandler;
+        this.configExportErrorHandlers = configExportErrorHandlers;
     }
 
     @GetMapping(path = "/reload")
@@ -85,15 +79,14 @@ public class ConfigController {
 
     @GetMapping(path = "/sync/status")
     public ConfigSyncStatusDto getConfigSyncStatus() {
-        String exportErrorMessage = configExportErrorHandler.getLastErrorMessage();
-        boolean isExportSuccess = !StringUtils.isNotEmpty(exportErrorMessage);
-        ConfigExportStatusDto configExportStatusDto = new ConfigExportStatusDto(isExportSuccess, exportErrorMessage);
+        List<String> errors = configExportErrorHandlers.stream()
+                .map(ConfigSyncErrorHandler::getPrefixedLastErrorMessage)
+                .filter(StringUtils::isNotEmpty)
+                .toList();
 
-        String reloadErrorMessage = configReloadErrorHandler.getLastErrorMessage();
-        boolean isReloadSuccess = !StringUtils.isNotEmpty(reloadErrorMessage);
-        ConfigReloadStatusDto configReloadStatusDto = new ConfigReloadStatusDto(isReloadSuccess, reloadErrorMessage);
+        boolean isSuccess = errors.isEmpty();
 
-        return new ConfigSyncStatusDto(configExportStatusDto, configReloadStatusDto);
+        return new ConfigSyncStatusDto(isSuccess, isSuccess ? null : errors);
     }
 
     @PostMapping(path = "/export", consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
