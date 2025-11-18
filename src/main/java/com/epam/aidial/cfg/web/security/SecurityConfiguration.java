@@ -91,12 +91,12 @@ public class SecurityConfiguration {
                                     var converter = jwtAuthenticationConverterFactory.getConverter(issuer);
                                     var authenticationToken = converter.convert(token);
                                     var allowedRolesForIssuer = allowedRolesByIssuer.getOrDefault(issuer, Set.of());
-                                    log.trace("Allowed roles for issuer:{}.", issuer);
                                     var filtered = authenticationToken.getAuthorities().stream()
                                             .map(GrantedAuthority::getAuthority)
                                             .filter(allowedRolesForIssuer::contains)
                                             .map(SimpleGrantedAuthority::new)
                                             .toList();
+                                    log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}", token, issuer, authenticationToken, allowedRolesForIssuer, authenticationToken.getAuthorities());
                                     if (filtered.isEmpty()) {
                                         log.warn("Access denied for issuer:{}. No allowed roles for user {}", issuer, authenticationToken.getName());
                                         return new JwtAuthenticationToken(token);
