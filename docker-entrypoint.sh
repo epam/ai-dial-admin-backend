@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -Ee
 
 # If the environment variable `USE_SYSTEM_CA_CERTS` is set, the Docker container will automatically import 

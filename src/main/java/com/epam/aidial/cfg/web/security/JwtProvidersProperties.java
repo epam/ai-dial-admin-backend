@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 
 @Component
@@ -28,6 +29,7 @@ public class JwtProvidersProperties {
         private List<String> audiences;
         private List<String> aliases;
         private String roleClaims;
+        private Set<String> allowedRoles;
     }
 
     @PostConstruct

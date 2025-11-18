@@ -25,10 +25,10 @@ Create new role "ConfigAdmin".
 - Now go to ai-dial-admin-backend application.properties and configure Identity Provider as follows:
     * application.properties
 ```properties
-config.rest.security=oidc
+config.rest.security.mode=oidc
 ```
 
-* application-iam-providers.properties
+* environment variables
 
 ```properties
 providers.keycloak.issuer=http://localhost:8888/realms/master
