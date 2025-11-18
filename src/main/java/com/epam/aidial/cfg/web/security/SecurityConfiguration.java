@@ -96,7 +96,8 @@ public class SecurityConfiguration {
                                             .filter(allowedRolesForIssuer::contains)
                                             .map(SimpleGrantedAuthority::new)
                                             .toList();
-                                    log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}", token, issuer, authenticationToken, allowedRolesForIssuer, authenticationToken.getAuthorities());
+                                    log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
+                                            token, issuer, authenticationToken, allowedRolesForIssuer, authenticationToken.getAuthorities());
                                     if (filtered.isEmpty()) {
                                         log.warn("Access denied for issuer:{}. No allowed roles for user {}", issuer, authenticationToken.getName());
                                         return new JwtAuthenticationToken(token);
