@@ -32,8 +32,7 @@ public class RoutePathValidator implements ConstraintValidator<RoutePath, String
         }
 
         // Check if string contains regex metacharacters
-        boolean containsRegexSymbols = REGEX_METACHARACTERS.matcher(value).matches() ||
-                value.contains("*") || value.contains("+") || value.contains("?");
+        boolean containsRegexSymbols = REGEX_METACHARACTERS.matcher(value).matches() || value.contains("*") || value.contains("+") || value.contains("?");
 
         if (containsRegexSymbols) {
             // Validate as regex pattern
