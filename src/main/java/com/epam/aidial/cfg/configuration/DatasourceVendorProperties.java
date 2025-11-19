@@ -23,15 +23,13 @@ public class DatasourceVendorProperties {
         log.info("Validating datasource.vendor property. Value: {}", vendor);
 
         if (StringUtils.isBlank(vendor)) {
-            throw new InvalidDatasourceVendorException(
-                "Undefined datasource.vendor value: '" + vendor + "'. " +
-                "Valid values are: " + String.join(", ", VALID_VENDORS));
+            throw new InvalidDatasourceVendorException("Undefined datasource.vendor value: '" + vendor
+                    + "'. " + "Valid values are: " + String.join(", ", VALID_VENDORS));
         }
 
         if (!VALID_VENDORS.contains(vendor)) {
-            throw new InvalidDatasourceVendorException(
-                "Invalid datasource.vendor value: '" + vendor + "'. " +
-                "Valid values are: " + String.join(", ", VALID_VENDORS));
+            throw new InvalidDatasourceVendorException("Invalid datasource.vendor value: '" + vendor + "'. "
+                    + "Valid values are: " + String.join(", ", VALID_VENDORS));
         }
 
         log.info("Datasource vendor validation successful for vendor: {}", vendor);
