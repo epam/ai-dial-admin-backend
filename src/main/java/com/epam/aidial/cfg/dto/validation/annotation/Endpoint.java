@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.dto.validation.annotation;
 
-import com.epam.aidial.cfg.dto.validation.validator.ValidEndpointValidator;
+import com.epam.aidial.cfg.dto.validation.validator.EndpointValidator;
 import jakarta.validation.Constraint;
 
 import java.lang.annotation.Documented;
@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Constraint(validatedBy = {ValidEndpointValidator.class})
+@Constraint(validatedBy = {EndpointValidator.class})
 @Documented
 @Retention(RUNTIME)
 @Target(FIELD)

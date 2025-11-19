@@ -221,7 +221,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     }
 
     @Test
-    void testCreateToolSetsResourceWithUndefinedDisplayName() throws Exception {
+    void testCreateToolSetResourceWithUndefinedDisplayName() throws Exception {
         var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with null displayName
@@ -234,10 +234,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(jsonNullDisplayName))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
+
+        verifyNoInteractions(toolSetResourceService);
     }
 
     @Test
-    void testCreateToolSetsResourceWithEmptyDisplayName() throws Exception {
+    void testCreateToolSetResourceWithEmptyDisplayName() throws Exception {
         var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with empty displayName
@@ -250,10 +252,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(jsonEmptyDisplayName))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
+
+        verifyNoInteractions(toolSetResourceService);
     }
 
     @Test
-    void testCreateToolSetsResourceWithEmptyEndpoint() throws Exception {
+    void testCreateToolSetResourceWithEmptyEndpoint() throws Exception {
         var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with empty endpoint
@@ -266,10 +270,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(jsonEmptyEndpoint))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("endpoint: Completion endpoint is required"));
+
+        verifyNoInteractions(toolSetResourceService);
     }
 
     @Test
-    void testCreateToolSetsResourceWithInvalidEndpoint() throws Exception {
+    void testCreateToolSetResourceWithInvalidEndpoint() throws Exception {
         var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with invalid endpoint URL
