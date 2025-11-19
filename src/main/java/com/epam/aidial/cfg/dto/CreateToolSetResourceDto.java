@@ -1,12 +1,11 @@
 package com.epam.aidial.cfg.dto;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
+import com.epam.aidial.cfg.dto.validation.annotation.ValidEndpoint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class CreateToolSetResourceDto {
@@ -17,7 +16,10 @@ public class CreateToolSetResourceDto {
     private String version;
     @NotNull
     private String folderId;
+    @NotBlank(message = "Completion endpoint is required")
+    @ValidEndpoint
     private String endpoint;
+    @NotBlank(message = "Display name is required")
     private String displayName;
     private String displayVersion;
     private String iconUrl;
