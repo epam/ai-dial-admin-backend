@@ -1,14 +1,14 @@
 package com.epam.aidial.cfg.dto.validation.validator;
 
 import com.epam.aidial.cfg.domain.validator.EndpointValidator;
-import com.epam.aidial.cfg.dto.validation.annotation.ValidEndpoint;
+import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class ValidEndpointValidator implements ConstraintValidator<ValidEndpoint, String> {
+public class ValidEndpointValidator implements ConstraintValidator<Endpoint, String> {
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {

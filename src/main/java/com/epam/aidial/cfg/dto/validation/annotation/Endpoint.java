@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface ValidEndpoint {
+public @interface Endpoint {
 
     String message() default "Invalid endpoint URL";
 

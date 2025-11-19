@@ -26,7 +26,6 @@ import com.epam.aidial.cfg.web.controller.ToolSetResourceController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.modelcontextprotocol.spec.McpSchema;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -222,7 +221,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     }
 
     @Test
-    void testCreateInvalidToolSetsResource() throws Exception {
+    void testCreateToolSetsResourceWithUndefinedDisplayName() throws Exception {
         var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with null displayName
@@ -234,7 +233,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonNullDisplayName))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(Matchers.containsString("displayName")));
+                .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
+    }
+
+    @Test
+    void testCreateToolSetsResourceWithEmptyDisplayName() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with empty displayName
         var dtoEmptyDisplayName = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
@@ -245,7 +249,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonEmptyDisplayName))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(Matchers.containsString("displayName")));
+                .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
+    }
+
+    @Test
+    void testCreateToolSetsResourceWithEmptyEndpoint() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with empty endpoint
         var dtoEmptyEndpoint = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
@@ -256,7 +265,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonEmptyEndpoint))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(Matchers.containsString("endpoint")));
+                .andExpect(jsonPath("$.message").value("endpoint: Completion endpoint is required"));
+    }
+
+    @Test
+    void testCreateToolSetsResourceWithInvalidEndpoint() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 
         // Test with invalid endpoint URL
         var dtoInvalidEndpoint = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
@@ -267,7 +281,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonInvalidEndpoint))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(Matchers.containsString("endpoint")));
+                .andExpect(jsonPath("$.message").value("endpoint: Invalid endpoint URL"));
 
         verifyNoInteractions(toolSetResourceService);
     }

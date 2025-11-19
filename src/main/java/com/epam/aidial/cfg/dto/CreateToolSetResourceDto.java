@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.dto.validation.annotation.ValidEndpoint;
+import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -17,7 +17,7 @@ public class CreateToolSetResourceDto {
     @NotNull
     private String folderId;
     @NotBlank(message = "Completion endpoint is required")
-    @ValidEndpoint
+    @Endpoint
     private String endpoint;
     @NotBlank(message = "Display name is required")
     private String displayName;
