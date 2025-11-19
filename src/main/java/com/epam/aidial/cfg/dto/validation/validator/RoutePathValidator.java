@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.dto.validation.validator;
 
-import com.epam.aidial.cfg.dto.validation.annotation.RoutePath;
 import com.epam.aidial.cfg.domain.validator.EndpointValidator;
+import com.epam.aidial.cfg.dto.validation.annotation.RoutePath;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
