@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -150,7 +151,38 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
                         .content(dtoJson))
                 // then
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("paths[0].<list element>: Invalid regular expression pattern"));
+                .andExpect(jsonPath("$.message").value(containsString("Invalid route path")));
+    }
+
+    @Test
+    void testCreateRoute_WithEmptyPathString_Success() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource("/route_dto_with_empty_path_string.json");
+
+        doNothing().when(routeFacade).createRoute(any());
+
+        // when
+        mockMvc.perform(post(ROUTE_BASE_API_PATH)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                // then
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testCreateRoute_WithBlankPathString_BadRequest() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource("/route_dto_with_blank_path_string.json");
+
+        doNothing().when(routeFacade).createRoute(any());
+
+        // when
+        mockMvc.perform(post(ROUTE_BASE_API_PATH)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(dtoJson))
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Invalid route path")));
     }
 
     @Test
@@ -199,6 +231,43 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
                         .value("Required request header 'If-Match' for method parameter type String is not present"));
+    }
+
+    @Test
+    void testUpdateRoute_WithEmptyPathString_Success() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource("/route_dto_with_empty_path_string.json");
+
+        when(routeFacade.updateRoute(eq(TEST_ROUTE_NAME), any(RouteDto.class), eq("1")))
+                .thenReturn("2");
+
+        // when
+        mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HEADER_IF_MATCH, "1")
+                        .content(dtoJson))
+                // then
+                .andExpect(status().isNoContent())
+                .andExpect(header().exists(HEADER_ETAG));
+    }
+
+    @Test
+    void testUpdateRoute_WithBlankPathString_BadRequest() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource("/route_dto_with_blank_path_string.json");
+
+        // Validation will fail before facade is called, but we need to mock the return value
+        when(routeFacade.updateRoute(any(String.class), any(RouteDto.class), any(String.class)))
+                .thenReturn("2");
+
+        // when
+        mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HEADER_IF_MATCH, "1")
+                        .content(dtoJson))
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Invalid route path")));
     }
 
     @Test
