@@ -177,7 +177,7 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("JSON parse error: paths[1].<list element>: Invalid regular expression pattern"));
+                .andExpect(jsonPath("$.message").value("JSON parse error: paths[1].<list element>: Invalid route path. Path must be empty, a valid relative URL, or a valid regular expression pattern"));
     }
 
     @Test
