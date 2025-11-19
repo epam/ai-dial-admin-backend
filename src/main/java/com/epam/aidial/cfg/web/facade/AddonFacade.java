@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.service.AddonService;
 import com.epam.aidial.cfg.dto.AddonDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.web.facade.mapper.AddonDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,18 +33,20 @@ public class AddonFacade {
         return mapper.toDto(addon);
     }
 
+    public DtoWithDomainHash<AddonDto> getAddonWithHash(String addonName) {
+        var addonWithHash = addonService.getAddonWithHash(addonName);
+        return new DtoWithDomainHash<>(mapper.toDto(addonWithHash.model()), addonWithHash.hash());
+    }
+
     public void createAddon(AddonDto addonDto) {
-        setDefaultRoleShareResourceLimitIfMissing(addonDto);
         Optional.of(addonDto)
                 .map(mapper::toDomain)
                 .ifPresent(addonService::createAddon);
     }
 
-    public void updateAddon(String addonName,
-                            AddonDto addonDto) {
-        setDefaultRoleShareResourceLimitIfMissing(addonDto);
+    public String updateAddon(String addonName, AddonDto addonDto, String hash) {
         Addon value = mapper.toDomain(addonDto);
-        addonService.updateAddon(addonName, value);
+        return addonService.updateAddon(addonName, value, hash);
     }
 
     public void deleteAddon(String addonName) {
@@ -61,13 +63,5 @@ public class AddonFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(AddonDto addonDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = addonDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            addonDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }

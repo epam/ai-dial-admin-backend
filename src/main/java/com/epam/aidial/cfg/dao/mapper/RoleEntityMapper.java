@@ -5,8 +5,6 @@ import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
 import com.epam.aidial.cfg.dao.model.RoleLimitId;
-import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitEntity;
-import com.epam.aidial.cfg.dao.model.RoleShareResourceLimitId;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
@@ -21,14 +19,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {
-        RoleLimitEntityMapper.class, RoleShareResourceLimitEntityMapper.class, CostLimitEntityMapper.class
+        RoleLimitEntityMapper.class, ShareResourceLimitMapper.class, CostLimitEntityMapper.class
 })
 public abstract class RoleEntityMapper {
 
     @Autowired
     protected RoleLimitEntityMapper roleLimitEntityMapper;
-    @Autowired
-    protected RoleShareResourceLimitEntityMapper roleShareResourceLimitEntityMapper;
 
     public abstract Role toDomain(RoleEntity entity);
 
@@ -40,9 +36,7 @@ public abstract class RoleEntityMapper {
                                RoleEntity entity,
                                List<KeyEntity> keyEntities,
                                List<RoleLimit> roleLimits,
-                               List<DeploymentEntity> limitDeployments,
-                               List<RoleShareResourceLimit> roleShareResourceLimits,
-                               List<DeploymentEntity> roleShareDeployments) {
+                               List<DeploymentEntity> limitDeployments) {
         RoleEntity updatedEntity = update(domain, entity);
 
         updatedEntity.getKeys().stream()
@@ -64,17 +58,6 @@ public abstract class RoleEntityMapper {
         updatedEntity.getLimits().clear();
         updatedEntity.getLimits().addAll(roleLimitEntities);
 
-        Map<RoleShareResourceLimitId, RoleShareResourceLimitEntity> existingRoleShareResourceLimitEntitiesById = updatedEntity.getShare().stream()
-                .collect(Collectors.toMap(RoleShareResourceLimitEntity::getId, Function.identity()));
-        Map<String, DeploymentEntity> roleShareDeploymentsByNames = roleShareDeployments.stream()
-                .collect(Collectors.toMap(DeploymentEntity::getName, Function.identity()));
-        List<RoleShareResourceLimitEntity> roleShareResourceLimitEntities = roleShareResourceLimits.stream()
-                .map(roleShareResourceLimit -> mapToRoleShareResourceLimitEntity(roleShareResourceLimit, updatedEntity,
-                        roleShareDeploymentsByNames, existingRoleShareResourceLimitEntitiesById))
-                .toList();
-        updatedEntity.getShare().clear();
-        updatedEntity.getShare().addAll(roleShareResourceLimitEntities);
-
         return updatedEntity;
     }
 
@@ -90,20 +73,7 @@ public abstract class RoleEntityMapper {
         return roleLimitEntityMapper.toEntity(roleLimit, role, deployment, roleLimitEntity);
     }
 
-    private RoleShareResourceLimitEntity mapToRoleShareResourceLimitEntity(RoleShareResourceLimit roleShareResourceLimit,
-                                                                           RoleEntity role,
-                                                                           Map<String, DeploymentEntity> deploymentsByNames,
-                                                                           Map<RoleShareResourceLimitId, RoleShareResourceLimitEntity> existingEntitiesById) {
-        DeploymentEntity deployment = deploymentsByNames.get(roleShareResourceLimit.getDeploymentName());
-        RoleShareResourceLimitEntity roleLimitEntity = existingEntitiesById.getOrDefault(
-                new RoleShareResourceLimitId(deployment.getId(), role.getId()),
-                new RoleShareResourceLimitEntity()
-        );
-        return roleShareResourceLimitEntityMapper.toEntity(roleShareResourceLimit, role, deployment, roleLimitEntity);
-    }
-
     @Mapping(target = "limits", ignore = true)
-    @Mapping(target = "share", ignore = true)
     @Mapping(target = "keys", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

@@ -10,48 +10,54 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 
-import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.utils.NullSafeUtils.getValueOrDefault;
-import static com.epam.aidial.cfg.utils.NullSafeUtils.setIfNotNull;
 
 @Mapper(componentModel = "spring")
 @Slf4j
 public abstract class RoleLimitMapper {
     public abstract Limit toLimit(CoreLimit limit);
 
-    Long getLimit(long value) {
-        return Long.MAX_VALUE == value ? null : value;
-    }
-
     @Named("mapToCoreLimits")
     public Map<String, CoreLimit> mapLimits(List<RoleLimit> roleLimits, @Context Collection<Deployment> deployments) {
-        if (roleLimits == null) {
-            return Map.of();
-        }
+        Map<String, CoreLimit> result = new HashMap<>();
+
+        CollectionUtils.emptyIfNull(deployments).stream()
+                .filter(Deployment::getIsPublic)
+                .filter(deployment -> !deployment.getDefaultRoleLimit().isEmpty())
+                .forEach(deployment -> {
+                    CoreLimit mappedLimit = mapLimit(new Limit(), deployment);
+                    result.put(deployment.getName(), mappedLimit);
+                });
 
         Map<String, Deployment> deploymentsByName = CollectionUtils.emptyIfNull(deployments).stream()
                 .collect(Collectors.toMap(Deployment::getName, Function.identity()));
 
-        return roleLimits.stream()
-                .map(roleLimit -> {
+        CollectionUtils.emptyIfNull(roleLimits)
+                .forEach(roleLimit -> {
                     Deployment deployment = deploymentsByName.get(roleLimit.getDeploymentName());
-                    CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
-                    return new AbstractMap.SimpleEntry<>(roleLimit.getDeploymentName(), mappedLimit);
-                })
-                .filter(entry -> isLimited(entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    if (deployment != null) {
+                        CoreLimit mappedLimit = mapLimit(roleLimit.getLimit(), deployment);
+
+                        if (!mappedLimit.isEmpty()) {
+                            result.put(roleLimit.getDeploymentName(), mappedLimit);
+                        }
+                    }
+                });
+
+        return result;
     }
 
     private CoreLimit mapLimit(Limit limit, Deployment deployment) {
-        if (limit == null || deployment == null) {
-            log.warn("Limit or deployment is null. Limit: {}, deployment: {}", limit, deployment);
-            throw new IllegalStateException("Limit or deployment is null");
+        if (limit == null) {
+            log.warn("Limit is null. Deployment: {}", deployment);
+            throw new IllegalStateException("Limit is null");
         }
 
         Limit defaultLimit = deployment.getDefaultRoleLimit();
@@ -62,27 +68,13 @@ public abstract class RoleLimitMapper {
 
         CoreLimit coreLimit = new CoreLimit();
 
-        setIfNotNull(coreLimit::setMinute, getValueOrDefault(limit, defaultLimit, Limit::getMinute));
-        setIfNotNull(coreLimit::setDay, getValueOrDefault(limit, defaultLimit, Limit::getDay));
-        setIfNotNull(coreLimit::setWeek, getValueOrDefault(limit, defaultLimit, Limit::getWeek));
-        setIfNotNull(coreLimit::setMonth, getValueOrDefault(limit, defaultLimit, Limit::getMonth));
-        setIfNotNull(coreLimit::setRequestHour, getValueOrDefault(limit, defaultLimit, Limit::getRequestHour));
-        setIfNotNull(coreLimit::setRequestDay, getValueOrDefault(limit, defaultLimit, Limit::getRequestDay));
+        coreLimit.setMinute(getValueOrDefault(limit, defaultLimit, Limit::getMinute));
+        coreLimit.setDay(getValueOrDefault(limit, defaultLimit, Limit::getDay));
+        coreLimit.setWeek(getValueOrDefault(limit, defaultLimit, Limit::getWeek));
+        coreLimit.setMonth(getValueOrDefault(limit, defaultLimit, Limit::getMonth));
+        coreLimit.setRequestHour(getValueOrDefault(limit, defaultLimit, Limit::getRequestHour));
+        coreLimit.setRequestDay(getValueOrDefault(limit, defaultLimit, Limit::getRequestDay));
 
         return coreLimit;
     }
-
-    private boolean isLimited(CoreLimit limit) {
-        return isLimited(limit.getMinute())
-                || isLimited(limit.getDay())
-                || isLimited(limit.getWeek())
-                || isLimited(limit.getMonth())
-                || isLimited(limit.getRequestHour())
-                || isLimited(limit.getRequestDay());
-    }
-
-    private boolean isLimited(Long value) {
-        return value != Long.MAX_VALUE;
-    }
-
 }

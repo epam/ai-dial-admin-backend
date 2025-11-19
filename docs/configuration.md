@@ -68,6 +68,7 @@ Applied when: config.export.storageType=CONFIG_MAP|KUBE_SECRET
 | kubernetes-config.client.requestTimeout | KUBERNETES_CONFIG_CLIENT_REQUESTTIMEOUT | 20000 | No | - | Request timeout in milliseconds |
 | kubernetes-config.client.withWebsocketPingInterval | KUBERNETES_CONFIG_CLIENT_WITHWEBSOCKETPINGINTERVAL | 120000 | No | - | WebSocket ping interval in milliseconds |
 | kubernetes-config.client.withWatchReconnectLimit | KUBERNETES_CONFIG_CLIENT_WITHWATCHRECONNECTLIMIT | 16 | No | - | Maximum number of WebSocket watch reconnection attempts |
+| kubernetes-config.client.operationTimeoutMs | KUBERNETES_CONFIG_CLIENT_OPERATIONTIMEOUTMS | 300000 | No | - | Kubernetes operation timeout (update config map, read secret, etc.) |
 
 Additional Kubernetes client configuration options are available from the [Fabric8 Kubernetes Client documentation](https://github.com/fabric8io/kubernetes-client?tab=readme-ov-file#configuring-the-client).
 
@@ -89,18 +90,33 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 ## Security Configuration
 
-| Setting | Environment Variable | Default | Required | Applied when | Description                                                                                 |
-|---------|---------------------|---------|----------|-----------|--------------------------------------------------------------------------------------------|
-| config.rest.security.mode | CONFIG_REST_SECURITY_MODE | none | No (recommended to adjust for target environment) | - | Authentication mode (oidc, basic, or none)                                                  |
-| config.rest.security.allowedRoles | SECURITY_ALLOWED_ROLES | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions                                       |
-| config.rest.security.principal-claim | SECURITY_USER_CLAIM | oid | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | JWT claim name for user identification                                                      |
-| config.rest.security.roles-claim | SECURITY_ROLES_CLAIM | roles | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | JWT claim name for user roles                                                               |
-| config.rest.security.jwk-key-uris | SECURITY_JWT_JWKS_URI | https://login.microsoftonline.com/common/discovery/v2.0/keys | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | URI for JSON Web Key Set                                                                    |
-| config.rest.security.accepted-issuers | SECURITY_JWT_ACCEPTED_ISSUERS | - | Yes | config.rest.security.mode=oidc | List of accepted JWT token issuers                                                          |
-| config.rest.security.accepted-issuers-aliases | SECURITY_JWT_ACCEPTED_ISSUERS_ALIAS | - | No | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers                                                      |
-| config.rest.security.accepted-audiences | DIAL_ADMIN_CLIENT_ID | - | Yes | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
-| config.rest.security.accepted-audiences | SECURITY_JWT_ACCEPTED_AUDIENCES | - | No | config.rest.security.mode=oidc | List of additional accepted JWT token audiences                                             |
-| config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false | No | config.rest.security.mode=oidc | Disable authorization for Swagger UI                                                        |
+### General Settings
+
+| Setting                                            | Environment Variable          | Default           | Required                                          | Applied when                   | Description                                           |
+|----------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|-------------------------------------------------------|
+| config.rest.security.mode                          | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)            |
+| config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions |
+| config.rest.security.principal-claim               | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | JWT claim name for user identification                |
+| config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                  |
+
+### Identity Providers Configuration
+
+Applied when: config.rest.security.mode=oidc
+<br>The configuration is defined in environment variables
+<br><br>**Note:** `*` represents a wildcard placeholder, meaning **any provider name**.
+<br>**Example:**
+
+- `providers.auth0.issuer`
+- `providers.keycloak.client-id`
+
+| Setting                   | Environment Variable (as example) | Required | Applied when                   | Description                                                                                 |
+|---------------------------|-----------------------------------|----------|--------------------------------|---------------------------------------------------------------------------------------------|
+| providers.*.issuer        | providers.azure.issuer            | Yes      | config.rest.security.mode=oidc | List of accepted JWT token issuers for the provider                                         |
+| providers.*.jwk-set-uri   | providers.azure.jwk-set-uri       | Yes      | config.rest.security.mode=oidc | URI for JSON Web Key Set for the provider                                                   |
+| providers.*.aliases       | providers.azure.aliases           | Yes      | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers for the provider(only for Azure provider)            |
+| providers.*.audiences     | providers.azure.audiences         | Yes      | config.rest.security.mode=oidc | Unique identifier assigned to DIAL Admin backend application by the authentication provider |
+| providers.*.role-claims   | providers.azure.role-claims       | No       | config.rest.security.mode=oidc | JWT claim name for user roles for the provider                                              |
+| providers.*.allowed-roles | providers.azure.allowed-roles     | No       | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                      |
 
 ## Cloud Provider Configuration
 
@@ -144,11 +160,12 @@ Applied when: config.export.keyvault.type=vault
 
 ## DIAL Core Configuration
 
-| Setting                                  | Environment Variable                     | Default | Required | Applied when | Description                                                                               |
-|------------------------------------------|------------------------------------------|---------|----------|-----------|-------------------------------------------------------------------------------------------|
-| core.client.url                          | CORE_CLIENT_URL                          | localhost:8081 | No (recommended to adjust for target environment) | - | URL of the DIAL Core service                                                              |
-| core.prompts.metadata.default.limit      | CORE_PROMPTS_METADATA_DEFAULT_LIMIT      | 256 | No | - | Default limit on the number of items in the prompts metadata response from DIAL Core      |
+| Setting                                  | Environment Variable                     | Default | Required | Applied when | Description                                                                              |
+|------------------------------------------|------------------------------------------|---------|----------|-----------|------------------------------------------------------------------------------------------|
+| core.client.url                          | CORE_CLIENT_URL                          | localhost:8081 | No (recommended to adjust for target environment) | - | URL of the DIAL Core service                                                             |
+| core.prompts.metadata.default.limit      | CORE_PROMPTS_METADATA_DEFAULT_LIMIT      | 256 | No | - | Default limit on the number of items in the prompts metadata response from DIAL Core     |
 | core.applications.metadata.default.limit | CORE_APPLICATIONS_METADATA_DEFAULT_LIMIT | 256 | No | - | Default limit on the number of items in the applications metadata response from DIAL Core |
+| core.toolsets.metadata.default.limit     | CORE_TOOLSETS_METADATA_DEFAULT_LIMIT     | 256 | No | - | Default limit on the number of items in the toolsets metadata response from DIAL Core    |
 
 ## OpenTelemetry Configuration
 

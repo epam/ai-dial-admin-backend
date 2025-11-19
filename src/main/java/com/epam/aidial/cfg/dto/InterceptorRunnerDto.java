@@ -12,6 +12,7 @@ public class InterceptorRunnerDto {
 
     @NotBlank(message = "Name is required")
     private String name;
+    @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String description;
     private String completionEndpoint;

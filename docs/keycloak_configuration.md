@@ -23,14 +23,20 @@ Create new role "ConfigAdmin".
 - Click create and go to "Credentials" tab. Set the password for that user and set "Temporary" flag to false
 - Go to "Role Mapping" and click "Assign role". Search for "ConfgiAdmin" role created before. Assign selected role.
 - Now go to ai-dial-admin-backend application.properties and configure Identity Provider as follows:
+    * application.properties
 ```properties
-config.rest.security=oidc
-com.c4-soft.springaddons.oidc.resourceserver.enabled=false
-com.c4-soft.springaddons.oidc.ops[0].iss=http://localhost:8888/realms/master
-com.c4-soft.springaddons.oidc.ops[0].authorities[0].path=$.resource_access.*.roles
-com.c4-soft.springaddons.oidc.ops[0].username-claim=preferred_username
-com.c4-soft.springaddons.oidc.ops[0].jwk-set-uri=http://localhost:8888/realms/master/protocol/openid-connect/certs
+config.rest.security.mode=oidc
 ```
+
+* environment variables
+
+```properties
+providers.keycloak.issuer=http://localhost:8888/realms/master
+providers.keycloak.jwk-set-uri=http://localhost:8888/realms/master/protocol/openid-connect/certs
+providers.keycloak.audiences=account
+providers.keycloak.roles-claims=resource_access.*.roles
+```
+
 To use configured IDP with Sample HTTP Client located [here](sample/http-requests/AdminPanel.http) you need to set [env variables](sample/http-requests/http-client.env.json)
 Replace `{client_secret}` with client secret that you copied from "Client Secret" tab
 ```json

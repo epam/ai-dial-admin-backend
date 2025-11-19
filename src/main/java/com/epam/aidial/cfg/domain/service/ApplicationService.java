@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
@@ -13,16 +14,20 @@ import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.normalizer.ApplicationNormalizer;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,13 +35,18 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Service("coreApplicationService")
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
+@LogExecution
+@Service
 @RequiredArgsConstructor
+@Slf4j
 public class ApplicationService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Application with name %s does not exist";
@@ -49,10 +59,18 @@ public class ApplicationService {
     private final ApplicationNormalizer applicationNormalizer;
     private final ApplicationValidator applicationValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
         return applicationJpaRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Application> getAllByNames(List<String> names) {
+        return applicationJpaRepository.findAllById(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -71,6 +89,12 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
+    public DomainObjectWithHash<Application> getApplicationWithHash(String applicationName) {
+        var application = getApplication(applicationName);
+        return new DomainObjectWithHash<>(application, calculator.calculateHash(application));
+    }
+
+    @Transactional(readOnly = true)
     public Optional<Application> tryGetApplication(String applicationName) {
         return Optional.ofNullable(applicationName)
                 .flatMap(applicationJpaRepository::findById)
@@ -85,21 +109,40 @@ public class ApplicationService {
         assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         Optional.of(application)
                 .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))
-                .map(applicationJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create application " + application.getDeployment().getName()));
     }
 
     @Transactional
-    public void updateApplication(String applicationName, Application value) {
-        applicationNormalizer.normalize(value);
-        applicationValidator.validateUpdate(applicationName, value);
-        ApplicationEntity applicationEntity = applicationJpaRepository.findById(applicationName)
+    public void updateApplication(String applicationName, Application application) {
+        performUpdate(applicationName, application, ANY_HASH);
+    }
+
+    @Transactional
+    public String updateApplication(String applicationName, Application application, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Application:%s.", applicationName));
+        }
+        var savedApplication = performUpdate(applicationName, application, hash);
+        return calculator.calculateHash(mapper.toDomain(savedApplication));
+    }
+
+    private ApplicationEntity performUpdate(String applicationName, Application application, String hash) {
+        applicationNormalizer.normalize(application);
+        applicationValidator.validateUpdate(applicationName, application);
+        var applicationEntity = applicationJpaRepository.findById(applicationName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(applicationName)));
-        assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, value);
-        Optional.of(value)
-                .map(domainModel -> toEntity(domainModel, applicationEntity))
-                .map(applicationJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("Unable to update application " + value.getDeployment().getName()));
+
+        assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, application);
+        assertNotConcurrencyOverwrite(applicationEntity, hash);
+        return save(toEntity(application, applicationEntity));
+    }
+
+    private ApplicationEntity save(ApplicationEntity applicationEntity) {
+        ApplicationEntity savedApplicationEntity = applicationJpaRepository.save(applicationEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedApplicationEntity.getDeployment());
+        return savedApplicationEntity;
     }
 
     @Transactional
@@ -125,6 +168,19 @@ public class ApplicationService {
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    private void assertNotConcurrencyOverwrite(ApplicationEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: applicationName={}, expectedHash={}, currentHash={}",
+                    entity.getDeploymentName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: applicationName:'"
+                    + "%s'. Reload the data.", entity.getDeploymentName()));
+        }
     }
 
     @Transactional
@@ -173,10 +229,7 @@ public class ApplicationService {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
-        List<RoleEntity> rolesForResourceShareLimits = deploymentService.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
-
-        return mapper.toEntity(domain, entity, interceptors, applicationTypeSchema, roleLimits, rolesForLimits, roleShareResourceLimits, rolesForResourceShareLimits);
+        return mapper.toEntity(domain, entity, interceptors, applicationTypeSchema, roleLimits, rolesForLimits);
     }
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {

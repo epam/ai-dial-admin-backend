@@ -20,16 +20,18 @@ public class ToolSetValidator {
     private final DeploymentManagerService deploymentManagerService;
     private final DeploymentInfoValidator deploymentInfoValidator;
     private final DeploymentValidator deploymentValidator;
+    private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String toolSetNameValidationPattern;
 
     public ToolSetValidator(DeploymentManagerService deploymentManagerService,
                             DeploymentInfoValidator deploymentInfoValidator,
                             DeploymentValidator deploymentValidator,
-                            @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
+                            DisplayFieldsValidator displayFieldsValidator, @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
         this.deploymentManagerService = deploymentManagerService;
         this.deploymentInfoValidator = deploymentInfoValidator;
         this.deploymentValidator = deploymentValidator;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.toolSetNameValidationPattern = toolSetNameValidationPattern;
     }
 
@@ -44,12 +46,13 @@ public class ToolSetValidator {
             throw new IllegalArgumentException("toolSet name '" + toolSetName
                         + "' does not match the required pattern: " + toolSetNameValidationPattern);
         }
-
+        displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 
     public void validateUpdate(String toolSetName, ToolSet toolSet) {
         deploymentValidator.validateUpdate(toolSetName, toolSet.getDeployment(), "ToolSet");
+        displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 

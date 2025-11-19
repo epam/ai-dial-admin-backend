@@ -17,9 +17,11 @@ public class InterceptorDto {
     private String endpoint;
     private String iconUrl;
     private String description;
+    @NotBlank(message = "DisplayName is required")
     private String displayName;
     private Boolean forwardAuthToken;
     private List<String> entities;
+    private List<String> applicationTypeSchemas;
     private InterceptorSourceDto source;
     private String author;
     @EqualsAndHashCode.Exclude

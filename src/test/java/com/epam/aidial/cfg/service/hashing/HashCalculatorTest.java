@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class HashCalculatorTest {
 
-    private static final String EXPECTED_HASH_MODEL_JSON = "vE6JqDt6_zeABHDhxTihKdosBhZQXKigIiKUsF1oK-k";
+    private static final String EXPECTED_HASH_MODEL_JSON = "2rUrgfGhn4kLN58GnkfdAm0TgSv-BEfHrmFsa5CQxRA";
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
     private final HashCalculator calculator = new HashCalculator(objectMapper);
 

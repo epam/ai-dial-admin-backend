@@ -5,7 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -42,6 +46,18 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private boolean appendApplicationPropertiesHeader = true;
     private String applicationTypeIconUrl;
     private Boolean applicationTypePlaybackSupport;
+    @Enumerated(EnumType.STRING)
+    private CopyAppBucketOptionsEntity applicationTypeBucketCopy;
+
+    @ToString.Exclude
+    @ManyToMany
+    @JoinTable(
+            name = "interceptor_application_type_schema",
+            joinColumns = @JoinColumn(name = "application_type_schema_id"),
+            inverseJoinColumns = @JoinColumn(name = "interceptor_name")
+    )
+    @OrderColumn
+    private List<InterceptorEntity> interceptors = new ArrayList<>();
 
     @Column(columnDefinition = "CLOB")
     private String defs;
@@ -68,5 +84,10 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     public enum TypeEntity {
         OBJECT,
         BOOLEAN,
+    }
+
+    public enum CopyAppBucketOptionsEntity {
+        ENABLED,
+        DISABLED,
     }
 }

@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Assistant;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -25,13 +25,10 @@ public abstract class AssistantEntityMapper {
     public AssistantEntity toEntity(Assistant domain,
                                     AssistantEntity entity,
                                     List<RoleLimit> roleLimits,
-                                    List<RoleEntity> rolesForLimits,
-                                    List<RoleShareResourceLimit> roleShareResourceLimits,
-                                    List<RoleEntity> rolesForResourceShareLimits) {
+                                    List<RoleEntity> rolesForLimits) {
         AssistantEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
-        deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ASSISTANT);
         return updatedEntity;
     }

@@ -50,13 +50,13 @@ public class ModelValidator {
 
     public void validateCreation(Model model) {
         validateModelName(model);
-        displayFieldsValidator.validateDisplayNameDisplayVersion(model.getDisplayName(), model.getDisplayVersion());
+        validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
     }
 
     public void validateUpdate(String modelName, Model model) {
         deploymentValidator.validateUpdate(modelName, model.getDeployment(), "Model");
-        displayFieldsValidator.validateDisplayNameDisplayVersion(model.getDisplayName(), model.getDisplayVersion());
+        validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
     }
 
@@ -76,17 +76,32 @@ public class ModelValidator {
         }
     }
 
+    private void validateDisplayNameDisplayVersion(Model model) {
+        String modelName = model.getDeployment().getName();
+        displayFieldsValidator.validateDisplayNameDisplayVersion(
+                model.getDisplayName(),
+                model.getDisplayVersion(),
+                "Model",
+                modelName
+        );
+    }
+
     private void validateModelSource(Model model) {
         ModelSource source = model.getSource();
         String modelName = model.getDeployment().getName();
 
+        // Model source types are mutually exclusive: a model can have either AdapterSource,
+        // ModelContainerSource, or ModelEndpointsSource, but not multiple sources simultaneously.
+        // This is enforced by the type system (Model has a single 'source' field of type ModelSource).
+        // Additional validation in ModelEntityMapper.toEntity() ensures adapter and container
+        // are not both set at the entity level.
         if (source != null) {
             if (source instanceof ModelEndpointsSource) {
                 validateEndpointsSource(model);
             } else if (source instanceof AdapterSource adapterSource) {
                 validateAdapterSource(adapterSource, model);
             } else if (source instanceof ModelContainerSource containerSource) {
-                validateContainerSource(containerSource, modelName);
+                validateContainerSource(containerSource, model);
             } else {
                 throw new IllegalArgumentException(
                     "Unsupported model source: %s. Model: %s".formatted(source, model.getDeployment().getName())
@@ -101,38 +116,39 @@ public class ModelValidator {
     private void validateEndpointsSource(Model model) {
         String name = model.getDeployment().getName();
         String completionEndpoint = model.getEndpoint();
-        if (completionEndpoint == null) {
-            throw new IllegalArgumentException("Completion endpoint is required when source type is 'Model endpoints'. Model: %s"
-                    .formatted(model.getDeployment().getName()));
-        }
+        validateEndpointEnding(model.getType(), completionEndpoint, name);
         validateEndpoint(completionEndpoint, name);
     }
 
     private void validateAdapterSource(AdapterSource adapterSource, Model model) {
-        ModelType type = model.getType();
         String name = model.getDeployment().getName();
 
         if (StringUtils.isBlank(adapterSource.getAdapterName())) {
             throw new IllegalArgumentException("Adapter name is required when source type is 'Adapter'. Model: %s"
                     .formatted(name));
         }
-
-        boolean isChat = modelEndpointUtils.isChat(type);
-        String endpointEnding = ENDPOINT_ENDING_MAP.get(isChat);
-        String completionEndpointPath = adapterSource.getCompletionEndpointPath();
-
-        if (completionEndpointPath == null || !completionEndpointPath.endsWith(endpointEnding)) {
-            throw new IllegalArgumentException("Completion endpoint path should be provided and end with '%s' when model type is '%s'. Model: %s"
-                    .formatted(endpointEnding, type, name));
-        }
+        validateEndpointEnding(model.getType(), adapterSource.getCompletionEndpointPath(), name);
     }
 
-    private void validateContainerSource(ModelContainerSource containerSource, String modelName) {
+    private void validateContainerSource(ModelContainerSource containerSource, Model model) {
         String containerId = containerSource.getContainerId();
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
 
-        validateEndpointPath(containerSource.getCompletionEndpointPath(), modelName);
+        String name = model.getDeployment().getName();
+        String completionPath = containerSource.getCompletionEndpointPath();
+        validateEndpointEnding(model.getType(), completionPath, name);
+        validateEndpointPath(completionPath, name);
+    }
+
+    private void validateEndpointEnding(ModelType type, String endpoint, String modelName) {
+        boolean isChat = modelEndpointUtils.isChat(type);
+        String endpointEnding = ENDPOINT_ENDING_MAP.get(isChat);
+
+        if (endpoint == null || !endpoint.endsWith(endpointEnding)) {
+            throw new IllegalArgumentException("Completion endpoint path should be provided and end with '%s' when model type is '%s'. Model: %s"
+                    .formatted(endpointEnding, type, modelName));
+        }
     }
 
     private void validateEndpoint(String endpoint, String modelName) {

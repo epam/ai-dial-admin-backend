@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.web.security;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -9,56 +11,99 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @ConditionalOnProperty(value = "config.rest.security.mode", havingValue = "oidc", matchIfMissing = true)
+@RequiredArgsConstructor
+@Slf4j
 public class SecurityConfiguration {
 
-    @Value("${config.rest.security.allowedRoles}")
-    protected String[] allowedRoles;
+    private final JwtProvidersProperties jwtProviderProperties;
+    private final JwtProviderUtils jwtProviderUtils;
+
+    @Value("${config.rest.security.default.allowedRoles}")
+    protected Set<String> defaultAllowedRoles;
 
     @Value("${config.rest.security.disable-swagger-authorization}")
     protected boolean disableSwaggerAuthorization;
 
     @Bean
-    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.roles-claim}") String rolesClaim,
-                                                                               @Value("${config.rest.security.principal-claim}") String principalClaim) {
-        return new JwtAuthenticationConverterFactory(rolesClaim, principalClaim);
+    public Map<String, Set<String>> allowedRolesByIssuer() {
+        Map<String, Set<String>> tmpRolesByIssuer = new HashMap<>();
+        var providers = jwtProviderProperties.getProviders();
+        providers.forEach((name, config) -> {
+            Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
+            if (config.getAllowedRoles() != null) {
+                acceptedRoles.addAll(config.getAllowedRoles());
+            }
+            var acceptedIssuers = jwtProviderUtils.getAcceptedIssuers(config);
+            for (var issuer : acceptedIssuers) {
+                tmpRolesByIssuer.put(issuer, acceptedRoles);
+            }
+        });
+        return Map.copyOf(tmpRolesByIssuer);
     }
 
     @Bean
-    public IssuerToDecoderMapFactory issuerToDecoderMapFactory(@Value("${config.rest.security.accepted-issuers}") String[] acceptedIssuers,
-                                                               @Value("${config.rest.security.accepted-audiences}") String[] acceptedAudiences,
-                                                               @Value("${config.rest.security.accepted-issuers-aliases}") String[] acceptedIssuersAliases) {
-        return new IssuerToDecoderMapFactory(acceptedIssuers, acceptedAudiences, acceptedIssuersAliases);
+    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim) {
+        return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, jwtProviderUtils);
     }
 
     @Bean
-    public TokenDecoderFactory tokenDecoderFactory(@Value("${config.rest.security.jwk-key-uris}") String[] keySetUris,
-                                                   IssuerToDecoderMapFactory issuerToDecoderMapFactory) {
-        return new TokenDecoderFactoryImpl(keySetUris, issuerToDecoderMapFactory);
+    public IssuerToDecoderMapFactory issuerToDecoderMapFactory() {
+        return new IssuerToDecoderMapFactory(jwtProviderUtils);
+    }
+
+    @Bean
+    public TokenDecoderFactory tokenDecoderFactory(IssuerToDecoderMapFactory issuerToDecoderMapFactory) {
+        return new TokenDecoderFactoryImpl(jwtProviderProperties.getProviders(), issuerToDecoderMapFactory);
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    TokenDecoderFactory tokenDecoderFactory,
-                                                   JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory) throws Exception {
+                                                   JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory,
+                                                   Map<String, Set<String>> allowedRolesByIssuer) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers(publicPathPatterns()).permitAll()
-                    .requestMatchers("/api/v1/**").hasAnyAuthority(allowedRoles)
-                    .anyRequest().denyAll())
+                        .requestMatchers(publicPathPatterns()).permitAll()
+                        .requestMatchers("/api/v1/**").authenticated()
+                        .anyRequest().denyAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
-                    .jwt(jwt -> jwt.decoder(tokenDecoderFactory.createJwtDecoder())
-                        .jwtAuthenticationConverter(jwtAuthenticationConverterFactory.create())));
+                        .jwt(jwt -> jwt.decoder(tokenDecoderFactory.createJwtDecoder())
+                                .jwtAuthenticationConverter(token -> {
+                                    var issuer = token.getIssuer().toString();
+                                    var converter = jwtAuthenticationConverterFactory.getConverter(issuer);
+                                    var authenticationToken = converter.convert(token);
+                                    var allowedRolesForIssuer = allowedRolesByIssuer.getOrDefault(issuer, Set.of());
+                                    var filtered = authenticationToken.getAuthorities().stream()
+                                            .map(GrantedAuthority::getAuthority)
+                                            .filter(allowedRolesForIssuer::contains)
+                                            .map(SimpleGrantedAuthority::new)
+                                            .toList();
+                                    log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
+                                            token, issuer, authenticationToken, allowedRolesForIssuer, authenticationToken.getAuthorities());
+                                    if (filtered.isEmpty()) {
+                                        log.warn("Access denied for issuer:{}. No allowed roles for user {}", issuer, authenticationToken.getName());
+                                        return new JwtAuthenticationToken(token);
+                                    }
+                                    return new JwtAuthenticationToken(token, filtered, authenticationToken.getName());
+                                })));
         return http.build();
     }
 

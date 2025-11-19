@@ -1,9 +1,11 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
@@ -11,8 +13,11 @@ import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +27,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-@Service("coreRouteService")
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
+@LogExecution
+@Service
 @RequiredArgsConstructor
+@Slf4j
 public class RouteService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Route with name %s does not exist";
@@ -33,6 +42,7 @@ public class RouteService {
     private final DeploymentService deploymentService;
     private final RouteValidator routeValidator;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Route> getAll() {
@@ -42,9 +52,22 @@ public class RouteService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<Route> getAllByNames(List<String> names) {
+        return StreamSupport.stream(routeJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Route get(String routeName) {
         return tryGetRoute(routeName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<Route> getRouteWithHash(String routeName) {
+        var route = get(routeName);
+        return new DomainObjectWithHash<>(route, calculator.calculateHash(route));
     }
 
     @Transactional(readOnly = true)
@@ -60,19 +83,50 @@ public class RouteService {
         deploymentService.assertDeploymentNotExists(route.getDeployment().getName());
         Optional.of(route)
                 .map(domainModel -> toEntity(domainModel, new RouteEntity()))
-                .map(routeJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create route " + route.getDeployment().getName()));
     }
 
     @Transactional
     public void update(String routeName, Route value) {
+        performUpdate(routeName, value, ANY_HASH);
+    }
+
+    @Transactional
+    public String update(String routeName, Route value, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. Route:%s.", routeName));
+        }
+        var savedRoute = performUpdate(routeName, value, hash);
+        return calculator.calculateHash(mapper.toDomain(savedRoute));
+    }
+
+    private RouteEntity performUpdate(String routeName, Route value, String hash) {
         routeValidator.validateUpdate(routeName, value);
         RouteEntity routeEntity = routeJpaRepository.findById(routeName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
-        Optional.of(value)
-                .map(domainModel -> toEntity(domainModel, routeEntity))
-                .map(routeJpaRepository::save)
-                .orElseThrow(() -> new RuntimeException("Unable to update route " + value.getDeployment().getName()));
+        assertNotConcurrencyOverwrite(routeEntity, hash);
+        return save(toEntity(value, routeEntity));
+    }
+
+    private RouteEntity save(RouteEntity routeEntity) {
+        RouteEntity savedRouteEntity = routeJpaRepository.save(routeEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedRouteEntity.getDeployment());
+        return savedRouteEntity;
+    }
+
+    private void assertNotConcurrencyOverwrite(RouteEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: routeName={}, expectedHash={}, currentHash={}",
+                    entity.getDeployment().getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: routeName:'"
+                    + "%s'. Reload the data.", entity.getDeployment().getName()));
+        }
     }
 
     @Transactional
@@ -124,10 +178,7 @@ public class RouteService {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
-        List<RoleEntity> rolesForResourceShareLimits = deploymentService.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
-
-        return mapper.toEntity(domain, entity, roleLimits, rolesForLimits, roleShareResourceLimits, rolesForResourceShareLimits);
+        return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
     }
 
 }

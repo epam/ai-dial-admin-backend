@@ -1,0 +1,20 @@
+{
+  "path": "test_folder/toolset__1",
+  "version": "1",
+  "folderId": "est_folder/",
+  "updatedAt": 1758136619550,
+  "author": "key",
+  "name": "toolset",
+  "endpoint": "https://test",
+  "description": "test",
+  "descriptionKeywords": [],
+  "maxRetryAttempts": 1,
+  "createdAt": 1758136619550,
+  "transport": "http",
+  "allowedTools": [],
+  "authSettings": {
+    "authenticationType": "none",
+    "globalAuthStatus": "signed_out",
+    "userLevelAuthStatus": "signed_out"
+  }
+}

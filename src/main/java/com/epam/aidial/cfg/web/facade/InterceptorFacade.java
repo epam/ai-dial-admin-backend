@@ -3,8 +3,12 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.service.core.CoreInterceptorService;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapper;
+import com.epam.aidial.core.config.CoreInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +23,7 @@ public class InterceptorFacade {
 
     private final InterceptorService interceptorService;
     private final InterceptorDtoMapper mapper;
+    private final CoreInterceptorService coreInterceptorService;
 
     public Collection<InterceptorDto> getAllInterceptors() {
         return interceptorService.getAll()
@@ -32,15 +37,28 @@ public class InterceptorFacade {
         return mapper.toDto(interceptor);
     }
 
+    public DtoWithDomainHash<InterceptorDto> getInterceptorWithHash(String interceptorName) {
+        var interceptorWithHash = interceptorService.getInterceptorWithHash(interceptorName);
+        return new DtoWithDomainHash<>(mapper.toDto(interceptorWithHash.model()), interceptorWithHash.hash());
+    }
+
+    public CoreWithDomainHash<CoreInterceptor> getCoreInterceptorWithHash(String interceptorName) {
+        return coreInterceptorService.getCoreInterceptorWithHash(interceptorName);
+    }
+
     public void createInterceptor(InterceptorDto interceptorDto) {
         Optional.of(interceptorDto)
                 .map(mapper::toDomain)
                 .ifPresent(interceptorService::create);
     }
 
-    public void updateInterceptor(String interceptorName, InterceptorDto interceptorDto) {
+    public String updateInterceptor(String interceptorName, InterceptorDto interceptorDto, String hash) {
         Interceptor value = mapper.toDomain(interceptorDto);
-        interceptorService.update(interceptorName, value);
+        return interceptorService.update(interceptorName, value, hash);
+    }
+
+    public String updateInterceptor(String interceptorName, CoreInterceptor coreInterceptor, String hash) {
+        return coreInterceptorService.updateInterceptor(interceptorName, coreInterceptor, hash);
     }
 
     public void deleteInterceptor(String interceptorName) {

@@ -43,6 +43,17 @@
       "resourceTypes": [
         "CONVERSATION"
       ]
+    },
+    {
+      "url": "publications/bucket/toolset_pending_id",
+      "name": "toolset_pending",
+      "targetFolder": "public/",
+      "status": "PENDING",
+      "createdAt": 12345,
+      "author": "John Dough",
+      "resourceTypes": [
+        "TOOL_SET"
+      ]
     }
   ]
 }

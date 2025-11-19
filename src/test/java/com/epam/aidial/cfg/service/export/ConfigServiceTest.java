@@ -6,9 +6,8 @@ import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ResourceAuthSettingsEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
-import com.epam.aidial.cfg.dao.mapper.RoleShareResourceLimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapperImpl;
-import com.epam.aidial.cfg.dao.mapper.ShareResourceLimitEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.ShareResourceLimitMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.UpstreamEntityMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.MapperPackage;
 import com.epam.aidial.cfg.domain.model.Application;
@@ -58,11 +57,10 @@ import static org.mockito.Mockito.when;
         ModelEndpointUtils.class,
         RouteEntityMapperImpl.class,
         RoleLimitEntityMapperImpl.class,
-        RoleShareResourceLimitEntityMapperImpl.class,
+        ShareResourceLimitMapperImpl.class,
         DeploymentEntityMapperImpl.class,
         UpstreamEntityMapperImpl.class,
         LimitEntityMapperImpl.class,
-        ShareResourceLimitEntityMapperImpl.class,
         ResourceAuthSettingsEntityMapperImpl.class
 })
 class ConfigServiceTest {

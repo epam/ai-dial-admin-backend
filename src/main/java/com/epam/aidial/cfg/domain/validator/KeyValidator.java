@@ -17,20 +17,23 @@ public class KeyValidator {
 
     private final IdFieldValidator idFieldValidator;
     private final TransactionTimestampContext transactionTimestampContext;
+    private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String keyNameValidationPattern;
 
     public KeyValidator(IdFieldValidator idFieldValidator,
                         TransactionTimestampContext transactionTimestampContext,
-                        @Value("${validation.key.name:}") String keyNameValidationPattern) {
+                        DisplayFieldsValidator displayFieldsValidator, @Value("${validation.key.name:}") String keyNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.transactionTimestampContext = transactionTimestampContext;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.keyNameValidationPattern = keyNameValidationPattern;
     }
 
     public void validateCreation(Key key) {
         validateKeyName(key);
-
+        validateProject(key);
+        displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         long now = transactionTimestampContext.getTimestamp();
         Long expiresAt = key.getExpiresAt();
         if (expiresAt != null && expiresAt <= now) {
@@ -58,11 +61,18 @@ public class KeyValidator {
         if (!Objects.equals(keyName, key.getName())) {
             throw new IllegalArgumentException("Key with name: '" + keyName + "' can not be renamed. New key name: '" + key.getName() + "'");
         }
-
+        validateProject(key);
+        displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         Long expiresAt = key.getExpiresAt();
         long createdAt = existingEntity.getCreatedAt();
         if (expiresAt != null && expiresAt <= createdAt) {
             throw new IllegalArgumentException("Key expiresAt ms: '" + expiresAt + "' should be greater than key createdAt ms: '" + createdAt + "'");
+        }
+    }
+
+    private void validateProject(Key key) {
+        if (StringUtils.isBlank(key.getProject())) {
+            throw new IllegalArgumentException("Project is required. Key name: " + key.getName());
         }
     }
 }

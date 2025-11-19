@@ -8,7 +8,6 @@ import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
@@ -94,19 +93,36 @@ public abstract class ModelEntityMapper {
         updatedEntity.getInterceptors().addAll(duplicatedInterceptors);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
-        deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
 
         AdapterEntity currentAdapter = updatedEntity.getAdapter();
         if (currentAdapter != null && !currentAdapter.equals(adapterEntity)) {
             currentAdapter.getModels().remove(updatedEntity);
         }
-        if (adapterEntity != null && !adapterEntity.equals(currentAdapter)) {
-            adapterEntity.getModels().add(updatedEntity);
-        }
-        updatedEntity.setModelContainer(modelContainer);
 
-        updatedEntity.setAdapter(adapterEntity);
-        updatedEntity.setAdapterCompletionEndpointPath(completionEndpointPath);
+        // Validate that both adapter and container are not set simultaneously
+        if (adapterEntity != null && modelContainer != null) {
+            throw new IllegalArgumentException(
+                    "Model cannot have both adapter and container set. Model: " + domain.getDeployment().getName()
+            );
+        }
+        // Explicitly clear and set adapter/container fields to ensure mutual exclusivity
+        if (adapterEntity != null) {
+            // Setting adapter: clear container and set adapter
+            updatedEntity.setModelContainer(null);
+            adapterEntity.getModels().add(updatedEntity);
+            updatedEntity.setAdapter(adapterEntity);
+            updatedEntity.setAdapterCompletionEndpointPath(completionEndpointPath);
+        } else if (modelContainer != null) {
+            // Setting container: clear adapter and set container
+            updatedEntity.setAdapter(null);
+            updatedEntity.setAdapterCompletionEndpointPath(null);
+            updatedEntity.setModelContainer(modelContainer);
+        } else {
+            // Neither adapter nor container: clear both
+            updatedEntity.setAdapter(null);
+            updatedEntity.setAdapterCompletionEndpointPath(null);
+            updatedEntity.setModelContainer(null);
+        }
 
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.MODEL);
         return updatedEntity;

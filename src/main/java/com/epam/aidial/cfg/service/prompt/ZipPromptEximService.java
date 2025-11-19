@@ -79,11 +79,21 @@ public class ZipPromptEximService {
             ZipEntry zipEntry;
             var promptsEximDtos = new HashMap<String, PromptsEximDto>();
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if (zipEntry.getName().startsWith(PROMPTS_FOLDER) && zipEntry.getName().endsWith(JSON_FILE_EXTENSION)) {
-                    promptsEximDtos.put(zipEntry.getName(), jsonMapper.readValue(zipInputStream, PromptsEximDto.class));
+                var zipEntryName = zipEntry.getName();
+                
+                // Validate zip entry path to prevent path traversal attacks
+                try {
+                    zipEntryName = PathUtils.validateZipEntryPath(zipEntryName);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Skipping zip entry with invalid path: {}", zipEntryName, e);
+                    continue;
+                }
+                
+                if (zipEntryName.startsWith(PROMPTS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
+                    promptsEximDtos.put(zipEntryName, jsonMapper.readValue(zipInputStream, PromptsEximDto.class));
                 } else {
                     log.info("Ignoring file {} in zip archive during import. Prompt import context {}",
-                            zipEntry.getName(), importPrompts);
+                            zipEntryName, importPrompts);
                 }
             }
 
@@ -105,11 +115,21 @@ public class ZipPromptEximService {
             List<ImportResourcePreview> previews = new ArrayList<>();
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 var zipEntryName = zipEntry.getName();
+                
+                // Validate zip entry path to prevent path traversal attacks
+                try {
+                    zipEntryName = PathUtils.validateZipEntryPath(zipEntryName);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Skipping zip entry with invalid path: {}", zipEntryName, e);
+                    continue;
+                }
+                
                 if (zipEntryName.startsWith(PROMPTS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
                     var promptsEximDto = jsonMapper.readValue(zipInputStream, PromptsEximDto.class);
+                    String finalZipEntryName = zipEntryName;
                     promptsEximDto.getPrompts().stream()
                             .map(prompt -> getPromptPathParts(importPrompts, prompt))
-                            .map(pathParts -> buildImportResourcePreview(pathParts, zipEntryName))
+                            .map(pathParts -> buildImportResourcePreview(pathParts, finalZipEntryName))
                             .forEach(previews::add);
                 } else {
                     log.info("Ignoring file {} in zip archive during import preview", zipEntryName);

@@ -1,20 +1,30 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.google.api.client.util.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -40,6 +50,10 @@ public abstract class InterceptorEntityMapper {
                 .collect(Collectors.toList());
     }
 
+    protected String mapApplicationTypeSchemaEntityToString(ApplicationTypeSchemaEntity value) {
+        return value != null ? value.getSchemaId() : null;
+    }
+
     @Named("mapSource")
     protected InterceptorSource mapSource(InterceptorEntity entity) {
         InterceptorRunnerEntity runnerEntity = entity.getInterceptorRunner();
@@ -60,6 +74,18 @@ public abstract class InterceptorEntityMapper {
         return new InterceptorEndpointsSource();
     }
 
+    @AfterMapping
+    protected void populateEndpointsFromRunner(@MappingTarget Interceptor interceptor, InterceptorEntity entity) {
+        InterceptorRunnerEntity runnerEntity = entity.getInterceptorRunner();
+        if (runnerEntity != null) {
+            interceptor.setEndpoint(runnerEntity.getCompletionEndpoint());
+            if (interceptor.getFeatures() == null) {
+                interceptor.setFeatures(new Features());
+            }
+            interceptor.getFeatures().setConfigurationEndpoint(runnerEntity.getConfigurationEndpoint());
+        }
+    }
+
     private <T> Stream<String> getNames(Collection<T> entities, Function<T, String> modelEntityStringFunction) {
         return entities.stream().map(modelEntityStringFunction).distinct();
     }
@@ -68,6 +94,7 @@ public abstract class InterceptorEntityMapper {
                                       InterceptorEntity entity,
                                       List<ApplicationEntity> applications,
                                       List<ModelEntity> models,
+                                      List<ApplicationTypeSchemaEntity> applicationTypeSchemas,
                                       InterceptorRunnerEntity interceptorRunner,
                                       InterceptorContainerEntity interceptorContainer
     ) {
@@ -91,6 +118,15 @@ public abstract class InterceptorEntityMapper {
         updatedEntity.getModels().clear();
         updatedEntity.getModels().addAll(models);
 
+        updatedEntity.getApplicationTypeSchemas().stream()
+                .filter(a -> !applicationTypeSchemas.contains(a))
+                .forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().remove(updatedEntity));
+        applicationTypeSchemas.stream()
+                .filter(a -> !updatedEntity.getApplicationTypeSchemas().contains(a))
+                .forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().add(updatedEntity));
+        updatedEntity.getApplicationTypeSchemas().clear();
+        updatedEntity.getApplicationTypeSchemas().addAll(applicationTypeSchemas);
+
         InterceptorRunnerEntity currentInterceptorRunner = updatedEntity.getInterceptorRunner();
         if (currentInterceptorRunner != null && !currentInterceptorRunner.equals(interceptorRunner)) {
             currentInterceptorRunner.getInterceptors().remove(updatedEntity);
@@ -106,6 +142,7 @@ public abstract class InterceptorEntityMapper {
 
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "models", ignore = true)
+    @Mapping(target = "applicationTypeSchemas", ignore = true)
     @Mapping(target = "interceptorRunner", ignore = true)
     @Mapping(target = "interceptorContainer", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

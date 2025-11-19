@@ -30,4 +30,18 @@ public class HeaderUtils {
         }
         return Map.of();
     }
+
+    /**
+     * Sanitizes HTTP header value by removing CR (\r) and LF (\n) characters
+     * to prevent HTTP response splitting attacks.
+     *
+     * @param value the header value to sanitize
+     * @return sanitized header value with CR/LF removed, or null if input is null
+     */
+    public static String sanitizeHeaderValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.replace("\r", "").replace("\n", "");
+    }
 }

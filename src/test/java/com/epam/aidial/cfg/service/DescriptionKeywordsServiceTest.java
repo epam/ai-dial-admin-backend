@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -73,40 +74,46 @@ class DescriptionKeywordsServiceTest {
 
     private static List<Application> getApplications() {
         Application application1 = new Application();
-        application1.setDescriptionKeywords(List.of(
-                "Accounting"));
+        LinkedHashSet<String> application1Topics = new LinkedHashSet<>(Set.of("Accounting"));
+        application1.setDescriptionKeywords(application1Topics);
+
         Application application2 = new Application();
-        application2.setDescriptionKeywords(List.of(
-                "Business Development"));
+        LinkedHashSet<String> application2Topics = new LinkedHashSet<>(Set.of("Business Development"));
+        application2.setDescriptionKeywords(application2Topics);
+
         Application application3 = new Application();
         application3.setDescriptionKeywords(null);
+
         return List.of(application1, application2, application3);
     }
 
     private static List<Model> getModels() {
         Model model1 = new Model();
-        model1.setTopics(List.of(
-                "Customer Service",
-                "Finance"));
+        LinkedHashSet<String> model1Topics = new LinkedHashSet<>(Set.of("Customer Service", "Finance"));
+        model1.setTopics(model1Topics);
+
         Model model2 = new Model();
-        model2.setTopics(List.of(
-                "Accounting",
-                "Engineering"));
+        LinkedHashSet<String> model2Topics = new LinkedHashSet<>(Set.of("Accounting", "Engineering"));
+        model2.setTopics(model2Topics);
+
         Model model3 = new Model();
         model3.setTopics(null);
+
         return List.of(model1, model2, model3);
     }
 
     private static List<ToolSet> getToolSets() {
         ToolSet toolset1 = new ToolSet();
-        toolset1.setDescriptionKeywords(List.of(
-                "MCP1"));
+        LinkedHashSet<String> toolset1Topics = new LinkedHashSet<>(Set.of("MCP1"));
+        toolset1.setDescriptionKeywords(toolset1Topics);
+
         ToolSet toolset2 = new ToolSet();
-        toolset2.setDescriptionKeywords(List.of(
-                "Engineering",
-                "MCP2"));
+        LinkedHashSet<String> toolset2Topics = new LinkedHashSet<>(Set.of("Engineering", "MCP2"));
+        toolset2.setDescriptionKeywords(toolset2Topics);
+
         ToolSet toolset3 = new ToolSet();
         toolset3.setDescriptionKeywords(null);
+
         return List.of(toolset1, toolset2, toolset3);
     }
 

@@ -1,0 +1,16 @@
+{
+  "path": "public/Same_Company/",
+  "nodeType": "folder",
+  "nextToken": "testNextToken",
+  "items": [
+    {
+      "path": "public/Same_Company/toolset_toolset_test__0.0.1",
+      "name": "toolset_test",
+      "version": "0.0.1",
+      "folderId": "public/Same_Company/",
+      "updatedAt": 1750766372516,
+      "author": "Test author",
+      "nodeType": "item"
+    }
+  ]
+}

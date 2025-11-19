@@ -15,9 +15,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
 import static com.epam.aidial.cfg.domain.model.ImportAction.SKIP;
@@ -35,29 +39,25 @@ public class KeyImporter {
     public Collection<ImportComponent<Key>> importKeys(Map<String, CoreKey> coreKeys,
                                                        ConflictResolutionPolicy resolutionPolicy,
                                                        boolean isPreview) {
-        if (MapUtils.isNotEmpty(coreKeys)) {
-            return coreKeys.entrySet().stream()
-                    .map(keyEntry -> {
-                                var coreKey = keyEntry.getValue();
-                                coreKey.setKey(keyEntry.getKey());
-                                return processKey(coreKey, resolutionPolicy, isPreview);
-                            }
-                    )
-                    .toList();
+        if (MapUtils.isEmpty(coreKeys)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+
+        AtomicInteger counter = new AtomicInteger();
+
+        return coreKeys.entrySet().stream()
+                .map(keyEntry -> processKey(keyEntry.getKey(), keyEntry.getValue(), resolutionPolicy, isPreview, counter))
+                .toList();
     }
 
     public Collection<ImportComponent<Key>> importAdminKeys(Map<String, Key> keys,
-                                                            ConflictResolutionPolicy resolutionPolicy,
-                                                            boolean isPreview) {
+                                                            ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(keys)) {
             return keys.entrySet().stream()
                     .map(keyEntry -> {
                                 var key = keyEntry.getValue();
                                 key.setName(keyEntry.getKey());
-                                var importAction = processKey(key, resolutionPolicy, isPreview);
-                                return new ImportComponent<>(importAction, key);
+                                return processKey(key, resolutionPolicy);
                             }
                     )
                     .toList();
@@ -65,48 +65,77 @@ public class KeyImporter {
         return Collections.emptyList();
     }
 
-    private ImportAction processKey(Key key, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
-        if (keyService.exists(key.getName())) {
-            return handleExisting(key, resolutionPolicy, isPreview);
-        } else {
-            return create(key, isPreview);
-        }
-    }
-
-    private ImportComponent<Key> processKey(CoreKey coreKey, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
-        Optional<Key> existingKey = keyService.tryGetKeyByKeyValue(coreKey.getKey());
+    private ImportComponent<Key> processKey(Key key, ConflictResolutionPolicy resolutionPolicy) {
+        Optional<Key> existingKey = keyService.tryGetKey(key.getName());
         if (existingKey.isPresent()) {
-            Key key = keyCoreMapper.mapKey(coreKey, existingKey.get().getName());
-            ImportAction importAction = handleExisting(key, resolutionPolicy, isPreview);
-            return new ImportComponent<>(importAction, key);
+            ImportAction importAction = handleExisting(key, resolutionPolicy);
+            return new ImportComponent<>(importAction, existingKey.get(), key);
         } else {
-            String name = isPreview ? "<will be defined during import>" : UUID.randomUUID().toString();
-            Key key = keyCoreMapper.mapKey(coreKey, name);
-            ImportAction importAction = create(key, isPreview);
-            return new ImportComponent<>(importAction, key);
+            ImportAction importAction = create(key);
+            return new ImportComponent<>(importAction, null, key);
         }
     }
 
-    private ImportAction handleExisting(Key newKey, ConflictResolutionPolicy resolutionPolicy, boolean isPreview) {
-        switch (resolutionPolicy) {
-            case SKIP -> {
-                // Do nothing, the existing key will remain unchanged.
-                return SKIP;
-            }
+    private ImportComponent<Key> processKey(String keyValue,
+                                            CoreKey coreKey,
+                                            ConflictResolutionPolicy resolutionPolicy,
+                                            boolean isPreview,
+                                            AtomicInteger counter) {
+        Optional<Key> existingKey = keyService.tryGetKeyByKeyValue(keyValue);
+        if (existingKey.isPresent()) {
+            Key existingKeyCopy = keyCoreMapper.copy(existingKey.get());
+            Key key = keyCoreMapper.mapKey(coreKey, keyValue, existingKeyCopy);
+            ImportAction importAction = handleExisting(key, resolutionPolicy);
+            return new ImportComponent<>(importAction, existingKey.get(), key);
+        } else {
+            int i = counter.getAndIncrement();
+            String name = isPreview ? "<will be defined during import " + i + ">" : UUID.randomUUID().toString();
+            Key key = keyCoreMapper.mapKey(coreKey, keyValue, name);
+            ImportAction importAction = create(key);
+            return new ImportComponent<>(importAction, null, key);
+        }
+    }
+
+    private ImportAction handleExisting(Key newKey, ConflictResolutionPolicy resolutionPolicy) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing key will remain unchanged.
             case OVERRIDE -> {
-                if (!isPreview) {
-                    keyService.updateKey(newKey.getName(), newKey);
-                }
-                return UPDATE;
+                keyService.updateKey(newKey.getName(), newKey);
+                yield UPDATE;
             }
-            default -> throw new IllegalArgumentException("Unexpected resolutionPolicy: " + resolutionPolicy);
-        }
+        };
     }
 
-    private ImportAction create(Key key, boolean isPreview) {
-        if (!isPreview) {
-            keyService.createKey(key);
-        }
+    private ImportAction create(Key key) {
+        keyService.createKey(key);
         return CREATE;
+    }
+
+    public List<ImportComponent<Key>> getActualImportedKeys(Collection<ImportComponent<Key>> importComponents) {
+        List<String> names = importComponents.stream()
+                .map(ImportComponent::getNext)
+                .map(Key::getName)
+                .toList();
+        Map<String, Key> importedKeysByNames = keyService.getAllByNames(names)
+                .stream()
+                .collect(Collectors.toMap(Key::getName, Function.identity()));
+
+        return importComponents.stream()
+                .map(importComponent -> {
+                    var next = importedKeysByNames.get(importComponent.getNext().getName());
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
+                })
+                .toList();
+    }
+
+    private void clearTxDependentFields(Key key) {
+        if (key != null) {
+            key.setCreatedAt(null);
+            key.setUpdatedAt(null);
+            key.setKeyGeneratedAt(null);
+        }
     }
 }

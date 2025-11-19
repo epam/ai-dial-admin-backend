@@ -10,8 +10,6 @@ import java.util.Map;
 public class RoleBasedDto {
 
     private Map<@NotBlank(message = "Role name is required") String, @Valid LimitDto> roleLimits;
-    private Map<@NotBlank(message = "Role name is required") String, @Valid ShareResourceLimitDto> roleShareResourceLimits;
     private Boolean isPublic = false;
     private LimitDto defaultRoleLimit;
-    private ShareResourceLimitDto defaultRoleShareResourceLimit;
 }

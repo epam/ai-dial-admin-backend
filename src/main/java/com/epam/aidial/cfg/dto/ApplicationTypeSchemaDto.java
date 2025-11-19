@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,7 @@ public class ApplicationTypeSchemaDto {
     private String applicationTypeViewerUrl;
 
     @JsonProperty("dial:applicationTypeDisplayName")
+    @NotBlank(message = "ApplicationTypeDisplayName is required")
     private String applicationTypeDisplayName;
 
     @JsonProperty("dial:applicationTypeCompletionEndpoint")
@@ -70,6 +72,12 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypePlaybackSupport")
     private Boolean applicationTypePlaybackSupport;
 
+    @JsonProperty("dial:applicationTypeBucketCopy")
+    private CopyAppBucketOptionsDto applicationTypeBucketCopy;
+
+    @JsonProperty("dial:applicationTypeInterceptors")
+    private List<String> interceptors;
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)
@@ -92,6 +100,13 @@ public class ApplicationTypeSchemaDto {
         BOOLEAN,
     }
 
+    public enum CopyAppBucketOptionsDto {
+        @JsonProperty("ENABLED")
+        ENABLED,
+        @JsonProperty("DISABLED")
+        DISABLED,
+    }
+
     public ApplicationTypeSchemaDto(ApplicationTypeSchemaDto other) {
         this.schema = other.schema;
         this.id = other.id;
@@ -110,6 +125,8 @@ public class ApplicationTypeSchemaDto {
         this.applicationTypeIconUrl = other.applicationTypeIconUrl;
         this.applicationTypeRoutes = other.applicationTypeRoutes != null ? new ArrayList<>(other.applicationTypeRoutes) : null;
         this.applicationTypePlaybackSupport = other.applicationTypePlaybackSupport;
+        this.applicationTypeBucketCopy = other.applicationTypeBucketCopy;
+        this.interceptors = other.interceptors != null ? new ArrayList<>(other.interceptors) : null;
         this.defs = other.defs != null ? new HashMap<>(other.defs) : null;
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;

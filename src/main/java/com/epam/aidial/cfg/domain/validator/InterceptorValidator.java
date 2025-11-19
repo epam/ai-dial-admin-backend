@@ -25,21 +25,25 @@ public class InterceptorValidator {
     private final DeploymentManagerService deploymentManagerService;
     private final DeploymentInfoValidator deploymentInfoValidator;
     private final IdFieldValidator idFieldValidator;
+    private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String interceptorNameValidationPattern;
 
     public InterceptorValidator(DeploymentManagerService deploymentManagerService,
                                 DeploymentInfoValidator deploymentInfoValidator,
                                 IdFieldValidator idFieldValidator,
+                                DisplayFieldsValidator displayFieldsValidator,
                                 @Value("${validation.interceptor.name:}") String interceptorNameValidationPattern) {
         this.deploymentManagerService = deploymentManagerService;
         this.deploymentInfoValidator = deploymentInfoValidator;
         this.idFieldValidator = idFieldValidator;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.interceptorNameValidationPattern = interceptorNameValidationPattern;
     }
 
     public void validateCreation(Interceptor interceptor) {
         validateInterceptorName(interceptor);
+        displayFieldsValidator.validateDisplayName(interceptor.getDisplayName(), "Interceptor", interceptor.getName());
         validateInterceptorSource(interceptor);
     }
 
@@ -48,6 +52,7 @@ public class InterceptorValidator {
             throw new IllegalArgumentException("Interceptor with name: '%s' can not be renamed. New interceptor name: '%s'"
                     .formatted(interceptorName, interceptor.getName()));
         }
+        displayFieldsValidator.validateDisplayName(interceptor.getDisplayName(), "Interceptor", interceptor.getName());
         validateInterceptorSource(interceptor);
     }
 

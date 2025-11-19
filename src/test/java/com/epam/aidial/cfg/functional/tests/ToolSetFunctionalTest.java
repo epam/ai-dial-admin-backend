@@ -4,14 +4,14 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
+import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Assertions;
@@ -27,6 +27,9 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
 public abstract class ToolSetFunctionalTest {
@@ -42,38 +45,30 @@ public abstract class ToolSetFunctionalTest {
 
     @BeforeEach
     public void beforeEach() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
     }
 
     @Test
     public void shouldSuccessfullyCreateAndGetToolSets() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
-        ToolSetDto expected = createDto("1");
+        ToolSetDto expected = createToolSetDto("1");
 
         assertToolSet(actual, expected);
 
-        toolSetFacade.createToolSet(createDto("2"));
+        toolSetFacade.createToolSet(createToolSetDto("2"));
 
         Collection<ToolSetDto> actualToolSets = toolSetFacade.getAllToolSets();
 
-        assertToolSets(actualToolSets, List.of(createDto("1"), createDto("2")));
+        assertToolSets(actualToolSets, List.of(createToolSetDto("1"), createToolSetDto("2")));
     }
 
     @Test
     public void shouldSuccessfullyCreateToolSetAndGetDiscoveredTools() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setTransport(TransportDto.HTTP);
         toolSetFacade.createToolSet(toolSetDto);
 
@@ -84,7 +79,7 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP)))
+        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP), any()))
                 .thenReturn(mcpSyncClient);
 
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
@@ -94,7 +89,7 @@ public abstract class ToolSetFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndDeleteToolSet() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
         toolSetFacade.deleteToolSet(toolSetDto.getName());
 
@@ -104,34 +99,91 @@ public abstract class ToolSetFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndUpdateToolSet() {
-        ToolSetDto toolSetDto = createDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
 
-        ToolSetDto updatedToolSet = createDto("1");
+        ToolSetDto updatedToolSet = createToolSetDto("1");
         updatedToolSet.setDescription("New ToolSet description");
 
-        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet);
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
-        var expected = createDto("1");
+        var expected = createToolSetDto("1");
         expected.setDescription("New ToolSet description");
 
         assertToolSet(actual, expected);
     }
 
     @Test
-    public void shouldThrowExceptionWhenRenameToolSet() {
-        ToolSetDto toolSetDto = createDto("1");
+    public void shouldSuccessfullyUpdateToolSetWithCorrectHash() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
-        ToolSetDto updatedToolSet = createDto("2");
+        var hash = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).hash();
+
+        ToolSetDto updatedToolSet = createToolSetDto("1");
+        updatedToolSet.setDescription("New ToolSet description");
+
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, hash);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        var expected = createToolSetDto("1");
+        expected.setDescription("New ToolSet description");
+
+        assertToolSet(actual, expected);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateToolSetWithIncorrectHash() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto updatedToolSet = createToolSetDto("1");
+        updatedToolSet.setDescription("New ToolSet description");
+
+        Assertions.assertThrows(OptimisticLockConflictException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "test"));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRenameToolSet() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+        ToolSetDto updatedToolSet = createToolSetDto("2");
         updatedToolSet.setDescription("New ToolSet description");
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet)
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*")
         );
         Assertions.assertEquals("ToolSet with name: 'ToolSet1' can not be renamed. New name: 'ToolSet2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenToolSetConcurrencyOverwrite() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), toolSetDto, "test")
+        );
+        Assertions.assertEquals("Optimistic lock conflict on update: toolSetName:'ToolSet1'"
+                + ". Reload the data.", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenHashIsNull() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), toolSetDto, null)
+        );
+        Assertions.assertEquals("Hash must not be null. Use \"*\" to skip optimistic check. ToolSet:ToolSet1.",
+                exception.getMessage());
     }
 
     @Test
@@ -149,7 +201,7 @@ public abstract class ToolSetFunctionalTest {
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
 
-        ToolSetDto toolSetDto = new ToolSetDto();
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName("container-toolset");
         toolSetDto.setDescription("Container toolset");
 
@@ -199,8 +251,9 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(updatedDeploymentInfo)
                 .thenReturn(updatedDeploymentInfo);
 
-        ToolSetDto toolSetDto = new ToolSetDto();
+        ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName(refreshedToolSetName);
+
         toolSetDto.setDescription("Refresh toolset");
 
         ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
@@ -225,13 +278,37 @@ public abstract class ToolSetFunctionalTest {
         Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
-    private ToolSetDto createDto(String suffix) {
-        ToolSetDto toolSetDto = new ToolSetDto();
-        toolSetDto.setName("ToolSet" + suffix);
-        toolSetDto.setDescription("Description" + suffix);
-        toolSetDto.setEndpoint("http://test-endpoint/api");
-        toolSetDto.setRoleLimits(Map.of("role" + suffix, new LimitDto()));
-        return toolSetDto;
+    @Test
+    public void shouldSaveAndReturnToolSetWithUniqueDescriptionKeywords() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetDto.setDescriptionKeywords(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getDescriptionKeywords());
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreToolSet() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        CoreToolSet expected = new CoreToolSet();
+        expected.setName(toolSetDto.getName());
+        expected.setAuthSettings(null);
+        expected.setEndpoint(toolSetDto.getEndpoint());
+        expected.setTransport(CoreToolSet.Transport.HTTP);
+        expected.setDisplayName(toolSetDto.getDisplayName());
+        expected.setDescription(toolSetDto.getDescription());
+        expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());
+        expected.setUserRoles(toolSetDto.getRoleLimits().keySet());
+
+        CoreToolSet actual = toolSetFacade.getCoreToolSetWithHash(toolSetDto.getName()).core();
+        actual.setCreatedAt(null);
+        actual.setUpdatedAt(null);
+
+        Assertions.assertEquals(expected, actual);
     }
 
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {

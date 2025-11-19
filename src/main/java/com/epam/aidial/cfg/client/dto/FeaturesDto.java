@@ -28,9 +28,9 @@ public class FeaturesDto {
     private Boolean contentPartsSupported;
     private Boolean consentRequired;
     private Boolean temperatureSupported;
-    private Boolean addonsSupported;
     private Boolean cacheSupported;
     private Boolean autoCachingSupported;
     private Boolean parallelToolCallsSupported;
+    private Boolean assistantAttachmentsInRequestSupported;
+    private Boolean supportCommentInRateResponse;
 }
-

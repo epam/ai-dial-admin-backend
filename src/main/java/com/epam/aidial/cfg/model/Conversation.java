@@ -16,7 +16,7 @@ public class Conversation {
     private String path;
     private String version;
     private String folderId;
-    private long updateTime;
+    private long updatedAt;
     private String author;
     private String name;
     private ModelResource model;
@@ -25,4 +25,3 @@ public class Conversation {
     private List<ConversationMessage> messages;
     private String assistantModelId;
 }
-

@@ -62,7 +62,7 @@
         "testApplication2": {}
       },
       "share": {
-        "testModel1": {
+        "APPLICATION": {
           "maxAcceptedUsers": 10,
           "invitationTtl": 120
         }
@@ -71,7 +71,7 @@
         "minute": "111",
         "day": "222",
         "week": "333",
-        "month": "444"
+        "month": "9223372036854775807"
       }
     },
     "default": {
@@ -136,6 +136,7 @@
       "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
+      "dial:applicationTypeInterceptors": ["testInterceptor1"],
       "$defs": {},
       "properties": {},
       "required": []

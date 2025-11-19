@@ -22,5 +22,6 @@ public class Interceptor {
     private Map<String, Object> defaults;
     private List<String> dependencies;
     private List<String> entities;
+    private List<String> applicationTypeSchemas;
     private InterceptorSource source;
 }

@@ -12,19 +12,24 @@ import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.prompt.PromptService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@RequiredArgsConstructor
 @LogExecution
-public class PromptPublicationResolver implements PublicationResolver {
+public class PromptPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final PromptService promptService;
-    private final PublicationResourceUrlResolver publicationResourceUrlResolver;
+
+    protected PromptPublicationResolver(PublicationResourceUrlResolver resolver,
+                                        PublicationClientMapper mapper,
+                                        PromptService promptService) {
+        super(resolver);
+        this.mapper = mapper;
+        this.promptService = promptService;
+    }
 
     @Override
     public Publication resolvePublication(PublicationDto publicationDto) {
@@ -53,7 +58,7 @@ public class PromptPublicationResolver implements PublicationResolver {
     }
 
     private String extractPromptPath(PublicationResourceDto publicationResource, PublicationStatusDto status) {
-        var promptUrl = publicationResourceUrlResolver.resolveUrl(publicationResource, status);
+        var promptUrl = resolver.resolveUrl(publicationResource, status);
         return PromptClientMapper.parseEncodedVersionedPath(promptUrl).getPath();
     }
 }

@@ -16,6 +16,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAssistantDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+
 public abstract class AssistantHistoryFunctionalTest {
 
     @Autowired
@@ -26,18 +29,9 @@ public abstract class AssistantHistoryFunctionalTest {
     private TestHistoryFacade historyFacade;
 
     private void initRoles() {
-        RoleDto role1 = new RoleDto();
-        role1.setName("role1");
-        role1.setDescription("role1");
-        RoleDto role2 = new RoleDto();
-        role2.setName("role2");
-        role2.setDescription("role2");
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
-        roleFacade.createRole(role1);
-        roleFacade.createRole(role2);
-        roleFacade.createRole(role3);
+        roleFacade.createRole(createRoleDto("1"));
+        roleFacade.createRole(createRoleDto("2"));
+        roleFacade.createRole(createRoleDto("3"));
     }
 
     @Test
@@ -45,29 +39,26 @@ public abstract class AssistantHistoryFunctionalTest {
         initRoles();
 
         // 1 create assistant1
-        AssistantDto assistantDto = createDto("1");
+        AssistantDto assistantDto = createAssistantDto("1");
         assistantFacade.createAssistant(assistantDto);
 
         // 2 update assistant1 description
-        AssistantDto updatedAssistant = createDto("1");
+        AssistantDto updatedAssistant = createAssistantDto("1");
         updatedAssistant.setDescription("new assistant description");
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
 
         // verify assistant1
         AssistantDto actual = assistantFacade.getAssistant(assistantDto.getName());
-        var expected = createDto("1");
+        var expected = createAssistantDto("1");
         expected.setDescription("new assistant description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         expected.setDefaults(Map.of());
         assertAssistant(actual, expected);
 
         // 3 add roles to assistant1
         updatedAssistant.setDefaultRoleLimit(new LimitDto());
-        updatedAssistant.setDefaultRoleShareResourceLimit(new ShareResourceLimitDto());
         updatedAssistant.setDefaults(Map.of());
         updatedAssistant.setRoleLimits(Map.of("role2", new LimitDto(), "role3", new LimitDto()));
-        updatedAssistant.setRoleShareResourceLimits(Map.of("role2", new ShareResourceLimitDto(), "role3", new ShareResourceLimitDto()));
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
         actual = assistantFacade.getAssistant(assistantDto.getName());
         assertAssistant(actual, updatedAssistant);
@@ -78,7 +69,6 @@ public abstract class AssistantHistoryFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedAssistant.setRoleLimits(Map.of("role3", limitDto));
-        updatedAssistant.setRoleShareResourceLimits(Map.of("role3", shareResourceLimitDto));
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
         var actualAtRevision7 = assistantFacade.getAssistant(assistantDto.getName());
         assertAssistant(actualAtRevision7, updatedAssistant);
@@ -89,22 +79,19 @@ public abstract class AssistantHistoryFunctionalTest {
         roleFacade.deleteRole("role3");
         actual = assistantFacade.getAssistant(assistantDto.getName());
         Assertions.assertTrue(actual.getRoleLimits().isEmpty());
-        Assertions.assertTrue(actual.getRoleShareResourceLimits().isEmpty());
 
         // 6 delete assistant 1
         assistantFacade.deleteAssistant(assistantDto.getName());
 
         // 7 create assistant 2
-        assistantFacade.createAssistant(createDto("2"));
+        assistantFacade.createAssistant(createAssistantDto("2"));
 
         // 8 create role3
-        RoleDto role3 = new RoleDto();
-        role3.setName("role3");
-        role3.setDescription("role3");
+        RoleDto role3 = createRoleDto("3");
         roleFacade.createRole(role3);
 
         // 9 create assistant3 with assigned role3
-        assistantFacade.createAssistant(createDto("3"));
+        assistantFacade.createAssistant(createAssistantDto("3"));
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -118,18 +105,5 @@ public abstract class AssistantHistoryFunctionalTest {
 
     private void assertAssistant(AssistantDto actual, AssistantDto expected) {
         Assertions.assertEquals(expected, actual);
-    }
-
-    private AssistantDto createDto(String suffix) {
-        AssistantDto assistantDto = new AssistantDto();
-        assistantDto.setName("assistant" + suffix);
-        assistantDto.setDescription("description" + suffix);
-        assistantDto.setRoleLimits(Map.of(
-                "role" + suffix, new LimitDto()
-        ));
-        assistantDto.setRoleShareResourceLimits(Map.of(
-                "role" + suffix, new ShareResourceLimitDto()
-        ));
-        return assistantDto;
     }
 }

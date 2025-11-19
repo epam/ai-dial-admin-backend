@@ -43,6 +43,13 @@ public class AssistantService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<Assistant> getAllByNames(List<String> names) {
+        return StreamSupport.stream(assistantJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Assistant getAssistant(String assistantName) {
         return tryGetAssistant(assistantName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(assistantName)));
@@ -62,7 +69,7 @@ public class AssistantService {
         deploymentService.assertDeploymentNotExists(assistant.getDeployment().getName());
         Optional.of(assistant)
                 .map(domainModel -> toEntity(domainModel, new AssistantEntity()))
-                .map(assistantJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("unable to create assistant " + assistant.getDeployment().getName()));
     }
 
@@ -74,8 +81,14 @@ public class AssistantService {
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(assistantName)));
         Optional.of(assistant)
                 .map(domainModel -> toEntity(domainModel, assistantEntity))
-                .map(assistantJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("unable to update assistant " + assistant.getDeployment().getName()));
+    }
+
+    private AssistantEntity save(AssistantEntity assistantEntity) {
+        AssistantEntity savedAssistantEntity = assistantJpaRepository.save(assistantEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedAssistantEntity.getDeployment());
+        return savedAssistantEntity;
     }
 
     @FeatureFlagGate(featureFlag = "assistantsSupported")
@@ -128,9 +141,6 @@ public class AssistantService {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
-        List<RoleEntity> rolesForResourceShareLimits = deploymentService.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
-
-        return mapper.toEntity(domain, entity, roleLimits, rolesForLimits, roleShareResourceLimits, rolesForResourceShareLimits);
+        return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
     }
 }

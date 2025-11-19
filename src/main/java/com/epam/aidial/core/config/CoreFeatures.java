@@ -38,8 +38,6 @@ public class CoreFeatures {
     private Boolean contentPartsSupported;
     @JsonAlias({"temperatureSupported", "temperature_supported"})
     private Boolean temperatureSupported;
-    @JsonAlias({"addonsSupported", "addons_supported"})
-    private Boolean addonsSupported;
 
     @JsonAlias({"cacheSupported", "cache_supported"})
     private Boolean cacheSupported; // 0.26.0
@@ -51,4 +49,10 @@ public class CoreFeatures {
 
     @JsonAlias({"parallelToolCallsSupported", "parallel_tool_calls_supported"})
     private Boolean parallelToolCallsSupported; // 0.29.0
+
+    @JsonAlias({"assistantAttachmentsInRequestSupported", "assistant_attachments_in_request_supported"})
+    private Boolean assistantAttachmentsInRequestSupported; //0.37.0
+
+    @JsonAlias({"supportCommentInRateResponse", "support_comment_in_rate_response"})//0.38.0
+    private Boolean supportCommentInRateResponse;
 }

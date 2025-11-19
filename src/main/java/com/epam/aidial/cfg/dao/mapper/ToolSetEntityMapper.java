@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
@@ -49,7 +48,6 @@ public abstract class ToolSetEntityMapper {
         ToolSetEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
-        deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.TOOL_SET);
 
         updatedEntity.setToolSetContainer(toolSetContainer);

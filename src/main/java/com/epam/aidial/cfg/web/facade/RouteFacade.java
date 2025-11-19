@@ -3,9 +3,12 @@ package com.epam.aidial.cfg.web.facade;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.CoreWithDomainHash;
+import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.service.core.CoreRouteService;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
+import com.epam.aidial.core.config.CoreRoute;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,7 @@ public class RouteFacade {
 
     private final RouteService routeService;
     private final RouteDtoMapper mapper;
+    private final CoreRouteService coreRouteService;
 
     public Collection<RouteDto> getAllRoutes() {
         return routeService.getAll()
@@ -33,17 +37,29 @@ public class RouteFacade {
         return mapper.toDto(route);
     }
 
+    public DtoWithDomainHash<RouteDto> getRouteWithHash(String toolSetName) {
+        var routeWithHash = routeService.getRouteWithHash(toolSetName);
+        RouteDto dto = mapper.toDto(routeWithHash.model());
+        return new DtoWithDomainHash<>(dto, routeWithHash.hash());
+    }
+
+    public CoreWithDomainHash<CoreRoute> getCoreRouteWithHash(String routeName) {
+        return coreRouteService.getCoreRouteWithHash(routeName);
+    }
+
     public void createRoute(RouteDto routeDto) {
-        setDefaultRoleShareResourceLimitIfMissing(routeDto);
         Optional.of(routeDto)
                 .map(mapper::toDomain)
                 .ifPresent(routeService::create);
     }
 
-    public void updateRoute(String routeName, RouteDto routeDto) {
-        setDefaultRoleShareResourceLimitIfMissing(routeDto);
+    public String updateRoute(String routeName, RouteDto routeDto, String hash) {
         Route value = mapper.toDomain(routeDto);
-        routeService.update(routeName, value);
+        return routeService.update(routeName, value, hash);
+    }
+
+    public String updateRoute(String routeName, CoreRoute coreRoute, String hash) {
+        return coreRouteService.updateRoute(routeName, coreRoute, hash);
     }
 
     public void deleteRoute(String routeName) {
@@ -60,13 +76,5 @@ public class RouteFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private void setDefaultRoleShareResourceLimitIfMissing(RouteDto routeDto) {
-        ShareResourceLimitDto defaultRoleShareResourceLimit = routeDto.getDefaultRoleShareResourceLimit();
-        if (defaultRoleShareResourceLimit == null) {
-            defaultRoleShareResourceLimit = new ShareResourceLimitDto();
-            routeDto.setDefaultRoleShareResourceLimit(defaultRoleShareResourceLimit);
-        }
     }
 }

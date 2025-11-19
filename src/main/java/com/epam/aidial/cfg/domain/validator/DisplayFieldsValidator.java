@@ -6,24 +6,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class DisplayFieldsValidator {
 
-    public void validateDisplayNameDisplayVersion(String displayName, String displayVersion) {
-        validateDisplayName(displayName);
-        validateDisplayVersion(displayVersion);
+    public void validateDisplayNameDisplayVersion(String displayName,
+                                                  String displayVersion,
+                                                  String domainObjectType,
+                                                  String id) {
+        validateDisplayName(displayName, domainObjectType, id);
+        validateDisplayVersion(displayVersion, domainObjectType, id);
+    }
 
-        if (displayName == null && displayVersion != null) {
-            throw new IllegalArgumentException("Display version: '" + displayVersion + "' can not be specified without display name");
+    public void validateDisplayName(String displayName, String domainObjectType, String id) {
+        if (StringUtils.isBlank(displayName)) {
+            throw new IllegalArgumentException("Display name: '%s' must not be blank for %s with id:'%s'"
+                    .formatted(displayName, domainObjectType, id));
         }
     }
 
-    private void validateDisplayName(String displayName) {
-        if (displayName != null && StringUtils.isBlank(displayName)) {
-            throw new IllegalArgumentException("Invalid display name: '" + displayName + "'");
-        }
-    }
-
-    private void validateDisplayVersion(String displayVersion) {
+    private void validateDisplayVersion(String displayVersion, String domainObjectType, String id) {
         if (displayVersion != null && StringUtils.isBlank(displayVersion)) {
-            throw new IllegalArgumentException("Invalid display version: '" + displayVersion + "'");
+            throw new IllegalArgumentException("Display version: '%s' must not be blank for %s with id:'%s'"
+                    .formatted(displayVersion, domainObjectType, id));
         }
     }
 }

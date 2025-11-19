@@ -27,12 +27,17 @@ public abstract class AdapterEntityMapper {
                     .forEach(model -> {
                         model.setAdapter(null);
                         model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(updatedEntity.getBaseEndpoint(), model.getAdapterCompletionEndpointPath()));
+                        // Clear container and adapter completion endpoint path when removing from adapter
+                        model.setModelContainer(null);
+                        model.setAdapterCompletionEndpointPath(null);
                     });
             models.stream()
                     .filter(model -> !updatedEntity.getModels().contains(model))
-                    .forEach(model -> {
-                        model.setAdapter(updatedEntity);
-                        model.setEndpoint(null);
+                    .forEach(app -> {
+                        // Clear container when setting adapter to ensure mutual exclusivity
+                        app.setModelContainer(null);
+                        app.setAdapter(updatedEntity);
+                        app.setEndpoint(null);
                     });
             updatedEntity.getModels().clear();
             updatedEntity.getModels().addAll(models);

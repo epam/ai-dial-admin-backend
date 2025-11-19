@@ -1,0 +1,17 @@
+{
+  "name": "testRole",
+  "description": "testRoleDescription",
+  "displayName": "testRoleDisplayName",
+  "share": {
+    "application": {
+      "maxAcceptedUsers": "10",
+      "invitationTtl": "120"
+    }
+  },
+  "costLimit": {
+    "minute": "9223372036854775807",
+    "day": "9223372036854775807",
+    "week": "9223372036854775807",
+    "month": "9223372036854775807"
+  }
+}

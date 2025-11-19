@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -25,6 +26,12 @@ public abstract class ApplicationTypeSchemaEntityMapper {
         ApplicationTypeSchemaEntity updatedEntity = update(domain, entity);
 
         // todo: remove shouldUpdateApplications and related logic once FE is ready to send full state
+        boolean shouldUpdateApplications = domain.getApplications() != null;
+        List<ApplicationEntity> applications = shouldUpdateApplications
+                ? findApplicationsByNames(domain.getApplications())
+                : entity.getApplications();
+
+        // todo: remove shouldUpdateApplications and related logic once FE is ready to send full state
         boolean shouldUpdateApplications = applications != null;
         if (shouldUpdateApplications) {
             updatedEntity.getApplications().stream()
@@ -43,12 +50,42 @@ public abstract class ApplicationTypeSchemaEntityMapper {
             updatedEntity.getApplications().addAll(applications);
         }
 
+        Map<String, InterceptorEntity> interceptorsByName = interceptors.stream()
+                .collect(Collectors.toMap(InterceptorEntity::getName, Function.identity()));
+        List<InterceptorEntity> duplicatedInterceptors = CollectionUtils.emptyIfNull(domain.getInterceptors())
+                .stream()
+                .map(interceptorsByName::get)
+                .toList();
+        updatedEntity.getInterceptors().forEach(interceptor -> interceptor.getApplicationTypeSchemas().remove(updatedEntity));
+        duplicatedInterceptors.forEach(interceptor -> interceptor.getApplicationTypeSchemas().add(updatedEntity));
+        updatedEntity.getInterceptors().clear();
+        updatedEntity.getInterceptors().addAll(duplicatedInterceptors);
+
         return updatedEntity;
     }
 
+    @Mapping(target = "interceptors", ignore = true)
     @Mapping(target = "applications", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "routes", source = "applicationTypeRoutes")
     abstract ApplicationTypeSchemaEntity update(ApplicationTypeSchema domain, @MappingTarget ApplicationTypeSchemaEntity entity);
+
+    private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return List.of();
+        }
+
+        List<InterceptorEntity> existingInterceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
+        Set<String> existingInterceptorsNames = existingInterceptors.stream()
+                .map(InterceptorEntity::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptorsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("unable to find interceptors: " + namesDiff);
+        }
+
+        return new ArrayList<>(existingInterceptors);
+    }
 }

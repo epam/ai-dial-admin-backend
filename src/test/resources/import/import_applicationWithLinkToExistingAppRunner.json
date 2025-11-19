@@ -1,0 +1,52 @@
+{
+  "routes": {},
+  "models": {},
+  "addons": {},
+  "applications": {
+    "testApplication1": {
+      "name": "testApplication1",
+      "display_name": "Test Application1",
+      "display_version": "2.0.0",
+      "viewer_url": "https://viewer.test.com/app1",
+      "editor_url": "https://editor.test.com/app1",
+      "forward_auth_token": false,
+      "features": {
+        "system_prompt_supported": true,
+        "tools_supported": false,
+        "seed_supported": false,
+        "url_attachments_supported": false,
+        "folder_attachments_supported": false,
+        "allow_resume": false,
+        "accessible_by_per_request_key": true,
+        "content_parts_supported": false,
+        "temperature_supported": true,
+        "addons_supported": false,
+        "cache_supported": true,
+        "auto_caching_supported": false,
+        "consent_required": false,
+        "parallel_tool_calls_supported": true
+      },
+      "defaults": {},
+      "interceptors": [],
+      "description_keywords": [],
+      "max_retry_attempts": 1,
+      "application_properties": {},
+      "application_type_schema_id": "https://test-schema-id.example",
+      "author": "test-author",
+      "created_at": "12345",
+      "updated_at": "12345",
+      "dependencies": [
+        "dep1",
+        "dep2"
+      ]
+    }
+  },
+  "assistant": {
+    "assistants": {}
+  },
+  "keys": {},
+  "roles": {},
+  "retriableErrorCodes": [],
+  "interceptors": {},
+  "applicationTypeSchemas": []
+}

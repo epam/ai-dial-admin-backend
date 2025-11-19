@@ -17,7 +17,7 @@ public class ApplicationResource {
     private String path;
     private String version;
     private String folderId;
-    private long updateTime;
+    private long updatedAt;
     private String author;
     private String name;
     private String endpoint;

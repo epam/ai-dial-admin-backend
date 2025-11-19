@@ -56,7 +56,6 @@ public class DefaultExceptionHandler {
         return new ErrorView(req, HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-
     @ResponseBody
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     @ExceptionHandler({HttpRequestMethodNotSupportedException.class})

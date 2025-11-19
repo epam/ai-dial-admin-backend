@@ -7,12 +7,16 @@ import com.epam.aidial.cfg.dao.mapper.InterceptorRunnerEntityMapper;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.InterceptorRunner;
 import com.epam.aidial.cfg.domain.validator.InterceptorRunnerValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.google.api.client.util.Lists;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
@@ -26,9 +30,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @LogExecution
 @Service("coreInterceptorRunnerService")
 @RequiredArgsConstructor
+@Slf4j
 public class InterceptorRunnerService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Interceptor Runner with name '%s' does not exist";
@@ -38,6 +45,7 @@ public class InterceptorRunnerService {
     private final InterceptorRunnerValidator interceptorRunnerValidator;
     private final HistoryService historyService;
     private final InterceptorJpaRepository interceptorJpaRepository;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<InterceptorRunner> getAll() {
@@ -47,11 +55,29 @@ public class InterceptorRunnerService {
     }
 
     @Transactional(readOnly = true)
+    public Collection<InterceptorRunner> getAllByNames(List<String> names) {
+        return StreamSupport.stream(interceptorRunnerJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public InterceptorRunner get(String interceptorRunnerName) {
+        return tryGet(interceptorRunnerName)
+                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorRunnerName)));
+    }
+
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<InterceptorRunner> getInterceptorRunnerWithHash(String id) {
+        var interceptorRunner = get(id);
+        return new DomainObjectWithHash<>(interceptorRunner, calculator.calculateHash(interceptorRunner));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<InterceptorRunner> tryGet(String interceptorRunnerName) {
         return Optional.ofNullable(interceptorRunnerName)
                 .flatMap(interceptorRunnerJpaRepository::findById)
-                .map(mapper::toDomain)
-                .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorRunnerName)));
+                .map(mapper::toDomain);
     }
 
     @Transactional
@@ -65,11 +91,24 @@ public class InterceptorRunnerService {
 
     @Transactional
     public void update(String interceptorRunnerName, InterceptorRunner interceptorRunner) {
+        performUpdate(interceptorRunnerName, interceptorRunner, ANY_HASH);
+    }
+
+    @Transactional
+    public String update(String interceptorRunnerName, InterceptorRunner interceptorRunner, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. InterceptorRunner:%s.", interceptorRunnerName));
+        }
+        var savedInterceptorRunner = performUpdate(interceptorRunnerName, interceptorRunner, hash);
+        return calculator.calculateHash(mapper.toDomain(savedInterceptorRunner));
+    }
+
+    private InterceptorRunnerEntity performUpdate(String interceptorRunnerName, InterceptorRunner interceptorRunner, String hash) {
         interceptorRunnerValidator.validateUpdate(interceptorRunnerName, interceptorRunner);
-        InterceptorRunnerEntity interceptorRunnerEntity = findByInterceptorRunnerName(interceptorRunnerName);
-        Optional.of(interceptorRunner)
-                .map(domainModel -> toEntity(domainModel, interceptorRunnerEntity))
-                .ifPresent(interceptorRunnerJpaRepository::save);
+        var interceptorRunnerEntity = findByInterceptorRunnerName(interceptorRunnerName);
+        assertNotConcurrencyOverwrite(interceptorRunnerEntity, hash);
+        return interceptorRunnerJpaRepository.save(toEntity(interceptorRunner, interceptorRunnerEntity));
     }
 
     @Transactional
@@ -106,6 +145,19 @@ public class InterceptorRunnerService {
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    private void assertNotConcurrencyOverwrite(InterceptorRunnerEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: interceptorRunnerName={}, expectedHash={}, currentHash={}",
+                    entity.getName(), expectedHash, currentHash);
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: interceptorRunnerName:'"
+                    + "%s'. Reload the data.", entity.getName()));
+        }
     }
 
     @Transactional

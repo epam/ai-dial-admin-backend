@@ -7,7 +7,7 @@ import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
+import com.google.api.client.util.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -50,9 +50,7 @@ public abstract class ApplicationEntityMapper {
                                       List<InterceptorEntity> interceptors,
                                       ApplicationTypeSchemaEntity applicationTypeSchema,
                                       List<RoleLimit> roleLimits,
-                                      List<RoleEntity> rolesForLimits,
-                                      List<RoleShareResourceLimit> roleShareResourceLimits,
-                                      List<RoleEntity> rolesForResourceShareLimits) {
+                                      List<RoleEntity> rolesForLimits) {
         ApplicationEntity updatedEntity = update(domain, entity);
 
         Map<String, InterceptorEntity> interceptorsByName = interceptors.stream()
@@ -81,7 +79,6 @@ public abstract class ApplicationEntityMapper {
         updatedEntity.setApplicationTypeSchema(applicationTypeSchema);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
-        deploymentEntityMapper.setRoleShareResourceLimits(updatedEntity.getDeployment(), rolesForResourceShareLimits, roleShareResourceLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.APPLICATION);
 
         return updatedEntity;

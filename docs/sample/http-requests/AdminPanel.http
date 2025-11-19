@@ -21,8 +21,19 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @roleName = NewRole7
 GET http://localhost:8080/api/v1/roles/{{roleName}}
+If-None-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Role
+#@no-log
+@roleName = NewRole7
+PUT http://localhost:8080/api/roles/{{roleName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
 
 ###
 
@@ -84,8 +95,19 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @appName = echo
 GET http://localhost:8080/api/v1/applications/{{appName}}
+If-None-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Application
+#@no-log
+@appName = echo
+PUT http://localhost:8080/api/v1/applications/{{appName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
 
 ###
 
@@ -110,8 +132,19 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @interceptorName = logging-interceptor
 GET http://localhost:8080/api/v1/interceptors/{{interceptorName}}
+If-None-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Interceptor
+#@no-log
+@interceptorName = logging-interceptor
+PUT http://localhost:8080/api//interceptors/{{interceptorName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
 
 ###
 
@@ -127,8 +160,19 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @routeName = chat-route
 GET http://localhost:8080/api/v1/routes/{{routeName}}
+If-None-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Route
+#@no-log
+@routeName = chat-route
+PUT http://localhost:8080/api/v1/routes/{{routeName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
 
 ###
 
@@ -153,6 +197,7 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @keyName = openai-key
 GET http://localhost:8080/api/v1/keys/{{keyName}}
+If-None-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
 
@@ -179,6 +224,7 @@ Content-Type: application/json
 #@no-log
 @keyName = openai-key
 PUT http://localhost:8080/api/v1/keys/{{keyName}}
+If-Match: {{etag}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
 Content-Type: application/json
@@ -210,6 +256,69 @@ Authorization: Basic {{user}} {{password}}
 
 ###
 
+# @name Get Adapter
+#@no-log
+@adapterName = chat-adapter
+GET http://localhost:8080/api/v1/adapters/{{adapterName}}
+If-None-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Adapter
+#@no-log
+@adapterName = chat-adapter
+PUT http://localhost:8080/api/v1/adapters/{{adapterName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
+
+###
+
+# @name Delete Adapter
+#@no-log
+@adapterName = chat-adapter
+DELETE http://localhost:8080/api/v1/adapters/{{adapterName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get All ToolSets
+#@no-log
+GET http://localhost:8080/api/v1/toolSets
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get ToolSet
+#@no-log
+@toolSetName = chat-toolSet
+GET http://localhost:8080/api/v1/toolSets/{{toolSetName}}
+If-None-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update ToolSet
+#@no-log
+@toolSetName = chat-toolSet
+PUT http://localhost:8080/api/v1/toolSets/{{toolSetName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+Content-Type: application/json
+
+###
+
+# @name Delete ToolSet
+#@no-log
+@toolSetName = chat-toolSet
+DELETE http://localhost:8080/api/v1/toolSets/{{toolSetName}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
 # @name Get All Tokenizers
 #@no-log
 GET http://localhost:8080/api/v1/tokenizers
@@ -230,6 +339,56 @@ Authorization: Basic {{user}} {{password}}
 #@no-log
 @schemaId = chat-schema
 GET http://localhost:8080/api/v1/applicationTypeSchemas?id={{schemaId}}
+If-None-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Application Type Schema by ID
+#@no-log
+@schemaId = chat-schema
+PUT http://localhost:8080/api/v1/applicationTypeSchemas?id={{schemaId}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+###
+
+# @name Get All Interceptor Runners
+#@no-log
+GET http://localhost:8080/api/v1/interceptor-runners
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Get Interceptor Runner
+#@no-log
+@interceptorRunnerName = openai-key
+GET http://localhost:8080/api/v1/interceptor-runners/{{interceptorRunnerName}}
+If-None-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+
+###
+
+# @name Update Interceptor Runner
+#@no-log
+@interceptorRunnerName = interceptorRunnerName
+PUT http://localhost:8080/api/v1/interceptor-runners/{{interceptorRunnerName}}
+If-Match: {{etag}}
+Authorization: Basic {{user}} {{password}}
+#Authorization: Bearer {{$auth.token("keycloak")}}
+Content-Type: application/json
+
+###
+
+# @name Delete Interceptor Runner
+#@no-log
+@interceptorRunnerName = interceptorRunnerName
+DELETE http://localhost:8080/api/v1/interceptor-runners/{{interceptorRunnerName}}
 Authorization: Basic {{user}} {{password}}
 #Authorization: Bearer {{$auth.token("keycloak")}}
 

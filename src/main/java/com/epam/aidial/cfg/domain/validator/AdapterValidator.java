@@ -14,34 +14,44 @@ import java.util.regex.Pattern;
 public class AdapterValidator {
 
     private final IdFieldValidator idFieldValidator;
-
+    private final DisplayFieldsValidator displayFieldsValidator;
     private final String adapterNameValidationPattern;
 
     public AdapterValidator(IdFieldValidator idFieldValidator,
+                            DisplayFieldsValidator displayFieldsValidator,
                             @Value("${validation.adapter.name:}") String adapterNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
+        this.displayFieldsValidator = displayFieldsValidator;
         this.adapterNameValidationPattern = adapterNameValidationPattern;
     }
 
-    public void validateAdapterCreation(Adapter adapter) {
+    public void validateCreation(Adapter adapter) {
         final String adapterName = adapter.getName();
-
         idFieldValidator.validateName("Adapter", adapterName);
 
         if (StringUtils.isEmpty(adapterNameValidationPattern)) {
             log.debug("Adapter name validation pattern is empty, skipping validation for adapter: {}", adapterName);
-            return;
-        }
-
-        if (!Pattern.matches(adapterNameValidationPattern, adapterName)) {
+        } else if (!Pattern.matches(adapterNameValidationPattern, adapterName)) {
             throw new IllegalArgumentException("Adapter name '" + adapterName
                     + "' does not match the required pattern: " + adapterNameValidationPattern);
         }
+        displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
+        validateBaseEndpoint(adapter.getBaseEndpoint(), adapterName);
     }
 
     public void validateUpdate(String adapterName, Adapter adapter) {
         if (!Objects.equals(adapterName, adapter.getName())) {
             throw new IllegalArgumentException("Adapter with name: '" + adapterName + "' can not be renamed. New adapter name: '" + adapter.getName() + "'");
+        }
+        displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
+        validateBaseEndpoint(adapter.getBaseEndpoint(), adapterName);
+    }
+
+    private void validateBaseEndpoint(String baseEndpoint, String adapterName) {
+        if (StringUtils.isBlank(baseEndpoint)) {
+            throw new IllegalArgumentException("Blank adapter base endpoint. Adapter: %s".formatted(adapterName));
+        } else if (EndpointValidator.isInvalidUrl(baseEndpoint)) {
+            throw new IllegalArgumentException("Invalid adapter base endpoint: '%s'. Adapter: %s".formatted(baseEndpoint, adapterName));
         }
     }
 }

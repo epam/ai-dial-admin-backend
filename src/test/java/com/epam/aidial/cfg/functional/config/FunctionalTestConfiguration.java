@@ -32,6 +32,7 @@ import com.epam.aidial.cfg.service.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.epam.aidial.cfg.service.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
+import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreModel;
@@ -51,6 +52,7 @@ import java.util.Map;
         "com.epam.aidial.cfg.web.facade",
         "com.epam.aidial.cfg.service.transfer",
         "com.epam.aidial.cfg.service.normalizer",
+        "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
 @Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, HashCalculator.class})
@@ -84,8 +86,8 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
-    public TestHistoryFacade testHistoryFacade(HistoryFacade historyFacade) {
-        return new TestHistoryFacade(historyFacade);
+    public TestHistoryFacade testHistoryFacade(HistoryFacade historyFacade, AuditActivityFacade activityFacade) {
+        return new TestHistoryFacade(historyFacade, activityFacade);
     }
 
     @Bean

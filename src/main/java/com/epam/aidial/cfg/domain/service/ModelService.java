@@ -50,7 +50,7 @@ import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
 @Slf4j
 @LogExecution
-@Service("coreModelService")
+@Service
 @RequiredArgsConstructor
 public class ModelService {
 
@@ -72,6 +72,13 @@ public class ModelService {
     @Transactional(readOnly = true)
     public Collection<Model> getAll() {
         return modelJpaRepository.findAll().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Model> getAllByNames(List<String> names) {
+        return modelJpaRepository.findAllById(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -108,7 +115,7 @@ public class ModelService {
         resolveEndpointsIfContainerSource(model);
         Optional.of(model)
                 .map(domainModel -> toEntity(domainModel, new ModelEntity()))
-                .map(modelJpaRepository::save)
+                .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create model " + model.getDeployment().getName()));
     }
 
@@ -136,7 +143,13 @@ public class ModelService {
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         assertNotConcurrencyOverwrite(modelEntity, hash);
         resolveEndpointsIfContainerSource(model);
-        return modelJpaRepository.save(toEntity(model, modelEntity));
+        return save(toEntity(model, modelEntity));
+    }
+
+    private ModelEntity save(ModelEntity modelEntity) {
+        ModelEntity savedModelEntity = modelJpaRepository.save(modelEntity);
+        deploymentService.addDeploymentRoleLimitToRoleIfAbsent(savedModelEntity.getDeployment());
+        return savedModelEntity;
     }
 
     @Transactional

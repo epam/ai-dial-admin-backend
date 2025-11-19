@@ -19,7 +19,7 @@ plugins {
 }
 
 group = 'com.epam.aidial'
-version = "0.9.0-rc"
+version = "0.12.0-rc"
 
 java {
     toolchain {
@@ -109,7 +109,7 @@ dependencies {
 
     implementation 'com.h2database:h2'
     implementation 'org.postgresql:postgresql:42.7.7'
-    implementation 'com.microsoft.sqlserver:mssql-jdbc'
+    implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.2.jre11'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.data:spring-data-envers'
     implementation 'org.flywaydb:flyway-core:11.4.1'
@@ -162,7 +162,7 @@ dependencies {
     testImplementation 'org.testcontainers:mssqlserver'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:10.1.44') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.13') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
@@ -176,6 +176,9 @@ dependencies {
         }
         implementation ('io.netty:netty-codec-http2:4.2.4.Final') {
             because("previous versions have vulnerabilities")
+        }
+        implementation("io.grpc:grpc-netty-shaded:1.75.0") {
+                because("previous versions have vulnerabilities)")
         }
         implementation ('io.netty:netty-codec:4.2.5.Final') {
             because("previous versions have vulnerabilities")

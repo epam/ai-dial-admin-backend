@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service.transfer.importer;
 
 import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.model.Deployment;
-import com.epam.aidial.cfg.domain.model.ShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -21,6 +20,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,10 +45,10 @@ class RouteImporterTest {
         Route route = new Route();
         Deployment deployment = new Deployment("routeName");
         route.setDeployment(deployment);
-        when(mapper.mapRoute(any(CoreRoute.class), any(ShareResourceLimit.class))).thenReturn(route);
+        when(mapper.mapRoute(any(CoreRoute.class), anyList(), any(Route.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
-        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, true))
+        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), importOptions))
                 // then
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Route 'routeName' invalid: paths must not be empty");
@@ -65,10 +65,10 @@ class RouteImporterTest {
         Deployment deployment = new Deployment("routeName");
         route.setDeployment(deployment);
         route.setPaths(paths);
-        when(mapper.mapRoute(any(CoreRoute.class), any(ShareResourceLimit.class))).thenReturn(route);
+        when(mapper.mapRoute(any(CoreRoute.class), anyList(), any(Route.class))).thenReturn(route);
         ConfigImportOptions importOptions = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true);
         // when
-        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), Map.of(), importOptions, false))
+        Assertions.assertThatThrownBy(() -> routeImporter.importRoutes(Map.of(routeName, coreRoute), importOptions))
                 // then
                 .isInstanceOf(IllegalArgumentException.class);
     }

@@ -3,7 +3,6 @@ package com.epam.aidial.core.config;
 import com.epam.aidial.cfg.dto.databind.JsonMapDeserializer;
 import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
 import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
-
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -64,6 +63,12 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("dial:applicationTypePlaybackSupport")
     private Boolean applicationTypePlaybackSupport; // 0.34.0
 
+    @JsonProperty("dial:applicationTypeBucketCopy")
+    private CopyAppBucketOptions applicationTypeBucketCopy; // 0.37.0
+
+    @JsonProperty("dial:applicationTypeInterceptors")
+    private List<String> applicationTypeInterceptors; // 0.38.0
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)
@@ -80,5 +85,14 @@ public class CoreApplicationTypeSchema {
         OBJECT,
         @JsonAlias("BOOLEAN")
         BOOLEAN,
+    }
+
+    public enum CopyAppBucketOptions {
+        @JsonAlias("ENABLED")
+        @JsonProperty("ENABLED")
+        ENABLED,
+        @JsonAlias("DISABLED")
+        @JsonProperty("DISABLED")
+        DISABLED,
     }
 }

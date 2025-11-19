@@ -5,14 +5,14 @@ import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.transfer.importer.util.CoreRolesMerger;
+import com.epam.aidial.cfg.service.transfer.importer.compatibility.backward.AdminConfigImportBackwardCompatibilityHandler;
+import com.epam.aidial.cfg.service.transfer.importer.util.CoreRolesImportPreProcessor;
 import com.epam.aidial.core.config.Config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 @Service
 @LogExecution
@@ -20,10 +20,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConfigImporter {
 
-    private final CoreRolesMerger coreRolesMerger;
+    private final CoreRolesImportPreProcessor coreRolesImportPreProcessor;
 
     private final ModelImporter modelImporter;
-    private final AddonImporter addonTransfer;
+    private final AddonImporter addonImporter;
     private final ApplicationImporter applicationImporter;
     private final KeyImporter keyImporter;
     private final RoleImporter roleImporter;
@@ -35,22 +35,40 @@ public class ConfigImporter {
     private final AdapterImporter adapterImporter;
     private final ToolSetImporter toolSetImporter;
 
-    @Transactional(readOnly = true)
-    public ImportConfigPreview importPreview(Config config, ConfigImportOptions importOptions) {
-        var resolutionPolicy = importOptions.conflictResolutionPolicy();
-        var configRoles = coreRolesMerger.mergeCoreRoles(config, importOptions.createRoleIfAbsent());
+    private final AdminConfigImportBackwardCompatibilityHandler adminConfigImportBackwardCompatibilityHandler;
 
-        var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, true);
-        var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, true);
+    @Transactional
+    public ImportConfigPreview importPreview(Config config, ConfigImportOptions importOptions) {
+        // mark that transaction should be rolled back. This is a trick to get actual state of importing objects
+        // with all associations but doesn't save the state into DB
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+
+        var resolutionPolicy = importOptions.conflictResolutionPolicy();
+        var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
+
+        var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
+        var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
         var adapters = adapterImporter.importAdapters(config.getModels(), importOptions, true);
-        var models = modelImporter.importModels(config.getModels(), configRoles, importOptions, adapters, true);
-        var addons = addonTransfer.importAddons(config.getAddons(), configRoles, importOptions, true);
-        var applications = applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, true);
-        var routes = routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, true);
-        var assistants = assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, true);
-        var toolSets = toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, true);
-        var roles = roleImporter.importRoles(configRoles, resolutionPolicy, true);
+        var models = modelImporter.importModels(config.getModels(), importOptions);
+        var addons = addonImporter.importAddons(config.getAddons(), importOptions);
+        var applications = applicationImporter.importApplications(config.getApplications(), config.getApplicationTypeSchemas(), importOptions);
+        var routes = routeImporter.importRoutes(config.getRoutes(), importOptions);
+        var assistants = assistantImporter.importAssistants(config.getAssistant(), importOptions);
+        var toolSets = toolSetImporter.importToolSets(config.getToolsets(), importOptions);
+        var roles = roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
         var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
+
+        interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
+        applicationRunners = applicationTypeSchemaImporter.getActualImportedApplicationTypeSchemas(applicationRunners);
+        adapters = adapterImporter.getActualImportedAdapters(adapters);
+        models = modelImporter.getActualImportedModels(models);
+        addons = addonImporter.getActualImportedAddons(addons);
+        applications = applicationImporter.getActualImportedApplications(applications);
+        routes = routeImporter.getActualImportedRoutes(routes);
+        assistants = assistantImporter.getActualImportedAssistants(assistants);
+        toolSets = toolSetImporter.getActualImportedToolSets(toolSets);
+        roles = roleImporter.getActualImportedRoles(roles);
+        keys = keyImporter.getActualImportedKeys(keys);
 
         return ImportConfigPreview.builder()
                 .roles(roles)
@@ -67,20 +85,37 @@ public class ConfigImporter {
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ImportConfigPreview importPreviewAdminConfig(ExportConfig config, ConflictResolutionPolicy resolutionPolicy) {
+        // mark that transaction should be rolled back. This is a trick to get actual state of importing objects
+        // with all associations but doesn't save the state into DB
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+
+        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
+
         var importOptions = new ConfigImportOptions(resolutionPolicy, false, false);
 
-        var interceptorRunners = interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, true);
-        var interceptors = interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, true);
-        var applicationRunners = applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, true);
-        var routes = routeImporter.importAdminRoutes(config.getRoutes(), config.getRoles(), importOptions, true);
-        var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, true);
-        var models = modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, true);
-        var applications = applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, true);
-        var toolSets = toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, true);
-        var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, true);
-        var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, true);
+        var interceptorRunners = interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
+        var interceptors = interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
+        var applicationRunners = applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
+        var routes = routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
+        var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
+        var models = modelImporter.importAdminModels(config.getModels(), importOptions);
+        var applications = applicationImporter.importAdminApplications(config.getApplications(), importOptions);
+        var toolSets = toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
+        var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
+        var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
+
+        interceptorRunners = interceptorRunnerImporter.getActualImportedInterceptorRunners(interceptorRunners);
+        interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
+        applicationRunners = applicationTypeSchemaImporter.getActualImportedApplicationTypeSchemas(applicationRunners);
+        routes = routeImporter.getActualImportedRoutes(routes);
+        adapters = adapterImporter.getActualImportedAdapters(adapters);
+        models = modelImporter.getActualImportedModels(models);
+        applications = applicationImporter.getActualImportedApplications(applications);
+        toolSets = toolSetImporter.getActualImportedToolSets(toolSets);
+        roles = roleImporter.getActualImportedRoles(roles);
+        keys = keyImporter.getActualImportedKeys(keys);
 
         return ImportConfigPreview.builder()
                 .roles(roles)
@@ -97,36 +132,43 @@ public class ConfigImporter {
     }
 
     @Transactional
+    public void importConfigWithOverride(Config config) {
+        importConfig(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
+    }
+
+    @Transactional
     public void importConfig(Config config, ConfigImportOptions importOptions) {
         var resolutionPolicy = importOptions.conflictResolutionPolicy();
-        var configRoles = coreRolesMerger.mergeCoreRoles(config, importOptions.createRoleIfAbsent());
+        var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
 
-        interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy, false);
-        applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy, false);
+        interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
+        applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
         adapterImporter.importAdapters(config.getModels(), importOptions, false);
-        modelImporter.importModels(config.getModels(), configRoles, importOptions, List.of(), false);
-        addonTransfer.importAddons(config.getAddons(), configRoles, importOptions, false);
-        applicationImporter.importApplications(config.getApplications(), configRoles, importOptions, false);
-        routeImporter.importRoutes(config.getRoutes(), configRoles, importOptions, false);
-        assistantImporter.importAssistants(config.getAssistant(), configRoles, importOptions, false);
-        toolSetImporter.importToolSets(config.getToolsets(), configRoles, importOptions, false);
-        roleImporter.importRoles(configRoles, resolutionPolicy, false);
+        modelImporter.importModels(config.getModels(), importOptions);
+        addonImporter.importAddons(config.getAddons(), importOptions);
+        applicationImporter.importApplications(config.getApplications(), config.getApplicationTypeSchemas(), importOptions);
+        routeImporter.importRoutes(config.getRoutes(), importOptions);
+        assistantImporter.importAssistants(config.getAssistant(), importOptions);
+        toolSetImporter.importToolSets(config.getToolsets(), importOptions);
+        roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
         keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
     }
 
     @Transactional
     public void importAdminConfig(ExportConfig config, ConfigImportOptions importOptions) {
+        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
+
         var resolutionPolicy = importOptions.conflictResolutionPolicy();
 
-        interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy, false);
-        interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy, false);
-        applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy, false);
-        routeImporter.importAdminRoutes(config.getRoutes(), config.getRoles(), importOptions, false);
-        adapterImporter.importAdminAdapters(config.getAdapters(), importOptions, false);
-        modelImporter.importAdminModels(config.getModels(), config.getRoles(), importOptions, false);
-        applicationImporter.importAdminApplications(config.getApplications(), config.getRoles(), importOptions, false);
-        toolSetImporter.importAdminToolSets(config.getToolsets(), config.getRoles(), importOptions, false);
-        roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy, false);
-        keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy, false);
+        interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
+        interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
+        applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
+        routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
+        adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
+        modelImporter.importAdminModels(config.getModels(), importOptions);
+        applicationImporter.importAdminApplications(config.getApplications(), importOptions);
+        toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
+        roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
+        keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
     }
 }

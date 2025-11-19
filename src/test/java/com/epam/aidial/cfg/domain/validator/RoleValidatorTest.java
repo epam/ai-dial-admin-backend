@@ -22,12 +22,13 @@ class RoleValidatorTest {
 
     @Mock
     private IdFieldValidator idFieldValidator;
-
+    @Mock
+    private DisplayFieldsValidator displayFieldsValidator;
     private RoleValidator roleValidator;
 
     @BeforeEach
     void setUp() {
-        roleValidator = new RoleValidator(idFieldValidator, null);
+        roleValidator = new RoleValidator(idFieldValidator, displayFieldsValidator, null);
     }
 
     @Test
