@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.configuration;
 
-import com.epam.aidial.cfg.exception.InvalidDatasourceVendorException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,12 +22,12 @@ public class DatasourceVendorProperties {
         log.info("Validating datasource.vendor property. Value: {}", vendor);
 
         if (StringUtils.isBlank(vendor)) {
-            throw new InvalidDatasourceVendorException("Undefined datasource.vendor value: '" + vendor
+            throw new IllegalStateException("Undefined datasource.vendor value: '" + vendor
                     + "'. " + "Valid values are: " + String.join(", ", VALID_VENDORS));
         }
 
         if (!VALID_VENDORS.contains(vendor)) {
-            throw new InvalidDatasourceVendorException("Invalid datasource.vendor value: '" + vendor + "'. "
+            throw new IllegalStateException("Invalid datasource.vendor value: '" + vendor + "'. "
                     + "Valid values are: " + String.join(", ", VALID_VENDORS));
         }
 
