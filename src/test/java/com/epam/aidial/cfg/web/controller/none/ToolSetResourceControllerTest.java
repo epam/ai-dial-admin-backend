@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.AuthenticationTypeResourceDto;
+import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
 import com.epam.aidial.cfg.dto.CredentialsLevelDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
@@ -41,6 +42,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -216,6 +218,78 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .value("Already exist"));
 
         verify(toolSetResourceService).createToolSetResource(eq(createToolSet));
+    }
+
+    @Test
+    void testCreateToolSetResourceWithUndefinedDisplayName() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+
+        // Test with null displayName
+        var dtoNullDisplayName = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
+        dtoNullDisplayName.setDisplayName(null);
+        var jsonNullDisplayName = objectMapper.writeValueAsString(dtoNullDisplayName);
+
+        mockMvc.perform(post(CREATE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonNullDisplayName))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
+
+        verifyNoInteractions(toolSetResourceService);
+    }
+
+    @Test
+    void testCreateToolSetResourceWithEmptyDisplayName() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+
+        // Test with empty displayName
+        var dtoEmptyDisplayName = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
+        dtoEmptyDisplayName.setDisplayName("");
+        var jsonEmptyDisplayName = objectMapper.writeValueAsString(dtoEmptyDisplayName);
+
+        mockMvc.perform(post(CREATE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonEmptyDisplayName))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
+
+        verifyNoInteractions(toolSetResourceService);
+    }
+
+    @Test
+    void testCreateToolSetResourceWithEmptyEndpoint() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+
+        // Test with empty endpoint
+        var dtoEmptyEndpoint = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
+        dtoEmptyEndpoint.setEndpoint("");
+        var jsonEmptyEndpoint = objectMapper.writeValueAsString(dtoEmptyEndpoint);
+
+        mockMvc.perform(post(CREATE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonEmptyEndpoint))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("endpoint: Completion endpoint is required"));
+
+        verifyNoInteractions(toolSetResourceService);
+    }
+
+    @Test
+    void testCreateToolSetResourceWithInvalidEndpoint() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+
+        // Test with invalid endpoint URL
+        var dtoInvalidEndpoint = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
+        dtoInvalidEndpoint.setEndpoint("invalid-url");
+        var jsonInvalidEndpoint = objectMapper.writeValueAsString(dtoInvalidEndpoint);
+
+        mockMvc.perform(post(CREATE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonInvalidEndpoint))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("endpoint: Invalid endpoint URL"));
+
+        verifyNoInteractions(toolSetResourceService);
     }
 
     @Test
