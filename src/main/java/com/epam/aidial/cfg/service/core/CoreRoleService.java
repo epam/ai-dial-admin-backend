@@ -8,7 +8,7 @@ import com.epam.aidial.cfg.domain.service.DeploymentService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
-import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
+import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreRole;
 import lombok.RequiredArgsConstructor;
