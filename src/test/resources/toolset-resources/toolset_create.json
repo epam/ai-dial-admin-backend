@@ -3,7 +3,7 @@
   "version": "1",
   "folderId": "test_folder",
   "endpoint": "https://test",
-  "displayName": null,
+  "displayName": "test_toolset",
   "displayVersion": null,
   "iconUrl": null,
   "description": "dsggs",
