@@ -11,7 +11,7 @@ import java.util.Collection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @see com.epam.aidial.cfg.service.transfer.CoreConfigAutoImportOnBootstrapService
+ * @see com.epam.aidial.cfg.service.config.transfer.CoreConfigAutoImportOnBootstrapService
  */
 
 @TestPropertySource(properties = {
