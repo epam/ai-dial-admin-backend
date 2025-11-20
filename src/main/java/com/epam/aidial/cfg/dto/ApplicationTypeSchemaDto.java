@@ -46,7 +46,7 @@ public class ApplicationTypeSchemaDto {
     private String applicationTypeDisplayName;
 
     @JsonProperty("dial:applicationTypeCompletionEndpoint")
-    private String applicationTypeCompletionEndpoint = "https://app_hostname/openai/deployments/app_name/chat/completions";
+    private String applicationTypeCompletionEndpoint;
 
     @JsonProperty("dial:applicationTypeConfigurationEndpoint")
     private String applicationTypeConfigurationEndpoint;
