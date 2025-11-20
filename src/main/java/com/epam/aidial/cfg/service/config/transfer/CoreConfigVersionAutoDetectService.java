@@ -79,6 +79,7 @@ public class CoreConfigVersionAutoDetectService {
             }
 
             version = target;
+            log.info("Core target version: {}", version);
         }
 
         return version;
