@@ -42,9 +42,7 @@ public abstract class ToolSetEntityMapper {
                                   ToolSetEntity entity,
                                   ToolSetContainerEntity toolSetContainer,
                                   List<RoleLimit> roleLimits,
-                                  List<RoleEntity> rolesForLimits,
-                                  List<RoleShareResourceLimit> roleShareResourceLimits,
-                                  List<RoleEntity> rolesForResourceShareLimits) {
+                                  List<RoleEntity> rolesForLimits) {
         ToolSetEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);

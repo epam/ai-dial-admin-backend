@@ -1,18 +1,20 @@
 package com.epam.aidial.cfg.domain.service;
 
-import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorRunnerJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.InterceptorContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.InterceptorEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
-import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
@@ -21,9 +23,9 @@ import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
-import com.google.api.client.util.Lists;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -56,6 +58,7 @@ public class InterceptorService {
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final ApplicationJpaRepository applicationJpaRepository;
     private final ModelJpaRepository modelJpaRepository;
+    private final ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
     private final InterceptorRunnerJpaRepository interceptorRunnerJpaRepository;
     private final InterceptorValidator interceptorValidator;
     private final InterceptorEntityMapper mapper;
@@ -230,6 +233,7 @@ public class InterceptorService {
 
     private InterceptorEntity toEntity(Interceptor domain, InterceptorEntity entity) {
         Pair<List<ApplicationEntity>, List<ModelEntity>> applicationsAndModels = findApplicationsAndModelsByNames(domain.getEntities());
+        List<ApplicationTypeSchemaEntity> applicationTypeSchemas = findApplicationTypeSchemasById(domain.getApplicationTypeSchemas());
 
         InterceptorRunnerEntity interceptorRunner = null;
         InterceptorContainerEntity interceptorContainer = null;
@@ -244,8 +248,7 @@ public class InterceptorService {
         }
 
         return mapper.toEntity(domain, entity, applicationsAndModels.getLeft(), applicationsAndModels.getRight(),
-                interceptorRunner, interceptorContainer);
-
+                applicationTypeSchemas, interceptorRunner, interceptorContainer);
     }
 
     private Pair<List<ApplicationEntity>, List<ModelEntity>> findApplicationsAndModelsByNames(List<String> names) {
@@ -268,6 +271,24 @@ public class InterceptorService {
         }
 
         return Pair.of(applications, models);
+    }
+
+    private List<ApplicationTypeSchemaEntity> findApplicationTypeSchemasById(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return List.of();
+        }
+
+        var existingApplicationTypeSchemas = Lists.newArrayList(applicationTypeSchemaJpaRepository.findAllById(ids));
+        Set<String> existingApplicationTypeSchemasIds = existingApplicationTypeSchemas.stream()
+                .map(ApplicationTypeSchemaEntity::getSchemaId)
+                .collect(Collectors.toSet());
+
+        Set<String> idsDiff = SetUtils.difference(new HashSet<>(ids), existingApplicationTypeSchemasIds);
+        if (!idsDiff.isEmpty()) {
+            throw new EntityNotFoundException("unable to find application type schemas: " + idsDiff);
+        }
+
+        return existingApplicationTypeSchemas;
     }
 
     private InterceptorRunnerEntity findInterceptorRunnerEntityByName(String name) {

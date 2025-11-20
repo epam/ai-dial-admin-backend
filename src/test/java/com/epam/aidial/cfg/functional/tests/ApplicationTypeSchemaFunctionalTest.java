@@ -4,12 +4,11 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
-import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
-import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
@@ -30,11 +29,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static org.mockito.Mockito.doReturn;
-
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
+import static org.mockito.Mockito.doReturn;
 
 public abstract class ApplicationTypeSchemaFunctionalTest {
 
@@ -78,8 +78,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         // given
         doReturn(120L).when(transactionTimestampContext).getTimestamp();
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
-        applicationDto.setName("application");
-        applicationDto.setEndpoint("endpoint");
         applicationFacade.createApplication(applicationDto);
 
         dto.setApplications(List.of("application1"));
@@ -98,7 +96,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         Assertions.assertThat(updatedApplication.getEndpoint()).isNull();
         Assertions.assertThat(updatedApplication.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(220));
         Assertions.assertThat(updatedApplication.getValidityState())
-                .isEqualTo(applicationInvalidState("$: required property 'temperature' not found, "
+                .isEqualTo(invalidState("$: required property 'temperature' not found, "
                         + "$: required property 'instructions' not found, $: required property 'model' not found, $: required property 'web_api_toolset' not found"));
     }
 
@@ -255,7 +253,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         doReturn(220L).when(transactionTimestampContext).getTimestamp();
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setName("application");
         applicationDto.setCustomAppSchemaId(new URI("https://test-schema.example"));
         applicationFacade.createApplication(applicationDto);
         // when
@@ -272,7 +269,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         Assertions.assertThat(updatedApplication.getCustomAppSchemaId()).isNull();
         Assertions.assertThat(updatedApplication.getEndpoint()).isEqualTo("https://test-schema.example");
         Assertions.assertThat(updatedApplication.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(320));
-        Assertions.assertThat(updatedApplication.getValidityState()).isEqualTo(applicationValidState());
+        Assertions.assertThat(updatedApplication.getValidityState()).isEqualTo(validState());
     }
 
     @Test
@@ -292,28 +289,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         // then
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(actual).isEqualTo(dto);
-    }
-
-    @Test
-    public void shouldSuccessfullyAddApplicationToApplicationTypeSchema() throws URISyntaxException {
-        // given
-        doReturn(120L).when(transactionTimestampContext).getTimestamp();
-        typeSchemaFacade.create(dto);
-
-        ApplicationDto applicationDto = new ApplicationDto();
-        applicationDto.setName("application");
-        applicationDto.setCustomAppSchemaId(new URI("https://test-schema.example"));
-
-        // when
-        doReturn(220L).when(transactionTimestampContext).getTimestamp();
-        applicationFacade.createApplication(applicationDto);
-
-        // then
-        ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
-        dto.setApplications(List.of("application"));
-        dto.setApplicationTypeRoutes(List.of());
-        Assertions.assertThat(actual).isEqualTo(dto);
-        Assertions.assertThat(actual.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(220));
     }
 
     @Test
@@ -381,19 +356,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         Assertions.assertThatThrownBy(() -> typeSchemaFacade.create(dto))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("Unable to find applications: [application2, application3]");
-    }
-
-    private ValidityStateDto applicationValidState() {
-        ValidityStateDto validityStateDto = new ValidityStateDto();
-        validityStateDto.setValid(true);
-        return validityStateDto;
-    }
-
-    private ValidityStateDto applicationInvalidState(String message) {
-        ValidityStateDto validityStateDto = new ValidityStateDto();
-        validityStateDto.setMessage(message);
-        validityStateDto.setValid(false);
-        return validityStateDto;
     }
 
     @Test

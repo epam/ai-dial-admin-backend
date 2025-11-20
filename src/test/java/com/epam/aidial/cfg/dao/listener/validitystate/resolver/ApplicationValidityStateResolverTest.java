@@ -12,8 +12,6 @@ import com.epam.aidial.cfg.dao.mapper.MapPropertiesMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.PropertiesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ResourceAuthSettingsEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
-import com.epam.aidial.cfg.dao.mapper.RoleShareResourceLimitEntityMapperImpl;
-import com.epam.aidial.cfg.dao.mapper.ShareResourceLimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ValidityStateEntityMapperImpl;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
@@ -44,8 +42,6 @@ import java.util.List;
         ApplicationEntityMapperImpl.class,
         RoleLimitEntityMapperImpl.class,
         LimitEntityMapperImpl.class,
-        RoleShareResourceLimitEntityMapperImpl.class,
-        ShareResourceLimitEntityMapperImpl.class,
         ResourceAuthSettingsEntityMapperImpl.class,
         DeploymentEntityMapperImpl.class,
         MapPropertiesMapperImpl.class,

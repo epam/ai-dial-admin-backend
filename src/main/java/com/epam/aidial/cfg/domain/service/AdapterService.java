@@ -12,9 +12,9 @@ import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.validator.AdapterValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
-import com.google.api.client.util.Lists;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -119,7 +119,7 @@ public class AdapterService {
         adapterValidator.validateUpdate(adapterName, adapter);
         AdapterEntity adapterEntity = findByAdapterName(adapterName);
         assertNotConcurrencyOverwrite(adapterEntity, hash);
-        return adapterJpaRepository.save(mapper.toEntity(adapter, adapterEntity));
+        return adapterJpaRepository.save(toEntity(adapter, adapterEntity));
     }
 
     @Transactional

@@ -3,9 +3,11 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
@@ -42,6 +44,7 @@ public class ApplicationTypeSchemaService {
     private final ApplicationTypeSchemaJpaRepository jpaRepository;
     private final ApplicationTypeSchemaEntityMapper mapper;
     private final ApplicationJpaRepository applicationJpaRepository;
+    private final InterceptorJpaRepository interceptorJpaRepository;
     private final ApplicationTypeSchemaValidator applicationTypeSchemaValidator;
     private final HistoryService historyService;
     private final HashCalculator calculator;
@@ -202,7 +205,8 @@ public class ApplicationTypeSchemaService {
 
     private ApplicationTypeSchemaEntity toEntity(ApplicationTypeSchema domain, ApplicationTypeSchemaEntity entity) {
         List<ApplicationEntity> applications = findApplicationsByNames(domain.getApplications());
-        return mapper.toEntity(domain, entity, applications);
+        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+        return mapper.toEntity(domain, entity, applications, interceptors);
     }
 
     private List<ApplicationEntity> findApplicationsByNames(List<String> names) {
@@ -225,5 +229,23 @@ public class ApplicationTypeSchemaService {
         }
 
         return existingApplications;
+    }
+
+    private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return List.of();
+        }
+
+        List<InterceptorEntity> existingInterceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
+        Set<String> existingInterceptorsNames = existingInterceptors.stream()
+                .map(InterceptorEntity::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptorsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find interceptors: " + namesDiff);
+        }
+
+        return existingInterceptors;
     }
 }

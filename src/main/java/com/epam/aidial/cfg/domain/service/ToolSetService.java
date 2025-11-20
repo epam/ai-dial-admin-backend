@@ -9,7 +9,6 @@ import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.RoleShareResourceLimit;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.SecuredRoleBased;
 import com.epam.aidial.cfg.domain.model.ToolSet;
@@ -236,9 +235,6 @@ public class ToolSetService {
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        List<RoleShareResourceLimit> roleShareResourceLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleShareResourceLimits());
-        List<RoleEntity> rolesForResourceShareLimits = deploymentService.findRolesByNames(roleShareResourceLimits.stream().map(RoleShareResourceLimit::getRole).toList());
-
         ToolSetContainerEntity toolSetContainer = null;
 
         ToolSetSource source = domain.getSource();
@@ -246,7 +242,7 @@ public class ToolSetService {
             toolSetContainer = toolSetContainerEntityMapper.toEntity(containerSource);
         }
 
-        return mapper.toEntity(domain, entity, toolSetContainer, roleLimits, rolesForLimits, roleShareResourceLimits, rolesForResourceShareLimits);
+        return mapper.toEntity(domain, entity, toolSetContainer, roleLimits, rolesForLimits);
     }
 
 }

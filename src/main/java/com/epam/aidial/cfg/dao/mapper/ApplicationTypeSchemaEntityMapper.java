@@ -4,11 +4,15 @@ import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
+import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {PropertiesEntityMapper.class, DependentRouteEntityMapper.class})
 public abstract class ApplicationTypeSchemaEntityMapper {
@@ -20,16 +24,15 @@ public abstract class ApplicationTypeSchemaEntityMapper {
         return value != null ? value.getDeploymentName() : null;
     }
 
+    protected String mapInterceptorEntityToString(InterceptorEntity value) {
+        return value != null ? value.getName() : null;
+    }
+
     public ApplicationTypeSchemaEntity toEntity(ApplicationTypeSchema domain,
                                                 ApplicationTypeSchemaEntity entity,
-                                                List<ApplicationEntity> applications) {
+                                                List<ApplicationEntity> applications,
+                                                List<InterceptorEntity> interceptors) {
         ApplicationTypeSchemaEntity updatedEntity = update(domain, entity);
-
-        // todo: remove shouldUpdateApplications and related logic once FE is ready to send full state
-        boolean shouldUpdateApplications = domain.getApplications() != null;
-        List<ApplicationEntity> applications = shouldUpdateApplications
-                ? findApplicationsByNames(domain.getApplications())
-                : entity.getApplications();
 
         // todo: remove shouldUpdateApplications and related logic once FE is ready to send full state
         boolean shouldUpdateApplications = applications != null;
@@ -70,22 +73,4 @@ public abstract class ApplicationTypeSchemaEntityMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "routes", source = "applicationTypeRoutes")
     abstract ApplicationTypeSchemaEntity update(ApplicationTypeSchema domain, @MappingTarget ApplicationTypeSchemaEntity entity);
-
-    private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
-        if (CollectionUtils.isEmpty(names)) {
-            return List.of();
-        }
-
-        List<InterceptorEntity> existingInterceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
-        Set<String> existingInterceptorsNames = existingInterceptors.stream()
-                .map(InterceptorEntity::getName)
-                .collect(Collectors.toSet());
-
-        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptorsNames);
-        if (!namesDiff.isEmpty()) {
-            throw new EntityNotFoundException("unable to find interceptors: " + namesDiff);
-        }
-
-        return new ArrayList<>(existingInterceptors);
-    }
 }

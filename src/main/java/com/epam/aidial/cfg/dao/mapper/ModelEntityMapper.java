@@ -71,9 +71,7 @@ public abstract class ModelEntityMapper {
                                 String completionEndpointPath,
                                 ModelContainerEntity modelContainer,
                                 List<RoleLimit> roleLimits,
-                                List<RoleEntity> rolesForLimits,
-                                List<RoleShareResourceLimit> roleShareResourceLimits,
-                                List<RoleEntity> rolesForResourceShareLimits) {
+                                List<RoleEntity> rolesForLimits) {
         ModelEntity updatedEntity = update(domain, entity);
 
         Map<String, InterceptorEntity> interceptorsByName = interceptors.stream()

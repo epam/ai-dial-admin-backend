@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -22,9 +21,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDtoWithRole;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
@@ -93,14 +95,14 @@ public abstract class KeyFunctionalTest {
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
         keyDto.setRoles(List.of());
-        keyDto.setValidityState(invalidState());
+        keyDto.setValidityState(invalidState("No roles assigned"));
         assertKeyExcludingGeneratedFields(actual, keyDto);
 
         KeyDto keyDto2 = createKeyDto("2");
         keyFacade.createKey(keyDto2);
 
         Collection<KeyDto> actualKeys = keyFacade.getAllKeys();
-        keyDto2.setValidityState(invalidState());
+        keyDto2.setValidityState(invalidState("No roles assigned"));
         Collection<KeyDto> expectedDtos = List.of(keyDto, keyDto2);
         expectedDtos.forEach(dto -> dto.setRoles(List.of()));
         assertKeys(actualKeys, expectedDtos, true);
@@ -123,8 +125,6 @@ public abstract class KeyFunctionalTest {
 
         KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
-        KeyDto updatedKey = createKeyDtoWithRole("1");
-        updatedKey.setDescription("new key description");
 
         KeyDto createdKey = keyFacade.getKey(keyDto.getName());
         assertEquals(createdKey.getCreatedAt(), Instant.ofEpochMilli(1L));
@@ -132,7 +132,7 @@ public abstract class KeyFunctionalTest {
 
         doReturn(2L).when(transactionTimestampContext).getTimestamp();
 
-        KeyDto updatedKey = createDto("1");
+        KeyDto updatedKey = createKeyDtoWithRole("1");
         updatedKey.setDescription("new key description");
         keyFacade.updateKey(keyDto.getName(), updatedKey, "*");
 
@@ -158,7 +158,10 @@ public abstract class KeyFunctionalTest {
 
         Collection<KeyDto> actualKeys = keyFacade.getAllKeys();
         Collection<KeyDto> expectedDtos = List.of(keyDto, keyDto2);
-        expectedDtos.forEach(dto -> dto.setRoles(List.of()));
+        expectedDtos.forEach(dto -> {
+            dto.setRoles(List.of());
+            dto.setValidityState(invalidState("No roles assigned"));
+        });
         assertKeys(actualKeys, expectedDtos, true);
     }
 
@@ -235,7 +238,7 @@ public abstract class KeyFunctionalTest {
         // update key1: roles=[role2, role3]
         doReturn(320L).when(transactionTimestampContext).getTimestamp();
         KeyDto updatedKeyDto = createDto("1", List.of("role2", "role3"));
-        keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto);
+        keyFacade.updateKey(updatedKeyDto.getName(), updatedKeyDto, "*");
 
         // check key1: roles=[role2, role3]
         KeyDto actual = keyFacade.getKey(updatedKeyDto.getName());
@@ -404,6 +407,7 @@ public abstract class KeyFunctionalTest {
         KeyDto actual = keyFacade.getKey(keyDto.getName());
         var expected = createKeyDtoWithRole("1");
         expected.setDisplayName("updated DisplayName");
+        expected.setValidityState(validState());
         assertKeyExcludingGeneratedFields(actual, expected);
     }
 
@@ -454,6 +458,7 @@ public abstract class KeyFunctionalTest {
         expected.setProject("newKeyProject");
         expected.setSecured(true);
         expected.setRoles(List.of("role2", "role3"));
+        expected.setValidityState(validState());
 
         keyFacade.updateKey(keyDto.getName(), coreKey, "*");
 
@@ -492,38 +497,5 @@ public abstract class KeyFunctionalTest {
 
     private void assertKey(KeyDto actual, KeyDto expected) {
         assertThat(actual).isEqualTo(expected);
-    }
-
-    private KeyDto createDtoWithoutRoles(String suffix) {
-        return createDto(suffix, null);
-    }
-
-    private KeyDto createDto(String suffix) {
-        return createDto(suffix, List.of("role" + suffix));
-    }
-
-    private KeyDto createDto(String suffix, List<String> roles) {
-        KeyDto keyDto = new KeyDto();
-        keyDto.setName("key" + suffix);
-        keyDto.setKey("keyValue" + suffix);
-        keyDto.setDisplayName("displayName" + suffix);
-        keyDto.setDescription("description" + suffix);
-        keyDto.setRoles(roles);
-        keyDto.setProjectContactPoint("test@mail.com");
-        keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
-        return keyDto;
-    }
-
-    private ValidityStateDto validState() {
-        ValidityStateDto validityStateDto = new ValidityStateDto();
-        validityStateDto.setValid(true);
-        return validityStateDto;
-    }
-
-    private ValidityStateDto invalidState() {
-        ValidityStateDto validityStateDto = new ValidityStateDto();
-        validityStateDto.setMessage("No roles assigned");
-        validityStateDto.setValid(false);
-        return validityStateDto;
     }
 }
