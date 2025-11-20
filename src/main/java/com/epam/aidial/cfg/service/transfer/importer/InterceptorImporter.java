@@ -8,12 +8,14 @@ import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,7 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 public class InterceptorImporter {
 
     private final InterceptorService interceptorService;
+    private final GlobalSettingsService globalSettingsService;
     private final InterceptorCoreMapper interceptorCoreMapper;
     private final DeploymentManagerService deploymentManagerService;
 
@@ -63,6 +66,27 @@ public class InterceptorImporter {
                     .toList();
         }
         return Collections.emptyList();
+    }
+
+    public Collection<ImportComponent<Collection<String>>> importGlobalInterceptors(Collection<String> globalInterceptors,
+                                                                                    ConflictResolutionPolicy resolutionPolicy) {
+        if (CollectionUtils.isEmpty(globalInterceptors)) {
+            return Collections.emptyList();
+        }
+        var existingInterceptors = globalSettingsService.getAllGlobalInterceptors().stream().toList();
+
+        if (CollectionUtils.isEmpty(existingInterceptors)) {
+            globalSettingsService.saveGlobalInterceptors(globalInterceptors);
+            return List.of(new ImportComponent<>(CREATE, existingInterceptors, globalInterceptors));
+        }
+
+        if (ConflictResolutionPolicy.OVERRIDE.equals(resolutionPolicy)) {
+            globalSettingsService.deleteAllGlobalInterceptors();
+            globalSettingsService.saveGlobalInterceptors(globalInterceptors);
+            return List.of(new ImportComponent<>(UPDATE, existingInterceptors, globalInterceptors));
+        } else {
+            return List.of(new ImportComponent<>(SKIP, existingInterceptors, globalInterceptors));
+        }
     }
 
     private ImportComponent<Interceptor> processInterceptor(String interceptorName,
@@ -117,6 +141,7 @@ public class InterceptorImporter {
         return interceptorCoreMapper.mapInterceptor(interceptor);
     }
 
+    //todo
     public List<ImportComponent<Interceptor>> getActualImportedInterceptors(Collection<ImportComponent<Interceptor>> importComponents) {
         List<String> names = importComponents.stream()
                 .map(ImportComponent::getNext)

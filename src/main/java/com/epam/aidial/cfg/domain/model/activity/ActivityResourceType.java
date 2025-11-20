@@ -18,4 +18,5 @@ public enum ActivityResourceType {
     SecuredResource,
     Tokenizer,
     ToolSet,
+    GlobalInterceptor
 }

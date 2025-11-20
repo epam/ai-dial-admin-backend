@@ -23,6 +23,7 @@ import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -93,6 +94,8 @@ class ConfigServiceTest {
     private ToolSetService toolSetService;
     @MockitoBean
     private AdapterService adapterService;
+    @MockitoBean
+    private GlobalSettingsService globalSettingsService;
     @MockitoBean
     private RoleJpaRepository roleJpaRepository;
 

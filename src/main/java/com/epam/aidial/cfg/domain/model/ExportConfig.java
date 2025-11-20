@@ -21,6 +21,7 @@ public class ExportConfig {
     private Map<String, Interceptor> interceptors;
     private Map<String, InterceptorRunner> interceptorRunners;
     private Map<String, Adapter> adapters;
+    private Collection<String> globalInterceptors;
 
     public Collection<Deployment> collectDeployment() {
         return Stream.of(routes, applications, models, toolsets)

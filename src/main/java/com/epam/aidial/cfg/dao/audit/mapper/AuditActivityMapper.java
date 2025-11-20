@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dao.model.AssistantEntity;
 import com.epam.aidial.cfg.dao.model.AssistantsPropertyEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
+import com.epam.aidial.cfg.dao.model.GlobalInterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
@@ -58,6 +59,8 @@ public class AuditActivityMapper {
             return ActivityResourceType.Route;
         } else if (entityClass == ToolSetEntity.class) {
             return ActivityResourceType.ToolSet;
+        } else if (entityClass == GlobalInterceptorEntity.class) {
+            return ActivityResourceType.GlobalInterceptor;
         } else {
             throw new IllegalArgumentException("Unable to find resource type for class " + entityClass);
         }

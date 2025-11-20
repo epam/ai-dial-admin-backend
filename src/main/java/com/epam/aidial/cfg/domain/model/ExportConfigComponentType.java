@@ -10,6 +10,7 @@ public enum ExportConfigComponentType {
     ROLE,
     KEY,
     INTERCEPTOR,
+    GLOBAL_INTERCEPTOR,
     INTERCEPTOR_RUNNER,
     APPLICATION_TYPE_SCHEMA,
     ADAPTER

@@ -2,6 +2,7 @@
   "roles": [],
   "keys": [],
   "interceptors": [],
+  "globalInterceptors": [],
   "applicationRunners": [],
   "routes": [],
   "adapters": [

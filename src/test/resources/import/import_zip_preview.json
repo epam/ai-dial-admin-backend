@@ -276,6 +276,7 @@
       }
     }
   ],
+  "globalInterceptors":[],
   "interceptorRunners": [
     {
       "importAction": "create",

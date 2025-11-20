@@ -17,6 +17,7 @@ public class ImportConfigPreview {
     private Collection<ImportComponent<Role>> roles;
     private Collection<ImportComponent<Key>> keys;
     private Collection<ImportComponent<Interceptor>> interceptors;
+    private Collection<ImportComponent<Collection<String>>> globalInterceptors;
     private Collection<ImportComponent<InterceptorRunner>> interceptorRunners;
     private Collection<ImportComponent<ApplicationTypeSchema>> applicationRunners;
     private Collection<ImportComponent<Route>> routes;

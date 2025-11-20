@@ -120,7 +120,7 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ErrorView handleIllegalArgumentError(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }

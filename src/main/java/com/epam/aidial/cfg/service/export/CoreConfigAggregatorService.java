@@ -17,6 +17,7 @@ import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
@@ -42,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -53,6 +55,7 @@ public class CoreConfigAggregatorService {
     private final ApplicationService applicationService;
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
     private final InterceptorService interceptorService;
+    private final GlobalSettingsService globalSettingsService;
     private final KeyService keyService;
     private final ModelService modelService;
     private final RoleService roleService;
@@ -81,7 +84,7 @@ public class CoreConfigAggregatorService {
         config.setInterceptors(getInterceptors());
         config.setApplicationTypeSchemas(getApplicationTypeSchemas());
         config.setToolsets(getToolSets());
-
+        config.setGlobalInterceptors(getGlobalInterceptors());
         return config;
     }
 
@@ -145,6 +148,10 @@ public class CoreConfigAggregatorService {
         return interceptorService.getAll().stream()
                 .map(interceptorMapper::mapInterceptor)
                 .collect(Collectors.toMap(CoreInterceptor::getName, model -> model));
+    }
+
+    private List<String> getGlobalInterceptors() {
+        return globalSettingsService.getAllGlobalInterceptors().stream().toList();
     }
 
     private Map<String, String> getApplicationTypeSchemas() {

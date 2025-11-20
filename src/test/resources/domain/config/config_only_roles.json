@@ -33,6 +33,7 @@
   },
   "retriableErrorCodes": [],
   "interceptors": {},
+  "globalInterceptors": [],
   "applicationTypeSchemas": [],
   "toolsets": {}
 }

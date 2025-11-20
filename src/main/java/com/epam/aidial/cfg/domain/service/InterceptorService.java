@@ -15,6 +15,8 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,8 +113,14 @@ public class InterceptorService {
 
     @Transactional
     public void delete(String interceptorName) {
-        assertExists(interceptorName);
-        interceptorJpaRepository.deleteById(interceptorName);
+        try {
+            assertExists(interceptorName);
+            interceptorJpaRepository.deleteById(interceptorName);
+            interceptorJpaRepository.flush();
+        } catch (DataIntegrityViolationException | ConstraintViolationException ex) {
+            log.error("Failed to delete interceptor:{}}. It is global.'", interceptorName);
+            throw new IllegalStateException(String.format("Failed to delete interceptor:%s. It is global.", interceptorName), ex);
+        }
     }
 
     @Transactional(readOnly = true)

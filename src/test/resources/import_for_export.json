@@ -102,8 +102,18 @@
       "createdAt": 12345,
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"]
-    }
+    },
+    "testInterceptor2": {
+          "name": "testInterceptor2",
+          "displayName": "Test Interceptor2",
+          "endpoint": "https://endpoint.test.com/interceptor2",
+          "author": "test-author",
+          "createdAt": 12345,
+          "updatedAt": 12345,
+          "dependencies": ["dep1", "dep2"]
+        }
   },
+  "globalInterceptors": ["testInterceptor2", "testInterceptor1"],
   "keys": {
     "testKey1": {
       "key": "key1",

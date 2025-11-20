@@ -22,6 +22,7 @@ public class ExportConfigPreview {
     private Collection<ExportKeyInfo> keys;
     private Collection<ExportApplicationTypeSchemaInfo> applicationRunners;
     private Collection<ExportComponentInfo> interceptors;
+    private Collection<ExportComponentInfo> globalInterceptors;
     private Collection<ExportComponentInfo> interceptorRunners;
     private Collection<ExportComponentInfo> adapters;
 }

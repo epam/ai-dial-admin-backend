@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dao.audit.repository.ApplicationHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.ApplicationTypeSchemaHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.AssistantHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.AssistantPropertiesHistoryRepository;
+import com.epam.aidial.cfg.dao.audit.repository.GlobalInterceptorHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.InterceptorHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.InterceptorRunnerHistoryRepository;
 import com.epam.aidial.cfg.dao.audit.repository.KeyHistoryRepository;
@@ -62,6 +63,7 @@ public class HistoryService {
     private final ConfigRevisionEntityMapper configRevisionEntityMapper;
     private final PageEntityMapper pageEntityMapper;
     private final ToolSetHistoryRepository toolSetHistoryRepository;
+    private final GlobalInterceptorHistoryRepository globalInterceptorHistoryRepository;
 
     @Transactional(readOnly = true)
     public List<ConfigRevision> getRevisionsList(PageRequestModel pageRequestModel) {
@@ -89,8 +91,10 @@ public class HistoryService {
         assistantHistoryRepository.rollbackAssistants(revision, auditReader);
         assistantPropertiesHistoryRepository.rollbackAssistantsProperties(revision, auditReader);
         routeHistoryRepository.rollbackRoutes(revision, auditReader);
+        globalInterceptorHistoryRepository.rollbackGlobalInterceptors(revision, auditReader);
         interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
         interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
+
     }
 
     @Transactional(readOnly = true)

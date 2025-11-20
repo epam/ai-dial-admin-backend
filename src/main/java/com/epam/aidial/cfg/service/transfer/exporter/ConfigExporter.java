@@ -48,6 +48,7 @@ public class ConfigExporter {
     private final InterceptorRunnerExporter interceptorRunnerExporter;
     private final AdapterExporter adapterExporter;
     private final ToolSetExporter toolSetExporter;
+    private final GlobalSettingsExporter globalSettingsExporter;
 
     public ExportConfig getConfig(ExportRequest request) {
         if (request instanceof SelectedItemsExportRequest exportRequest) {
@@ -74,6 +75,7 @@ public class ConfigExporter {
         config.setRoles(roles);
         config.setKeys(keyExporter.getKeys(request));
         config.setInterceptors(interceptorExporter.getInterceptors(request));
+        config.setGlobalInterceptors(globalSettingsExporter.getGlobalInterceptors(request));
         config.setInterceptorRunners(interceptorRunnerExporter.getInterceptorRunners(request));
         config.setApplicationRunners(applicationTypeSchemaExporter.getApplicationTypeSchemas(request));
         // todo prompts and files
@@ -93,6 +95,7 @@ public class ConfigExporter {
         Collection<ExportComponentInfo> roles = roleExporter.preview(request);
         Collection<ExportKeyInfo> keys = keyExporter.preview(request);
         Collection<ExportComponentInfo> interceptors = interceptorExporter.preview(request);
+        Collection<ExportComponentInfo> globalInterceptors = globalSettingsExporter.previewGlobalInterceptors(request);
         Collection<ExportComponentInfo> interceptorRunners = interceptorRunnerExporter.preview(request);
         Collection<ExportApplicationTypeSchemaInfo> applicationRunners = applicationTypeSchemaExporter.preview(request);
 
@@ -105,6 +108,7 @@ public class ConfigExporter {
                 .roles(roles)
                 .keys(keys)
                 .interceptors(interceptors)
+                .globalInterceptors(globalInterceptors)
                 .interceptorRunners(interceptorRunners)
                 .applicationRunners(applicationRunners)
                 .adapters(adapters)

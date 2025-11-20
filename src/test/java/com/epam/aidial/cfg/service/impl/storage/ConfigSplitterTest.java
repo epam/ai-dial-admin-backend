@@ -40,7 +40,7 @@ class ConfigSplitterTest {
             CoreKey key = generateKey(i);
             configBody.getKeys().put("key" + i, key);
         }
-        List<ConfigPart> secretConfigs = splitter.splitConfig(configBody, this::encode, 150, 5);
+        List<ConfigPart> secretConfigs = splitter.splitConfig(configBody, this::encode, 180, 5);
         Assertions.assertEquals(2, secretConfigs.size());
         Assertions.assertEquals(Set.of("key0", "key1", "key2"), secretConfigs.get(0).config().getKeys().keySet());
         Assertions.assertEquals(Set.of("key3", "key4"), secretConfigs.get(1).config().getKeys().keySet());
