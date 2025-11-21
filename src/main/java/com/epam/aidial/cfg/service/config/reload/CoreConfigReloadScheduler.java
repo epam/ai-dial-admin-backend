@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class CoreConfigReloadScheduler {
     private final CoreConfigClient coreConfigClient;
     private final ConfigReloadErrorHandler errorHandler;
 
-    @Scheduled(fixedDelayString = "${config.reload.schedule.delayMs}")
+    //@Scheduled(fixedDelayString = "${config.reload.schedule.delayMs}")
     public void reloadCoreConfig() {
         try {
             coreConfigClient.reload();
