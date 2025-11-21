@@ -49,8 +49,8 @@ import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
-import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
+import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.config.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
@@ -76,6 +76,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.json.JSONException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -165,6 +166,11 @@ public abstract class ConfigTransferFunctionalTest {
     private DatabaseService databaseService;
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
+
+    @BeforeEach
+    void setUp() {
+        versionProperties.setTarget("latest");
+    }
 
     @Test
     void testImport_WithoutConflict() throws IOException {

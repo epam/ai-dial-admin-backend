@@ -15,10 +15,10 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.dto.FullExportRequestDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
-import com.epam.aidial.cfg.service.export.ConfigExportErrorHandler;
-import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.export.CoreConfigReloadService;
-import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
+import com.epam.aidial.cfg.service.config.ConfigSyncErrorHandler;
+import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.config.export.CoreConfigReloadService;
+import com.epam.aidial.cfg.service.config.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ConfigController;
 import com.epam.aidial.cfg.web.facade.mapper.AdapterDtoMapperImpl;
@@ -101,7 +101,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     private ConfigExportProperties properties;
 
     @MockitoBean
-    private ConfigExportErrorHandler configExportErrorHandler;
+    private ConfigSyncErrorHandler configSyncErrorHandler;
 
     @Test
     void reload() throws Exception {
@@ -366,25 +366,40 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testGetConfigExportStatus_isSuccess() throws Exception {
+    void testGetConfigSyncStatus_isSuccess() throws Exception {
         // given
-        when(configExportErrorHandler.getLastErrorMessage()).thenReturn(null);
+        when(configSyncErrorHandler.getPrefixedLastErrorMessage()).thenReturn(null);
+
+        String response = """
+                {
+                    "success": true
+                }""";
+
         // when
-        mockMvc.perform(get("/api/v1/configs/export/status"))
+        mockMvc.perform(get("/api/v1/configs/sync/status"))
                 //then
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"errorMessage\":null,\"success\":true}", JsonCompareMode.LENIENT));
+                .andExpect(content().json(response, JsonCompareMode.LENIENT));
     }
 
     @Test
-    void testGetConfigExportStatus_isNotSuccess() throws Exception {
+    void testGetConfigSyncStatus_isNotSuccess() throws Exception {
         // given
-        when(configExportErrorHandler.getLastErrorMessage()).thenReturn("errorMessage");
+        when(configSyncErrorHandler.getPrefixedLastErrorMessage()).thenReturn("Some error msg");
+
+        String response = """
+                {
+                    "success": false,
+                    "errors": [
+                        "Some error msg"
+                    ]
+                }""";
+
         // when
-        mockMvc.perform(get("/api/v1/configs/export/status"))
+        mockMvc.perform(get("/api/v1/configs/sync/status"))
                 //then
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"errorMessage\":\"errorMessage\",\"success\":false}", JsonCompareMode.LENIENT));
+                .andExpect(content().json(response, JsonCompareMode.LENIENT));
     }
 
     private String getStringJsonContent() {
@@ -404,6 +419,5 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                 + "  }\n"
                 + "}";
     }
-
 
 }

@@ -1,5 +1,6 @@
 {
   "name": "test_toolset",
+  "displayName": "test_toolset",
   "folderId": "test_folder",
   "version": "1",
   "allowed_tools": ["tool1"],
