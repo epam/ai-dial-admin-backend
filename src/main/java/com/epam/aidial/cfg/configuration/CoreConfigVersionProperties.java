@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.exception.InvalidVersionException;
 import com.epam.aidial.cfg.utils.CoreConfigVersionNormalizer;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,7 @@ public class CoreConfigVersionProperties {
 
         target = CoreConfigVersionNormalizer.normalizeCoreVersion(target);
 
-        if (target == null || (!LATEST_VERSION.equals(target) && !VERSION_PATTERN.matcher(target).matches())) {
+        if (StringUtils.isNotBlank(target) && !LATEST_VERSION.equals(target) && !VERSION_PATTERN.matcher(target).matches()) {
             throw new InvalidVersionException("Invalid CORE_CONFIG_VERSION format: " + target
                 + ". Expected format: X.Y.Z (e.g., '0.23.0', '1.0.1', '2.0.3') or 'latest'");
         }
