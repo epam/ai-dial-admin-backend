@@ -1,4 +1,4 @@
-package com.epam.aidial.cfg.service.transfer.exporter;
+package com.epam.aidial.cfg.service.config.transfer.exporter;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;

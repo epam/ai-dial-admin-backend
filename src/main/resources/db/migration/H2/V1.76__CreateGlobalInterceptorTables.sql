@@ -20,6 +20,6 @@ create table global_interceptor_entity_aud (
   updated_at_ms bigint not null,
   revtype smallint,
   primary key (
-    name, rev, i3
+    name, rev, interceptor_order
   )
 );
