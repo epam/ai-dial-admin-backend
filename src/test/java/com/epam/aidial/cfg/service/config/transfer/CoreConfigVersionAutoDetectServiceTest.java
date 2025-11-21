@@ -67,7 +67,10 @@ class CoreConfigVersionAutoDetectServiceTest {
         );
 
         // Then
-        assertEquals("Core target version is undefined", exception.getMessage());
+        assertEquals(
+                "Core version auto-detection is disabled and Core target version is undefined",
+                exception.getMessage()
+        );
         verify(properties).isAutoDetectEnabled();
         verify(properties).getTarget();
         verifyNoMoreInteractions(coreConfigClient);
@@ -134,7 +137,10 @@ class CoreConfigVersionAutoDetectServiceTest {
         );
 
         // Then
-        assertEquals("Core target version is undefined", exception.getMessage());
+        assertEquals(
+                "Unable to retrieve Core version and Core target version is undefined",
+                exception.getMessage()
+        );
         verify(properties).isAutoDetectEnabled();
         verify(coreConfigClient).getVersion();
     }
