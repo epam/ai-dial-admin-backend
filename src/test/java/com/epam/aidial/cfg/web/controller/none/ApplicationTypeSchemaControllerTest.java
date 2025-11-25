@@ -214,7 +214,7 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
                 // then
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
-                        .value("[https://testmax.com_(copy)]: The ID field contains invalid characters or formatting and does not meet validation criteria." +
-                                " ID must be a valid URI with scheme and host. Please adjust the ID before saving."));
+                        .value("[https://testmax.com_(copy)]: The ID field contains invalid characters or formatting and does not meet validation criteria."
+                                + " ID must be a valid URI with scheme and host. Please adjust the ID before saving."));
     }
 }
