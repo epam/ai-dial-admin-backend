@@ -136,6 +136,9 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
         Assertions.assertThat(List.of("interceptor1", "interceptor2", "interceptor2", "interceptor3")).isEqualTo(actualDto2.getInterceptors());
+
+        InterceptorDto actualInterceptorDto = interceptorFacade.getInterceptor("interceptor3");
+        Assertions.assertThat(List.of("https://test-schema.example", "https://test-schema.example2")).isEqualTo(actualInterceptorDto.getApplicationTypeSchemas());
     }
 
     @Test
@@ -149,7 +152,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         InterceptorDto interceptorDto3 = createInterceptorDto("3");
         interceptorFacade.createInterceptor(interceptorDto3);
 
-        dto.setInterceptors(List.of("interceptor2", "interceptor1", "interceptor2", "interceptor3"));
+        dto.setInterceptors(List.of("interceptor2", "interceptor1", "interceptor2", "interceptor3", "interceptor3"));
         typeSchemaFacade.create(dto);
 
         dto2.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
@@ -158,10 +161,15 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         interceptorFacade.deleteInterceptor("interceptor1");
 
         ApplicationTypeSchemaDto actualDto1 = typeSchemaFacade.get(dto.getId());
-        Assertions.assertThat(List.of("interceptor2", "interceptor2", "interceptor3")).isEqualTo(actualDto1.getInterceptors());
+        Assertions.assertThat(List.of("interceptor2", "interceptor2", "interceptor3", "interceptor3")).isEqualTo(actualDto1.getInterceptors());
 
         ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
         Assertions.assertThat(List.of("interceptor2")).isEqualTo(actualDto2.getInterceptors());
+
+        Assertions.assertThat(List.of("https://test-schema.example", "https://test-schema.example2"))
+                .isEqualTo(interceptorFacade.getInterceptor("interceptor2").getApplicationTypeSchemas());
+        Assertions.assertThat(List.of("https://test-schema.example"))
+                .isEqualTo(interceptorFacade.getInterceptor("interceptor3").getApplicationTypeSchemas());
     }
 
     @Test
