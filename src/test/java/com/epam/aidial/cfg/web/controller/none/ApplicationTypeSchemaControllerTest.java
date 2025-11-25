@@ -196,4 +196,25 @@ class ApplicationTypeSchemaControllerTest extends AbstractControllerNoneSecureTe
                 // then
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void testCreateWithInvalidId() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ApplicationTypeSchemaDto>() {
+        });
+        // Simulate duplication scenario: ID with URL format gets _(copy) suffix appended
+        dto.setId("https://testmax.com_(copy)");
+        var invalidDtoJson = objectMapper.writeValueAsString(dto);
+
+        // when
+        mockMvc.perform(post(SCHEMA_BASE_API_PATH)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(invalidDtoJson))
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("[https://testmax.com_(copy)]: The ID field contains invalid characters or formatting and does not meet validation criteria." +
+                                " ID must be a valid URI with scheme and host. Please adjust the ID before saving."));
+    }
 }
