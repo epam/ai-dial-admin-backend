@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.config.transfer.exporter.util;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
@@ -15,6 +16,7 @@ import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -76,72 +78,75 @@ public class FullToSelectedItemsExportRequestTransformer {
     private List<ExportConfigComponent> getModelExportComponents(FullExportRequest fullExportRequest) {
         return modelService.getAll().stream()
                 .filter(model -> ExportUtils.hasAnyRequestedTopic(model.getTopics(), fullExportRequest.getTopics()))
-                .map(model -> new ExportConfigComponent(model.getDeployment().getName(), MODEL, MODEL.getDependencies(fullExportRequest.getExportFormat())))
+                .map(model -> exportConfigComponent(fullExportRequest, model.getDeployment().getName(), MODEL))
                 .toList();
     }
 
     private List<ExportConfigComponent> getApplicationExportComponents(FullExportRequest fullExportRequest) {
         return applicationService.getAllApplications().stream()
                 .filter(app -> ExportUtils.hasAnyRequestedTopic(app.getDescriptionKeywords(), fullExportRequest.getTopics()))
-                .map(app -> new ExportConfigComponent(app.getDeployment().getName(), APPLICATION, APPLICATION.getDependencies(fullExportRequest.getExportFormat())))
+                .map(app -> exportConfigComponent(fullExportRequest, app.getDeployment().getName(), APPLICATION))
                 .toList();
     }
 
     private List<ExportConfigComponent> getRouteExportComponents(FullExportRequest fullExportRequest) {
         return routeService.getAll().stream()
-                .map(route -> new ExportConfigComponent(route.getDeployment().getName(), ROUTE, ROUTE.getDependencies(fullExportRequest.getExportFormat())))
+                .map(route -> exportConfigComponent(fullExportRequest, route.getDeployment().getName(), ROUTE))
                 .toList();
     }
 
     private List<ExportConfigComponent> getToolSetExportComponents(FullExportRequest fullExportRequest) {
         return toolSetService.getAll().stream()
                 .filter(toolSet -> ExportUtils.hasAnyRequestedTopic(toolSet.getDescriptionKeywords(), fullExportRequest.getTopics()))
-                .map(toolSet -> new ExportConfigComponent(toolSet.getDeployment().getName(), TOOL_SET, TOOL_SET.getDependencies(fullExportRequest.getExportFormat())))
+                .map(toolSet -> exportConfigComponent(fullExportRequest, toolSet.getDeployment().getName(), TOOL_SET))
                 .toList();
     }
 
     private List<ExportConfigComponent> getRoleExportComponents(FullExportRequest fullExportRequest) {
         return roleService.getAllRoles().stream()
-                .map(role -> new ExportConfigComponent(role.getName(), ROLE, ROLE.getDependencies(fullExportRequest.getExportFormat())))
+                .map(role -> exportConfigComponent(fullExportRequest, role.getName(), ROLE))
                 .toList();
     }
 
     private List<ExportConfigComponent> getKeyExportComponents(FullExportRequest fullExportRequest) {
         return keyService.getAllKeys().stream()
-                .map(key -> new ExportConfigComponent(key.getName(), KEY, KEY.getDependencies(fullExportRequest.getExportFormat())))
+                .map(key -> exportConfigComponent(fullExportRequest, key.getName(), KEY))
                 .toList();
     }
 
     private List<ExportConfigComponent> getInterceptorExportComponents(FullExportRequest fullExportRequest) {
         return interceptorService.getAll().stream()
-                .map(interceptor -> new ExportConfigComponent(interceptor.getName(), INTERCEPTOR, INTERCEPTOR.getDependencies(fullExportRequest.getExportFormat())))
+                .map(interceptor -> exportConfigComponent(fullExportRequest, interceptor.getName(), INTERCEPTOR))
                 .toList();
     }
 
     private List<ExportConfigComponent> getInterceptorRunnerExportComponents(FullExportRequest fullExportRequest) {
         return interceptorRunnerService.getAll().stream()
-                .map(interceptorRunner -> new ExportConfigComponent(
-                        interceptorRunner.getName(),
-                        INTERCEPTOR_RUNNER,
-                        INTERCEPTOR_RUNNER.getDependencies(fullExportRequest.getExportFormat())
-                ))
+                .map(interceptorRunner -> exportConfigComponent(fullExportRequest, interceptorRunner.getName(), INTERCEPTOR_RUNNER))
                 .toList();
     }
 
     private List<ExportConfigComponent> getAppTypeSchemaExportComponents(FullExportRequest fullExportRequest) {
         return applicationTypeSchemaService.getAll().stream()
                 .filter(schema -> ExportUtils.hasAnyRequestedTopic(schema.getTopics(), fullExportRequest.getTopics()))
-                .map(schema -> new ExportConfigComponent(
-                        schema.getSchemaId(),
-                        APPLICATION_TYPE_SCHEMA,
-                        APPLICATION_TYPE_SCHEMA.getDependencies(fullExportRequest.getExportFormat())
-                ))
+                .map(schema -> exportConfigComponent(fullExportRequest, schema.getSchemaId(), APPLICATION_TYPE_SCHEMA))
                 .toList();
     }
 
     private List<ExportConfigComponent> getAdapterExportComponents(FullExportRequest fullExportRequest) {
         return adapterService.getAll().stream()
-                .map(adapter -> new ExportConfigComponent(adapter.getName(), ADAPTER, ADAPTER.getDependencies(fullExportRequest.getExportFormat())))
+                .map(adapter -> exportConfigComponent(fullExportRequest, adapter.getName(), ADAPTER))
                 .toList();
     }
+
+    private ExportConfigComponent exportConfigComponent(FullExportRequest fullExportRequest,
+                                                        String name,
+                                                        ExportConfigComponentType exportConfigComponentType) {
+        var dependencies = SetUtils.intersection(
+                fullExportRequest.getComponentTypes(),
+                exportConfigComponentType.getDependencies(fullExportRequest.getExportFormat())
+        );
+        return new ExportConfigComponent(name, exportConfigComponentType, dependencies);
+    }
+
 }

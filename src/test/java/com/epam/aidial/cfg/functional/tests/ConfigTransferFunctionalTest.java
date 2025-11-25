@@ -1101,6 +1101,43 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExport_AdminFormatApplication_FullRequestWithTopics() throws IOException, URISyntaxException {
+        // Given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION));
+        request.setTopics(Set.of("a", "b"));
+
+        ApplicationTypeSchemaDto typeSchemaDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<>() {
+        });
+        typeSchemaDto.setTopics(Set.of("a", "b"));
+        applicationTypeSchemaFacade.create(typeSchemaDto);
+
+        URI customAppSchemaId = new URI("https://test-schema-id.example");
+
+        ApplicationDto applicationDto1 = createBaseApplicationDto("1");
+        applicationDto1.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto1.setTopics(List.of("b", "c", "d"));
+        applicationFacade.createApplication(applicationDto1);
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // Then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplicationRunners()).isEmpty();
+            Assertions.assertThat(config.getApplications()).isNotEmpty()
+                    .containsOnlyKeys(applicationDto1.getName())
+                    .satisfies(apps -> {
+                        Application app = apps.get(applicationDto1.getName());
+                        Assertions.assertThat(app.getApplicationTypeSchemaId()).isNull();
+                    });
+        });
+    }
+
+    @Test
     void testExport_AdminFormatModelWithInterceptorAndRoleAndAdapter_FullRequest() throws IOException {
         // given
         Set<ExportConfigComponentType> componentTypes = Set.of(
