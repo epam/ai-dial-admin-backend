@@ -55,7 +55,7 @@ public enum ExportConfigComponentType {
     INTERCEPTOR {
         @Override
         public Set<ExportConfigComponentType> getDependencies(ExportFormat exportFormat) {
-            Set<ExportConfigComponentType> result = new HashSet<>(2);
+            Set<ExportConfigComponentType> result = new HashSet<>(1);
             if (exportFormat == ExportFormat.ADMIN) {
                 result.add(INTERCEPTOR_RUNNER);
             }
