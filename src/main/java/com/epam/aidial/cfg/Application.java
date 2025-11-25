@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg;
 
+import com.epam.aidial.cfg.configuration.DatasourceVendorProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -11,6 +12,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableAspectJAutoProxy
 public class Application {
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication application = new SpringApplication(Application.class);
+        application.addListeners(new DatasourceVendorProperties());
+        application.run(args);
     }
 }

@@ -4,35 +4,42 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.StandardEnvironment;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DatasourceVendorPropertiesTest {
 
     @ParameterizedTest
     @CsvSource({"H2", "POSTGRES", "MS_SQL_SERVER"})
-    void whenVendorIsValid_thenValidationSucceeds(String vendor) throws Exception {
+    void whenVendorIsValid_thenValidationSucceeds(String vendor) {
         DatasourceVendorProperties properties = new DatasourceVendorProperties();
-        ReflectionTestUtils.setField(properties, "vendor", vendor);
+        ApplicationEnvironmentPreparedEvent event = createEventWithVendor(vendor);
 
-        assertThatCode(() -> properties.validateDatasourceVendor())
+        assertThatCode(() -> properties.onApplicationEvent(event))
                 .doesNotThrowAnyException();
     }
 
     @ParameterizedTest
     @MethodSource("invalidVendors")
-    void whenVendorIsInvalid_thenValidationFails(String vendor, String expectedMessagePart) throws Exception {
+    void whenVendorIsInvalid_thenValidationFails(String vendor, String expectedMessagePart) {
         DatasourceVendorProperties properties = new DatasourceVendorProperties();
-        ReflectionTestUtils.setField(properties, "vendor", vendor);
+        ApplicationEnvironmentPreparedEvent event = createEventWithVendor(vendor);
 
-        assertThatThrownBy(() -> properties.validateDatasourceVendor())
+        assertThatThrownBy(() -> properties.onApplicationEvent(event))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining(expectedMessagePart)
-                .hasMessageContaining("Valid values are: "); //valid values order is not guaranteed
+                .hasMessageContaining("Valid values are");
     }
 
     private static Stream<Arguments> invalidVendors() {
@@ -45,6 +52,21 @@ class DatasourceVendorPropertiesTest {
                 Arguments.of("   ", "Undefined datasource.vendor value"),
                 Arguments.of(null, "Undefined datasource.vendor value")
         );
+    }
+
+    private ApplicationEnvironmentPreparedEvent createEventWithVendor(String vendor) {
+        ConfigurableEnvironment environment = new StandardEnvironment();
+        
+        Map<String, Object> properties = new HashMap<>();
+        if (vendor != null) {
+            properties.put("datasource.vendor", vendor);
+        }
+        environment.getPropertySources().addFirst(new MapPropertySource("test", properties));
+        
+        ApplicationEnvironmentPreparedEvent event = mock(ApplicationEnvironmentPreparedEvent.class);
+        when(event.getEnvironment()).thenReturn(environment);
+        
+        return event;
     }
 }
 
