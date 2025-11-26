@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,8 +19,8 @@ public class ExportConfigComponentDto {
     @NotBlank
     private String name;
     @NotNull
-    private ExportConfigComponentType type;
+    private ExportConfigComponentTypeDto type;
     @Builder.Default
-    private Set<ExportConfigComponentType> dependencies = new HashSet<>();
+    private Set<ExportConfigComponentTypeDto> dependencies = new HashSet<>();
 
 }

@@ -15,4 +15,5 @@ import java.util.Set;
 public class FullExportRequest extends ExportRequest {
 
     private Set<ExportConfigComponentType> componentTypes;
+    private Set<String> topics;
 }
