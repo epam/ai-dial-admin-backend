@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +14,7 @@ import lombok.Data;
 public abstract class ExportRequestDto {
 
     @NotNull
-    private ExportFormat exportFormat;
+    private ExportFormatDto exportFormat;
     private boolean addSecrets;
 
 }

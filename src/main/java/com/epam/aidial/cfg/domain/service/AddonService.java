@@ -3,8 +3,12 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.AddonJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AddonEntityMapper;
 import com.epam.aidial.cfg.dao.model.AddonEntity;
+import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Addon;
+import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.RoleBased;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.validator.AddonValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -12,6 +16,7 @@ import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,7 +81,7 @@ public class AddonService {
         addonValidator.validateAddonCreation(addon);
         deploymentService.assertDeploymentNotExists(addon.getDeployment().getName());
         Optional.of(addon)
-                .map(domainAddon -> mapper.toEntity(domainAddon, new AddonEntity()))
+                .map(domainAddon -> toEntity(domainAddon, new AddonEntity()))
                 .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create addon " + addon.getDeployment().getName()));
     }
@@ -103,7 +108,7 @@ public class AddonService {
         var addonEntity = addonJpaRepository.findById(addonName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(addonName)));
         assertNotConcurrencyOverwrite(addonEntity, hash);
-        return save(mapper.toEntity(addon, addonEntity));
+        return save(toEntity(addon, addonEntity));
     }
 
     private AddonEntity save(AddonEntity addonEntity) {
@@ -131,7 +136,7 @@ public class AddonService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Addon> getAllAtRevision(Integer revision) {
+    public Collection<Addon> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, AddonEntity.class)
                 .stream()
                 .map(mapper::toDomain)
@@ -151,10 +156,30 @@ public class AddonService {
         }
     }
 
+    @Transactional
+    public void rollbackAddons(Number revision) {
+        Collection<Addon> addons = getAllAtRevision(revision);
+        List<String> ids = addons.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
+        addonJpaRepository.deleteAllExcept(ids);
+
+        for (Addon addon : addons) {
+            AddonEntity entity = addonJpaRepository.findById(addon.getDeployment().getName()).orElseGet(AddonEntity::new);
+            AddonEntity addonEntity = toEntity(addon, entity);
+            addonJpaRepository.save(addonEntity);
+        }
+    }
+
     private void assertExists(String addonName) {
         boolean exists = addonJpaRepository.existsById(addonName);
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(addonName));
         }
+    }
+
+    private AddonEntity toEntity(Addon domain, AddonEntity entity) {
+        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
+        List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
     }
 }

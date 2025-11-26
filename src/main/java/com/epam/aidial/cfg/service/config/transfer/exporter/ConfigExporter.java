@@ -16,7 +16,9 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
+import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.service.config.transfer.exporter.util.FullToSelectedItemsExportRequestTransformer;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.epam.aidial.cfg.domain.model.ExportFormat.CORE;
 
 @RequiredArgsConstructor
 @Service
@@ -49,10 +53,17 @@ public class ConfigExporter {
     private final AdapterExporter adapterExporter;
     private final ToolSetExporter toolSetExporter;
 
+    private final FullToSelectedItemsExportRequestTransformer fullToSelectedItemsExportRequestTransformer;
+
     public ExportConfig getConfig(ExportRequest request) {
+        if (request instanceof FullExportRequest exportRequest && exportRequest.getTopics() != null) {
+            request = fullToSelectedItemsExportRequestTransformer.transform(exportRequest);
+        }
+
         if (request instanceof SelectedItemsExportRequest exportRequest) {
             resolveDependencies(exportRequest);
         }
+
         ExportConfig config = new ExportConfig();
         Map<String, Application> applications = applicationExporter.getApplications(request);
         config.setApplications(applications);
@@ -115,8 +126,8 @@ public class ConfigExporter {
         List<ExportConfigComponent> components = request.getComponents();
         List<ExportConfigComponent> result = new ArrayList<>(components);
         resolveKeyDependencies(result);
-        resolveRoleDependencies(result);
-        resolveAppDependencies(result);
+        resolveRoleDependencies(request, result);
+        resolveAppDependencies(request, result);
         resolveModelDependencies(result);
         request.setComponents(result);
     }
@@ -144,7 +155,7 @@ public class ConfigExporter {
         return keys.stream().anyMatch(key -> Objects.equals(keyName, key));
     }
 
-    private void resolveRoleDependencies(List<ExportConfigComponent> updatedComponents) {
+    private void resolveRoleDependencies(SelectedItemsExportRequest request, List<ExportConfigComponent> updatedComponents) {
         List<ExportConfigComponent> roles = filterComponentsByType(updatedComponents, ExportConfigComponentType.ROLE);
         for (ExportConfigComponent component : roles) {
             String roleName = component.getName();
@@ -153,7 +164,7 @@ public class ConfigExporter {
                 continue;
             }
             processDependency(roleName, dependencies, ExportConfigComponentType.APPLICATION,
-                    applicationExporter.getApplications(), updatedComponents);
+                    applicationExporter.getValidApplications(request), updatedComponents);
             processDependency(roleName, dependencies, ExportConfigComponentType.MODEL,
                     modelExporter.getModels(), updatedComponents);
             processDependency(roleName, dependencies, ExportConfigComponentType.ROUTE,
@@ -186,7 +197,7 @@ public class ConfigExporter {
                 .toList();
     }
 
-    private void resolveAppDependencies(List<ExportConfigComponent> updatedComponents) {
+    private void resolveAppDependencies(SelectedItemsExportRequest request, List<ExportConfigComponent> updatedComponents) {
         List<ExportConfigComponent> apps = filterComponentsByType(updatedComponents, ExportConfigComponentType.APPLICATION);
 
         for (ExportConfigComponent component : apps) {
@@ -196,9 +207,15 @@ public class ConfigExporter {
             }
 
             Application application = applicationExporter.getApplication(component.getName());
-            processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
-            processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
+            if (isValidApplication(application, request)) {
+                processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
+                processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
+            }
         }
+    }
+
+    private boolean isValidApplication(Application application, SelectedItemsExportRequest selectedItemsExportRequest) {
+        return selectedItemsExportRequest.getExportFormat() != CORE || application.getValidityState().isValid();
     }
 
     private void resolveModelDependencies(List<ExportConfigComponent> updatedComponents) {

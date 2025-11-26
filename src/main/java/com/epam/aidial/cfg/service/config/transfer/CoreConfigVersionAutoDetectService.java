@@ -42,7 +42,7 @@ public class CoreConfigVersionAutoDetectService {
         if (!coreConfigVersionProperties.isAutoDetectEnabled()) {
             String target = coreConfigVersionProperties.getTarget();
             if (StringUtils.isBlank(target)) {
-                throw new IllegalStateException("Core target version is undefined");
+                throw new IllegalStateException("Core version auto-detection is disabled and Core target version is undefined");
             }
             log.debug("Core version auto-detection is disabled. Using target version: {}", target);
             return target;
@@ -75,7 +75,7 @@ public class CoreConfigVersionAutoDetectService {
             String target = coreConfigVersionProperties.getTarget();
 
             if (StringUtils.isBlank(target)) {
-                throw new IllegalStateException("Core target version is undefined");
+                throw new IllegalStateException("Unable to retrieve Core version and Core target version is undefined");
             }
 
             version = target;

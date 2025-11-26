@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ public class AssistantsPropertyService {
 
     private final AssistantsPropertyJpaRepository assistantsPropertyJpaRepository;
     private final AssistantsPropertyEntityMapper mapper;
+    private final HistoryService historyService;
 
     @Transactional
     public AssistantsProperty getAssistantsProperty() {
@@ -34,6 +37,30 @@ public class AssistantsPropertyService {
                 .map(this::toEntity)
                 .map(assistantsPropertyJpaRepository::save)
                 .orElseThrow(() -> new RuntimeException("unable to save assistants properties " + assistantsProperty));
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<AssistantsProperty> getAllAtRevision(Number revision) {
+        return historyService.getEntitiesAtRevision(revision, AssistantsPropertyEntity.class)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackAssistantsProperties(Number revision) {
+        Collection<AssistantsProperty> assistantsProperties = getAllAtRevision(revision);
+        if (assistantsProperties.size() > 1) {
+            throw new IllegalStateException("Expected to be only one assistants property record " + assistantsProperties);
+        }
+        assistantsProperties
+                .stream()
+                .findFirst()
+                .ifPresent(assistantsProperty -> {
+                    AssistantsPropertyEntity targetEntity = assistantsPropertyJpaRepository.findById(1L).orElseGet(AssistantsPropertyEntity::new);
+                    AssistantsPropertyEntity entity = mapper.toEntity(assistantsProperty, targetEntity);
+                    assistantsPropertyJpaRepository.save(entity);
+                });
     }
 
     private AssistantsPropertyEntity getAssistantsPropertyEntity() {

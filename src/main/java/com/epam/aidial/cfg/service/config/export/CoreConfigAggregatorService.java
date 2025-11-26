@@ -116,13 +116,13 @@ public class CoreConfigAggregatorService {
     }
 
     private Map<String, CoreApplication> getApplications() {
-        return applicationService.getAllApplications().stream()
+        return applicationService.getAllValidApplications().stream()
                 .map(applicationMapper::mapApplication)
                 .collect(Collectors.toMap(RoleBasedEntity::getName, model -> model));
     }
 
     private Map<String, CoreKey> getKeys() {
-        return keyService.getAllKeys().stream()
+        return keyService.getAllValidKeys().stream()
                 .filter(key -> {
                     if (StringUtils.isNotBlank(key.getKey())) {
                         return true;

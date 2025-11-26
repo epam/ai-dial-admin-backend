@@ -1,8 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.AssistantDto;
-import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;

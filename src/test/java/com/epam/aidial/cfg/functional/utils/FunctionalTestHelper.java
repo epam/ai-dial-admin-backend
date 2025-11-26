@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
@@ -63,17 +64,22 @@ public class FunctionalTestHelper {
         return adapterDto;
     }
 
-    public static ToolSetDto createToolSetDto(String suffix) {
+    public static ToolSetDto createToolSetDtoWithoutRoleLimits(String suffix) {
         ToolSetDto toolSet = new ToolSetDto();
         toolSet.setName("ToolSet" + suffix);
         toolSet.setDisplayName("ToolSet" + suffix);
         toolSet.setDescription("description" + suffix);
         toolSet.setEndpoint("https://endpoint.test.com/toolset" + suffix);
         toolSet.setTransport(ToolSetDto.TransportDto.HTTP);
+        toolSet.setMaxRetryAttempts(1);
+        return toolSet;
+    }
+
+    public static ToolSetDto createToolSetDto(String suffix) {
+        ToolSetDto toolSet = createToolSetDtoWithoutRoleLimits(suffix);
         toolSet.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
-        toolSet.setMaxRetryAttempts(1);
         return toolSet;
     }
 
@@ -110,6 +116,12 @@ public class FunctionalTestHelper {
 
     public static AddonDto createAddonDtoWithAllLimits(String suffix) {
         return createAddonWithRoleLimitsDto(suffix);
+    }
+
+    public static KeyDto createDto(String suffix, List<String> roles) {
+        KeyDto keyDto = createKeyDto(suffix);
+        keyDto.setRoles(roles);
+        return keyDto;
     }
 
     public static KeyDto createKeyDto(String suffix) {
@@ -196,5 +208,18 @@ public class FunctionalTestHelper {
         features.setAssistantAttachmentsInRequestSupported(false);
 
         return features;
+    }
+
+    public static ValidityStateDto validState() {
+        ValidityStateDto validityStateDto = new ValidityStateDto();
+        validityStateDto.setValid(true);
+        return validityStateDto;
+    }
+
+    public static ValidityStateDto invalidState(String message) {
+        ValidityStateDto validityStateDto = new ValidityStateDto();
+        validityStateDto.setMessage(message);
+        validityStateDto.setValid(false);
+        return validityStateDto;
     }
 }
