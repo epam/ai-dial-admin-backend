@@ -217,7 +217,7 @@ public class ZipApplicationEximService {
      *
      * @param applicationsEximDtos Map of filename to {@code ApplicationsEximDto} (containing application lists).
      * @return A map of filename to a Set of application IDs that appear more than once
-     * <em>within that specific file</em>. Only files with such duplicates are included.
+     *     <em>within that specific file</em>. Only files with such duplicates are included.
      */
     private Map<String, Set<String>> findSameApplicationsWithinSameFiles(Map<String, ApplicationsEximDto> applicationsEximDtos) {
         var filesWithDuplicateApplications = new HashMap<String, Set<String>>();
@@ -255,7 +255,7 @@ public class ZipApplicationEximService {
      *
      * @param applicationsEximDtos Map of filename to {@code ApplicationsEximDto} (containing application lists).
      * @return A map of a shared application ID to a Set of filenames where it appears.
-     * Only application IDs found in <em>more than one file</em> are included.
+     *     Only application IDs found in <em>more than one file</em> are included.
      */
     private Map<String, Set<String>> findSameApplicationsWithinDifferentFiles(Map<String, ApplicationsEximDto> applicationsEximDtos) {
         var applicationToFilenamesMap = new HashMap<String, Set<String>>();
