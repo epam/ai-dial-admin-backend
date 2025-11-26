@@ -63,17 +63,22 @@ public class FunctionalTestHelper {
         return adapterDto;
     }
 
-    public static ToolSetDto createToolSetDto(String suffix) {
+    public static ToolSetDto createToolSetDtoWithoutRoleLimits(String suffix) {
         ToolSetDto toolSet = new ToolSetDto();
         toolSet.setName("ToolSet" + suffix);
         toolSet.setDisplayName("ToolSet" + suffix);
         toolSet.setDescription("description" + suffix);
         toolSet.setEndpoint("https://endpoint.test.com/toolset" + suffix);
         toolSet.setTransport(ToolSetDto.TransportDto.HTTP);
+        toolSet.setMaxRetryAttempts(1);
+        return toolSet;
+    }
+
+    public static ToolSetDto createToolSetDto(String suffix) {
+        ToolSetDto toolSet = createToolSetDtoWithoutRoleLimits(suffix);
         toolSet.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
-        toolSet.setMaxRetryAttempts(1);
         return toolSet;
     }
 

@@ -63,6 +63,7 @@ public abstract class InterceptorEntityMapper {
     private InterceptorContainerEntityMapper interceptorContainerEntityMapper;
 
     @Mapping(target = "entities", source = "entity", qualifiedByName = "mapApplicationsAndModelsToStrings")
+    @Mapping(target = "applicationTypeSchemas", source = "entity", qualifiedByName = "mapApplicationTypeSchemaEntitiesToStrings")
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     public abstract Interceptor toDomain(InterceptorEntity entity);
 
@@ -75,8 +76,12 @@ public abstract class InterceptorEntityMapper {
                 .collect(Collectors.toList());
     }
 
-    protected String mapApplicationTypeSchemaEntityToString(ApplicationTypeSchemaEntity value) {
-        return value != null ? value.getSchemaId() : null;
+    @Named("mapApplicationTypeSchemaEntitiesToStrings")
+    protected List<String> mapApplicationTypeSchemaEntitiesToStrings(InterceptorEntity entity) {
+        return entity.getApplicationTypeSchemas().stream()
+                .map(ApplicationTypeSchemaEntity::getSchemaId)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @Named("mapSource")
