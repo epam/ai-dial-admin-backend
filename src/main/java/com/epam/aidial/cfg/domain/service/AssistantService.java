@@ -3,11 +3,16 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.jpa.AssistantJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AssistantEntityMapper;
 import com.epam.aidial.cfg.dao.model.AssistantEntity;
+import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Assistant;
+import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.RoleBased;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.validator.AssistantValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +67,7 @@ public class AssistantService {
         assistantValidator.validateAssistantCreation(assistant);
         deploymentService.assertDeploymentNotExists(assistant.getDeployment().getName());
         Optional.of(assistant)
-                .map(domainModel -> mapper.toEntity(domainModel, new AssistantEntity()))
+                .map(domainModel -> toEntity(domainModel, new AssistantEntity()))
                 .map(this::save)
                 .orElseThrow(() -> new RuntimeException("unable to create assistant " + assistant.getDeployment().getName()));
     }
@@ -74,7 +79,7 @@ public class AssistantService {
         AssistantEntity assistantEntity = assistantJpaRepository.findById(assistantName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(assistantName)));
         Optional.of(assistant)
-                .map(domainModel -> mapper.toEntity(domainModel, assistantEntity))
+                .map(domainModel -> toEntity(domainModel, assistantEntity))
                 .map(this::save)
                 .orElseThrow(() -> new RuntimeException("unable to update assistant " + assistant.getDeployment().getName()));
     }
@@ -104,11 +109,24 @@ public class AssistantService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Assistant> getAllAtRevision(Integer revision) {
+    public Collection<Assistant> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, AssistantEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackAssistants(Number revision) {
+        Collection<Assistant> assistants = getAllAtRevision(revision);
+        List<String> ids = assistants.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
+        assistantJpaRepository.deleteAllExcept(ids);
+
+        for (Assistant assistant : assistants) {
+            AssistantEntity entity = assistantJpaRepository.findById(assistant.getDeployment().getName()).orElseGet(AssistantEntity::new);
+            AssistantEntity assistantEntity = toEntity(assistant, entity);
+            assistantJpaRepository.save(assistantEntity);
+        }
     }
 
     private void assertExists(String name) {
@@ -116,5 +134,12 @@ public class AssistantService {
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
         }
+    }
+
+    private AssistantEntity toEntity(Assistant domain, AssistantEntity entity) {
+        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
+        List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
     }
 }

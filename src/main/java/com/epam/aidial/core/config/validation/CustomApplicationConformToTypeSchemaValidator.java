@@ -6,19 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.ValidationMessage;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.Set;
 
-@Component
 public class CustomApplicationConformToTypeSchemaValidator {
-
-    public boolean isValid(CoreApplication application,
-                           CustomApplicationConformToTypeSchemaValidationContext validationContext) {
-        return CollectionUtils.isEmpty(validate(application, validationContext));
-    }
 
     public static Set<ValidationMessage> validate(CoreApplication application,
                                                   CustomApplicationConformToTypeSchemaValidationContext validationContext) {

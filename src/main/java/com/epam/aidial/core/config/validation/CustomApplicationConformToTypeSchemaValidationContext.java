@@ -1,6 +1,5 @@
 package com.epam.aidial.core.config.validation;
 
-import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonMetaSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -23,10 +22,6 @@ public class CustomApplicationConformToTypeSchemaValidationContext {
 
     private final JsonSchemaFactory schemaFactory;
     private final ObjectMapper mapper;
-
-    public CustomApplicationConformToTypeSchemaValidationContext(Config value) {
-        this(value.getApplicationTypeSchemas());
-    }
 
     public CustomApplicationConformToTypeSchemaValidationContext(Map<String, String> applicationTypeSchemas) {
         schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7, builder ->

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +32,9 @@ import java.util.Set;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
+import static org.mockito.Mockito.doReturn;
 
 public abstract class ApplicationTypeSchemaFunctionalTest {
 
@@ -39,6 +44,8 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     private ApplicationFacade applicationFacade;
     @Autowired
     private InterceptorFacade interceptorFacade;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
     private ApplicationTypeSchemaDto dto;
     private ApplicationTypeSchemaDto dto2;
@@ -69,6 +76,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndGetApplicationTypeSchemaWithApplication() {
         // given
+        doReturn(120L).when(transactionTimestampContext).getTimestamp();
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationFacade.createApplication(applicationDto);
 
@@ -77,6 +85,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setInterceptors(List.of());
 
         // when
+        doReturn(220L).when(transactionTimestampContext).getTimestamp();
         typeSchemaFacade.create(dto);
 
         // then
@@ -85,6 +94,10 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationDto updatedApplication = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertThat(updatedApplication.getEndpoint()).isNull();
+        Assertions.assertThat(updatedApplication.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(220));
+        Assertions.assertThat(updatedApplication.getValidityState())
+                .isEqualTo(invalidState("$: required property 'temperature' not found, "
+                        + "$: required property 'instructions' not found, $: required property 'model' not found, $: required property 'web_api_toolset' not found"));
     }
 
     @Test
@@ -136,6 +149,9 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
         Assertions.assertThat(List.of("interceptor1", "interceptor2", "interceptor2", "interceptor3")).isEqualTo(actualDto2.getInterceptors());
+
+        InterceptorDto actualInterceptorDto = interceptorFacade.getInterceptor("interceptor3");
+        Assertions.assertThat(List.of("https://test-schema.example", "https://test-schema.example2")).isEqualTo(actualInterceptorDto.getApplicationTypeSchemas());
     }
 
     @Test
@@ -149,7 +165,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         InterceptorDto interceptorDto3 = createInterceptorDto("3");
         interceptorFacade.createInterceptor(interceptorDto3);
 
-        dto.setInterceptors(List.of("interceptor2", "interceptor1", "interceptor2", "interceptor3"));
+        dto.setInterceptors(List.of("interceptor2", "interceptor1", "interceptor2", "interceptor3", "interceptor3"));
         typeSchemaFacade.create(dto);
 
         dto2.setInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
@@ -158,10 +174,15 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         interceptorFacade.deleteInterceptor("interceptor1");
 
         ApplicationTypeSchemaDto actualDto1 = typeSchemaFacade.get(dto.getId());
-        Assertions.assertThat(List.of("interceptor2", "interceptor2", "interceptor3")).isEqualTo(actualDto1.getInterceptors());
+        Assertions.assertThat(List.of("interceptor2", "interceptor2", "interceptor3", "interceptor3")).isEqualTo(actualDto1.getInterceptors());
 
         ApplicationTypeSchemaDto actualDto2 = typeSchemaFacade.get(dto2.getId());
         Assertions.assertThat(List.of("interceptor2")).isEqualTo(actualDto2.getInterceptors());
+
+        Assertions.assertThat(List.of("https://test-schema.example", "https://test-schema.example2"))
+                .isEqualTo(interceptorFacade.getInterceptor("interceptor2").getApplicationTypeSchemas());
+        Assertions.assertThat(List.of("https://test-schema.example"))
+                .isEqualTo(interceptorFacade.getInterceptor("interceptor3").getApplicationTypeSchemas());
     }
 
     @Test
@@ -235,12 +256,15 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndDeleteApplicationTypeSchemaAndUpdateApplication() throws URISyntaxException {
         // given
+        doReturn(120L).when(transactionTimestampContext).getTimestamp();
         typeSchemaFacade.create(dto);
 
+        doReturn(220L).when(transactionTimestampContext).getTimestamp();
         ApplicationDto applicationDto = createBaseApplicationDto("1");
         applicationDto.setCustomAppSchemaId(new URI("https://test-schema.example"));
         applicationFacade.createApplication(applicationDto);
         // when
+        doReturn(320L).when(transactionTimestampContext).getTimestamp();
         typeSchemaFacade.delete(dto.getId(), false);
         // then
         Assertions.assertThatThrownBy(() -> typeSchemaFacade.get(dto.getId()))
@@ -252,6 +276,8 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         Assertions.assertThat(updatedApplication.getName()).isEqualTo("application1");
         Assertions.assertThat(updatedApplication.getCustomAppSchemaId()).isNull();
         Assertions.assertThat(updatedApplication.getEndpoint()).isEqualTo("https://test-schema.example");
+        Assertions.assertThat(updatedApplication.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(320));
+        Assertions.assertThat(updatedApplication.getValidityState()).isEqualTo(validState());
     }
 
     @Test
@@ -337,7 +363,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         Assertions.assertThatThrownBy(() -> typeSchemaFacade.create(dto))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessage("unable to find applications: [application2, application3]");
+                .hasMessage("Unable to find applications: [application2, application3]");
     }
 
     @Test

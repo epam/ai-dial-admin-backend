@@ -6,10 +6,8 @@ import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
-import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
-import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -40,17 +38,11 @@ public abstract class ToolSetEntityMapper {
         return new ToolSetEndpointsSource();
     }
 
-    public ToolSetEntity toEntity(ToolSet domain, ToolSetEntity entity) {
-        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
-        List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-
-        ToolSetContainerEntity toolSetContainer = null;
-
-        ToolSetSource source = domain.getSource();
-        if (source instanceof ToolSetContainerSource containerSource) {
-            toolSetContainer = toolSetContainerEntityMapper.toEntity(containerSource);
-        }
-
+    public ToolSetEntity toEntity(ToolSet domain,
+                                  ToolSetEntity entity,
+                                  ToolSetContainerEntity toolSetContainer,
+                                  List<RoleLimit> roleLimits,
+                                  List<RoleEntity> rolesForLimits) {
         ToolSetEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);

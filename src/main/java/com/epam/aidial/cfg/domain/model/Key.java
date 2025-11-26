@@ -18,4 +18,5 @@ public class Key {
     private Long updatedAt;
     private Long expiresAt;
     private Long keyGeneratedAt;
+    private ValidityState validityState;
 }

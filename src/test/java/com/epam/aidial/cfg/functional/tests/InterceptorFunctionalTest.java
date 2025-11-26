@@ -196,7 +196,7 @@ public abstract class InterceptorFunctionalTest {
         typeSchemaFacade.create(applicationTypeSchemaDto2);
 
         InterceptorDto interceptorDto = createInterceptorDto("1");
-        interceptorDto.setApplicationTypeSchemas(List.of("https://test-schema.example", "https://test-schema.example2"));
+        interceptorDto.setApplicationTypeSchemas(List.of("https://test-schema.example", "https://test-schema.example", "https://test-schema.example2"));
         interceptorFacade.createInterceptor(interceptorDto);
 
         InterceptorDto actualInterceptor = interceptorFacade.getInterceptor("interceptor1");
