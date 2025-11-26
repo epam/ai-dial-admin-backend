@@ -78,8 +78,10 @@ public abstract class InterceptorEntityMapper {
 
     @Named("mapApplicationTypeSchemaEntitiesToStrings")
     protected List<String> mapApplicationTypeSchemaEntitiesToStrings(InterceptorEntity entity) {
-        return entity.getApplicationTypeSchemas().stream().map(ApplicationTypeSchemaEntity::getSchemaId)
-                .distinct().collect(Collectors.toList());
+        return entity.getApplicationTypeSchemas().stream()
+                .map(ApplicationTypeSchemaEntity::getSchemaId)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @Named("mapSource")
