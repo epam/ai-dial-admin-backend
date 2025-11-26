@@ -31,6 +31,15 @@ public abstract class AbstractConformToCoreMetaSchemaValidator<V> implements Con
     @SneakyThrows
     protected boolean isValid(V dto, String id, ConstraintValidatorContext context) {
         if (!isValidUri(id)) {
+            context.disableDefaultConstraintViolation();
+            String message = "The ID field contains invalid characters or formatting and does not meet validation criteria. "
+                    + "ID must be a valid URI with scheme and host. Please adjust the ID before saving.";
+            context.buildConstraintViolationWithTemplate(message)
+                    .addBeanNode()
+                    .inContainer(Map.class, 1)
+                    .inIterable().atKey(id)
+                    .addConstraintViolation();
+            log.warn("Invalid ID format: {}", id);
             return false;
         }
         ObjectWriter objectWriter = OBJECT_MAPPER.writer().withDefaultPrettyPrinter();
