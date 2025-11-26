@@ -18,12 +18,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class DatasourceVendorPropertiesTest {
+class DatasourceVendorValidatorTest {
 
     @ParameterizedTest
     @CsvSource({"H2", "POSTGRES", "MS_SQL_SERVER"})
     void whenVendorIsValid_thenValidationSucceeds(String vendor) {
-        DatasourceVendorProperties properties = new DatasourceVendorProperties();
+        DatasourceVendorValidator properties = new DatasourceVendorValidator();
         ApplicationEnvironmentPreparedEvent event = createEventWithVendor(vendor);
 
         assertThatCode(() -> properties.onApplicationEvent(event))
@@ -33,7 +33,7 @@ class DatasourceVendorPropertiesTest {
     @ParameterizedTest
     @MethodSource("invalidVendors")
     void whenVendorIsInvalid_thenValidationFails(String vendor, String expectedMessagePart) {
-        DatasourceVendorProperties properties = new DatasourceVendorProperties();
+        DatasourceVendorValidator properties = new DatasourceVendorValidator();
         ApplicationEnvironmentPreparedEvent event = createEventWithVendor(vendor);
 
         assertThatThrownBy(() -> properties.onApplicationEvent(event))

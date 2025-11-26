@@ -9,7 +9,7 @@ import org.springframework.core.env.Environment;
 import java.util.Set;
 
 @Slf4j
-public class DatasourceVendorProperties implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+public class DatasourceVendorValidator implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
     private static final Set<String> VALID_VENDORS = Set.of("H2", "POSTGRES", "MS_SQL_SERVER");
     private static final String DATASOURCE_VENDOR_PROPERTY = "datasource.vendor";
