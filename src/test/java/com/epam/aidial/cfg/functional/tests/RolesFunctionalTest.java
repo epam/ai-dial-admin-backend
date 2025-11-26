@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -22,6 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,9 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAddonDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
+import static org.mockito.Mockito.doReturn;
 
 public abstract class RolesFunctionalTest {
 
@@ -40,6 +45,8 @@ public abstract class RolesFunctionalTest {
     private KeyFacade keyFacade;
     @Autowired
     private AddonFacade addonFacade;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
 
     @BeforeEach
     public void beforeEach() {
@@ -196,20 +203,29 @@ public abstract class RolesFunctionalTest {
     @Test
     public void shouldSuccessfullyUpdateKeys() {
         // create role1: keys=[key1, key2]; role2: keys=[key1, key3]
+        doReturn(120L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto = createDtoWithKeys("1", List.of("key1", "key2"));
         roleFacade.createRole(roleDto);
+        doReturn(220L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto2 = createDtoWithKeys("2", List.of("key1", "key3"));
         roleFacade.createRole(roleDto2);
 
         // check key1: roles=[role1, role2]; key2: roles=[role1]; key3: roles=[role2]
         KeyDto key1 = keyFacade.getKey("key1");
         Assertions.assertEquals(List.of("role1", "role2"), key1.getRoles());
+        Assertions.assertEquals(validState(), key1.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(220), key1.getUpdatedAt());
         KeyDto key2 = keyFacade.getKey("key2");
         Assertions.assertEquals(List.of("role1"), key2.getRoles());
+        Assertions.assertEquals(validState(), key2.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(120), key2.getUpdatedAt());
         KeyDto key3 = keyFacade.getKey("key3");
         Assertions.assertEquals(List.of("role2"), key3.getRoles());
+        Assertions.assertEquals(validState(), key3.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(220), key3.getUpdatedAt());
 
         // update role1: keys=[key2, key3]
+        doReturn(320L).when(transactionTimestampContext).getTimestamp();
         RoleDto updatedRoleDto = createDtoWithKeys("1", List.of("key2", "key3"));
         roleFacade.updateRole(updatedRoleDto.getName(), updatedRoleDto, "*");
 
@@ -221,29 +237,44 @@ public abstract class RolesFunctionalTest {
         // check key1: roles=[role2]; key2: roles=[role1]; key3: roles=[role2, role1]
         key1 = keyFacade.getKey("key1");
         Assertions.assertEquals(List.of("role2"), key1.getRoles());
+        Assertions.assertEquals(validState(), key1.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(320), key1.getUpdatedAt());
         key2 = keyFacade.getKey("key2");
         Assertions.assertEquals(List.of("role1"), key2.getRoles());
+        Assertions.assertEquals(validState(), key2.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(120), key2.getUpdatedAt());
         key3 = keyFacade.getKey("key3");
         Assertions.assertEquals(List.of("role2", "role1"), key3.getRoles());
+        Assertions.assertEquals(validState(), key3.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(320), key3.getUpdatedAt());
     }
 
     @Test
     public void shouldSuccessfullyUpdateRolesWhenDeleteKey() {
         // create role1: keys=[key1, key2]; role2: keys=[key1, key3]
+        doReturn(120L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto = createDtoWithKeys("1", List.of("key1", "key2"));
         roleFacade.createRole(roleDto);
+        doReturn(220L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto2 = createDtoWithKeys("2", List.of("key1", "key3"));
         roleFacade.createRole(roleDto2);
 
         // check key1: roles=[role1, role2]; key2: roles=[role1]; key3: roles=[role2]
         KeyDto key1 = keyFacade.getKey("key1");
         Assertions.assertEquals(List.of("role1", "role2"), key1.getRoles());
+        Assertions.assertEquals(validState(), key1.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(220), key1.getUpdatedAt());
         KeyDto key2 = keyFacade.getKey("key2");
         Assertions.assertEquals(List.of("role1"), key2.getRoles());
+        Assertions.assertEquals(validState(), key2.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(120), key2.getUpdatedAt());
         KeyDto key3 = keyFacade.getKey("key3");
         Assertions.assertEquals(List.of("role2"), key3.getRoles());
+        Assertions.assertEquals(validState(), key3.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(220), key3.getUpdatedAt());
 
         // delete key1
+        doReturn(320L).when(transactionTimestampContext).getTimestamp();
         keyFacade.deleteKey("key1");
 
         // check role1: keys=[key2]; role2: keys=[key3]
@@ -253,36 +284,53 @@ public abstract class RolesFunctionalTest {
         expectedRoleDto2.setLimits(Map.of());
         RoleDto actualRole1 = roleFacade.getRole("role1");
         RoleDto actualRole2 = roleFacade.getRole("role2");
-        Assertions.assertEquals(actualRole1, expectedRoleDto1);
-        Assertions.assertEquals(actualRole2, expectedRoleDto2);
+        Assertions.assertEquals(expectedRoleDto1, actualRole1);
+        Assertions.assertEquals(Instant.ofEpochMilli(320), actualRole1.getUpdatedAt());
+        Assertions.assertEquals(expectedRoleDto2, actualRole2);
+        Assertions.assertEquals(Instant.ofEpochMilli(320), actualRole2.getUpdatedAt());
     }
 
     @Test
     public void shouldSuccessfullyUpdateKeysWhenDeleteRole() {
         // create role1: keys=[key1, key2]; role2: keys=[key1, key3]
+        doReturn(120L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto = createDtoWithKeys("1", List.of("key1", "key2"));
         roleFacade.createRole(roleDto);
+        doReturn(220L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto2 = createDtoWithKeys("2", List.of("key1", "key3"));
         roleFacade.createRole(roleDto2);
 
         // check key1: roles=[role1, role2]; key2: roles=[role1]; key3: roles=[role2]
         KeyDto key1 = keyFacade.getKey("key1");
         Assertions.assertEquals(List.of("role1", "role2"), key1.getRoles());
+        Assertions.assertEquals(validState(), key1.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(220), key1.getUpdatedAt());
         KeyDto key2 = keyFacade.getKey("key2");
         Assertions.assertEquals(List.of("role1"), key2.getRoles());
+        Assertions.assertEquals(validState(), key2.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(120), key2.getUpdatedAt());
         KeyDto key3 = keyFacade.getKey("key3");
         Assertions.assertEquals(List.of("role2"), key3.getRoles());
+        Assertions.assertEquals(validState(), key3.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(220), key3.getUpdatedAt());
 
         // delete role1
+        doReturn(320L).when(transactionTimestampContext).getTimestamp();
         roleFacade.deleteRole("role1");
 
         // check key1: roles=[role2]; key2: roles=[]; key3: keys=[role2]
         key1 = keyFacade.getKey("key1");
         Assertions.assertEquals(List.of("role2"), key1.getRoles());
+        Assertions.assertEquals(validState(), key1.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(320), key1.getUpdatedAt());
         key2 = keyFacade.getKey("key2");
         Assertions.assertEquals(List.of(), key2.getRoles());
+        Assertions.assertEquals(invalidState("No roles assigned"), key2.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(320), key2.getUpdatedAt());
         key3 = keyFacade.getKey("key3");
         Assertions.assertEquals(List.of("role2"), key3.getRoles());
+        Assertions.assertEquals(validState(), key3.getValidityState());
+        Assertions.assertEquals(Instant.ofEpochMilli(220), key3.getUpdatedAt());
     }
 
     @Test
@@ -515,6 +563,7 @@ public abstract class RolesFunctionalTest {
         RoleDto roleDto2 = new RoleDto();
         roleDto2.setName("role2");
         roleDto2.setDescription("role2");
+        roleDto2.setGrantedKeys(List.of("key1", "key2"));
         RoleDto defaultRole = new RoleDto();
         defaultRole.setName("default");
         return List.of(roleDto1, roleDto2, defaultRole);

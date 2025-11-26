@@ -3,9 +3,11 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
@@ -13,15 +15,19 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -38,6 +44,7 @@ public class ApplicationTypeSchemaService {
     private final ApplicationTypeSchemaJpaRepository jpaRepository;
     private final ApplicationTypeSchemaEntityMapper mapper;
     private final ApplicationJpaRepository applicationJpaRepository;
+    private final InterceptorJpaRepository interceptorJpaRepository;
     private final ApplicationTypeSchemaValidator applicationTypeSchemaValidator;
     private final HistoryService historyService;
     private final HashCalculator calculator;
@@ -80,7 +87,7 @@ public class ApplicationTypeSchemaService {
         applicationTypeSchemaValidator.validateCreation(applicationTypeSchema);
         assertNotExists(applicationTypeSchema.getSchemaId());
         Optional.of(applicationTypeSchema)
-                .map(domainModel -> mapper.toEntity(domainModel, new ApplicationTypeSchemaEntity()))
+                .map(domainModel -> toEntity(domainModel, new ApplicationTypeSchemaEntity()))
                 .ifPresent(jpaRepository::save);
     }
 
@@ -103,7 +110,7 @@ public class ApplicationTypeSchemaService {
         applicationTypeSchemaValidator.validateUpdate(schemaId, schema);
         ApplicationTypeSchemaEntity applicationTypeSchemaEntity = findBySchemaId(schemaId);
         assertNotConcurrencyOverwrite(applicationTypeSchemaEntity, hash);
-        return jpaRepository.save(mapper.toEntity(schema, applicationTypeSchemaEntity));
+        return jpaRepository.save(toEntity(schema, applicationTypeSchemaEntity));
     }
 
     @Transactional
@@ -135,7 +142,7 @@ public class ApplicationTypeSchemaService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<ApplicationTypeSchema> getAllAtRevision(Integer revision) {
+    public Collection<ApplicationTypeSchema> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, ApplicationTypeSchemaEntity.class)
                 .stream()
                 .map(mapper::toDomain)
@@ -152,6 +159,23 @@ public class ApplicationTypeSchemaService {
                     entity.getSchemaId(), expectedHash, currentHash);
             throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: schemaId:'"
                     + "%s'. Reload the data.", entity.getSchemaId()));
+        }
+    }
+
+    @Transactional
+    public void rollbackApplicationTypeSchemas(Number revision) {
+        Iterable<ApplicationEntity> applications = applicationJpaRepository.findAll();
+        applications.forEach(applicationEntity -> {
+            applicationEntity.setApplicationTypeSchema(null);
+            applicationEntity.setEndpoint("endpoint");
+        });
+        applicationJpaRepository.saveAllAndFlush(applications);
+        Collection<ApplicationTypeSchema> applicationTypeSchemas = getAllAtRevision(revision);
+        jpaRepository.deleteAllExcept(applicationTypeSchemas.stream().map(ApplicationTypeSchema::getSchemaId).collect(Collectors.toList()));
+        for (ApplicationTypeSchema domain : applicationTypeSchemas) {
+            ApplicationTypeSchemaEntity entity = jpaRepository.findById(domain.getSchemaId()).orElseGet(ApplicationTypeSchemaEntity::new);
+            ApplicationTypeSchemaEntity applicationTypeSchemaEntity = toEntity(domain, entity);
+            jpaRepository.save(applicationTypeSchemaEntity);
         }
     }
 
@@ -177,5 +201,51 @@ public class ApplicationTypeSchemaService {
         if (jpaRepository.existsById(schemaId)) {
             throw new EntityAlreadyExistsException("Application type schema with schema id " + schemaId + " already exists");
         }
+    }
+
+    private ApplicationTypeSchemaEntity toEntity(ApplicationTypeSchema domain, ApplicationTypeSchemaEntity entity) {
+        List<ApplicationEntity> applications = findApplicationsByNames(domain.getApplications());
+        List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
+        return mapper.toEntity(domain, entity, applications, interceptors);
+    }
+
+    private List<ApplicationEntity> findApplicationsByNames(List<String> names) {
+        if (names == null) {
+            return null;
+        }
+
+        if (names.isEmpty()) {
+            return List.of();
+        }
+
+        List<ApplicationEntity> existingApplications = Lists.newArrayList(applicationJpaRepository.findAllById(names));
+        Set<String> existingApplicationsNames = existingApplications.stream()
+                .map(ApplicationEntity::getDeploymentName)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingApplicationsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find applications: " + namesDiff);
+        }
+
+        return existingApplications;
+    }
+
+    private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return List.of();
+        }
+
+        List<InterceptorEntity> existingInterceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
+        Set<String> existingInterceptorsNames = existingInterceptors.stream()
+                .map(InterceptorEntity::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptorsNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("Unable to find interceptors: " + namesDiff);
+        }
+
+        return existingInterceptors;
     }
 }
