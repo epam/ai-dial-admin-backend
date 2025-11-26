@@ -2,23 +2,23 @@ package com.epam.aidial.cfg.configuration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.core.env.Environment;
 
 import java.util.Set;
-import javax.annotation.PostConstruct;
 
 @Slf4j
-@Configuration
-public class DatasourceVendorProperties {
+public class DatasourceVendorValidator implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
     private static final Set<String> VALID_VENDORS = Set.of("H2", "POSTGRES", "MS_SQL_SERVER");
+    private static final String DATASOURCE_VENDOR_PROPERTY = "datasource.vendor";
 
-    @Value("${datasource.vendor}")
-    private String vendor;
-
-    @PostConstruct
-    public void validateDatasourceVendor() {
+    @Override
+    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
+        Environment environment = event.getEnvironment();
+        String vendor = environment.getProperty(DATASOURCE_VENDOR_PROPERTY);
+        
         log.info("Validating datasource.vendor property. Value: {}", vendor);
 
         if (StringUtils.isBlank(vendor)) {
