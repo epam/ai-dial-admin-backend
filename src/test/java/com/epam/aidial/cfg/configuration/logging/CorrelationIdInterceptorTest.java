@@ -53,7 +53,7 @@ class CorrelationIdInterceptorTest {
         Tracer tracer = openTelemetrySdk.getTracer("test");
         Span span = tracer.spanBuilder("test-span").startSpan();
         
-        try (Scope scope = span.makeCurrent()) {
+        try (Scope ignored = span.makeCurrent()) {
             // when
             boolean result = interceptor.preHandle(request, response, null);
 
