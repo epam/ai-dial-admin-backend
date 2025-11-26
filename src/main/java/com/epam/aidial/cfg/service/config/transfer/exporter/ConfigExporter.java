@@ -16,7 +16,9 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
+import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.service.config.transfer.exporter.util.FullToSelectedItemsExportRequestTransformer;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -49,10 +51,17 @@ public class ConfigExporter {
     private final AdapterExporter adapterExporter;
     private final ToolSetExporter toolSetExporter;
 
+    private final FullToSelectedItemsExportRequestTransformer fullToSelectedItemsExportRequestTransformer;
+
     public ExportConfig getConfig(ExportRequest request) {
+        if (request instanceof FullExportRequest exportRequest && exportRequest.getTopics() != null) {
+            request = fullToSelectedItemsExportRequestTransformer.transform(exportRequest);
+        }
+
         if (request instanceof SelectedItemsExportRequest exportRequest) {
             resolveDependencies(exportRequest);
         }
+
         ExportConfig config = new ExportConfig();
         Map<String, Application> applications = applicationExporter.getApplications(request);
         config.setApplications(applications);
