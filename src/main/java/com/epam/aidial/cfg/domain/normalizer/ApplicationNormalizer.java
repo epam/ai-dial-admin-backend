@@ -8,15 +8,7 @@ import org.springframework.stereotype.Component;
 public class ApplicationNormalizer {
 
     public void normalize(Application application) {
-        setDisplayVersionToNullIfBlank(application);
         setEndpointToNullIfBlank(application);
-    }
-
-    private void setDisplayVersionToNullIfBlank(Application application) {
-        String displayVersion = application.getDisplayVersion();
-        if (StringUtils.isBlank(displayVersion)) {
-            application.setDisplayVersion(null);
-        }
     }
 
     private void setEndpointToNullIfBlank(Application application) {

@@ -5,7 +5,6 @@
     "viewerUrl": "https://viewer.test.com",
     "editorUrl": "https://editor.test.com",
     "displayName": "Test Application",
-    "displayVersion": "1.0.0",
     "description": "It is a test application",
     "forwardAuthToken": true,
     "inputAttachmentTypes": [

@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
-import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
@@ -317,47 +316,6 @@ public abstract class ApplicationFunctionalTest {
 
         actualApplication2 = applicationFacade.getApplication(applicationDto2.getName());
         Assertions.assertEquals(List.of("interceptor1", "interceptor1"), actualApplication2.getInterceptors());
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenCreateApplicationWithExistingDisplayNameAndDisplayVersion() {
-        initRoles();
-
-        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
-        applicationDto.setDisplayName("display_name");
-        applicationDto.setDisplayVersion("1.0");
-        applicationFacade.createApplication(applicationDto);
-
-        ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
-        applicationDto2.setDisplayName("display_name");
-        applicationDto2.setDisplayVersion("1.0");
-
-        EntityAlreadyExistsException exception = Assertions.assertThrows(
-                EntityAlreadyExistsException.class,
-                () -> applicationFacade.createApplication(applicationDto2)
-        );
-        Assertions.assertEquals("Application with display name: 'display_name' and display version: '1.0' already exists", exception.getMessage());
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenUpdateApplicationWithExistingDisplayNameAndDisplayVersion() {
-        initRoles();
-
-        ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
-        applicationDto.setDisplayName("display_name");
-        applicationFacade.createApplication(applicationDto);
-
-        ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
-        applicationDto2.setDisplayName("display_name_2");
-        applicationFacade.createApplication(applicationDto2);
-
-        applicationDto.setDisplayName("display_name_2");
-
-        EntityAlreadyExistsException exception = Assertions.assertThrows(
-                EntityAlreadyExistsException.class,
-                () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*")
-        );
-        Assertions.assertEquals("Application with display name: 'display_name_2' and display version: 'null' already exists", exception.getMessage());
     }
 
     @Test

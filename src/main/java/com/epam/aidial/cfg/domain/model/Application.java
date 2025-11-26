@@ -20,7 +20,6 @@ public class Application extends RoleBased {
     private String reference;
     private String description;
     private String displayName;
-    private String displayVersion;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

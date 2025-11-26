@@ -21,6 +21,7 @@ import java.util.List;
 public abstract class ApplicationCoreMapper {
 
     @Mapping(target = "function", ignore = true)
+    @Mapping(target = "displayVersion", ignore = true)
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "userRoles", source = "deployment")
     public abstract CoreApplication mapApplication(Application model);

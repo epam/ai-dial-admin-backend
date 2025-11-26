@@ -54,7 +54,6 @@ public class ApplicationExporter {
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getDeployment().getName())
                         .displayName(component.getDisplayName())
-                        .displayVersion(component.getDisplayVersion())
                         .description(component.getDescription())
                         .type(ExportConfigComponentType.APPLICATION)
                         .build())

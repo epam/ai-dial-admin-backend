@@ -47,7 +47,6 @@
 				"defaultRoleLimit": {}
 			},
 			"displayName": "Test Application1",
-			"displayVersion": "2.0.0",
 			"forwardAuthToken": false,
 			"descriptionKeywords": [],
 			"maxRetryAttempts": 1,
@@ -87,7 +86,6 @@
 			},
 			"endpoint": "endpoint",
 			"displayName": "Test Application2",
-			"displayVersion": "1.0.0",
 			"forwardAuthToken": false,
 			"descriptionKeywords": [],
 			"maxRetryAttempts": 1,

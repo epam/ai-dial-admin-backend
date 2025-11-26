@@ -16,7 +16,6 @@ import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.normalizer.ApplicationNormalizer;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
-import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
@@ -34,7 +33,6 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -104,7 +102,6 @@ public class ApplicationService {
         applicationNormalizer.normalize(application);
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
-        assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         Optional.of(application)
                 .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))
                 .map(this::save)
@@ -132,7 +129,6 @@ public class ApplicationService {
         var applicationEntity = applicationJpaRepository.findById(applicationName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(applicationName)));
 
-        assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, application);
         assertNotConcurrencyOverwrite(applicationEntity, hash);
         return save(toEntity(application, applicationEntity));
     }
@@ -199,23 +195,6 @@ public class ApplicationService {
         boolean exists = applicationJpaRepository.existsById(name);
         if (!exists) {
             throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(name));
-        }
-    }
-
-    private void assertNotExists(String displayName, String displayVersion) {
-        if ((displayName != null || displayVersion != null) && applicationJpaRepository.existsByDisplayNameAndDisplayVersion(displayName, displayVersion)) {
-            throw new EntityAlreadyExistsException("Application with display name: '" + displayName + "' and display version: '" + displayVersion + "' already exists");
-        }
-    }
-
-    private void assertNewApplicationDisplayNameAndDisplayVersion(ApplicationEntity entity, Application domain) {
-        String displayName = entity.getDisplayName();
-        String displayVersion = entity.getDisplayVersion();
-        String newDisplayName = domain.getDisplayName();
-        String newDisplayVersion = domain.getDisplayVersion();
-
-        if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {
-            assertNotExists(newDisplayName, newDisplayVersion);
         }
     }
 

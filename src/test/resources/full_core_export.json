@@ -166,7 +166,6 @@
     "testApplication1": {
       "name": "testApplication1",
       "display_name": "Test Application1",
-      "display_version": "2.0.0",
       "forward_auth_token": false,
       "features": {
         "system_prompt_supported": true,
@@ -204,7 +203,6 @@
       ],
       "endpoint": "endpoint",
       "display_name": "Test Application2",
-      "display_version": "1.0.0",
       "forward_auth_token": false,
       "features": {
         "system_prompt_supported": true,

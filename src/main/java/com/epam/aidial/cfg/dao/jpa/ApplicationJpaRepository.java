@@ -10,8 +10,6 @@ import java.util.List;
 
 public interface ApplicationJpaRepository extends JpaRepository<ApplicationEntity, String> {
 
-    boolean existsByDisplayNameAndDisplayVersion(String displayName, String displayVersion);
-
     @Query("DELETE FROM ApplicationEntity a WHERE a.deploymentName NOT IN :ids")
     @Modifying
     void deleteAllExcept(@Param("ids") List<String> ids);

@@ -59,9 +59,8 @@ public class ApplicationValidator {
 
     private void validateDisplayNameDisplayVersion(Application application) {
         String applicationName = application.getDeployment().getName();
-        displayFieldsValidator.validateDisplayNameDisplayVersion(
+        displayFieldsValidator.validateDisplayName(
                 application.getDisplayName(),
-                application.getDisplayVersion(),
                 "Application",
                 applicationName
         );

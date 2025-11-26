@@ -7,7 +7,6 @@
       "name": "app-1",
       "endpoint": "http://localhost:8080/api",
       "display_name": "app-1",
-      "display_version": "1.0",
       "forward_auth_token": false,
       "features": {
         "system_prompt_supported": true,

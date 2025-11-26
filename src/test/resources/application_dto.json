@@ -7,7 +7,6 @@
   "endpoint": "https://endpoint.test.com/embeddings",
   "displayName": "Test Application",
   "description": "It is a test application",
-  "displayVersion": "1.0.0",
   "reference": "test_reference",
   "userRoles": [
     "testRole1"

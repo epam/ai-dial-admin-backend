@@ -12,7 +12,6 @@ public class ApplicationInfoDto {
     private String name;
     private String endpoint;
     private String displayName;
-    private String displayVersion;
     private String description;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

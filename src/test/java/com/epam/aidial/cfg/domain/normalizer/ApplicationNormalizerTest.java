@@ -19,33 +19,6 @@ class ApplicationNormalizerTest {
 
     @ParameterizedTest
     @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
-    void normalize_shouldSetDisplayVersionToNullWhenDisplayVersionIsBlank(String displayVersion) {
-        // given
-        Application application = new Application();
-        application.setDisplayVersion(displayVersion);
-
-        // when
-        applicationNormalizer.normalize(application);
-
-        // then
-        assertThat(application.getDisplayVersion()).isNull();
-    }
-
-    @Test
-    void normalize_shouldLeaveDisplayVersionAsIsWhenDisplayVersionIsNotBlank() {
-        // given
-        Application application = new Application();
-        application.setDisplayVersion("1.0");
-
-        // when
-        applicationNormalizer.normalize(application);
-
-        // then
-        assertThat(application.getDisplayVersion()).isEqualTo("1.0");
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
     void normalize_shouldSetEndpointToNullWhenEndpointIsBlank(String endpoint) {
         // given
         Application application = new Application();
