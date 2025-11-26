@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
@@ -49,8 +50,8 @@ import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
-import com.epam.aidial.cfg.service.export.ConflictResolutionPolicy;
-import com.epam.aidial.cfg.service.transfer.ConfigTransfer;
+import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.config.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
@@ -76,6 +77,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.json.JSONException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -119,6 +121,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createMo
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRouteDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRouteDtoWithLimits;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDtoWithoutRoleLimits;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -165,6 +168,11 @@ public abstract class ConfigTransferFunctionalTest {
     private DatabaseService databaseService;
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
+
+    @BeforeEach
+    void setUp() {
+        versionProperties.setTarget("latest");
+    }
 
     @Test
     void testImport_WithoutConflict() throws IOException {
@@ -1025,6 +1033,106 @@ public abstract class ConfigTransferFunctionalTest {
                                     Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
                                     Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
                                 });
+                    });
+        });
+    }
+
+    @Test
+    void testExport_AdminFormatAll_FullRequestWithTopics() throws IOException, URISyntaxException {
+        // Given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(Arrays.stream(ExportConfigComponentType.values()).collect(Collectors.toSet()));
+        request.setTopics(Set.of("a", "b"));
+
+        ApplicationTypeSchemaDto typeSchemaDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<>() {
+        });
+        typeSchemaDto.setTopics(Set.of("c", "d"));
+        applicationTypeSchemaFacade.create(typeSchemaDto);
+
+        URI customAppSchemaId = new URI("https://test-schema-id.example");
+
+        ApplicationDto applicationDto1 = createBaseApplicationDto("1");
+        applicationDto1.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto1.setTopics(List.of("b", "c", "d"));
+        applicationFacade.createApplication(applicationDto1);
+
+        ApplicationDto applicationDto2 = createBaseApplicationDto("2");
+        applicationDto2.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto2.setTopics(List.of("c", "d"));
+        applicationFacade.createApplication(applicationDto2);
+
+        ModelDto modelDto1 = createModelDto("1");
+        modelDto1.setTopics(List.of("a"));
+        modelFacade.createModel(modelDto1);
+
+        ModelDto modelDto2 = createModelDto("2");
+        modelDto2.setTopics(List.of("c"));
+        modelFacade.createModel(modelDto2);
+
+        ToolSetDto toolSetDto1 = createToolSetDtoWithoutRoleLimits("1");
+        toolSetDto1.setDescriptionKeywords(List.of("a", "b", "c"));
+        toolSetFacade.createToolSet(toolSetDto1);
+
+        ToolSetDto toolSetDto2 = createToolSetDtoWithoutRoleLimits("2");
+        toolSetDto2.setDescriptionKeywords(List.of("e", "f"));
+        toolSetFacade.createToolSet(toolSetDto2);
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // Then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplicationRunners()).isNotEmpty()
+                    .containsOnlyKeys(customAppSchemaId.toString());
+            Assertions.assertThat(config.getApplications()).isNotEmpty()
+                    .containsOnlyKeys(applicationDto1.getName())
+                    .satisfies(apps -> {
+                        Application app = apps.get(applicationDto1.getName());
+                        Assertions.assertThat(app.getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
+                    });
+            Assertions.assertThat(config.getModels()).isNotEmpty()
+                    .containsOnlyKeys(modelDto1.getName());
+            Assertions.assertThat(config.getToolsets()).isNotEmpty()
+                    .containsOnlyKeys(toolSetDto1.getName());
+        });
+    }
+
+    @Test
+    void testExport_AdminFormatApplication_FullRequestWithTopics() throws IOException, URISyntaxException {
+        // Given
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION));
+        request.setTopics(Set.of("a", "b"));
+
+        ApplicationTypeSchemaDto typeSchemaDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<>() {
+        });
+        typeSchemaDto.setTopics(Set.of("a", "b"));
+        applicationTypeSchemaFacade.create(typeSchemaDto);
+
+        URI customAppSchemaId = new URI("https://test-schema-id.example");
+
+        ApplicationDto applicationDto1 = createBaseApplicationDto("1");
+        applicationDto1.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto1.setTopics(List.of("b", "c", "d"));
+        applicationFacade.createApplication(applicationDto1);
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // Then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getApplicationRunners()).isEmpty();
+            Assertions.assertThat(config.getApplications()).isNotEmpty()
+                    .containsOnlyKeys(applicationDto1.getName())
+                    .satisfies(apps -> {
+                        Application app = apps.get(applicationDto1.getName());
+                        Assertions.assertThat(app.getApplicationTypeSchemaId()).isNull();
                     });
         });
     }

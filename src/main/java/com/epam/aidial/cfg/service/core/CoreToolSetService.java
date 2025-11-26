@@ -7,7 +7,7 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
-import com.epam.aidial.cfg.service.transfer.importer.ConfigImporter;
+import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreToolSet;
 import lombok.RequiredArgsConstructor;
