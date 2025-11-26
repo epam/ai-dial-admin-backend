@@ -54,6 +54,7 @@ public class ConfigTransfer {
     private final ObjectMapper prettyJsonMapper = JsonMapperConfiguration.createPrettyJsonMapper();
     private final ConfigExportProperties properties;
     private final VersionAwareFieldFilter versionAwareFieldFilter;
+    private final List<CoreConfigNormalizer> normalizers;
     private final ConfigImporter configImporter;
 
     @Transactional(readOnly = true)
@@ -88,6 +89,7 @@ public class ConfigTransfer {
 
     private StreamingResponseBody exportCoreConfig(ExportConfig config) {
         Config fullCoreConfig = configMapper.toCoreConfig(config);
+        normalizers.forEach(n -> n.normalize(fullCoreConfig));
         Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(fullCoreConfig);
         return outputStream -> {
             try {

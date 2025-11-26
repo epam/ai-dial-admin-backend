@@ -15,6 +15,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
+//todo: remove once full validation of ApplicationTypeSchemaDto is ready
 public class ApplicationTypeSchemaCoreConfigNormalizer implements CoreConfigNormalizer {
 
     @Override
