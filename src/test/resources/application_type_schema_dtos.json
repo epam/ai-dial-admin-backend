@@ -1,6 +1,6 @@
 [
 	{
-	"$schema": "https://test.com/application_type_schemas/schema#",
+	"$schema": "https://dial.epam.com/application_type_schemas/schema#",
 	"$id": "https://test-schema.example",
 	"dial:applicationTypeEditorUrl": "https://test.com/billings",
 	"dial:applicationTypeViewerUrl": "https://test.com/claims",

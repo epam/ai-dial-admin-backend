@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
@@ -117,6 +118,12 @@ public class FunctionalTestHelper {
         return createAddonWithRoleLimitsDto(suffix);
     }
 
+    public static KeyDto createDto(String suffix, List<String> roles) {
+        KeyDto keyDto = createKeyDto(suffix);
+        keyDto.setRoles(roles);
+        return keyDto;
+    }
+
     public static KeyDto createKeyDto(String suffix) {
         KeyDto keyDto = new KeyDto();
         keyDto.setName("key" + suffix);
@@ -201,5 +208,18 @@ public class FunctionalTestHelper {
         features.setAssistantAttachmentsInRequestSupported(false);
 
         return features;
+    }
+
+    public static ValidityStateDto validState() {
+        ValidityStateDto validityStateDto = new ValidityStateDto();
+        validityStateDto.setValid(true);
+        return validityStateDto;
+    }
+
+    public static ValidityStateDto invalidState(String message) {
+        ValidityStateDto validityStateDto = new ValidityStateDto();
+        validityStateDto.setMessage(message);
+        validityStateDto.setValid(false);
+        return validityStateDto;
     }
 }

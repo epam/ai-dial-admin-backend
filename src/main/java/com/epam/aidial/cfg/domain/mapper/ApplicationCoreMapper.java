@@ -28,6 +28,7 @@ public abstract class ApplicationCoreMapper {
     @Mapping(target = "deployment", source = "coreApplication", qualifiedByName = "toDeployment")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "validityState", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public abstract Application mapApplication(CoreApplication coreApplication,
                                                @Context List<RoleLimit> roleLimits,

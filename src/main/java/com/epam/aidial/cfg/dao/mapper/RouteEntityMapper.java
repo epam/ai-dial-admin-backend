@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
-import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -21,10 +20,10 @@ public abstract class RouteEntityMapper {
 
     public abstract Route toDomain(RouteEntity entity);
 
-    public RouteEntity toEntity(Route domain, RouteEntity entity) {
-        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
-        List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-
+    public RouteEntity toEntity(Route domain,
+                                RouteEntity entity,
+                                List<RoleLimit> roleLimits,
+                                List<RoleEntity> rolesForLimits) {
         RouteEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
@@ -36,5 +35,5 @@ public abstract class RouteEntityMapper {
     @Mapping(target = "deploymentName", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    public abstract RouteEntity update(Route domain, @MappingTarget RouteEntity entity);
+    abstract RouteEntity update(Route domain, @MappingTarget RouteEntity entity);
 }

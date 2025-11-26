@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ConfigRevision;
 import com.epam.aidial.cfg.domain.model.page.PageRequestModel;
 import com.epam.aidial.cfg.domain.service.HistoryService;
+import com.epam.aidial.cfg.domain.service.RollbackService;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.page.PageRequestDto;
 import com.epam.aidial.cfg.web.facade.mapper.ConfigRevisionDtoMapper;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 @LogExecution
 public class HistoryFacade {
     private final HistoryService historyService;
+    private final RollbackService rollbackService;
     private final ConfigRevisionDtoMapper configRevisionDtoMapper;
     private final PageDtoMapper pageDtoMapper;
 
@@ -31,7 +33,7 @@ public class HistoryFacade {
     }
 
     public void rollbackToRevision(Number revision) {
-        historyService.rollbackToRevision(revision);
+        rollbackService.rollbackToRevision(revision);
     }
 
     public ConfigRevisionDto getRevisionById(Integer id) {

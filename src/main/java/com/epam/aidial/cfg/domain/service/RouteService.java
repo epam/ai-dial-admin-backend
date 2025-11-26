@@ -3,8 +3,12 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
+import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.RouteEntity;
+import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.RoleBased;
+import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -12,6 +16,7 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,7 +81,7 @@ public class RouteService {
         routeValidator.validateRouteCreation(route);
         deploymentService.assertDeploymentNotExists(route.getDeployment().getName());
         Optional.of(route)
-                .map(domainModel -> mapper.toEntity(domainModel, new RouteEntity()))
+                .map(domainModel -> toEntity(domainModel, new RouteEntity()))
                 .map(this::save)
                 .orElseThrow(() -> new RuntimeException("Unable to create route " + route.getDeployment().getName()));
     }
@@ -101,7 +106,7 @@ public class RouteService {
         RouteEntity routeEntity = routeJpaRepository.findById(routeName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(routeName)));
         assertNotConcurrencyOverwrite(routeEntity, hash);
-        return save(mapper.toEntity(value, routeEntity));
+        return save(toEntity(value, routeEntity));
     }
 
     private RouteEntity save(RouteEntity routeEntity) {
@@ -148,11 +153,31 @@ public class RouteService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Route> getAllAtRevision(Integer revision) {
+    public Collection<Route> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, RouteEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackRoutes(Number revision) {
+        Collection<Route> routes = getAllAtRevision(revision);
+        List<String> ids = routes.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
+        routeJpaRepository.deleteAllExcept(ids);
+
+        for (Route route : routes) {
+            RouteEntity entity = routeJpaRepository.findById(route.getDeployment().getName()).orElseGet(RouteEntity::new);
+            RouteEntity routeEntity = toEntity(route, entity);
+            routeJpaRepository.save(routeEntity);
+        }
+    }
+
+    private RouteEntity toEntity(Route domain, RouteEntity entity) {
+        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
+        List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
+
+        return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
     }
 
 }
