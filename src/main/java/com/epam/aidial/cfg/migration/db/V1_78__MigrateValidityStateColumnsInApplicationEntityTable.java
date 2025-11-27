@@ -46,7 +46,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
 
     private static final String SELECT_APPLICATIONS_WITH_SCHEMA = """
             select app.deployment_name, app.application_properties,
-            app_schema.schema_id, app_schema.schema, app_schema.defs, app_schema.properties, app_schema.required
+            app_schema.schema_id, app_schema.defs, app_schema.properties, app_schema.required
             from application_entity app
             join application_type_schema_entity app_schema on app_schema.schema_id = app.application_type_schema_id""";
 
@@ -128,7 +128,6 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
     private ApplicationTypeSchema readAppTypeSchema(ObjectMapper objectMapper, ResultSet result) throws SQLException, JsonProcessingException {
         return new ApplicationTypeSchema(
                 result.getString("schema_id"),
-                result.getString("schema"),
                 map(objectMapper, result.getString("defs")),
                 map(objectMapper, result.getString("properties")),
                 readArray(result, "required")
@@ -170,8 +169,6 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
 
     private record ApplicationTypeSchema(@JsonProperty("$id")
                                          String schemaId,
-                                         @JsonProperty("$schema")
-                                         String schema,
                                          @JsonSerialize(using = JsonMapSerializer.class)
                                          Map<String, String> defs,
                                          @JsonSerialize(using = JsonMapSerializer.class)
