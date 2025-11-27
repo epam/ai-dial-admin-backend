@@ -25,6 +25,7 @@ services:
       METRICS_STORAGE_HOST: "http://influxdb:8086"
       METRICS_STORAGE_TOKEN: "myadmintoken"
       CORE_CLIENT_URL: "http://core:8080"
+      CORE_CONFIG_VERSION: "latest"
       DISABLE_SWAGGER_AUTHORIZATION: true
       H2_FILE: ./data/testdb
       H2_DATASOURCE_MASTER_KEY: t8+npcgNMiipR+kHMb8zXAjgA3IedCXC
