@@ -179,7 +179,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
                                          Object required) {
     }
 
-    public static class JsonMapSerializer extends JsonSerializer<Map<String, String>> {
+    private static class JsonMapSerializer extends JsonSerializer<Map<String, String>> {
 
         @Override
         public void serialize(Map<String, String> map, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
@@ -194,7 +194,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
         }
     }
 
-    public static class DialFileFormat implements Format {
+    private static class DialFileFormat implements Format {
 
         private static final Pattern PATTERN = Pattern.compile("^files/([a-zA-Z0-9]+)/((?:(?:[a-zA-Z0-9_\\-.~]|%[a-zA-Z0-9]{2})+/?)+)$");
 
