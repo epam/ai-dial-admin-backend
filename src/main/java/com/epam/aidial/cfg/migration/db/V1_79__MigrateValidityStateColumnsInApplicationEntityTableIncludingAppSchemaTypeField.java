@@ -88,8 +88,8 @@ public class V1_79__MigrateValidityStateColumnsInApplicationEntityTableIncluding
         ObjectMapper objectMapper = new ObjectMapper();
 
         try (Statement selectStatement = connection.createStatement();
-             ResultSet result = selectStatement.executeQuery(SELECT_APPLICATIONS_WITH_SCHEMA);
-             PreparedStatement updateStatement = connection.prepareStatement(UPDATE_APPLICATION_VALIDITY_STATE)) {
+                ResultSet result = selectStatement.executeQuery(SELECT_APPLICATIONS_WITH_SCHEMA);
+                PreparedStatement updateStatement = connection.prepareStatement(UPDATE_APPLICATION_VALIDITY_STATE)) {
 
             while (result.next()) {
                 Application application = readApp(objectMapper, result);
