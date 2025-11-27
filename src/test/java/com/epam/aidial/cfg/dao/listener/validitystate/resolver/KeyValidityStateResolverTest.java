@@ -19,12 +19,13 @@ class KeyValidityStateResolverTest {
     }
 
     @Test
-    void resolveValidityState_shouldReturnValidStateWhenKeyHasRoles() {
+    void resolveValidityState_shouldReturnValidStateWhenKeyHasRolesAndKeyValue() {
         // given
         RoleEntity roleEntity = new RoleEntity();
 
         KeyEntity keyEntity = new KeyEntity();
         keyEntity.setRoles(List.of(roleEntity));
+        keyEntity.setKey("key");
 
         ValidityStateEntity expected = new ValidityStateEntity();
         expected.setValid(true);
@@ -40,9 +41,45 @@ class KeyValidityStateResolverTest {
     void resolveValidityState_shouldReturnInvalidStateWhenKeyDoesNotHaveRoles() {
         // given
         KeyEntity keyEntity = new KeyEntity();
+        keyEntity.setKey("key");
 
         ValidityStateEntity expected = new ValidityStateEntity();
         expected.setMessage("No roles assigned");
+        expected.setValid(false);
+
+        // when
+        ValidityStateEntity actual = keyValidityStateResolver.resolveValidityState(keyEntity);
+
+        // then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void resolveValidityState_shouldReturnInvalidStateWhenKeyDoesNotHaveKeyValue() {
+        // given
+        RoleEntity roleEntity = new RoleEntity();
+
+        KeyEntity keyEntity = new KeyEntity();
+        keyEntity.setRoles(List.of(roleEntity));
+
+        ValidityStateEntity expected = new ValidityStateEntity();
+        expected.setMessage("Key value is missing");
+        expected.setValid(false);
+
+        // when
+        ValidityStateEntity actual = keyValidityStateResolver.resolveValidityState(keyEntity);
+
+        // then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void resolveValidityState_shouldReturnInvalidStateWhenKeyDoesNotHaveRolesAndKeyValue() {
+        // given
+        KeyEntity keyEntity = new KeyEntity();
+
+        ValidityStateEntity expected = new ValidityStateEntity();
+        expected.setMessage("No roles assigned, Key value is missing");
         expected.setValid(false);
 
         // when
