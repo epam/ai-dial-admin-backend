@@ -48,6 +48,7 @@ import com.epam.aidial.cfg.web.facade.mapper.ShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.UpstreamDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ValidityStateDtoMapperImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +86,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
         InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class, AttachmentPathDtoMapperImpl.class,
         ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class, ResourceAuthSettingsDtoMapperImpl.class, CostLimitDtoMapperImpl.class,
-        ToolSetSourceDtoMapperImpl.class
+        ToolSetSourceDtoMapperImpl.class, ValidityStateDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 
