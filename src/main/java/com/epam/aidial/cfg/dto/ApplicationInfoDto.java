@@ -28,4 +28,6 @@ public class ApplicationInfoDto {
     private String viewerUrl;
     private String editorUrl;
 
+    private ValidityStateDto validityState;
+
 }

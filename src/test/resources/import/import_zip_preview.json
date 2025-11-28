@@ -188,7 +188,10 @@
         "secured": true,
         "roles": [
           "testRole1"
-        ]
+        ],
+        "validityState": {
+          "valid": true
+        }
       }
     },
     {
@@ -201,7 +204,10 @@
         "secured": true,
         "roles": [
           "testRole1"
-        ]
+        ],
+        "validityState": {
+          "valid": true
+        }
       }
     }
   ],
@@ -635,7 +641,10 @@
         "applicationTypeSchemaId": "https://test-schema-id.example",
         "author": "test-author",
         "dependencies": ["dep1", "dep2"],
-        "routes": []
+        "routes": [],
+        "validityState": {
+          "valid": true
+        }
       }
     },
     {
@@ -737,7 +746,10 @@
               ]
             }
           }
-        ]
+        ],
+        "validityState": {
+          "valid": true
+        }
       }
     }
   ],

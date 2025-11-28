@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import org.apache.commons.collections4.ListUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -21,10 +20,10 @@ public abstract class AddonEntityMapper {
 
     public abstract Addon toDomain(AddonEntity entity);
 
-    public AddonEntity toEntity(Addon domain, AddonEntity entity) {
-        List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
-        List<RoleEntity> rolesForLimits = deploymentEntityMapper.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
-
+    public AddonEntity toEntity(Addon domain,
+                                AddonEntity entity,
+                                List<RoleLimit> roleLimits,
+                                List<RoleEntity> rolesForLimits) {
         AddonEntity updatedEntity = update(domain, entity);
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);

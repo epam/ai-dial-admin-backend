@@ -2,20 +2,6 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.audit.jpa.ConfigRevisionJpaRepository;
 import com.epam.aidial.cfg.dao.audit.model.ConfigRevisionEntity;
-import com.epam.aidial.cfg.dao.audit.repository.AdapterHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.AddonHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.ApplicationHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.ApplicationTypeSchemaHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.AssistantHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.AssistantPropertiesHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.GlobalSettingsHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.InterceptorHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.InterceptorRunnerHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.KeyHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.ModelHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.RoleHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.RouteHistoryRepository;
-import com.epam.aidial.cfg.dao.audit.repository.ToolSetHistoryRepository;
 import com.epam.aidial.cfg.dao.mapper.ConfigRevisionEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.PageEntityMapper;
 import com.epam.aidial.cfg.domain.model.ConfigRevision;
@@ -48,22 +34,8 @@ public class HistoryService {
     @PersistenceContext
     private final EntityManager entityManager;
     private final ConfigRevisionJpaRepository configRevisionJpaRepository;
-    private final RoleHistoryRepository roleHistoryRepository;
-    private final ModelHistoryRepository modelHistoryRepository;
-    private final AddonHistoryRepository addonHistoryRepository;
-    private final ApplicationHistoryRepository applicationHistoryRepository;
-    private final ApplicationTypeSchemaHistoryRepository applicationTypeSchemaHistoryRepository;
-    private final AssistantHistoryRepository assistantHistoryRepository;
-    private final AssistantPropertiesHistoryRepository assistantPropertiesHistoryRepository;
-    private final RouteHistoryRepository routeHistoryRepository;
-    private final InterceptorHistoryRepository interceptorHistoryRepository;
-    private final InterceptorRunnerHistoryRepository interceptorRunnerHistoryRepository;
-    private final KeyHistoryRepository keyHistoryRepository;
-    private final AdapterHistoryRepository adapterHistoryRepository;
     private final ConfigRevisionEntityMapper configRevisionEntityMapper;
     private final PageEntityMapper pageEntityMapper;
-    private final ToolSetHistoryRepository toolSetHistoryRepository;
-    private final GlobalSettingsHistoryRepository globalInterceptorHistoryRepository;
 
     @Transactional(readOnly = true)
     public List<ConfigRevision> getRevisionsList(PageRequestModel pageRequestModel) {
@@ -75,26 +47,6 @@ public class HistoryService {
                 .stream()
                 .map(configRevisionEntityMapper::map)
                 .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void rollbackToRevision(Number revision) {
-        AuditReader auditReader = AuditReaderFactory.get(entityManager);
-        roleHistoryRepository.rollbackRoles(revision, auditReader);
-        keyHistoryRepository.rollbackKeys(revision, auditReader);
-        adapterHistoryRepository.rollbackAdapters(revision, auditReader);
-        modelHistoryRepository.rollbackModels(revision, auditReader);
-        addonHistoryRepository.rollbackAddons(revision, auditReader);
-        toolSetHistoryRepository.rollbackToolSets(revision, auditReader);
-        applicationTypeSchemaHistoryRepository.rollbackApplicationTypeSchemas(revision, auditReader);
-        applicationHistoryRepository.rollbackApplications(revision, auditReader);
-        assistantHistoryRepository.rollbackAssistants(revision, auditReader);
-        assistantPropertiesHistoryRepository.rollbackAssistantsProperties(revision, auditReader);
-        routeHistoryRepository.rollbackRoutes(revision, auditReader);
-        interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
-        globalInterceptorHistoryRepository.rollbackGlobalSettings(revision, auditReader);
-        interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
-
     }
 
     @Transactional(readOnly = true)

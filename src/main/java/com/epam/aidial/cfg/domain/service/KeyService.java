@@ -2,8 +2,10 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.KeyJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.KeyEntityMapper;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
+import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
@@ -12,15 +14,20 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -35,6 +42,7 @@ public class KeyService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Key with name %s does not exist";
 
     private final KeyJpaRepository keyJpaRepository;
+    private final RoleJpaRepository roleJpaRepository;
     private final KeyEntityMapper mapper;
     private final KeyValidator keyValidator;
     private final KeyGeneratedAtResolver keyGeneratedAtResolver;
@@ -44,6 +52,13 @@ public class KeyService {
     @Transactional(readOnly = true)
     public Collection<Key> getAllKeys() {
         return StreamSupport.stream(keyJpaRepository.findAll().spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<Key> getAllValidKeys() {
+        return keyJpaRepository.findAllByValidityStateIsValidTrue().stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -88,7 +103,7 @@ public class KeyService {
         long keyGeneratedAt = keyGeneratedAtResolver.resolveKeyGeneratedAtValueDuringCreation();
 
         Optional.of(key)
-                .map(domainModel -> mapper.toEntity(domainModel, keyGeneratedAt, new KeyEntity()))
+                .map(domainModel -> toEntity(domainModel, keyGeneratedAt, new KeyEntity()))
                 .ifPresent(keyJpaRepository::save);
     }
 
@@ -116,7 +131,7 @@ public class KeyService {
 
         long keyGeneratedAt = keyGeneratedAtResolver.resolveKeyGeneratedAtValueDuringUpdate(domain, keyEntity);
 
-        return keyJpaRepository.save(mapper.toEntity(domain, keyGeneratedAt, keyEntity));
+        return keyJpaRepository.save(toEntity(domain, keyGeneratedAt, keyEntity));
     }
 
     private void assertNotConcurrencyOverwrite(KeyEntity entity, String expectedHash) {
@@ -150,11 +165,23 @@ public class KeyService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Key> getAllAtRevision(Integer revision) {
+    public Collection<Key> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, KeyEntity.class)
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rollbackKeys(Number revision) {
+        Collection<Key> keys = getAllAtRevision(revision);
+        keyJpaRepository.deleteAllExcept(keys.stream().map(Key::getName).collect(Collectors.toList()));
+
+        for (Key key : keys) {
+            KeyEntity entity = keyJpaRepository.findById(key.getName()).orElseGet(KeyEntity::new);
+            KeyEntity keyEntity = toEntity(key, key.getKeyGeneratedAt(), entity);
+            keyJpaRepository.save(keyEntity);
+        }
     }
 
     private void assertExists(String keyName) {
@@ -180,5 +207,26 @@ public class KeyService {
         if (keyValue != null && keyJpaRepository.existsByKey(keyValue)) {
             throw new EntityAlreadyExistsException("Key with value " + keyValue + " already exists");
         }
+    }
+
+    private KeyEntity toEntity(Key domain, long keyGeneratedAt, KeyEntity entity) {
+        List<RoleEntity> roles = findRolesByNames(domain.getRoles());
+        return mapper.toEntity(domain, keyGeneratedAt, entity, roles);
+    }
+
+    private List<RoleEntity> findRolesByNames(List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return List.of();
+        }
+
+        List<RoleEntity> existingRoles = Lists.newArrayList(roleJpaRepository.findAllById(names));
+        Set<String> existingRoleNames = existingRoles.stream().map(RoleEntity::getName).collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingRoleNames);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("unable to find roles: " + namesDiff);
+        }
+
+        return existingRoles;
     }
 }

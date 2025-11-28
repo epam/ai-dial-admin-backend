@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
-        LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class, FeaturesDtoMapper.class, RouteDtoMapper.class
+        LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class, FeaturesDtoMapper.class, RouteDtoMapper.class, ValidityStateDtoMapper.class
 })
 public interface ApplicationDtoMapper {
 

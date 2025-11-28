@@ -22,4 +22,6 @@ public interface KeyJpaRepository extends CrudRepository<KeyEntity, String> {
 
     @Query("SELECT k.name FROM KeyEntity k")
     Set<String> findAllKeys();
+
+    List<KeyEntity> findAllByValidityStateIsValidTrue();
 }

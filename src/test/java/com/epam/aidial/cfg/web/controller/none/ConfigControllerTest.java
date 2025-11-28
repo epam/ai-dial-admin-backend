@@ -7,12 +7,13 @@ import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
-import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
+import com.epam.aidial.cfg.dto.ExportConfigComponentTypeDto;
+import com.epam.aidial.cfg.dto.ExportFormatDto;
 import com.epam.aidial.cfg.dto.FullExportRequestDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.ConfigSyncErrorHandler;
@@ -47,6 +48,7 @@ import com.epam.aidial.cfg.web.facade.mapper.ShareResourceLimitDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.UpstreamDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ValidityStateDtoMapperImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +86,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
         InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class, AttachmentPathDtoMapperImpl.class,
         ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class, ResourceAuthSettingsDtoMapperImpl.class, CostLimitDtoMapperImpl.class,
-        ToolSetSourceDtoMapperImpl.class
+        ToolSetSourceDtoMapperImpl.class, ValidityStateDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 
@@ -239,8 +241,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     void testExport_CoreFormat() throws Exception {
         // given
         FullExportRequestDto request = new FullExportRequestDto();
-        request.setExportFormat(ExportFormat.CORE);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.KEY));
+        request.setExportFormat(ExportFormatDto.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentTypeDto.KEY));
         request.setAddSecrets(true);
         var data = "exportConfig";
         StreamingResponseBody streamingResponse = outputStream -> outputStream.write(data.getBytes());
@@ -262,8 +264,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         // given
         FullExportRequestDto request = new FullExportRequestDto();
         request.setAddSecrets(false);
-        request.setExportFormat(ExportFormat.ADMIN);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.KEY));
+        request.setExportFormat(ExportFormatDto.ADMIN);
+        request.setComponentTypes(Set.of(ExportConfigComponentTypeDto.KEY));
         var data = "exportConfig";
         StreamingResponseBody streamingResponse = outputStream -> outputStream.write(data.getBytes());
         when(configTransfer.exportConfig(any())).thenReturn(streamingResponse);
@@ -283,8 +285,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     void testExportPreview_Key_CoreFormat() throws Exception {
         // given
         FullExportRequestDto request = new FullExportRequestDto();
-        request.setExportFormat(ExportFormat.CORE);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.KEY));
+        request.setExportFormat(ExportFormatDto.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentTypeDto.KEY));
         ExportKeyInfo componentInfo = ExportKeyInfo.builder()
                 .type(ExportConfigComponentType.KEY)
                 .name("keyName")
@@ -311,8 +313,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     void testExportPreview_ApplicationTypeSchema_CoreFormat() throws Exception {
         // given
         FullExportRequestDto request = new FullExportRequestDto();
-        request.setExportFormat(ExportFormat.CORE);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA));
+        request.setExportFormat(ExportFormatDto.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentTypeDto.APPLICATION_TYPE_SCHEMA));
         ExportApplicationTypeSchemaInfo componentInfo = ExportApplicationTypeSchemaInfo.builder()
                 .type(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
                 .id("id")
@@ -339,8 +341,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
     void testExportPreview_ToolSets_CoreFormat() throws Exception {
         // given
         FullExportRequestDto request = new FullExportRequestDto();
-        request.setExportFormat(ExportFormat.CORE);
-        request.setComponentTypes(Set.of(ExportConfigComponentType.TOOL_SET));
+        request.setExportFormat(ExportFormatDto.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentTypeDto.TOOL_SET));
 
         ExportComponentInfo componentInfo = ExportComponentInfo.builder()
                 .type(ExportConfigComponentType.TOOL_SET)

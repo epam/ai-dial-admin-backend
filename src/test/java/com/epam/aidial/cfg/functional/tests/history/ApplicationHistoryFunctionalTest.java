@@ -6,14 +6,12 @@ import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
-import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +25,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAp
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
 
 public abstract class ApplicationHistoryFunctionalTest {
 
@@ -73,6 +72,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         expected.setEndpoint("endpoint2");
         expected.setRoutes(List.of());
         expected.setMaxRetryAttempts(1);
+        expected.setValidityState(validState());
         assertApplication(actual, expected);
 
         // 3 add roles to application1
@@ -84,6 +84,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         updatedApplication.setRoutes(List.of());
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
         actual = applicationFacade.getApplication(applicationDto.getName());
+        updatedApplication.setValidityState(validState());
         assertApplication(actual, updatedApplication);
 
         // 4 update application1 role limits
@@ -95,6 +96,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
         var actualAtOldRevision = applicationFacade.getAllApplications();
         actual = applicationFacade.getApplication(applicationDto.getName());
+        updatedApplication.setValidityState(validState());
         assertApplication(actual, updatedApplication);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();

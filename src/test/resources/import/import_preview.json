@@ -317,7 +317,10 @@
         "secured": true,
         "roles": [
           "testRole1"
-        ]
+        ],
+        "validityState": {
+          "valid": true
+        }
       }
     },
     {
@@ -330,7 +333,10 @@
         "secured": true,
         "roles": [
           "testRole1"
-        ]
+        ],
+        "validityState": {
+          "valid": true
+        }
       }
     }
   ],
@@ -830,7 +836,10 @@
         "dependencies": [
           "dep1",
           "dep2"
-        ]
+        ],
+        "validityState": {
+          "valid": true
+        }
       }
     },
     {
@@ -918,7 +927,10 @@
           "parallelToolCallsSupported": true
         },
         "applicationProperties": {},
-        "routes": []
+        "routes": [],
+        "validityState": {
+          "valid": true
+        }
       }
     }
   ],
