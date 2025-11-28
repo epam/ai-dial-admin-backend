@@ -64,7 +64,7 @@ public class ZipApplicationEximService {
                 zos.write(jsonMapper.writeValueAsString(applicationsExim).getBytes());
                 zos.closeEntry();
             } catch (Exception e) {
-                log.error("An error occurred while exporting applications", e);
+                log.warn("An error occurred while exporting applications", e);
                 throw e;
             }
         };
@@ -92,7 +92,7 @@ public class ZipApplicationEximService {
                 if (zipEntryName.startsWith(APPLICATIONS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
                     applicationsEximDtos.put(zipEntryName, jsonMapper.readValue(zipInputStream, ApplicationsEximDto.class));
                 } else {
-                    log.info("Ignoring file {} in zip archive during import. Application import context {}",
+                    log.warn("Ignoring file {} in zip archive during import. Application import context {}",
                             zipEntryName, importApplications);
                 }
             }
@@ -100,7 +100,7 @@ public class ZipApplicationEximService {
             var compacted = compactApplicationsEximDtos(applicationsEximDtos);
             return applicationEximService.importApplications(importApplications, compacted);
         } catch (Exception ex) {
-            log.debug("Application file {} import failed", rootPath, ex);
+            log.warn("Application file {} import failed", rootPath, ex);
             return ImportResourcesFileResult.builder()
                     .importResults(List.of())
                     .error(ex.getMessage())
@@ -140,7 +140,7 @@ public class ZipApplicationEximService {
                     .resourcePreviews(previews)
                     .build();
         } catch (Exception ex) {
-            log.debug("Application file {} import preview failed", zipFile.getOriginalFilename(), ex);
+            log.warn("Application file {} import preview failed", zipFile.getOriginalFilename(), ex);
             throw new IllegalArgumentException(ex);
         }
     }

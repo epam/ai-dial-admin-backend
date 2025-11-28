@@ -60,7 +60,7 @@ public class ApplicationEximService {
             var applicationResource = applicationResourceService.getApplicationResource(path);
             return applicationClientMapper.toApplicationExim(applicationResource);
         } catch (Exception e) {
-            log.error("Cannot load application from path {}", path, e);
+            log.warn("Cannot load application from path {}", path, e);
             throw new RuntimeException(e);
         }
     }
@@ -115,7 +115,7 @@ public class ApplicationEximService {
                     .importResults(results)
                     .build();
         } catch (Exception ex) {
-            log.debug("Application file {} import failed", importApplications.getPath(), ex);
+            log.warn("Application file {} import failed", importApplications.getPath(), ex);
             return ImportResourcesFileResult.builder()
                     .importResults(List.of())
                     .error(ex.getMessage())
@@ -143,6 +143,7 @@ public class ApplicationEximService {
             return createApplicationWithCircuitBreaker(createApplicationResource, sourcePath, targetPath,
                     importApplications.getConflictResolutionStrategy(), circuitBreaker);
         } catch (Exception ex) {
+            log.warn("Application file {} import failed", importApplications.getPath(), ex);
             return ImportResourcesResult.createFailure(sourcePath, targetPath, ex.getMessage());
         }
     }
