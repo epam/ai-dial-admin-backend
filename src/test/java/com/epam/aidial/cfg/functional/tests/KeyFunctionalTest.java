@@ -160,7 +160,7 @@ public abstract class KeyFunctionalTest {
         Collection<KeyDto> expectedDtos = List.of(keyDto, keyDto2);
         expectedDtos.forEach(dto -> {
             dto.setRoles(List.of());
-            dto.setValidityState(invalidState("No roles assigned"));
+            dto.setValidityState(invalidState("No roles assigned, Key value is missing"));
         });
         assertKeys(actualKeys, expectedDtos, true);
     }

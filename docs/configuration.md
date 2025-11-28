@@ -181,6 +181,61 @@ Applied when: config.export.keyvault.type=vault
 | otel.metrics.exporter               | OTEL_METRICS_EXPORTER       | otlp               | No       | -         | Exporter for application metrics                  |
 | otel.resource.attributes            | OTEL_RESOURCE_ATTRIBUTES    |                    | No       | -         | Key-value pairs to be used as resource attributes |
 
+### Distributed Tracing
+
+The application uses OpenTelemetry for distributed tracing and automatically includes trace IDs in HTTP response headers and error responses. This enables request correlation across services and makes debugging easier using tools like Kibana or browser developer tools.
+
+#### Response Headers
+
+All HTTP responses include the following header (when OpenTelemetry trace context is available):
+
+- **`traceparent`**: W3C Trace Context standard header for interoperability. Format: `00-{trace-id}-{span-id}-{trace-flags}` (e.g., `00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`)
+
+#### Response Body Structure
+
+**Success Responses:**
+
+Success responses are returned as-is without wrapping. Trace IDs are available in `traceparent` response headers only.
+
+**Error Responses:**
+
+Error responses include trace information directly in the error object:
+
+```json
+{
+  "path": "/api/v1/applications",
+  "method": "GET",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Application not found",
+  "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+}
+```
+
+#### Client Integration - Passing Trace Context
+
+To maintain OpenTelemetry trace context when making requests to this service, clients should:
+
+**Use `traceparent` header**: Send the W3C Trace Context header to propagate trace context:
+```
+traceparent: 00-{trace-id}-{span-id}-{trace-flags}
+```
+Example: `traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`
+
+The service will automatically extract and propagate the trace context. If no trace context is provided, the service will generate a new trace.
+
+**Frontend/Client Examples:**
+
+- **JavaScript/TypeScript**: Use OpenTelemetry JavaScript SDK to automatically inject `traceparent` header
+- **Manual**: Extract trace ID from previous response headers and include in subsequent requests
+- **Browser Developer Tools**: Inspect Network tab to see trace IDs in response headers
+
+#### Trace ID Generation
+
+- Trace IDs are extracted exclusively from OpenTelemetry span context
+- If OpenTelemetry is disabled (`otel.sdk.disabled=true`) or trace context is unavailable, headers may not be set
+- The service relies solely on OpenTelemetry for trace ID generation - no custom correlation ID logic
+
 ## Actuator Configuration
 
 | Setting | Environment Variable | Default | Required | Applied when | Description                  |

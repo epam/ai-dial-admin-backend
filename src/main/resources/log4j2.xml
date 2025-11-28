@@ -8,7 +8,7 @@
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="%style{%d{ISO8601}}{green} %X{_correlation_id} %highlight{%-5level} trace_id: %X{trace_id} span_id=%X{span_id} [%style{%t}{bright,blue}] %style{%c{1.}}{bright,yellow}: %msg%n%throwable"/>
+                    pattern="%style{%d{ISO8601}}{green} %highlight{%-5level} trace_id: %X{trace_id} span_id=%X{span_id} [%style{%t}{bright,blue}] %style{%c{1.}}{bright,yellow}: %msg%n%throwable"/>
         </Console>
         <OpenTelemetry name="OpenTelemetryAppender"/>
     </Appenders>
