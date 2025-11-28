@@ -18,6 +18,7 @@ public class DatasourceVendorValidator implements ApplicationListener<Applicatio
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         Environment environment = event.getEnvironment();
         String vendor = environment.getProperty(DATASOURCE_VENDOR_PROPERTY);
+        
         log.info("Validating datasource.vendor property. Value: {}", vendor);
 
         if (StringUtils.isBlank(vendor)) {

@@ -56,13 +56,16 @@ class DatasourceVendorValidatorTest {
 
     private ApplicationEnvironmentPreparedEvent createEventWithVendor(String vendor) {
         ConfigurableEnvironment environment = new StandardEnvironment();
+        
         Map<String, Object> properties = new HashMap<>();
         if (vendor != null) {
             properties.put("datasource.vendor", vendor);
         }
+        
         environment.getPropertySources().addFirst(new MapPropertySource("test", properties));
         ApplicationEnvironmentPreparedEvent event = mock(ApplicationEnvironmentPreparedEvent.class);
         when(event.getEnvironment()).thenReturn(environment);
+        
         return event;
     }
 }

@@ -33,7 +33,6 @@ public class ErrorView {
         this.status = status.value();
         this.error = status.getReasonPhrase();
         this.message = errorMessage;
-
         // Populate trace information from OpenTelemetry context
         this.traceparent = TraceContextUtils.formatTraceParent();
     }
