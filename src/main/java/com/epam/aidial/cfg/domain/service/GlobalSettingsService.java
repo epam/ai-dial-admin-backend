@@ -43,23 +43,6 @@ public class GlobalSettingsService {
         return globalSettingsMapper.toDomain(entity);
     }
 
-//    @Transactional
-//    public void rollbackGlobalSettings(Number revision) {
-//
-//        Iterable<InterceptorEntity> interceptors = interceptorJpaRepository.findAll();
-//        interceptors.forEach(entity -> entity.setInterceptorRunner(null));
-//        interceptorJpaRepository.saveAllAndFlush(interceptors);
-//
-//        Collection<InterceptorRunner> interceptorRunners = getAllAtRevision(revision);
-//        interceptorRunnerJpaRepository.deleteAllExcept(interceptorRunners.stream().map(InterceptorRunner::getName).toList());
-//
-//        for (InterceptorRunner interceptorRunner : interceptorRunners) {
-//            InterceptorRunnerEntity entity = interceptorRunnerJpaRepository.findById(interceptorRunner.getName()).orElseGet(InterceptorRunnerEntity::new);
-//            InterceptorRunnerEntity interceptorRunnerEntity = toEntity(interceptorRunner, entity);
-//            interceptorRunnerJpaRepository.save(interceptorRunnerEntity);
-//        }
-//    }
-
     @Transactional(readOnly = true)
     public List<GlobalSettings> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, GlobalSettingsEntity.class)
