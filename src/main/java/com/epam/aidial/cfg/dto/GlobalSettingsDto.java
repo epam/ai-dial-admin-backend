@@ -6,7 +6,8 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class GlobalInterceptorsDto {
+public class GlobalSettingsDto {
+
     @NotNull
-    private List<String> globalInterceptorIds;
+    private List<String> globalInterceptors;
 }

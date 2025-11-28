@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.mapper.RouteCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ToolSetCoreMapper;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.GlobalSettings;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
@@ -43,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -84,7 +84,8 @@ public class CoreConfigAggregatorService {
         config.setInterceptors(getInterceptors());
         config.setApplicationTypeSchemas(getApplicationTypeSchemas());
         config.setToolsets(getToolSets());
-        config.setGlobalInterceptors(getGlobalInterceptors());
+        var globalSettings = getGlobalSettings();
+        config.setGlobalInterceptors(globalSettings.getGlobalInterceptors());
         return config;
     }
 
@@ -150,8 +151,8 @@ public class CoreConfigAggregatorService {
                 .collect(Collectors.toMap(CoreInterceptor::getName, model -> model));
     }
 
-    private List<String> getGlobalInterceptors() {
-        return globalSettingsService.getAllGlobalInterceptors().stream().toList();
+    private GlobalSettings getGlobalSettings() {
+        return globalSettingsService.getGlobalSettings();
     }
 
     private Map<String, String> getApplicationTypeSchemas() {

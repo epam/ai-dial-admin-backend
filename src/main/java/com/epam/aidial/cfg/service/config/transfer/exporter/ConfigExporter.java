@@ -75,9 +75,10 @@ public class ConfigExporter {
         config.setRoles(roles);
         config.setKeys(keyExporter.getKeys(request));
         config.setInterceptors(interceptorExporter.getInterceptors(request));
-        config.setGlobalInterceptors(globalSettingsExporter.getGlobalInterceptors(request));
         config.setInterceptorRunners(interceptorRunnerExporter.getInterceptorRunners(request));
         config.setApplicationRunners(applicationTypeSchemaExporter.getApplicationTypeSchemas(request));
+        var globalSettings = globalSettingsExporter.getGlobalSettings(request);
+        config.setGlobalInterceptors(globalSettings.getGlobalInterceptors());
         // todo prompts and files
         return config;
     }
@@ -95,10 +96,10 @@ public class ConfigExporter {
         Collection<ExportComponentInfo> roles = roleExporter.preview(request);
         Collection<ExportKeyInfo> keys = keyExporter.preview(request);
         Collection<ExportComponentInfo> interceptors = interceptorExporter.preview(request);
-        Collection<ExportComponentInfo> globalInterceptors = globalSettingsExporter.previewGlobalInterceptors(request);
         Collection<ExportComponentInfo> interceptorRunners = interceptorRunnerExporter.preview(request);
         Collection<ExportApplicationTypeSchemaInfo> applicationRunners = applicationTypeSchemaExporter.preview(request);
-
+        var globalSettings = globalSettingsExporter.previewGlobalSettings(request);
+        Collection<ExportComponentInfo> globalInterceptors = globalSettings.get(ExportConfigComponentType.GLOBAL_INTERCEPTOR);
         // todo prompts and files
         return ExportConfigPreview.builder()
                 .routes(routes)

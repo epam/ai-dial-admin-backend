@@ -34,6 +34,7 @@ public class ConfigImporter {
     private final AssistantImporter assistantImporter;
     private final AdapterImporter adapterImporter;
     private final ToolSetImporter toolSetImporter;
+    private final GlobalSettingsImporter globalSettingsImporter;
 
     private final AdminConfigImportBackwardCompatibilityHandler adminConfigImportBackwardCompatibilityHandler;
 
@@ -47,7 +48,6 @@ public class ConfigImporter {
         var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
 
         var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
-        var globalInterceptors = interceptorImporter.importGlobalInterceptors(config.getGlobalInterceptors(), resolutionPolicy);
         var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
         var adapters = adapterImporter.importAdapters(config.getModels(), importOptions, true);
         var models = modelImporter.importModels(config.getModels(), importOptions);
@@ -58,6 +58,8 @@ public class ConfigImporter {
         var toolSets = toolSetImporter.importToolSets(config.getToolsets(), importOptions);
         var roles = roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
         var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
+        var globalSettings = globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+        var globalInterceptors = globalSettings.get(GlobalSettingsImportType.GLOBAL_INTERCEPTORS);
 
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
         applicationRunners = applicationTypeSchemaImporter.getActualImportedApplicationTypeSchemas(applicationRunners);
@@ -99,7 +101,6 @@ public class ConfigImporter {
 
         var interceptorRunners = interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
         var interceptors = interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
-        var globalInterceptors = interceptorImporter.importGlobalInterceptors(config.getGlobalInterceptors(), resolutionPolicy);
         var applicationRunners = applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
         var routes = routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
         var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
@@ -108,6 +109,8 @@ public class ConfigImporter {
         var toolSets = toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
         var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
         var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
+        var globalSettings = globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+        var globalInterceptors = globalSettings.get(GlobalSettingsImportType.GLOBAL_INTERCEPTORS);
 
         interceptorRunners = interceptorRunnerImporter.getActualImportedInterceptorRunners(interceptorRunners);
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
@@ -146,7 +149,6 @@ public class ConfigImporter {
         var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
 
         interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
-        interceptorImporter.importGlobalInterceptors(config.getGlobalInterceptors(), resolutionPolicy);
         applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
         adapterImporter.importAdapters(config.getModels(), importOptions, false);
         modelImporter.importModels(config.getModels(), importOptions);
@@ -157,6 +159,8 @@ public class ConfigImporter {
         toolSetImporter.importToolSets(config.getToolsets(), importOptions);
         roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
         keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
+        globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+
     }
 
     @Transactional
@@ -167,7 +171,6 @@ public class ConfigImporter {
 
         interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
         interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
-        interceptorImporter.importGlobalInterceptors(config.getGlobalInterceptors(), resolutionPolicy);
         applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
         routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
         adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
@@ -176,5 +179,6 @@ public class ConfigImporter {
         toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
         roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
         keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
+        globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
     }
 }

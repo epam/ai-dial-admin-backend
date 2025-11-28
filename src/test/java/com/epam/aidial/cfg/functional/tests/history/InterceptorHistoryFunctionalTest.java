@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
+import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
@@ -78,8 +79,11 @@ public abstract class InterceptorHistoryFunctionalTest {
         interceptorFacade.createInterceptor(createInterceptorDto("3"));
 
         // create global interceptors
-        globalSettingsFacade.saveGlobalInterceptors(List.of("interceptor3", "interceptor2"));
-        Assertions.assertEquals(List.of("interceptor3", "interceptor2"), globalSettingsFacade.getAllGlobalInterceptors());
+        var globalSettings = new GlobalSettingsDto();
+        globalSettings.setGlobalInterceptors(List.of("interceptor3", "interceptor2"));
+        globalSettingsFacade.saveGlobalSettings(globalSettings);
+        Assertions.assertEquals(List.of("interceptor3", "interceptor2"),
+                globalSettingsFacade.getGlobalSettings().getGlobalInterceptors());
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
         historyFacade.rollbackToRevision(revNumberToRollback);
@@ -89,7 +93,7 @@ public abstract class InterceptorHistoryFunctionalTest {
 
         Collection<InterceptorDto> interceptorsAfterRollbackToRevision = interceptorFacade.getAllInterceptors();
         Assertions.assertEquals(List.of(actualAtRevision), interceptorsAfterRollbackToRevision);
-        Assertions.assertEquals(List.of(), globalSettingsFacade.getAllGlobalInterceptors());
+        Assertions.assertEquals(List.of(), globalSettingsFacade.getGlobalSettings().getGlobalInterceptors());
     }
 
     @Test
