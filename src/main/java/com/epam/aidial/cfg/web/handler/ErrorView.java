@@ -19,7 +19,6 @@ public class ErrorView {
     private Integer status;
     private String error;
     private String message;
-
     /**
      * W3C Trace Context traceparent value.
      * Format: 00-{trace-id}-{span-id}-{trace-flags}

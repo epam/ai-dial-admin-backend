@@ -26,14 +26,11 @@ class CorrelationIdInterceptorTest {
         interceptor = new CorrelationIdInterceptor();
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
-
         // Set up minimal OpenTelemetry SDK for testing
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder().build();
-
         openTelemetrySdk = OpenTelemetrySdk.builder()
                 .setTracerProvider(tracerProvider)
                 .build();
-
         // Set as global instance for the test
         GlobalOpenTelemetry.set(openTelemetrySdk);
     }
@@ -52,7 +49,6 @@ class CorrelationIdInterceptorTest {
         // given - create a span with OpenTelemetry
         Tracer tracer = openTelemetrySdk.getTracer("test");
         Span span = tracer.spanBuilder("test-span").startSpan();
-
         try (Scope ignored = span.makeCurrent()) {
             // when
             boolean result = interceptor.preHandle(request, response, null);
@@ -62,7 +58,6 @@ class CorrelationIdInterceptorTest {
             String traceParent = response.getHeader(CorrelationIdInterceptor.TRACEPARENT_HEADER_NAME);
             assertThat(traceParent).isNotNull();
             assertThat(traceParent).matches("^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$");
-
             // Verify format: 00-{trace-id}-{span-id}-{trace-flags}
             String[] parts = traceParent.split("-");
             assertThat(parts).hasSize(4);
