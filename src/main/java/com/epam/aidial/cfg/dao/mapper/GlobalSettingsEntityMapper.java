@@ -45,7 +45,7 @@ public abstract class GlobalSettingsEntityMapper {
 
         Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptors);
         if (!namesDiff.isEmpty()) {
-            throw new EntityNotFoundException("Global interceptors unable to find in interceptors: " + namesDiff);
+            throw new EntityNotFoundException("One or more global interceptor IDs do not exist as interceptors: " + namesDiff);
         }
     }
 }

@@ -91,8 +91,8 @@ public class HistoryService {
         assistantHistoryRepository.rollbackAssistants(revision, auditReader);
         assistantPropertiesHistoryRepository.rollbackAssistantsProperties(revision, auditReader);
         routeHistoryRepository.rollbackRoutes(revision, auditReader);
-        globalInterceptorHistoryRepository.rollbackGlobalSettings(revision, auditReader);
         interceptorHistoryRepository.rollbackInterceptors(revision, auditReader);
+        globalInterceptorHistoryRepository.rollbackGlobalSettings(revision, auditReader);
         interceptorRunnerHistoryRepository.rollbackInterceptorRunners(revision, auditReader);
 
     }
