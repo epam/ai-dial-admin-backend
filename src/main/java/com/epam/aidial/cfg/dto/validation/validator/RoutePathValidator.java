@@ -15,10 +15,10 @@ import java.util.regex.PatternSyntaxException;
 public class RoutePathValidator implements ConstraintValidator<RoutePath, String> {
 
     private static final int MAX_LENGTH = 4096;
-    
+
     // Pattern for valid plain paths: must start with /, only letters, digits, hyphens, underscores, dots, and slashes
     private static final Pattern PLAIN_PATH_PATTERN = Pattern.compile("^/[a-zA-Z0-9_\\-./]+$");
-    
+
     // Core regex metacharacters: ()[]{}*+?.^$|\
     // Note: - is only special inside character classes [a-z]
     // Characters like &, <, >, =, !, : are NOT regex special characters
@@ -109,22 +109,20 @@ public class RoutePathValidator implements ConstraintValidator<RoutePath, String
 
     private boolean areBracketsBalanced(String pattern) {
         Deque<Character> stack = new ArrayDeque<>();
-        
+
         for (int i = 0; i < pattern.length(); i++) {
             char c = pattern.charAt(i);
-            
+
             // Skip escaped characters
             if (c == '\\' && i + 1 < pattern.length()) {
                 i++; // Skip the next character as it's escaped
                 continue;
             }
-            
+
             // Handle opening brackets
             if (c == '(' || c == '[' || c == '{') {
                 stack.push(c);
-            }
-            // Handle closing brackets
-            else if (c == ')') {
+            } else if (c == ')') { // Handle closing brackets
                 if (stack.isEmpty() || stack.pop() != '(') {
                     return false;
                 }
@@ -138,7 +136,7 @@ public class RoutePathValidator implements ConstraintValidator<RoutePath, String
                 }
             }
         }
-        
+
         return stack.isEmpty();
     }
 }
