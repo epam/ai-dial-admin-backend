@@ -134,7 +134,8 @@ public abstract class ApplicationFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "test")
         );
-        Assertions.assertEquals("Unable to update Application 'application1'. The data may have been modified by another user, or the name/ID may already exist. Please reload the data and try again.",
+        Assertions.assertEquals("Unable to update Application 'application1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
                 exception.getMessage());
     }
 
