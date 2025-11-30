@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -17,7 +16,6 @@ public class InterceptorRunnerDto {
     @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String description;
-    @NotEmpty
     @Endpoint
     private String completionEndpoint;
     @Endpoint

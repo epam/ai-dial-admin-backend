@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.dto;
 import com.epam.aidial.cfg.dto.source.ModelSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +20,6 @@ public class ModelDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
-    @NotEmpty
     @Endpoint
     private String endpoint;
     @NotBlank(message = "DisplayName is required")

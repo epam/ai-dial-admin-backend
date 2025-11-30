@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.dto;
 import com.epam.aidial.cfg.dto.source.InterceptorSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -16,7 +15,6 @@ public class InterceptorDto {
 
     @NotBlank(message = "Name is required")
     private String name;
-    @NotEmpty
     @Endpoint
     private String endpoint;
     private String iconUrl;

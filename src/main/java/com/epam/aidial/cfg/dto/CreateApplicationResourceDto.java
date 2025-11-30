@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -19,7 +18,6 @@ public class CreateApplicationResourceDto {
     private String version;
     @NotNull
     private String folderId;
-    @NotEmpty
     @Endpoint
     private String endpoint;
     private String displayName;
