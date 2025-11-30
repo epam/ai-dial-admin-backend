@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
+import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,6 +24,8 @@ public class ApplicationDto extends RoleBasedDto {
 
     @NotBlank(message = "Name is required")
     private String name;
+    @NotEmpty
+    @Endpoint
     private String endpoint;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
