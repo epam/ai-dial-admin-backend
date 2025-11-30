@@ -63,8 +63,8 @@ public class CoreToolSetService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: toolSetName={}, expectedHash={}, currentHash={}",
                     toolSet.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: toolSetName:'"
-                    + "%s'. Please reload the data.", toolSet.getDeployment().getName()));
+            throw new OptimisticLockConflictException(String.format("Unable to update ToolSet '%s'. The data may have been modified by another user, or the name/ID may already exist. Please reload the data and try again.",
+                    toolSet.getDeployment().getName()));
         }
     }
 
