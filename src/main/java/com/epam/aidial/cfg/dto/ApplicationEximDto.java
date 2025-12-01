@@ -18,6 +18,7 @@ public class ApplicationEximDto {
     private String version;
     private String endpoint;
     private String displayName;
+    private String displayVersion;
     private String iconUrl;
     private String description;
     private String reference;
