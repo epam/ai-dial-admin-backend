@@ -6,6 +6,10 @@ create table global_settings_entity (
   updated_at_ms bigint not null
 );
 
+insert into global_settings_entity  (id, global_interceptors, created_at_ms, updated_at_ms) VALUES (1, '[]', 
+EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000,
+EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000);
+
 -- Create global_settings_entity_aud table
 create table global_settings_entity_aud (
   rev integer not null,

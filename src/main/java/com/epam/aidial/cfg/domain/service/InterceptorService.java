@@ -139,8 +139,8 @@ public class InterceptorService {
         assertExists(interceptorName);
         var globalSettings = globalSettingsService.getGlobalSettings();
         if (globalSettings.getGlobalInterceptors().contains(interceptorName)) {
-            log.error("Failed to delete interceptor:{}}. It is global.'", interceptorName);
-            throw new IllegalStateException(String.format("Failed to delete interceptor:%s. It is global.", interceptorName));
+            log.warn("Failed to delete interceptor:{}. Global Interceptor can not be deleted.'", interceptorName);
+            throw new IllegalStateException(String.format("Failed to delete interceptor:%s. Global Interceptor can not be deleted.", interceptorName));
         }
         interceptorJpaRepository.deleteById(interceptorName);
     }

@@ -6,6 +6,10 @@ create table global_settings_entity (
   updated_at_ms bigint not null
 );
 
+insert into global_settings_entity  (id, global_interceptors, created_at_ms, updated_at_ms) VALUES (1, '[]', 
+CAST(DATEDIFF('MILLISECOND', TIMESTAMP '1970-01-01 00:00:00', CURRENT_TIMESTAMP) AS BIGINT),
+CAST(DATEDIFF('MILLISECOND', TIMESTAMP '1970-01-01 00:00:00', CURRENT_TIMESTAMP) AS BIGINT));
+
 -- Create global_settings_entity_aud table
 create table global_settings_entity_aud (
   rev integer not null,

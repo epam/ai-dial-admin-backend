@@ -2,16 +2,23 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.GlobalSettingsJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.GlobalSettingsEntityMapper;
 import com.epam.aidial.cfg.dao.model.GlobalSettingsEntity;
+import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.domain.model.GlobalSettings;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @LogExecution
@@ -21,19 +28,22 @@ import java.util.stream.Collectors;
 public class GlobalSettingsService {
     private static final Integer GLOBAL_SETTINGS_ID = 1;
     private final GlobalSettingsJpaRepository globalSettingsJpaRepository;
+    private final InterceptorJpaRepository interceptorJpaRepository;
     private final GlobalSettingsEntityMapper globalSettingsMapper;
     private final HistoryService historyService;
 
     @Transactional(readOnly = true)
     public GlobalSettings getGlobalSettings() {
         var entity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID)
-                .orElseGet(() -> globalSettingsJpaRepository.save(new GlobalSettingsEntity()));
+                .orElseThrow(() -> new EntityNotFoundException(("Global settings does not exist")));
         return globalSettingsMapper.toDomain(entity);
     }
 
     @Transactional
     public void saveGlobalSettings(GlobalSettings globalSettings) {
-        var entity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID).orElseGet(GlobalSettingsEntity::new);
+        validateGlobalInterceptorsByNames(globalSettings.getGlobalInterceptors());
+        var entity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID)
+                .orElseThrow(() -> new IllegalStateException("Global settings does not exist"));
         globalSettingsJpaRepository.save(globalSettingsMapper.toGlobalSettingsEntity(globalSettings, entity));
     }
 
@@ -61,8 +71,23 @@ public class GlobalSettingsService {
             entityToSave = globalSettingsMapper.toGlobalSettingsEntity(defaultDomain, currentEntity);
         } else {
             var domain = history.get(0);
+            validateGlobalInterceptorsByNames(domain.getGlobalInterceptors());
             entityToSave = globalSettingsMapper.toGlobalSettingsEntity(domain, currentEntity);
         }
         globalSettingsJpaRepository.save(entityToSave);
+    }
+
+    private void validateGlobalInterceptorsByNames(List<String> names) {
+        if (org.apache.commons.collections4.CollectionUtils.isEmpty(names)) {
+            return;
+        }
+
+        List<InterceptorEntity> interceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
+        Set<String> existingInterceptors = interceptors.stream().map(InterceptorEntity::getName).collect(Collectors.toSet());
+
+        Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptors);
+        if (!namesDiff.isEmpty()) {
+            throw new EntityNotFoundException("One or more global interceptor IDs do not exist as interceptors: " + namesDiff);
+        }
     }
 }

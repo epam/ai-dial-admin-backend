@@ -87,11 +87,7 @@ public enum ExportConfigComponentType {
     GLOBAL_INTERCEPTOR {
         @Override
         public Set<ExportConfigComponentType> getDependencies(ExportFormat exportFormat) {
-            Set<ExportConfigComponentType> result = new HashSet<>(1);
-            if (exportFormat == ExportFormat.ADMIN) {
-                result.add(INTERCEPTOR_RUNNER);
-            }
-            return result;
+            return Set.of();
         }
     };
 
