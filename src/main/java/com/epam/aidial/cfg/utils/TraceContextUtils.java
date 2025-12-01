@@ -23,9 +23,11 @@ public class TraceContextUtils {
         Span currentSpan = Span.current();
         SpanContext spanContext = currentSpan.getSpanContext();
         String traceId = spanContext.getTraceId();
+
         if (!spanContext.isValid() || INVALID_TRACE_ID.equals(traceId)) {
             return null;
         }
+
         return traceId;
     }
 
@@ -38,9 +40,11 @@ public class TraceContextUtils {
         Span currentSpan = Span.current();
         SpanContext spanContext = currentSpan.getSpanContext();
         String spanId = spanContext.getSpanId();
+
         if (!spanContext.isValid() || INVALID_SPAN_ID.equals(spanId)) {
             return null;
         }
+
         return spanId;
     }
 
@@ -53,19 +57,24 @@ public class TraceContextUtils {
     public static String formatTraceParent() {
         Span currentSpan = Span.current();
         SpanContext spanContext = currentSpan.getSpanContext();
+
         if (!spanContext.isValid()) {
             return null;
         }
+
         String traceId = spanContext.getTraceId();
         String spanId = spanContext.getSpanId();
         TraceFlags traceFlags = spanContext.getTraceFlags();
+
         if (INVALID_TRACE_ID.equals(traceId) || INVALID_SPAN_ID.equals(spanId)) {
             return null;
         }
+
         // W3C Trace Context format: version-trace-id-parent-id-trace-flags
         // version is always "00" (current version)
         // trace-flags is 2 hex characters (01 = sampled, 00 = not sampled)
         String flags = String.format("%02x", traceFlags.asByte() & 0xFF);
+
         return String.format("00-%s-%s-%s", traceId, spanId, flags);
     }
 }

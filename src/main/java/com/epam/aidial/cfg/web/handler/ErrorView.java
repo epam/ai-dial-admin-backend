@@ -19,6 +19,7 @@ public class ErrorView {
     private Integer status;
     private String error;
     private String message;
+
     /**
      * W3C Trace Context traceparent value.
      * Format: 00-{trace-id}-{span-id}-{trace-flags}
@@ -33,6 +34,7 @@ public class ErrorView {
         this.status = status.value();
         this.error = status.getReasonPhrase();
         this.message = errorMessage;
+
         // Populate trace information from OpenTelemetry context
         this.traceparent = TraceContextUtils.formatTraceParent();
     }
