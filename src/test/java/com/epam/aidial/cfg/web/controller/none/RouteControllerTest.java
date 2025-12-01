@@ -155,7 +155,7 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testCreateRoute_WithEmptyPathString_Success() throws Exception {
+    void testCreateRoute_WithEmptyPathString_BadRequest() throws Exception {
         // given
         var dtoJson = ResourceUtils.readResource("/route_dto_with_empty_path_string.json");
 
@@ -166,7 +166,8 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 // then
-                .andExpect(status().isNoContent());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Invalid route path")));
     }
 
     @Test
@@ -234,7 +235,7 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testUpdateRoute_WithEmptyPathString_Success() throws Exception {
+    void testUpdateRoute_WithEmptyPathString_BadRequest() throws Exception {
         // given
         var dtoJson = ResourceUtils.readResource("/route_dto_with_empty_path_string.json");
 
@@ -247,8 +248,8 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
                         .header(HEADER_IF_MATCH, "1")
                         .content(dtoJson))
                 // then
-                .andExpect(status().isNoContent())
-                .andExpect(header().exists(HEADER_ETAG));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Invalid route path")));
     }
 
     @Test
