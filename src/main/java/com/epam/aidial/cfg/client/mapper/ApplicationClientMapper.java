@@ -97,6 +97,8 @@ public abstract class ApplicationClientMapper {
 
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    @Mapping(target = "displayVersion", ignore = true)
     @Mapping(target = "routes", source = "dto.routes")
     public abstract CreateApplicationResource toCreateApplicationResource(ApplicationEximDto dto, PathUtils.VersionedPathParts itemParts);
 

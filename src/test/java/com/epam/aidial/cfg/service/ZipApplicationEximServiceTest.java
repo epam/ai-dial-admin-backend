@@ -335,7 +335,7 @@ class ZipApplicationEximServiceTest {
         return ApplicationEximDto.builder()
                 .applicationTypeSchemaId(String.format("https://test%s.epam.com", suffix))
                 .name("application" + suffix)
-                .displayVersion(String.format("0.0.%s", suffix))
+                .version(String.format("0.0.%s", suffix))
                 .displayName("application" + suffix)
                 .folderId(String.format("public/folder%s/", suffix))
                 .description(String.format("application description %s", suffix))

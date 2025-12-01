@@ -3,12 +3,14 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.exception.ImportPreviewException;
 import com.epam.aidial.cfg.model.ImportResourcePreview;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesPreview;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
+import com.epam.aidial.cfg.utils.EximServiceHelper;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -141,7 +143,7 @@ public class ZipApplicationEximService {
                     .build();
         } catch (Exception ex) {
             log.warn("Application file {} import preview failed", zipFile.getOriginalFilename(), ex);
-            throw new IllegalArgumentException(ex);
+            throw new ImportPreviewException(String.format("Application file '%s' import preview failed", zipFile.getOriginalFilename()));
         }
     }
 
@@ -155,16 +157,8 @@ public class ZipApplicationEximService {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
-        var compactedFolders = fileNameToApplicationsEximDtos.values().stream()
-                .map(ApplicationsEximDto::getFolders)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .collect(Collectors.toMap(folderDto -> PathUtils.trimTrailingSlash(folderDto.getId()), Function.identity(), (existing, replacement) -> replacement))
-                .values();
-
         return ApplicationsEximDto.builder()
                 .applications(compactedApplications)
-                .folders(new ArrayList<>(compactedFolders))
                 .build();
     }
 
@@ -286,7 +280,7 @@ public class ZipApplicationEximService {
         var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
 
         var folderPathWithoutPublic = StringUtils.removeStart(application.getFolderId(), PUBLIC_FOLDER);
-        var applicationName = getVersionedName(application);
+        var applicationName = EximServiceHelper.getVersionedName(application);
         var targetPath = rootPathStripped + "/" + folderPathWithoutPublic + applicationName;
 
         return PathUtils.parseVersionedPath(targetPath);
@@ -299,11 +293,5 @@ public class ZipApplicationEximService {
                 .fileName(fileName)
                 .build();
     }
-
-    public String getVersionedName(ApplicationEximDto applicationEximDto) {
-        return applicationEximDto.getDisplayVersion() == null
-                ? applicationEximDto.getName()
-                : applicationEximDto.getName() + "__" + applicationEximDto.getDisplayVersion();
-    }
-
+    
 }

@@ -18,5 +18,4 @@ import java.util.List;
 public class ApplicationsEximDto {
     @NotNull
     private List<@Valid ApplicationEximDto> applications;
-    private List<@Valid FolderApplicationEximDto> folders;
 }

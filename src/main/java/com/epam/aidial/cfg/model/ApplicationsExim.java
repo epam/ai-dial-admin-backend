@@ -13,5 +13,4 @@ import java.util.List;
 @AllArgsConstructor
 public class ApplicationsExim {
     private List<ApplicationExim> applications;
-    private List<FolderApplicationExim> folders;
 }

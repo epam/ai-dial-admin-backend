@@ -74,19 +74,12 @@ class ApplicationEximServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getApplications()).hasSize(1);
-        assertThat(result.getFolders()).hasSize(1);
 
         var applicationExim = result.getApplications().get(0);
         assertThat(applicationExim.getApplicationTypeSchemaId()).isEqualTo("https://test1.epam.com");
         assertThat(applicationExim.getDisplayName()).isEqualTo("application1");
         assertThat(applicationExim.getFolderId()).isEqualTo("public/folder1/");
         assertThat(applicationExim.getDescription()).isEqualTo("application description 1");
-
-        var folderExim = result.getFolders().get(0);
-        assertThat(folderExim.getId()).isEqualTo("applications/public/folder1");
-        assertThat(folderExim.getName()).isEqualTo("folder1");
-        assertThat(folderExim.getFolderId()).isEqualTo("applications/public/");
-        assertThat(folderExim.getType()).isEqualTo("application");
     }
 
     @Test
@@ -108,7 +101,6 @@ class ApplicationEximServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getApplications()).hasSize(2);
-        assertThat(result.getFolders()).hasSize(2);
 
         // Verify first application
         var application1Exim1 = result.getApplications().get(0);
@@ -134,7 +126,6 @@ class ApplicationEximServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getApplications()).isEmpty();
-        assertThat(result.getFolders()).isEmpty();
 
         verifyNoInteractions(applicationService);
     }
@@ -159,7 +150,7 @@ class ApplicationEximServiceTest {
 
     @Test
     @SneakyThrows
-    void importApplications() {
+    void importApplications_NotFlatImport() {
         // given
         var path = "public/to/";
         var rule = Rule.builder()
@@ -268,7 +259,6 @@ class ApplicationEximServiceTest {
         var applicationExim = getApplicationEximDto("1");
         var applicationsExim = new ApplicationsEximDto();
         applicationsExim.setApplications(List.of(applicationExim));
-        applicationsExim.setFolders(List.of());
 
         doThrow(new IllegalArgumentException("Validation error"))
                 .when(validator).validateApplicationImport(importApplications, applicationsExim);
@@ -297,11 +287,10 @@ class ApplicationEximServiceTest {
         return ApplicationEximDto.builder()
                 .applicationTypeSchemaId(String.format("https://test%s.epam.com", suffix))
                 .name("application" + suffix)
-                .displayVersion(String.format("0.0.%s", suffix))
+                .version(String.format("0.0.%s", suffix))
                 .displayName("application" + suffix)
                 .folderId(String.format("public/folder%s/", suffix))
                 .description(String.format("application description %s", suffix))
                 .build();
     }
-
 }

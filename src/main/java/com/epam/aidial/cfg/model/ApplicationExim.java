@@ -15,9 +15,9 @@ import java.util.Map;
 public class ApplicationExim {
     private String name;
     private String folderId;
+    private String version;
     private String endpoint;
     private String displayName;
-    private String displayVersion;
     private String iconUrl;
     private String description;
     private String reference;

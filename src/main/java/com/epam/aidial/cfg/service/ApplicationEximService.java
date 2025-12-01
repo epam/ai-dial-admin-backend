@@ -7,12 +7,12 @@ import com.epam.aidial.cfg.dto.ApplicationsEximDto;
 import com.epam.aidial.cfg.model.ApplicationExim;
 import com.epam.aidial.cfg.model.ApplicationsExim;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
-import com.epam.aidial.cfg.model.FolderApplicationExim;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
+import com.epam.aidial.cfg.utils.EximServiceHelper;
 import com.epam.aidial.cfg.utils.PathUtils;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +29,7 @@ import java.util.List;
 @LogExecution
 @RequiredArgsConstructor
 public class ApplicationEximService {
-
-    private static final String APPLICATIONS_FOLDER = "applications/";
+    
     private static final String PUBLIC_FOLDER = "public/";
     private final ApplicationClientMapper applicationClientMapper;
     private final ApplicationResourceService applicationResourceService;
@@ -47,8 +46,7 @@ public class ApplicationEximService {
                 .toList();
 
         var applicationExims = getApplicationExports(distinctPaths);
-        var folderExims = getFolderExports(distinctPaths);
-        return new ApplicationsExim(applicationExims, folderExims);
+        return new ApplicationsExim(applicationExims);
     }
 
     private List<ApplicationExim> getApplicationExports(List<String> paths) {
@@ -63,21 +61,6 @@ public class ApplicationEximService {
             log.warn("Cannot load application from path {}", path, e);
             throw new RuntimeException(e);
         }
-    }
-
-    private List<FolderApplicationExim> getFolderExports(List<String> paths) {
-        return paths.stream()
-                .map(PathUtils::parsePath)
-                .map(PathUtils.PathParts::getFolderId)
-                .filter(PathUtils::isPathParseable)
-                .map(PathUtils::parsePath)
-                .map(parts -> FolderApplicationExim.builder()
-                        .id(APPLICATIONS_FOLDER + parts.getPath())
-                        .name(parts.getName())
-                        .type("application")
-                        .folderId(APPLICATIONS_FOLDER + parts.getFolderId())
-                        .build())
-                .toList();
     }
 
     public ImportResourcesFileResult importApplications(ImportResources importApplications, ApplicationsEximDto applicationsEximDto) {
@@ -126,7 +109,7 @@ public class ApplicationEximService {
     private ImportResourcesResult importApplication(ImportResources importApplications,
                                                     ApplicationEximDto applicationExim,
                                                     SimpleCircuitBreaker circuitBreaker) {
-        var applicationName = getVersionedName(applicationExim);
+        var applicationName = EximServiceHelper.getVersionedName(applicationExim);
         String targetPath;
         if (importApplications.isFlatImport()) {
             targetPath = importApplications.getPath() + "/" + applicationName;
@@ -183,11 +166,5 @@ public class ApplicationEximService {
             }
             throw ex;
         }
-    }
-
-    public String getVersionedName(ApplicationEximDto applicationEximDto) {
-        return applicationEximDto.getDisplayVersion() == null
-                ? applicationEximDto.getName()
-                : applicationEximDto.getName() + "__" + applicationEximDto.getDisplayVersion();
     }
 }
