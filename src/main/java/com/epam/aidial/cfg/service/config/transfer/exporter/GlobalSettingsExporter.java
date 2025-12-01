@@ -56,8 +56,8 @@ public class GlobalSettingsExporter {
         if (request instanceof FullExportRequest full) {
             return full.getComponentTypes().contains(type);
         }
-        if (request instanceof SelectedItemsExportRequest) {
-            return true;
+        if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
+            return selectedItemsExportRequest.getComponents().stream().anyMatch(component -> component.getType() == type);
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
