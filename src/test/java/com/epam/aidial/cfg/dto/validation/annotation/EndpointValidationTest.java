@@ -33,7 +33,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validEndpoints")
+    @MethodSource("validEndpointsIncludingEmpty")
     void testApplicationDto_ValidEndpoint(String endpoint) {
         ApplicationDto dto = new ApplicationDto();
         dto.setName("test-app");
@@ -60,7 +60,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validEndpoints")
+    @MethodSource("validEndpointsIncludingEmpty")
     void testCreateApplicationResourceDto_ValidEndpoint(String endpoint) {
         CreateApplicationResourceDto dto = new CreateApplicationResourceDto();
         dto.setName("test-app");
@@ -89,7 +89,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validEndpoints")
+    @MethodSource("validEndpointsIncludingEmpty")
     void testModelDto_ValidEndpoint(String endpoint) {
         ModelDto dto = new ModelDto();
         dto.setName("test-model");
@@ -116,7 +116,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validEndpoints")
+    @MethodSource("validEndpointsIncludingEmpty")
     void testInterceptorDto_ValidEndpoint(String endpoint) {
         InterceptorDto dto = new InterceptorDto();
         dto.setName("test-interceptor");
@@ -143,7 +143,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validEndpoints")
+    @MethodSource("validEndpointsIncludingEmpty")
     void testToolSetDto_ValidEndpoint(String endpoint) {
         ToolSetDto dto = new ToolSetDto();
         dto.setName("test-toolset");
@@ -184,7 +184,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidEndpoints")
+    @MethodSource("invalidEndpointsIncludingEmpty")
     void testAdapterDto_InvalidBaseEndpoint(String endpoint) {
         AdapterDto dto = new AdapterDto();
         dto.setName("test-adapter");
@@ -199,7 +199,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validEndpoints")
+    @MethodSource("validEndpointsIncludingEmpty")
     void testInterceptorRunnerDto_ValidEndpoints(String endpoint) {
         InterceptorRunnerDto dto = new InterceptorRunnerDto();
         dto.setName("test-runner");
@@ -241,6 +241,7 @@ class EndpointValidationTest {
                 .isTrue();
     }
 
+    // Common valid endpoints (without empty string)
     private static Stream<Arguments> validEndpoints() {
         return Stream.of(
                 Arguments.of("http://example.com"),
@@ -251,11 +252,20 @@ class EndpointValidationTest {
                 Arguments.of("http://ai-test:50/api"),
                 Arguments.of("http://ai-test/api"),
                 Arguments.of("http://sub.example.local"),
-                Arguments.of("http://example.dial-dev"),
-                Arguments.of("")
+                Arguments.of("http://example.dial-dev")
         );
     }
 
+    // empty value validation added to tests by current state. it makes sense to add empty value validation for other entities too in separate PR
+    // Valid endpoints including empty string (for all entities except adapter)
+    private static Stream<Arguments> validEndpointsIncludingEmpty() {
+        return Stream.concat(
+                validEndpoints(),
+                Stream.of(Arguments.of(""))
+        );
+    }
+
+    // Common invalid endpoints (without empty string)
     private static Stream<Arguments> invalidEndpoints() {
         return Stream.of(
                 Arguments.of("test-invalid-input"),
@@ -265,6 +275,15 @@ class EndpointValidationTest {
                 Arguments.of("http://"),
                 Arguments.of("http://example.com:invalidport"),
                 Arguments.of("http://example.local:999999")
+        );
+    }
+
+    // empty value validation added to tests by current state. it makes sense to add empty value validation for other entities too in separate PR
+    // Invalid endpoints including empty string (for adapter)
+    private static Stream<Arguments> invalidEndpointsIncludingEmpty() {
+        return Stream.concat(
+                Stream.of(Arguments.of("")), // Empty string is invalid for adapter
+                invalidEndpoints()
         );
     }
 }
