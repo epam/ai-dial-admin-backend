@@ -251,7 +251,8 @@ class EndpointValidationTest {
                 Arguments.of("http://ai-test:50/api"),
                 Arguments.of("http://ai-test/api"),
                 Arguments.of("http://sub.example.local"),
-                Arguments.of("http://example.dial-dev")
+                Arguments.of("http://example.dial-dev"),
+                Arguments.of("")
         );
     }
 
@@ -259,7 +260,6 @@ class EndpointValidationTest {
         return Stream.of(
                 Arguments.of("test-invalid-input"),
                 Arguments.of("http:/invalid-url"),
-                Arguments.of(""),
                 Arguments.of("ftp://example.com"),
                 Arguments.of("example.com"),
                 Arguments.of("http://"),
