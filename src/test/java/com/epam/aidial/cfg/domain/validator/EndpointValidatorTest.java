@@ -20,7 +20,11 @@ class EndpointValidatorTest {
             "http://127.0.0.1:8080/test",
             "https://www.google.com",
             "http://sub.example.local",
-            "http://example.dial-dev"
+            "http://example.dial-dev",
+            "http://example.com/test_endpoint",
+            "http://example.com/api/test_path",
+            "http://example.com/test_endpoint/api",
+            "http://example.local:8080/test_endpoint/api"
     })
     void isValidUrl_shouldReturnTrue(String url) {
         assertTrue(EndpointValidator.isValidUrl(url), "Expected URL to be valid: " + url);
