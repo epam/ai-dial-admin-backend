@@ -16,7 +16,9 @@ import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.service.ApplicationEximService;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
+import com.epam.aidial.cfg.service.ZipApplicationEximService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ApplicationResourceController;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -72,6 +74,12 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
 
     @MockitoBean
     private ApplicationResourceService applicationResourceService;
+
+    @MockitoBean
+    private ApplicationEximService applicationEximService;
+
+    @MockitoBean
+    private ZipApplicationEximService zipApplicationEximService;
 
     @Test
     void testGetAllApplicationResources() throws Exception {

@@ -1,24 +1,21 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class CreateApplicationResourceDto {
-
-    @NotBlank(message = "Name is required")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ApplicationEximDto {
     private String name;
-    @NotNull
-    private String version;
-    @NotNull
     private String folderId;
-    @Endpoint
+    private String version;
     private String endpoint;
     private String displayName;
     private String displayVersion;
@@ -32,6 +29,7 @@ public class CreateApplicationResourceDto {
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
+    private Long createdAt;
     private List<String> dependencies;
     private String viewerUrl;
     private String editorUrl;
