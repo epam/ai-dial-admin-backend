@@ -2,7 +2,9 @@ package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
+import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
+import com.epam.aidial.cfg.model.ApplicationExim;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
@@ -90,5 +92,13 @@ public abstract class ApplicationClientMapper {
     public abstract ApplicationResourceDto toApplicationResourceDto(CreateApplicationResource createApplicationResource);
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
+
+    public abstract ApplicationExim toApplicationExim(ApplicationResource applicationResource);
+
+    @Mapping(target = "name", source = "itemParts.name")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    @Mapping(target = "routes", source = "dto.routes")
+    public abstract CreateApplicationResource toCreateApplicationResource(ApplicationEximDto dto, PathUtils.VersionedPathParts itemParts);
 
 }
