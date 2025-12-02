@@ -67,5 +67,6 @@
   "dial:applicationTypePlaybackSupport": true,
   "dial:appendApplicationPropertiesHeader": true,
   "dial:applicationTypeInterceptors":[],
+  "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
   "$defs": {}
 }

@@ -340,6 +340,7 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeInterceptors":["testInterceptor1"],
+      "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
       "$defs": {}
     }
   ]
