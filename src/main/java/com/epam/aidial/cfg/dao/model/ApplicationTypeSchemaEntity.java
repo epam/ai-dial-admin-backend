@@ -48,6 +48,7 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private Boolean applicationTypePlaybackSupport;
     @Enumerated(EnumType.STRING)
     private CopyAppBucketOptionsEntity applicationTypeBucketCopy;
+    private boolean applicationTypeAssistantAttachmentsInRequestSupported;
 
     @ToString.Exclude
     @ManyToMany
