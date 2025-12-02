@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
+import com.epam.aidial.cfg.exception.ImportPreviewException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -88,6 +89,13 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ConstraintViolationException.class)
     public ErrorView handleConstraintViolationError(HttpServletRequest req, Exception ex) {
+        return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ImportPreviewException.class)
+    public ErrorView handleImportPreviewError(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
