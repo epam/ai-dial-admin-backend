@@ -70,7 +70,7 @@ public class CoreApplicationTypeSchema {
     private List<String> applicationTypeInterceptors; // 0.38.0
     
     @JsonProperty("dial:applicationTypeAssistantAttachmentsInRequestSupported")
-    private Boolean applicationTypeAssistantAttachmentsInRequestSupported;//0.39.0
+    private Boolean applicationTypeAssistantAttachmentsInRequestSupported; //0.39.0
     
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

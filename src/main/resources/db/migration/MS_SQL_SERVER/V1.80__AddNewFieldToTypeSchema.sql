@@ -1,6 +1,9 @@
 -- Add new column to application_type_schema_entity table
 alter table application_type_schema_entity add application_type_assistant_attachments_in_request_supported bit;
-
+go
+update application_type_schema_entity set application_type_assistant_attachments_in_request_supported = 0 where application_type_assistant_attachments_in_request_supported is null;
 
 -- Add new column to application_type_schema_entity_aud table
 alter table application_type_schema_entity_aud add application_type_assistant_attachments_in_request_supported bit;
+go
+update application_type_schema_entity_aud set application_type_assistant_attachments_in_request_supported = 0 where application_type_assistant_attachments_in_request_supported is null and revtype != 2;

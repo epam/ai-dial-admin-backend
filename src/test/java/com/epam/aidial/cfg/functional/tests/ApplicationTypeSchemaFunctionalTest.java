@@ -290,7 +290,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
-        dto.setInterceptors(List.of());        
         dto.setInterceptors(List.of());
         ApplicationTypeSchemaDto schemaDto = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(schemaDto).isEqualTo(dto);
