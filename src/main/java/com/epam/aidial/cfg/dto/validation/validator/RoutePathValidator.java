@@ -28,12 +28,7 @@ public class RoutePathValidator implements ConstraintValidator<RoutePath, String
     public boolean isValid(String value, ConstraintValidatorContext context) {
         log.trace("checking if value: {} is valid route path. context: {}", value, context);
 
-        // Reject null/empty strings
-        if (StringUtils.isEmpty(value)) {
-            return false;
-        }
-
-        // Reject whitespace-only strings
+        // Reject null/empty/whitespace-only strings
         if (StringUtils.isBlank(value)) {
             return false;
         }
