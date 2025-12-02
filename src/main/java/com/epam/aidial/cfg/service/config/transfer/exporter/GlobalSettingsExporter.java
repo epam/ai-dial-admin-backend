@@ -35,6 +35,10 @@ public class GlobalSettingsExporter {
         return exportGlobalSettings;
     }
 
+    protected GlobalSettings getGlobalSettings() {
+        return globalSettingsService.getGlobalSettings();
+    }
+
     protected Map<ExportConfigComponentType, Collection<ExportComponentInfo>> previewGlobalSettings(ExportRequest request) {
         var previewGlobalSettings = new HashMap<ExportConfigComponentType, Collection<ExportComponentInfo>>();
         var exportGlobalSettings = getGlobalSettings(request);

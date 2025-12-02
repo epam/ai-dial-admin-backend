@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
+import com.epam.aidial.cfg.domain.model.GlobalSettings;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
@@ -134,6 +135,7 @@ public class ConfigExporter {
         resolveRoleDependencies(request, result);
         resolveAppDependencies(request, result);
         resolveModelDependencies(result);
+        resolveGlobalSettingsDependencies(result);
         request.setComponents(result);
     }
 
@@ -259,6 +261,19 @@ public class ConfigExporter {
         return Stream.of(applications, models, routes, toolSets)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
+    }
+
+    private void resolveGlobalSettingsDependencies(List<ExportConfigComponent> updatedComponents) {
+        List<ExportConfigComponent> globalInterceptors = filterComponentsByType(updatedComponents, ExportConfigComponentType.GLOBAL_INTERCEPTOR);
+        if (CollectionUtils.isEmpty(globalInterceptors)) {
+            return;
+        }
+        Set<ExportConfigComponentType> dependencies = globalInterceptors.get(0).getDependencies();
+        if (CollectionUtils.isEmpty(dependencies)) {
+            return;
+        }
+        GlobalSettings globalSettings = globalSettingsExporter.getGlobalSettings();
+        processInterceptorDependencies(globalSettings.getGlobalInterceptors(), dependencies, updatedComponents);
     }
 
 }

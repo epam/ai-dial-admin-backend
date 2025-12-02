@@ -87,7 +87,7 @@ public enum ExportConfigComponentType {
     GLOBAL_INTERCEPTOR {
         @Override
         public Set<ExportConfigComponentType> getDependencies(ExportFormat exportFormat) {
-            return Set.of();
+            return Set.of(INTERCEPTOR);
         }
     };
 
