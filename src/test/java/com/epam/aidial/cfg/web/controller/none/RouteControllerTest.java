@@ -292,8 +292,6 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
         dto.getUpstreams().get(0).setTier(-1);
         var invalidDtoJson = objectMapper.writeValueAsString(dto);
 
-        doNothing().when(routeFacade).createRoute(any());
-
         // when
         mockMvc.perform(post(ROUTE_BASE_API_PATH)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -312,10 +310,6 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
         // Set negative tier value
         dto.getUpstreams().get(0).setTier(-1);
         var invalidDtoJson = objectMapper.writeValueAsString(dto);
-
-        // Validation will fail before facade is called, but we need to mock the return value
-        when(routeFacade.updateRoute(any(String.class), any(RouteDto.class), any(String.class)))
-                .thenReturn("2");
 
         // when
         mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
