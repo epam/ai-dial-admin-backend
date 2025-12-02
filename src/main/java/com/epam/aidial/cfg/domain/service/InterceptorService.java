@@ -23,6 +23,7 @@ import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.GlobalInterceptorDeletionException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.google.api.client.util.Lists;
@@ -140,7 +141,7 @@ public class InterceptorService {
         var globalSettings = globalSettingsService.getGlobalSettings();
         if (globalSettings.getGlobalInterceptors().contains(interceptorName)) {
             log.warn("Failed to delete interceptor:{}. Global Interceptor can not be deleted.'", interceptorName);
-            throw new IllegalStateException(String.format("Failed to delete interceptor:%s. Global Interceptor can not be deleted.", interceptorName));
+            throw new GlobalInterceptorDeletionException(String.format("Failed to delete interceptor:%s. Global Interceptor can not be deleted.", interceptorName));
         }
         interceptorJpaRepository.deleteById(interceptorName);
     }

@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
+import com.epam.aidial.cfg.exception.GlobalInterceptorDeletionException;
 import com.epam.aidial.cfg.exception.ImportPreviewException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -46,6 +47,13 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(EntityAlreadyExistsException.class)
     public ErrorView handleEntityAlreadyExistsError(HttpServletRequest req, Exception ex) {
+        return new ErrorView(req, HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(GlobalInterceptorDeletionException.class)
+    public ErrorView handleGlobalInterceptorDeletionError(HttpServletRequest req, Exception ex) {
         return new ErrorView(req, HttpStatus.CONFLICT, ex.getMessage());
     }
 
