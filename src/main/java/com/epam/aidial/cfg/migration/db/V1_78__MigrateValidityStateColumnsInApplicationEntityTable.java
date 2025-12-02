@@ -169,6 +169,7 @@ public class V1_78__MigrateValidityStateColumnsInApplicationEntityTable extends 
 
     private record ApplicationTypeSchema(@JsonProperty("$id")
                                          String schemaId,
+                                         @JsonProperty("$defs")
                                          @JsonSerialize(using = JsonMapSerializer.class)
                                          Map<String, String> defs,
                                          @JsonSerialize(using = JsonMapSerializer.class)
