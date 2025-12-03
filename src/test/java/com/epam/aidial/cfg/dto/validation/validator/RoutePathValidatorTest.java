@@ -16,30 +16,48 @@ class RoutePathValidatorTest {
     }
 
     @Test
-    void testIsValid_shouldReturnTrueForEmptyString() {
-        var result = validator.isValid("", null);
-        Assertions.assertThat(result).isTrue();
+    void testIsValid_shouldReturnFalseForNull() {
+        var result = validator.isValid(null, null);
+        Assertions.assertThat(result).isFalse();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"   ", "\t", "\n", "  \t  ", "\r\n"})
+    @ValueSource(strings = {"   ", "\t", "\n", "  \t  ", "\r\n", " ", ""})
     void testIsValid_shouldReturnFalseForBlankStrings(String blankString) {
         var result = validator.isValid(blankString, null);
         Assertions.assertThat(result).isFalse();
     }
 
+    @Test
+    void testIsValid_shouldReturnFalseForMaxLengthExceeded() {
+        var longPath = "/" + "a".repeat(4096);
+        var result = validator.isValid(longPath, null);
+        Assertions.assertThat(result).isFalse();
+    }
+
+    @Test
+    void testIsValid_shouldReturnTrueForMaxLength() {
+        var longPath = "/" + "a".repeat(4095);
+        var result = validator.isValid(longPath, null);
+        Assertions.assertThat(result).isTrue();
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {
-            "/api/v1",
-            "/api/v1/",
-            "/service/",
             "/",
-            "api/v1",
+            "/api",
+            "/api/v1",
             "/v1/endpoint",
-            "/api/v1/endpoint/path"
+            "/api/v1/endpoint/path",
+            "/api-v1",
+            "/api_v1",
+            "/api.v1",
+            "/123",
+            "/api123",
+            "/a1-b2_c3.d4"
     })
-    void testIsValid_shouldReturnTrueForValidRelativeUrls(String url) {
-        var result = validator.isValid(url, null);
+    void testIsValid_shouldReturnTrueForValidPlainPaths(String path) {
+        var result = validator.isValid(path, null);
         Assertions.assertThat(result).isTrue();
     }
 
@@ -67,10 +85,14 @@ class RoutePathValidatorTest {
             "{",
             "(",
             ")",
-            "[unclosed",
-            "(unclosed",
+            "/api/[unclosed",
+            "/api/(unclosed",
+            "/api/{unclosed",
+            "/api/unopened]",
+            "/api/unopened)",
+            "/api/unopened}",
             ".*[",
-            "/api/[invalid"
+            "api/v1.*" //should start with `/`
     })
     void testIsValid_shouldReturnFalseForInvalidRegexPatterns(String invalidRegex) {
         var result = validator.isValid(invalidRegex, null);
@@ -82,7 +104,15 @@ class RoutePathValidatorTest {
             "/invalid path with spaces",
             "/invalid@path",
             "/path#with#hash",
-            "/path:with:colon"
+            "/path:with:colon",
+            "/api//v1",
+            "no-leading-slash",
+            "/api&test",
+            "/api<test",
+            "/api>test",
+            "/api=test",
+            "/api!test"
+
     })
     void testIsValid_shouldReturnFalseForInvalidUrlPaths(String invalidPath) {
         var result = validator.isValid(invalidPath, null);
