@@ -96,6 +96,10 @@ public class ConfigExporter {
     }
 
     public ExportConfigPreview preview(ExportRequest request) {
+        if (request instanceof FullExportRequest exportRequest && exportRequest.getTopics() != null) {
+            request = fullToSelectedItemsExportRequestTransformer.transform(exportRequest);
+        }
+
         if (request instanceof SelectedItemsExportRequest exportRequest) {
             resolveDependencies(exportRequest);
         }
