@@ -2,6 +2,6 @@
   {
     "name": "name1",
     "displayName": "name1",
-    "baseEndpoint": "baseEndpoint1"
+    "baseEndpoint": "http://baseEndpoint1"
   }
 ]
