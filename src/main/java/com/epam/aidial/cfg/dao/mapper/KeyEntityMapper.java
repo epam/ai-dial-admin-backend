@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.dao.model.ValidityStateEntity;
 import com.epam.aidial.cfg.domain.model.Key;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,7 +13,8 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {RoleEntityMapper.class, ValidityStateEntityMapper.class})
 public abstract class KeyEntityMapper {
 
-    public abstract Key toDomain(KeyEntity entity);
+    @Mapping(target = "validityState", source = "validityStateEntity")
+    public abstract Key toDomain(KeyEntity entity, ValidityStateEntity validityStateEntity);
 
     protected String mapRoleToString(RoleEntity value) {
         return value != null ? value.getName() : null;
