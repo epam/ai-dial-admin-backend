@@ -147,6 +147,26 @@ public abstract class KeyFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyCreateAndGetKeyWithExpiresAt() {
+        doReturn(1L).when(transactionTimestampContext).getTimestamp();
+
+        KeyDto keyDto = createKeyDto("1");
+        keyDto.setExpiresAt(Instant.ofEpochMilli(3));
+        keyFacade.createKey(keyDto);
+
+        doReturn(5L).when(transactionTimestampContext).getTimestamp();
+
+        KeyDto actual = keyFacade.getKey(keyDto.getName());
+
+        KeyDto expected = createKeyDto("1");
+        expected.setRoles(List.of());
+        expected.setExpiresAt(Instant.ofEpochMilli(3));
+        expected.setValidityState(invalidState("No roles assigned, Key is expired"));
+
+        assertKeyExcludingGeneratedFields(actual, expected);
+    }
+
+    @Test
     public void shouldSuccessfullyCreateTwoKeysWithNullKeyValue() {
         KeyDto keyDto = createKeyDto("1");
         keyDto.setKey(null);
