@@ -371,7 +371,8 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         typeSchemaFacade.create(dto);
         Assertions.assertThatThrownBy(() -> typeSchemaFacade.update(dto.getId(), dto, "test"))
                 .isInstanceOf(OptimisticLockConflictException.class)
-                .hasMessage("Optimistic lock conflict on update: schemaId:'https://test-schema.example'. Reload the data.");
+                .hasMessage("Unable to update ApplicationTypeSchema 'https://test-schema.example'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.");
     }
 
     @Test
