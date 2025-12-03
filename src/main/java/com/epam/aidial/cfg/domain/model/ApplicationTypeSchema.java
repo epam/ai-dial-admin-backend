@@ -34,7 +34,7 @@ public class ApplicationTypeSchema {
     private Boolean applicationTypePlaybackSupport;
     private CopyAppBucketOptions applicationTypeBucketCopy;
     private List<String> interceptors;
-    private Boolean applicationTypeAssistantAttachmentsInRequestSupported;
+    private boolean applicationTypeAssistantAttachmentsInRequestSupported;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

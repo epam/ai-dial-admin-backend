@@ -79,7 +79,7 @@ public class ApplicationTypeSchemaDto {
     private List<String> interceptors;
 
     @JsonProperty("dial:applicationTypeAssistantAttachmentsInRequestSupported")
-    private Boolean applicationTypeAssistantAttachmentsInRequestSupported;
+    private boolean applicationTypeAssistantAttachmentsInRequestSupported;
     
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
