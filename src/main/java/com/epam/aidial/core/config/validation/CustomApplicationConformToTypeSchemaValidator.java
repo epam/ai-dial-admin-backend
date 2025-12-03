@@ -35,9 +35,14 @@ public class CustomApplicationConformToTypeSchemaValidator {
 
     public static Set<ValidationMessage> validate(ApplicationResourceDto application,
                                                   CustomApplicationConformToTypeSchemaValidationContext validationContext) {
+        String schemaIdAsString = application.getApplicationTypeSchemaId();
+        if (schemaIdAsString == null) {
+            return Set.of();
+        }
+
         URI schemaId;
         try {
-            schemaId = URI.create(application.getApplicationTypeSchemaId());
+            schemaId = URI.create(schemaIdAsString);
         } catch (Exception e) {
             ValidationMessage validationMessage = ValidationMessage.builder().message(e.getMessage()).build();
             return Set.of(validationMessage);
