@@ -1,7 +1,15 @@
+-- NOTE ABOUT INITIAL GLOBAL SETTINGS AUDIT ENTRY
+-- We intentionally do NOT write a "create" audit record for the initial global settings row during this migration.
+
+-- Clarification:
+-- - The global settings row itself IS created by this migration script
+-- - We deliberately do NOT insert a corresponding "create" entry into the audit tables.
+-- - Only subsequent changes to global settings will be recorded in the audit.
+
 -- Create global_settings_entity table
 create table global_settings_entity (
   id integer primary key,
-  global_interceptors text,
+  global_interceptors nvarchar(255),
   created_at_ms bigint not null,
   updated_at_ms bigint not null
 );
@@ -15,7 +23,7 @@ DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', SYSUTCDATETIME()));
 create table global_settings_entity_aud (
   rev integer not null,
   id integer not null,
-  global_interceptors text,
+  global_interceptors nvarchar(255),
   created_at_ms bigint not null,
   updated_at_ms bigint not null,
   revtype smallint,
