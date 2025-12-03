@@ -6,6 +6,7 @@ import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ public class UpstreamDto {
     @JsonSerialize(using = StringToJsonSerializer.class)
     private String extraData;
     private int weight = 1;
+    @Min(value = 0, message = "Tier must be a non-negative number")
     private int tier = 0;
 
     public String toString() {
