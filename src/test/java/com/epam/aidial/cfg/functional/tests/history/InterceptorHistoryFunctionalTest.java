@@ -81,7 +81,7 @@ public abstract class InterceptorHistoryFunctionalTest {
         // create global interceptors
         var globalSettings = new GlobalSettingsDto();
         globalSettings.setGlobalInterceptors(List.of("interceptor3", "interceptor2"));
-        globalSettingsFacade.saveGlobalSettings(globalSettings);
+        globalSettingsFacade.updateGlobalSettings(globalSettings);
         Assertions.assertEquals(List.of("interceptor3", "interceptor2"),
                 globalSettingsFacade.getGlobalSettings().getGlobalInterceptors());
 

@@ -6,8 +6,11 @@ import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.GlobalSettingsEntityMapper;
 import com.epam.aidial.cfg.dao.model.GlobalSettingsEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.GlobalSettings;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +24,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+
 @LogExecution
 @Slf4j
 @Service
@@ -31,6 +36,7 @@ public class GlobalSettingsService {
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final GlobalSettingsEntityMapper globalSettingsMapper;
     private final HistoryService historyService;
+    private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public GlobalSettings getGlobalSettings() {
@@ -39,12 +45,33 @@ public class GlobalSettingsService {
         return globalSettingsMapper.toDomain(entity);
     }
 
+    @Transactional(readOnly = true)
+    public DomainObjectWithHash<GlobalSettings> getGlobalSettingsWithHash() {
+        var globalSettings = getGlobalSettings();
+        return new DomainObjectWithHash<>(globalSettings, calculator.calculateHash(globalSettings));
+    }
+
     @Transactional
-    public void saveGlobalSettings(GlobalSettings globalSettings) {
+    public void update(GlobalSettings globalSettings) {
+        performUpdate(globalSettings, ANY_HASH);
+    }
+
+    @Transactional
+    public String update(GlobalSettings globalSettings, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash must not be null. Use \"*\" to skip optimistic check. GlobalSettings."));
+        }
+        var savedGlobalSettings = performUpdate(globalSettings, hash);
+        return calculator.calculateHash(globalSettingsMapper.toDomain(savedGlobalSettings));
+    }
+
+    private GlobalSettingsEntity performUpdate(GlobalSettings globalSettings, String hash) {
         validateGlobalInterceptorsByNames(globalSettings.getGlobalInterceptors());
         var entity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID)
                 .orElseThrow(() -> new IllegalStateException("Global settings does not exist"));
-        globalSettingsJpaRepository.save(globalSettingsMapper.toGlobalSettingsEntity(globalSettings, entity));
+        assertNotConcurrencyOverwrite(entity, hash);
+        return globalSettingsJpaRepository.save(globalSettingsMapper.toGlobalSettingsEntity(globalSettings, entity));
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +105,7 @@ public class GlobalSettingsService {
     }
 
     private void validateGlobalInterceptorsByNames(List<String> names) {
-        if (org.apache.commons.collections4.CollectionUtils.isEmpty(names)) {
+        if (CollectionUtils.isEmpty(names)) {
             return;
         }
 
@@ -88,6 +115,18 @@ public class GlobalSettingsService {
         Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptors);
         if (!namesDiff.isEmpty()) {
             throw new EntityNotFoundException("One or more global interceptor IDs do not exist as interceptors: " + namesDiff);
+        }
+    }
+
+    private void assertNotConcurrencyOverwrite(GlobalSettingsEntity entity, String expectedHash) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+        var currentHash = calculator.calculateHash(globalSettingsMapper.toDomain(entity));
+        if (!expectedHash.equals(currentHash)) {
+            log.debug("Optimistic lock conflict on update: globalSettings, expectedHash={}, currentHash={}",
+                    expectedHash, currentHash);
+            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: globalSettings. Reload the data."));
         }
     }
 }

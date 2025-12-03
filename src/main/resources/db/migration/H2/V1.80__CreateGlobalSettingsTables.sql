@@ -1,15 +1,7 @@
--- NOTE ABOUT INITIAL GLOBAL SETTINGS AUDIT ENTRY
--- We intentionally do NOT write a "create" audit record for the initial global settings row during this migration.
-
--- Clarification:
--- - The global settings row itself IS created by this migration script
--- - We deliberately do NOT insert a corresponding "create" entry into the audit tables.
--- - Only subsequent changes to global settings will be recorded in the audit.
-
 -- Create global_settings_entity table
 create table global_settings_entity (
   id integer primary key,
-  global_interceptors varchar(255),
+  global_interceptors varchar(2048),
   created_at_ms bigint not null,
   updated_at_ms bigint not null
 );
@@ -22,11 +14,35 @@ CAST(DATEDIFF('MILLISECOND', TIMESTAMP '1970-01-01 00:00:00', CURRENT_TIMESTAMP)
 create table global_settings_entity_aud (
   rev integer not null,
   id integer not null,
-  global_interceptors varchar(255),
+  global_interceptors varchar(2048),
   created_at_ms bigint not null,
   updated_at_ms bigint not null,
   revtype smallint,
   primary key (
     id, rev
   )
+);
+
+insert into global_settings_entity_aud (rev, id, global_interceptors, created_at_ms, updated_at_ms, revtype)
+select
+  r.id,
+  g.id,
+  g.global_interceptors,
+  r.timestamp,
+  r.timestamp,
+  0
+from global_settings_entity g
+cross join revinfo r
+where r.id = 1;
+
+insert into audit_activity_entity (activity_id, activity_type, resource_type, resource_id, initiated_author, initiated_email, revision, epoch_timestamp_ms)
+values (
+  RANDOM_UUID(),
+  'Create',
+  'GlobalSettings',
+  1,
+  'system',
+  null,
+  1,
+  (select timestamp from revinfo where id = 1)
 );

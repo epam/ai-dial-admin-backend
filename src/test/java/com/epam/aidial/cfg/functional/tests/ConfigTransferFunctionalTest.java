@@ -1929,7 +1929,7 @@ public abstract class ConfigTransferFunctionalTest {
         interceptorFacade.createInterceptor(interceptorDto2);
         GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
         globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor2", "interceptor2"));
-        globalSettingsFacade.saveGlobalSettings(globalSettingsDto);
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
 
         configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, true, true));
 
@@ -1956,7 +1956,7 @@ public abstract class ConfigTransferFunctionalTest {
         interceptorFacade.createInterceptor(interceptorDto2);
         GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
         globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
-        globalSettingsFacade.saveGlobalSettings(globalSettingsDto);
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
 
         configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
 
@@ -1968,7 +1968,7 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
-    void testImport_ImportGlobalInterceptorsWithSkipAnGlobalInterceptorsIsEmpty() throws IOException {
+    void testImport_ImportGlobalInterceptorsWithSkipAndGlobalInterceptorsIsEmpty() throws IOException {
         // given
         String config = FileUtils.readFileToString(new File("src/test/resources/import/import_interceptorsAndGlobalInterceptors.json"), StandardCharsets.UTF_8);
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -1982,7 +1982,7 @@ public abstract class ConfigTransferFunctionalTest {
         interceptorFacade.createInterceptor(interceptorDto1);
         interceptorFacade.createInterceptor(interceptorDto2);
         GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
-        globalSettingsFacade.saveGlobalSettings(globalSettingsDto);
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
 
         configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
 
@@ -2009,7 +2009,7 @@ public abstract class ConfigTransferFunctionalTest {
         interceptorFacade.createInterceptor(interceptorDto2);
         GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
         globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
-        globalSettingsFacade.saveGlobalSettings(globalSettingsDto);
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
 
         configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
 

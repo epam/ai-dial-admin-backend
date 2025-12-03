@@ -32,18 +32,18 @@ public class GlobalSettingsImporter {
                                                                                                                ConflictResolutionPolicy resolutionPolicy) {
         var existingGlobalSettings = globalSettingsService.getGlobalSettings();
         var globalSettingsImport = new GlobalSettings();
-        Map<GlobalSettingsImportType, Collection<ImportComponent<Collection<String>>>> globalSettingsImportComponent = new HashMap<>();
+        var globalSettingsImportComponent = new HashMap<GlobalSettingsImportType, Collection<ImportComponent<Collection<String>>>>();
         globalSettingsImportComponent.put(GlobalSettingsImportType.GLOBAL_INTERCEPTORS, importGlobalInterceptors(
                 globalInterceptors,
                 existingGlobalSettings,
                 globalSettingsImport, resolutionPolicy));
         if (!existingGlobalSettings.equals(globalSettingsImport)) {
-            globalSettingsService.saveGlobalSettings(globalSettingsImport);
+            globalSettingsService.update(globalSettingsImport);
         }
         return globalSettingsImportComponent;
     }
 
-    public Collection<ImportComponent<Collection<String>>> importGlobalInterceptors(Collection<String> globalInterceptors,
+    private Collection<ImportComponent<Collection<String>>> importGlobalInterceptors(Collection<String> globalInterceptors,
                                                                                     GlobalSettings existingGlobalSettings,
                                                                                     GlobalSettings globalSettingsImport,
                                                                                     ConflictResolutionPolicy resolutionPolicy) {

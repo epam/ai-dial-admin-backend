@@ -4,14 +4,17 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.web.facade.GlobalSettingsFacade;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,14 +32,17 @@ public class GlobalSettingsController extends AbstractController {
     }
 
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public GlobalSettingsDto getGlobalSettings() {
-        return globalSettingsFacade.getGlobalSettings();
+    public ResponseEntity<GlobalSettingsDto> getGlobalSettings(@RequestHeader(value = "If-None-Match") String previousHash) {
+        var dtoWithHash = globalSettingsFacade.getGlobalSettingsWithHash();
+        return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void saveGlobalSettings(@RequestBody @Valid GlobalSettingsDto globalSettingsDto) {
-        globalSettingsFacade.saveGlobalSettings(globalSettingsDto);
+    public ResponseEntity<Void> updateGlobalSettings(@RequestBody @Valid GlobalSettingsDto globalSettingsDto,
+                                                     @RequestHeader(value = "If-Match") String previousHash) {
+        var newHash = globalSettingsFacade.updateGlobalSettings(globalSettingsDto, StringUtils.unwrap(previousHash, '"'));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)

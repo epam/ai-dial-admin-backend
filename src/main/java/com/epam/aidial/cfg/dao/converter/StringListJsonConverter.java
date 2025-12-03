@@ -25,9 +25,10 @@ public class StringListJsonConverter implements AttributeConverter<List<String>,
     @Override
     public List<String> convertToEntityAttribute(String data) {
         try {
-            return data == null ? new ArrayList<>() :
-                    mapper.readValue(data, new TypeReference<List<String>>() {
-                    });
+            return data == null
+                    ? new ArrayList<>()
+                    : mapper.readValue(data, new TypeReference<List<String>>() {
+            });
         } catch (Exception e) {
             throw new IllegalStateException("Failed to convert data to list", e);
         }
