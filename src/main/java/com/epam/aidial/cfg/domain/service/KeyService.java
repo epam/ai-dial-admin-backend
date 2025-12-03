@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
+import com.epam.aidial.cfg.domain.resolver.key.KeyValidityStateOnGetResolver;
 import com.epam.aidial.cfg.domain.validator.KeyValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -46,27 +47,29 @@ public class KeyService {
     private final KeyEntityMapper mapper;
     private final KeyValidator keyValidator;
     private final KeyGeneratedAtResolver keyGeneratedAtResolver;
+    private final KeyValidityStateOnGetResolver keyValidityStateOnGetResolver;
     private final HistoryService historyService;
     private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
     public Collection<Key> getAllKeys() {
         return StreamSupport.stream(keyJpaRepository.findAll().spliterator(), false)
-                .map(mapper::toDomain)
+                .map(this::toDomainWithValidityStateAdjustment)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public Collection<Key> getAllValidKeys() {
         return keyJpaRepository.findAllByValidityStateIsValidTrue().stream()
-                .map(mapper::toDomain)
+                .map(this::toDomainWithValidityStateAdjustment)
+                .filter(key -> key.getValidityState().isValid())
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public Collection<Key> getAllByNames(List<String> names) {
         return StreamSupport.stream(keyJpaRepository.findAllById(names).spliterator(), false)
-                .map(mapper::toDomain)
+                .map(this::toDomainWithValidityStateAdjustment)
                 .collect(Collectors.toList());
     }
 
@@ -79,7 +82,7 @@ public class KeyService {
     @Transactional(readOnly = true)
     public Optional<Key> tryGetKey(String keyName) {
         return keyJpaRepository.findById(keyName)
-                .map(mapper::toDomain);
+                .map(this::toDomainWithValidityStateAdjustment);
     }
 
     @Transactional(readOnly = true)
@@ -91,7 +94,7 @@ public class KeyService {
     @Transactional(readOnly = true)
     public Optional<Key> tryGetKeyByKeyValue(String keyValue) {
         return keyJpaRepository.findByKey(keyValue)
-                .map(mapper::toDomain);
+                .map(this::toDomainWithValidityStateAdjustment);
     }
 
     @Transactional
@@ -119,7 +122,7 @@ public class KeyService {
                     "Hash must not be null. Use \"*\" to skip optimistic check. Key:%s.", keyName));
         }
         var savedKey = performUpdate(keyName, domain, hash);
-        return calculator.calculateHash(mapper.toDomain(savedKey));
+        return calculator.calculateHash(toDomainWithValidityStateAdjustment(savedKey));
     }
 
     private KeyEntity performUpdate(String keyName, Key domain, String hash) {
@@ -138,7 +141,7 @@ public class KeyService {
         if (ANY_HASH.equals(expectedHash)) {
             return;
         }
-        var currentHash = calculator.calculateHash(mapper.toDomain(entity));
+        var currentHash = calculator.calculateHash(toDomainWithValidityStateAdjustment(entity));
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: keyName={}, expectedHash={}, currentHash={}",
                     entity.getName(), expectedHash, currentHash);
@@ -161,14 +164,14 @@ public class KeyService {
     @Transactional(readOnly = true)
     public Key getSnapshot(String keyName, Integer revision) {
         var entity = historyService.entitySnapshotAtRevision(revision, keyName, KeyEntity.class);
-        return mapper.toDomain(entity);
+        return toDomainWithValidityStateAdjustment(entity);
     }
 
     @Transactional(readOnly = true)
     public Collection<Key> getAllAtRevision(Number revision) {
         return historyService.getEntitiesAtRevision(revision, KeyEntity.class)
                 .stream()
-                .map(mapper::toDomain)
+                .map(this::toDomainWithValidityStateAdjustment)
                 .collect(Collectors.toList());
     }
 
@@ -228,5 +231,9 @@ public class KeyService {
         }
 
         return existingRoles;
+    }
+
+    private Key toDomainWithValidityStateAdjustment(KeyEntity keyEntity) {
+        return mapper.toDomain(keyEntity, keyValidityStateOnGetResolver.resolveValidityStateEntity(keyEntity));
     }
 }
