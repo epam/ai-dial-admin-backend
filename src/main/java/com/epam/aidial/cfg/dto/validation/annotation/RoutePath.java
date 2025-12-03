@@ -18,7 +18,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({FIELD, PARAMETER, TYPE_USE})
 public @interface RoutePath {
 
-    String message() default "Invalid route path. Path must be empty, a valid relative URL, or a valid regular expression pattern";
+    String message() default "Invalid route path. Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)";
 
     Class<?>[] groups() default {};
 
