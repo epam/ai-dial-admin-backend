@@ -19,7 +19,7 @@ import java.util.Set;
 @Slf4j
 public class HashCalculator {
     public static final String ANY_HASH = "*";
-    private static final Set<String> IGNORED_FIELDS = Set.of("createdAt", "updatedAt");
+    private static final Set<String> IGNORED_FIELDS = Set.of("createdAt", "updatedAt", "validityState");
     private final ObjectWriter writer;
     private final Base64.Encoder base64Encoder;
 

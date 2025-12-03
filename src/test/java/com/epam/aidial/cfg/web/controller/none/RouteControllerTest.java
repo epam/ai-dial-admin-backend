@@ -10,6 +10,8 @@ import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -279,5 +281,44 @@ class RouteControllerTest extends AbstractControllerNoneSecureTest {
         mockMvc.perform(delete(ROUTE_API_PATH, TEST_ROUTE_NAME))
                 // then
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testCreateRoute_WithNegativeTier_BadRequest() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<RouteDto>() {
+        });
+        // Set negative tier value
+        dto.getUpstreams().get(0).setTier(-1);
+        var invalidDtoJson = objectMapper.writeValueAsString(dto);
+
+        // when
+        mockMvc.perform(post(ROUTE_BASE_API_PATH)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(invalidDtoJson))
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Tier must be a non-negative number")));
+    }
+
+    @Test
+    void testUpdateRoute_WithNegativeTier_BadRequest() throws Exception {
+        // given
+        var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<RouteDto>() {
+        });
+        // Set negative tier value
+        dto.getUpstreams().get(0).setTier(-1);
+        var invalidDtoJson = objectMapper.writeValueAsString(dto);
+
+        // when
+        mockMvc.perform(put(ROUTE_API_PATH, TEST_ROUTE_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HEADER_IF_MATCH, "1")
+                        .content(invalidDtoJson))
+                // then
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Tier must be a non-negative number")));
     }
 }
