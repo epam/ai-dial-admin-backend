@@ -439,8 +439,13 @@ public abstract class KeyFunctionalTest {
         KeyDto updatedKeyDto = createKeyDtoWithRole("1");
         updatedKeyDto.setDisplayName("updatedDisplayName");
 
-        Assertions.assertThrows(OptimisticLockConflictException.class,
-                () -> keyFacade.updateKey(keyDto.getName(), updatedKeyDto, "test"));
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> keyFacade.updateKey(keyDto.getName(), updatedKeyDto, "test")
+        );
+        Assertions.assertEquals("Unable to update Key 'key1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test
