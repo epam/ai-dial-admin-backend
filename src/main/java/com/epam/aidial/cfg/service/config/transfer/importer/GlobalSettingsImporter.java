@@ -37,8 +37,9 @@ public class GlobalSettingsImporter {
                 globalInterceptors,
                 existingGlobalSettings,
                 globalSettingsImport, resolutionPolicy));
-
-        globalSettingsService.saveGlobalSettings(globalSettingsImport);
+        if (!existingGlobalSettings.equals(globalSettingsImport)) {
+            globalSettingsService.saveGlobalSettings(globalSettingsImport);
+        }
         return globalSettingsImportComponent;
     }
 
@@ -46,10 +47,12 @@ public class GlobalSettingsImporter {
                                                                                     GlobalSettings existingGlobalSettings,
                                                                                     GlobalSettings globalSettingsImport,
                                                                                     ConflictResolutionPolicy resolutionPolicy) {
+        var existingInterceptors = existingGlobalSettings.getGlobalInterceptors();
+
         if (CollectionUtils.isEmpty(globalInterceptors)) {
+            globalSettingsImport.setGlobalInterceptors(existingInterceptors);
             return Collections.emptyList();
         }
-        var existingInterceptors = existingGlobalSettings.getGlobalInterceptors();
 
         if (CollectionUtils.isEmpty(existingInterceptors)) {
             globalSettingsImport.setGlobalInterceptors(globalInterceptors.stream().toList());
@@ -60,6 +63,7 @@ public class GlobalSettingsImporter {
             globalSettingsImport.setGlobalInterceptors(globalInterceptors.stream().toList());
             return List.of(new ImportComponent<>(UPDATE, existingInterceptors, globalInterceptors));
         } else {
+            globalSettingsImport.setGlobalInterceptors(existingInterceptors);
             return List.of(new ImportComponent<>(SKIP, existingInterceptors, globalInterceptors));
         }
     }
