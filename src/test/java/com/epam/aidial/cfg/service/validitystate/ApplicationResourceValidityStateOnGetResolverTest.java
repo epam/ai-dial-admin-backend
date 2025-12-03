@@ -49,7 +49,7 @@ class ApplicationResourceValidityStateOnGetResolverTest {
     }
 
     @Test
-    void resolveValidityState_shouldReturnNullWhenApplicationResourceIsNUll() {
+    void resolveValidityState_shouldReturnNullWhenApplicationResourceIsNull() {
         // when
         ValidityStateResource actual = applicationResourceValidityStateOnGetResolver.resolveValidityState(null);
 
