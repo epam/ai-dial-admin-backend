@@ -8,6 +8,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public abstract class CoreSecuredResource extends Deployment {
 
+    @JsonAlias({"forwardPerRequestKey", "forward_per_request_key"})
+    private boolean forwardPerRequestKey;
+
     @JsonAlias({"authSettings", "auth_settings"})
     protected CoreResourceAuthSettings authSettings = new CoreResourceAuthSettings();
 }

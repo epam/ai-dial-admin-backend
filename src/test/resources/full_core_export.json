@@ -245,6 +245,7 @@
         "authentication_type": "oauth",
         "client_id": "some-client-id"
       },
+      "forward_per_request_key": false,
       "transport": "sse",
       "allowed_tools": [
         "branch",

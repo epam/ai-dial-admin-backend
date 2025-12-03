@@ -51,7 +51,8 @@
           "first",
           "second"
         ]
-      }
+      },
+      "forward_per_request_key":false
     }
   }
 }

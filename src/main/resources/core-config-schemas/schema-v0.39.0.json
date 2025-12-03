@@ -429,7 +429,11 @@
         {"$ref": "#/definitions/Deployment"},
         {
           "properties": {
-            "authSettings": {"$ref": "#/definitions/CoreResourceAuthSettings"}
+            "authSettings": {"$ref": "#/definitions/CoreResourceAuthSettings"},
+            "forwardPerRequestKey": {
+              "type": "boolean",
+              "default": false
+            }
           }
         }
       ]
