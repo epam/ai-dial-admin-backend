@@ -49,6 +49,15 @@ class ApplicationResourceValidityStateOnGetResolverTest {
     }
 
     @Test
+    void resolveValidityState_shouldReturnNullWhenApplicationResourceIsNUll() {
+        // when
+        ValidityStateResource actual = applicationResourceValidityStateOnGetResolver.resolveValidityState(null);
+
+        // then
+        Assertions.assertThat(actual).isNull();
+    }
+
+    @Test
     void resolveValidityState_shouldReturnValidStateWhenApplicationResourceDoesNotHaveSchema() {
         // given
         ApplicationResourceDto applicationResourceDto = new ApplicationResourceDto();

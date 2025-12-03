@@ -25,6 +25,10 @@ public class ApplicationResourceValidityStateOnGetResolver {
     private final ApplicationTypeSchemaCoreMapper applicationTypeSchemaCoreMapper;
 
     public ValidityStateResource resolveValidityState(ApplicationResourceDto applicationResourceDto) {
+        if (applicationResourceDto == null) {
+            return null;
+        }
+
         String applicationTypeSchemaId = applicationResourceDto.getApplicationTypeSchemaId();
         if (applicationTypeSchemaId == null) {
             return ValidityStateResource.builder().isValid(true).build();
