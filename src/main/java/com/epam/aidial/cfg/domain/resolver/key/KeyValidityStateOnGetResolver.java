@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.resolver.key;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.ValidityStateEntity;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@LogExecution
 public class KeyValidityStateOnGetResolver {
 
     private final TransactionTimestampContext transactionTimestampContext;
