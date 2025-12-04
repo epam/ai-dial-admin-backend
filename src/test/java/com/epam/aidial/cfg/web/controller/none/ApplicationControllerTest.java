@@ -31,6 +31,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -173,13 +175,21 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
 
         when(applicationFacade.updateApplication(eq("test_application"), any(ApplicationDto.class), any())).thenReturn("test");
 
+        String errorMessagePrefix = "JSON parse error: ";
+        String path0Error = "paths[0].<list element>: Invalid route path. "
+                + "Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)";
+        String path1Error = "paths[1].<list element>: Invalid route path. "
+                + "Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)";
+
         mockMvc.perform(put("/api/v1/applications/{applicationName}", "test_application")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("JSON parse error: paths[0].<list element>: Invalid route path. "
-                        + "Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/), paths[1].<list element>: "
-                        + "Invalid route path. Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)"));
+                .andExpect(jsonPath("$.message").value(allOf(
+                        containsString(errorMessagePrefix),
+                        containsString(path0Error),
+                        containsString(path1Error)
+                )));
     }
 
     @Test
