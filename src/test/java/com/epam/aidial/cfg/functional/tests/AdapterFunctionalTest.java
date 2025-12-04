@@ -225,8 +225,9 @@ public abstract class AdapterFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> adapterFacade.updateAdapter(adapterDto.getName(), adapterDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update: adapterName:'adapter1'"
-                + ". Reload the data.", exception.getMessage());
+        Assertions.assertEquals("Unable to update Adapter 'adapter1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test

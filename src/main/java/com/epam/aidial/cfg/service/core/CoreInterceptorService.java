@@ -64,8 +64,9 @@ public class CoreInterceptorService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: interceptorName={}, expectedHash={}, currentHash={}",
                     interceptor.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: interceptorName:'"
-                    + "%s'. Please reload the data.", interceptor.getName()));
+            throw new OptimisticLockConflictException(String.format("Unable to update Interceptor '%s'. The data may have been modified by another user, "
+                            + "or the name/ID may already exist. Please reload the data and try again.",
+                    interceptor.getName()));
         }
     }
 
