@@ -114,8 +114,8 @@ public class ConfigExporter {
         Collection<ExportComponentInfo> interceptors = interceptorExporter.preview(request);
         Collection<ExportComponentInfo> interceptorRunners = interceptorRunnerExporter.preview(request);
         Collection<ExportApplicationTypeSchemaInfo> applicationRunners = applicationTypeSchemaExporter.preview(request);
-        var globalSettings = globalSettingsExporter.previewGlobalSettings(request);
-        Collection<ExportComponentInfo> globalInterceptors = globalSettings.get(ExportConfigComponentType.GLOBAL_INTERCEPTOR);
+        var globalSettings = globalSettingsExporter.getGlobalSettings(request);
+
         // todo prompts and files
         return ExportConfigPreview.builder()
                 .routes(routes)
@@ -125,7 +125,7 @@ public class ConfigExporter {
                 .roles(roles)
                 .keys(keys)
                 .interceptors(interceptors)
-                .globalInterceptors(globalInterceptors)
+                .globalInterceptors(globalSettings.getGlobalInterceptors())
                 .interceptorRunners(interceptorRunners)
                 .applicationRunners(applicationRunners)
                 .adapters(adapters)

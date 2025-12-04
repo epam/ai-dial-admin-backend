@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.service.config.transfer.exporter;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.GlobalSettings;
 import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
@@ -12,11 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @LogExecution
@@ -27,11 +22,14 @@ public class GlobalSettingsExporter {
 
     protected GlobalSettings getGlobalSettings(ExportRequest request) {
         var currentGlobalSettings = globalSettingsService.getGlobalSettings();
+
+        List<String> globalInterceptors = shouldExport(request)
+                ? currentGlobalSettings.getGlobalInterceptors()
+                : new ArrayList<>();
+
         var exportGlobalSettings = new GlobalSettings();
-        exportGlobalSettings.setGlobalInterceptors(
-                shouldExport(request, ExportConfigComponentType.GLOBAL_INTERCEPTOR)
-                        ? currentGlobalSettings.getGlobalInterceptors()
-                        : new ArrayList<>());
+        exportGlobalSettings.setGlobalInterceptors(globalInterceptors);
+
         return exportGlobalSettings;
     }
 
@@ -39,29 +37,12 @@ public class GlobalSettingsExporter {
         return globalSettingsService.getGlobalSettings();
     }
 
-    protected Map<ExportConfigComponentType, Collection<ExportComponentInfo>> previewGlobalSettings(ExportRequest request) {
-        var previewGlobalSettings = new HashMap<ExportConfigComponentType, Collection<ExportComponentInfo>>();
-        var exportGlobalSettings = getGlobalSettings(request);
-        previewGlobalSettings.put(ExportConfigComponentType.GLOBAL_INTERCEPTOR,
-                previewGlobalInterceptors(exportGlobalSettings.getGlobalInterceptors()));
-        return previewGlobalSettings;
-    }
-
-    private Collection<ExportComponentInfo> previewGlobalInterceptors(List<String> globalInterceptors) {
-        return globalInterceptors.stream()
-                .map(nameGlobalInterceptor -> ExportComponentInfo.builder()
-                        .name(nameGlobalInterceptor)
-                        .type(ExportConfigComponentType.GLOBAL_INTERCEPTOR)
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    private boolean shouldExport(ExportRequest request, ExportConfigComponentType type) {
+    private boolean shouldExport(ExportRequest request) {
         if (request instanceof FullExportRequest full) {
-            return full.getComponentTypes().contains(type);
+            return full.getComponentTypes().contains(ExportConfigComponentType.GLOBAL_INTERCEPTOR);
         }
         if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
-            return selectedItemsExportRequest.getComponents().stream().anyMatch(component -> component.getType() == type);
+            return selectedItemsExportRequest.getComponents().stream().anyMatch(component -> component.getType() == ExportConfigComponentType.GLOBAL_INTERCEPTOR);
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
