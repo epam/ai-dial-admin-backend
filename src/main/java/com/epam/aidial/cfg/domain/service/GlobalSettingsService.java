@@ -40,9 +40,13 @@ public class GlobalSettingsService {
 
     @Transactional(readOnly = true)
     public GlobalSettings getGlobalSettings() {
-        var entity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID)
-                .orElseThrow(() -> new EntityNotFoundException(("Global settings does not exist")));
+        var entity = getGlobalSettingsOrThrow();
         return globalSettingsMapper.toDomain(entity);
+    }
+
+    private GlobalSettingsEntity getGlobalSettingsOrThrow() {
+        return globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID)
+                .orElseThrow(() -> new IllegalStateException("Global settings does not exist"));
     }
 
     @Transactional(readOnly = true)
@@ -68,8 +72,7 @@ public class GlobalSettingsService {
 
     private GlobalSettingsEntity performUpdate(GlobalSettings globalSettings, String hash) {
         validateGlobalInterceptorsByNames(globalSettings.getGlobalInterceptors());
-        var entity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID)
-                .orElseThrow(() -> new IllegalStateException("Global settings does not exist"));
+        var entity = getGlobalSettingsOrThrow();
         assertNotConcurrencyOverwrite(entity, hash);
         return globalSettingsJpaRepository.save(globalSettingsMapper.toGlobalSettingsEntity(globalSettings, entity));
     }
@@ -91,10 +94,9 @@ public class GlobalSettingsService {
     @Transactional
     public void rollbackGlobalSettings(Number revision) {
         var history = getAtRevision((Integer) revision);
-        var currentEntity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID).orElseGet(GlobalSettingsEntity::new);
-        GlobalSettingsEntity entityToSave;
+        var currentEntity = getGlobalSettingsOrThrow();
         validateGlobalInterceptorsByNames(history.getGlobalInterceptors());
-        entityToSave = globalSettingsMapper.toGlobalSettingsEntity(history, currentEntity);
+        var entityToSave = globalSettingsMapper.toGlobalSettingsEntity(history, currentEntity);
         globalSettingsJpaRepository.save(entityToSave);
     }
 
