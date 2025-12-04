@@ -21,6 +21,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.ADAPTER;
@@ -156,7 +157,7 @@ public class FullToSelectedItemsExportRequestTransformer {
                 fullExportRequest.getComponentTypes(),
                 exportConfigComponentType.getDependencies(fullExportRequest.getExportFormat())
         );
-        return new ExportConfigComponent(name, exportConfigComponentType, dependencies);
+        return new ExportConfigComponent(name, exportConfigComponentType, new HashSet<>(dependencies));
     }
 
 }
