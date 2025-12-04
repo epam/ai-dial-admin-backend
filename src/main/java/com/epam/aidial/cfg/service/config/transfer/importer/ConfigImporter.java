@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
+import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
@@ -59,7 +60,10 @@ public class ConfigImporter {
         var roles = roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
         var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
         var globalSettings = globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
-        var globalInterceptors = globalSettings.get(GlobalSettingsImportType.GLOBAL_INTERCEPTORS);
+        var globalInterceptors = new ImportComponent<>(
+                globalSettings.getImportAction(),
+                globalSettings.getPrev().getGlobalInterceptors(),
+                globalSettings.getNext().getGlobalInterceptors());
 
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
         applicationRunners = applicationTypeSchemaImporter.getActualImportedApplicationTypeSchemas(applicationRunners);
@@ -110,7 +114,10 @@ public class ConfigImporter {
         var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
         var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
         var globalSettings = globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
-        var globalInterceptors = globalSettings.get(GlobalSettingsImportType.GLOBAL_INTERCEPTORS);
+        var globalInterceptors = new ImportComponent<>(
+                globalSettings.getImportAction(),
+                globalSettings.getPrev().getGlobalInterceptors(),
+                globalSettings.getNext().getGlobalInterceptors());
 
         interceptorRunners = interceptorRunnerImporter.getActualImportedInterceptorRunners(interceptorRunners);
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);

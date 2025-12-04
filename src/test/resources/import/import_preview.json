@@ -376,7 +376,7 @@
       }
     }
   ],
-  "globalInterceptors": [ {"importAction": "CREATE", "prev":[],"next": ["testInterceptor1"]}],
+  "globalInterceptors": {"importAction": "UPDATE", "prev":[],"next": ["testInterceptor1"]},
   "applicationRunners": [
     {
       "importAction": "create",
