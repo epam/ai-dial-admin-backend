@@ -12,7 +12,7 @@ public class GlobalSettings {
     private List<String> globalInterceptors;
 
     @JsonIgnore
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return CollectionUtils.isEmpty(globalInterceptors);
     }
 }

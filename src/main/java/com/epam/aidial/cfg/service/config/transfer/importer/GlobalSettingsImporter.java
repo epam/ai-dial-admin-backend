@@ -43,7 +43,7 @@ public class GlobalSettingsImporter {
                                                       ConflictResolutionPolicy resolutionPolicy) {
         return switch (resolutionPolicy) {
             case SKIP -> {
-                if (existingGlobalSettings.isEmpty()){
+                if (existingGlobalSettings.isEmpty()) {
                     globalSettingsService.update(newGlobalSettings);
                     yield UPDATE;
                 }
