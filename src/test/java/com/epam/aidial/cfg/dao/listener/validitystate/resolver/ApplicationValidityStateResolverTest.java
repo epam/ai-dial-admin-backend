@@ -17,15 +17,11 @@ import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.ValidityStateEntity;
-import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
-import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaRouteCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.DeploymentCoreMapperImpl;
-import com.epam.aidial.cfg.domain.mapper.FeatureCoreMapperImpl;
 import com.epam.aidial.cfg.domain.mapper.ResourceAuthSettingsCoreMapperImpl;
-import com.epam.aidial.cfg.domain.mapper.RouteCoreMapperImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,11 +45,8 @@ import java.util.List;
         DependentRouteEntityMapperImpl.class,
         FeaturesEntityMapperImpl.class,
         ValidityStateEntityMapperImpl.class,
-        ApplicationCoreMapperImpl.class,
         DeploymentCoreMapperImpl.class,
         ResourceAuthSettingsCoreMapperImpl.class,
-        FeatureCoreMapperImpl.class,
-        RouteCoreMapperImpl.class,
         ApplicationTypeSchemaEntityMapperImpl.class,
         PropertiesEntityMapperImpl.class,
         ApplicationTypeSchemaCoreMapperImpl.class,
@@ -63,8 +56,6 @@ class ApplicationValidityStateResolverTest {
 
     @Autowired
     private ApplicationEntityMapper applicationEntityMapper;
-    @Autowired
-    private ApplicationCoreMapper applicationCoreMapper;
     @Autowired
     private ApplicationTypeSchemaEntityMapper applicationTypeSchemaEntityMapper;
     @Autowired
@@ -76,7 +67,6 @@ class ApplicationValidityStateResolverTest {
     void setUp() {
         applicationValidityStateResolver = new ApplicationValidityStateResolver(
                 applicationEntityMapper,
-                applicationCoreMapper,
                 applicationTypeSchemaEntityMapper,
                 applicationTypeSchemaCoreMapper
         );
