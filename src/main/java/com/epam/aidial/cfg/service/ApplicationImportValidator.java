@@ -4,15 +4,12 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
 import com.epam.aidial.cfg.model.ImportResources;
-import com.epam.aidial.cfg.utils.PathUtils;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Validated
@@ -25,47 +22,50 @@ public class ApplicationImportValidator {
     }
 
     private void validateApplicationUniqueness(List<ApplicationEximDto> applications, boolean isFlatImport) {
-        var duplicatedApplicationIds = getDuplicatedApplicationIds(applications);
-        var duplicatedApplicationNames = Map.<String, Set<String>>of();
-        if (isFlatImport) {
-            duplicatedApplicationNames = getDuplicateApplicationNames(applications);
-        }
+        var duplicatedApplicationNames = Map.<String, String>of();
 
-        if (duplicatedApplicationIds.isEmpty() && duplicatedApplicationNames.isEmpty()) {
+        duplicatedApplicationNames = isFlatImport
+                ? getDuplicateApplicationNames(applications)
+                : getDuplicateApplicationNamesAndPath(applications);
+
+        if (duplicatedApplicationNames.isEmpty()) {
             return;
         }
 
         var errorMessage = new StringBuilder("Application uniqueness violation. Conflicts found:");
-        if (!duplicatedApplicationIds.isEmpty()) {
-            errorMessage.append("\n  - Duplicated application IDs: %s".formatted(duplicatedApplicationIds));
-        }
+
         if (!duplicatedApplicationNames.isEmpty()) {
-            duplicatedApplicationNames.forEach((applicationName, applicationIds) ->
-                    errorMessage.append("\n  - Duplicated application name %s for IDs: %s".formatted(applicationName, applicationIds))
+            duplicatedApplicationNames.forEach((applicationName, applicationVersion) ->
+                    errorMessage.append("Duplicated application name %s and version  %s".formatted(applicationName, applicationVersion))
             );
         }
         throw new IllegalArgumentException(errorMessage.toString());
     }
 
-    private Set<String> getDuplicatedApplicationIds(List<ApplicationEximDto> applications) {
-        var idCounts = applications.stream()
-                .map(ApplicationEximDto::getApplicationTypeSchemaId)
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    private Map<String, String> getDuplicateApplicationNames(List<ApplicationEximDto> applications) {
+        var counts = applications.stream()
+                .map(application -> Map.entry(application.getName(), application.getVersion()))
+                .collect(Collectors.groupingBy(name -> name, Collectors.counting()));
 
-        return idCounts.entrySet().stream()
-                .filter(countEntry -> countEntry.getValue() > 1)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+        return counts.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .collect(Collectors.toMap(
+                        e -> e.getKey().getKey(),
+                        e -> e.getKey().getValue()
+                ));
     }
 
-    private Map<String, Set<String>> getDuplicateApplicationNames(List<ApplicationEximDto> applications) {
-        var nameCounts = applications.stream()
-                .map(ApplicationEximDto::getName)
-                .collect(Collectors.groupingBy(id -> PathUtils.parseVersionedPath(id).getVersionedName(), Collectors.toSet()));
+    private Map<String, String> getDuplicateApplicationNamesAndPath(List<ApplicationEximDto> applications) {
+        var counts = applications.stream()
+                .map(app -> List.of(app.getName(), app.getVersion(), app.getFolderId()))
+                .collect(Collectors.groupingBy(e -> e, Collectors.counting()));
 
-        return nameCounts.entrySet().stream()
-                .filter(countEntry -> countEntry.getValue().size() > 1)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return counts.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .collect(Collectors.toMap(
+                        e -> e.getKey().get(0),
+                        e -> e.getKey().get(1)
+                ));
     }
 
 }
