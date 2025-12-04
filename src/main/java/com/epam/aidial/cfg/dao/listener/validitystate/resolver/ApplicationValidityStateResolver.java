@@ -6,10 +6,8 @@ import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.ValidityStateEntity;
-import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.model.Application;
-import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidationContext;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
 import com.networknt.schema.ValidationMessage;
@@ -26,7 +24,6 @@ import java.util.stream.Collectors;
 public class ApplicationValidityStateResolver {
 
     private final ApplicationEntityMapper applicationEntityMapper;
-    private final ApplicationCoreMapper applicationCoreMapper;
 
     private final ApplicationTypeSchemaEntityMapper applicationTypeSchemaEntityMapper;
     private final ApplicationTypeSchemaCoreMapper applicationTypeSchemaCoreMapper;
@@ -40,12 +37,12 @@ public class ApplicationValidityStateResolver {
             return validityStateEntity;
         }
 
-        CoreApplication coreApplication = mapToCoreApplication(applicationEntity);
+        Application application = mapToApplication(applicationEntity);
         String coreApplicationTypeSchema = mapToCoreApplicationTypeSchema(applicationTypeSchemaEntity);
         var validationContext = new CustomApplicationConformToTypeSchemaValidationContext(
                 Map.of(applicationTypeSchemaEntity.getSchemaId(), coreApplicationTypeSchema)
         );
-        Set<ValidationMessage> validationMessages = CustomApplicationConformToTypeSchemaValidator.validate(coreApplication, validationContext);
+        Set<ValidationMessage> validationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
 
         if (!validationMessages.isEmpty()) {
             String validityStateMessage = validationMessages.stream()
@@ -60,9 +57,8 @@ public class ApplicationValidityStateResolver {
         return validityStateEntity;
     }
 
-    private CoreApplication mapToCoreApplication(ApplicationEntity applicationEntity) {
-        Application application = applicationEntityMapper.toDomain(applicationEntity);
-        return applicationCoreMapper.mapApplication(application);
+    private Application mapToApplication(ApplicationEntity applicationEntity) {
+        return applicationEntityMapper.toDomain(applicationEntity);
     }
 
     private String mapToCoreApplicationTypeSchema(ApplicationTypeSchemaEntity entity) {
