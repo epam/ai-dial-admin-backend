@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.mapper;
 
-import com.epam.aidial.cfg.client.mapper.RouteMapper;
 import com.epam.aidial.cfg.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.ApplicationResourcePublicationDto;
 import com.epam.aidial.cfg.dto.ConversationDto;
@@ -39,7 +38,7 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = RouteMapper.class)
+@Mapper(componentModel = "spring")
 public interface PublicationMapper {
 
     PublicationInfosDto toPromptPublicationInfosDto(PublicationInfos model);

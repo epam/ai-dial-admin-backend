@@ -43,4 +43,5 @@ public class ApplicationResource {
     private FeaturesResource features;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private ValidityStateResource validityState;
 }

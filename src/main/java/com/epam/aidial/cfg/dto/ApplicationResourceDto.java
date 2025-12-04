@@ -37,4 +37,5 @@ public class ApplicationResourceDto {
     private List<RouteResourceDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private ValidityStateResourceDto validityState;
 }

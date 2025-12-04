@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.NodeType;
+import com.epam.aidial.cfg.model.ValidityStateResource;
 import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
@@ -24,7 +25,9 @@ import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.parseEncodedVe
 public abstract class ApplicationClientMapper {
     public static final String APPLICATIONS_PREFIX = "applications/";
 
-    public ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto, ApplicationMetadataDto metadataDto) {
+    public ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto,
+                                                     ApplicationMetadataDto metadataDto,
+                                                     ValidityStateResource validityState) {
         if (applicationResourceDto == null || metadataDto == null) {
             return null;
         }
@@ -34,7 +37,7 @@ public abstract class ApplicationClientMapper {
         }
 
         var itemParts = PathUtils.parseEncodedVersionedPath(metadataDto.getUrl(), APPLICATIONS_PREFIX);
-        return toApplicationResource(applicationResourceDto, metadataDto, itemParts);
+        return toApplicationResource(applicationResourceDto, metadataDto, itemParts, validityState);
     }
 
     @Mapping(target = "name", source = "itemParts.name")
@@ -42,7 +45,11 @@ public abstract class ApplicationClientMapper {
     @Mapping(target = "folderId", source = "itemParts.folderId")
     @Mapping(target = "author", source = "metadataDto.author")
     @Mapping(target = "routes", source = "dto.routes")
-    protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto, ApplicationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
+    @Mapping(target = "validityState", source = "validityState")
+    protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto,
+                                                                 ApplicationMetadataDto metadataDto,
+                                                                 PathUtils.VersionedPathParts itemParts,
+                                                                 ValidityStateResource validityState);
 
     public ApplicationResourceNodeInfo toApplicationInfo(ApplicationMetadataDto dto) {
         if (dto == null) {
