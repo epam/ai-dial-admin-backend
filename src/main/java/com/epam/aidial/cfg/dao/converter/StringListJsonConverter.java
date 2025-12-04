@@ -27,7 +27,7 @@ public class StringListJsonConverter implements AttributeConverter<List<String>,
         try {
             return data == null
                     ? new ArrayList<>()
-                    : mapper.readValue(data, new TypeReference<List<String>>() {
+                    : mapper.readValue(data, new TypeReference<>() {
                     });
         } catch (Exception e) {
             throw new IllegalStateException("Failed to convert data to list", e);
