@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.handler;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
@@ -28,17 +29,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 /**
  * Created by Aliaksei Kurnosau on 9/9/24.
  */
 @ControllerAdvice
 @Slf4j
+@LogExecution
 public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(VersionMismatchException.class)
     public ErrorView handleMismatchError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.PRECONDITION_FAILED, ex.getMessage());
     }
 
@@ -46,6 +52,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(EntityAlreadyExistsException.class)
     public ErrorView handleEntityAlreadyExistsError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.CONFLICT, ex.getMessage());
     }
 
@@ -54,6 +61,7 @@ public class DefaultExceptionHandler {
     @ExceptionHandler({EntityNotFoundException.class, NoResourceFoundException.class,
             ResourceNotFoundException.class})
     public ErrorView handleEntityNotFoundError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
@@ -61,6 +69,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
     public ErrorView handleMethodNotAllowedError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage());
     }
 
@@ -68,6 +77,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(AccessDeniedException.class)
     public ErrorView handleAuthorizationException(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
@@ -75,6 +85,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ErrorView handleWrongJsonError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
@@ -82,6 +93,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingRequestValueException.class)
     public ErrorView handleMissingRequestValueError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
@@ -89,6 +101,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ConstraintViolationException.class)
     public ErrorView handleConstraintViolationError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
@@ -96,6 +109,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ImportPreviewException.class)
     public ErrorView handleImportPreviewError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
@@ -103,7 +117,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorView handleGeneralError(HttpServletRequest req, Exception ex) {
-        log.error("[{}] Request: {} raised ", req.getMethod(), req.getServletPath(), ex);
+        log.warn("[{}] Request: {} raised ", req.getMethod(), req.getServletPath(), ex);
 
         return new ErrorView(req, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
@@ -114,6 +128,8 @@ public class DefaultExceptionHandler {
     public ErrorView handleValidationExceptions(
             HttpServletRequest req,
             MethodArgumentNotValidException ex) {
+        logUncaught(ex);
+
         StringBuffer message = new StringBuffer();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             message
@@ -130,6 +146,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
     public ErrorView handleIllegalArgumentError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
@@ -137,6 +154,7 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(FeignException.FeignClientException.class)
     public ErrorView handleFeignClientError(FeignException.FeignClientException clientException,
                                             HttpServletRequest req) {
+        logUncaught(clientException);
         final HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
         String message = clientException.contentUTF8();
         return new ErrorView(req, httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus, message);
@@ -146,6 +164,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(FolderAlreadyExistsException.class)
     public ErrorView handleFolderAlreadyExistsError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.CONFLICT, ex.getMessage());
     }
 
@@ -153,6 +172,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(FolderNotFoundException.class)
     public ErrorView handleFolderNotFoundError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
@@ -160,6 +180,7 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler({OptimisticLockConflictException.class, ResourcePreconditionFailedException.class})
     public ErrorView handlePreconditionFailedException(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
         return new ErrorView(req, HttpStatus.PRECONDITION_FAILED, ex.getMessage());
     }
 
@@ -168,7 +189,19 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(NotModifiedException.class)
     public ResponseEntity<Void> handleNotModifiedException(NotModifiedException ex,
                                                            HttpServletRequest req) {
+        logUncaught(ex);
         return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(ex.getEtag()).build();
+    }
+
+    protected void logUncaught(final Exception e) {
+        if (!log.isDebugEnabled()) {
+            return;
+        }
+
+        var stackTraceAsString = Arrays.stream(e.getStackTrace())
+                .map(StackTraceElement::toString)
+                .collect(Collectors.joining("\n  at "));
+        log.debug("Uncaught exception: {} Message: {} \n Stack trace: {}", e.getClass(), e.getMessage(), stackTraceAsString);
     }
 
 }
