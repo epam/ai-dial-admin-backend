@@ -126,7 +126,8 @@ public class GlobalSettingsService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: globalSettings, expectedHash={}, currentHash={}",
                     expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: globalSettings. Reload the data."));
+            throw new OptimisticLockConflictException(String.format("Unable to update GlobalSettings. The data may have been modified by another user, "
+                    + "Please reload the data and try again."));
         }
     }
 }
