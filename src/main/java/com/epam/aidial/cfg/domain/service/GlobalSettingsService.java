@@ -90,17 +90,11 @@ public class GlobalSettingsService {
 
     @Transactional
     public void rollbackGlobalSettings(Number revision) {
-        var history = getAllAtRevision(revision);
+        var history = getAtRevision((Integer) revision);
         var currentEntity = globalSettingsJpaRepository.findById(GLOBAL_SETTINGS_ID).orElseGet(GlobalSettingsEntity::new);
         GlobalSettingsEntity entityToSave;
-        if (CollectionUtils.isEmpty(history)) {
-            var defaultDomain = new GlobalSettings();
-            entityToSave = globalSettingsMapper.toGlobalSettingsEntity(defaultDomain, currentEntity);
-        } else {
-            var domain = history.get(0);
-            validateGlobalInterceptorsByNames(domain.getGlobalInterceptors());
-            entityToSave = globalSettingsMapper.toGlobalSettingsEntity(domain, currentEntity);
-        }
+        validateGlobalInterceptorsByNames(history.getGlobalInterceptors());
+        entityToSave = globalSettingsMapper.toGlobalSettingsEntity(history, currentEntity);
         globalSettingsJpaRepository.save(entityToSave);
     }
 

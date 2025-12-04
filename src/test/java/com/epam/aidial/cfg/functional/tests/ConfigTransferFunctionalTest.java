@@ -2729,6 +2729,45 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExportCoreConfigFullExportRequest_ExportGlobalSettings() throws IOException {
+        // given
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+
+        interceptorFacade.createInterceptor(interceptorDto1);
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
+        globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor2", "interceptor2"));
+
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
+
+        var request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.GLOBAL_INTERCEPTOR));
+
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget("0.38.0");
+
+        try {
+            // when
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            // then
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+
+            Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+            Assertions.assertThat(result).isNotNull();
+            Assertions.assertThat(result.getGlobalInterceptors())
+                    .containsExactly("interceptor1", "interceptor2", "interceptor2");
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
+    }
+
+    @Test
     void testExportCoreConfig_VersionFieldSerialization() throws IOException {
         // given
         var modelName = "versionFieldsModel";

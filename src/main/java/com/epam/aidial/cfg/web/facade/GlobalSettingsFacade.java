@@ -34,7 +34,6 @@ public class GlobalSettingsFacade {
         return globalSettingsService.update(value, hash);
     }
 
-
     public GlobalSettingsDto getAtRevision(Integer revision) {
         return mapper.toDto(globalSettingsService.getAtRevision(revision));
     }
