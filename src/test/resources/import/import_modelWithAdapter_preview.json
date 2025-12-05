@@ -2,6 +2,12 @@
   "roles": [],
   "keys": [],
   "interceptors": [],
+  "globalInterceptors":
+    {
+      "importAction": "update",
+      "next": [],
+      "prev": []
+    },
   "applicationRunners": [],
   "routes": [],
   "adapters": [

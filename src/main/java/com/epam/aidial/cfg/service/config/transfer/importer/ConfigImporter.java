@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
+import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
@@ -34,6 +35,7 @@ public class ConfigImporter {
     private final AssistantImporter assistantImporter;
     private final AdapterImporter adapterImporter;
     private final ToolSetImporter toolSetImporter;
+    private final GlobalSettingsImporter globalSettingsImporter;
 
     private final AdminConfigImportBackwardCompatibilityHandler adminConfigImportBackwardCompatibilityHandler;
 
@@ -57,6 +59,11 @@ public class ConfigImporter {
         var toolSets = toolSetImporter.importToolSets(config.getToolsets(), importOptions);
         var roles = roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
         var keys = keyImporter.importKeys(config.getKeys(), resolutionPolicy, true);
+        var globalSettings = globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+        var globalInterceptors = new ImportComponent<>(
+                globalSettings.getImportAction(),
+                globalSettings.getPrev().getGlobalInterceptors(),
+                globalSettings.getNext().getGlobalInterceptors());
 
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
         applicationRunners = applicationTypeSchemaImporter.getActualImportedApplicationTypeSchemas(applicationRunners);
@@ -82,6 +89,7 @@ public class ConfigImporter {
                 .addons(addons)
                 .assistants(assistants)
                 .toolSets(toolSets)
+                .globalInterceptors(globalInterceptors)
                 .build();
     }
 
@@ -105,6 +113,11 @@ public class ConfigImporter {
         var toolSets = toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
         var roles = roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
         var keys = keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
+        var globalSettings = globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+        var globalInterceptors = new ImportComponent<>(
+                globalSettings.getImportAction(),
+                globalSettings.getPrev().getGlobalInterceptors(),
+                globalSettings.getNext().getGlobalInterceptors());
 
         interceptorRunners = interceptorRunnerImporter.getActualImportedInterceptorRunners(interceptorRunners);
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
@@ -128,6 +141,7 @@ public class ConfigImporter {
                 .models(models)
                 .applications(applications)
                 .toolSets(toolSets)
+                .globalInterceptors(globalInterceptors)
                 .build();
     }
 
@@ -152,6 +166,8 @@ public class ConfigImporter {
         toolSetImporter.importToolSets(config.getToolsets(), importOptions);
         roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
         keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
+        globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+
     }
 
     @Transactional
@@ -170,5 +186,6 @@ public class ConfigImporter {
         toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
         roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
         keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
+        globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
     }
 }

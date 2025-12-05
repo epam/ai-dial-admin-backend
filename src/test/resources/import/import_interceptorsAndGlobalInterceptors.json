@@ -1,0 +1,37 @@
+{
+  "models": {},
+  "applications": {},
+  "roles": {},
+  "addons": {},
+  "interceptors": {
+    "interceptor1": {
+      "name": "interceptor1",
+      "displayName": "Test Interceptor1",
+      "endpoint": "https://endpoint.test.com/interceptor",
+      "userRoles": [
+        "testRole1"
+      ],
+      "author": "test-author",
+      "createdAt": 12345,
+      "updatedAt": 12345,
+      "dependencies": []
+    },
+     "interceptor3": {
+          "name": "interceptor3",
+          "displayName": "Test Interceptor3",
+          "endpoint": "https://endpoint.test.com/interceptor",
+          "userRoles": [
+            "testRole1"
+          ],
+          "author": "test-author",
+          "createdAt": 12345,
+          "updatedAt": 12345,
+          "dependencies": []
+        }
+  },
+  "globalInterceptors": ["interceptor1", "interceptor1","interceptor3"],
+  "assistant": {},
+  "keys": {},
+  "applicationTypeSchemas": [],
+  "routes": {}
+}
