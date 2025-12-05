@@ -73,7 +73,8 @@ class ApplicationImportValidatorTest {
         ImportResources importResources = new ImportResources();
         importResources.setFlatImport(false);
 
-        assertDoesNotThrow(() -> validator.validateApplicationImport(importResources, dto));    }
+        assertDoesNotThrow(() -> validator.validateApplicationImport(importResources, dto));
+    }
 
     @Test
     void shouldHandleEmptyApplicationsList() {
