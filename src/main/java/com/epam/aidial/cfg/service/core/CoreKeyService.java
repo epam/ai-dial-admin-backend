@@ -64,8 +64,9 @@ public class CoreKeyService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: keyName={}, expectedHash={}, currentHash={}",
                     key.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: keyName:'"
-                    + "%s'. Please reload the data.", key.getName()));
+            throw new OptimisticLockConflictException(String.format("Unable to update Key '%s'. The data may have been modified by another user, "
+                            + "or the name/ID may already exist. Please reload the data and try again.",
+                    key.getName()));
         }
     }
 

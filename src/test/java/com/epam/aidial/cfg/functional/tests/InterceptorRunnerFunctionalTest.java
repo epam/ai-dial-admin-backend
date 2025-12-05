@@ -203,8 +203,13 @@ public abstract class InterceptorRunnerFunctionalTest {
         InterceptorRunnerDto updatedInterceptorRunner = createDto("1");
         updatedInterceptorRunner.setDescription("updated description");
 
-        Assertions.assertThrows(OptimisticLockConflictException.class,
-                () -> interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner, "test"));
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), updatedInterceptorRunner, "test")
+        );
+        Assertions.assertEquals("Unable to update InterceptorRunner 'interceptorRunner1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     private InterceptorRunnerDto createDto(String suffix) {
