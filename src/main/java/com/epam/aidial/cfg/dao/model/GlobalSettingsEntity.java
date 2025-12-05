@@ -19,7 +19,7 @@ import java.util.List;
 public class GlobalSettingsEntity extends TimeTrackableEntity<Integer> {
     @Id
     @EqualsAndHashCode.Include
-    private Integer id = 1;
+    private Integer id;
 
     @Convert(converter = StringListJsonConverter.class)
     private List<String> globalInterceptors = new ArrayList<>();

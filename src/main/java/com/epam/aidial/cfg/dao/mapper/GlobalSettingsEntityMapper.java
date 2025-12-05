@@ -15,7 +15,7 @@ public abstract class GlobalSettingsEntityMapper {
 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "id", constant = "1")
+    @Mapping(target = "id", ignore = true)
     public abstract GlobalSettingsEntity update(GlobalSettings globalSettings, @MappingTarget GlobalSettingsEntity entity);
 
     public abstract GlobalSettings toDomain(GlobalSettingsEntity globalSettingsEntity);

@@ -83,19 +83,11 @@ public class GlobalSettingsService {
         return globalSettingsMapper.toDomain(entity);
     }
 
-    @Transactional(readOnly = true)
-    public List<GlobalSettings> getAllAtRevision(Number revision) {
-        return historyService.getEntitiesAtRevision(revision, GlobalSettingsEntity.class)
-                .stream()
-                .map(globalSettingsMapper::toDomain)
-                .collect(Collectors.toList());
-    }
-
     @Transactional
     public void rollbackGlobalSettings(Number revision) {
         var history = getAtRevision((Integer) revision);
-        var currentEntity = getGlobalSettingsOrThrow();
         validateGlobalInterceptorsByNames(history.getGlobalInterceptors());
+        var currentEntity = getGlobalSettingsOrThrow();
         var entityToSave = globalSettingsMapper.toGlobalSettingsEntity(history, currentEntity);
         globalSettingsJpaRepository.save(entityToSave);
     }
