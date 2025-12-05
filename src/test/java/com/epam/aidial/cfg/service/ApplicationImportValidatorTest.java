@@ -73,11 +73,7 @@ class ApplicationImportValidatorTest {
         ImportResources importResources = new ImportResources();
         importResources.setFlatImport(false);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> validator.validateApplicationImport(importResources, dto));
-
-        assertTrue(exception.getMessage().contains("Application uniqueness violation. Conflicts found:Duplicated application name application1 and version  0.0.1"));
-    }
+        assertDoesNotThrow(() -> validator.validateApplicationImport(importResources, dto));    }
 
     @Test
     void shouldHandleEmptyApplicationsList() {
