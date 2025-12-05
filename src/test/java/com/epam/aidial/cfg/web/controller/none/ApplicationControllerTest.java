@@ -21,7 +21,8 @@ import org.springframework.test.json.JsonCompareMode;
 
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -174,15 +175,21 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
 
         when(applicationFacade.updateApplication(eq("test_application"), any(ApplicationDto.class), any())).thenReturn("test");
 
+        String errorMessagePrefix = "JSON parse error: ";
+        String path0Error = "paths[0].<list element>: Invalid route path. "
+                + "Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)";
+        String path1Error = "paths[1].<list element>: Invalid route path. "
+                + "Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)";
+
         mockMvc.perform(put("/api/v1/applications/{applicationName}", "test_application")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(dtoJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", containsString("paths[1].<list element>: Invalid route path. "
-                        + "Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)")))
-                .andExpect(jsonPath("$.message", containsString("paths[0].<list element>: Invalid route path. "
-                        + "Path must be a valid plain path (starting with /) or a valid regular expression pattern (starting with / or ^/)")));
-    }
+                .andExpect(jsonPath("$.message").value(allOf(
+                        containsString(errorMessagePrefix),
+                        containsString(path0Error),
+                        containsString(path1Error)
+                )));    }
 
     @Test
     void testDeleteApplication() throws Exception {
