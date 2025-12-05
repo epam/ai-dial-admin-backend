@@ -20,6 +20,7 @@ import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
@@ -73,6 +74,7 @@ public class FunctionalTestConfiguration {
     public CoreConfigAggregatorService configAggregatorService(ApplicationService applicationService,
                                                                ApplicationTypeSchemaService applicationTypeSchemaService,
                                                                InterceptorService interceptorService, KeyService keyService,
+                                                               GlobalSettingsService globalSettingsService,
                                                                ModelService modelService, RoleService roleService,
                                                                RouteService routeService, DeploymentService deploymentService,
                                                                ToolSetService toolSetService, AdapterService adapterService,
@@ -80,7 +82,7 @@ public class FunctionalTestConfiguration {
                                                                InterceptorCoreMapper interceptorMapper, KeyCoreMapper keyMapper,
                                                                ModelCoreMapper modelMapper, RoleCoreMapper roleMapper,
                                                                RouteCoreMapper routeMapper, ToolSetCoreMapper toolSetMapper) {
-        return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService,
+        return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService, globalSettingsService,
                 keyService, modelService, roleService, routeService, deploymentService, toolSetService, adapterService, applicationMapper, schemaMapper, interceptorMapper,
                 keyMapper, modelMapper, roleMapper, routeMapper, toolSetMapper);
     }

@@ -25,6 +25,7 @@ import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.AttachmentPathDto;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
+import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
@@ -60,6 +61,7 @@ import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
 import com.epam.aidial.cfg.web.facade.AssistantsPropertyFacade;
+import com.epam.aidial.cfg.web.facade.GlobalSettingsFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
@@ -166,6 +168,8 @@ public abstract class ConfigTransferFunctionalTest {
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private DatabaseService databaseService;
+    @Autowired
+    private GlobalSettingsFacade globalSettingsFacade;
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
 
@@ -1688,6 +1692,143 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExport_CoreFormatGlobalInterceptorsWithoutDependencies_SelectedItemsExportRequest() throws IOException {
+        // given
+        String importConfig = ResourceUtils.readResource("/import_for_export.json");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponents(List.of(
+                new ExportConfigComponent("globalInterceptors", ExportConfigComponentType.GLOBAL_INTERCEPTOR, Set.of())
+        ));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getKeys()).isEmpty();
+            Assertions.assertThat(config.getModels()).isEmpty();
+            Assertions.assertThat(config.getApplications()).isEmpty();
+            Assertions.assertThat(config.getRoutes()).isEmpty();
+            Assertions.assertThat(config.getGlobalInterceptors()).isEqualTo(List.of("testInterceptor2", "testInterceptor1"));
+            Assertions.assertThat(config.getInterceptors()).isEmpty();
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatGlobalInterceptorsWithDependencies_SelectedItemsExportRequest() throws IOException {
+        // given
+        String importConfig = ResourceUtils.readResource("/import_for_export.json");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponents(List.of(
+                new ExportConfigComponent("globalInterceptors", ExportConfigComponentType.GLOBAL_INTERCEPTOR,
+                        Set.of(ExportConfigComponentType.INTERCEPTOR))
+        ));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getKeys()).isEmpty();
+            Assertions.assertThat(config.getModels()).isEmpty();
+            Assertions.assertThat(config.getApplications()).isEmpty();
+            Assertions.assertThat(config.getRoutes()).isEmpty();
+            Assertions.assertThat(config.getGlobalInterceptors()).isEqualTo(List.of("testInterceptor2", "testInterceptor1"));
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1", "testInterceptor2");
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatGlobalInterceptors_FullRequest() throws IOException {
+        // given
+        String importConfig = ResourceUtils.readResource("/import_for_export.json");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.GLOBAL_INTERCEPTOR));
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // Then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getInterceptors()).isEmpty();
+            Assertions.assertThat(config.getGlobalInterceptors()).isEqualTo(List.of("testInterceptor2", "testInterceptor1"));
+        });
+    }
+
+    @Test
+    void testExport_CoreFormatGlobalInterceptorsAndInterceptors_FullRequest() throws IOException {
+        // given
+        String importConfig = ResourceUtils.readResource("/import_for_export.json");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.GLOBAL_INTERCEPTOR, ExportConfigComponentType.INTERCEPTOR));
+
+        // When
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // Then
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1", "testInterceptor2", "testInterceptor3");
+            Assertions.assertThat(config.getGlobalInterceptors()).isEqualTo(List.of("testInterceptor2", "testInterceptor1"));
+        });
+    }
+
+    @Test
     void testExport_CoreFormatAll_FullRequest() throws IOException, JSONException {
         // given
         String importConfig = ResourceUtils.readResource("/import_for_export.json");
@@ -1770,6 +1911,113 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1");
             Assertions.assertThat(config.getApplicationRunners()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
         });
+    }
+
+    @Test
+    void testImport_ImportGlobalInterceptorsWithOverride() throws IOException {
+        // given
+        String config = FileUtils.readFileToString(new File("src/test/resources/import/import_interceptorsAndGlobalInterceptors.json"), StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto1);
+        interceptorFacade.createInterceptor(interceptorDto2);
+        GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
+        globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor2", "interceptor2"));
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
+
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE, true, true));
+
+        Set<String> interceptorNames = interceptorFacade.getAllInterceptors().stream().map(InterceptorDto::getName).collect(Collectors.toSet());
+        GlobalSettingsDto globalSettings = globalSettingsFacade.getGlobalSettings();
+        Assertions.assertThat(interceptorNames).containsAll(Set.of("interceptor1", "interceptor2", "interceptor3"));
+        Assertions.assertThat((globalSettings.getGlobalInterceptors()))
+                .containsExactly("interceptor1", "interceptor1", "interceptor3");
+    }
+
+    @Test
+    void testImport_ImportGlobalInterceptorsWithSkip() throws IOException {
+        // given
+        String config = FileUtils.readFileToString(new File("src/test/resources/import/import_interceptorsAndGlobalInterceptors.json"), StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto1);
+        interceptorFacade.createInterceptor(interceptorDto2);
+        GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
+        globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
+
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
+
+        Set<String> interceptorNames = interceptorFacade.getAllInterceptors().stream().map(InterceptorDto::getName).collect(Collectors.toSet());
+        GlobalSettingsDto globalSettings = globalSettingsFacade.getGlobalSettings();
+        Assertions.assertThat(interceptorNames).containsAll(Set.of("interceptor1", "interceptor2", "interceptor3"));
+        Assertions.assertThat((globalSettings.getGlobalInterceptors()))
+                .containsExactly("interceptor1", "interceptor1", "interceptor2");
+    }
+
+    @Test
+    void testImport_ImportGlobalInterceptorsWithSkipAndGlobalInterceptorsIsEmpty() throws IOException {
+        // given
+        String config = FileUtils.readFileToString(new File("src/test/resources/import/import_interceptorsAndGlobalInterceptors.json"), StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto1);
+        interceptorFacade.createInterceptor(interceptorDto2);
+        GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
+
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
+
+        Set<String> interceptorNames = interceptorFacade.getAllInterceptors().stream().map(InterceptorDto::getName).collect(Collectors.toSet());
+        GlobalSettingsDto globalSettings = globalSettingsFacade.getGlobalSettings();
+        Assertions.assertThat(interceptorNames).containsAll(Set.of("interceptor1", "interceptor2", "interceptor3"));
+        Assertions.assertThat((globalSettings.getGlobalInterceptors()))
+                .containsExactly("interceptor1", "interceptor1", "interceptor3");
+    }
+
+    @Test
+    void testImport_ImportEmptyGlobalInterceptors() throws IOException {
+        // given
+        String config = FileUtils.readFileToString(new File("src/test/resources/import/import_interceptorsAndEmptyGlobalInterceptors.json"), StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes()
+        );
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorFacade.createInterceptor(interceptorDto1);
+        interceptorFacade.createInterceptor(interceptorDto2);
+        GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
+        globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor1", "interceptor2"));
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
+
+        configTransfer.importConfig(List.of(mockFile), new ConfigImportOptions(ConflictResolutionPolicy.SKIP, true, true));
+
+        Set<String> interceptorNames = interceptorFacade.getAllInterceptors().stream().map(InterceptorDto::getName).collect(Collectors.toSet());
+        GlobalSettingsDto globalSettings = globalSettingsFacade.getGlobalSettings();
+        Assertions.assertThat(interceptorNames).containsAll(Set.of("interceptor1", "interceptor2", "interceptor3"));
+        Assertions.assertThat((globalSettings.getGlobalInterceptors()))
+                .containsExactly("interceptor1", "interceptor1", "interceptor2");
     }
 
     @Test
@@ -2475,6 +2723,45 @@ public abstract class ConfigTransferFunctionalTest {
             var exportedRoute = result.getRoutes().get(routeName);
             Assertions.assertThat(exportedRoute.getOrder()).isNotEqualTo(order);
 
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
+    }
+
+    @Test
+    void testExportCoreConfigFullExportRequest_ExportGlobalSettings() throws IOException {
+        // given
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+
+        interceptorFacade.createInterceptor(interceptorDto1);
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        GlobalSettingsDto globalSettingsDto = new GlobalSettingsDto();
+        globalSettingsDto.setGlobalInterceptors(List.of("interceptor1", "interceptor2", "interceptor2"));
+
+        globalSettingsFacade.updateGlobalSettings(globalSettingsDto);
+
+        var request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.GLOBAL_INTERCEPTOR));
+
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget("0.38.0");
+
+        try {
+            // when
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            // then
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+
+            Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+
+            Assertions.assertThat(result).isNotNull();
+            Assertions.assertThat(result.getGlobalInterceptors())
+                    .containsExactly("interceptor1", "interceptor2", "interceptor2");
         } finally {
             versionProperties.setTarget(originalVersion);
         }

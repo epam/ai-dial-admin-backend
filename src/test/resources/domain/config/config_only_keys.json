@@ -19,6 +19,7 @@
   "roles": {},
   "retriableErrorCodes": [],
   "interceptors": {},
+  "globalInterceptors": [],
   "applicationTypeSchemas": [],
   "toolsets": {}
 }

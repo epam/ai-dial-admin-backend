@@ -27,6 +27,7 @@
       "dependencies": []
     }
   },
+  "globalInterceptors": [],
   "applicationTypeSchemas": [],
   "toolsets": {}
 }
