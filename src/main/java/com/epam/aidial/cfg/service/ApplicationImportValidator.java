@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Validated
@@ -17,55 +18,70 @@ import java.util.stream.Collectors;
 @LogExecution
 public class ApplicationImportValidator {
 
+    private record ApplicationNameAndVersion(String name, String version) {
+    }
+
+    private record ApplicationNameAndVersionAndPath(String name, String version, String folder) {
+    }
+
     public void validateApplicationImport(ImportResources importApplications, @Valid ApplicationsEximDto applicationsEximDto) {
         validateApplicationUniqueness(applicationsEximDto.getApplications(), importApplications.isFlatImport());
     }
 
     private void validateApplicationUniqueness(List<ApplicationEximDto> applications, boolean isFlatImport) {
-        var duplicatedApplicationNames = Map.<String, String>of();
+        if (isFlatImport) {
+            validateUniquenessByNameAndVersion(applications);
+        } else {
+            validateUniquenessByNameAndVersionAndPath(applications);
+        }
+    }
 
-        duplicatedApplicationNames = isFlatImport
-                ? getDuplicateApplicationNames(applications)
-                : getDuplicateApplicationNamesAndPath(applications);
+    private void validateUniquenessByNameAndVersion(List<ApplicationEximDto> applications) {
+        var duplicatedApplicationNames = getDuplicateApplicationNames(applications);
 
         if (duplicatedApplicationNames.isEmpty()) {
             return;
         }
 
         var errorMessage = new StringBuilder("Application uniqueness violation. Conflicts found:");
-
-        if (!duplicatedApplicationNames.isEmpty()) {
-            duplicatedApplicationNames.forEach((applicationName, applicationVersion) ->
-                    errorMessage.append("Duplicated application name %s and version  %s".formatted(applicationName, applicationVersion))
-            );
-        }
+        duplicatedApplicationNames.forEach(application ->
+                errorMessage.append("\n - Duplicated application name '%s' and version '%s'"
+                        .formatted(application.name, application.version)));
         throw new IllegalArgumentException(errorMessage.toString());
     }
 
-    private Map<String, String> getDuplicateApplicationNames(List<ApplicationEximDto> applications) {
-        var counts = applications.stream()
-                .map(application -> Map.entry(application.getName(), application.getVersion()))
-                .collect(Collectors.groupingBy(name -> name, Collectors.counting()));
+    private void validateUniquenessByNameAndVersionAndPath(List<ApplicationEximDto> applications) {
+        var duplicatedApplicationNames = getDuplicateApplicationNamesAndPath(applications);
 
-        return counts.entrySet().stream()
-                .filter(e -> e.getValue() > 1)
-                .collect(Collectors.toMap(
-                        e -> e.getKey().getKey(),
-                        e -> e.getKey().getValue()
-                ));
+        if (duplicatedApplicationNames.isEmpty()) {
+            return;
+        }
+
+        var errorMessage = new StringBuilder("Application uniqueness violation. Conflicts found:");
+        duplicatedApplicationNames.forEach(application ->
+                errorMessage.append("\n - Duplicated application name '%s' and version '%s' and folder '%s'"
+                        .formatted(application.name, application.version, application.folder)));
+        throw new IllegalArgumentException(errorMessage.toString());
     }
 
-    private Map<String, String> getDuplicateApplicationNamesAndPath(List<ApplicationEximDto> applications) {
+    private List<ApplicationNameAndVersion> getDuplicateApplicationNames(List<ApplicationEximDto> applications) {
         var counts = applications.stream()
-                .map(app -> List.of(app.getName(), app.getVersion(), app.getFolderId()))
-                .collect(Collectors.groupingBy(e -> e, Collectors.counting()));
+                .map(application -> new ApplicationNameAndVersion(application.getName(), application.getVersion()))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         return counts.entrySet().stream()
                 .filter(e -> e.getValue() > 1)
-                .collect(Collectors.toMap(
-                        e -> e.getKey().get(0),
-                        e -> e.getKey().get(1)
-                ));
+                .map(Map.Entry::getKey).toList();
+    }
+
+    private List<ApplicationNameAndVersionAndPath> getDuplicateApplicationNamesAndPath(List<ApplicationEximDto> applications) {
+        var counts = applications.stream()
+                .map(app -> new ApplicationNameAndVersionAndPath(app.getName(), app.getVersion(), app.getFolderId()))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        return counts.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(Map.Entry::getKey).toList();
     }
 
 }
