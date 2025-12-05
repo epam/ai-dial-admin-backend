@@ -189,6 +189,7 @@
       }
     }
   },
+  "globalInterceptors": ["testInterceptor1"],
   "keys": {
     "testKey1": {
       "key": "key1",

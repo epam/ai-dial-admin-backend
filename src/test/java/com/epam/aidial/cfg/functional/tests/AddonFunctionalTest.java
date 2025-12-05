@@ -194,8 +194,9 @@ public abstract class AddonFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> addonFacade.updateAddon(addonDto.getName(), addonDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update: addonName:'addon1'"
-                + ". Reload the data.", exception.getMessage());
+        Assertions.assertEquals("Unable to update Addon 'addon1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test

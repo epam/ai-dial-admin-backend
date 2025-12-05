@@ -282,6 +282,12 @@
       }
     }
   ],
+  "globalInterceptors":
+    {
+      "importAction": "update",
+      "next": [],
+      "prev": []
+    },
   "interceptorRunners": [
     {
       "importAction": "create",

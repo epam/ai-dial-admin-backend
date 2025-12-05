@@ -23,6 +23,7 @@ import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.exception.GlobalInterceptorDeletionException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.google.api.client.util.Lists;
@@ -64,6 +65,7 @@ public class InterceptorService {
     private final InterceptorEntityMapper mapper;
     private final InterceptorContainerEntityMapper interceptorContainerEntityMapper;
     private final HistoryService historyService;
+    private final GlobalSettingsService globalSettingsService;
     private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
@@ -136,6 +138,11 @@ public class InterceptorService {
     @Transactional
     public void delete(String interceptorName) {
         assertExists(interceptorName);
+        var globalSettings = globalSettingsService.getGlobalSettings();
+        if (globalSettings.getGlobalInterceptors().contains(interceptorName)) {
+            log.warn("Failed to delete interceptor: {}. Global Interceptor can not be deleted.", interceptorName);
+            throw new GlobalInterceptorDeletionException(String.format("Failed to delete interceptor: %s. Global Interceptor can not be deleted.", interceptorName));
+        }
         interceptorJpaRepository.deleteById(interceptorName);
     }
 
@@ -166,8 +173,9 @@ public class InterceptorService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: interceptorName={}, expectedHash={}, currentHash={}",
                     entity.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: interceptorName:'"
-                    + "%s'. Reload the data.", entity.getName()));
+            throw new OptimisticLockConflictException(String.format("Unable to update Interceptor '%s'. The data may have been modified by another user, "
+                            + "or the name/ID may already exist. Please reload the data and try again.",
+                    entity.getName()));
         }
     }
 

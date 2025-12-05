@@ -251,8 +251,9 @@ public class ModelService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: modelName={}, expectedHash={}, currentHash={}",
                     entity.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Optimistic lock conflict on update: modelName:'"
-                    + entity.getDeployment().getName() + "'. Reload the data.");
+            throw new OptimisticLockConflictException(String.format("Unable to update Model '%s'. The data may have been modified by another user, "
+                            + "or the name/ID may already exist. Please reload the data and try again.",
+                    entity.getDeployment().getName()));
 
         }
     }

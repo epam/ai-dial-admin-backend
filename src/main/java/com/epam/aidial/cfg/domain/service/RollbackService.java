@@ -23,6 +23,7 @@ public class RollbackService {
     private final RouteService routeService;
     private final InterceptorService interceptorService;
     private final InterceptorRunnerService interceptorRunnerService;
+    private final GlobalSettingsService globalSettingsService;
 
     @Transactional
     public void rollbackToRevision(Number revision) {
@@ -39,5 +40,6 @@ public class RollbackService {
         routeService.rollbackRoutes(revision);
         interceptorService.rollbackInterceptors(revision);
         interceptorRunnerService.rollbackInterceptorRunners(revision);
+        globalSettingsService.rollbackGlobalSettings(revision);
     }
 }

@@ -8,9 +8,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +32,7 @@ public class Config {
     private Map<String, CoreRole> roles = new HashMap<>();
     private Set<Integer> retriableErrorCodes = new HashSet<>();
     private Map<String, CoreInterceptor> interceptors = new HashMap<>();
+    private List<String> globalInterceptors = new ArrayList<>();
 
     @JsonDeserialize(using = JsonArrayToSchemaMapDeserializer.class)
     @JsonSerialize(using = MapToJsonArraySerializer.class)
