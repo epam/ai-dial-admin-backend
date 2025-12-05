@@ -189,7 +189,8 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
                         containsString(errorMessagePrefix),
                         containsString(path0Error),
                         containsString(path1Error)
-                )));    }
+                )));
+    }
 
     @Test
     void testDeleteApplication() throws Exception {
