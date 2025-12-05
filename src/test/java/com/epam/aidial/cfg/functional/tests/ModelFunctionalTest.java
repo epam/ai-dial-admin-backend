@@ -212,8 +212,9 @@ public abstract class ModelFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> modelFacade.updateModel(modelDto.getName(), modelDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update: modelName:'model1'"
-                + ". Reload the data.", exception.getMessage());
+        Assertions.assertEquals("Unable to update Model 'model1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test

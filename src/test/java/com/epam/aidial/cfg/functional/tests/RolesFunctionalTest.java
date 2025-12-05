@@ -155,8 +155,9 @@ public abstract class RolesFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> roleFacade.updateRole(roleDto.getName(), roleDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update: roleName:'role1'"
-                + ". Reload the data.", exception.getMessage());
+        Assertions.assertEquals("Unable to update Role 'role1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test
