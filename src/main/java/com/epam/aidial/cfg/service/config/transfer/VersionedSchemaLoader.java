@@ -42,11 +42,20 @@ public class VersionedSchemaLoader {
     }
 
     public JsonNode loadSchema(String version) {
-        validateVersionFormat(version);
-        if (LATEST_VERSION.equals(version)) {
-            version = findLatestVersion();
-        }
+        version = resolveVersion(version);
         return schemaCache.computeIfAbsent(version, this::loadSchemaFromFile);
+    }
+
+    public String getEffectiveVersion(String version) {
+        version = resolveVersion(version);
+        return findNearestAvailableVersion(version);
+    }
+
+    private String resolveVersion(String version) {
+        validateVersionFormat(version);
+        return LATEST_VERSION.equals(version)
+                ? findLatestVersion()
+                : version;
     }
 
     private JsonNode loadSchemaFromFile(String version) {
