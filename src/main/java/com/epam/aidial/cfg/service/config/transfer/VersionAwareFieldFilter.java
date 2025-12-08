@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.transfer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.SchemaValidationException;
+import com.epam.aidial.cfg.service.config.transfer.version.CoreConfigVersionService;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,18 +28,18 @@ public class VersionAwareFieldFilter {
 
     private static final String APPLICATION_TYPE_SCHEMAS_KEY = "applicationTypeSchemas";
 
-    private final CoreConfigVersionAutoDetectService versionAutoDetectService;
+    private final CoreConfigVersionService coreConfigVersionService;
     private final VersionedSchemaLoader schemaLoader;
     private final ObjectMapper objectMapper;
 
     /**
      * Filters a Config object to include only fields defined in the schema for the specified version.
      *
-     * @param config  The config to filter by target version
+     * @param config The config to filter by target version
      * @return Filtered config with only schema-defined fields
      */
     public Config filterForTargetVersion(Config config) {
-        String version = versionAutoDetectService.getVersion();
+        String version = coreConfigVersionService.getVersionForExport();
         try {
             JsonNode schema = schemaLoader.loadSchema(version);
             String configJson = objectMapper.writeValueAsString(config);
@@ -73,7 +74,7 @@ public class VersionAwareFieldFilter {
 
         return filteredNode;
     }
-    
+
     /**
      * Processes schema inheritance via allOf directive.
      */
@@ -90,7 +91,7 @@ public class VersionAwareFieldFilter {
             }
         }
     }
-    
+
     /**
      * Processes schema references ($ref).
      */
@@ -132,7 +133,7 @@ public class VersionAwareFieldFilter {
                     fieldSchemaMap.put(snakeCase, fieldSchema);
                 }
             }
-            
+
             // Process node fields
             Iterator<Map.Entry<String, JsonNode>> nodeFields = node.fields();
             while (nodeFields.hasNext()) {
@@ -151,7 +152,7 @@ public class VersionAwareFieldFilter {
             }
         }
     }
-    
+
     /**
      * Converts a camelCase string to snake_case.
      *
@@ -162,11 +163,11 @@ public class VersionAwareFieldFilter {
         if (camel == null || camel.isEmpty()) {
             return camel;
         }
-        
+
         StringBuilder snake = new StringBuilder();
         char c = camel.charAt(0);
         snake.append(Character.toLowerCase(c));
-        
+
         for (int i = 1; i < camel.length(); i++) {
             c = camel.charAt(i);
             if (Character.isUpperCase(c)) {
@@ -176,10 +177,10 @@ public class VersionAwareFieldFilter {
                 snake.append(c);
             }
         }
-        
+
         return snake.toString();
     }
-    
+
     /**
      * Processes a single field based on its schema.
      */
@@ -252,11 +253,11 @@ public class VersionAwareFieldFilter {
 
         return fieldValue;
     }
-    
+
     /**
      * Processes a field that references another schema definition.
      */
-    private void processFieldReference(String fieldName, JsonNode fieldValue, JsonNode fieldSchema, 
+    private void processFieldReference(String fieldName, JsonNode fieldValue, JsonNode fieldSchema,
                                        JsonNode parentSchema, ObjectNode filteredNode) {
         String ref = fieldSchema.get("$ref").asText();
         if (!ref.startsWith("#/definitions/")) {
@@ -273,7 +274,7 @@ public class VersionAwareFieldFilter {
             filteredNode.set(fieldName, fieldValue);
         }
     }
-    
+
     /**
      * Utility method to copy fields from one node to another.
      */
@@ -357,7 +358,7 @@ public class VersionAwareFieldFilter {
      */
     private JsonNode findRootSchema(JsonNode schema) {
         try {
-            String version = versionAutoDetectService.getVersion();
+            String version = coreConfigVersionService.getVersionForExport();
             return schemaLoader.loadSchema(version);
         } catch (Exception e) {
             log.warn("Failed to load root schema, using current schema", e);

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.config.transfer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.validator.CoreConfigVersionValidator;
 import com.epam.aidial.cfg.exception.InvalidVersionException;
 import com.epam.aidial.cfg.exception.SchemaValidationException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,8 +18,10 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
+
+import static com.epam.aidial.cfg.domain.validator.CoreConfigVersionValidator.LATEST_VERSION;
+import static com.epam.aidial.cfg.domain.validator.CoreConfigVersionValidator.VERSION_PATTERN;
 
 @Slf4j
 @Service
@@ -26,11 +29,10 @@ import javax.annotation.PostConstruct;
 @RequiredArgsConstructor
 public class VersionedSchemaLoader {
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
     private static final String SCHEMA_PATH_FORMAT = "core-config-schemas/schema-v%s.json";
-    private static final String LATEST_VERSION = "latest";
 
     private final ObjectMapper objectMapper;
+    private final CoreConfigVersionValidator coreConfigVersionValidator;
     private final Map<String, JsonNode> schemaCache = new ConcurrentHashMap<>();
     private final TreeSet<String> knownVersions = new TreeSet<>(VersionedSchemaLoader::compareVersionsDescending);
     private volatile String cachedLatestVersion;
@@ -42,7 +44,7 @@ public class VersionedSchemaLoader {
     }
 
     public JsonNode loadSchema(String version) {
-        validateVersionFormat(version);
+        coreConfigVersionValidator.validateVersionFormat(version);
         if (LATEST_VERSION.equals(version)) {
             version = findLatestVersion();
         }
@@ -76,10 +78,10 @@ public class VersionedSchemaLoader {
         }
 
         return knownVersions.stream()
-            .filter(version -> isCompatibleVersion(version, requestedVersion))
-            .findFirst()
-            .orElseThrow(() -> new InvalidVersionException("No compatible schema found for version: " + requestedVersion
-                + ". Available schemas should be placed in 'core-config-schemas'"));
+                .filter(version -> isCompatibleVersion(version, requestedVersion))
+                .findFirst()
+                .orElseThrow(() -> new InvalidVersionException("No compatible schema found for version: " + requestedVersion
+                        + ". Available schemas should be placed in 'core-config-schemas'"));
     }
 
     private boolean isCompatibleVersion(String candidateVersion, String requestedVersion) {
@@ -98,9 +100,9 @@ public class VersionedSchemaLoader {
         }
 
         cachedLatestVersion = knownVersions.stream()
-            .filter(version -> version.matches(VERSION_PATTERN.pattern()))
-            .findFirst()
-            .orElseThrow(() -> new InvalidVersionException("No schemas available"));
+                .filter(version -> version.matches(VERSION_PATTERN.pattern()))
+                .findFirst()
+                .orElseThrow(() -> new InvalidVersionException("No schemas available"));
 
         log.debug("Latest schema version found: {}", cachedLatestVersion);
         return cachedLatestVersion;
@@ -147,13 +149,6 @@ public class VersionedSchemaLoader {
         } catch (IOException e) {
             log.error("Failed to scan available schema versions", e);
             throw new SchemaValidationException("Failed to scan available schema versions", e);
-        }
-    }
-
-    private static void validateVersionFormat(String version) {
-        if (!VERSION_PATTERN.matcher(version).matches() && !LATEST_VERSION.equals(version)) {
-            throw new InvalidVersionException("Invalid version format: " + version
-                + ". Expected format: X.Y.Z (e.g., '0.23.0', '1.0.1', '2.0.3')) or 'latest'");
         }
     }
 

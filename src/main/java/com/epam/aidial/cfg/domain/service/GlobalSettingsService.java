@@ -63,8 +63,7 @@ public class GlobalSettingsService {
     @Transactional
     public String update(GlobalSettings globalSettings, String hash) {
         if (hash == null) {
-            throw new IllegalArgumentException(String.format(
-                    "Hash must not be null. Use \"*\" to skip optimistic check. GlobalSettings."));
+            throw new IllegalArgumentException("Hash must not be null. Use \"*\" to skip optimistic check. GlobalSettings.");
         }
         var savedGlobalSettings = performUpdate(globalSettings, hash);
         return calculator.calculateHash(globalSettingsMapper.toDomain(savedGlobalSettings));
@@ -114,8 +113,8 @@ public class GlobalSettingsService {
         if (!expectedHash.equals(currentHash)) {
             log.debug("Optimistic lock conflict on update: globalSettings, expectedHash={}, currentHash={}",
                     expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Unable to update GlobalSettings. The data may have been modified by another user, "
-                    + "Please reload the data and try again."));
+            throw new OptimisticLockConflictException("Unable to update GlobalSettings. The data may have been modified by another user. "
+                    + "Please reload the data and try again.");
         }
     }
 }
