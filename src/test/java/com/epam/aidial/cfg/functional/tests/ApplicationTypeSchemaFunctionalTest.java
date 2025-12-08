@@ -70,6 +70,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
         dto.setInterceptors(List.of());
+        dto.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
         Assertions.assertThat(actual).isEqualTo(dto);
     }
 
@@ -83,6 +84,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setApplications(List.of("application1"));
         dto.setApplicationTypeRoutes(List.of());
         dto.setInterceptors(List.of());
+        dto.setApplicationTypeAssistantAttachmentsInRequestSupported(true);
 
         // when
         doReturn(220L).when(transactionTimestampContext).getTimestamp();
@@ -284,6 +286,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     public void shouldSuccessfullyCreateAndUpdateApplicationTypeSchema() {
         // given
         dto.setTopics(Set.of("test", "example"));
+        dto.setApplicationTypeAssistantAttachmentsInRequestSupported(true);
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
@@ -311,6 +314,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setApplications(null);
         dto.setApplicationTypeRoutes(List.of());
         dto.setInterceptors(List.of());
+        dto.setApplicationTypeAssistantAttachmentsInRequestSupported(true);
 
         // when
         typeSchemaFacade.update(dto.getId(), dto, "*");
@@ -426,6 +430,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         expected.setDefs(dto.getDefs());
         expected.setProperties(dto.getProperties());
         expected.setRequired(dto.getRequired());
+        expected.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
 
         CoreApplicationTypeSchema actual = typeSchemaFacade.getCoreSchemaWithHash(dto.getId()).core();
 

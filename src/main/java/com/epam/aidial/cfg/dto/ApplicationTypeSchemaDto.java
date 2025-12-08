@@ -78,6 +78,9 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypeInterceptors")
     private List<String> interceptors;
 
+    @JsonProperty("dial:applicationTypeAssistantAttachmentsInRequestSupported")
+    private boolean applicationTypeAssistantAttachmentsInRequestSupported;
+    
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)
@@ -127,6 +130,7 @@ public class ApplicationTypeSchemaDto {
         this.applicationTypePlaybackSupport = other.applicationTypePlaybackSupport;
         this.applicationTypeBucketCopy = other.applicationTypeBucketCopy;
         this.interceptors = other.interceptors != null ? new ArrayList<>(other.interceptors) : null;
+        this.applicationTypeAssistantAttachmentsInRequestSupported = other.applicationTypeAssistantAttachmentsInRequestSupported;
         this.defs = other.defs != null ? new HashMap<>(other.defs) : null;
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;

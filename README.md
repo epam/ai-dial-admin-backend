@@ -83,19 +83,25 @@ The system supports two authentication methods:
      ```
 
 2. **JWT Authentication**
-  - Configure Identity Provider settings in the configuration file application-iam-providers.properties separately for
-    each provider (example for Azure Provider):
-     ```properties
-      providers.azure.issuer=your_issuer
-      providers.azure.jwk-set-uri=your_jwk_set_uri
-      providers.azure.aliases=your_aliases
-      providers.azure.audiences=your_audiences
-      providers.azure.role-claims=your_role_claims
-        ```
+  - Configure Identity Provider settings using environment variables or with the `providers.{provider_name}.*` format.
+    Each provider is configured separately (example for Azure Provider):
+     ```bash
+     # Required properties
+     providers.azure.issuer=your_issuer
+     providers.azure.jwk-set-uri=your_jwk_set_uri
+     providers.azure.audiences=your_audiences
+     
+     # Optional properties
+     providers.azure.aliases=your_aliases  # Azure-specific
+     providers.azure.role-claims=your_role_claims
+     providers.azure.allowed-roles=ConfigAdmin,admin
+     ```
    - Enable with:
      ```properties
      config.rest.security.mode=oidc
      ```
+   - Supported providers: azure, keycloak, auth0, okta, cognito
+   - See [Configuration Documentation](docs/configuration.md) for complete provider configuration details.
 
 ### Keycloak
 
