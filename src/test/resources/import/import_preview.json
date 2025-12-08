@@ -392,6 +392,7 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
+        "applicationTypeAssistantAttachmentsInRequestSupported": true,
         "applicationTypeRoutes": [
           {
             "deployment": {

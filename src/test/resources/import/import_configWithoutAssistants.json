@@ -223,6 +223,7 @@
       "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
+      "dial:applicationTypeAssistantAttachmentsInRequestSupported": true,
       "$defs": {},
       "properties": {},
       "required": [],
