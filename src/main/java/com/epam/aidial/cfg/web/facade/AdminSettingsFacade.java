@@ -23,8 +23,8 @@ public class AdminSettingsFacade {
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
-    public void updateCoreConfigVersion(String coreConfigVersion) {
-        adminSettingsService.updateCoreConfigVersion(coreConfigVersion);
+    public String updateCoreConfigVersion(String coreConfigVersion, String hash) {
+        return adminSettingsService.updateCoreConfigVersion(coreConfigVersion, hash);
     }
 
     public AdminSettingsDto getAtRevision(Integer revision) {

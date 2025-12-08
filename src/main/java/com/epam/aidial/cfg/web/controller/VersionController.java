@@ -28,7 +28,7 @@ public class VersionController {
         return buildProperties.getVersion();
     }
 
-    @GetMapping(path = "/core", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(path = "/core", produces = MediaType.APPLICATION_JSON_VALUE)
     public CoreConfigVersionsDto getCoreVersions() {
         CoreConfigVersions versions = coreConfigVersionService.getVersions();
         return coreConfigVersionsDtoMapper.toDto(versions);

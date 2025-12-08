@@ -26,6 +26,9 @@ public class CoreConfigVersionProperties {
     @Value("${config.version.autoDetect.enabled}")
     private boolean autoDetectEnabled;
 
+    @Value("${config.version.autoDetect.cacheExpirationMs}")
+    private long cacheExpirationMs;
+
     @PostConstruct
     public void validateAndNormalizeConfiguration() {
         log.info("Initializing core config version properties. Original target: {}", target);
