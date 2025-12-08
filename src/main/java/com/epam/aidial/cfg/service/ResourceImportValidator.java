@@ -200,7 +200,7 @@ public class ResourceImportValidator {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public void checkResourcesExistence(Map<String, List<ResourceNameAndVersionAndPath>> fileNameToListResources,
+    private void checkResourcesExistence(Map<String, List<ResourceNameAndVersionAndPath>> fileNameToListResources,
                                         String resourceType) {
         var resourceTypeLower = resourceType.toLowerCase();
         if (fileNameToListResources.isEmpty()) {
