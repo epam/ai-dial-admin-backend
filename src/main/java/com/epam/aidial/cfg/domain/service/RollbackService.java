@@ -24,6 +24,7 @@ public class RollbackService {
     private final InterceptorService interceptorService;
     private final InterceptorRunnerService interceptorRunnerService;
     private final GlobalSettingsService globalSettingsService;
+    private final AdminSettingsService adminSettingsService;
 
     @Transactional
     public void rollbackToRevision(Number revision) {
@@ -41,5 +42,6 @@ public class RollbackService {
         interceptorService.rollbackInterceptors(revision);
         interceptorRunnerService.rollbackInterceptorRunners(revision);
         globalSettingsService.rollbackGlobalSettings(revision);
+        adminSettingsService.rollbackAdminSettings(revision);
     }
 }

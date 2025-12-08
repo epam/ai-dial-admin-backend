@@ -66,8 +66,8 @@ public class KeyFacade {
     }
 
     public KeyDto getSnapshot(String keyName, Integer revision) {
-        Key interceptor = keyService.getSnapshot(keyName, revision);
-        return mapper.toDto(interceptor);
+        Key key = keyService.getSnapshot(keyName, revision);
+        return mapper.toDto(key);
     }
 
     public Collection<KeyDto> getAllAtRevision(Integer revision) {

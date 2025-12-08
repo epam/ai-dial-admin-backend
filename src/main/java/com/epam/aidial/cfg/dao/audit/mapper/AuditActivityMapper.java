@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dao.audit.mapper;
 
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.AddonEntity;
+import com.epam.aidial.cfg.dao.model.AdminSettingsEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.AssistantEntity;
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditActivityMapper {
 
-    public ActivityResourceType mapResourceType(Class entityClass) {
+    public ActivityResourceType mapResourceType(Class<?> entityClass) {
         if (entityClass == AdapterEntity.class) {
             return ActivityResourceType.Adapter;
         } else if (entityClass == AddonEntity.class) {
@@ -61,6 +62,8 @@ public class AuditActivityMapper {
             return ActivityResourceType.ToolSet;
         } else if (entityClass == GlobalSettingsEntity.class) {
             return ActivityResourceType.GlobalSettings;
+        } else if (entityClass == AdminSettingsEntity.class) {
+            return ActivityResourceType.AdminSettings;
         } else {
             throw new IllegalArgumentException("Unable to find resource type for class " + entityClass);
         }

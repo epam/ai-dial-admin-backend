@@ -74,12 +74,18 @@ Steps:
 
 ## Security Configuration
 
-| Environment Variable Name | Value | Description                                                                                 |
-|--------------------------|-------|---------------------------------------------------------------------------------------------|
-| SECURITY_ALLOWED_ROLES | ConfigAdmin | Ai.Dial.Env.Tst role name |
-| SECURITY_JWT_JWKS_URI | https://login.microsoftonline.com/common/discovery/v2.0/keys | URI for JSON Web Key Set |
-| SECURITY_JWT_ACCEPTED_ISSUERS | `<AZURE_TENANT_ID>` | Azure directory id |                                                  |
-| DIAL_ADMIN_CLIENT_ID | `<AZURE_CLIENT_ID>` | Ai.Dial.Env.Tst Client id   |
+Configure the Azure identity provider using environment variables with the `providers.azure.*` prefix.
+
+| Environment Variable Name | Value | Required | Description                                                                                 |
+|--------------------------|-------|----------|---------------------------------------------------------------------------------------------|
+| providers.azure.issuer | `<AZURE_TENANT_ID>` | Yes | Azure directory (tenant) ID. This is the issuer claim value in JWT tokens from Azure AD. |
+| providers.azure.jwk-set-uri | https://login.microsoftonline.com/common/discovery/v2.0/keys | No | URI for JSON Web Key Set. Defaults to the common Azure AD endpoint if not specified. |
+| providers.azure.aliases | login.microsoftonline.com, login.windows.net, ... | No | Aliases for accepted JWT token issuers (Azure-specific). Used to support multiple Azure cloud environments. |
+| providers.azure.audiences | `<AZURE_CLIENT_ID>` | Yes | Unique identifier assigned to DIAL Admin backend application by Azure AD (Ai.Dial.Env.Tst Client ID). Can be a comma-separated list for multiple audiences. |
+| providers.azure.role-claims | roles | No | JWT claim name for user roles. Defaults to "roles" if not specified. |
+| providers.azure.allowed-roles | ConfigAdmin | No | Comma-separated list of roles with access permissions for this provider. If not specified, uses the default from `config.rest.security.default.allowedRoles` (ConfigAdmin,admin). |
+
+**Note:** The `SECURITY_ALLOWED_ROLES` environment variable is no longer used. Use `providers.azure.allowed-roles` for provider-specific role configuration, or rely on the default `config.rest.security.default.allowedRoles` setting.
 
 ---
 
