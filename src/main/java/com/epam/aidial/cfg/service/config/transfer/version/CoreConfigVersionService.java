@@ -120,7 +120,7 @@ public class CoreConfigVersionService {
 
             return normalizedCoreVersion;
         } catch (Exception e) {
-            log.info("Unable to get version from Core", e);
+            log.warn("Unable to get version from Core", e);
             return AUTO_DETECT_FAILED_CORE_VERSION;
         }
     }
