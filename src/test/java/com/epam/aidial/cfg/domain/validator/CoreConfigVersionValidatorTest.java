@@ -19,12 +19,12 @@ class CoreConfigVersionValidatorTest {
     }
 
     @Test
-    void validateVersionFormat_shouldDoNothingForValidVersionFormat() {
+    void validateVersionFormat_shouldDoNothingForValidVersion() {
         Assertions.assertThatNoException().isThrownBy(() -> coreConfigVersionValidator.validateVersionFormat("1.0.2"));
     }
 
     @Test
-    void validateVersionFormat_shouldThrowExceptionForInvalidVersionFormat() {
+    void validateVersionFormat_shouldThrowExceptionForInvalidVersion() {
         Assertions.assertThatThrownBy(() -> coreConfigVersionValidator.validateVersionFormat("1.0.2-rc"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid version format: 1.0.2-rc. Expected format: X.Y.Z (e.g., '0.23.0', '1.0.1', '2.0.3')) or 'latest'");

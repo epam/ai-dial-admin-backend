@@ -5,6 +5,8 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.web.facade.AdminSettingsFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.adminSettingsDto;
@@ -25,6 +27,17 @@ public abstract class AdminSettingsFunctionalTest {
     @Test
     public void shouldSuccessfullyUpdateAdminSettingsCoreConfigVersion() {
         String coreConfigVersion = "0.40.0";
+        adminSettingsFacade.updateCoreConfigVersion(coreConfigVersion, "*");
+
+        AdminSettingsDto actual = adminSettingsFacade.getAdminSettingsWithHash().dto();
+        AdminSettingsDto expected = adminSettingsDto(coreConfigVersion);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
+    public void shouldSuccessfullyUpdateAdminSettingsCoreConfigVersionToBlankVersion(String coreConfigVersion) {
         adminSettingsFacade.updateCoreConfigVersion(coreConfigVersion, "*");
 
         AdminSettingsDto actual = adminSettingsFacade.getAdminSettingsWithHash().dto();
