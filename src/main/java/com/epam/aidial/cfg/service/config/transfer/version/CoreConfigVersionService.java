@@ -87,7 +87,7 @@ public class CoreConfigVersionService {
         if (coreConfigVersionProperties.isAutoDetectEnabled()) {
             String autoDetectedVersionFromCache = versionCache.getIfPresent(CURRENT_VERSION_CACHE_KEY);
             if (StringUtils.isNotBlank(autoDetectedVersionFromCache)) {
-                coreConfigVersions.setAutoDetectedVersion(autoDetectedVersionFromCache);
+                coreConfigVersions.setAutoDetectedVersion(schemaLoader.getEffectiveVersion(autoDetectedVersionFromCache));
             } else {
                 String autoDetectedVersionFromCore = getVersionFromCore();
                 if (StringUtils.isNotBlank(autoDetectedVersionFromCore)) {
