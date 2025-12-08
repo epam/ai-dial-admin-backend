@@ -54,7 +54,7 @@ class ApplicationEximServiceTest {
     @MockitoBean
     private FolderService folderService;
     @MockitoBean
-    private ApplicationImportValidator validator;
+    private ResourceImportValidator validator;
 
     @Autowired
     private ApplicationEximService applicationEximService;

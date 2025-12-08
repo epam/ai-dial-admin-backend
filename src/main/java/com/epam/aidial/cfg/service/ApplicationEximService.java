@@ -34,7 +34,7 @@ public class ApplicationEximService {
     private final ApplicationClientMapper applicationClientMapper;
     private final ApplicationResourceService applicationResourceService;
     private final FolderService folderService;
-    private final ApplicationImportValidator uniquenessValidator;
+    private final ResourceImportValidator uniquenessValidator;
 
     @Value("${applications.import.consecutiveErrorsThreshold}")
     private int importErrorsThreshold;

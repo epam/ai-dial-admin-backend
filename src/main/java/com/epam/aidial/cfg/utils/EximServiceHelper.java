@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.utils;
 
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
+import com.epam.aidial.cfg.dto.ToolSetEximDto;
 
 public class EximServiceHelper {
     public static String getVersionedName(String name, String version) {
@@ -13,6 +14,10 @@ public class EximServiceHelper {
     }
     
     public static String getVersionedName(ApplicationEximDto dto) {
+        return getVersionedName(dto.getName(), dto.getVersion());
+    }
+
+    public static String getVersionedName(ToolSetEximDto dto) {
         return getVersionedName(dto.getName(), dto.getVersion());
     }
 }

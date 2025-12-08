@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.ApplicationEximDto;
-import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.ToolSetEximDto;
+import com.epam.aidial.cfg.dto.ToolSetsEximDto;
 import com.epam.aidial.cfg.exception.ImportPreviewException;
 import com.epam.aidial.cfg.model.ImportResourcePreview;
 import com.epam.aidial.cfg.model.ImportResources;
@@ -35,23 +35,22 @@ import java.util.zip.ZipOutputStream;
 @Service
 @LogExecution
 @RequiredArgsConstructor
-public class ZipApplicationEximService {
+public class ZipToolSetEximService {
 
-    private static final String APPLICATIONS_FOLDER = "applications/";
+    private static final String TOOLSETS_FOLDER = "toolSets/";
     private static final String PUBLIC_FOLDER = "public/";
-    private static final String APPLICATIONS_FILENAME = "applications.json";
+    private static final String TOOLSETS_FILENAME = "toolSets.json";
     private static final String JSON_FILE_EXTENSION = ".json";
-    private static final String APPLICATIONS_FULL_PATH = APPLICATIONS_FOLDER + APPLICATIONS_FILENAME;
-
-    private final ResourceImportValidator uniquenessValidator;
+    private static final String TOOLSETS_FULL_PATH = TOOLSETS_FOLDER + TOOLSETS_FILENAME;
 
     private final JsonMapper jsonMapper = JsonMapper.builder()
             .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)
             .build();
 
-    private final ApplicationEximService applicationEximService;
+    private final ToolSetEximService toolSetEximService;
+    private final ResourceImportValidator uniquenessValidator;
 
-    public StreamingResponseBody exportApplications(List<String> paths) {
+    public StreamingResponseBody exportToolSets(List<String> paths) {
         var token = AuthorizationTokenHolder.getToken();
 
         return outputStream -> {
@@ -59,25 +58,25 @@ public class ZipApplicationEximService {
                     var ignored = new AuthorizationTokenWrapper(token);
                     var zos = new ZipOutputStream(outputStream)
             ) {
-                var applicationsExim = applicationEximService.exportApplications(paths);
-                zos.putNextEntry(new ZipEntry(APPLICATIONS_FULL_PATH));
-                zos.write(jsonMapper.writeValueAsString(applicationsExim).getBytes());
+                var toolSetsExim = toolSetEximService.exportToolSets(paths);
+                zos.putNextEntry(new ZipEntry(TOOLSETS_FULL_PATH));
+                zos.write(jsonMapper.writeValueAsString(toolSetsExim).getBytes());
                 zos.closeEntry();
             } catch (Exception e) {
-                log.warn("An error occurred while exporting applications", e);
+                log.warn("An error occurred while exporting toolSets", e);
                 throw e;
             }
         };
     }
 
-    public ImportResourcesFileResult importApplications(ImportResources importApplications, MultipartFile zipFile) throws IOException {
-        var rootPath = importApplications.getPath();
+    public ImportResourcesFileResult importToolSets(ImportResources importToolSets, MultipartFile zipFile) throws IOException {
+        var rootPath = importToolSets.getPath();
         var inputStream = zipFile.getInputStream();
 
         try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
 
             ZipEntry zipEntry;
-            var applicationsEximDtos = new HashMap<String, ApplicationsEximDto>();
+            var toolSetsEximDtos = new HashMap<String, ToolSetsEximDto>();
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 var zipEntryName = zipEntry.getName();
 
@@ -89,18 +88,18 @@ public class ZipApplicationEximService {
                     continue;
                 }
 
-                if (zipEntryName.startsWith(APPLICATIONS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
-                    applicationsEximDtos.put(zipEntryName, jsonMapper.readValue(zipInputStream, ApplicationsEximDto.class));
+                if (zipEntryName.startsWith(TOOLSETS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
+                    toolSetsEximDtos.put(zipEntryName, jsonMapper.readValue(zipInputStream, ToolSetsEximDto.class));
                 } else {
-                    log.warn("Ignoring file {} in zip archive during import. Application import context {}",
-                            zipEntryName, importApplications);
+                    log.warn("Ignoring file {} in zip archive during import. ToolSet import context {}",
+                            zipEntryName, importToolSets);
                 }
             }
 
-            var compacted = compactApplicationsEximDtos(importApplications, applicationsEximDtos);
-            return applicationEximService.importApplications(importApplications, compacted);
+            var compacted = compactToolSetsEximDtos(importToolSets, toolSetsEximDtos);
+            return toolSetEximService.importToolSets(importToolSets, compacted);
         } catch (Exception ex) {
-            log.warn("Application file {} import failed", rootPath, ex);
+            log.warn("ToolSet file {} import failed", rootPath, ex);
             return ImportResourcesFileResult.builder()
                     .importResults(List.of())
                     .error(ex.getMessage())
@@ -108,7 +107,7 @@ public class ZipApplicationEximService {
         }
     }
 
-    public ImportResourcesPreview previewImportApplicationsFromZip(ImportResources importApplications, MultipartFile zipFile) {
+    public ImportResourcesPreview previewImportToolSetsFromZip(ImportResources importToolSets, MultipartFile zipFile) {
         try (ZipInputStream zipInputStream = new ZipInputStream(zipFile.getInputStream())) {
 
             ZipEntry zipEntry;
@@ -124,11 +123,11 @@ public class ZipApplicationEximService {
                     continue;
                 }
 
-                if (zipEntryName.startsWith(APPLICATIONS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
-                    var applicationsEximDto = jsonMapper.readValue(zipInputStream, ApplicationsEximDto.class);
+                if (zipEntryName.startsWith(TOOLSETS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
+                    var toolSetsEximDto = jsonMapper.readValue(zipInputStream, ToolSetsEximDto.class);
                     String finalZipEntryName = zipEntryName;
-                    applicationsEximDto.getApplications().stream()
-                            .map(applicationEximDto -> getApplicationPathParts(importApplications, applicationEximDto))
+                    toolSetsEximDto.getToolSets().stream()
+                            .map(toolSetEximDto -> getToolSetPathParts(importToolSets, toolSetEximDto))
                             .map(pathParts -> buildImportResourcePreview(pathParts, finalZipEntryName))
                             .forEach(previews::add);
                 } else {
@@ -140,40 +139,40 @@ public class ZipApplicationEximService {
                     .resourcePreviews(previews)
                     .build();
         } catch (Exception ex) {
-            log.warn("Application file {} import preview failed", zipFile.getOriginalFilename(), ex);
-            throw new ImportPreviewException(String.format("Application file '%s' import preview failed", zipFile.getOriginalFilename()));
+            log.warn("ToolSet file {} import preview failed", zipFile.getOriginalFilename(), ex);
+            throw new ImportPreviewException(String.format("ToolSet file '%s' import preview failed", zipFile.getOriginalFilename()));
         }
     }
 
-    private ApplicationsEximDto compactApplicationsEximDtos(ImportResources importApplications, HashMap<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
-        uniquenessValidator.checkApplicationConflicts(importApplications, fileNameToApplicationsEximDtos);
+    private ToolSetsEximDto compactToolSetsEximDtos(ImportResources importToolSets, HashMap<String, ToolSetsEximDto> fileNameToToolSetsEximDtos) {
+        uniquenessValidator.checkToolSetConflicts(importToolSets, fileNameToToolSetsEximDtos);
 
-        var compactedApplications = fileNameToApplicationsEximDtos.values().stream()
-                .map(ApplicationsEximDto::getApplications)
+        var compactedToolSets = fileNameToToolSetsEximDtos.values().stream()
+                .map(ToolSetsEximDto::getToolSets)
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
-        return ApplicationsEximDto.builder()
-                .applications(compactedApplications)
+        return ToolSetsEximDto.builder()
+                .toolSets(compactedToolSets)
                 .build();
     }
 
-    private PathUtils.VersionedPathParts getApplicationPathParts(ImportResources importApplications, ApplicationEximDto application) {
-        var rootPath = importApplications.getPath();
+    private PathUtils.VersionedPathParts getToolSetPathParts(ImportResources importToolSets, ToolSetEximDto toolSet) {
+        var rootPath = importToolSets.getPath();
         var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
 
-        var folderPathWithoutPublic = StringUtils.removeStart(application.getFolderId(), PUBLIC_FOLDER);
-        var applicationName = EximServiceHelper.getVersionedName(application);
-        var targetPath = rootPathStripped + "/" + folderPathWithoutPublic + applicationName;
+        var folderPathWithoutPublic = StringUtils.removeStart(toolSet.getFolderId(), PUBLIC_FOLDER);
+        var toolSetName = EximServiceHelper.getVersionedName(toolSet);
+        var targetPath = rootPathStripped + "/" + folderPathWithoutPublic + toolSetName;
 
         return PathUtils.parseVersionedPath(targetPath);
     }
 
-    private ImportResourcePreview buildImportResourcePreview(PathUtils.VersionedPathParts applicationPathParts, String fileName) {
+    private ImportResourcePreview buildImportResourcePreview(PathUtils.VersionedPathParts toolSetPathParts, String fileName) {
         return ImportResourcePreview.builder()
-                .name(applicationPathParts.getName())
-                .version(applicationPathParts.getVersion())
+                .name(toolSetPathParts.getName())
+                .version(toolSetPathParts.getVersion())
                 .fileName(fileName)
                 .build();
     }
