@@ -56,4 +56,15 @@ public abstract class AdminSettingsFunctionalTest {
         Assertions.assertEquals("Unable to update AdminSettings. The data may have been modified by another user. Please reload the data and try again.",
                 exception.getMessage());
     }
+
+    @Test
+    public void shouldThrowWhenUpdateAdminSettingsWithInvalidCoreConfigVersion() {
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> adminSettingsFacade.updateCoreConfigVersion("0.40.0-rc", "test")
+        );
+
+        Assertions.assertEquals("Invalid version format: 0.40.0-rc. Expected format: X.Y.Z (e.g., '0.23.0', '1.0.1', '2.0.3')) or 'latest'",
+                exception.getMessage());
+    }
 }

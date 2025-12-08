@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dao.mapper.AdminSettingsEntityMapper;
 import com.epam.aidial.cfg.dao.model.AdminSettingsEntity;
 import com.epam.aidial.cfg.domain.model.AdminSettings;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.validator.AdminSettingsValidator;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class AdminSettingsService {
     private final AdminSettingsEntityMapper adminSettingsEntityMapper;
     private final HistoryService historyService;
     private final HashCalculator hashCalculator;
+    private final AdminSettingsValidator adminSettingsValidator;
 
     @Transactional(readOnly = true)
     public AdminSettings getAdminSettings() {
@@ -45,6 +47,8 @@ public class AdminSettingsService {
         if (hash == null) {
             throw new IllegalArgumentException("Hash must not be null. Use \"*\" to skip optimistic check. AdminSettings");
         }
+
+        adminSettingsValidator.validateCoreConfigVersionUpdate(coreConfigVersion);
 
         AdminSettingsEntity adminSettingsEntity = getOrThrow();
         assertNotConcurrencyOverwrite(adminSettingsEntity, hash);
