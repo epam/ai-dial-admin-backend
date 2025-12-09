@@ -20,7 +20,9 @@ import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
+import com.epam.aidial.cfg.service.ToolSetEximService;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
+import com.epam.aidial.cfg.service.ZipToolSetEximService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ToolSetResourceController;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -82,6 +84,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
 
     @MockitoBean
     private ToolSetResourceService toolSetResourceService;
+
+    @MockitoBean
+    private ToolSetEximService toolSetEximService;
+
+    @MockitoBean
+    private ZipToolSetEximService zipToolSetEximService;
 
     @Test
     void testGetAllToolSetResources() throws Exception {
