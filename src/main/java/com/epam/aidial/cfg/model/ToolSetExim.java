@@ -27,7 +27,6 @@ public class ToolSetExim {
     private Transport transport;
     private List<String> allowedTools;
     private ResourceAuthSettings authSettings;
-    private String url;
 
     public enum Transport {
         HTTP, SSE;
