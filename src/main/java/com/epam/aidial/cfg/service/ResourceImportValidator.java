@@ -35,24 +35,16 @@ public class ResourceImportValidator {
 
     public void validateApplicationImport(ImportResources importApplications, @Valid ApplicationsEximDto applicationsEximDto) {
         var isFlatImport = importApplications.isFlatImport();
-        var resources = isFlatImport
-                ? applicationsEximDto.getApplications().stream()
-                .map(app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), null))
-                .toList()
-                : applicationsEximDto.getApplications().stream()
-                .map(app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), app.getFolderId()))
+        var resources = applicationsEximDto.getApplications().stream()
+                .map(app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), isFlatImport ? null : app.getFolderId()))
                 .toList();
         validateResourceUniqueness(resources, isFlatImport, APPLICATION_RESOURCE);
     }
 
     public void validateToolSetImport(ImportResources importApplications, @Valid ToolSetsEximDto toolSetsEximDto) {
         var isFlatImport = importApplications.isFlatImport();
-        var resources = isFlatImport
-                ? toolSetsEximDto.getToolSets().stream()
-                .map(t -> new ResourceNameAndVersionAndPath(t.getName(), t.getVersion(), t.getFolderId()))
-                .toList()
-                : toolSetsEximDto.getToolSets().stream()
-                .map(t -> new ResourceNameAndVersionAndPath(t.getName(), t.getVersion(), t.getFolderId()))
+        var resources = toolSetsEximDto.getToolSets().stream()
+                .map(t -> new ResourceNameAndVersionAndPath(t.getName(), t.getVersion(), isFlatImport ? null : t.getFolderId()))
                 .toList();
         validateResourceUniqueness(resources, isFlatImport, TOOLSET_RESOURCE);
     }
@@ -90,30 +82,21 @@ public class ResourceImportValidator {
 
     public void checkApplicationConflicts(ImportResources importApplications, HashMap<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
         var isFlatImport = importApplications.isFlatImport();
-        var fileNameToListResources = importApplications.isFlatImport()
-                ? toMapOfResourceNameAndVersionAndPath(
+        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
                 fileNameToApplicationsEximDtos,
                 ApplicationsEximDto::getApplications,
-                    app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), null))
-                : toMapOfResourceNameAndVersionAndPath(
-                fileNameToApplicationsEximDtos,
-                ApplicationsEximDto::getApplications,
-                    app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), app.getFolderId()));
+                app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), isFlatImport ? null : app.getFolderId()));
+
         checkResourcesExistence(fileNameToListResources, APPLICATION_RESOURCE);
         checkResourcesConflicts(isFlatImport, fileNameToListResources, APPLICATION_RESOURCE);
     }
 
     public void checkToolSetConflicts(ImportResources importToolSets, HashMap<String, ToolSetsEximDto> fileNameToToolSetsEximDtos) {
         var isFlatImport = importToolSets.isFlatImport();
-        var fileNameToListResources = importToolSets.isFlatImport()
-                ? toMapOfResourceNameAndVersionAndPath(
+        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
                 fileNameToToolSetsEximDtos,
                 ToolSetsEximDto::getToolSets,
-                    app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), null))
-                : toMapOfResourceNameAndVersionAndPath(
-                fileNameToToolSetsEximDtos,
-                ToolSetsEximDto::getToolSets,
-                    app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), app.getFolderId()));
+                app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), isFlatImport ? null : app.getFolderId()));
         checkResourcesExistence(fileNameToListResources, TOOLSET_RESOURCE);
         checkResourcesConflicts(isFlatImport, fileNameToListResources, TOOLSET_RESOURCE);
     }
