@@ -41,8 +41,8 @@ public class ResourceImportValidator {
         validateResourceUniqueness(resources, isFlatImport, APPLICATION_RESOURCE);
     }
 
-    public void validateToolSetImport(ImportResources importApplications, @Valid ToolSetsEximDto toolSetsEximDto) {
-        var isFlatImport = importApplications.isFlatImport();
+    public void validateToolSetImport(ImportResources importToolsets, @Valid ToolSetsEximDto toolSetsEximDto) {
+        var isFlatImport = importToolsets.isFlatImport();
         var resources = toolSetsEximDto.getToolSets().stream()
                 .map(t -> new ResourceNameAndVersionAndPath(t.getName(), t.getVersion(), isFlatImport ? null : t.getFolderId()))
                 .toList();
@@ -77,10 +77,11 @@ public class ResourceImportValidator {
 
         return counts.entrySet().stream()
                 .filter(e -> e.getValue() > 1)
-                .map(Map.Entry::getKey).collect(Collectors.toSet());
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
     }
 
-    public void checkApplicationConflicts(ImportResources importApplications, HashMap<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
+    public void checkApplicationConflicts(ImportResources importApplications, Map<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
         var isFlatImport = importApplications.isFlatImport();
         var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
                 fileNameToApplicationsEximDtos,

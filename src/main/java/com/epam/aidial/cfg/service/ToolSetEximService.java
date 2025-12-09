@@ -87,8 +87,8 @@ public class ToolSetEximService {
     }
 
     private ImportResourcesFileResult importToolSet(ImportResources importToolSets,
-                                                        ToolSetsEximDto toolSetsEximDto,
-                                                        SimpleCircuitBreaker circuitBreaker) {
+                                                    ToolSetsEximDto toolSetsEximDto,
+                                                    SimpleCircuitBreaker circuitBreaker) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
             for (var toolSet : toolSetsEximDto.getToolSets()) {
@@ -107,8 +107,8 @@ public class ToolSetEximService {
     }
 
     private ImportResourcesResult importToolSet(ImportResources importToolSets,
-                                                    ToolSetEximDto toolSetExim,
-                                                    SimpleCircuitBreaker circuitBreaker) {
+                                                ToolSetEximDto toolSetExim,
+                                                SimpleCircuitBreaker circuitBreaker) {
         var toolSetName = EximServiceHelper.getVersionedName(toolSetExim);
         String targetPath;
         if (importToolSets.isFlatImport()) {
@@ -132,10 +132,10 @@ public class ToolSetEximService {
     }
 
     private ImportResourcesResult createToolSetWithCircuitBreaker(CreateToolSetResource createToolSetResource,
-                                                                      String sourcePath,
-                                                                      String targetPath,
-                                                                      ImportConflictResolutionStrategy conflictResolutionStrategy,
-                                                                      SimpleCircuitBreaker circuitBreaker) {
+                                                                  String sourcePath,
+                                                                  String targetPath,
+                                                                  ImportConflictResolutionStrategy conflictResolutionStrategy,
+                                                                  SimpleCircuitBreaker circuitBreaker) {
         return circuitBreaker.apply(
                 () -> createToolSetOrThrow(createToolSetResource, sourcePath, targetPath, conflictResolutionStrategy),
                 (ex) -> {
@@ -150,9 +150,9 @@ public class ToolSetEximService {
     }
 
     private ImportResourcesResult createToolSetOrThrow(CreateToolSetResource createToolSetResource,
-                                                           String sourcePath,
-                                                           String targetPath,
-                                                           ImportConflictResolutionStrategy conflictResolutionStrategy) {
+                                                       String sourcePath,
+                                                       String targetPath,
+                                                       ImportConflictResolutionStrategy conflictResolutionStrategy) {
         try {
             var allowOverride = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
             toolSetResourceService.putToolSetResource(createToolSetResource, allowOverride, null);
