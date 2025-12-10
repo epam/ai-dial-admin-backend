@@ -58,12 +58,9 @@ public class ResourceImportValidator {
     }
 
     public void validateFileImportInZip(ImportResources importFiles, MultipartFile zipFile) throws IOException {
-        var isFlatImport = importFiles.isFlatImport();
         var resources = getFileNamesFromZip(zipFile);
-        if (isFlatImport) {
+        if (importFiles.isFlatImport()) {
             validateUniquenessFileNamesInFolders(resources);
-        } else {
-            validateUniquenessFileNamesInZip(resources);
         }
     }
 
@@ -73,7 +70,7 @@ public class ResourceImportValidator {
             var names = new ArrayList<ResourceNameAndVersionAndPath>();
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (zipEntry.isDirectory()) {
-                    throw new IllegalArgumentException(String.format("Invalid zip format for file %s", zipFile.getOriginalFilename()));
+                    throw new IllegalArgumentException(String.format("Invalid zip format for file '%s'", zipFile.getOriginalFilename()));
                 }
                 String zipEntryName = zipEntry.getName();
                 try {
@@ -109,23 +106,6 @@ public class ResourceImportValidator {
                 errorMessage.append("\n - Duplicated file")
                         .append(" name '").append(name).append("' found in folders: ")
                         .append(String.join(", ", folders)));
-        throw new IllegalArgumentException(errorMessage.toString());
-    }
-
-    private void validateUniquenessFileNamesInZip(List<ResourceNameAndVersionAndPath> resources) {
-
-        var duplicated = getDuplicateResourceNamesAndPath(resources);
-
-        if (duplicated.isEmpty()) {
-            return;
-        }
-
-        var errorMessage = new StringBuilder("Files uniqueness violation. Conflicts found:");
-        duplicated.forEach(resource ->
-                errorMessage.append("\n - Duplicated file")
-                        .append(" name '").append(resource.name).append("' in folder '")
-                        .append(resource.folder)
-                        .append("'"));
         throw new IllegalArgumentException(errorMessage.toString());
     }
 
