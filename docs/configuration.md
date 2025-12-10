@@ -62,8 +62,6 @@ The admin panel determines the DIAL Core version using the following priority or
 | config.import.configsMaxCount               | IMPORT_CONFIGS_MAX_COUNT               | 64      | No       | -            | Maximum number of files allowed for a single import config operation                                                              |
 | config.import.autoImportOnBootstrap.enabled | ENABLE_CONFIG_AUTO_IMPORT_ON_BOOTSTRAP | false   | No       | -            | Enable core config auto import from the same location where export is configured. Auto import runs once on startup if DB is empty |
 
-
-
 ## Kubernetes Configuration
 
 Applied when: config.export.storageType=CONFIG_MAP|KUBE_SECRET
