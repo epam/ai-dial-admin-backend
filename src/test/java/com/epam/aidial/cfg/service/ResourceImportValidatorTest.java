@@ -14,6 +14,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -236,7 +237,7 @@ class ResourceImportValidatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> validator.validateFileImportInZip(new ImportResources(), mockFile));
 
-        assertTrue(exception.getMessage().equals("Invalid zip format for file 'test'"));
+        assertEquals("Invalid zip format for file 'test'", exception.getMessage());
     }
 
     private MockMultipartFile getMockMultipartZipFile(boolean withDuplicates) throws IOException {
@@ -255,13 +256,12 @@ class ResourceImportValidatorTest {
         }
 
         byte[] zipBytes = baos.toByteArray();
-        MockMultipartFile mockFile = new MockMultipartFile(
+        return new MockMultipartFile(
                 "file",
                 "test",
                 "application/zip",
                 zipBytes
         );
-        return mockFile;
     }
 
     private MockMultipartFile getMockMultipartZipFileWithWrongFormat() throws IOException {
@@ -275,13 +275,12 @@ class ResourceImportValidatorTest {
         }
 
         byte[] zipBytes = baos.toByteArray();
-        MockMultipartFile mockFile = new MockMultipartFile(
+        return new MockMultipartFile(
                 "file",
                 "test",
                 "application/zip",
                 zipBytes
         );
-        return mockFile;
     }
 
     private ApplicationEximDto getApplicationEximDto(String suffix) {

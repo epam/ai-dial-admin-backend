@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -126,14 +125,9 @@ public class FileService implements ResourceService {
     public ImportResourcesFileResult uploadFileZip(ImportResources importFiles, MultipartFile zipFile) {
         try {
             uniquenessValidator.validateFileImportInZip(importFiles, zipFile);
-        } catch (IllegalArgumentException ex) {
-            log.warn("Zip validation failed for file {}: {}", zipFile.getOriginalFilename(), ex);
-            return ImportResourcesFileResult.builder()
-                    .importResults(List.of())
-                    .error(ex.getMessage())
-                    .build();
-        } catch (IOException ex) {
-            log.warn("Failed to read uploaded zip during validation: {}", zipFile == null ? "not specified" : zipFile.getOriginalFilename(), ex);
+        } catch (Exception ex) {
+            String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
+            log.warn("Zip validation failed for file {}: {}", fileName, ex);
             return ImportResourcesFileResult.builder()
                     .importResults(List.of())
                     .error(ex.getMessage())
