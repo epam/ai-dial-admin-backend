@@ -4,11 +4,16 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
 import com.epam.aidial.cfg.model.ImportResources;
+import com.epam.aidial.cfg.utils.PathUtils;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,10 +23,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @Validated
 @Component
 @LogExecution
+@Slf4j
 public class ResourceImportValidator {
     private static final String APPLICATION_RESOURCE = "Application";
     private static final String TOOLSET_RESOURCE = "ToolSet";
@@ -47,6 +55,78 @@ public class ResourceImportValidator {
                 .map(t -> new ResourceNameAndVersionAndPath(t.getName(), t.getVersion(), isFlatImport ? null : t.getFolderId()))
                 .toList();
         validateResourceUniqueness(resources, isFlatImport, TOOLSET_RESOURCE);
+    }
+
+    public void validateFileImportInZip(ImportResources importFiles, MultipartFile zipFile) throws IOException {
+        var isFlatImport = importFiles.isFlatImport();
+        var resources = getFileNamesFromZip(zipFile);
+        if (isFlatImport) {
+            validateUniquenessFileNamesInFolders(resources);
+        } else {
+            validateUniquenessFileNamesInZip(resources);
+        }
+    }
+
+    private List<ResourceNameAndVersionAndPath> getFileNamesFromZip(MultipartFile zipFile) throws IOException {
+        try (ZipInputStream zipInputStream = new ZipInputStream(zipFile.getInputStream())) {
+            ZipEntry zipEntry;
+            var names = new ArrayList<ResourceNameAndVersionAndPath>();
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if (zipEntry.isDirectory()) {
+                    throw new IllegalArgumentException(String.format("Invalid zip format for file %s", zipFile.getOriginalFilename()));
+                }
+                String zipEntryName = zipEntry.getName();
+                try {
+                    zipEntryName = PathUtils.validateZipEntryPath(zipEntryName);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Skipping zip entry with invalid path: {}", zipEntryName, e);
+                    continue;
+                }
+                var parts = PathUtils.parsePath(zipEntryName);
+                names.add(new ResourceNameAndVersionAndPath(parts.getName(), null, parts.getFolderId()));
+            }
+            return names;
+        }
+    }
+
+    private void validateUniquenessFileNamesInFolders(List<ResourceNameAndVersionAndPath> resources) {
+
+        Map<String, Set<String>> nameToFolders = resources.stream()
+                .collect(Collectors.groupingBy(
+                        ResourceNameAndVersionAndPath::name,
+                        Collectors.mapping(ResourceNameAndVersionAndPath::folder, Collectors.toSet())));
+
+        Map<String, Set<String>> duplicated = nameToFolders.entrySet().stream()
+                .filter(e -> e.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (duplicated.isEmpty()) {
+            return;
+        }
+
+        var errorMessage = new StringBuilder("Files uniqueness violation. Conflicts found:");
+        duplicated.forEach((name, folders) ->
+                errorMessage.append("\n - Duplicated file")
+                        .append(" name '").append(name).append("' found in folders: ")
+                        .append(String.join(", ", folders)));
+        throw new IllegalArgumentException(errorMessage.toString());
+    }
+
+    private void validateUniquenessFileNamesInZip(List<ResourceNameAndVersionAndPath> resources) {
+
+        var duplicated = getDuplicateResourceNamesAndPath(resources);
+
+        if (duplicated.isEmpty()) {
+            return;
+        }
+
+        var errorMessage = new StringBuilder("Files uniqueness violation. Conflicts found:");
+        duplicated.forEach(resource ->
+                errorMessage.append("\n - Duplicated file")
+                        .append(" name '").append(resource.name).append("' in folder '")
+                        .append(resource.folder)
+                        .append("'"));
+        throw new IllegalArgumentException(errorMessage.toString());
     }
 
     private void validateResourceUniqueness(List<ResourceNameAndVersionAndPath> resources,
@@ -185,7 +265,7 @@ public class ResourceImportValidator {
     }
 
     private void checkResourcesExistence(Map<String, List<ResourceNameAndVersionAndPath>> fileNameToListResources,
-                                        String resourceType) {
+                                         String resourceType) {
         var resourceTypeLower = resourceType.toLowerCase();
         if (fileNameToListResources.isEmpty()) {
             throw new IllegalArgumentException(String.format("No %s files (e.g., `%ss/*.json`) found or loaded from the archive. "
