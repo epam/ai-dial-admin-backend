@@ -1,0 +1,83 @@
+package com.epam.aidial.cfg.functional.tests;
+
+import com.epam.aidial.cfg.dto.AdminSettingsDto;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.web.facade.AdminSettingsFacade;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.adminSettingsDto;
+
+public abstract class AdminSettingsFunctionalTest {
+
+    @Autowired
+    private AdminSettingsFacade adminSettingsFacade;
+
+    @Test
+    public void shouldSuccessfullyGetAdminSettings() {
+        AdminSettingsDto actual = adminSettingsFacade.getAdminSettingsWithHash().dto();
+        AdminSettingsDto expected = adminSettingsDto(null);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateAdminSettingsCoreConfigVersion() {
+        String coreConfigVersion = "0.40.0";
+        adminSettingsFacade.updateCoreConfigVersion(coreConfigVersion, "*");
+
+        AdminSettingsDto actual = adminSettingsFacade.getAdminSettingsWithHash().dto();
+        AdminSettingsDto expected = adminSettingsDto(coreConfigVersion);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"null", "''", "' '"}, nullValues = "null")
+    public void shouldSuccessfullyUpdateAdminSettingsCoreConfigVersionToBlankVersion(String coreConfigVersion) {
+        adminSettingsFacade.updateCoreConfigVersion(coreConfigVersion, "*");
+
+        AdminSettingsDto actual = adminSettingsFacade.getAdminSettingsWithHash().dto();
+        AdminSettingsDto expected = adminSettingsDto(coreConfigVersion);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateAdminSettingsCoreConfigVersionWithCorrectHash() {
+        String coreConfigVersion = "0.40.0";
+
+        String hash = adminSettingsFacade.getAdminSettingsWithHash().hash();
+        adminSettingsFacade.updateCoreConfigVersion(coreConfigVersion, hash);
+
+        AdminSettingsDto actual = adminSettingsFacade.getAdminSettingsWithHash().dto();
+        AdminSettingsDto expected = adminSettingsDto(coreConfigVersion);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateAdminSettingsCoreConfigVersionWithIncorrectHash() {
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> adminSettingsFacade.updateCoreConfigVersion("0.40.0", "test")
+        );
+
+        Assertions.assertEquals("Unable to update AdminSettings. The data may have been modified by another user. Please reload the data and try again.",
+                exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateAdminSettingsWithInvalidCoreConfigVersion() {
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> adminSettingsFacade.updateCoreConfigVersion("0.40.0-rc", "test")
+        );
+
+        Assertions.assertEquals("Invalid version format: 0.40.0-rc. Expected format: X.Y.Z (e.g., '0.23.0', '1.0.1', '2.0.3')) or 'latest'",
+                exception.getMessage());
+    }
+}

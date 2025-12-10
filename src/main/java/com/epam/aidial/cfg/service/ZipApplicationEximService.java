@@ -24,12 +24,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -46,6 +42,8 @@ public class ZipApplicationEximService {
     private static final String APPLICATIONS_FILENAME = "applications.json";
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String APPLICATIONS_FULL_PATH = APPLICATIONS_FOLDER + APPLICATIONS_FILENAME;
+
+    private final ResourceImportValidator uniquenessValidator;
 
     private final JsonMapper jsonMapper = JsonMapper.builder()
             .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)
@@ -99,7 +97,7 @@ public class ZipApplicationEximService {
                 }
             }
 
-            var compacted = compactApplicationsEximDtos(applicationsEximDtos);
+            var compacted = compactApplicationsEximDtos(importApplications, applicationsEximDtos);
             return applicationEximService.importApplications(importApplications, compacted);
         } catch (Exception ex) {
             log.warn("Application file {} import failed", rootPath, ex);
@@ -147,9 +145,8 @@ public class ZipApplicationEximService {
         }
     }
 
-    private ApplicationsEximDto compactApplicationsEximDtos(HashMap<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
-        checkApplicationsExistence(fileNameToApplicationsEximDtos);
-        checkApplicationConflicts(fileNameToApplicationsEximDtos);
+    private ApplicationsEximDto compactApplicationsEximDtos(ImportResources importApplications, HashMap<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
+        uniquenessValidator.checkApplicationConflicts(importApplications, fileNameToApplicationsEximDtos);
 
         var compactedApplications = fileNameToApplicationsEximDtos.values().stream()
                 .map(ApplicationsEximDto::getApplications)
@@ -160,119 +157,6 @@ public class ZipApplicationEximService {
         return ApplicationsEximDto.builder()
                 .applications(compactedApplications)
                 .build();
-    }
-
-    private void checkApplicationsExistence(HashMap<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
-        if (fileNameToApplicationsEximDtos.isEmpty()) {
-            throw new IllegalArgumentException("No application files (e.g., `applications/*.json`) found or loaded from the archive. "
-                    + "Please ensure application files are placed in a `applications/` directory and have a `.json` extension.");
-        }
-
-        var noApplications = fileNameToApplicationsEximDtos.values().stream()
-                .map(ApplicationsEximDto::getApplications)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .findAny()
-                .isEmpty();
-        if (noApplications) {
-            throw new IllegalArgumentException("Application files (e.g., `applications/*.json`) were found in the archive, "
-                    + "but they do not contain applications. Please verify the content of these files.");
-        }
-    }
-
-    private void checkApplicationConflicts(HashMap<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
-        var duplicatesWithinFiles = findSameApplicationsWithinSameFiles(fileNameToApplicationsEximDtos);
-        var duplicatesAcrossFiles = findSameApplicationsWithinDifferentFiles(fileNameToApplicationsEximDtos);
-
-        var hasConflicts = !duplicatesWithinFiles.isEmpty() || !duplicatesAcrossFiles.isEmpty();
-
-        if (hasConflicts) {
-            var errorMessage = new StringBuilder("Application ID uniqueness violation. Conflicts found:");
-
-            if (!duplicatesWithinFiles.isEmpty()) {
-                errorMessage.append("\n  Applications duplicated within the same file:\n");
-                duplicatesWithinFiles.forEach((filename, ids) ->
-                        errorMessage.append(String.format("    - File '%s' has duplicate application IDs: %s", filename, ids))
-                );
-            }
-
-            if (!duplicatesAcrossFiles.isEmpty()) {
-                errorMessage.append("\n  Applications shared across different files:\n");
-                duplicatesAcrossFiles.forEach((applicationId, filenames) ->
-                        errorMessage.append(String.format("    - Application ID '%s' is found in multiple files: %s", applicationId, filenames))
-                );
-            }
-            throw new IllegalArgumentException(errorMessage.toString().trim());
-        }
-    }
-
-    /**
-     * Finds application IDs duplicated within the same file.
-     *
-     * @param applicationsEximDtos Map of filename to {@code ApplicationsEximDto} (containing application lists).
-     * @return A map of filename to a Set of application IDs that appear more than once
-     *     <em>within that specific file</em>. Only files with such duplicates are included.
-     */
-    private Map<String, Set<String>> findSameApplicationsWithinSameFiles(Map<String, ApplicationsEximDto> applicationsEximDtos) {
-        var filesWithDuplicateApplications = new HashMap<String, Set<String>>();
-
-        for (var entry : applicationsEximDtos.entrySet()) {
-            var filename = entry.getKey();
-            var dto = entry.getValue();
-
-            if (dto.getApplications() == null) {
-                continue;
-            }
-
-            var applicationIdsInFile = dto.getApplications().stream()
-                    .map(application -> PathUtils.trimTrailingSlash(application.getApplicationTypeSchemaId()))
-                    .toList();
-
-            var idCounts = applicationIdsInFile.stream()
-                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-            var duplicateIdsInThisFile = idCounts.entrySet().stream()
-                    .filter(countEntry -> countEntry.getValue() > 1)
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toSet());
-
-            if (!duplicateIdsInThisFile.isEmpty()) {
-                filesWithDuplicateApplications.put(filename, duplicateIdsInThisFile);
-            }
-        }
-
-        return filesWithDuplicateApplications;
-    }
-
-    /**
-     * Finds application IDs that are present in multiple different files.
-     *
-     * @param applicationsEximDtos Map of filename to {@code ApplicationsEximDto} (containing application lists).
-     * @return A map of a shared application ID to a Set of filenames where it appears.
-     *     Only application IDs found in <em>more than one file</em> are included.
-     */
-    private Map<String, Set<String>> findSameApplicationsWithinDifferentFiles(Map<String, ApplicationsEximDto> applicationsEximDtos) {
-        var applicationToFilenamesMap = new HashMap<String, Set<String>>();
-
-        for (var entry : applicationsEximDtos.entrySet()) {
-            var filename = entry.getKey();
-            var dto = entry.getValue();
-
-            if (dto.getApplications() == null) {
-                continue;
-            }
-
-            for (var application : dto.getApplications()) {
-                var id = PathUtils.trimTrailingSlash(application.getApplicationTypeSchemaId());
-                applicationToFilenamesMap
-                        .computeIfAbsent(id, k -> new HashSet<>())
-                        .add(filename);
-            }
-        }
-
-        return applicationToFilenamesMap.entrySet().stream()
-                .filter(entry -> entry.getValue().size() > 1)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private PathUtils.VersionedPathParts getApplicationPathParts(ImportResources importApplications, ApplicationEximDto application) {

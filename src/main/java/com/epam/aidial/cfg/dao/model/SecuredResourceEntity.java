@@ -16,6 +16,7 @@ import org.hibernate.envers.Audited;
 @DiscriminatorValue("SECURED_RESOURCE")
 public class SecuredResourceEntity extends DeploymentEntity {
 
+    private boolean forwardPerRequestKey;
     @Embedded
     private ResourceAuthSettingsEntity authSettings;
 }

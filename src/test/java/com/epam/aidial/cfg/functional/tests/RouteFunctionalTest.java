@@ -129,8 +129,9 @@ public abstract class RouteFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> routeFacade.updateRoute(routeDto.getName(), routeDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update: routeName:'route1'"
-                + ". Reload the data.", exception.getMessage());
+        Assertions.assertEquals("Unable to update Route 'route1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test

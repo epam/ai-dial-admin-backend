@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Collection;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,6 +23,7 @@ public class ExportConfigPreview {
     private Collection<ExportKeyInfo> keys;
     private Collection<ExportApplicationTypeSchemaInfo> applicationRunners;
     private Collection<ExportComponentInfo> interceptors;
+    private List<String> globalInterceptors;
     private Collection<ExportComponentInfo> interceptorRunners;
     private Collection<ExportComponentInfo> adapters;
 }

@@ -331,6 +331,7 @@ example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CO
 | feign.retry.errorCodes                         | FEIGN_RETRY_ERRORCODES                           | 408,429,500,502,503,504 | No       | -            | HTTP status codes that trigger retries                                  |
 | prompts.import.consecutiveErrorsThreshold      | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD      | 2                       | No       | -            | Maximum number of consecutive errors allowed during prompts import      |
 | applications.import.consecutiveErrorsThreshold | APPLICATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No       | -            | Maximum number of consecutive errors allowed during applications import |
+| toolsets.import.consecutiveErrorsThreshold     | TOOLSETS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD     | 2                       | No       | -            | Maximum number of consecutive errors allowed during toolsets import     |
 | files.import.consecutiveErrorsThreshold        | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD        | 2                       | No       | -            | Maximum number of consecutive errors allowed during files import        |
 
 ## Additional Entities Configuration

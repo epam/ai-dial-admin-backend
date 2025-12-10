@@ -18,4 +18,6 @@ public enum ActivityResourceType {
     SecuredResource,
     Tokenizer,
     ToolSet,
+    GlobalSettings,
+    AdminSettings,
 }

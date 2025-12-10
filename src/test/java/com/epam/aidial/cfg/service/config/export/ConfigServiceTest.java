@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.domain.mapper.MapperPackage;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.GlobalSettings;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.model.Model;
@@ -23,6 +24,7 @@ import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -44,6 +46,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
@@ -94,6 +97,8 @@ class ConfigServiceTest {
     @MockitoBean
     private AdapterService adapterService;
     @MockitoBean
+    private GlobalSettingsService globalSettingsService;
+    @MockitoBean
     private RoleJpaRepository roleJpaRepository;
 
     @Autowired
@@ -111,6 +116,9 @@ class ConfigServiceTest {
         when(modelService.getAll()).thenReturn(List.of());
         when(roleService.getAllRoles()).thenReturn(List.of());
         when(routeService.getAll()).thenReturn(List.of());
+        var globalSettings = new GlobalSettings();
+        globalSettings.setGlobalInterceptors(new ArrayList<>());
+        when(globalSettingsService.getGlobalSettings()).thenReturn(globalSettings);
     }
 
     @Test

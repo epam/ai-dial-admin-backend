@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
         JsonMapperConfiguration.class,
         ApplicationClientMapperImpl.class,
         ZipApplicationEximService.class,
+        ResourceImportValidator.class,
         RouteMapperImpl.class
 })
 class ZipApplicationEximServiceTest {
@@ -54,6 +55,9 @@ class ZipApplicationEximServiceTest {
 
     @Autowired
     private ZipApplicationEximService zipApplicationEximService;
+
+    @Autowired
+    private ResourceImportValidator resourceImportValidator;
 
     @Test
     @SneakyThrows
@@ -148,9 +152,9 @@ class ZipApplicationEximServiceTest {
         // then
         assertThat(importResults.getImportResults()).isEmpty();
         assertThat(importResults.getError()).isEqualTo("""
-                Application ID uniqueness violation. Conflicts found:
+                Application uniqueness violation. Conflicts found:
                   Applications duplicated within the same file:
-                    - File 'applications/application.json' has duplicate application IDs: [https://test1.epam.com]""");
+                    - File 'applications/application.json' has duplicate application: name 'application1', version '0.0.1', folder 'public/folder1/'""");
 
         // Verify that applicationEximService was not called
         verifyNoInteractions(applicationEximService);
@@ -186,9 +190,9 @@ class ZipApplicationEximServiceTest {
         // then
         assertThat(importResults.getImportResults()).isEmpty();
         assertThat(importResults.getError()).isEqualTo("""
-                Application ID uniqueness violation. Conflicts found:
+                Application uniqueness violation. Conflicts found:
                   Applications shared across different files:
-                    - Application ID 'https://test1.epam.com' is found in multiple files: [applications/application2.json, applications/application1.json]""");
+                    - Application with name 'application1', version '0.0.1', folder 'public/folder1/ found in multiple files: [applications/application2.json, applications/application1.json]""");
 
         // Verify that applicationEximService was not called
         verifyNoInteractions(applicationEximService);
@@ -226,11 +230,11 @@ class ZipApplicationEximServiceTest {
         // then
         assertThat(importResults.getImportResults()).isEmpty();
         assertThat(importResults.getError()).isEqualTo("""
-                Application ID uniqueness violation. Conflicts found:
+                Application uniqueness violation. Conflicts found:
                   Applications duplicated within the same file:
-                    - File 'applications/application2.json' has duplicate application IDs: [https://test1.epam.com]
+                    - File 'applications/application2.json' has duplicate application: name 'application1', version '0.0.1', folder 'public/folder1/'
                   Applications shared across different files:
-                    - Application ID 'https://test1.epam.com' is found in multiple files: [applications/application2.json, applications/application1.json]""");
+                    - Application with name 'application1', version '0.0.1', folder 'public/folder1/ found in multiple files: [applications/application2.json, applications/application1.json]""");
 
         // Verify that applicationEximService was not called
         verifyNoInteractions(applicationEximService);
