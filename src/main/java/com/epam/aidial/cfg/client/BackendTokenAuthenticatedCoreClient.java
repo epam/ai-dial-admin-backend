@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
         name = "backendTokenAuthenticatedCoreClient",
         url = "${core.client.url}",
         configuration = {
-                CoreAuthTokenProviderConfiguration.class,
+                CoreAuthTokenProviderClientConfiguration.class,
                 FeignErrorDecoderConfiguration.class
         }
 )
@@ -16,5 +16,4 @@ public interface BackendTokenAuthenticatedCoreClient {
 
     @PostMapping("/v1/ops/config/reload")
     Config reload();
-
 }
