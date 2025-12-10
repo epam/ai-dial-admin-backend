@@ -1,26 +1,27 @@
 package com.epam.aidial.cfg.service.config.reload;
 
-import com.epam.aidial.cfg.client.CoreConfigClient;
+import com.epam.aidial.cfg.client.BackendTokenAuthenticatedCoreClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 @LogExecution
-@ConditionalOnProperty(value = "config.reload.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "config.autoReload.enabled", havingValue = "true")
 public class CoreConfigReloadScheduler {
 
-    private final CoreConfigClient coreConfigClient;
+    private final BackendTokenAuthenticatedCoreClient backendTokenAuthenticatedCoreClient;
     private final ConfigReloadErrorHandler errorHandler;
 
-    //@Scheduled(fixedDelayString = "${config.reload.schedule.delayMs}")
+    @Scheduled(fixedDelayString = "${config.autoReload.schedule.delayMs}")
     public void reloadCoreConfig() {
         try {
-            coreConfigClient.reload();
+            backendTokenAuthenticatedCoreClient.reload();
             errorHandler.setLastErrorMessage(null);
         } catch (Exception e) {
             log.error("Error during config reload", e);
