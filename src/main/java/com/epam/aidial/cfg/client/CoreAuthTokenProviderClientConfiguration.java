@@ -10,6 +10,8 @@ public class CoreAuthTokenProviderClientConfiguration {
 
     @Bean
     public RequestInterceptor coreAuthTokenRequestInterceptor(AuthTokenProvider authTokenProvider) {
-            return requestTemplate -> requestTemplate.header("Authorization", "Bearer " + authTokenProvider.getAuthToken().accessToken());
+        return requestTemplate -> requestTemplate.header("Authorization",
+                "Bearer " + authTokenProvider.getAuthToken().accessToken()
+        );
     }
 }
