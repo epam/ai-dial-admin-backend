@@ -7,13 +7,13 @@ public record AuthToken(String accessToken, int expiresIn) {
 
     @Override
     public String toString() {
-        return "AuthToken(accessToken=" + accessToken()
+        return "AuthToken(accessToken=" + SecretUtils.mask(accessToken())
                 + ", expiresIn=" + expiresIn()
                 + ')';
     }
 
     public String toUnsecureString() {
-        return "AuthToken(accessToken=" + SecretUtils.mask(accessToken())
+        return "AuthToken(accessToken=" + accessToken()
                 + ", expiresIn=" + expiresIn()
                 + ')';
     }

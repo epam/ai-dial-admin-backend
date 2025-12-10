@@ -15,18 +15,18 @@ class AuthTokenTest {
     @Test
     void testToString() {
         var token = new AuthToken("abc123", 3600);
-        var expected = "AuthToken(accessToken=abc123, expiresIn=3600)";
-        assertThat(token.toString()).isEqualTo(expected);
+        try (MockedStatic<SecretUtils> mocked = mockStatic(SecretUtils.class)) {
+            mocked.when(() -> SecretUtils.mask("abc123")).thenReturn("***MASKED***");
+            String expected = "AuthToken(accessToken=***MASKED***, expiresIn=3600)";
+            assertThat(token.toString()).isEqualTo(expected);
+        }
     }
 
     @Test
     void testToUnsecureString() {
         var token = new AuthToken("abc123", 3600);
-        try (MockedStatic<SecretUtils> mocked = mockStatic(SecretUtils.class)) {
-            mocked.when(() -> SecretUtils.mask("abc123")).thenReturn("***MASKED***");
-            String expected = "AuthToken(accessToken=***MASKED***, expiresIn=3600)";
-            assertThat(token.toUnsecureString()).isEqualTo(expected);
-        }
+        var expected = "AuthToken(accessToken=abc123, expiresIn=3600)";
+        assertThat(token.toUnsecureString()).isEqualTo(expected);
     }
 
     @Test
