@@ -66,7 +66,7 @@ class CoreAuthTokenProviderTest {
 
         // Mock static AuthToken.from to return null
         try (MockedStatic<AuthToken> authTokenStatic = mockStatic(AuthToken.class);
-             MockedStatic<SecretUtils> secretUtilsStatic = mockStatic(SecretUtils.class)) {
+                MockedStatic<SecretUtils> secretUtilsStatic = mockStatic(SecretUtils.class)) {
 
             authTokenStatic.when(() -> AuthToken.from(dto)).thenReturn(null);
             secretUtilsStatic.when(() -> SecretUtils.mask(clientSecret)).thenReturn("***MASKED***");
