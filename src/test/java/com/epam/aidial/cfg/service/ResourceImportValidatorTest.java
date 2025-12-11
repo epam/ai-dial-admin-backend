@@ -241,28 +241,25 @@ class ResourceImportValidatorTest {
     }
 
     private MockMultipartFile getMockMultipartZipFile(boolean withDuplicates) throws IOException {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ZipOutputStream zos = new ZipOutputStream(baos)) {
             var fileName1 = "file1.json";
             var fileName2 = withDuplicates ? fileName1 : "file2.json";
-            try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-                ZipEntry entry1 = new ZipEntry("folder1/folder2/folder3/" + fileName1);
-                zos.putNextEntry(entry1);
-                zos.write("file1".getBytes());
-                zos.closeEntry();
-                ZipEntry entry2 = new ZipEntry("folder1/folder2/" + fileName2);
-                zos.putNextEntry(entry2);
-                zos.write("file1".getBytes());
-                zos.closeEntry();
+            ZipEntry entry1 = new ZipEntry("folder1/folder2/folder3/" + fileName1);
+            zos.putNextEntry(entry1);
+            zos.write("file1".getBytes());
+            zos.closeEntry();
+            ZipEntry entry2 = new ZipEntry("folder1/folder2/" + fileName2);
+            zos.putNextEntry(entry2);
+            zos.write("file1".getBytes());
+            zos.closeEntry();
 
-                byte[] zipBytes = baos.toByteArray();
-                return new MockMultipartFile("file", "test", "application/zip", zipBytes);
-            }
+            byte[] zipBytes = baos.toByteArray();
+            return new MockMultipartFile("file", "test", "application/zip", zipBytes);
         }
     }
 
     private MockMultipartFile getMockMultipartZipFileWithWrongFormat() throws IOException {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ZipOutputStream zos = new ZipOutputStream(baos);
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ZipOutputStream zos = new ZipOutputStream(baos)) {
             ZipEntry entry1 = new ZipEntry("import/1/");
             zos.putNextEntry(entry1);
             zos.write("file1".getBytes());
@@ -270,12 +267,7 @@ class ResourceImportValidatorTest {
             zos.closeEntry();
 
             byte[] zipBytes = baos.toByteArray();
-            return new MockMultipartFile(
-                    "file",
-                    "test",
-                    "application/zip",
-                    zipBytes
-            );
+            return new MockMultipartFile("file", "test", "application/zip", zipBytes);
         }
     }
 
