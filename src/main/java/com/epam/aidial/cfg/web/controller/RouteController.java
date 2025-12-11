@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.core.config.CoreRoute;
@@ -55,6 +56,10 @@ public class RouteController extends AbstractController {
         return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
+    @GetMapping(path = "/{routeName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntitySyncStateDto getSyncState(@PathVariable String routeName) {
+        return routeFacade.getSyncState(routeName);
+    }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)

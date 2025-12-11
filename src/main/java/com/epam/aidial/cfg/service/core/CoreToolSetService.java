@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreToolSet;
@@ -29,6 +31,7 @@ public class CoreToolSetService {
     private final ToolSetService toolSetService;
     private final ToolSetCoreMapper toolSetCoreMapper;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreToolSet> getCoreToolSetWithHash(String toolSetName) {
@@ -77,5 +80,18 @@ public class CoreToolSetService {
         config.setToolsets(coreToolSets);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String toolSetName) {
+        var toolSet = toolSetService.get(toolSetName);
+        var coreToolSet = toolSetCoreMapper.mapToolSet(toolSet);
+
+        return entitySyncStateResolver.resolve(
+                coreToolSet,
+                toolSet.getUpdatedAt(),
+                "toolsets",
+                toolSetName
+        );
     }
 }

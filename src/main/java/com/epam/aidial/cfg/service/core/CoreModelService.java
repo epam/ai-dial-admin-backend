@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreModel;
@@ -29,6 +31,7 @@ public class CoreModelService {
     private final ModelService modelService;
     private final ModelCoreMapper modelCoreMapper;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreModel> getCoreModelWithHash(String modelName) {
@@ -78,5 +81,18 @@ public class CoreModelService {
         config.setModels(coreModels);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String modelName) {
+        var model = modelService.getModel(modelName);
+        var coreModel = modelCoreMapper.mapModel(model);
+
+        return entitySyncStateResolver.resolve(
+                coreModel,
+                model.getUpdatedAt(),
+                "models",
+                modelName
+        );
     }
 }

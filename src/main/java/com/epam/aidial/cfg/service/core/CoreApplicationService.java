@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
@@ -29,6 +31,7 @@ public class CoreApplicationService {
     private final ApplicationService applicationService;
     private final ApplicationCoreMapper applicationCoreMapper;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreApplication> getCoreApplicationWithHash(String applicationName) {
@@ -78,5 +81,20 @@ public class CoreApplicationService {
         config.setApplications(coreApplications);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String applicationName) {
+        var application = applicationService.getApplication(applicationName);
+        var coreApplication = applicationCoreMapper.mapApplication(application);
+        boolean isApplicationValid = application.getValidityState().isValid();
+
+        return entitySyncStateResolver.resolve(
+                coreApplication,
+                isApplicationValid,
+                application.getUpdatedAt(),
+                "applications",
+                applicationName
+        );
     }
 }

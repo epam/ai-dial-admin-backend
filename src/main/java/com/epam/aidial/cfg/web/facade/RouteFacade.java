@@ -5,8 +5,10 @@ import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.service.core.CoreRouteService;
+import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.RouteDtoMapper;
 import com.epam.aidial.core.config.CoreRoute;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class RouteFacade {
     private final RouteService routeService;
     private final RouteDtoMapper mapper;
     private final CoreRouteService coreRouteService;
+    private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
 
     public Collection<RouteDto> getAllRoutes() {
         return routeService.getAll()
@@ -45,6 +48,11 @@ public class RouteFacade {
 
     public CoreWithDomainHash<CoreRoute> getCoreRouteWithHash(String routeName) {
         return coreRouteService.getCoreRouteWithHash(routeName);
+    }
+
+    public EntitySyncStateDto getSyncState(String routeName) {
+        var syncState = coreRouteService.getSyncState(routeName);
+        return entitySyncStateDtoMapper.toDto(syncState);
     }
 
     public void createRoute(RouteDto routeDto) {

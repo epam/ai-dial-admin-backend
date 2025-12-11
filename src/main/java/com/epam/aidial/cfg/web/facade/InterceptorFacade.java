@@ -5,8 +5,10 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.service.core.CoreInterceptorService;
+import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapper;
 import com.epam.aidial.core.config.CoreInterceptor;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class InterceptorFacade {
     private final InterceptorService interceptorService;
     private final InterceptorDtoMapper mapper;
     private final CoreInterceptorService coreInterceptorService;
+    private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
 
     public Collection<InterceptorDto> getAllInterceptors() {
         return interceptorService.getAll()
@@ -44,6 +47,11 @@ public class InterceptorFacade {
 
     public CoreWithDomainHash<CoreInterceptor> getCoreInterceptorWithHash(String interceptorName) {
         return coreInterceptorService.getCoreInterceptorWithHash(interceptorName);
+    }
+
+    public EntitySyncStateDto getSyncState(String interceptorName) {
+        var syncState = coreInterceptorService.getSyncState(interceptorName);
+        return entitySyncStateDtoMapper.toDto(syncState);
     }
 
     public void createInterceptor(InterceptorDto interceptorDto) {

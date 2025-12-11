@@ -22,9 +22,9 @@ public class EntitySyncStateResolver {
 
     public <T> EntitySyncState resolve(T currentState,
                                        long currentStateUpdatedAt,
-                                       String configEntitiesType,
+                                       String entityType,
                                        String entityKeyInConfig) {
-        return resolve(currentState, true, currentStateUpdatedAt, configEntitiesType, entityKeyInConfig);
+        return resolve(currentState, true, currentStateUpdatedAt, entityType, entityKeyInConfig);
     }
 
     public <T> EntitySyncState resolve(T currentState,

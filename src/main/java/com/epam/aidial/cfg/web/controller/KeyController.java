@@ -57,7 +57,7 @@ public class KeyController extends AbstractController {
     }
 
     @GetMapping(path = "/{name}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getKeySyncState(@PathVariable String name) {
+    public EntitySyncStateDto getSyncState(@PathVariable String name) {
         return keyFacade.getSyncState(name);
     }
 

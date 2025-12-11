@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreRoute;
@@ -28,6 +30,7 @@ public class CoreRouteService {
     private final RouteService routeService;
     private final RouteCoreMapper routeCoreMapper;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreRoute> getCoreRouteWithHash(String routeName) {
@@ -76,5 +79,18 @@ public class CoreRouteService {
         config.setRoutes(coreRoutes);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String routeName) {
+        var route = routeService.get(routeName);
+        var coreRole = routeCoreMapper.mapRoute(route);
+
+        return entitySyncStateResolver.resolve(
+                coreRole,
+                route.getUpdatedAt(),
+                "routes",
+                routeName
+        );
     }
 }

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.CoreToolSet;
@@ -53,6 +54,11 @@ public class ToolSetController extends AbstractController {
                                                       @RequestHeader(value = "If-None-Match") String previousHash) {
         var coreWithHash = toolSetFacade.getCoreToolSetWithHash(toolSetName);
         return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/{toolSetName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntitySyncStateDto getSyncState(@PathVariable String toolSetName) {
+        return toolSetFacade.getSyncState(toolSetName);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

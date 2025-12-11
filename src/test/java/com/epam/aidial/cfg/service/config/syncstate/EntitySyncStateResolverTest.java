@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.config.syncstate;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.model.EntitySyncStateStatus;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -18,6 +19,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EntitySyncStateResolverTest {
+
+    private static final ObjectMapper HELPER_OBJECT_MAPPER = new ObjectMapper();
 
     @Mock
     private ObjectMapper objectMapper;
@@ -55,9 +58,10 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolve_configDoesNotHaveRequestedEntities_returnsUnknownState() {
+    void resolve_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
         // given
-        JsonNode config = JsonNodeFactory.instance.objectNode();
+        String configJson = "{}";
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
@@ -69,7 +73,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolve_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() {
+    void resolve_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -77,15 +81,17 @@ class EntitySyncStateResolverTest {
         CurrentState currentState = new CurrentState();
         ObjectNode currentStateJsonNode = JsonNodeFactory.instance.objectNode();
 
-        ObjectNode notRequestedEntity = JsonNodeFactory.instance.objectNode();
-        notRequestedEntity.put("prop1", "prop1Value");
-        notRequestedEntity.put("prop2", "prop2Value");
-
-        ObjectNode requestedEntities = JsonNodeFactory.instance.objectNode();
-        requestedEntities.set("entityName1", notRequestedEntity);
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("entities", requestedEntities);
+        String configJson = """
+                {
+                    "entities": {
+                        "entityName_NEW": {
+                            "prop1": "prop1Value",
+                            "prop2": "prop2Value"
+                        }
+                    }
+                }
+                """;
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
 
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
@@ -105,7 +111,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolve_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() {
+    void resolve_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -113,15 +119,25 @@ class EntitySyncStateResolverTest {
         CurrentState currentState = new CurrentState();
         ObjectNode currentStateJsonNode = JsonNodeFactory.instance.objectNode();
 
-        ObjectNode requestedEntity = JsonNodeFactory.instance.objectNode();
-        requestedEntity.put("prop1", "prop1Value");
-        requestedEntity.put("prop2", "prop2Value");
+        String requestedEntityJson = """
+                {
+                    "prop1": "prop1Value",
+                    "prop2": "prop2Value"
+                }
+                """;
+        JsonNode requestedEntity = HELPER_OBJECT_MAPPER.readTree(requestedEntityJson);
 
-        ObjectNode requestedEntities = JsonNodeFactory.instance.objectNode();
-        requestedEntities.set("entityName", requestedEntity);
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("entities", requestedEntities);
+        String configJson = """
+                {
+                    "entities": {
+                        "entityName": {
+                            "prop1": "prop1Value",
+                            "prop2": "prop2Value"
+                        }
+                    }
+                }
+                """;
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
 
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
@@ -141,7 +157,7 @@ class EntitySyncStateResolverTest {
     }
 
     @Test
-    void resolve_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart() {
+    void resolve_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart() throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -149,15 +165,25 @@ class EntitySyncStateResolverTest {
         CurrentState currentState = new CurrentState();
         ObjectNode currentStateJsonNode = JsonNodeFactory.instance.objectNode();
 
-        ObjectNode requestedEntity = JsonNodeFactory.instance.objectNode();
-        requestedEntity.put("prop1", "prop1Value");
-        requestedEntity.put("prop2", "prop2Value");
+        String requestedEntityJson = """
+                {
+                    "prop1": "prop1Value",
+                    "prop2": "prop2Value"
+                }
+                """;
+        JsonNode requestedEntity = HELPER_OBJECT_MAPPER.readTree(requestedEntityJson);
 
-        ObjectNode requestedEntities = JsonNodeFactory.instance.objectNode();
-        requestedEntities.set("entityName", requestedEntity);
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("entities", requestedEntities);
+        String configJson = """
+                {
+                    "entities": {
+                        "entityName": {
+                            "prop1": "prop1Value",
+                            "prop2": "prop2Value"
+                        }
+                    }
+                }
+                """;
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
 
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);

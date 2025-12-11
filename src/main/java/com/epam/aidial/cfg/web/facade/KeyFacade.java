@@ -46,13 +46,13 @@ public class KeyFacade {
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
+    public CoreWithDomainHash<CoreKey> getCoreKeyWithHash(String keyName) {
+        return coreKeyService.getCoreKeyWithHash(keyName);
+    }
+
     public EntitySyncStateDto getSyncState(String keyName) {
         var syncState = coreKeyService.getSyncState(keyName);
         return entitySyncStateDtoMapper.toDto(syncState);
-    }
-
-    public CoreWithDomainHash<CoreKey> getCoreKeyWithHash(String keyName) {
-        return coreKeyService.getCoreKeyWithHash(keyName);
     }
 
     public void createKey(KeyDto keyDto) {

@@ -5,8 +5,10 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.service.core.CoreToolSetService;
+import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapper;
 import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -27,6 +29,7 @@ public class ToolSetFacade {
     private final ToolSetService toolSetService;
     private final ToolSetDtoMapper mapper;
     private final CoreToolSetService coreToolSetService;
+    private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
 
     public Collection<ToolSetDto> getAllToolSets() {
         return toolSetService.getAll()
@@ -48,6 +51,11 @@ public class ToolSetFacade {
 
     public CoreWithDomainHash<CoreToolSet> getCoreToolSetWithHash(String toolSetName) {
         return coreToolSetService.getCoreToolSetWithHash(toolSetName);
+    }
+
+    public EntitySyncStateDto getSyncState(String toolSetName) {
+        var syncState = coreToolSetService.getSyncState(toolSetName);
+        return entitySyncStateDtoMapper.toDto(syncState);
     }
 
     public void createToolSet(ToolSetDto toolSetDto) {

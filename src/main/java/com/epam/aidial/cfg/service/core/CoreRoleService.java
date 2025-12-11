@@ -8,6 +8,8 @@ import com.epam.aidial.cfg.domain.service.DeploymentService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreRole;
@@ -31,6 +33,7 @@ public class CoreRoleService {
     private final RoleCoreMapper roleCoreMapper;
     private final DeploymentService deploymentService;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreRole> getCoreRoleWithHash(String roleName) {
@@ -80,5 +83,19 @@ public class CoreRoleService {
         config.setRoles(coreRoles);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String roleName) {
+        var role = roleService.getRole(roleName);
+        var deployments = deploymentService.getAll();
+        var coreRole = roleCoreMapper.mapRole(role, deployments);
+
+        return entitySyncStateResolver.resolve(
+                coreRole,
+                role.getUpdatedAt(),
+                "roles",
+                roleName
+        );
     }
 }

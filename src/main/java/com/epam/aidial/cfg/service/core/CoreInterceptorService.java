@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreInterceptor;
@@ -29,6 +31,7 @@ public class CoreInterceptorService {
     private final InterceptorService interceptorService;
     private final InterceptorCoreMapper interceptorCoreMapper;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreInterceptor> getCoreInterceptorWithHash(String interceptorName) {
@@ -78,5 +81,18 @@ public class CoreInterceptorService {
         config.setInterceptors(coreInterceptors);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String interceptorName) {
+        var interceptor = interceptorService.get(interceptorName);
+        var coreInterceptor = interceptorCoreMapper.mapInterceptor(interceptor);
+
+        return entitySyncStateResolver.resolve(
+                coreInterceptor,
+                interceptor.getUpdatedAt(),
+                "interceptors",
+                interceptorName
+        );
     }
 }
