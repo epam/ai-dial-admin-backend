@@ -11,5 +11,6 @@
   "endpoint": "https://test",
   "icon_url": "",
   "maxRetryAttempts": 10,
-  "transport": "HTTP"
+  "transport": "HTTP",
+  "forwardPerRequestKey": true
 }
