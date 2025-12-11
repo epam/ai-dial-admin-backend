@@ -46,6 +46,15 @@ This document provides a comprehensive list of all configurable properties in th
 | config.export.keyvault.expiration.unit       | CONFIG_EXPORT_KEYVAULT_EXPIRATION_UNIT         | MONTHS               | No       | -                                                | Unit of time for keyvault value expiration                                                                                                                                                                  |
 | config.export.createResources                | CONFIG_EXPORT_CREATE_RESOURCES                 | false                | No       | -                                                | If true, create resources where config is exported if they don't already exist                                                                                                                              |
 
+### Core Version Detection Priority
+
+The admin panel determines the DIAL Core version using the following priority order:
+
+1. **Manually set version** - Version explicitly set through the admin panel UI or API (stored in db as part of admin settings)
+2. **Autodetected version** - Version automatically detected when `ENABLE_CORE_CONFIG_VERSION_AUTO_DETECT` is enabled
+3. **Environment variable** - Version specified via `CORE_CONFIG_VERSION` environment variable
+4. **No version detected** - If no version is detected through any of the previous steps, the admin panel stops producing/updating configuration for DIAL Core
+
 ## AIDIAL Config File Import Configuration
 
 | Setting                                     | Environment Variable                   | Default | Required | Applied when | Description                                                                                                                       |
