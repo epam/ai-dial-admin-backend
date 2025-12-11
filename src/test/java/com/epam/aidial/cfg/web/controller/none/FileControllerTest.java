@@ -229,7 +229,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
         doNothing().when(fileService).deleteFiles(anyList());
 
         // when
-        mockMvc.perform(delete("/api/v1/files/delete/bulk")
+        mockMvc.perform(post("/api/v1/files/delete/bulk")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(pathsDto)))
                 // then
