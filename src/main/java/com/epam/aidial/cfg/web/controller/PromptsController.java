@@ -22,11 +22,13 @@ import com.epam.aidial.cfg.service.prompt.PromptService;
 import com.epam.aidial.cfg.service.prompt.ZipPromptEximService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,9 +62,11 @@ public class PromptsController {
     @PostMapping(path = "/get",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public PromptDto getPrompt(@RequestBody ResourcePathDto promptPath) {
-        var prompt = promptService.getPrompt(promptPath.getPath());
-        return promptMapper.toPromptDto(prompt);
+    public ResponseEntity<PromptDto> getPrompt(@RequestBody ResourcePathDto promptPath,
+                                               @RequestHeader(value = "If-None-Match") String etag) {
+        var prompt = promptService.getPrompt(promptPath.getPath(), etag);
+        var promptDto = promptMapper.toPromptDto(prompt.model());
+        return ResponseEntity.status(HttpStatus.OK).eTag(prompt.etag()).body(promptDto);
     }
 
     @PostMapping(path = "/versions",
@@ -76,16 +80,18 @@ public class PromptsController {
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public PromptDto createPrompt(@RequestBody CreatePromptDto createPromptDto) {
+    public ResponseEntity<PromptDto> createPrompt(@RequestBody CreatePromptDto createPromptDto) {
         var createPrompt = promptMapper.toCreatePrompt(createPromptDto);
-        var createdPrompt = promptService.createPrompt(createPrompt, true, null);
-        return promptMapper.toPromptDto(createdPrompt);
+        var prompt = promptService.createPrompt(createPrompt, true, null);
+        var promptDto = promptMapper.toPromptDto(prompt.model());
+        return ResponseEntity.status(HttpStatus.OK).eTag(prompt.etag()).body(promptDto);
     }
 
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public void deletePrompt(@RequestBody ResourcePathDto promptPath) {
-        promptService.deletePrompt(promptPath.getPath());
+    public void deletePrompt(@RequestBody ResourcePathDto promptPath,
+                             @RequestHeader(value = "If-Match") String etag) {
+        promptService.deletePrompt(promptPath.getPath(), etag);
     }
 
     @PostMapping(path = "/delete/bulk",

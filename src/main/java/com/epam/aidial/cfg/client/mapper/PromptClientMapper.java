@@ -13,6 +13,7 @@ import com.epam.aidial.core.util.UrlUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
@@ -88,7 +89,10 @@ public abstract class PromptClientMapper {
                 .build();
     }
 
-    public abstract PromptExim toPromptExim(PromptDto promptDto);
+    @Mapping(target = "id", expression = "java(PROMPTS_PREFIX + parts.getPath())")
+    @Mapping(target = "name", expression = "java(parts.getName())")
+    @Mapping(target = "folderId", expression = "java(PROMPTS_PREFIX + parts.getFolderId())")
+    public abstract PromptExim toPromptExim(Prompt prompt, PathUtils.VersionedPathParts parts);
 
     public static PathUtils.VersionedPathParts parseEncodedVersionedPath(String path) {
         var pathWithoutPrefix = removePromptsPrefix(path);

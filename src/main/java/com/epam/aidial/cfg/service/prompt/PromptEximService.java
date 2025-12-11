@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.prompt;
 
-import com.epam.aidial.cfg.client.PromptClient;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.PromptEximDto;
@@ -36,7 +35,6 @@ public class PromptEximService {
     private static final String PROMPTS_FOLDER = "prompts/";
     private static final String PUBLIC_FOLDER = "public/";
 
-    private final PromptClient promptClient;
     private final PromptClientMapper promptClientMapper;
     private final PromptService promptService;
     private final FolderService folderService;
@@ -62,14 +60,9 @@ public class PromptEximService {
 
     private PromptExim getPromptExport(String path) {
         try {
-            var promptDto = promptClient.getPrompt(path);
-
+            var prompt = promptService.getPrompt(path);
             var parts = PathUtils.parseVersionedPath(path);
-            promptDto.setId(PROMPTS_FOLDER + parts.getPath());
-            promptDto.setName(parts.getName());
-            promptDto.setFolderId(PROMPTS_FOLDER + parts.getFolderId());
-
-            return promptClientMapper.toPromptExim(promptDto);
+            return promptClientMapper.toPromptExim(prompt, parts);
         } catch (Exception e) {
             log.error("Cannot load prompt from path {}", path, e);
             throw new RuntimeException(e);

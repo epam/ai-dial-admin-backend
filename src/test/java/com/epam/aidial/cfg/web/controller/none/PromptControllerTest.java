@@ -8,9 +8,12 @@ import com.epam.aidial.cfg.dto.PromptVersionsRequestDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
+import com.epam.aidial.cfg.exception.NotModifiedException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.mapper.PromptMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.model.CreatePrompt;
+import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResourcePreview;
 import com.epam.aidial.cfg.model.ImportResources;
@@ -42,11 +45,13 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -64,6 +69,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ResourceMapperImpl.class
 })
 class PromptControllerTest extends AbstractControllerNoneSecureTest {
+
+    private static final String TEST_ETAG = "etag123";
+    private static final String RETURNED_TEST_ETAG = "\"etag123\"";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -100,24 +108,56 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
+    void testGetPromptWithoutHeaderIfNoneMatch() throws Exception {
+        var body = new ResourcePathDto();
+        body.setPath("rootPath/subFolder/TestName");
+
+        mockMvc.perform(post("/api/v1/prompts/get")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-None-Match' for method parameter type String is not present"));
+    }
+
+    @Test
+    void testGetApplication_whenResourceWithSameEtag() throws Exception {
+        var promptPath = "rootPath/subFolder/TestName";
+        var body = new ResourcePathDto();
+        body.setPath(promptPath);
+
+        doThrow(new NotModifiedException(Map.of("etag", List.of(TEST_ETAG)))).when(promptService).getPrompt(any(), any());
+
+        mockMvc.perform(post("/api/v1/prompts/get")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_NONE_MATCH, TEST_ETAG))
+                .andExpect(status().isNotModified())
+                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG));
+
+        verify(promptService).getPrompt(eq(promptPath), eq(TEST_ETAG));
+    }
+
+    @Test
     void testGetPrompt() throws Exception {
         var modelJson = ResourceUtils.readResource("/prompts/prompt.json");
         var model = objectMapper.readValue(modelJson, new TypeReference<Prompt>() {
         });
         var promptPath = "rootPath/subFolder/TestName";
 
-        when(promptService.getPrompt(any())).thenReturn(model);
+        when(promptService.getPrompt(any(), any())).thenReturn(new DomainModelWithEtag<>(model, TEST_ETAG));
 
         var body = new ResourcePathDto();
         body.setPath(promptPath);
         var dtoJson = ResourceUtils.readResource("/prompts/prompt_dto.json");
         mockMvc.perform(post("/api/v1/prompts/get")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_NONE_MATCH, TEST_ETAG))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
 
-        verify(promptService).getPrompt(eq(promptPath));
+        verify(promptService).getPrompt(eq(promptPath), eq(TEST_ETAG));
     }
 
     @Test
@@ -170,12 +210,13 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
 
         var createdPromptDtoJson = ResourceUtils.readResource("/prompts/created_prompt_dto.json");
 
-        when(promptService.createPrompt(any(), anyBoolean(), any())).thenReturn(createdPrompt);
+        when(promptService.createPrompt(any(), anyBoolean(), any())).thenReturn(new DomainModelWithEtag<>(createdPrompt, TEST_ETAG));
 
         mockMvc.perform(post("/api/v1/prompts/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createPromptDtoJson))
                 .andExpect(status().isOk())
+                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG))
                 .andExpect(content().json(createdPromptDtoJson, JsonCompareMode.LENIENT));
 
         verify(promptService).createPrompt(eq(createPrompt), eq(true), isNull());
@@ -188,10 +229,42 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
         body.setPath(promptPath);
         mockMvc.perform(post("/api/v1/prompts/delete")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_MATCH, TEST_ETAG))
                 .andExpect(status().isOk());
 
-        verify(promptService).deletePrompt(promptPath);
+        verify(promptService).deletePrompt(promptPath, TEST_ETAG);
+    }
+
+    @Test
+    void testDeleteApplication_whenIfMatchHeaderNotPresent() throws Exception {
+        var promptPath = "rootPath/subFolder/TestName";
+        var body = new ResourcePathDto();
+        body.setPath(promptPath);
+
+        mockMvc.perform(post("/api/v1/prompts/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-Match' for method parameter type String is not present"));
+    }
+
+    @Test
+    void testDeleteApplication_whenWrongEtag() throws Exception {
+        var promptPath = "rootPath/subFolder/TestName";
+        var body = new ResourcePathDto();
+        body.setPath(promptPath);
+
+        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(promptService).deletePrompt(any(), any());
+
+        mockMvc.perform(post("/api/v1/prompts/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body))
+                        .header(HEADER_IF_MATCH, TEST_ETAG))
+                .andExpect(status().isPreconditionFailed())
+                .andExpect(jsonPath("$.message")
+                        .value("Precondition failed"));
     }
 
     @Test
