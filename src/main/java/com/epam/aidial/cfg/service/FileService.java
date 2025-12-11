@@ -236,8 +236,7 @@ public class FileService implements ResourceService {
                 deleteFile(path);
                 deletedFiles.add(path);
             } catch (Exception exception) {
-                log.warn("Unable to delete file: {}, deleted files: {}", path, deletedFiles,
-                        exception);
+                log.warn("Unable to delete file: {}, deleted files: {}", path, deletedFiles, exception);
                 throw exception;
             }
         }
