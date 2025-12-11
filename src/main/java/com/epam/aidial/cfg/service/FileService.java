@@ -229,6 +229,19 @@ public class FileService implements ResourceService {
         fileClient.deleteFile(path);
     }
 
+    public void deleteFiles(List<String> paths) {
+        List<String> deletedFiles = new ArrayList<>();
+        for (var path : paths) {
+            try {
+                deleteFile(path);
+                deletedFiles.add(path);
+            } catch (Exception exception) {
+                log.warn("Unable to delete file: {}, deleted files: {}", path, deletedFiles, exception);
+                throw exception;
+            }
+        }
+    }
+
     @Override
     public void move(MoveResource moveResource) {
         var moveResourceDto = resourceClientMapper.toMoveResourceDto(moveResource, FILES_PREFIX);
