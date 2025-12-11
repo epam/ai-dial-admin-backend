@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,13 +35,12 @@ class CoreAuthTokenProviderTest {
     @Test
     void getAuthToken_success() {
         TokenResponseDto dto = mock(TokenResponseDto.class);
-        when(client.getToken(
-                MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-                AuthorizationGrantType.CLIENT_CREDENTIALS.getValue(),
-                clientId,
-                clientSecret,
-                scope
-        )).thenReturn(dto);
+        String expectedBody = "grant_type=client_credentials"
+                + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                + "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8);
+
+        when(client.getToken(MediaType.APPLICATION_FORM_URLENCODED_VALUE, expectedBody)).thenReturn(dto);
 
         AuthToken expectedToken = new AuthToken("access-token", 3600);
 
@@ -56,13 +57,12 @@ class CoreAuthTokenProviderTest {
     @Test
     void getAuthToken_nullToken_throwsAccessDeniedException() {
         TokenResponseDto dto = mock(TokenResponseDto.class);
-        when(client.getToken(
-                MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-                AuthorizationGrantType.CLIENT_CREDENTIALS.getValue(),
-                clientId,
-                clientSecret,
-                scope
-        )).thenReturn(dto);
+        String expectedBody = "grant_type=client_credentials"
+                + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                + "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8);
+
+        when(client.getToken(MediaType.APPLICATION_FORM_URLENCODED_VALUE, expectedBody)).thenReturn(dto);
 
         // Mock static AuthToken.from to return null
         try (MockedStatic<AuthToken> authTokenStatic = mockStatic(AuthToken.class);
@@ -79,13 +79,13 @@ class CoreAuthTokenProviderTest {
 
     @Test
     void getAuthToken_clientThrowsException_throwsAccessDeniedException() {
-        when(client.getToken(
-                MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-                AuthorizationGrantType.CLIENT_CREDENTIALS.getValue(),
-                clientId,
-                clientSecret,
-                scope
-        )).thenThrow(new RuntimeException("Service error"));
+        String expectedBody = "grant_type=client_credentials"
+                + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                + "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8);
+
+        when(client.getToken(MediaType.APPLICATION_FORM_URLENCODED_VALUE, expectedBody))
+                .thenThrow(new RuntimeException("Service error"));
 
         try (MockedStatic<SecretUtils> secretUtilsStatic = mockStatic(SecretUtils.class)) {
             secretUtilsStatic.when(() -> SecretUtils.mask(clientSecret)).thenReturn("***MASKED***");
