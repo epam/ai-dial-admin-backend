@@ -30,6 +30,7 @@ import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
@@ -53,6 +54,7 @@ import java.util.Map;
         "com.epam.aidial.cfg.web.facade",
         "com.epam.aidial.cfg.service.config.transfer",
         "com.epam.aidial.cfg.service.config.normalizer",
+        "com.epam.aidial.cfg.service.config.syncstate",
         "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
@@ -139,6 +141,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public McpClientFactory mcpClientFactory() {
         return Mockito.mock(McpClientFactory.class);
+    }
+
+    @Bean
+    public CoreConfigReloadCache coreConfigReloadCache() {
+        return Mockito.mock(CoreConfigReloadCache.class);
     }
 
 }

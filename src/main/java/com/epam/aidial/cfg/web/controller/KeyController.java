@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.core.config.CoreKey;
@@ -53,6 +54,11 @@ public class KeyController extends AbstractController {
                                               @RequestHeader(value = "If-None-Match") String previousHash) {
         var coreWithHash = keyFacade.getCoreKeyWithHash(name);
         return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/{name}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntitySyncStateDto getKeySyncState(@PathVariable String name) {
+        return keyFacade.getSyncState(name);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
