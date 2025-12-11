@@ -44,37 +44,42 @@ class EntitySyncStateStatusResolverTest {
     }
 
     private static Stream<Arguments> resolveTestParams() throws JsonProcessingException {
+        JsonNode currentState = currentState();
+        JsonNode configStateWithDifferentFieldOrderAndSameFieldValues = configStateWithDifferentFieldOrderAndSameFieldValues();
+        JsonNode configStateWithSameFieldOrderAndDifferentFieldValues = configStateWithSameFieldOrderAndDifferentFieldValues();
+        JsonNode configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder = configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder();
+
         return Stream.of(
-                Arguments.of(currentState(), null, true, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
+                Arguments.of(currentState, null, true, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
 
-                Arguments.of(currentState(), currentState(),
+                Arguments.of(currentState, currentState,
                         true, 1, 1, EntitySyncStateStatus.FULLY_SYNCED),
-                Arguments.of(currentState(), configStateWithDifferentFieldOrderAndSameFieldValues(),
+                Arguments.of(currentState, configStateWithDifferentFieldOrderAndSameFieldValues,
                         true, 1, 1, EntitySyncStateStatus.FULLY_SYNCED),
 
-                Arguments.of(currentState(), configStateWithSameFieldOrderAndDifferentFieldValues(),
+                Arguments.of(currentState, configStateWithSameFieldOrderAndDifferentFieldValues,
                         true, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
-                Arguments.of(currentState(), configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder(),
+                Arguments.of(currentState, configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder,
                         true, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
-                Arguments.of(currentState(), configStateWithNewField(),
+                Arguments.of(currentState, configStateWithNewField(),
                         true, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
-                Arguments.of(currentState(), configStateWithMissingField(),
+                Arguments.of(currentState, configStateWithMissingField(),
                         true, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
 
-                Arguments.of(currentState(), configStateWithSameFieldOrderAndDifferentFieldValues(),
+                Arguments.of(currentState, configStateWithSameFieldOrderAndDifferentFieldValues,
                         true, 1, 12, EntitySyncStateStatus.IN_PROGRESS_TOO_LONG),
-                Arguments.of(currentState(), configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder(),
+                Arguments.of(currentState, configStateWithSameFieldOrderAndSameFieldValuesAndDifferentArrayElementsOrder,
                         true, 1, 12, EntitySyncStateStatus.IN_PROGRESS_TOO_LONG),
-                Arguments.of(currentState(), configStateWithNewField(),
+                Arguments.of(currentState, configStateWithNewField(),
                         true, 1, 12, EntitySyncStateStatus.IN_PROGRESS_TOO_LONG),
-                Arguments.of(currentState(), configStateWithMissingField(),
+                Arguments.of(currentState, configStateWithMissingField(),
                         true, 1, 12, EntitySyncStateStatus.IN_PROGRESS_TOO_LONG),
 
-                Arguments.of(currentState(), null, false, 1, 1, EntitySyncStateStatus.FULLY_SYNCED),
+                Arguments.of(currentState, null, false, 1, 1, EntitySyncStateStatus.FULLY_SYNCED),
 
-                Arguments.of(currentState(), configStateWithNewField(), false, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
+                Arguments.of(currentState, configStateWithNewField(), false, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
 
-                Arguments.of(currentState(), configStateWithNewField(), false, 1, 12, EntitySyncStateStatus.IN_PROGRESS_TOO_LONG)
+                Arguments.of(currentState, configStateWithNewField(), false, 1, 12, EntitySyncStateStatus.IN_PROGRESS_TOO_LONG)
         );
     }
 
