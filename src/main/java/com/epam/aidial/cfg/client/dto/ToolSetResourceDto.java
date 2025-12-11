@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -31,6 +30,7 @@ public class ToolSetResourceDto {
     private Transport transport;
     private List<String> allowedTools;
     private ResourceAuthSettingsDto authSettings;
+    private boolean forwardPerRequestKey;
 
     public enum Transport {
         HTTP, SSE
