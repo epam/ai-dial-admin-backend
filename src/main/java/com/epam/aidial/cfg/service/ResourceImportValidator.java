@@ -87,7 +87,6 @@ public class ResourceImportValidator {
     }
 
     private void validateUniquenessFileNamesInFolders(List<ResourceNameAndVersionAndPath> resources) {
-
         Map<String, Set<String>> nameToFolders = resources.stream()
                 .collect(Collectors.groupingBy(
                         ResourceNameAndVersionAndPath::name,
