@@ -97,7 +97,7 @@ public class FileController {
         fileService.deleteFile(path);
     }
 
-    @DeleteMapping(value = "/delete/bulk")
+    @PostMapping(value = "/delete/bulk")
     public void deleteFiles(@RequestBody FilePathsDto filePaths) {
         var paths = filePaths.getPaths().stream().map(FilePathDto::getPath).toList();
         fileService.deleteFiles(paths);
