@@ -64,7 +64,7 @@ Before proceeding with the implementation, ensure the following pre-requirements
    backend:
      env:
        ENABLE_CONFIG_AUTO_RELOAD: true
-       CORE_AUTH_TOKEN_PROVIDER_URL: "https://login.microsoftonline.com/<tenant_id>/oauth2/v2.0/token"
+       CORE_AUTH_TOKEN_PROVIDER_URL: "https://login.microsoftonline.com/<tenant_id>/oauth2/v2.0"
        CORE_AUTH_TOKEN_PROVIDER_CLIENT_ID: <app_registration_client_id> # Created in Step 1
        CORE_AUTH_TOKEN_PROVIDER_SCOPE: <dial_core_application_scope>
      secrets:
