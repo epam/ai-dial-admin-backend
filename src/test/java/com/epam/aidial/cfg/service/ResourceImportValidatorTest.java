@@ -4,11 +4,17 @@ import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
 import com.epam.aidial.cfg.model.ImportResources;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -194,6 +200,75 @@ class ResourceImportValidatorTest {
                     - File 'test2' has duplicate application: name 'application1', version '0.0.1', folder 'public/1/'
                   Applications shared across different files:
                     - Application with name 'application1', version '0.0.1', folder 'public/1/ found in multiple files: [test2, test1]"""));
+    }
+
+    @Test
+    void shouldPassValidateFileImportInZipWhenNotDuplicates() throws IOException {
+        MockMultipartFile mockFile = getMockMultipartZipFile(false);
+
+        assertDoesNotThrow(() -> validator.validateFileImportInZip(new ImportResources(), mockFile));
+    }
+
+    @Test
+    void shouldPassValidateFileImportInZipWhenDuplicatesInFolderAndNonFlatImport() throws IOException {
+        MockMultipartFile mockFile = getMockMultipartZipFile(true);
+
+        assertDoesNotThrow(() -> validator.validateFileImportInZip(new ImportResources(), mockFile));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenValidateFileImportInZipWhenDuplicatesInFolderAndFlatImport() throws IOException {
+        MockMultipartFile mockFile = getMockMultipartZipFile(true);
+        var importResources = new ImportResources();
+        importResources.setFlatImport(true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> validator.validateFileImportInZip(importResources, mockFile));
+
+        assertTrue(exception.getMessage().equals("""
+                Files uniqueness violation. Conflicts found:
+                 - Duplicated file name 'file1.json' found in folders: folder1/folder2/, folder1/folder2/folder3/"""));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenValidateFileImportInZipWhenFileWithWrongFormat() throws IOException {
+        MockMultipartFile mockFile = getMockMultipartZipFileWithWrongFormat();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> validator.validateFileImportInZip(new ImportResources(), mockFile));
+
+        assertEquals("Invalid zip format for file 'test'", exception.getMessage());
+    }
+
+    private MockMultipartFile getMockMultipartZipFile(boolean withDuplicates) throws IOException {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ZipOutputStream zos = new ZipOutputStream(baos)) {
+            var fileName1 = "file1.json";
+            var fileName2 = withDuplicates ? fileName1 : "file2.json";
+            ZipEntry entry1 = new ZipEntry("folder1/folder2/folder3/" + fileName1);
+            zos.putNextEntry(entry1);
+            zos.write("file1".getBytes());
+            zos.closeEntry();
+            ZipEntry entry2 = new ZipEntry("folder1/folder2/" + fileName2);
+            zos.putNextEntry(entry2);
+            zos.write("file1".getBytes());
+            zos.closeEntry();
+
+            byte[] zipBytes = baos.toByteArray();
+            return new MockMultipartFile("file", "test", "application/zip", zipBytes);
+        }
+    }
+
+    private MockMultipartFile getMockMultipartZipFileWithWrongFormat() throws IOException {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ZipOutputStream zos = new ZipOutputStream(baos)) {
+            ZipEntry entry1 = new ZipEntry("import/1/");
+            zos.putNextEntry(entry1);
+            zos.write("file1".getBytes());
+            zos.closeEntry();
+            zos.closeEntry();
+
+            byte[] zipBytes = baos.toByteArray();
+            return new MockMultipartFile("file", "test", "application/zip", zipBytes);
+        }
     }
 
     private ApplicationEximDto getApplicationEximDto(String suffix) {

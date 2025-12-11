@@ -43,6 +43,7 @@ import static org.mockito.Mockito.when;
         ResourceClientMapperImpl.class,
         FileClientMapperImpl.class,
         FolderMapperImpl.class,
+        ResourceImportValidator.class,
         FileService.class
 })
 @TestPropertySource(properties = {
@@ -58,6 +59,9 @@ class FileServiceTest {
 
     @Autowired
     private FileService fileService;
+
+    @Autowired
+    private ResourceImportValidator resourceImportValidator;
 
     @Test
     void testGetAll() {
