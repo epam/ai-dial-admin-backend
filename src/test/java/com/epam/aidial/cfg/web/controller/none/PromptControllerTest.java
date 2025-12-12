@@ -233,7 +233,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
                         .header(HEADER_IF_MATCH, TEST_ETAG))
                 .andExpect(status().isOk());
 
-        verify(promptService).deletePrompt(promptPath, TEST_ETAG);
+        verify(promptService).delete(promptPath, TEST_ETAG);
     }
 
     @Test
@@ -256,7 +256,7 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
         var body = new ResourcePathDto();
         body.setPath(promptPath);
 
-        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(promptService).deletePrompt(any(), any());
+        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(promptService).delete(any(), any());
 
         mockMvc.perform(post("/api/v1/prompts/delete")
                         .contentType(MediaType.APPLICATION_JSON)

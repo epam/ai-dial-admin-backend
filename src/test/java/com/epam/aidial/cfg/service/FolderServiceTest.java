@@ -128,17 +128,27 @@ class FolderServiceTest {
     void testUnpublishFolder() {
         // given
         String path = "public/test/";
+        String pathAsResource = "public/test";
+
         when(fileService.getResourceUrls(path)).thenReturn(Set.of("files/public/test/test.json"));
         when(publicationService.createPublication(any())).thenReturn("publications/publicationUrl");
+
         // when
         folderService.unpublishFolder(path);
+
         // then
         verify(applicationService).getResourceUrls(path);
         verify(conversationService).getResourceUrls(path);
         verify(fileService).getResourceUrls(path);
         verify(promptService).getResourceUrls(path);
+
         verify(publicationService).createPublication(any());
         verify(publicationService).approvePublication("publicationUrl");
+
+        verify(applicationService).delete(pathAsResource, null);
+        verify(conversationService).delete(pathAsResource, null);
+        verify(fileService).delete(pathAsResource, null);
+        verify(promptService).delete(pathAsResource, null);
     }
 
     @Test

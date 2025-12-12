@@ -91,7 +91,7 @@ public class PromptsController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deletePrompt(@RequestBody ResourcePathDto promptPath,
                              @RequestHeader(value = "If-Match") String etag) {
-        promptService.deletePrompt(promptPath.getPath(), etag);
+        promptService.delete(promptPath.getPath(), etag);
     }
 
     @PostMapping(path = "/delete/bulk",

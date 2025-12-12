@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.client;
 import com.epam.aidial.cfg.client.dto.ConversationDto;
 import com.epam.aidial.cfg.client.dto.ConversationMetadataDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,4 +35,7 @@ public interface ConversationClient {
      */
     @GetMapping("/v1/conversations/{path}")
     ConversationDto getConversation(@PathVariable String path);
+
+    @DeleteMapping("/v1/conversations/{path}")
+    void deleteConversation(@PathVariable String path);
 }

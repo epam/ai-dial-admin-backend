@@ -95,7 +95,7 @@ public class ApplicationResourceController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteApplicationResource(@RequestBody ResourcePathDto applicationPath,
                                           @RequestHeader(value = "If-Match") String etag) {
-        applicationService.deleteApplicationResource(applicationPath.getPath(), etag);
+        applicationService.delete(applicationPath.getPath(), etag);
     }
 
     @PostMapping(path = "/delete/bulk",

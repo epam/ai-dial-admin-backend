@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.publication.PublicationService;
+import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -76,6 +77,7 @@ public class FolderService {
                 .build();
         String publication = publicationService.createPublication(createPublication);
         approvePublication(publication);
+        deleteFolderAsResource(path);
     }
 
     public void moveFolder(MoveFolderRequest moveFolderRequest) {
@@ -102,6 +104,18 @@ public class FolderService {
     private void approvePublication(String publication) {
         String path = CoreMetadataUtils.removeMetadataPrefix(publication, PUBLICATIONS_PREFIX);
         publicationService.approvePublication(path);
+    }
+
+    // this is needed to delete empty folder as resource in case of Azure Blob Storage with enabled "Hierarchical namespace" option
+    private void deleteFolderAsResource(String path) {
+        resourceServicesByResourceType.values()
+                .forEach(resourceService -> {
+                    try {
+                        resourceService.delete(PathUtils.trimTrailingSlash(path), null);
+                    } catch (Exception e) {
+                        log.trace("Unable to delete folder as resource. Path: {}", path, e);
+                    }
+                });
     }
 
     private FolderInfo merge(List<FolderInfo> folderInfos) {

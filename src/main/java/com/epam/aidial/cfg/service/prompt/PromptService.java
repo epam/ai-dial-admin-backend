@@ -129,7 +129,7 @@ public class PromptService implements ResourceService {
         List<String> deletedPrompts = new ArrayList<>();
         for (var path : paths) {
             try {
-                deletePrompt(path, null);
+                delete(path, null);
                 deletedPrompts.add(path);
             } catch (Exception exception) {
                 log.warn("Unable to delete prompt: {}, deleted prompts: {}", path, deletedPrompts, exception);
@@ -138,7 +138,8 @@ public class PromptService implements ResourceService {
         }
     }
 
-    public void deletePrompt(String path, String etag) {
+    @Override
+    public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         promptClient.deletePrompt(path, headers);
     }
