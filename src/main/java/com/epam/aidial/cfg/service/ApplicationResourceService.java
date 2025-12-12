@@ -134,7 +134,7 @@ public class ApplicationResourceService implements ResourceService {
         List<String> deletedApplicationResources = new ArrayList<>();
         for (var path : paths) {
             try {
-                deleteApplicationResource(path, null);
+                delete(path, null);
                 deletedApplicationResources.add(path);
             } catch (Exception exception) {
                 log.warn("Unable to delete applications: {}, deleted applications: {}", path, deletedApplicationResources,
@@ -144,8 +144,8 @@ public class ApplicationResourceService implements ResourceService {
         }
     }
 
-    public void deleteApplicationResource(String path,
-                                          String etag) {
+    @Override
+    public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         applicationClient.deleteApplicationResource(path, headers);
     }

@@ -26,6 +26,7 @@ public class ToolSetEximDto {
     private Transport transport;
     private List<String> allowedTools;
     private CoreResourceAuthSettingsDto authSettings;
+    private boolean forwardPerRequestKey;
 
     public enum Transport {
         HTTP, SSE

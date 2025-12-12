@@ -12,5 +12,6 @@
   "maxRetryAttempts": 10,
   "transport": "HTTP",
   "allowedTools": null,
-  "authSettings": null
+  "authSettings": null,
+  "forwardPerRequestKey": true
 }

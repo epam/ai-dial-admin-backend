@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dto.FilePathDto;
+import com.epam.aidial.cfg.dto.FilePathsDto;
 import com.epam.aidial.cfg.dto.ImportResourcesConflictResolutionStrategyDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
 import com.epam.aidial.cfg.mapper.FileMapperImpl;
@@ -35,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -207,6 +210,31 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                 // then
                 .andExpect(status().isOk());
         verify(fileService).deleteFile(path);
+    }
+
+    @Test
+    void testDeleteFiles() throws Exception {
+        // given
+        var path1 = "public/testPath1/TestName";
+        var path2 = "public/testPath2/TestName";
+
+        var pathDto1 = new FilePathDto();
+        pathDto1.setPath(path1);
+
+        var pathDto2 = new FilePathDto();
+        pathDto2.setPath(path2);
+
+        var pathsDto = new FilePathsDto();
+        pathsDto.setPaths(List.of(pathDto1, pathDto2));
+        doNothing().when(fileService).deleteFiles(anyList());
+
+        // when
+        mockMvc.perform(post("/api/v1/files/delete/bulk")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pathsDto)))
+                // then
+                .andExpect(status().isOk());
+        verify(fileService).deleteFiles(List.of(path1, path2));
     }
 
     @Test

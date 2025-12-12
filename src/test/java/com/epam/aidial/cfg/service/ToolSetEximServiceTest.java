@@ -79,6 +79,7 @@ class ToolSetEximServiceTest {
         assertThat(toolSetExim.getDisplayName()).isEqualTo("toolSet1");
         assertThat(toolSetExim.getFolderId()).isEqualTo("public/folder1/");
         assertThat(toolSetExim.getDescription()).isEqualTo("toolSet description 1");
+        assertThat(toolSetExim.isForwardPerRequestKey()).isTrue();
     }
 
     @Test
@@ -106,12 +107,14 @@ class ToolSetEximServiceTest {
         assertThat(toolSetExim1.getName()).isEqualTo("toolSet1");
         assertThat(toolSetExim1.getFolderId()).isEqualTo("public/folder1/");
         assertThat(toolSetExim1.getDescription()).isEqualTo("toolSet description 1");
+        assertThat(toolSetExim1.isForwardPerRequestKey()).isTrue();
 
         // Verify second toolSet1Exim1
         var toolSetExim2 = result.getToolSets().get(1);
         assertThat(toolSetExim2.getName()).isEqualTo("toolSet2");
         assertThat(toolSetExim2.getFolderId()).isEqualTo("public/folder2/");
         assertThat(toolSetExim2.getDescription()).isEqualTo("toolSet description 2");
+        assertThat(toolSetExim2.isForwardPerRequestKey()).isTrue();
     }
 
     @Test
@@ -242,6 +245,7 @@ class ToolSetEximServiceTest {
         assertThat(toolSet.getVersion()).isEqualTo("0.0.1");
         assertThat(toolSet.getFolderId()).isEqualTo("public/to/");
         assertThat(toolSet.getDescription()).isEqualTo("toolSet description 1");
+        assertThat(toolSet.isForwardPerRequestKey()).isFalse();
     }
 
     @Test
@@ -276,6 +280,7 @@ class ToolSetEximServiceTest {
         toolSet.setFolderId(String.format("public/folder%s/", suffix));
         toolSet.setPath(String.format("%s%s__%s", toolSet.getFolderId(), toolSet.getName(), toolSet.getVersion()));
         toolSet.setDescription(String.format("toolSet description %s", suffix));
+        toolSet.setForwardPerRequestKey(true);
         return toolSet;
     }
 
@@ -286,6 +291,7 @@ class ToolSetEximServiceTest {
                 .displayName("toolSet" + suffix)
                 .folderId(String.format("public/folder%s/", suffix))
                 .description(String.format("toolSet description %s", suffix))
+                .forwardPerRequestKey(false)
                 .build();
     }
 }

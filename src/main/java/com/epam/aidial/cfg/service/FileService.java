@@ -54,6 +54,7 @@ public class FileService implements ResourceService {
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
+    private final ResourceImportValidator uniquenessValidator;
 
     @Value("${files.import.consecutiveErrorsThreshold}")
     private int importErrorsThreshold;
@@ -123,17 +124,26 @@ public class FileService implements ResourceService {
 
     public ImportResourcesFileResult uploadFileZip(ImportResources importFiles, MultipartFile zipFile) {
         try {
+            uniquenessValidator.validateFileImportInZip(importFiles, zipFile);
+        } catch (Exception ex) {
+            String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
+            log.warn("Zip validation failed for file {}: {}", fileName, ex);
+            return ImportResourcesFileResult.builder()
+                    .importResults(List.of())
+                    .error(ex.getMessage())
+                    .build();
+        }
+        try {
             var rootPath = importFiles.getPath();
             var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
             var inputStream = zipFile.getInputStream();
-            var conflictResolutionStrategy = importFiles.getConflictResolutionStrategy();
             var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
 
             var results = new ArrayList<ImportResourcesResult>();
             try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
                 ZipEntry zipEntry;
                 while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                    var result = importZipFile(rootPathStripped, zipEntry, zipInputStream, conflictResolutionStrategy,
+                    var result = importZipFile(rootPathStripped, zipEntry, zipInputStream, importFiles,
                             circuitBreaker);
                     results.add(result);
                 }
@@ -157,30 +167,35 @@ public class FileService implements ResourceService {
     private ImportResourcesResult importZipFile(String rootPath,
                                                 ZipEntry zipEntry,
                                                 InputStream fileInputStream,
-                                                ImportConflictResolutionStrategy conflictResolutionStrategy,
+                                                ImportResources importFiles,
                                                 SimpleCircuitBreaker circuitBreaker) {
         String sourcePath = null;
         String targetPath = null;
         try {
             var filename = zipEntry.getName();
-            
+
             // Validate zip entry path to prevent path traversal attacks
             try {
                 filename = PathUtils.validateZipEntryPath(filename);
             } catch (IllegalArgumentException e) {
                 log.warn("Skipping zip entry with invalid path: {}", filename, e);
-                return ImportResourcesResult.createFailure(filename, null, 
-                    "Invalid zip entry path: " + e.getMessage());
+                return ImportResourcesResult.createFailure(filename, null,
+                        "Invalid zip entry path: " + e.getMessage());
             }
-            
+
             sourcePath = StringUtils.removeStart(filename, "files/");
-            var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, "public/");
-            targetPath = rootPath + "/" + sourcePathWithoutPublic;
+            if (importFiles.isFlatImport()) {
+                var fileNameWithoutPath = PathUtils.parsePath(filename).getName();
+                targetPath = rootPath + "/" + fileNameWithoutPath;
+            } else {
+                var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, "public/");
+                targetPath = rootPath + "/" + sourcePathWithoutPublic;
+            }
             byte[] fileData = fileInputStream.readAllBytes();
 
             String contentTypeFromName = URLConnection.guessContentTypeFromName(filename);
             MultipartFile extractedFile = new MockMultipartFile("file", filename, contentTypeFromName, fileData);
-            var result = createFileWithCircuitBreaker(extractedFile, sourcePath, targetPath, conflictResolutionStrategy, circuitBreaker);
+            var result = createFileWithCircuitBreaker(extractedFile, sourcePath, targetPath, importFiles.getConflictResolutionStrategy(), circuitBreaker);
             log.debug("File {} was successfully imported", sourcePath);
             return result;
         } catch (Exception ex) {
@@ -226,7 +241,25 @@ public class FileService implements ResourceService {
     }
 
     public void deleteFile(String path) {
+        delete(path, null);
+    }
+
+    @Override
+    public void delete(String path, String etag) {
         fileClient.deleteFile(path);
+    }
+
+    public void deleteFiles(List<String> paths) {
+        List<String> deletedFiles = new ArrayList<>();
+        for (var path : paths) {
+            try {
+                deleteFile(path);
+                deletedFiles.add(path);
+            } catch (Exception exception) {
+                log.warn("Unable to delete file: {}, deleted files: {}", path, deletedFiles, exception);
+                throw exception;
+            }
+        }
     }
 
     @Override
