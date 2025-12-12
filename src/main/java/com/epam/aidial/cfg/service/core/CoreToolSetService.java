@@ -74,7 +74,7 @@ public class CoreToolSetService {
         var toolSet = toolSetWithHash.model();
         var coreToolSet = toolSetCoreMapper.mapToolSet(toolSet);
 
-        return entitySyncStateResolver.resolve(
+        return entitySyncStateResolver.resolveForEntityInObject(
                 coreToolSet,
                 toolSet.getUpdatedAt(),
                 "toolsets",

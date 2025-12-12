@@ -73,7 +73,7 @@ public class CoreRouteService {
         var route = routeWithHash.model();
         var coreRoute = routeCoreMapper.mapRoute(route);
 
-        return entitySyncStateResolver.resolve(
+        return entitySyncStateResolver.resolveForEntityInObject(
                 coreRoute,
                 route.getUpdatedAt(),
                 "routes",

@@ -84,7 +84,7 @@ public class CoreKeyService {
         var coreKey = keyCoreMapper.mapKey(key);
         boolean isKeyValid = key.getValidityState().isValid();
 
-        return entitySyncStateResolver.resolve(coreKey, isKeyValid, key.getUpdatedAt(), "keys", key.getKey());
+        return entitySyncStateResolver.resolveForEntityInObject(coreKey, isKeyValid, key.getUpdatedAt(), "keys", key.getKey());
     }
 
     private void assertHashNotNull(String keyName, String hash) {

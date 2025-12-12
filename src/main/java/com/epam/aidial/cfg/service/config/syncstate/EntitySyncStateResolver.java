@@ -22,36 +22,36 @@ public class EntitySyncStateResolver {
     private final CoreConfigReloadCache coreConfigReloadCache;
     private final EntitySyncStateStatusResolver syncStateStatusResolver;
 
-    public <T> EntitySyncState resolve(T currentState,
-                                       long currentStateUpdatedAt,
-                                       String entityType,
-                                       String entityKeyInConfig) {
-        return resolve(currentState, true, currentStateUpdatedAt, entityType, entityKeyInConfig);
+    public <T> EntitySyncState resolveForEntityInObject(T currentState,
+                                                        long currentStateUpdatedAt,
+                                                        String entityType,
+                                                        String entityKeyInConfig) {
+        return resolveForEntityInObject(currentState, true, currentStateUpdatedAt, entityType, entityKeyInConfig);
     }
 
-    public <T> EntitySyncState resolve(T currentState,
-                                       boolean isCurrentStateValid,
-                                       long currentStateUpdatedAt,
-                                       String entityType,
-                                       String entityKeyInConfig) {
+    public <T> EntitySyncState resolveForEntityInObject(T currentState,
+                                                        boolean isCurrentStateValid,
+                                                        long currentStateUpdatedAt,
+                                                        String entityType,
+                                                        String entityKeyInConfig) {
         Function<JsonNode, JsonNode> entityFinder = jsonNode -> jsonNode.get(entityKeyInConfig);
         return resolve(currentState, isCurrentStateValid, currentStateUpdatedAt, entityType, entityFinder);
     }
 
-    public <T> EntitySyncState resolveForEntitiesInArray(T currentState,
-                                                         long currentStateUpdatedAt,
-                                                         String entityType,
-                                                         String entityKeyInConfig,
-                                                         String entityKeyValueInConfig) {
-        return resolveForEntitiesInArray(currentState, true, currentStateUpdatedAt, entityType, entityKeyInConfig, entityKeyValueInConfig);
+    public <T> EntitySyncState resolveForEntityInArray(T currentState,
+                                                       long currentStateUpdatedAt,
+                                                       String entityType,
+                                                       String entityKeyInConfig,
+                                                       String entityKeyValueInConfig) {
+        return resolveForEntityInArray(currentState, true, currentStateUpdatedAt, entityType, entityKeyInConfig, entityKeyValueInConfig);
     }
 
-    public <T> EntitySyncState resolveForEntitiesInArray(T currentState,
-                                                         boolean isCurrentStateValid,
-                                                         long currentStateUpdatedAt,
-                                                         String entityType,
-                                                         String entityKeyInConfig,
-                                                         String entityKeyValueInConfig) {
+    public <T> EntitySyncState resolveForEntityInArray(T currentState,
+                                                       boolean isCurrentStateValid,
+                                                       long currentStateUpdatedAt,
+                                                       String entityType,
+                                                       String entityKeyInConfig,
+                                                       String entityKeyValueInConfig) {
         Function<JsonNode, JsonNode> entityFinder = jsonNode -> {
             for (JsonNode node : jsonNode) {
                 if (node.has(entityKeyInConfig) && node.get(entityKeyInConfig).asText().equals(entityKeyValueInConfig)) {

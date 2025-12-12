@@ -74,7 +74,7 @@ public class CoreInterceptorService {
         var interceptor = interceptorWithHash.model();
         var coreInterceptor = interceptorCoreMapper.mapInterceptor(interceptor);
 
-        return entitySyncStateResolver.resolve(
+        return entitySyncStateResolver.resolveForEntityInObject(
                 coreInterceptor,
                 interceptor.getUpdatedAt(),
                 "interceptors",

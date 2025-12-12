@@ -33,32 +33,32 @@ class EntitySyncStateResolverTest {
     private EntitySyncStateResolver syncStateResolver;
 
     @Test
-    void resolve_cacheIsEmpty_returnsUnknownState() {
+    void resolveForEntityInObject_cacheIsEmpty_returnsUnknownState() {
         // given
         when(coreConfigReloadCache.get()).thenReturn(null);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolve(new CurrentState(), true, 1, "entities", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInObject(new CurrentState(), true, 1, "entities", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
     }
 
     @Test
-    void resolve_configInCacheIsMissing_returnsUnknownState() {
+    void resolveForEntityInObject_configInCacheIsMissing_returnsUnknownState() {
         // given
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(null, 1);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolve(new CurrentState(), true, 1, "entities", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInObject(new CurrentState(), true, 1, "entities", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
     }
 
     @Test
-    void resolve_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
+    void resolveForEntityInObject_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
         // given
         String configJson = "{}";
         JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
@@ -66,14 +66,14 @@ class EntitySyncStateResolverTest {
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolve(new CurrentState(), true, 1, "entities", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInObject(new CurrentState(), true, 1, "entities", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
     }
 
     @Test
-    void resolve_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
+    void resolveForEntityInObject_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -104,14 +104,14 @@ class EntitySyncStateResolverTest {
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, null, EntitySyncStateStatus.IN_PROGRESS);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolve(currentState, true, currentStateUpdatedAt, "entities", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInObject(currentState, true, currentStateUpdatedAt, "entities", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(expectedResult);
     }
 
     @Test
-    void resolve_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
+    void resolveForEntityInObject_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -150,14 +150,15 @@ class EntitySyncStateResolverTest {
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, requestedEntity, EntitySyncStateStatus.FULLY_SYNCED);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolve(currentState, true, currentStateUpdatedAt, "entities", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInObject(currentState, true, currentStateUpdatedAt, "entities", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(expectedResult);
     }
 
     @Test
-    void resolve_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart() throws JsonProcessingException {
+    void resolveForEntityInObject_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart()
+            throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -196,39 +197,39 @@ class EntitySyncStateResolverTest {
         EntitySyncState expectedResult = new EntitySyncState(null, requestedEntity, EntitySyncStateStatus.IN_PROGRESS);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolve(currentState, false, currentStateUpdatedAt, "entities", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInObject(currentState, false, currentStateUpdatedAt, "entities", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(expectedResult);
     }
 
     @Test
-    void resolveForEntitiesInArray_cacheIsEmpty_returnsUnknownState() {
+    void resolveForEntityInArray_cacheIsEmpty_returnsUnknownState() {
         // given
         when(coreConfigReloadCache.get()).thenReturn(null);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
     }
 
     @Test
-    void resolveForEntitiesInArray_configInCacheIsMissing_returnsUnknownState() {
+    void resolveForEntityInArray_configInCacheIsMissing_returnsUnknownState() {
         // given
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(null, 1);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
     }
 
     @Test
-    void resolveForEntitiesInArray_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
+    void resolveForEntityInArray_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
         // given
         String configJson = "{}";
         JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
@@ -236,14 +237,14 @@ class EntitySyncStateResolverTest {
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
     }
 
     @Test
-    void resolveForEntitiesInArray_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
+    void resolveForEntityInArray_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -275,14 +276,14 @@ class EntitySyncStateResolverTest {
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, null, EntitySyncStateStatus.IN_PROGRESS);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(currentState, true, currentStateUpdatedAt, "entities", "name", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInArray(currentState, true, currentStateUpdatedAt, "entities", "name", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(expectedResult);
     }
 
     @Test
-    void resolveForEntitiesInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
+    void resolveForEntityInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -323,14 +324,15 @@ class EntitySyncStateResolverTest {
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, requestedEntity, EntitySyncStateStatus.FULLY_SYNCED);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(currentState, true, currentStateUpdatedAt, "entities", "name", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInArray(currentState, true, currentStateUpdatedAt, "entities", "name", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(expectedResult);
     }
 
     @Test
-    void resolveForEntitiesInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart() throws JsonProcessingException {
+    void resolveForEntityInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart()
+            throws JsonProcessingException {
         // given
         long currentStateUpdatedAt = 1;
         long configReloadTimestamp = 2;
@@ -371,7 +373,7 @@ class EntitySyncStateResolverTest {
         EntitySyncState expectedResult = new EntitySyncState(null, requestedEntity, EntitySyncStateStatus.IN_PROGRESS);
 
         // when
-        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(currentState, false, currentStateUpdatedAt, "entities", "name", "entityName");
+        EntitySyncState actualResult = syncStateResolver.resolveForEntityInArray(currentState, false, currentStateUpdatedAt, "entities", "name", "entityName");
 
         // then
         assertThat(actualResult).isEqualTo(expectedResult);

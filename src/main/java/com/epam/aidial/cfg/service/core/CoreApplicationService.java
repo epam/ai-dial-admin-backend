@@ -75,7 +75,7 @@ public class CoreApplicationService {
         var coreApplication = applicationCoreMapper.mapApplication(application);
         boolean isApplicationValid = application.getValidityState().isValid();
 
-        return entitySyncStateResolver.resolve(
+        return entitySyncStateResolver.resolveForEntityInObject(
                 coreApplication,
                 isApplicationValid,
                 application.getUpdatedAt(),

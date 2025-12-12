@@ -78,7 +78,7 @@ public class CoreRoleService {
         var deployments = deploymentService.getAll();
         var coreRole = roleCoreMapper.mapRole(role, deployments);
 
-        return entitySyncStateResolver.resolve(
+        return entitySyncStateResolver.resolveForEntityInObject(
                 coreRole,
                 role.getUpdatedAt(),
                 "roles",

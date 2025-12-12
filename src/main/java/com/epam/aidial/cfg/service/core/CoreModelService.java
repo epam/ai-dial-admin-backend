@@ -74,7 +74,7 @@ public class CoreModelService {
         var model = modelWithHash.model();
         var coreModel = modelCoreMapper.mapModel(model);
 
-        return entitySyncStateResolver.resolve(
+        return entitySyncStateResolver.resolveForEntityInObject(
                 coreModel,
                 model.getUpdatedAt(),
                 "models",

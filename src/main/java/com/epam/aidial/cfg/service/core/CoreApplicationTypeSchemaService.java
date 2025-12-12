@@ -76,7 +76,7 @@ public class CoreApplicationTypeSchemaService {
         var schema = schemaWithHash.model();
         var coreApplicationTypeSchema = schemaCoreMapper.mapToCoreApplicationTypeSchema(schema);
 
-        return entitySyncStateResolver.resolveForEntitiesInArray(
+        return entitySyncStateResolver.resolveForEntityInArray(
                 coreApplicationTypeSchema,
                 schema.getUpdatedAt(),
                 "applicationTypeSchemas",
