@@ -202,6 +202,181 @@ class EntitySyncStateResolverTest {
         assertThat(actualResult).isEqualTo(expectedResult);
     }
 
+    @Test
+    void resolveForEntitiesInArray_cacheIsEmpty_returnsUnknownState() {
+        // given
+        when(coreConfigReloadCache.get()).thenReturn(null);
+
+        // when
+        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
+
+        // then
+        assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
+    }
+
+    @Test
+    void resolveForEntitiesInArray_configInCacheIsMissing_returnsUnknownState() {
+        // given
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(null, 1);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        // when
+        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
+
+        // then
+        assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
+    }
+
+    @Test
+    void resolveForEntitiesInArray_configDoesNotHaveRequestedEntities_returnsUnknownState() throws JsonProcessingException {
+        // given
+        String configJson = "{}";
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        // when
+        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(new CurrentState(), true, 1, "entities", "name", "entityName");
+
+        // then
+        assertThat(actualResult).isEqualTo(EntitySyncState.unknown());
+    }
+
+    @Test
+    void resolveForEntitiesInArray_configHasRequestedEntitiesButDoesNotHaveEntityWithRequestedKey_returnsStateWithoutConfigStatePart() throws JsonProcessingException {
+        // given
+        long currentStateUpdatedAt = 1;
+        long configReloadTimestamp = 2;
+
+        CurrentState currentState = new CurrentState();
+        ObjectNode currentStateJsonNode = JsonNodeFactory.instance.objectNode();
+
+        String configJson = """
+                {
+                    "entities": [
+                        {
+                            "name": "entityName_NEW",
+                            "prop1": "prop1Value",
+                            "prop2": "prop2Value"
+                        }
+                    ]
+                }
+                """;
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
+
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
+
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, null, true, currentStateUpdatedAt, configReloadTimestamp))
+                .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
+
+        EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, null, EntitySyncStateStatus.IN_PROGRESS);
+
+        // when
+        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(currentState, true, currentStateUpdatedAt, "entities", "name", "entityName");
+
+        // then
+        assertThat(actualResult).isEqualTo(expectedResult);
+    }
+
+    @Test
+    void resolveForEntitiesInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKey_returnsFullState() throws JsonProcessingException {
+        // given
+        long currentStateUpdatedAt = 1;
+        long configReloadTimestamp = 2;
+
+        CurrentState currentState = new CurrentState();
+        ObjectNode currentStateJsonNode = JsonNodeFactory.instance.objectNode();
+
+        String requestedEntityJson = """
+                {
+                    "name": "entityName",
+                    "prop1": "prop1Value",
+                    "prop2": "prop2Value"
+                }
+                """;
+        JsonNode requestedEntity = HELPER_OBJECT_MAPPER.readTree(requestedEntityJson);
+
+        String configJson = """
+                {
+                    "entities": [
+                        {
+                            "name": "entityName",
+                            "prop1": "prop1Value",
+                            "prop2": "prop2Value"
+                        }
+                    ]
+                }
+                """;
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
+
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
+
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, true, currentStateUpdatedAt, configReloadTimestamp))
+                .thenReturn(EntitySyncStateStatus.FULLY_SYNCED);
+
+        EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, requestedEntity, EntitySyncStateStatus.FULLY_SYNCED);
+
+        // when
+        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(currentState, true, currentStateUpdatedAt, "entities", "name", "entityName");
+
+        // then
+        assertThat(actualResult).isEqualTo(expectedResult);
+    }
+
+    @Test
+    void resolveForEntitiesInArray_configHasRequestedEntitiesAndHasEntityWithRequestedKeyAndCurrentStateIsInvalid_returnsStateWithoutCurrentStatePart() throws JsonProcessingException {
+        // given
+        long currentStateUpdatedAt = 1;
+        long configReloadTimestamp = 2;
+
+        CurrentState currentState = new CurrentState();
+        ObjectNode currentStateJsonNode = JsonNodeFactory.instance.objectNode();
+
+        String requestedEntityJson = """
+                {
+                    "name": "entityName",
+                    "prop1": "prop1Value",
+                    "prop2": "prop2Value"
+                }
+                """;
+        JsonNode requestedEntity = HELPER_OBJECT_MAPPER.readTree(requestedEntityJson);
+
+        String configJson = """
+                {
+                    "entities": [
+                        {
+                            "name": "entityName",
+                            "prop1": "prop1Value",
+                            "prop2": "prop2Value"
+                        }
+                    ]
+                }
+                """;
+        JsonNode config = HELPER_OBJECT_MAPPER.readTree(configJson);
+
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
+
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, false, currentStateUpdatedAt, configReloadTimestamp))
+                .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
+
+        EntitySyncState expectedResult = new EntitySyncState(null, requestedEntity, EntitySyncStateStatus.IN_PROGRESS);
+
+        // when
+        EntitySyncState actualResult = syncStateResolver.resolveForEntitiesInArray(currentState, false, currentStateUpdatedAt, "entities", "name", "entityName");
+
+        // then
+        assertThat(actualResult).isEqualTo(expectedResult);
+    }
+
     private record CurrentState() {
     }
 }
