@@ -1,0 +1,29 @@
+{
+  "stringProp": "stringPropValue",
+  "anotherStringProp": "anotherStringPropValue",
+  "intProp": 1,
+  "boolProp": false,
+  "objectProp": {
+    "objectProp_stringProp": "objectPropStringPropValue",
+    "objectProp_doubleProp": 2.0,
+    "objectProp_stringArrayProp": [
+      "val1",
+      "val2",
+      "val3"
+    ]
+  },
+  "arrayProp": [
+    {
+      "arrayProp_stringProp": "arrayPropStringPropValue1",
+      "arrayProp_intProp": 1
+    },
+    {
+      "arrayProp_stringProp": "arrayPropStringPropValue1",
+      "arrayProp_intProp": 2
+    },
+    {
+      "arrayProp_stringProp": "arrayPropStringPropValue2",
+      "arrayProp_intProp": 2
+    }
+  ]
+}

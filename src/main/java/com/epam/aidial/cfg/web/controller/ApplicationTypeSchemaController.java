@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import jakarta.validation.Valid;
@@ -55,6 +56,12 @@ public class ApplicationTypeSchemaController extends AbstractController {
                                                              @RequestHeader(value = "If-None-Match", required = false) String previousHash) {
         var coreWithDomainHash = applicationTypeSchemaFacade.getCoreSchemaWithHash(id);
         return responseEntityForGet(coreWithDomainHash.core(), coreWithDomainHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntitySyncStateDto getSyncState(@RequestParam(name = "id") String id,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return applicationTypeSchemaFacade.getSyncState(id, StringUtils.unwrap(previousHash, '"'));
     }
 
     @GetMapping(path = "/snapshot", produces = MediaType.APPLICATION_JSON_VALUE)

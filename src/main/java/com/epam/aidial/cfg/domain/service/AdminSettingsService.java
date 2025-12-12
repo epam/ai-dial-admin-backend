@@ -84,10 +84,7 @@ public class AdminSettingsService {
 
         var currentHash = hashCalculator.calculateHash(adminSettingsEntityMapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: adminSettings, expectedHash={}, currentHash={}",
-                    expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Unable to update AdminSettings. The data may have been modified by another user. "
-                    + "Please reload the data and try again.");
+            throw OptimisticLockConflictException.onUpdate("AdminSettings", expectedHash, currentHash);
         }
     }
 }

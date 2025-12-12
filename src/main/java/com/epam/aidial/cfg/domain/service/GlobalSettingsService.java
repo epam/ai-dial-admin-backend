@@ -111,10 +111,7 @@ public class GlobalSettingsService {
         }
         var currentHash = calculator.calculateHash(globalSettingsMapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: globalSettings, expectedHash={}, currentHash={}",
-                    expectedHash, currentHash);
-            throw new OptimisticLockConflictException("Unable to update GlobalSettings. The data may have been modified by another user. "
-                    + "Please reload the data and try again.");
+            throw OptimisticLockConflictException.onUpdate("GlobalSettings", expectedHash, currentHash);
         }
     }
 }

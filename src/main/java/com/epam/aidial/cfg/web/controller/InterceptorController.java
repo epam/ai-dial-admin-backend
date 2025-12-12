@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.core.config.CoreInterceptor;
@@ -54,6 +55,12 @@ public class InterceptorController extends AbstractController {
                                                               @RequestHeader(value = "If-None-Match") String previousHash) {
         var coreWithHash = interceptorFacade.getCoreInterceptorWithHash(interceptorName);
         return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/{interceptorName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntitySyncStateDto getSyncState(@PathVariable String interceptorName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return interceptorFacade.getSyncState(interceptorName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

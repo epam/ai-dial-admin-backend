@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.reload;
 
 import com.epam.aidial.cfg.client.BackendTokenAuthenticatedCoreClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,11 +18,13 @@ public class CoreConfigReloadScheduler {
 
     private final BackendTokenAuthenticatedCoreClient backendTokenAuthenticatedCoreClient;
     private final ConfigReloadErrorHandler errorHandler;
+    private final CoreConfigReloadCache coreConfigReloadCache;
 
     @Scheduled(fixedDelayString = "${config.autoReload.schedule.delayMs}")
     public void reloadCoreConfig() {
         try {
-            backendTokenAuthenticatedCoreClient.reload();
+            JsonNode config = backendTokenAuthenticatedCoreClient.reload();
+            coreConfigReloadCache.put(config);
             errorHandler.setLastErrorMessage(null);
         } catch (Exception e) {
             log.error("Error during config reload", e);

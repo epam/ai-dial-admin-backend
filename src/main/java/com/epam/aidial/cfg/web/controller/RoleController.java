@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreRole;
@@ -53,6 +54,12 @@ public class RoleController extends AbstractController {
                                                 @RequestHeader(value = "If-None-Match") String previousHash) {
         var coreWithHash = roleFacade.getCoreRoleWithHash(roleName);
         return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
+    }
+
+    @GetMapping(path = "/{roleName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntitySyncStateDto getSyncState(@PathVariable String roleName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return roleFacade.getSyncState(roleName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
