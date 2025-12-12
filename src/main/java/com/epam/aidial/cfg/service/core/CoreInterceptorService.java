@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
@@ -42,35 +44,14 @@ public class CoreInterceptorService {
 
     @Transactional
     public String updateInterceptor(String interceptorName, CoreInterceptor coreInterceptor, String hash) {
-        if (hash == null) {
-            throw new IllegalArgumentException(String.format(
-                    "Hash must not be null. Use \"*\" to skip optimistic check. Interceptor:%s.", interceptorName));
-        }
+        assertHashNotNull(interceptorName, hash);
 
         var interceptorWithHash = interceptorService.getInterceptorWithHash(interceptorName);
 
-        assertNotConcurrencyOverwrite(interceptorWithHash, hash);
+        assertInterceptorWasNotUpdated(interceptorWithHash, hash, OptimisticLockConflictException::onUpdate);
         importCoreInterceptor(interceptorName, coreInterceptor);
 
         return interceptorService.getInterceptorWithHash(interceptorName).hash();
-    }
-
-    private void assertNotConcurrencyOverwrite(DomainObjectWithHash<Interceptor> interceptorWithHash,
-                                               String expectedHash) {
-        if (ANY_HASH.equals(expectedHash)) {
-            return;
-        }
-
-        Interceptor interceptor = interceptorWithHash.model();
-        String currentHash = interceptorWithHash.hash();
-
-        if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: interceptorName={}, expectedHash={}, currentHash={}",
-                    interceptor.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Unable to update Interceptor '%s'. The data may have been modified by another user, "
-                            + "or the name/ID may already exist. Please reload the data and try again.",
-                    interceptor.getName()));
-        }
     }
 
     private void importCoreInterceptor(String interceptorName, CoreInterceptor coreInterceptor) {
@@ -84,8 +65,13 @@ public class CoreInterceptorService {
     }
 
     @Transactional(readOnly = true)
-    public EntitySyncState getSyncState(String interceptorName) {
-        var interceptor = interceptorService.get(interceptorName);
+    public EntitySyncState getSyncState(String interceptorName, String hash) {
+        assertHashNotNull(interceptorName, hash);
+
+        var interceptorWithHash = interceptorService.getInterceptorWithHash(interceptorName);
+        assertInterceptorWasNotUpdated(interceptorWithHash, hash, OptimisticLockConflictException::onGetSyncState);
+
+        var interceptor = interceptorWithHash.model();
         var coreInterceptor = interceptorCoreMapper.mapInterceptor(interceptor);
 
         return entitySyncStateResolver.resolve(
@@ -94,5 +80,27 @@ public class CoreInterceptorService {
                 "interceptors",
                 interceptorName
         );
+    }
+
+    private void assertHashNotNull(String interceptorName, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    String.format("Hash must not be null. Use \"*\" to skip optimistic check. Interceptor:%s.", interceptorName)
+            );
+        }
+    }
+
+    private void assertInterceptorWasNotUpdated(DomainObjectWithHash<Interceptor> interceptorWithHash,
+                                                String expectedHash,
+                                                Function<OptimisticLockConflictExceptionDetails, OptimisticLockConflictException> exceptionProvider) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+
+        String currentHash = interceptorWithHash.hash();
+        if (!expectedHash.equals(currentHash)) {
+            String interceptorName = interceptorWithHash.model().getName();
+            throw exceptionProvider.apply(new OptimisticLockConflictExceptionDetails("Interceptor", interceptorName, expectedHash, currentHash));
+        }
     }
 }

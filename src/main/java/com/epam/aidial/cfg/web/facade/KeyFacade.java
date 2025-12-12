@@ -50,8 +50,8 @@ public class KeyFacade {
         return coreKeyService.getCoreKeyWithHash(keyName);
     }
 
-    public EntitySyncStateDto getSyncState(String keyName) {
-        var syncState = coreKeyService.getSyncState(keyName);
+    public EntitySyncStateDto getSyncState(String keyName, String hash) {
+        var syncState = coreKeyService.getSyncState(keyName, hash);
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 

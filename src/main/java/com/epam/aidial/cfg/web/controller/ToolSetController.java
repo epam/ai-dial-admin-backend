@@ -57,8 +57,9 @@ public class ToolSetController extends AbstractController {
     }
 
     @GetMapping(path = "/{toolSetName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getSyncState(@PathVariable String toolSetName) {
-        return toolSetFacade.getSyncState(toolSetName);
+    public EntitySyncStateDto getSyncState(@PathVariable String toolSetName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return toolSetFacade.getSyncState(toolSetName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.domain.service.DeploymentService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
@@ -45,34 +47,14 @@ public class CoreRoleService {
 
     @Transactional
     public String updateRole(String roleName, CoreRole coreRole, String hash) {
-        if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
-        }
+        assertHashNotNull(roleName, hash);
 
         var roleWithHash = roleService.getRoleWithHash(roleName);
 
-        assertNotConcurrencyOverwrite(roleWithHash, hash);
+        assertRoleWasNotUpdated(roleWithHash, hash, OptimisticLockConflictException::onUpdate);
         importCoreRole(roleName, coreRole);
 
         return roleService.getRoleWithHash(roleName).hash();
-    }
-
-    private void assertNotConcurrencyOverwrite(DomainObjectWithHash<Role> roleWithHash, String expectedHash) {
-        if (ANY_HASH.equals(expectedHash)) {
-            return;
-        }
-
-        Role role = roleWithHash.model();
-        String currentHash = roleWithHash.hash();
-
-        if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: roleName={}, expectedHash={}, currentHash={}",
-                    role.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Unable to update Role '%s'. The data may have been modified by another user, "
-                            + "or the name/ID may already exist. Please reload the data and try again.",
-                    role.getName()));
-        }
     }
 
     private void importCoreRole(String roleName, CoreRole coreRole) {
@@ -86,8 +68,13 @@ public class CoreRoleService {
     }
 
     @Transactional(readOnly = true)
-    public EntitySyncState getSyncState(String roleName) {
-        var role = roleService.getRole(roleName);
+    public EntitySyncState getSyncState(String roleName, String hash) {
+        assertHashNotNull(roleName, hash);
+
+        var roleWithHash = roleService.getRoleWithHash(roleName);
+        assertRoleWasNotUpdated(roleWithHash, hash, OptimisticLockConflictException::onGetSyncState);
+
+        var role = roleWithHash.model();
         var deployments = deploymentService.getAll();
         var coreRole = roleCoreMapper.mapRole(role, deployments);
 
@@ -97,5 +84,27 @@ public class CoreRoleService {
                 "roles",
                 roleName
         );
+    }
+
+    private void assertHashNotNull(String roleName, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    String.format("Hash must not be null. Use \"*\" to skip optimistic check. Role:%s.", roleName)
+            );
+        }
+    }
+
+    private void assertRoleWasNotUpdated(DomainObjectWithHash<Role> roleWithHash,
+                                         String expectedHash,
+                                         Function<OptimisticLockConflictExceptionDetails, OptimisticLockConflictException> exceptionProvider) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+
+        String currentHash = roleWithHash.hash();
+        if (!expectedHash.equals(currentHash)) {
+            String roleName = roleWithHash.model().getName();
+            throw exceptionProvider.apply(new OptimisticLockConflictExceptionDetails("Role", roleName, expectedHash, currentHash));
+        }
     }
 }

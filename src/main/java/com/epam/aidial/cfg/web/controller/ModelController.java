@@ -56,8 +56,9 @@ public class ModelController extends AbstractController {
     }
 
     @GetMapping(path = "/{modelName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getSyncState(@PathVariable String modelName) {
-        return modelFacade.getSyncState(modelName);
+    public EntitySyncStateDto getSyncState(@PathVariable String modelName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return modelFacade.getSyncState(modelName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

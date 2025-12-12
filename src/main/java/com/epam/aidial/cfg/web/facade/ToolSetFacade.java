@@ -53,8 +53,8 @@ public class ToolSetFacade {
         return coreToolSetService.getCoreToolSetWithHash(toolSetName);
     }
 
-    public EntitySyncStateDto getSyncState(String toolSetName) {
-        var syncState = coreToolSetService.getSyncState(toolSetName);
+    public EntitySyncStateDto getSyncState(String toolSetName, String hash) {
+        var syncState = coreToolSetService.getSyncState(toolSetName, hash);
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 

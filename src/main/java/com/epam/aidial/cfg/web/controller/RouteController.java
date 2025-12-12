@@ -57,8 +57,9 @@ public class RouteController extends AbstractController {
     }
 
     @GetMapping(path = "/{routeName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getSyncState(@PathVariable String routeName) {
-        return routeFacade.getSyncState(routeName);
+    public EntitySyncStateDto getSyncState(@PathVariable String routeName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return routeFacade.getSyncState(routeName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

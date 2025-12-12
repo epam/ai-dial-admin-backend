@@ -516,7 +516,7 @@ public abstract class KeyFunctionalTest {
 
         ObjectNode keyState = coreKey();
 
-        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName());
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
 
         assertThat(actualSyncState.getCurrentState()).isEqualTo(keyState);
         assertThat(actualSyncState.getConfigState()).isEqualTo(keyState);
@@ -529,7 +529,7 @@ public abstract class KeyFunctionalTest {
         keyDto.setKey(null);
         keyFacade.createKey(keyDto);
 
-        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName());
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
 
         assertThat(actualSyncState.getCurrentState()).isNull();
         assertThat(actualSyncState.getConfigState()).isNull();
@@ -548,7 +548,7 @@ public abstract class KeyFunctionalTest {
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName());
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
 
         assertThat(actualSyncState.getCurrentState()).isNull();
         assertThat(actualSyncState.getConfigState()).isNull();
@@ -567,7 +567,7 @@ public abstract class KeyFunctionalTest {
 
         ObjectNode keyState = coreKey();
 
-        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName());
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
 
         assertThat(actualSyncState.getCurrentState()).isNull();
         assertThat(actualSyncState.getConfigState()).isEqualTo(keyState);

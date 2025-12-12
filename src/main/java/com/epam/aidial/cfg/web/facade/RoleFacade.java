@@ -49,8 +49,8 @@ public class RoleFacade {
         return coreRoleService.getCoreRoleWithHash(roleName);
     }
 
-    public EntitySyncStateDto getSyncState(String roleName) {
-        var syncState = coreRoleService.getSyncState(roleName);
+    public EntitySyncStateDto getSyncState(String roleName, String hash) {
+        var syncState = coreRoleService.getSyncState(roleName, hash);
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 

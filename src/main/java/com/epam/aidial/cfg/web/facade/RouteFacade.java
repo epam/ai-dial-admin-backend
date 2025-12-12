@@ -50,8 +50,8 @@ public class RouteFacade {
         return coreRouteService.getCoreRouteWithHash(routeName);
     }
 
-    public EntitySyncStateDto getSyncState(String routeName) {
-        var syncState = coreRouteService.getSyncState(routeName);
+    public EntitySyncStateDto getSyncState(String routeName, String hash) {
+        var syncState = coreRouteService.getSyncState(routeName, hash);
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 

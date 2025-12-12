@@ -49,8 +49,8 @@ public class InterceptorFacade {
         return coreInterceptorService.getCoreInterceptorWithHash(interceptorName);
     }
 
-    public EntitySyncStateDto getSyncState(String interceptorName) {
-        var syncState = coreInterceptorService.getSyncState(interceptorName);
+    public EntitySyncStateDto getSyncState(String interceptorName, String hash) {
+        var syncState = coreInterceptorService.getSyncState(interceptorName, hash);
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 

@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
+import java.util.function.Function;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
@@ -41,34 +43,14 @@ public class CoreRouteService {
 
     @Transactional
     public String updateRoute(String routeName, CoreRoute coreRoute, String hash) {
-        if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
-        }
+        assertHashNotNull(routeName, hash);
 
         var routeWithHash = routeService.getRouteWithHash(routeName);
 
-        assertNotConcurrencyOverwrite(routeWithHash, hash);
+        assertRouteWasNotUpdated(routeWithHash, hash, OptimisticLockConflictException::onUpdate);
         importCoreRoute(routeName, coreRoute);
 
         return routeService.getRouteWithHash(routeName).hash();
-    }
-
-    private void assertNotConcurrencyOverwrite(DomainObjectWithHash<Route> routeWithHash, String expectedHash) {
-        if (ANY_HASH.equals(expectedHash)) {
-            return;
-        }
-
-        Route route = routeWithHash.model();
-        String currentHash = routeWithHash.hash();
-
-        if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: routeName={}, expectedHash={}, currentHash={}",
-                    route.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Unable to update Route '%s'. The data may have been modified by another user, "
-                            + "or the name/ID may already exist. Please reload the data and try again.",
-                    route.getDeployment().getName()));
-        }
     }
 
     private void importCoreRoute(String routeName, CoreRoute coreRoute) {
@@ -82,15 +64,42 @@ public class CoreRouteService {
     }
 
     @Transactional(readOnly = true)
-    public EntitySyncState getSyncState(String routeName) {
-        var route = routeService.get(routeName);
-        var coreRole = routeCoreMapper.mapRoute(route);
+    public EntitySyncState getSyncState(String routeName, String hash) {
+        assertHashNotNull(routeName, hash);
+
+        var routeWithHash = routeService.getRouteWithHash(routeName);
+        assertRouteWasNotUpdated(routeWithHash, hash, OptimisticLockConflictException::onGetSyncState);
+
+        var route = routeWithHash.model();
+        var coreRoute = routeCoreMapper.mapRoute(route);
 
         return entitySyncStateResolver.resolve(
-                coreRole,
+                coreRoute,
                 route.getUpdatedAt(),
                 "routes",
                 routeName
         );
+    }
+
+    private void assertHashNotNull(String routeName, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    String.format("Hash must not be null. Use \"*\" to skip optimistic check. Route:%s.", routeName)
+            );
+        }
+    }
+
+    private void assertRouteWasNotUpdated(DomainObjectWithHash<Route> routeWithHash,
+                                          String expectedHash,
+                                          Function<OptimisticLockConflictExceptionDetails, OptimisticLockConflictException> exceptionProvider) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+
+        String currentHash = routeWithHash.hash();
+        if (!expectedHash.equals(currentHash)) {
+            String routeName = routeWithHash.model().getDeployment().getName();
+            throw exceptionProvider.apply(new OptimisticLockConflictExceptionDetails("Route", routeName, expectedHash, currentHash));
+        }
     }
 }

@@ -50,8 +50,8 @@ public class ModelFacade {
         return mapper.toDto(model);
     }
 
-    public EntitySyncStateDto getSyncState(String modelName) {
-        var syncState = coreModelService.getSyncState(modelName);
+    public EntitySyncStateDto getSyncState(String modelName, String hash) {
+        var syncState = coreModelService.getSyncState(modelName, hash);
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 

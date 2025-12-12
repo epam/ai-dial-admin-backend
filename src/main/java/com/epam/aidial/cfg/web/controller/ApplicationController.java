@@ -60,8 +60,9 @@ public class ApplicationController extends AbstractController {
     }
 
     @GetMapping(path = "/{applicationName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getSyncState(@PathVariable String applicationName) {
-        return applicationFacade.getSyncState(applicationName);
+    public EntitySyncStateDto getSyncState(@PathVariable String applicationName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return applicationFacade.getSyncState(applicationName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

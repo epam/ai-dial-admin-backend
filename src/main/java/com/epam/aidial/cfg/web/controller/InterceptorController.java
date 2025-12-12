@@ -58,8 +58,9 @@ public class InterceptorController extends AbstractController {
     }
 
     @GetMapping(path = "/{interceptorName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getSyncState(@PathVariable String interceptorName) {
-        return interceptorFacade.getSyncState(interceptorName);
+    public EntitySyncStateDto getSyncState(@PathVariable String interceptorName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return interceptorFacade.getSyncState(interceptorName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

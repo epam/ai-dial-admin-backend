@@ -50,8 +50,8 @@ public class ApplicationFacade {
         return coreApplicationService.getCoreApplicationWithHash(applicationName);
     }
 
-    public EntitySyncStateDto getSyncState(String applicationName) {
-        var syncState = coreApplicationService.getSyncState(applicationName);
+    public EntitySyncStateDto getSyncState(String applicationName, String hash) {
+        var syncState = coreApplicationService.getSyncState(applicationName, hash);
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 

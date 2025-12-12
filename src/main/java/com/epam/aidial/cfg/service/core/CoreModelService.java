@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
@@ -42,35 +44,14 @@ public class CoreModelService {
 
     @Transactional
     public String updateModel(String modelName, CoreModel coreModel, String hash) {
-        if (hash == null) {
-            throw new IllegalArgumentException(
-                    "Hash must not be null. Use \"*\" to skip optimistic check.");
-        }
+        assertHashNotNull(modelName, hash);
 
         var modelWithHash = modelService.getModelWithHash(modelName);
 
-        assertNotConcurrencyOverwrite(modelWithHash, hash);
+        assertModelWasNotUpdated(modelWithHash, hash, OptimisticLockConflictException::onUpdate);
         importCoreModel(modelName, coreModel);
 
         return modelService.getModelWithHash(modelName).hash();
-    }
-
-    private void assertNotConcurrencyOverwrite(DomainObjectWithHash<Model> modelWithHash, String expectedHash) {
-        if (ANY_HASH.equals(expectedHash)) {
-            return;
-        }
-
-        Model model = modelWithHash.model();
-        String currentHash = modelWithHash.hash();
-
-        if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: modelName={}, expectedHash={}, currentHash={}",
-                    model.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Unable to update Model '%s'. The data may have been modified by another user, "
-                            + "or the name/ID may already exist. Please reload the data and try again.",
-                    model.getDeployment().getName()));
-
-        }
     }
 
     private void importCoreModel(String modelName, CoreModel coreModel) {
@@ -84,8 +65,13 @@ public class CoreModelService {
     }
 
     @Transactional(readOnly = true)
-    public EntitySyncState getSyncState(String modelName) {
-        var model = modelService.getModel(modelName);
+    public EntitySyncState getSyncState(String modelName, String hash) {
+        assertHashNotNull(modelName, hash);
+
+        var modelWithHash = modelService.getModelWithHash(modelName);
+        assertModelWasNotUpdated(modelWithHash, hash, OptimisticLockConflictException::onGetSyncState);
+
+        var model = modelWithHash.model();
         var coreModel = modelCoreMapper.mapModel(model);
 
         return entitySyncStateResolver.resolve(
@@ -94,5 +80,27 @@ public class CoreModelService {
                 "models",
                 modelName
         );
+    }
+
+    private void assertHashNotNull(String modelName, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    String.format("Hash must not be null. Use \"*\" to skip optimistic check. Model:%s.", modelName)
+            );
+        }
+    }
+
+    private void assertModelWasNotUpdated(DomainObjectWithHash<Model> modelWithHash,
+                                          String expectedHash,
+                                          Function<OptimisticLockConflictExceptionDetails, OptimisticLockConflictException> exceptionProvider) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+
+        String currentHash = modelWithHash.hash();
+        if (!expectedHash.equals(currentHash)) {
+            String modelName = modelWithHash.model().getDeployment().getName();
+            throw exceptionProvider.apply(new OptimisticLockConflictExceptionDetails("Model", modelName, expectedHash, currentHash));
+        }
     }
 }

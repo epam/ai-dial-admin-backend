@@ -62,11 +62,7 @@ public class CoreApplicationTypeSchemaService {
         String currentHash = schemaWithHash.hash();
 
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: schemaId={}, expectedHash={}, currentHash={}",
-                    schema.getSchemaId(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Unable to update ApplicationTypeSchema '%s'. The data may have been modified by another user, "
-                            + "or the name/ID may already exist. Please reload the data and try again.",
-                    schema.getSchemaId()));
+            throw OptimisticLockConflictException.onUpdate("ApplicationTypeSchema", schema.getSchemaId(), expectedHash, currentHash);
         }
     }
 

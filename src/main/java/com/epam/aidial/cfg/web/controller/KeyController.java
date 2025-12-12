@@ -57,8 +57,9 @@ public class KeyController extends AbstractController {
     }
 
     @GetMapping(path = "/{name}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getSyncState(@PathVariable String name) {
-        return keyFacade.getSyncState(name);
+    public EntitySyncStateDto getSyncState(@PathVariable String name,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return keyFacade.getSyncState(name, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

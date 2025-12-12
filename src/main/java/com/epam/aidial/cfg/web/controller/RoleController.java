@@ -57,8 +57,9 @@ public class RoleController extends AbstractController {
     }
 
     @GetMapping(path = "/{roleName}/sync-state", produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntitySyncStateDto getSyncState(@PathVariable String roleName) {
-        return roleFacade.getSyncState(roleName);
+    public EntitySyncStateDto getSyncState(@PathVariable String roleName,
+                                           @RequestHeader(value = "If-Match") String previousHash) {
+        return roleFacade.getSyncState(roleName, StringUtils.unwrap(previousHash, '"'));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
