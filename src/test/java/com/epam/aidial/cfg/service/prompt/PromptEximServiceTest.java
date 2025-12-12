@@ -1,7 +1,5 @@
 package com.epam.aidial.cfg.service.prompt;
 
-import com.epam.aidial.cfg.client.PromptClient;
-import com.epam.aidial.cfg.client.dto.PromptDto;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.PromptEximDto;
@@ -10,6 +8,7 @@ import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.Prompt;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
@@ -52,8 +51,6 @@ class PromptEximServiceTest {
     private static final String PROMPTS_FOLDER = "prompts/";
 
     @MockitoBean
-    private PromptClient promptClient;
-    @MockitoBean
     private PromptService promptService;
     @MockitoBean
     private FolderService folderService;
@@ -68,15 +65,14 @@ class PromptEximServiceTest {
     void exportPrompts_SinglePath() {
         // given
         var path = "public/folder/PROMPT 1__1.0.0";
-        var promptDto = PromptDto.builder()
-                .id("prompts/public/folder/PROMPT%201__1.0.0")
-                .name("PROMPT 1")
-                .folderId("prompts/public/folder/")
-                .description("Test description")
-                .content("Test content")
-                .build();
+        var prompt = new Prompt();
+        prompt.setPath("public/folder/PROMPT 1__1.0.0");
+        prompt.setName("PROMPT 1");
+        prompt.setFolderId("prompts/public/folder/");
+        prompt.setDescription("Test description");
+        prompt.setContent("Test content");
 
-        when(promptClient.getPrompt(path)).thenReturn(promptDto);
+        when(promptService.getPrompt(path)).thenReturn(prompt);
 
         // when
         var result = promptEximService.exportPrompts(List.of(path));
@@ -107,24 +103,22 @@ class PromptEximServiceTest {
         var path1 = "public/folder1/PROMPT 1__1.0.0";
         var path2 = "public/folder2/PROMPT 2__1.0.0";
 
-        var promptDto1 = PromptDto.builder()
-                .id("prompts/public/folder1/PROMPT%201__1.0.0")
-                .name("PROMPT 1")
-                .folderId("prompts/public/folder1/")
-                .description("Test description 1")
-                .content("Test content 1")
-                .build();
+        var prompt1 = new Prompt();
+        prompt1.setPath("public/folder1/PROMPT 1__1.0.0");
+        prompt1.setName("PROMPT 2");
+        prompt1.setFolderId("prompts/public/folder1/");
+        prompt1.setDescription("Test description 1");
+        prompt1.setContent("Test content 1");
 
-        var promptDto2 = PromptDto.builder()
-                .id("prompts/public/folder2/PROMPT%202__1.0.0")
-                .name("PROMPT 2")
-                .folderId("prompts/public/folder2/")
-                .description("Test description 2")
-                .content("Test content 2")
-                .build();
+        var prompt2 = new Prompt();
+        prompt2.setPath("public/folder2/PROMPT%202__1.0.0");
+        prompt2.setName("PROMPT 2");
+        prompt2.setFolderId("prompts/public/folder2/");
+        prompt2.setDescription("Test description 2");
+        prompt2.setContent("Test content 2");
 
-        when(promptClient.getPrompt(path1)).thenReturn(promptDto1);
-        when(promptClient.getPrompt(path2)).thenReturn(promptDto2);
+        when(promptService.getPrompt(path1)).thenReturn(prompt1);
+        when(promptService.getPrompt(path2)).thenReturn(prompt2);
 
         // when
         var result = promptEximService.exportPrompts(List.of(path1, path2));
@@ -162,7 +156,7 @@ class PromptEximServiceTest {
         assertThat(result.getPrompts()).isEmpty();
         assertThat(result.getFolders()).isEmpty();
 
-        verifyNoInteractions(promptClient);
+        verifyNoInteractions(promptService);
     }
 
     @Test
@@ -171,7 +165,7 @@ class PromptEximServiceTest {
         var path = "public/folder/PROMPT%201__1.0.0";
         var exception = new RuntimeException("Test exception");
 
-        when(promptClient.getPrompt(anyString())).thenThrow(exception);
+        when(promptService.getPrompt(anyString())).thenThrow(exception);
 
         // when/then
         RuntimeException thrown = assertThrows(RuntimeException.class,

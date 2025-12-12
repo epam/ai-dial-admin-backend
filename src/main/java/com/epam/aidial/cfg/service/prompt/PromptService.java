@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.CreatePrompt;
+import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.Prompt;
@@ -30,6 +31,8 @@ import java.util.stream.StreamSupport;
 
 import static com.epam.aidial.cfg.client.mapper.PromptClientMapper.PROMPTS_PREFIX;
 import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createIfMatchHeaders;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createIfNonMatchHeaders;
 import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 
 @Slf4j
@@ -86,9 +89,19 @@ public class PromptService implements ResourceService {
     }
 
     public Prompt getPrompt(String path) {
-        var promptDto = promptClient.getPrompt(path);
+        return fetchApplicationResource(path, null).model();
+    }
+
+    public DomainModelWithEtag<Prompt> getPrompt(String path, String etag) {
+        return fetchApplicationResource(path, etag);
+    }
+
+    private DomainModelWithEtag<Prompt> fetchApplicationResource(String path, String etag) {
+        var response = promptClient.getPrompt(path, createIfNonMatchHeaders(etag));
         var promptMetadata = promptClient.getPromptsMetadata(path, false, null, promptsMetadataDefaultLimit);
-        return promptClientMapper.toPrompt(promptDto, promptMetadata);
+        var prompt = promptClientMapper.toPrompt(response.getBody(), promptMetadata);
+        var currentEtag = response.getHeaders().getETag();
+        return new DomainModelWithEtag<>(prompt, currentEtag);
     }
 
     public List<PromptNodeInfo> getPromptVersions(String folderId, String name) {
@@ -101,20 +114,22 @@ public class PromptService implements ResourceService {
                 .toList();
     }
 
-    public Prompt createPrompt(CreatePrompt createPrompt, boolean allowOverride, String etag) {
+    public DomainModelWithEtag<Prompt> createPrompt(CreatePrompt createPrompt, boolean allowOverride, String etag) {
         var promptDto = promptClientMapper.toPromptDto(createPrompt);
         var path = buildPath(createPrompt.getFolderId(), createPrompt.getName(),
                 createPrompt.getVersion());
         var headers = createHeadersForCreate(allowOverride, etag);
-        var promptMetadata = promptClient.createPrompt(path, promptDto, headers);
-        return promptClientMapper.toPrompt(promptDto, promptMetadata);
+        var response = promptClient.createPrompt(path, promptDto, headers);
+        var prompt = promptClientMapper.toPrompt(promptDto, response.getBody());
+        var currentEtag = response.getHeaders().getETag();
+        return new DomainModelWithEtag<>(prompt, currentEtag);
     }
 
     public void deletePrompts(List<String> paths) {
         List<String> deletedPrompts = new ArrayList<>();
         for (var path : paths) {
             try {
-                deletePrompt(path);
+                deletePrompt(path, null);
                 deletedPrompts.add(path);
             } catch (Exception exception) {
                 log.warn("Unable to delete prompt: {}, deleted prompts: {}", path, deletedPrompts, exception);
@@ -123,8 +138,9 @@ public class PromptService implements ResourceService {
         }
     }
 
-    public void deletePrompt(String path) {
-        promptClient.deletePrompt(path);
+    public void deletePrompt(String path, String etag) {
+        var headers = createIfMatchHeaders(etag);
+        promptClient.deletePrompt(path, headers);
     }
 
     @Override
