@@ -305,7 +305,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                         .header(HEADER_IF_MATCH, "*"))
                 .andExpect(status().isOk());
 
-        verify(applicationResourceService).deleteApplicationResource(APP_PATH, "*");
+        verify(applicationResourceService).delete(APP_PATH, "*");
     }
 
     @Test
@@ -313,7 +313,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
 
-        doThrow(new ResourceNotFoundException("Not Found")).when(applicationResourceService).deleteApplicationResource(any(), any());
+        doThrow(new ResourceNotFoundException("Not Found")).when(applicationResourceService).delete(any(), any());
 
         mockMvc.perform(post(DELETE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -323,7 +323,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                 .andExpect(jsonPath("$.message")
                         .value("Not Found"));
 
-        verify(applicationResourceService).deleteApplicationResource(APP_PATH, TEST_ETAG);
+        verify(applicationResourceService).delete(APP_PATH, TEST_ETAG);
     }
 
     @Test
@@ -331,7 +331,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
 
-        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(applicationResourceService).deleteApplicationResource(any(), any());
+        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(applicationResourceService).delete(any(), any());
 
         mockMvc.perform(post(DELETE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)

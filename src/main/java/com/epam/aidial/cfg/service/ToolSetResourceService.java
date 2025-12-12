@@ -141,7 +141,7 @@ public class ToolSetResourceService implements ResourceService {
         List<String> deleteToolSetResources = new ArrayList<>();
         for (var path : paths) {
             try {
-                deleteToolSetResource(path, null);
+                delete(path, null);
                 deleteToolSetResources.add(path);
             } catch (Exception exception) {
                 log.warn("Unable to delete toolsets: {}, deleted toolsets: {}", path, deleteToolSetResources,
@@ -151,8 +151,8 @@ public class ToolSetResourceService implements ResourceService {
         }
     }
 
-    public void deleteToolSetResource(String path,
-                                      String etag) {
+    @Override
+    public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         toolSetClient.deleteToolSetResource(path, headers);
     }

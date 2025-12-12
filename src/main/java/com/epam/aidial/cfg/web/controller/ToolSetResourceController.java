@@ -98,7 +98,7 @@ public class ToolSetResourceController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteToolSetResource(@RequestBody ResourcePathDto resourcePath,
                                       @RequestHeader(value = "If-Match") String etag) {
-        toolSetResourceService.deleteToolSetResource(resourcePath.getPath(), etag);
+        toolSetResourceService.delete(resourcePath.getPath(), etag);
     }
 
     @PostMapping(path = "/delete/bulk",

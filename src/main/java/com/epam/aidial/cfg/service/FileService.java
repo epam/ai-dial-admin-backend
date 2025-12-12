@@ -241,6 +241,11 @@ public class FileService implements ResourceService {
     }
 
     public void deleteFile(String path) {
+        delete(path, null);
+    }
+
+    @Override
+    public void delete(String path, String etag) {
         fileClient.deleteFile(path);
     }
 
