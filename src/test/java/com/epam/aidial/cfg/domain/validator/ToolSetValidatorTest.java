@@ -293,8 +293,9 @@ public class ToolSetValidatorTest {
         toolSet.setDeployment(deployment);
         toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
+        deploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
