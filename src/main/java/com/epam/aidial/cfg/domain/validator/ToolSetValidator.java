@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
@@ -89,8 +90,26 @@ public class ToolSetValidator {
     private void validateContainerSource(ToolSetContainerSource containerSource, String toolSetName) {
         String containerId = containerSource.getContainerId();
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
+        McpDeploymentInfoDto mcpDeploymentInfoDto = validateDeploymentType(deploymentInfo, toolSetName);
+        validateToolsetTransport(mcpDeploymentInfoDto, toolSetName);
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
         validateEndpointPath(containerSource.getCompletionEndpointPath(), toolSetName);
+    }
+
+    private void validateToolsetTransport(McpDeploymentInfoDto mcpDeploymentInfoDto, String toolSetName) {
+        if (mcpDeploymentInfoDto.getTransport() == null) {
+            log.warn("Toolset deployment transport is not defined. toolSetName: {}. mcpDeploymentInfoDto: {}",
+                    toolSetName, mcpDeploymentInfoDto);
+            throw new IllegalArgumentException("Toolset deployment transport is not defined. toolSetName: " + toolSetName);
+        }
+    }
+
+    private McpDeploymentInfoDto validateDeploymentType(DeploymentInfoDto deploymentInfo, String toolSetName) {
+        if (deploymentInfo instanceof McpDeploymentInfoDto mcpDeploymentInfoDto) {
+            return mcpDeploymentInfoDto;
+        }
+        log.warn("Toolset deployment type must be mcp. toolSetName: {}. deploymentInfo: {}", toolSetName, deploymentInfo);
+        throw new IllegalArgumentException("Toolset deployment type must be mcp. toolSetName: " + toolSetName);
     }
 
     private void validateEndpoint(String endpoint, String name) {

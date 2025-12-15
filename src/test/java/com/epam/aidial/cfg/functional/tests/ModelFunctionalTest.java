@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
@@ -432,7 +433,7 @@ public abstract class ModelFunctionalTest {
         
         // Update the model to container source
         final String containerId = "container-123";
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl("http://dial-test-host-name.ooops/yes/no/true/false");
         when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfo);
 
