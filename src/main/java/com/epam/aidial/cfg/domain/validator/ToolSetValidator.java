@@ -90,9 +90,9 @@ public class ToolSetValidator {
     private void validateContainerSource(ToolSetContainerSource containerSource, String toolSetName) {
         String containerId = containerSource.getContainerId();
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
+        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
         McpDeploymentInfoDto mcpDeploymentInfoDto = validateDeploymentType(deploymentInfo, toolSetName);
         validateToolsetTransport(mcpDeploymentInfoDto, toolSetName);
-        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
         validateEndpointPath(containerSource.getCompletionEndpointPath(), toolSetName);
     }
 

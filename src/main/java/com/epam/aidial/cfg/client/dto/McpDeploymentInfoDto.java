@@ -16,7 +16,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 public class McpDeploymentInfoDto extends DeploymentInfoDto {
     @NotNull
-    private McpTransport transport;
+    private McpTransport transport = McpTransport.HTTP_STREAMING;
 
     public McpDeploymentInfoDto(UUID id, String name, String url, McpTransport transport) {
         super(id, name, url);

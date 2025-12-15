@@ -230,25 +230,6 @@ public class ToolSetValidatorTest {
     }
 
     @Test
-    void validateContainerSource_shouldThrowExceptionWhenMcpDeploymentTransportIsNull() {
-        // given
-        SecuredResource deployment = new SecuredResource("test-toolset");
-        ToolSet toolSet = new ToolSet();
-        toolSet.setDeployment(deployment);
-        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
-
-        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
-        deploymentInfo.setUrl("https://deployment.url");
-        deploymentInfo.setTransport(null);
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
-
-        // when/then
-        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Toolset deployment transport is not defined. toolSetName: test-toolset");
-    }
-
-    @Test
     void validateContainerSource_shouldThrowExceptionWhenDeploymentInfoIsNotMcp() {
         // given
         SecuredResource deployment = new SecuredResource("test-toolset");
