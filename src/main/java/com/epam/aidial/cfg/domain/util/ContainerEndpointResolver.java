@@ -20,6 +20,7 @@ import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
@@ -241,13 +242,30 @@ public class ContainerEndpointResolver {
 
     /**
      * Resolves a single endpoint by combining URL and path.
+     * Handles slash compatibility to avoid double slashes or missing slashes.
      *
      * @param url the base URL
      * @param path the endpoint path
      * @return the complete endpoint URL
      */
     private static String resolveEndpoint(final String url, final String path) {
-        return url + Optional.ofNullable(path).orElse("");
+        if (StringUtils.isBlank(path)) {
+            return url;
+        }
+
+        boolean urlEndsWithSlash = url.endsWith("/");
+        boolean pathStartsWithSlash = path.startsWith("/");
+
+        if (urlEndsWithSlash && pathStartsWithSlash) {
+            // Both have slashes - remove one to avoid double slash
+            return url + path.substring(1);
+        } else if (!urlEndsWithSlash && !pathStartsWithSlash) {
+            // Neither has slash - add one
+            return url + "/" + path;
+        } else {
+            // One has slash, one doesn't - concatenate as is
+            return url + path;
+        }
     }
 
     private record ContainerEndpoints(String containerName, String completionEndpoint, String configurationEndpoint) { }
