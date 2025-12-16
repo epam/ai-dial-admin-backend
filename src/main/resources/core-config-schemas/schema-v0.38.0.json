@@ -88,7 +88,13 @@
       "items": {
         "type": "integer"
       }
-    }
+    },
+    "globalInterceptors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
   },
   "definitions": {
     "RoleBasedEntity": {
@@ -428,7 +434,11 @@
         {"$ref": "#/definitions/Deployment"},
         {
           "properties": {
-            "authSettings": {"$ref": "#/definitions/CoreResourceAuthSettings"}
+            "authSettings": {"$ref": "#/definitions/CoreResourceAuthSettings"},
+            "forwardPerRequestKey": {
+              "type": "boolean",
+              "default": false
+            }
           }
         }
       ]

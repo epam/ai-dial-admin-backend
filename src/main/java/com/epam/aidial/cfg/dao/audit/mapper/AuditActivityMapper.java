@@ -2,12 +2,14 @@ package com.epam.aidial.cfg.dao.audit.mapper;
 
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.AddonEntity;
+import com.epam.aidial.cfg.dao.model.AdminSettingsEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.AssistantEntity;
 import com.epam.aidial.cfg.dao.model.AssistantsPropertyEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
+import com.epam.aidial.cfg.dao.model.GlobalSettingsEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
@@ -25,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditActivityMapper {
 
-    public ActivityResourceType mapResourceType(Class entityClass) {
+    public ActivityResourceType mapResourceType(Class<?> entityClass) {
         if (entityClass == AdapterEntity.class) {
             return ActivityResourceType.Adapter;
         } else if (entityClass == AddonEntity.class) {
@@ -58,6 +60,10 @@ public class AuditActivityMapper {
             return ActivityResourceType.Route;
         } else if (entityClass == ToolSetEntity.class) {
             return ActivityResourceType.ToolSet;
+        } else if (entityClass == GlobalSettingsEntity.class) {
+            return ActivityResourceType.GlobalSettings;
+        } else if (entityClass == AdminSettingsEntity.class) {
+            return ActivityResourceType.AdminSettings;
         } else {
             throw new IllegalArgumentException("Unable to find resource type for class " + entityClass);
         }

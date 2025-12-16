@@ -7,6 +7,9 @@ import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
@@ -29,6 +33,7 @@ public class CoreApplicationService {
     private final ApplicationService applicationService;
     private final ApplicationCoreMapper applicationCoreMapper;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreApplication> getCoreApplicationWithHash(String applicationName) {
@@ -39,34 +44,14 @@ public class CoreApplicationService {
 
     @Transactional
     public String updateApplication(String applicationName, CoreApplication coreApplication, String hash) {
-        if (hash == null) {
-            throw new IllegalArgumentException(String.format(
-                    "Hash must not be null. Use \"*\" to skip optimistic check. Application:%s.", applicationName));
-        }
+        assertHashNotNull(applicationName, hash);
 
         var applicationWithHash = applicationService.getApplicationWithHash(applicationName);
 
-        assertNotConcurrencyOverwrite(applicationWithHash, hash);
+        assertApplicationWasNotUpdated(applicationWithHash, hash, OptimisticLockConflictException::onUpdate);
         importCoreApplication(applicationName, coreApplication);
 
         return applicationService.getApplicationWithHash(applicationName).hash();
-    }
-
-    private void assertNotConcurrencyOverwrite(DomainObjectWithHash<Application> applicationWithHash,
-                                               String expectedHash) {
-        if (ANY_HASH.equals(expectedHash)) {
-            return;
-        }
-
-        Application application = applicationWithHash.model();
-        String currentHash = applicationWithHash.hash();
-
-        if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: applicationName={}, expectedHash={}, currentHash={}",
-                    application.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: applicationName:'"
-                    + "%s'. Please reload the data.", application.getDeployment().getName()));
-        }
     }
 
     private void importCoreApplication(String applicationName, CoreApplication coreApplication) {
@@ -77,5 +62,47 @@ public class CoreApplicationService {
         config.setApplications(coreApplications);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String applicationName, String hash) {
+        assertHashNotNull(applicationName, hash);
+
+        var applicationWithHash = applicationService.getApplicationWithHash(applicationName);
+        assertApplicationWasNotUpdated(applicationWithHash, hash, OptimisticLockConflictException::onGetSyncState);
+
+        var application = applicationWithHash.model();
+        var coreApplication = applicationCoreMapper.mapApplication(application);
+        boolean isApplicationValid = application.getValidityState().isValid();
+
+        return entitySyncStateResolver.resolveForEntityInObject(
+                coreApplication,
+                isApplicationValid,
+                application.getUpdatedAt(),
+                "applications",
+                applicationName
+        );
+    }
+
+    private void assertHashNotNull(String applicationName, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    String.format("Hash must not be null. Use \"*\" to skip optimistic check. Application:%s.", applicationName)
+            );
+        }
+    }
+
+    private void assertApplicationWasNotUpdated(DomainObjectWithHash<Application> applicationWithHash,
+                                                String expectedHash,
+                                                Function<OptimisticLockConflictExceptionDetails, OptimisticLockConflictException> exceptionProvider) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+
+        String currentHash = applicationWithHash.hash();
+        if (!expectedHash.equals(currentHash)) {
+            String applicationName = applicationWithHash.model().getDeployment().getName();
+            throw exceptionProvider.apply(new OptimisticLockConflictExceptionDetails("Application", applicationName, expectedHash, currentHash));
+        }
     }
 }

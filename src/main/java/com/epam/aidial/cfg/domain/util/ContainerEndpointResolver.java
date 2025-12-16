@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.domain.util;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
@@ -30,6 +32,7 @@ import java.util.function.Function;
  */
 @Service
 @RequiredArgsConstructor
+@LogExecution
 public class ContainerEndpointResolver {
 
     private final DeploymentManagerService deploymentManagerService;
@@ -37,15 +40,25 @@ public class ContainerEndpointResolver {
 
     public void processContainerEndpoints(ToolSet toolSet) {
         ToolSetContainerSource containerSource = (ToolSetContainerSource) toolSet.getSource();
+        String containerId = containerSource.getContainerId();
+        DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
+        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
+
         processContainerEndpoints(
-                containerSource.getContainerId(),
                 containerSource,
                 ToolSetContainerSource::getCompletionEndpointPath,
                 null,
-                (target, endpoints) -> {
+                deploymentInfo,
+                (ToolSet target, ContainerEndpoints endpoints) -> {
                     ToolSetContainerSource targetSource = (ToolSetContainerSource) target.getSource();
                     targetSource.setContainerName(endpoints.containerName());
                     target.setEndpoint(endpoints.completionEndpoint());
+                    // Sync Transport from MCP Deployment
+                    if (deploymentInfo instanceof McpDeploymentInfoDto mcpDeployment) {
+                        if (mcpDeployment.getTransport() != null) {
+                            target.setTransport(convertTransport(mcpDeployment.getTransport()));
+                        }
+                    }
                 },
                 toolSet
         );
@@ -53,15 +66,25 @@ public class ContainerEndpointResolver {
 
     public void processContainerEndpoints(ToolSetEntity toolSetEntity) {
         ToolSetContainerEntity containerEntity = toolSetEntity.getToolSetContainer();
+        String containerId = containerEntity.getContainerId();
+        DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
+        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
+
         processContainerEndpoints(
-                containerEntity.getContainerId(),
                 containerEntity,
                 ToolSetContainerEntity::getCompletionEndpointPath,
                 null,
-                (entity, endpoints) -> {
+                deploymentInfo,
+                (ToolSetEntity entity, ContainerEndpoints endpoints) -> {
                     ToolSetContainerEntity targetContainer = entity.getToolSetContainer();
                     targetContainer.setContainerName(endpoints.containerName());
                     entity.setEndpoint(endpoints.completionEndpoint());
+                    // Sync Transport from MCP Deployment
+                    if (deploymentInfo instanceof McpDeploymentInfoDto mcpDeployment) {
+                        if (mcpDeployment.getTransport() != null) {
+                            entity.setTransport(convertTransportEntity(mcpDeployment.getTransport()));
+                        }
+                    }
                 },
                 toolSetEntity
         );
@@ -140,7 +163,7 @@ public class ContainerEndpointResolver {
     /**
      * Processes container endpoints and applies them using the provided consumer.
      * This method handles the common pattern of:
-     * 1. Getting deployment info
+     * 1. Getting deployment info (if not provided)
      * 2. Validating deployment info
      * 3. Resolving endpoints
      * 4. Setting endpoints on target object
@@ -164,6 +187,29 @@ public class ContainerEndpointResolver {
 
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
+        processContainerEndpoints(pathProvider, completionPathExtractor, configPathExtractor, deploymentInfo, endpointConsumer, target);
+    }
+
+    /**
+     * Processes container endpoints with a pre-fetched DeploymentInfoDto.
+     * This overload is used when DeploymentInfoDto is already available (e.g., for Transport sync).
+     *
+     * @param <T> the type of object containing endpoint paths
+     * @param <R> the type of object to receive the resolved endpoints
+     * @param pathProvider object containing endpoint paths
+     * @param completionPathExtractor function to extract completion path from pathProvider
+     * @param configPathExtractor function to extract configuration path from pathProvider
+     * @param deploymentInfo the pre-fetched deployment info
+     * @param endpointConsumer consumer to set the resolved endpoints on target object
+     * @param target the object to receive the resolved endpoints
+     */
+    private <T, R> void processContainerEndpoints(
+            T pathProvider,
+            Function<T, String> completionPathExtractor,
+            @Nullable Function<T, String> configPathExtractor,
+            DeploymentInfoDto deploymentInfo,
+            BiConsumer<R, ContainerEndpoints> endpointConsumer,
+            R target) {
 
         String containerName = deploymentInfo.getName();
         String containerUrl = deploymentInfo.getUrl();
@@ -205,4 +251,30 @@ public class ContainerEndpointResolver {
     }
 
     private record ContainerEndpoints(String containerName, String completionEndpoint, String configurationEndpoint) { }
+
+    /**
+     * Converts McpDeploymentInfoDto.McpTransport to ToolSet.Transport
+     */
+    private static ToolSet.Transport convertTransport(McpDeploymentInfoDto.McpTransport transport) {
+        if (transport == null) {
+            return null;
+        }
+        return switch (transport) {
+            case HTTP_STREAMING -> ToolSet.Transport.HTTP;
+            case SSE -> ToolSet.Transport.SSE;
+        };
+    }
+
+    /**
+     * Converts McpDeploymentInfoDto.McpTransport to ToolSetEntity.TransportEntity
+     */
+    private static ToolSetEntity.TransportEntity convertTransportEntity(McpDeploymentInfoDto.McpTransport transport) {
+        if (transport == null) {
+            return null;
+        }
+        return switch (transport) {
+            case HTTP_STREAMING -> ToolSetEntity.TransportEntity.HTTP;
+            case SSE -> ToolSetEntity.TransportEntity.SSE;
+        };
+    }
 }

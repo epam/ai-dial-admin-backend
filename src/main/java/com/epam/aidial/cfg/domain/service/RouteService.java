@@ -121,10 +121,7 @@ public class RouteService {
         }
         var currentHash = calculator.calculateHash(mapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: routeName={}, expectedHash={}, currentHash={}",
-                    entity.getDeployment().getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: routeName:'"
-                    + "%s'. Reload the data.", entity.getDeployment().getName()));
+            throw OptimisticLockConflictException.onUpdate("Route", entity.getDeploymentName(), expectedHash, currentHash);
         }
     }
 

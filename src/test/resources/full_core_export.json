@@ -243,6 +243,7 @@
         "authentication_type": "oauth",
         "client_id": "some-client-id"
       },
+      "forward_per_request_key": false,
       "transport": "sse",
       "allowed_tools": [
         "branch",
@@ -321,8 +322,67 @@
         "dep1",
         "dep2"
       ]
-    }
+    },
+    "testInterceptor2": {
+          "name": "testInterceptor2",
+          "endpoint": "https://endpoint.test.com/interceptor2",
+          "displayName": "Test Interceptor2",
+          "forwardAuthToken": false,
+          "features": {
+            "system_prompt_supported": true,
+            "tools_supported": false,
+            "seed_supported": false,
+            "url_attachments_supported": false,
+            "folder_attachments_supported": false,
+            "allow_resume": true,
+            "accessible_by_per_request_key": true,
+            "content_parts_supported": false,
+            "temperature_supported": true,
+            "parallel_tool_calls_supported": true,
+            "assistant_attachments_in_request_supported": false
+          },
+          "defaults": {},
+          "interceptors": [],
+          "descriptionKeywords": [],
+          "maxRetryAttempts": 1,
+          "author": "test-author",
+          "createdAt": 123,
+          "updatedAt": 123,
+          "dependencies": [
+            "dep1",
+            "dep2"
+          ]
+        },
+    "testInterceptor3": {
+              "name": "testInterceptor3",
+              "endpoint": "https://endpoint.test.com/interceptor",
+              "displayName": "Test Interceptor3",
+              "forwardAuthToken": false,
+              "features": {
+                "system_prompt_supported": true,
+                "tools_supported": false,
+                "seed_supported": false,
+                "url_attachments_supported": false,
+                "folder_attachments_supported": false,
+                "allow_resume": true,
+                "accessible_by_per_request_key": true,
+                "content_parts_supported": false,
+                "temperature_supported": true,
+                "parallel_tool_calls_supported": true,
+                "assistant_attachments_in_request_supported": false
+              },
+              "defaults": {},
+              "interceptors": [],
+              "descriptionKeywords": [],
+              "maxRetryAttempts": 1,
+              "author": "test-author",
+              "createdAt": 123,
+              "updatedAt": 123,
+              "dependencies": []
+            }
+
   },
+  "globalInterceptors": ["testInterceptor2", "testInterceptor1"],
   "applicationTypeSchemas": [
     {
       "properties": {},
@@ -338,6 +398,7 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeInterceptors":["testInterceptor1"],
+      "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
       "$defs": {}
     }
   ]

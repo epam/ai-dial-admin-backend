@@ -7,6 +7,9 @@ import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
+import com.epam.aidial.cfg.model.EntitySyncState;
+import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 
@@ -29,6 +33,7 @@ public class CoreApplicationTypeSchemaService {
     private final ApplicationTypeSchemaService schemaService;
     private final ApplicationTypeSchemaCoreMapper schemaCoreMapper;
     private final ConfigImporter configImporter;
+    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreApplicationTypeSchema> getCoreSchemaWithHash(String id) {
@@ -39,34 +44,14 @@ public class CoreApplicationTypeSchemaService {
 
     @Transactional
     public String updateSchema(String id, CoreApplicationTypeSchema coreApplicationTypeSchema, String hash) {
-        if (hash == null) {
-            throw new IllegalArgumentException(String.format(
-                    "Hash must not be null. Use \"*\" to skip optimistic check. Schema:%s.", id));
-        }
+        assertHashNotNull(id, hash);
 
         var schemaWithHash = schemaService.getSchemaWithHash(id);
 
-        assertNotConcurrencyOverwrite(schemaWithHash, hash);
+        assertApplicationTypeSchemaWasNotUpdated(schemaWithHash, hash, OptimisticLockConflictException::onUpdate);
         importCoreApplicationTypeSchema(id, coreApplicationTypeSchema);
 
         return schemaService.getSchemaWithHash(id).hash();
-    }
-
-    private void assertNotConcurrencyOverwrite(DomainObjectWithHash<ApplicationTypeSchema> schemaWithHash,
-                                               String expectedHash) {
-        if (ANY_HASH.equals(expectedHash)) {
-            return;
-        }
-
-        ApplicationTypeSchema schema = schemaWithHash.model();
-        String currentHash = schemaWithHash.hash();
-
-        if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: schemaId={}, expectedHash={}, currentHash={}",
-                    schema.getSchemaId(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: schemaId:'"
-                    + "%s'. Please reload the data.", schema.getSchemaId()));
-        }
     }
 
     private void importCoreApplicationTypeSchema(String id, CoreApplicationTypeSchema coreApplicationTypeSchema) {
@@ -79,5 +64,46 @@ public class CoreApplicationTypeSchemaService {
         config.setApplicationTypeSchemas(coreApplicationTypeSchemas);
 
         configImporter.importConfigWithOverride(config);
+    }
+
+    @Transactional(readOnly = true)
+    public EntitySyncState getSyncState(String id, String hash) {
+        assertHashNotNull(id, hash);
+
+        var schemaWithHash = schemaService.getSchemaWithHash(id);
+        assertApplicationTypeSchemaWasNotUpdated(schemaWithHash, hash, OptimisticLockConflictException::onGetSyncState);
+
+        var schema = schemaWithHash.model();
+        var coreApplicationTypeSchema = schemaCoreMapper.mapToCoreApplicationTypeSchema(schema);
+
+        return entitySyncStateResolver.resolveForEntityInArray(
+                coreApplicationTypeSchema,
+                schema.getUpdatedAt(),
+                "applicationTypeSchemas",
+                "$id",
+                id
+        );
+    }
+
+    private void assertHashNotNull(String id, String hash) {
+        if (hash == null) {
+            throw new IllegalArgumentException(
+                    String.format("Hash must not be null. Use \"*\" to skip optimistic check. ApplicationTypeSchema:%s.", id)
+            );
+        }
+    }
+
+    private void assertApplicationTypeSchemaWasNotUpdated(DomainObjectWithHash<ApplicationTypeSchema> schemaWithHash,
+                                                          String expectedHash,
+                                                          Function<OptimisticLockConflictExceptionDetails, OptimisticLockConflictException> exceptionProvider) {
+        if (ANY_HASH.equals(expectedHash)) {
+            return;
+        }
+
+        String currentHash = schemaWithHash.hash();
+        if (!expectedHash.equals(currentHash)) {
+            String id = schemaWithHash.model().getSchemaId();
+            throw exceptionProvider.apply(new OptimisticLockConflictExceptionDetails("ApplicationTypeSchema", id, expectedHash, currentHash));
+        }
     }
 }

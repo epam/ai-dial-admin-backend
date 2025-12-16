@@ -2,6 +2,10 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
+import com.epam.aidial.cfg.dto.ExportDto;
+import com.epam.aidial.cfg.dto.ImportResourcesDto;
+import com.epam.aidial.cfg.dto.ImportResourcesFileResultDto;
+import com.epam.aidial.cfg.dto.ImportResourcesPreviewDto;
 import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
@@ -10,11 +14,15 @@ import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
 import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceNodeInfoDto;
+import com.epam.aidial.cfg.dto.ToolSetsEximDto;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.mapper.ToolSetResourceMapper;
+import com.epam.aidial.cfg.service.ToolSetEximService;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
+import com.epam.aidial.cfg.service.ZipToolSetEximService;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +33,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/toolset-resources")
@@ -37,6 +50,8 @@ public class ToolSetResourceController {
     private final ToolSetResourceService toolSetResourceService;
     private final ResourceMapper resourceMapper;
     private final ToolSetResourceMapper toolSetResourceMapper;
+    private final ToolSetEximService toolSetEximService;
+    private final ZipToolSetEximService zipToolSetEximService;
 
     @PostMapping(path = "/list",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -83,7 +98,7 @@ public class ToolSetResourceController {
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteToolSetResource(@RequestBody ResourcePathDto resourcePath,
                                       @RequestHeader(value = "If-Match") String etag) {
-        toolSetResourceService.deleteToolSetResource(resourcePath.getPath(), etag);
+        toolSetResourceService.delete(resourcePath.getPath(), etag);
     }
 
     @PostMapping(path = "/delete/bulk",
@@ -96,8 +111,8 @@ public class ToolSetResourceController {
     @PostMapping(path = "/move",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void moveToolSetResource(@RequestBody MoveResourceDto movePromptDto) {
-        var movePrompt = resourceMapper.toMoveResource(movePromptDto);
-        toolSetResourceService.move(movePrompt);
+        var moveToolSet = resourceMapper.toMoveResource(movePromptDto);
+        toolSetResourceService.move(moveToolSet);
     }
 
     @PostMapping(path = "/discovered-tools", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -114,6 +129,62 @@ public class ToolSetResourceController {
     @PostMapping(path = "/sign-out")
     public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
         toolSetResourceService.signOut(toolSetResourceMapper.toResourceSignOutRequest(requestDto));
+    }
+
+    @PostMapping(path = "/export",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StreamingResponseBody> exportToolSetsToZip(@RequestBody ExportDto exportToolSetsDto) {
+        var stream = zipToolSetEximService.exportToolSets(exportToolSetsDto.getPaths());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"toolsets_export.zip\"");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(stream);
+    }
+
+    @PostMapping(path = "/export/json",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ToolSetsEximDto exportToolSetsToJson(@RequestBody ExportDto exportToolSetsDto) {
+        var toolSetsExim = toolSetEximService.exportToolSets(exportToolSetsDto.getPaths());
+        return toolSetResourceMapper.toToolSetsEximDto(toolSetsExim);
+    }
+
+    @PostMapping(path = "/import/zip",
+            consumes = "multipart/form-data",
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ImportResourcesFileResultDto importToolSetsFromZip(
+            @RequestPart("config") @Validated ImportResourcesDto importToolSetsDto,
+            @RequestPart("file") MultipartFile zipFile
+    ) throws IOException {
+        var importToolSets = resourceMapper.toImportResources(importToolSetsDto);
+        var importResult = zipToolSetEximService.importToolSets(importToolSets, zipFile);
+        return resourceMapper.toImportResourcesFileResultDto(importResult);
+    }
+
+    @PostMapping(path = "/import/zip/preview",
+            consumes = "multipart/form-data",
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ImportResourcesPreviewDto previewImportToolSetsFromZip(
+            @RequestPart("config") @Validated ImportResourcesDto importToolSetsDto,
+            @RequestPart("file") MultipartFile zipFile
+    ) {
+        var importToolSets = resourceMapper.toImportResources(importToolSetsDto);
+        var importResourcesPreview = zipToolSetEximService.previewImportToolSetsFromZip(importToolSets, zipFile);
+        return resourceMapper.toImportResourcesPreviewDto(importResourcesPreview);
+    }
+
+    @PostMapping(path = "/import/json",
+            consumes = "multipart/form-data",
+            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public ImportResourcesFileResultDto importToolSetsFromJson(
+            @RequestPart("config") @Validated ImportResourcesDto importToolSetsDto,
+            @RequestPart("file") @Validated ToolSetsEximDto toolSetsEximDto
+    ) {
+        var importToolSets = resourceMapper.toImportResources(importToolSetsDto);
+        var importResults = toolSetEximService.importToolSets(importToolSets, toolSetsEximDto);
+        return resourceMapper.toImportResourcesFileResultDto(importResults);
     }
 
 }

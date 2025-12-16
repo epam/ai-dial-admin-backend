@@ -1,14 +1,20 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreKey;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +36,10 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validSta
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public abstract class KeyFunctionalTest {
 
@@ -39,10 +49,13 @@ public abstract class KeyFunctionalTest {
     private RoleFacade roleFacade;
     @Autowired
     private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     @BeforeEach
     public void beforeEach() {
         initRoles();
+        reset(coreConfigReloadCache);
     }
 
     private void initRoles() {
@@ -147,6 +160,26 @@ public abstract class KeyFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyCreateAndGetKeyWithExpiresAt() {
+        doReturn(1L).when(transactionTimestampContext).getTimestamp();
+
+        KeyDto keyDto = createKeyDto("1");
+        keyDto.setExpiresAt(Instant.ofEpochMilli(3));
+        keyFacade.createKey(keyDto);
+
+        doReturn(5L).when(transactionTimestampContext).getTimestamp();
+
+        KeyDto actual = keyFacade.getKey(keyDto.getName());
+
+        KeyDto expected = createKeyDto("1");
+        expected.setRoles(List.of());
+        expected.setExpiresAt(Instant.ofEpochMilli(3));
+        expected.setValidityState(invalidState("No roles assigned, Key is expired"));
+
+        assertKeyExcludingGeneratedFields(actual, expected);
+    }
+
+    @Test
     public void shouldSuccessfullyCreateTwoKeysWithNullKeyValue() {
         KeyDto keyDto = createKeyDto("1");
         keyDto.setKey(null);
@@ -160,7 +193,7 @@ public abstract class KeyFunctionalTest {
         Collection<KeyDto> expectedDtos = List.of(keyDto, keyDto2);
         expectedDtos.forEach(dto -> {
             dto.setRoles(List.of());
-            dto.setValidityState(invalidState("No roles assigned"));
+            dto.setValidityState(invalidState("No roles assigned, Key value is missing"));
         });
         assertKeys(actualKeys, expectedDtos, true);
     }
@@ -419,8 +452,13 @@ public abstract class KeyFunctionalTest {
         KeyDto updatedKeyDto = createKeyDtoWithRole("1");
         updatedKeyDto.setDisplayName("updatedDisplayName");
 
-        Assertions.assertThrows(OptimisticLockConflictException.class,
-                () -> keyFacade.updateKey(keyDto.getName(), updatedKeyDto, "test"));
+        OptimisticLockConflictException exception = Assertions.assertThrows(
+                OptimisticLockConflictException.class,
+                () -> keyFacade.updateKey(keyDto.getName(), updatedKeyDto, "test")
+        );
+        Assertions.assertEquals("Unable to update Key 'key1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test
@@ -467,6 +505,75 @@ public abstract class KeyFunctionalTest {
         assertKeyExcludingGeneratedFields(actual, expected);
     }
 
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenKeyIsValidAndEqualToConfigKey() {
+        KeyDto keyDto = createKeyDtoWithRole("1");
+        keyFacade.createKey(keyDto);
+
+        ObjectNode config = config("keyValue1");
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        ObjectNode keyState = coreKey();
+
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(keyState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(keyState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetUnknownEntitySyncStateWhenKeyValueIsMissing() {
+        KeyDto keyDto = createKeyDtoWithRole("1");
+        keyDto.setKey(null);
+        keyFacade.createKey(keyDto);
+
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isNull();
+        assertThat(actualSyncState.getConfigState()).isNull();
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.UNKNOWN);
+
+        verify(coreConfigReloadCache, never()).get();
+    }
+
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenKeyIsInvalidAndConfigDoesNotHaveKey() {
+        KeyDto keyDto = createKeyDto("1"); // key is invalid since doesn't have roles
+        keyFacade.createKey(keyDto);
+
+        ObjectNode config = config("keyValue_NEW");
+
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isNull();
+        assertThat(actualSyncState.getConfigState()).isNull();
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressEntitySyncStateWhenKeyIsInvalidAndConfigHasKey() {
+        KeyDto keyDto = createKeyDto("1"); // key is invalid since doesn't have roles
+        keyFacade.createKey(keyDto);
+
+        ObjectNode config = config("keyValue1");
+
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        ObjectNode keyState = coreKey();
+
+        EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isNull();
+        assertThat(actualSyncState.getConfigState()).isEqualTo(keyState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS);
+    }
+
     private void assertKeys(Collection<KeyDto> actual, Collection<KeyDto> expected, boolean excludeGeneratedFields) {
         expected.forEach(keyDto -> keyDto.setKey(null));
         Map<String, KeyDto> actualMap = toMap(actual);
@@ -497,5 +604,27 @@ public abstract class KeyFunctionalTest {
 
     private void assertKey(KeyDto actual, KeyDto expected) {
         assertThat(actual).isEqualTo(expected);
+    }
+
+    private ObjectNode config(String entityConfigKey) {
+        ObjectNode coreKeys = JsonNodeFactory.instance.objectNode();
+        coreKeys.set(entityConfigKey, coreKey());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("keys", coreKeys);
+
+        return config;
+    }
+
+    private ObjectNode coreKey() {
+        ArrayNode roles = JsonNodeFactory.instance.arrayNode();
+        roles.add("role1");
+
+        ObjectNode coreKey = JsonNodeFactory.instance.objectNode();
+        coreKey.put("project", "project1");
+        coreKey.set("roles", roles);
+        coreKey.put("secured", false);
+
+        return coreKey;
     }
 }

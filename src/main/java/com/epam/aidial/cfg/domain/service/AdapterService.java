@@ -187,10 +187,7 @@ public class AdapterService {
         }
         var currentHash = calculator.calculateHash(mapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: adapterName={}, expectedHash={}, currentHash={}",
-                    entity.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: adapterName:'"
-                    + "%s'. Reload the data.", entity.getName()));
+            throw OptimisticLockConflictException.onUpdate("Adapter", entity.getName(), expectedHash, currentHash);
         }
     }
 

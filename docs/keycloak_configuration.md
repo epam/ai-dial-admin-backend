@@ -34,7 +34,7 @@ config.rest.security.mode=oidc
 providers.keycloak.issuer=http://localhost:8888/realms/master
 providers.keycloak.jwk-set-uri=http://localhost:8888/realms/master/protocol/openid-connect/certs
 providers.keycloak.audiences=account
-providers.keycloak.roles-claims=resource_access.*.roles
+providers.keycloak.role-claims=resource_access.*.roles
 ```
 
 To use configured IDP with Sample HTTP Client located [here](sample/http-requests/AdminPanel.http) you need to set [env variables](sample/http-requests/http-client.env.json)

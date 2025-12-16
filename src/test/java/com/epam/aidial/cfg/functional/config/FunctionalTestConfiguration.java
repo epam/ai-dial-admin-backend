@@ -20,6 +20,7 @@ import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.domain.service.ModelService;
@@ -29,6 +30,7 @@ import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
@@ -52,6 +54,7 @@ import java.util.Map;
         "com.epam.aidial.cfg.web.facade",
         "com.epam.aidial.cfg.service.config.transfer",
         "com.epam.aidial.cfg.service.config.normalizer",
+        "com.epam.aidial.cfg.service.config.syncstate",
         "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
@@ -73,6 +76,7 @@ public class FunctionalTestConfiguration {
     public CoreConfigAggregatorService configAggregatorService(ApplicationService applicationService,
                                                                ApplicationTypeSchemaService applicationTypeSchemaService,
                                                                InterceptorService interceptorService, KeyService keyService,
+                                                               GlobalSettingsService globalSettingsService,
                                                                ModelService modelService, RoleService roleService,
                                                                RouteService routeService, DeploymentService deploymentService,
                                                                ToolSetService toolSetService, AdapterService adapterService,
@@ -80,7 +84,7 @@ public class FunctionalTestConfiguration {
                                                                InterceptorCoreMapper interceptorMapper, KeyCoreMapper keyMapper,
                                                                ModelCoreMapper modelMapper, RoleCoreMapper roleMapper,
                                                                RouteCoreMapper routeMapper, ToolSetCoreMapper toolSetMapper) {
-        return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService,
+        return new CoreConfigAggregatorService(applicationService, applicationTypeSchemaService, interceptorService, globalSettingsService,
                 keyService, modelService, roleService, routeService, deploymentService, toolSetService, adapterService, applicationMapper, schemaMapper, interceptorMapper,
                 keyMapper, modelMapper, roleMapper, routeMapper, toolSetMapper);
     }
@@ -137,6 +141,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public McpClientFactory mcpClientFactory() {
         return Mockito.mock(McpClientFactory.class);
+    }
+
+    @Bean
+    public CoreConfigReloadCache coreConfigReloadCache() {
+        return Mockito.mock(CoreConfigReloadCache.class);
     }
 
 }

@@ -1,6 +1,10 @@
 package com.epam.aidial.cfg.domain.util;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.NimDeploymentInfoDto;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
@@ -58,7 +62,7 @@ class ContainerEndpointResolverTest {
         ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH);
         model.setSource(containerSource);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -81,7 +85,7 @@ class ContainerEndpointResolverTest {
         containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
         modelEntity.setModelContainer(containerEntity);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -102,7 +106,7 @@ class ContainerEndpointResolverTest {
         InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH);
         interceptor.setSource(containerSource);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -127,7 +131,7 @@ class ContainerEndpointResolverTest {
         containerEntity.setConfigurationEndpointPath(CONFIG_PATH);
         interceptorEntity.setInterceptorContainer(containerEntity);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -149,8 +153,9 @@ class ContainerEndpointResolverTest {
         ToolSetContainerSource containerSource = new ToolSetContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH);
         toolSet.setSource(containerSource);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
 
@@ -172,8 +177,9 @@ class ContainerEndpointResolverTest {
         containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
         toolSetEntity.setToolSetContainer(containerEntity);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
 
@@ -210,7 +216,7 @@ class ContainerEndpointResolverTest {
         ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, null);
         model.setSource(containerSource);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -229,7 +235,7 @@ class ContainerEndpointResolverTest {
         InterceptorContainerSource containerSource = new InterceptorContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, null);
         interceptor.setSource(containerSource);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -253,7 +259,7 @@ class ContainerEndpointResolverTest {
         existingFeatures.setConfigurationEndpoint("old-endpoint");
         interceptor.setFeatures(existingFeatures);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
@@ -280,7 +286,7 @@ class ContainerEndpointResolverTest {
         existingFeatures.setConfigurationEndpoint("old-endpoint");
         interceptorEntity.setFeatures(existingFeatures);
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
         deploymentInfo.setUrl(CONTAINER_URL);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);

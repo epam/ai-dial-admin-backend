@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.domain.model.route.Route;
 import lombok.Data;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -21,6 +22,7 @@ public class ExportConfig {
     private Map<String, Interceptor> interceptors;
     private Map<String, InterceptorRunner> interceptorRunners;
     private Map<String, Adapter> adapters;
+    private List<String> globalInterceptors;
 
     public Collection<Deployment> collectDeployment() {
         return Stream.of(routes, applications, models, toolsets)

@@ -18,6 +18,7 @@ import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.service.validitystate.ApplicationResourceValidityStateOnGetResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +45,7 @@ public class ApplicationResourceService implements ResourceService {
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
+    private final ApplicationResourceValidityStateOnGetResolver applicationResourceValidityStateOnGetResolver;
 
     @Value("${core.applications.metadata.default.limit}")
     private int applicationsMetadataDefaultLimit;
@@ -102,7 +104,9 @@ public class ApplicationResourceService implements ResourceService {
                 applicationsMetadataDefaultLimit
         );
 
-        var applicationResource = applicationClientMapper.toApplicationResource(response.getBody(), metadata);
+        var applicationResourceDto = response.getBody();
+        var validityStateResource = applicationResourceValidityStateOnGetResolver.resolveValidityState(applicationResourceDto);
+        var applicationResource = applicationClientMapper.toApplicationResource(applicationResourceDto, metadata, validityStateResource);
         var currentEtag = response.getHeaders().getETag();
         return new DomainModelWithEtag<>(applicationResource, currentEtag);
     }
@@ -130,7 +134,7 @@ public class ApplicationResourceService implements ResourceService {
         List<String> deletedApplicationResources = new ArrayList<>();
         for (var path : paths) {
             try {
-                deleteApplicationResource(path, null);
+                delete(path, null);
                 deletedApplicationResources.add(path);
             } catch (Exception exception) {
                 log.warn("Unable to delete applications: {}, deleted applications: {}", path, deletedApplicationResources,
@@ -140,8 +144,8 @@ public class ApplicationResourceService implements ResourceService {
         }
     }
 
-    public void deleteApplicationResource(String path,
-                                          String etag) {
+    @Override
+    public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         applicationClient.deleteApplicationResource(path, headers);
     }

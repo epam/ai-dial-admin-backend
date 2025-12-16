@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
+import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -20,11 +21,13 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.ADAPTER;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION_TYPE_SCHEMA;
+import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.GLOBAL_INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR_RUNNER;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.KEY;
@@ -48,6 +51,7 @@ public class FullToSelectedItemsExportRequestTransformer {
     private final InterceptorRunnerService interceptorRunnerService;
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
     private final AdapterService adapterService;
+    private final GlobalSettingsService globalSettingsService;
 
     public SelectedItemsExportRequest transform(FullExportRequest fullExportRequest) {
         SelectedItemsExportRequest selectedItemsExportRequest = new SelectedItemsExportRequest();
@@ -70,6 +74,7 @@ public class FullToSelectedItemsExportRequestTransformer {
                     case INTERCEPTOR_RUNNER -> getInterceptorRunnerExportComponents(fullExportRequest);
                     case APPLICATION_TYPE_SCHEMA -> getAppTypeSchemaExportComponents(fullExportRequest);
                     case ADAPTER -> getAdapterExportComponents(fullExportRequest);
+                    case GLOBAL_INTERCEPTOR -> getGlobalSettingsExportComponents(fullExportRequest);
                 })
                 .flatMap(Collection::stream)
                 .toList();
@@ -139,6 +144,12 @@ public class FullToSelectedItemsExportRequestTransformer {
                 .toList();
     }
 
+    private List<ExportConfigComponent> getGlobalSettingsExportComponents(FullExportRequest fullExportRequest) {
+        return globalSettingsService.getGlobalSettings().getGlobalInterceptors().stream()
+                .map(name -> exportConfigComponent(fullExportRequest, name, GLOBAL_INTERCEPTOR))
+                .toList();
+    }
+
     private ExportConfigComponent exportConfigComponent(FullExportRequest fullExportRequest,
                                                         String name,
                                                         ExportConfigComponentType exportConfigComponentType) {
@@ -146,7 +157,7 @@ public class FullToSelectedItemsExportRequestTransformer {
                 fullExportRequest.getComponentTypes(),
                 exportConfigComponentType.getDependencies(fullExportRequest.getExportFormat())
         );
-        return new ExportConfigComponent(name, exportConfigComponentType, dependencies);
+        return new ExportConfigComponent(name, exportConfigComponentType, new HashSet<>(dependencies));
     }
 
 }

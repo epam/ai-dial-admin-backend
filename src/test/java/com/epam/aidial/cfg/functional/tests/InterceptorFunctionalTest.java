@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
@@ -266,8 +268,9 @@ public abstract class InterceptorFunctionalTest {
                 OptimisticLockConflictException.class,
                 () -> interceptorFacade.updateInterceptor(interceptorDto.getName(), interceptorDto, "test")
         );
-        Assertions.assertEquals("Optimistic lock conflict on update: interceptorName:'interceptor1'"
-                + ". Reload the data.", exception.getMessage());
+        Assertions.assertEquals("Unable to update Interceptor 'interceptor1'. The data may have been modified by another user, "
+                        + "or the name/ID may already exist. Please reload the data and try again.",
+                exception.getMessage());
     }
 
     @Test
@@ -326,7 +329,7 @@ public abstract class InterceptorFunctionalTest {
         InterceptorContainerSourceDto source = new InterceptorContainerSourceDto(containerId, containerName, completionPath, configPath);
         updatedInterceptor.setSource(source);
 
-        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfoDto = new InterceptorDeploymentInfoDto();
         deploymentInfoDto.setId(UUID.fromString(containerId));
         deploymentInfoDto.setName(containerName);
         deploymentInfoDto.setUrl(containerUrl);
@@ -405,7 +408,7 @@ public abstract class InterceptorFunctionalTest {
         String completionPath = "/api/completion";
         String configPath = "/api/config";
 
-        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfoDto = new InterceptorDeploymentInfoDto();
         deploymentInfoDto.setId(UUID.fromString(containerId));
         deploymentInfoDto.setName("Test Container");
         deploymentInfoDto.setUrl(containerUrl);
@@ -449,12 +452,12 @@ public abstract class InterceptorFunctionalTest {
         String completionPath = "/api/completion";
         String configPath = "/api/config";
 
-        DeploymentInfoDto initialDeploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto initialDeploymentInfo = new InterceptorDeploymentInfoDto();
         initialDeploymentInfo.setId(UUID.fromString(containerId));
         initialDeploymentInfo.setName(deploymentName);
         initialDeploymentInfo.setUrl(initialUrl);
 
-        DeploymentInfoDto updatedDeploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto updatedDeploymentInfo = new InterceptorDeploymentInfoDto();
         updatedDeploymentInfo.setId(UUID.fromString(containerId));
         updatedDeploymentInfo.setName(deploymentName);
         updatedDeploymentInfo.setUrl(updatedUrl);

@@ -18,13 +18,18 @@ services:
       - ./data:/app/data
     environment:
       CONFIG_REST_SECURITY_MODE: "none"
-      SECURITY_JWT_ACCEPTED_ISSUERS: "local_issuer"
-      DIAL_ADMIN_CLIENT_ID: "client_id"
+      # Identity Provider Configuration
+      # Note: The provider name (keycloak) can be changed to any supported provider (azure, auth0, okta, cognito)
+      # Required properties for each provider: issuer, jwk-set-uri, audiences
+      providers.keycloak.issuer: "http://localhost:8888/realms/master"
+      providers.keycloak.jwk-set-uri: "http://localhost:8888/realms/master/protocol/openid-connect/certs"
+      providers.keycloak.audiences: "account"
       DEBUG_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
       METRICS_ENABLED: "true"
       METRICS_STORAGE_HOST: "http://influxdb:8086"
       METRICS_STORAGE_TOKEN: "myadmintoken"
       CORE_CLIENT_URL: "http://core:8080"
+      CORE_CONFIG_VERSION: "latest"
       DISABLE_SWAGGER_AUTHORIZATION: true
       H2_FILE: ./data/testdb
       H2_DATASOURCE_MASTER_KEY: t8+npcgNMiipR+kHMb8zXAjgA3IedCXC

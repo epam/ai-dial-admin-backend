@@ -122,10 +122,7 @@ public class RoleService {
         }
         var currentHash = calculator.calculateHash(mapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: roleName={}, expectedHash={}, currentHash={}",
-                    entity.getName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: roleName:'"
-                    + "%s'. Reload the data.", entity.getName()));
+            throw OptimisticLockConflictException.onUpdate("Role", entity.getName(), expectedHash, currentHash);
         }
     }
 

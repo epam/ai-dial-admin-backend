@@ -20,7 +20,9 @@ import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
+import com.epam.aidial.cfg.service.ToolSetEximService;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
+import com.epam.aidial.cfg.service.ZipToolSetEximService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ToolSetResourceController;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -82,6 +84,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
 
     @MockitoBean
     private ToolSetResourceService toolSetResourceService;
+
+    @MockitoBean
+    private ToolSetEximService toolSetEximService;
+
+    @MockitoBean
+    private ZipToolSetEximService zipToolSetEximService;
 
     @Test
     void testGetAllToolSetResources() throws Exception {
@@ -378,7 +386,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .header(HEADER_IF_MATCH, "*"))
                 .andExpect(status().isOk());
 
-        verify(toolSetResourceService).deleteToolSetResource(APP_PATH, "*");
+        verify(toolSetResourceService).delete(APP_PATH, "*");
     }
 
     @Test
@@ -386,7 +394,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
 
-        doThrow(new ResourceNotFoundException("Not Found")).when(toolSetResourceService).deleteToolSetResource(any(), any());
+        doThrow(new ResourceNotFoundException("Not Found")).when(toolSetResourceService).delete(any(), any());
 
         mockMvc.perform(post(DELETE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -396,7 +404,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                 .andExpect(jsonPath("$.message")
                         .value("Not Found"));
 
-        verify(toolSetResourceService).deleteToolSetResource(APP_PATH, TEST_ETAG);
+        verify(toolSetResourceService).delete(APP_PATH, TEST_ETAG);
     }
 
     @Test
@@ -404,7 +412,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
 
-        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(toolSetResourceService).deleteToolSetResource(any(), any());
+        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(toolSetResourceService).delete(any(), any());
 
         mockMvc.perform(post(DELETE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)

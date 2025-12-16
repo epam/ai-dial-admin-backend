@@ -10,6 +10,7 @@
   "roles": {},
   "retriableErrorCodes": [],
   "interceptors": {},
+  "globalInterceptors": [],
   "applicationTypeSchemas": [],
   "toolsets": {
     "sampleDeployment": {
@@ -51,7 +52,8 @@
           "first",
           "second"
         ]
-      }
+      },
+      "forward_per_request_key":false
     }
   }
 }

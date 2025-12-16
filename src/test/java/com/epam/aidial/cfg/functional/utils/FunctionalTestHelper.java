@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.utils;
 
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
+import com.epam.aidial.cfg.dto.AdminSettingsDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -221,5 +222,11 @@ public class FunctionalTestHelper {
         validityStateDto.setMessage(message);
         validityStateDto.setValid(false);
         return validityStateDto;
+    }
+
+    public static AdminSettingsDto adminSettingsDto(String coreConfigVersion) {
+        AdminSettingsDto adminSettingsDto = new AdminSettingsDto();
+        adminSettingsDto.setCoreConfigVersion(coreConfigVersion);
+        return adminSettingsDto;
     }
 }

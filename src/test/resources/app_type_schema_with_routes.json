@@ -16,7 +16,7 @@
       },
       "dial:rewritePath": false,
       "dial:paths": [
-        "some-path"
+        "/some-path"
       ],
       "dial:methods": [
         "POST",
@@ -41,7 +41,7 @@
     "route2": {
       "dial:rewritePath": false,
       "dial:paths": [
-        "some-path"
+        "/some-path"
       ],
       "dial:methods": [],
       "dial:upstreams": [
@@ -67,5 +67,6 @@
   "dial:applicationTypePlaybackSupport": true,
   "dial:appendApplicationPropertiesHeader": true,
   "dial:applicationTypeInterceptors":[],
+  "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
   "$defs": {}
 }

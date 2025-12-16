@@ -16,7 +16,9 @@ import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.service.ApplicationEximService;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
+import com.epam.aidial.cfg.service.ZipApplicationEximService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ApplicationResourceController;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -72,6 +74,12 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
 
     @MockitoBean
     private ApplicationResourceService applicationResourceService;
+
+    @MockitoBean
+    private ApplicationEximService applicationEximService;
+
+    @MockitoBean
+    private ZipApplicationEximService zipApplicationEximService;
 
     @Test
     void testGetAllApplicationResources() throws Exception {
@@ -297,7 +305,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                         .header(HEADER_IF_MATCH, "*"))
                 .andExpect(status().isOk());
 
-        verify(applicationResourceService).deleteApplicationResource(APP_PATH, "*");
+        verify(applicationResourceService).delete(APP_PATH, "*");
     }
 
     @Test
@@ -305,7 +313,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
 
-        doThrow(new ResourceNotFoundException("Not Found")).when(applicationResourceService).deleteApplicationResource(any(), any());
+        doThrow(new ResourceNotFoundException("Not Found")).when(applicationResourceService).delete(any(), any());
 
         mockMvc.perform(post(DELETE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -315,7 +323,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                 .andExpect(jsonPath("$.message")
                         .value("Not Found"));
 
-        verify(applicationResourceService).deleteApplicationResource(APP_PATH, TEST_ETAG);
+        verify(applicationResourceService).delete(APP_PATH, TEST_ETAG);
     }
 
     @Test
@@ -323,7 +331,7 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
         var body = new ResourcePathDto();
         body.setPath(APP_PATH);
 
-        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(applicationResourceService).deleteApplicationResource(any(), any());
+        doThrow(new ResourcePreconditionFailedException("Precondition failed")).when(applicationResourceService).delete(any(), any());
 
         mockMvc.perform(post(DELETE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)

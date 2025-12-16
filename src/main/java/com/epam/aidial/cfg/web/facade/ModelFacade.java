@@ -5,8 +5,10 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.service.core.CoreModelService;
+import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapper;
 import com.epam.aidial.core.config.CoreModel;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class ModelFacade {
     private final ModelService modelService;
     private final ModelDtoMapper mapper;
     private final CoreModelService coreModelService;
+    private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
 
     public Collection<ModelDto> getAll() {
         return modelService.getAll()
@@ -45,6 +48,11 @@ public class ModelFacade {
     public ModelDto getModel(String modelName) {
         Model model = modelService.getModel(modelName);
         return mapper.toDto(model);
+    }
+
+    public EntitySyncStateDto getSyncState(String modelName, String hash) {
+        var syncState = coreModelService.getSyncState(modelName, hash);
+        return entitySyncStateDtoMapper.toDto(syncState);
     }
 
     public void createModel(ModelDto modelDto) {

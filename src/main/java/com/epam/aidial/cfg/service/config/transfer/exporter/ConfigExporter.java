@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
+import com.epam.aidial.cfg.domain.model.GlobalSettings;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
@@ -52,6 +53,7 @@ public class ConfigExporter {
     private final InterceptorRunnerExporter interceptorRunnerExporter;
     private final AdapterExporter adapterExporter;
     private final ToolSetExporter toolSetExporter;
+    private final GlobalSettingsExporter globalSettingsExporter;
 
     private final FullToSelectedItemsExportRequestTransformer fullToSelectedItemsExportRequestTransformer;
 
@@ -87,11 +89,17 @@ public class ConfigExporter {
         config.setInterceptors(interceptorExporter.getInterceptors(request));
         config.setInterceptorRunners(interceptorRunnerExporter.getInterceptorRunners(request));
         config.setApplicationRunners(applicationTypeSchemaExporter.getApplicationTypeSchemas(request));
+        var globalSettings = globalSettingsExporter.getGlobalSettings(request);
+        config.setGlobalInterceptors(globalSettings.getGlobalInterceptors());
         // todo prompts and files
         return config;
     }
 
     public ExportConfigPreview preview(ExportRequest request) {
+        if (request instanceof FullExportRequest exportRequest && exportRequest.getTopics() != null) {
+            request = fullToSelectedItemsExportRequestTransformer.transform(exportRequest);
+        }
+
         if (request instanceof SelectedItemsExportRequest exportRequest) {
             resolveDependencies(exportRequest);
         }
@@ -106,6 +114,7 @@ public class ConfigExporter {
         Collection<ExportComponentInfo> interceptors = interceptorExporter.preview(request);
         Collection<ExportComponentInfo> interceptorRunners = interceptorRunnerExporter.preview(request);
         Collection<ExportApplicationTypeSchemaInfo> applicationRunners = applicationTypeSchemaExporter.preview(request);
+        var globalSettings = globalSettingsExporter.getGlobalSettings(request);
 
         // todo prompts and files
         return ExportConfigPreview.builder()
@@ -116,6 +125,7 @@ public class ConfigExporter {
                 .roles(roles)
                 .keys(keys)
                 .interceptors(interceptors)
+                .globalInterceptors(globalSettings.getGlobalInterceptors())
                 .interceptorRunners(interceptorRunners)
                 .applicationRunners(applicationRunners)
                 .adapters(adapters)
@@ -129,6 +139,7 @@ public class ConfigExporter {
         resolveRoleDependencies(request, result);
         resolveAppDependencies(request, result);
         resolveModelDependencies(result);
+        resolveGlobalSettingsDependencies(result);
         request.setComponents(result);
     }
 
@@ -254,6 +265,19 @@ public class ConfigExporter {
         return Stream.of(applications, models, routes, toolSets)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
+    }
+
+    private void resolveGlobalSettingsDependencies(List<ExportConfigComponent> updatedComponents) {
+        List<ExportConfigComponent> globalInterceptors = filterComponentsByType(updatedComponents, ExportConfigComponentType.GLOBAL_INTERCEPTOR);
+        if (CollectionUtils.isEmpty(globalInterceptors)) {
+            return;
+        }
+        Set<ExportConfigComponentType> dependencies = globalInterceptors.get(0).getDependencies();
+        if (CollectionUtils.isEmpty(dependencies)) {
+            return;
+        }
+        GlobalSettings globalSettings = globalSettingsExporter.getGlobalSettings();
+        processInterceptorDependencies(globalSettings.getGlobalInterceptors(), dependencies, updatedComponents);
     }
 
 }

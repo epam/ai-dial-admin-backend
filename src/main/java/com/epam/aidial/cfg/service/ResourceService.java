@@ -26,6 +26,8 @@ public interface ResourceService {
 
     ResourceType getResourceType();
 
+    void delete(String path, String etag);
+
     default Set<String> getResourceUrls(String path) {
         try {
             ResourceMetadataRequest request = ResourceMetadataRequest.builder()

@@ -2,11 +2,14 @@ package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
+import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.NodeTypeDto;
+import com.epam.aidial.cfg.model.ApplicationExim;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.NodeType;
+import com.epam.aidial.cfg.model.ValidityStateResource;
 import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
@@ -22,7 +25,9 @@ import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.parseEncodedVe
 public abstract class ApplicationClientMapper {
     public static final String APPLICATIONS_PREFIX = "applications/";
 
-    public ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto, ApplicationMetadataDto metadataDto) {
+    public ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto,
+                                                     ApplicationMetadataDto metadataDto,
+                                                     ValidityStateResource validityState) {
         if (applicationResourceDto == null || metadataDto == null) {
             return null;
         }
@@ -32,7 +37,7 @@ public abstract class ApplicationClientMapper {
         }
 
         var itemParts = PathUtils.parseEncodedVersionedPath(metadataDto.getUrl(), APPLICATIONS_PREFIX);
-        return toApplicationResource(applicationResourceDto, metadataDto, itemParts);
+        return toApplicationResource(applicationResourceDto, metadataDto, itemParts, validityState);
     }
 
     @Mapping(target = "name", source = "itemParts.name")
@@ -40,7 +45,11 @@ public abstract class ApplicationClientMapper {
     @Mapping(target = "folderId", source = "itemParts.folderId")
     @Mapping(target = "author", source = "metadataDto.author")
     @Mapping(target = "routes", source = "dto.routes")
-    protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto, ApplicationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
+    @Mapping(target = "validityState", source = "validityState")
+    protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto,
+                                                                 ApplicationMetadataDto metadataDto,
+                                                                 PathUtils.VersionedPathParts itemParts,
+                                                                 ValidityStateResource validityState);
 
     public ApplicationResourceNodeInfo toApplicationInfo(ApplicationMetadataDto dto) {
         if (dto == null) {
@@ -90,5 +99,13 @@ public abstract class ApplicationClientMapper {
     public abstract ApplicationResourceDto toApplicationResourceDto(CreateApplicationResource createApplicationResource);
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
+
+    public abstract ApplicationExim toApplicationExim(ApplicationResource applicationResource);
+
+    @Mapping(target = "name", source = "itemParts.name")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    @Mapping(target = "routes", source = "dto.routes")
+    public abstract CreateApplicationResource toCreateApplicationResource(ApplicationEximDto dto, PathUtils.VersionedPathParts itemParts);
 
 }

@@ -23,7 +23,7 @@
       },
       "rewritePath": false,
       "paths": [
-        "some-path"
+        "/some-path"
       ],
       "methods": [
         "POST",
@@ -49,7 +49,7 @@
       "name": "route2",
       "rewritePath": false,
       "paths": [
-        "some-path"
+        "/some-path"
       ],
       "methods": [],
       "upstreams": [

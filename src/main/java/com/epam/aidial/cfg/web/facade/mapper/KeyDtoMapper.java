@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dto.KeyDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = InstantMapper.class)
+@Mapper(componentModel = "spring", uses = {InstantMapper.class, ValidityStateDtoMapper.class})
 public interface KeyDtoMapper {
 
     @Mapping(target = "createdAt", ignore = true)

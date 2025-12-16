@@ -149,10 +149,7 @@ public class AddonService {
         }
         var currentHash = calculator.calculateHash(mapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: addonName={}, expectedHash={}, currentHash={}",
-                    entity.getDeploymentName(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: addonName:'"
-                    + "%s'. Reload the data.", entity.getDeploymentName()));
+            throw OptimisticLockConflictException.onUpdate("Addon", entity.getDeploymentName(), expectedHash, currentHash);
         }
     }
 

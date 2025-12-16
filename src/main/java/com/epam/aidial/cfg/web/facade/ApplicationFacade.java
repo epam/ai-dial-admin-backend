@@ -7,8 +7,10 @@ import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.service.core.CoreApplicationService;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapper;
+import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.core.config.CoreApplication;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class ApplicationFacade {
     private final ApplicationService applicationService;
     private final ApplicationDtoMapper mapper;
     private final CoreApplicationService coreApplicationService;
+    private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
 
     public Collection<ApplicationInfoDto> getAllApplications() {
         return applicationService.getAllApplications()
@@ -45,6 +48,11 @@ public class ApplicationFacade {
 
     public CoreWithDomainHash<CoreApplication> getCoreApplicationWithHash(String applicationName) {
         return coreApplicationService.getCoreApplicationWithHash(applicationName);
+    }
+
+    public EntitySyncStateDto getSyncState(String applicationName, String hash) {
+        var syncState = coreApplicationService.getSyncState(applicationName, hash);
+        return entitySyncStateDtoMapper.toDto(syncState);
     }
 
     public void createApplication(ApplicationDto applicationDto) {

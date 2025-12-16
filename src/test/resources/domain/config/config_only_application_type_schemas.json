@@ -33,10 +33,12 @@
       "dial:applicationTypeTokenizeEndpoint": "https://example.com/tokenize",
       "dial:applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
       "dial:appendApplicationPropertiesHeader": true,
+      "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
       "$defs": {
         "maxLength": 255
       }
     }
   ],
+  "globalInterceptors": [],
   "toolsets": {}
 }

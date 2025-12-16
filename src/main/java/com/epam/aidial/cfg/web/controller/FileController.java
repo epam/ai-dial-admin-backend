@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.FileNodeInfoDto;
+import com.epam.aidial.cfg.dto.FilePathDto;
+import com.epam.aidial.cfg.dto.FilePathsDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
 import com.epam.aidial.cfg.dto.ImportResourcesFileResultDto;
 import com.epam.aidial.cfg.dto.MoveResourceDto;
@@ -93,6 +95,12 @@ public class FileController {
     @DeleteMapping()
     public void deleteFile(@RequestParam("path") @MetadataPath String path) {
         fileService.deleteFile(path);
+    }
+
+    @PostMapping(value = "/delete/bulk")
+    public void deleteFiles(@RequestBody FilePathsDto filePaths) {
+        var paths = filePaths.getPaths().stream().map(FilePathDto::getPath).toList();
+        fileService.deleteFiles(paths);
     }
 
     @PostMapping(path = "/move",

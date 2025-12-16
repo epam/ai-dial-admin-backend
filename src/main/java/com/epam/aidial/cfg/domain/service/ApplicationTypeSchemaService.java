@@ -155,10 +155,7 @@ public class ApplicationTypeSchemaService {
         }
         var currentHash = calculator.calculateHash(mapper.toDomain(entity));
         if (!expectedHash.equals(currentHash)) {
-            log.debug("Optimistic lock conflict on update: schemaId={}, expectedHash={}, currentHash={}",
-                    entity.getSchemaId(), expectedHash, currentHash);
-            throw new OptimisticLockConflictException(String.format("Optimistic lock conflict on update: schemaId:'"
-                    + "%s'. Reload the data.", entity.getSchemaId()));
+            throw OptimisticLockConflictException.onUpdate("ApplicationTypeSchema", entity.getSchemaId(), expectedHash, currentHash);
         }
     }
 

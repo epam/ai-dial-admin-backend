@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional;
 import com.epam.aidial.cfg.functional.config.H2FunctionalTestConfiguration;
 import com.epam.aidial.cfg.functional.tests.AdapterFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AddonFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.AdminSettingsFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ApplicationFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ApplicationTypeSchemaFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantFunctionalTest;
@@ -101,6 +102,10 @@ public class H2FunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class ToolSetTests extends ToolSetFunctionalTest {
+    }
+
+    @Nested
+    class AdminSettingsTests extends AdminSettingsFunctionalTest {
     }
 
     @Nested

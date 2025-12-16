@@ -61,4 +61,8 @@ public class ConversationService implements ResourceService {
         return conversationClientMapper.toConversation(conversationDto, conversationMetadataDto);
     }
 
+    @Override
+    public void delete(String path, String etag) {
+        conversationClient.deleteConversation(path);
+    }
 }

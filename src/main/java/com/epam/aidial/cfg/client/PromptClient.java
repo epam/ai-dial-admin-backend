@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.client;
 import com.epam.aidial.cfg.client.dto.PromptDto;
 import com.epam.aidial.cfg.client.dto.PromptMetadataDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,18 +44,20 @@ public interface PromptClient {
      * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
      */
     @GetMapping("/v1/prompts/{path}")
-    PromptDto getPrompt(
-            @PathVariable String path
+    ResponseEntity<PromptDto> getPrompt(
+            @PathVariable String path,
+            @RequestHeader Map<String, String> headers
     );
 
     @PutMapping("/v1/prompts/{path}")
-    PromptMetadataDto createPrompt(
+    ResponseEntity<PromptMetadataDto> createPrompt(
             @PathVariable String path,
             @RequestBody PromptDto promptDto,
             @RequestHeader Map<String, String> headers
     );
 
     @DeleteMapping("/v1/prompts/{path}")
-    void deletePrompt(@PathVariable String path);
+    void deletePrompt(@PathVariable String path,
+                      @RequestHeader Map<String, String> headers);
 
 }

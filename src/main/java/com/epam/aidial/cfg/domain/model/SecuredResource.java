@@ -12,6 +12,7 @@ import lombok.ToString;
 public class SecuredResource extends Deployment {
 
     private ResourceAuthSettings authSettings;
+    private boolean forwardPerRequestKey;
 
     public SecuredResource(String name) {
         this.setName(name);
