@@ -2,7 +2,10 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -13,11 +16,18 @@ import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreModel;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +44,13 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createMo
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public abstract class ModelFunctionalTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
     private RoleFacade roleFacade;
@@ -48,6 +62,10 @@ public abstract class ModelFunctionalTest {
     private AdapterFacade adapterFacade;
     @Autowired
     private DeploymentManagerService deploymentManagerService;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -411,26 +429,26 @@ public abstract class ModelFunctionalTest {
     @Test
     public void shouldResetAdapterToNullWhenChangingModelSourceFromAdapterToContainer() {
         initRoles();
-        
+
         // Create an adapter
         adapterFacade.createAdapter(createAdapterDto("1"));
-        
+
         // Create a model with adapter source
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelDto.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
         modelFacade.createModel(modelDto);
-        
+
         // Verify the model has adapter source
         ModelDto actualModel = modelFacade.getModel(modelDto.getName());
         Assertions.assertNotNull(actualModel.getSource());
         Assertions.assertInstanceOf(AdapterSourceDto.class, actualModel.getSource());
         AdapterSourceDto adapterSource = (AdapterSourceDto) actualModel.getSource();
         Assertions.assertEquals("adapter1", adapterSource.adapterName());
-        
+
         // Verify the adapter has the model in its models list
         var adapter = adapterFacade.getAdapter("adapter1");
         Assertions.assertTrue(adapter.getModels().contains("model1"));
-        
+
         // Update the model to container source
         final String containerId = "container-123";
         DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
@@ -440,17 +458,17 @@ public abstract class ModelFunctionalTest {
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
         updatedModel.setSource(new ModelContainerSourceDto(containerId, "test-container", "/chat/completions"));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
-        
+
         // Verify the model now has container source (not adapter source)
         actualModel = modelFacade.getModel(modelDto.getName());
         Assertions.assertNotNull(actualModel.getSource());
         Assertions.assertInstanceOf(ModelContainerSourceDto.class, actualModel.getSource());
         ModelContainerSourceDto containerSource = (ModelContainerSourceDto) actualModel.getSource();
         Assertions.assertEquals("container-123", containerSource.containerId());
-        
+
         // Verify the adapter no longer has the model in its models list
         adapter = adapterFacade.getAdapter("adapter1");
-        Assertions.assertFalse(adapter.getModels().contains("model1"), 
+        Assertions.assertFalse(adapter.getModels().contains("model1"),
                 "Adapter should not contain the model after switching to container source");
 
         // Add updatedModel (with Container) to Adapter and save adapter. model source should be switched to adapter back
@@ -468,6 +486,46 @@ public abstract class ModelFunctionalTest {
         adapter = adapterFacade.getAdapter("adapter1");
         Assertions.assertTrue(adapter.getModels().contains("model1"),
                 "Adapter should contain the model after switching back to adapter source");
+    }
+
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenModelIsEqualToConfigModel() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        ModelDto modelDto = createModelDto("1");
+        modelFacade.createModel(modelDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode modelState = coreModel();
+
+        EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(modelState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(modelState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenModelIsNotEqualToConfigModelAndUpdatedLongAgo() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setDescription("description OLD");
+        modelFacade.createModel(modelDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode configModelState = coreModel();
+        JsonNode currentModelState = ((ObjectNode) coreModel()).put("description", "description OLD");
+
+        EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentModelState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configModelState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
     }
 
     private void assertModels(Collection<ModelDto> actual, Collection<ModelDto> expected) {
@@ -538,5 +596,48 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint(suffix);
         modelDto.setDefaults(Map.of("max_tokens", 8000));
         return modelDto;
+    }
+
+    private ObjectNode coreConfig() throws JsonProcessingException {
+        ObjectNode coreModels = JsonNodeFactory.instance.objectNode();
+        coreModels.set("model1", coreModel());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("models", coreModels);
+
+        return config;
+    }
+
+    private JsonNode coreModel() throws JsonProcessingException {
+        String model = """
+                {
+                   "name": "model1",
+                   "userRoles": [],
+                   "displayName": "model1",
+                   "description": "description1",
+                   "forwardAuthToken": false,
+                   "features": {
+                     "system_prompt_supported": true,
+                     "tools_supported": false,
+                     "seed_supported": false,
+                     "url_attachments_supported": false,
+                     "folder_attachments_supported": false,
+                     "allow_resume": true,
+                     "accessible_by_per_request_key": true,
+                     "content_parts_supported": false,
+                     "temperature_supported": true,
+                     "parallel_tool_calls_supported": true,
+                     "assistant_attachments_in_request_supported": false
+                   },
+                   "defaults": {},
+                   "interceptors": [],
+                   "descriptionKeywords": [],
+                   "maxRetryAttempts": 1,
+                   "createdAt": 1000,
+                   "updatedAt": 1000,
+                   "upstreams": []
+                 }
+                """;
+        return OBJECT_MAPPER.readTree(model);
     }
 }

@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -14,6 +16,8 @@ import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
@@ -22,7 +26,10 @@ import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.core.config.CoreInterceptor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -40,8 +47,13 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createIn
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDtoWithEntities;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public abstract class InterceptorFunctionalTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
     private InterceptorFacade interceptorFacade;
@@ -53,7 +65,10 @@ public abstract class InterceptorFunctionalTest {
     private ApplicationTypeSchemaFacade typeSchemaFacade;
     @Autowired
     private DeploymentManagerService deploymentManagerService;
-    private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     @Test
     public void shouldSuccessfullyCreateAndGetInterceptors() {
@@ -189,9 +204,9 @@ public abstract class InterceptorFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndUpdateInterceptorWithSchemas() throws JsonProcessingException {
         var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
-        var applicationTypeSchemaDto = objectMapper.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
+        var applicationTypeSchemaDto = OBJECT_MAPPER.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
         });
-        var applicationTypeSchemaDto2 = objectMapper.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
+        var applicationTypeSchemaDto2 = OBJECT_MAPPER.readValue(dtosJson, new TypeReference<ApplicationTypeSchemaDto>() {
         });
         applicationTypeSchemaDto2.setId(applicationTypeSchemaDto2.getId() + 2);
         typeSchemaFacade.create(applicationTypeSchemaDto);
@@ -510,5 +525,87 @@ public abstract class InterceptorFunctionalTest {
         actual.setUpdatedAt(null);
 
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenInterceptorIsEqualToConfigInterceptor() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode interceptorState = coreInterceptor();
+
+        EntitySyncStateDto actualSyncState = interceptorFacade.getSyncState(interceptorDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(interceptorState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(interceptorState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenInterceptorIsNotEqualToConfigInterceptorAndUpdatedLongAgo() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setDescription("description OLD");
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode configInterceptorState = coreInterceptor();
+        JsonNode currentInterceptorState = ((ObjectNode) coreInterceptor()).put("description", "description OLD");
+
+        EntitySyncStateDto actualSyncState = interceptorFacade.getSyncState(interceptorDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentInterceptorState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configInterceptorState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
+    }
+
+    private ObjectNode coreConfig() throws JsonProcessingException {
+        ObjectNode coreInterceptors = JsonNodeFactory.instance.objectNode();
+        coreInterceptors.set("interceptor1", coreInterceptor());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("interceptors", coreInterceptors);
+
+        return config;
+    }
+
+    private JsonNode coreInterceptor() throws JsonProcessingException {
+        String interceptor = """
+                {
+                  "name": "interceptor1",
+                  "endpoint": "https://endpoint.test.com/interceptor1",
+                  "displayName": "displayName1",
+                  "description": "description1",
+                  "forwardAuthToken": false,
+                  "features": {
+                    "system_prompt_supported": true,
+                    "tools_supported": false,
+                    "seed_supported": false,
+                    "url_attachments_supported": false,
+                    "folder_attachments_supported": false,
+                    "allow_resume": true,
+                    "accessible_by_per_request_key": true,
+                    "content_parts_supported": false,
+                    "temperature_supported": true,
+                    "parallel_tool_calls_supported": true,
+                    "assistant_attachments_in_request_supported": false
+                  },
+                  "defaults": {},
+                  "interceptors": [],
+                  "descriptionKeywords": [],
+                  "maxRetryAttempts": 1,
+                  "createdAt": 1000,
+                  "updatedAt": 1000
+                }
+                """;
+        return OBJECT_MAPPER.readTree(interceptor);
     }
 }

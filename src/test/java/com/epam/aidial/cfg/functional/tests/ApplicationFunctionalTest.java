@@ -1,15 +1,25 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreApplication;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +30,19 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpointAndLimits;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public abstract class ApplicationFunctionalTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
     private ApplicationFacade applicationFacade;
@@ -34,6 +50,10 @@ public abstract class ApplicationFunctionalTest {
     private InterceptorFacade interceptorFacade;
     @Autowired
     private RoleFacade roleFacade;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -397,6 +417,46 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenApplicationIsEqualToConfigApplication() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationFacade.createApplication(applicationDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode applicationState = coreApplication();
+
+        EntitySyncStateDto actualSyncState = applicationFacade.getSyncState(applicationDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(applicationState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(applicationState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenApplicationIsNotEqualToConfigApplicationAndUpdatedLongAgo() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setDescription("description OLD");
+        applicationFacade.createApplication(applicationDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode configApplicationState = coreApplication();
+        JsonNode currentApplicationState = ((ObjectNode) coreApplication()).put("description", "description OLD");
+
+        EntitySyncStateDto actualSyncState = applicationFacade.getSyncState(applicationDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentApplicationState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configApplicationState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
+    }
+
     private ApplicationDto createDtoWithDefaults(String suffix) {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits(suffix);
         applicationDto.setDefaults(Map.of("max_tokens", 8000));
@@ -431,5 +491,49 @@ public abstract class ApplicationFunctionalTest {
     private <T> Map<String, T> toMap(Collection<T> dtos, Function<T, String> getName) {
         return dtos.stream()
                 .collect(Collectors.toMap(getName, Function.identity()));
+    }
+
+    private ObjectNode coreConfig() throws JsonProcessingException {
+        ObjectNode coreApplications = JsonNodeFactory.instance.objectNode();
+        coreApplications.set("application1", coreApplication());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("applications", coreApplications);
+
+        return config;
+    }
+
+    private JsonNode coreApplication() throws JsonProcessingException {
+        String application = """
+                {
+                  "name": "application1",
+                  "user_roles": [],
+                  "endpoint": "endpoint1",
+                  "display_name": "application1",
+                  "description": "description1",
+                  "forward_auth_token": false,
+                  "features": {
+                    "system_prompt_supported": true,
+                    "tools_supported": false,
+                    "seed_supported": false,
+                    "url_attachments_supported": false,
+                    "folder_attachments_supported": false,
+                    "allow_resume": true,
+                    "accessible_by_per_request_key": true,
+                    "content_parts_supported": false,
+                    "temperature_supported": true,
+                    "parallel_tool_calls_supported": true,
+                    "assistant_attachments_in_request_supported": false
+                  },
+                  "defaults": {},
+                  "interceptors": [],
+                  "description_keywords": [],
+                  "max_retry_attempts": 1,
+                  "created_at": 1000,
+                  "updated_at": 1000,
+                  "application_properties": {}
+                }
+                """;
+        return OBJECT_MAPPER.readTree(application);
     }
 }

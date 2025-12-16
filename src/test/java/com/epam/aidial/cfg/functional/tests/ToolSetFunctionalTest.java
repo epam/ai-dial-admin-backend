@@ -3,16 +3,26 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.CoreToolSet;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Assertions;
@@ -30,10 +40,15 @@ import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public abstract class ToolSetFunctionalTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
     private ToolSetFacade toolSetFacade;
@@ -43,6 +58,10 @@ public abstract class ToolSetFunctionalTest {
     private McpClientFactory mcpClientFactory;
     @Autowired
     private DeploymentManagerService deploymentManagerService;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     @BeforeEach
     public void beforeEach() {
@@ -316,6 +335,46 @@ public abstract class ToolSetFunctionalTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenToolSetIsEqualToConfigToolSet() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode toolSetState = coreToolSet();
+
+        EntitySyncStateDto actualSyncState = toolSetFacade.getSyncState(toolSetDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(toolSetState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(toolSetState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenToolSetIsNotEqualToConfigToolSetAndUpdatedLongAgo() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetDto.setDescription("description OLD");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode configToolSetState = coreToolSet();
+        JsonNode currentToolSetState = ((ObjectNode) coreToolSet()).put("description", "description OLD");
+
+        EntitySyncStateDto actualSyncState = toolSetFacade.getSyncState(toolSetDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentToolSetState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configToolSetState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
+    }
+
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
@@ -334,5 +393,40 @@ public abstract class ToolSetFunctionalTest {
     private Map<String, ToolSetDto> toMap(Collection<ToolSetDto> dtos) {
         return dtos.stream()
                 .collect(Collectors.toMap(ToolSetDto::getName, Function.identity()));
+    }
+
+    private ObjectNode coreConfig() throws JsonProcessingException {
+        ObjectNode coreToolSets = JsonNodeFactory.instance.objectNode();
+        coreToolSets.set("ToolSet1", coreToolSet());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("toolsets", coreToolSets);
+
+        return config;
+    }
+
+    private JsonNode coreToolSet() throws JsonProcessingException {
+        String toolSet = """
+                {
+                   "name": "ToolSet1",
+                   "user_roles": [
+                     "role1"
+                   ],
+                   "endpoint": "https://endpoint.test.com/toolset1",
+                   "display_name": "ToolSet1",
+                   "description": "description1",
+                   "forward_auth_token": false,
+                   "defaults": {},
+                   "interceptors": [],
+                   "description_keywords": [],
+                   "max_retry_attempts": 1,
+                   "created_at": 1000,
+                   "updated_at": 1000,
+                   "forward_per_request_key": false,
+                   "transport": "http",
+                   "allowed_tools": []
+                 }
+                """;
+        return OBJECT_MAPPER.readTree(toolSet);
     }
 }

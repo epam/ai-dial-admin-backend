@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.KeyDto;
@@ -12,7 +13,9 @@ import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreKey;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
@@ -37,11 +40,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public abstract class KeyFunctionalTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
     private KeyFacade keyFacade;
@@ -55,7 +59,6 @@ public abstract class KeyFunctionalTest {
     @BeforeEach
     public void beforeEach() {
         initRoles();
-        reset(coreConfigReloadCache);
     }
 
     private void initRoles() {
@@ -506,15 +509,15 @@ public abstract class KeyFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenKeyIsValidAndEqualToConfigKey() {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenKeyIsValidAndEqualToConfigKey() throws JsonProcessingException {
         KeyDto keyDto = createKeyDtoWithRole("1");
         keyFacade.createKey(keyDto);
 
-        ObjectNode config = config("keyValue1");
+        ObjectNode config = coreConfig("keyValue1");
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        ObjectNode keyState = coreKey();
+        JsonNode keyState = coreKey();
 
         EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
 
@@ -539,11 +542,11 @@ public abstract class KeyFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenKeyIsInvalidAndConfigDoesNotHaveKey() {
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenKeyIsInvalidAndConfigDoesNotHaveKey() throws JsonProcessingException {
         KeyDto keyDto = createKeyDto("1"); // key is invalid since doesn't have roles
         keyFacade.createKey(keyDto);
 
-        ObjectNode config = config("keyValue_NEW");
+        ObjectNode config = coreConfig("keyValue_NEW");
 
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
@@ -556,16 +559,16 @@ public abstract class KeyFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetInProgressEntitySyncStateWhenKeyIsInvalidAndConfigHasKey() {
+    public void shouldSuccessfullyGetInProgressEntitySyncStateWhenKeyIsInvalidAndConfigHasKey() throws JsonProcessingException {
         KeyDto keyDto = createKeyDto("1"); // key is invalid since doesn't have roles
         keyFacade.createKey(keyDto);
 
-        ObjectNode config = config("keyValue1");
+        ObjectNode config = coreConfig("keyValue1");
 
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        ObjectNode keyState = coreKey();
+        JsonNode keyState = coreKey();
 
         EntitySyncStateDto actualSyncState = keyFacade.getSyncState(keyDto.getName(), "*");
 
@@ -606,7 +609,7 @@ public abstract class KeyFunctionalTest {
         assertThat(actual).isEqualTo(expected);
     }
 
-    private ObjectNode config(String entityConfigKey) {
+    private ObjectNode coreConfig(String entityConfigKey) throws JsonProcessingException {
         ObjectNode coreKeys = JsonNodeFactory.instance.objectNode();
         coreKeys.set(entityConfigKey, coreKey());
 
@@ -616,15 +619,16 @@ public abstract class KeyFunctionalTest {
         return config;
     }
 
-    private ObjectNode coreKey() {
-        ArrayNode roles = JsonNodeFactory.instance.arrayNode();
-        roles.add("role1");
-
-        ObjectNode coreKey = JsonNodeFactory.instance.objectNode();
-        coreKey.put("project", "project1");
-        coreKey.set("roles", roles);
-        coreKey.put("secured", false);
-
-        return coreKey;
+    private JsonNode coreKey() throws JsonProcessingException {
+        String key = """
+                {
+                   "project": "project1",
+                   "roles": [
+                     "role1"
+                   ],
+                   "secured": false
+                 }
+                """;
+        return OBJECT_MAPPER.readTree(key);
     }
 }
