@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.util;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
@@ -31,6 +32,7 @@ import java.util.function.Function;
  */
 @Service
 @RequiredArgsConstructor
+@LogExecution
 public class ContainerEndpointResolver {
 
     private final DeploymentManagerService deploymentManagerService;
@@ -43,7 +45,6 @@ public class ContainerEndpointResolver {
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
 
         processContainerEndpoints(
-                containerId,
                 containerSource,
                 ToolSetContainerSource::getCompletionEndpointPath,
                 null,
@@ -70,7 +71,6 @@ public class ContainerEndpointResolver {
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
 
         processContainerEndpoints(
-                containerId,
                 containerEntity,
                 ToolSetContainerEntity::getCompletionEndpointPath,
                 null,
@@ -187,7 +187,7 @@ public class ContainerEndpointResolver {
 
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
         deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
-        processContainerEndpoints(containerId, pathProvider, completionPathExtractor, configPathExtractor, deploymentInfo, endpointConsumer, target);
+        processContainerEndpoints(pathProvider, completionPathExtractor, configPathExtractor, deploymentInfo, endpointConsumer, target);
     }
 
     /**
@@ -196,7 +196,6 @@ public class ContainerEndpointResolver {
      *
      * @param <T> the type of object containing endpoint paths
      * @param <R> the type of object to receive the resolved endpoints
-     * @param containerId the container ID
      * @param pathProvider object containing endpoint paths
      * @param completionPathExtractor function to extract completion path from pathProvider
      * @param configPathExtractor function to extract configuration path from pathProvider
@@ -205,7 +204,6 @@ public class ContainerEndpointResolver {
      * @param target the object to receive the resolved endpoints
      */
     private <T, R> void processContainerEndpoints(
-            String containerId,
             T pathProvider,
             Function<T, String> completionPathExtractor,
             @Nullable Function<T, String> configPathExtractor,
