@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.functional;
 
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.config.persistence.TestPersistenceService;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.reset;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class FunctionalTestSuite {
@@ -18,6 +21,10 @@ abstract class FunctionalTestSuite {
     private TestPersistenceService persistenceService;
     @Autowired
     private FeatureFlagGateEvaluationAspect featureFlagAspect;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     @BeforeAll
     void beforeAllTests() {
@@ -28,6 +35,7 @@ abstract class FunctionalTestSuite {
     void afterEachTest() {
         persistenceService.restoreDb();
         doNothing().when(featureFlagAspect).evaluate(any(), any());
+        reset(transactionTimestampContext, coreConfigReloadCache);
     }
 
     @AfterAll
