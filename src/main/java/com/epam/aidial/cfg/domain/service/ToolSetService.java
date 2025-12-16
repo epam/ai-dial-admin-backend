@@ -121,6 +121,18 @@ public class ToolSetService {
         ToolSetEntity toolSetEntity = toolSetJpaRepository.findById(toolSetName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(toolSetName)));
         assertNotConcurrencyOverwrite(toolSetEntity, hash);
+
+        // Prevent Transport updates for container-based Toolsets
+        ToolSet existingToolSet = mapper.toDomain(toolSetEntity);
+        if (existingToolSet.getSource() instanceof ToolSetContainerSource) {
+            if (toolSet.getTransport() != null
+                    && !toolSet.getTransport().equals(existingToolSet.getTransport())) {
+                throw new IllegalArgumentException("Transport cannot be modified for ToolSet created from Deployment. "
+                        + "Transport is synced from the Deployment and can only be changed in the Deployment configuration."
+                );
+            }
+        }
+
         resolveEndpointsIfContainerSource(toolSet);
         return save(toEntity(toolSet, toolSetEntity));
     }

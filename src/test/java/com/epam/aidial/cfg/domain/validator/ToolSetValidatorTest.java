@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
@@ -216,14 +218,33 @@ public class ToolSetValidatorTest {
         toolSet.setDeployment(deployment);
         toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
         deploymentInfo.setUrl("");
+        deploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Container URL is not present, please check if it is deployed. Container ID: 550e8400-e29b-41d4-a716-446655440000");
+    }
+
+    @Test
+    void validateContainerSource_shouldThrowExceptionWhenDeploymentInfoIsNotMcp() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        InterceptorDeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Toolset deployment type must be mcp. toolSetName: test-toolset");
     }
 
     @Test
@@ -234,8 +255,9 @@ public class ToolSetValidatorTest {
         toolSet.setDeployment(deployment);
         toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "invalid path with spaces"));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
+        deploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
@@ -252,8 +274,9 @@ public class ToolSetValidatorTest {
         toolSet.setDeployment(deployment);
         toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
+        deploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then

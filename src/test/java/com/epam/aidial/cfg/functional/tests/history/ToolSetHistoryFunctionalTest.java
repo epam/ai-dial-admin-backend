@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
@@ -51,10 +52,11 @@ public abstract class ToolSetHistoryFunctionalTest {
         String containerUrl = "https://container-url.com";
         String containerName = "Test Container";
         String endpointPath = "/some-path";
-        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfoDto = new McpDeploymentInfoDto();
         deploymentInfoDto.setId(UUID.fromString(containerId));
         deploymentInfoDto.setName(containerName);
         deploymentInfoDto.setUrl(containerUrl);
+        deploymentInfoDto.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
 

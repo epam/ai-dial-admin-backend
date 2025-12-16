@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
@@ -214,7 +215,8 @@ public abstract class ToolSetFunctionalTest {
         String containerUrl = "https://container-url.com";
         String completionPath = "/api/completion";
 
-        DeploymentInfoDto deploymentInfoDto = new DeploymentInfoDto();
+        McpDeploymentInfoDto deploymentInfoDto = new McpDeploymentInfoDto();
+        deploymentInfoDto.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
         deploymentInfoDto.setId(UUID.fromString(containerId));
         deploymentInfoDto.setName("Test Container");
         deploymentInfoDto.setUrl(containerUrl);
@@ -255,15 +257,17 @@ public abstract class ToolSetFunctionalTest {
         String completionPath = "/api/completion";
         String refreshedToolSetName = "refresh-toolset";
 
-        DeploymentInfoDto initialDeploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto initialDeploymentInfo = new McpDeploymentInfoDto();
         initialDeploymentInfo.setId(UUID.fromString(containerId));
         initialDeploymentInfo.setName(deploymentName);
         initialDeploymentInfo.setUrl(initialUrl);
+        initialDeploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
-        DeploymentInfoDto updatedDeploymentInfo = new DeploymentInfoDto();
+        McpDeploymentInfoDto updatedDeploymentInfo = new McpDeploymentInfoDto();
         updatedDeploymentInfo.setId(UUID.fromString(containerId));
         updatedDeploymentInfo.setName(deploymentName);
         updatedDeploymentInfo.setUrl(updatedUrl);
+        updatedDeploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
         Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
