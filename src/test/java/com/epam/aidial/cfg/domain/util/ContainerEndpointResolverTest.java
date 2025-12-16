@@ -24,8 +24,13 @@ import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -297,5 +302,69 @@ class ContainerEndpointResolverTest {
         // then
         assertThat(interceptorEntity.getFeatures()).isSameAs(existingFeatures);
         assertThat(interceptorEntity.getFeatures().getConfigurationEndpoint()).isEqualTo(CONTAINER_URL + CONFIG_PATH);
+    }
+
+    @ParameterizedTest
+    @MethodSource("slashCompatibilityTestCases")
+    void processContainerEndpoints_ForModel_WithDifferentSlashCombinations_ShouldResolveCorrectly(
+            String url, String path, String expectedEndpoint, String testDescription) {
+        // given
+        Model model = new Model();
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, path);
+        model.setSource(containerSource);
+
+        DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
+        deploymentInfo.setUrl(url);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(model);
+
+        // then
+        assertThat(model.getEndpoint())
+                .as(testDescription)
+                .isEqualTo(expectedEndpoint);
+    }
+
+    private static Stream<Arguments> slashCompatibilityTestCases() {
+        return Stream.of(
+                Arguments.of(
+                        CONTAINER_URL + "/",
+                        COMPLETION_PATH,
+                        CONTAINER_URL + COMPLETION_PATH,
+                        "URL ends with slash and path starts with slash - should avoid double slash"
+                ),
+                Arguments.of(
+                        CONTAINER_URL,
+                        "api/completion",
+                        CONTAINER_URL + "/api/completion",
+                        "URL has no trailing slash and path has no leading slash - should add slash"
+                ),
+                Arguments.of(
+                        CONTAINER_URL + "/",
+                        "api/completion",
+                        CONTAINER_URL + "/api/completion",
+                        "URL ends with slash and path has no leading slash - should concatenate correctly"
+                ),
+                Arguments.of(
+                        CONTAINER_URL,
+                        COMPLETION_PATH,
+                        CONTAINER_URL + COMPLETION_PATH,
+                        "URL has no trailing slash and path starts with slash - should concatenate correctly"
+                ),
+                Arguments.of(
+                        CONTAINER_URL,
+                        "",
+                        CONTAINER_URL,
+                        "Empty path - should return URL only"
+                ),
+                Arguments.of(
+                        CONTAINER_URL + "/",
+                        "",
+                        CONTAINER_URL + "/",
+                        "URL ends with slash and empty path - should return URL with trailing slash"
+                )
+        );
     }
 }
