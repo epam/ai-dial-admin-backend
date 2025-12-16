@@ -1,0 +1,3 @@
+drop index UX_APPLICATION_ENTITY_DISPLAY_NAME_DISPLAY_VERSION_NOT_NULL on application_entity;
+alter table application_entity drop column display_version;
+alter table application_entity_aud drop column display_version;
