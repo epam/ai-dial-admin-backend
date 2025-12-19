@@ -8,7 +8,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +28,6 @@ public class MultiPathGrantedAuthoritiesConverter implements Converter<Jwt, Coll
     @NotNull
     @Override
     public List<GrantedAuthority> convert(@NotNull Jwt token) {
-        Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         var authorities = getAuthorities(token);
         return authorities.stream()
                 .map(authority -> new SimpleGrantedAuthority(authorityPrefix + authority))
@@ -70,7 +68,7 @@ public class MultiPathGrantedAuthoritiesConverter implements Converter<Jwt, Coll
                 if (role instanceof String roleString) {
                     authorities.add(roleString);
                 } else {
-                    log.warn("Unsupported authority value type: {}", value.getClass());
+                    log.warn("Unsupported authority value type: {}", role.getClass());
                 }
             }
         }
