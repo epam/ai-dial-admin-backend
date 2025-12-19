@@ -1,11 +1,20 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.core.config.CoreRoute;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,14 +27,21 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRouteDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRouteDtoWithLimits;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public abstract class RouteFunctionalTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
     private RouteFacade routeFacade;
     @Autowired
     private RoleFacade roleFacade;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     @BeforeEach
     public void beforeEach() {
@@ -35,7 +51,7 @@ public abstract class RouteFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateAndGetRoutes() {
-        RouteDto routeDto =  createRouteDtoWithLimits("1");
+        RouteDto routeDto = createRouteDtoWithLimits("1");
 
         routeFacade.createRoute(routeDto);
 
@@ -163,6 +179,45 @@ public abstract class RouteFunctionalTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenRouteIsEqualToConfigRoute() throws JsonProcessingException {
+        RouteDto routeDto = createRouteDto("1");
+        routeDto.setDescription("description");
+        routeFacade.createRoute(routeDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode routeState = coreRoute();
+
+        EntitySyncStateDto actualSyncState = routeFacade.getSyncState(routeDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(routeState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(routeState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressEntitySyncStateWhenRouteIsNotEqualToConfigRoute() throws JsonProcessingException {
+        RouteDto routeDto = createRouteDto("1");
+        routeDto.setRewritePath(true);
+        routeFacade.createRoute(routeDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode configRouteState = coreRoute();
+        JsonNode currentRouteState = ((ObjectNode) coreRoute()).put("rewritePath", true);
+
+        EntitySyncStateDto actualSyncState = routeFacade.getSyncState(routeDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentRouteState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configRouteState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS);
+    }
+
     private void assertRoute(RouteDto actual, RouteDto expected) {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
@@ -181,5 +236,35 @@ public abstract class RouteFunctionalTest {
     private Map<String, RouteDto> toMap(Collection<RouteDto> dtos) {
         return dtos.stream()
                 .collect(Collectors.toMap(RouteDto::getName, Function.identity()));
+    }
+
+    private ObjectNode coreConfig() throws JsonProcessingException {
+        ObjectNode coreRoutes = JsonNodeFactory.instance.objectNode();
+        coreRoutes.set("route1", coreRoute());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("routes", coreRoutes);
+
+        return config;
+    }
+
+    private JsonNode coreRoute() throws JsonProcessingException {
+        String route = """
+                {
+                  "name": "route1",
+                  "userRoles": [],
+                  "rewritePath": false,
+                  "methods": [],
+                  "upstreams": [],
+                  "maxRetryAttempts": 1,
+                  "order": 2147483647,
+                  "permissions": [],
+                  "attachmentPaths": {
+                    "requestBody": [],
+                    "responseBody": []
+                  }
+                }
+                """;
+        return OBJECT_MAPPER.readTree(route);
     }
 }

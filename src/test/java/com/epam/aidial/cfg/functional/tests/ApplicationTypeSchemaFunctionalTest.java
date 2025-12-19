@@ -4,10 +4,13 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
@@ -16,7 +19,11 @@ import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +41,9 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBa
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public abstract class ApplicationTypeSchemaFunctionalTest {
 
@@ -46,6 +55,8 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     private InterceptorFacade interceptorFacade;
     @Autowired
     private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
     private ApplicationTypeSchemaDto dto;
     private ApplicationTypeSchemaDto dto2;
@@ -435,5 +446,130 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         CoreApplicationTypeSchema actual = typeSchemaFacade.getCoreSchemaWithHash(dto.getId()).core();
 
         Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenSchemaIsEqualToConfigSchema() throws JsonProcessingException {
+        typeSchemaFacade.create(dto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode schemaState = coreSchema();
+
+        EntitySyncStateDto actualSyncState = typeSchemaFacade.getSyncState(dto.getId(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(schemaState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(schemaState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenSchemaIsNotEqualToConfigSchemaAndUpdatedLongAgo() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        dto.setTitle("Sample Schema NEW");
+        typeSchemaFacade.create(dto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode configSchemaState = coreSchema();
+        JsonNode currentSchemaState = ((ObjectNode) coreSchema()).put("title", "Sample Schema NEW");
+
+        EntitySyncStateDto actualSyncState = typeSchemaFacade.getSyncState(dto.getId(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentSchemaState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configSchemaState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
+    }
+
+    private ObjectNode coreConfig() throws JsonProcessingException {
+        ArrayNode coreSchemas = JsonNodeFactory.instance.arrayNode();
+        coreSchemas.add(coreSchema());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("applicationTypeSchemas", coreSchemas);
+
+        return config;
+    }
+
+    private JsonNode coreSchema() throws JsonProcessingException {
+        String schema = """
+                {
+                  "$schema": "https://dial.epam.com/application_type_schemas/schema#",
+                  "$id": "https://test-schema.example",
+                  "dial:applicationTypeEditorUrl": "https://test.com/billings",
+                  "dial:applicationTypeViewerUrl": "https://test.com/claims",
+                  "dial:applicationTypeDisplayName": "Claims Use case",
+                  "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+                  "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+                  "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+                  "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+                  "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+                  "dial:appendApplicationPropertiesHeader": true,
+                  "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
+                  "dial:applicationTypeInterceptors": [],
+                  "dial:applicationTypeBucketCopy": "ENABLED",
+                  "$defs": {
+                    "ToolEndpointInfo": {
+                      "properties": {
+                        "name": {
+                          "title": "Name",
+                          "type": "string"
+                        },
+                        "method_url": {
+                          "title": "Method Url",
+                          "type": "string"
+                        },
+                        "method_type": {
+                          "$ref": "#/$defs/ToolEndpointInfoMethodType"
+                        },
+                        "description": {
+                          "title": "Description",
+                          "type": "string"
+                        },
+                        "parameters": {
+                          "items": {
+                            "$ref": "#/$defs/ToolEndpointParameterInfo"
+                          },
+                          "title": "Parameters",
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "method_url",
+                        "method_type",
+                        "description",
+                        "parameters"
+                      ],
+                      "title": "ToolEndpointInfo",
+                      "type": "object"
+                    }
+                  },
+                  "properties": {
+                    "temperature": {
+                      "title": "Temperature",
+                      "type": "number",
+                      "dial:meta": {
+                        "dial:propertyKind": "server",
+                        "dial:propertyOrder": 1
+                      }
+                    }
+                  },
+                  "required": [
+                    "temperature",
+                    "instructions",
+                    "model",
+                    "web_api_toolset"
+                  ],
+                  "description": "testDescription",
+                  "type": "object",
+                  "title": "Sample Schema"
+                }
+                """;
+        return objectMapper.readTree(schema);
     }
 }

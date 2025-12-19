@@ -1,6 +1,10 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.AddonDto;
+import com.epam.aidial.cfg.dto.CostLimitDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
@@ -9,6 +13,7 @@ import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
@@ -16,6 +21,11 @@ import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreShareResourceLimit;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +33,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -35,9 +46,13 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKe
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public abstract class RolesFunctionalTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @Autowired
     private RoleFacade roleFacade;
@@ -47,6 +62,8 @@ public abstract class RolesFunctionalTest {
     private AddonFacade addonFacade;
     @Autowired
     private TransactionTimestampContext transactionTimestampContext;
+    @Autowired
+    private CoreConfigReloadCache coreConfigReloadCache;
 
     @BeforeEach
     public void beforeEach() {
@@ -531,6 +548,53 @@ public abstract class RolesFunctionalTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    @Test
+    public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenRoleIsEqualToConfigRole() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        CostLimitDto costLimitDto = new CostLimitDto();
+        costLimitDto.setWeek(BigDecimal.valueOf(10));
+        RoleDto roleDto = createRoleDto("1");
+        roleDto.setCostLimit(costLimitDto);
+        roleFacade.createRole(roleDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode roleState = coreRole();
+
+        EntitySyncStateDto actualSyncState = roleFacade.getSyncState(roleDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(roleState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(roleState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenRoleIsNotEqualToConfigRoleAndUpdatedLongAgo() throws JsonProcessingException {
+        doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        CostLimitDto costLimitDto = new CostLimitDto();
+        costLimitDto.setWeek(BigDecimal.valueOf(15));
+        RoleDto roleDto = createRoleDto("1");
+        roleDto.setCostLimit(costLimitDto);
+        roleFacade.createRole(roleDto);
+
+        ObjectNode config = coreConfig();
+        CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
+        when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
+
+        JsonNode configRoleState = coreRole();
+        ObjectNode costLimitJsonNode = JsonNodeFactory.instance.objectNode();
+        costLimitJsonNode.put("week", 15);
+        JsonNode currentRoleState = ((ObjectNode) coreRole()).set("costLimit", costLimitJsonNode);
+
+        EntitySyncStateDto actualSyncState = roleFacade.getSyncState(roleDto.getName(), "*");
+
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentRoleState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configRoleState);
+        assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
+    }
+
     private void assertRoles(Collection<RoleDto> actual, Collection<RoleDto> expected) {
         Map<String, RoleDto> actualMap = toMap(actual);
         Map<String, RoleDto> expectedMap = toMap(expected);
@@ -598,5 +662,28 @@ public abstract class RolesFunctionalTest {
         roleDto.setLimits(limits);
         roleDto.setShare(shareResourceLimits);
         return roleDto;
+    }
+
+    private ObjectNode coreConfig() throws JsonProcessingException {
+        ObjectNode coreRoles = JsonNodeFactory.instance.objectNode();
+        coreRoles.set("role1", coreRole());
+
+        ObjectNode config = JsonNodeFactory.instance.objectNode();
+        config.set("roles", coreRoles);
+
+        return config;
+    }
+
+    private JsonNode coreRole() throws JsonProcessingException {
+        String role = """
+                {
+                  "name": "role1",
+                  "limits": {},
+                  "costLimit": {
+                    "week": 10.0
+                  }
+                }
+                """;
+        return OBJECT_MAPPER.readTree(role);
     }
 }

@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -63,6 +64,7 @@ public class EntitySyncStateResolver {
         return resolve(currentState, isCurrentStateValid, currentStateUpdatedAt, entityType, entityFinder);
     }
 
+    @SneakyThrows
     private <T> EntitySyncState resolve(T currentState,
                                         boolean isCurrentStateValid,
                                         long currentStateUpdatedAt,
@@ -92,16 +94,25 @@ public class EntitySyncStateResolver {
         JsonNode configStateJsonNode = entityFinder.apply(entitiesJsonNode);
         JsonNode currentStateJsonNode = objectMapper.valueToTree(currentState);
 
+        // needed for at least transformation of POJONode to ObjectNode,
+        // so that subsequent call to {@link com.fasterxml.jackson.databind.JsonNode#equals(Object o)} will not return false
+        // when comparing identical POJONode and ObjectNode
+        JsonNode normalizedConfigStateJson = configStateJsonNode != null
+                ? objectMapper.readTree(objectMapper.writeValueAsString(configStateJsonNode))
+                : null;
+        JsonNode normalizedCurrentStateJson = objectMapper.readTree(objectMapper.writeValueAsString(currentStateJsonNode));
+
+
         EntitySyncStateStatus syncStateStatus = syncStateStatusResolver.resolve(
-                currentStateJsonNode,
-                configStateJsonNode,
+                normalizedCurrentStateJson,
+                normalizedConfigStateJson,
                 isCurrentStateValid,
                 currentStateUpdatedAt,
                 cacheEntry.reloadTimestamp()
         );
 
-        currentStateJsonNode = isCurrentStateValid ? currentStateJsonNode : null;
+        normalizedCurrentStateJson = isCurrentStateValid ? normalizedCurrentStateJson : null;
 
-        return new EntitySyncState(currentStateJsonNode, configStateJsonNode, syncStateStatus);
+        return new EntitySyncState(normalizedCurrentStateJson, normalizedConfigStateJson, syncStateStatus);
     }
 }
