@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
@@ -196,7 +198,7 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
         deploymentInfo.setUrl("");
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
@@ -213,7 +215,7 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "invalid path with spaces", CONFIG_PATH));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
@@ -230,7 +232,7 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, "invalid path with spaces"));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
@@ -247,7 +249,7 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
@@ -262,7 +264,7 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "api/completion", "api/config"));
 
-        DeploymentInfoDto deploymentInfo = new DeploymentInfoDto();
+        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
         deploymentInfo.setUrl("https://deployment.url");
         when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
