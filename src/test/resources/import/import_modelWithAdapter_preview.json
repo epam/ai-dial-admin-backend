@@ -33,7 +33,6 @@
           "isPublic": false,
           "defaultRoleLimit": {}
         },
-        "endpoint": "http://endpoint1/testModel1/embeddings",
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -82,7 +81,6 @@
           "isPublic": false,
           "defaultRoleLimit": {}
         },
-        "endpoint": "http://endpoint2/testModel2/embeddings",
         "displayName": "Test Model2",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
