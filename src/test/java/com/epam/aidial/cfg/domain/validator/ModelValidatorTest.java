@@ -48,6 +48,8 @@ class ModelValidatorTest {
     @Mock
     private DeploymentInfoValidator deploymentInfoValidator;
     @Mock
+    private FeaturesValidator featuresValidator;
+    @Mock
     private DeploymentManagerService deploymentManagerService;
     @Mock
     private ModelEndpointUtils modelEndpointUtils;
@@ -57,7 +59,7 @@ class ModelValidatorTest {
     @BeforeEach
     void setUp() {
         modelValidator = new ModelValidator(deploymentManagerService, deploymentInfoValidator, displayFieldsValidator,
-                deploymentValidator, modelEndpointUtils, null);
+                deploymentValidator, featuresValidator, modelEndpointUtils, null);
     }
 
     @Test
