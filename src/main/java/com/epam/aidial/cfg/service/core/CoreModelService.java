@@ -4,7 +4,10 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
+import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
@@ -31,6 +34,7 @@ import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 public class CoreModelService {
 
     private final ModelService modelService;
+    private final AdapterService adapterService;
     private final ModelCoreMapper modelCoreMapper;
     private final ConfigImporter configImporter;
     private final EntitySyncStateResolver entitySyncStateResolver;
@@ -38,7 +42,9 @@ public class CoreModelService {
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreModel> getCoreModelWithHash(String modelName) {
         var modelWithHash = modelService.getModelWithHash(modelName);
-        var coreModel = modelCoreMapper.mapModel(modelWithHash.model());
+        var model = modelWithHash.model();
+        var endpoint = getModelEndpoint(model);
+        var coreModel = modelCoreMapper.mapModel(model, endpoint);
         return new CoreWithDomainHash<>(coreModel, modelWithHash.hash());
     }
 
@@ -72,7 +78,8 @@ public class CoreModelService {
         assertModelWasNotUpdated(modelWithHash, hash, OptimisticLockConflictException::onGetSyncState);
 
         var model = modelWithHash.model();
-        var coreModel = modelCoreMapper.mapModel(model);
+        var endpoint = getModelEndpoint(model);
+        var coreModel = modelCoreMapper.mapModel(model, endpoint);
 
         return entitySyncStateResolver.resolveForEntityInObject(
                 coreModel,
@@ -80,6 +87,14 @@ public class CoreModelService {
                 "models",
                 modelName
         );
+    }
+
+    private String getModelEndpoint(Model model) {
+        if (model.getSource() instanceof AdapterSource adapterSource) {
+            var adapter = adapterService.get(adapterSource.getAdapterName());
+            return ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath());
+        }
+        return model.getEndpoint();
     }
 
     private void assertHashNotNull(String modelName, String hash) {

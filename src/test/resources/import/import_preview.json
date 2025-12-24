@@ -634,7 +634,6 @@
           "seed",
           "system"
         ],
-        "endpoint": "https://endpoint1/embeddings",
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import 1>",
@@ -735,7 +734,6 @@
           "seed",
           "system"
         ],
-        "endpoint": "https://endpoint2/embeddings",
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import 0>",
