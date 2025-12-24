@@ -1,0 +1,2 @@
+update model_entity set adapter_completion_endpoint_path = regexp_replace(adapter_completion_endpoint_path, '\s', '%20', 'g');
+update model_entity_aud set adapter_completion_endpoint_path = regexp_replace(adapter_completion_endpoint_path, '\s', '%20', 'g');
