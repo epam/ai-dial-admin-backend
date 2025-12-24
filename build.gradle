@@ -180,10 +180,10 @@ dependencies {
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
                 because("previous versions have vulnerabilities)")
         }
-        implementation ('io.netty:netty-codec:4.2.5.Final') {
+        implementation ('io.netty:netty-codec:4.2.8.Final') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('io.netty:netty-codec-http:4.2.5.Final') {
+        implementation ('io.netty:netty-codec-http:4.2.8.Final') {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.springframework:spring-webmvc:6.2.10') {
