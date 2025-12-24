@@ -17,6 +17,11 @@ class FeaturesValidatorTest {
     }
 
     @Test
+    void validate_featuresIsNull_noException() {
+        assertThatNoException().isThrownBy(() -> featuresValidator.validate(null));
+    }
+
+    @Test
     void validate_allEndpointsAreValid_noException() {
         // given
         Features features = new Features();

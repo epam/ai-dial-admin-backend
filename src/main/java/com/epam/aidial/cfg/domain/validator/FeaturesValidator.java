@@ -9,6 +9,9 @@ public class FeaturesValidator {
     private static final String INVALID_ENDPOINT_MESSAGE_TEMPLATE = "Invalid features %s endpoint: '%s'";
 
     public void validate(Features features) {
+        if (features == null) {
+            return;
+        }
         validateEndpoints(features);
     }
 
