@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 @Component
 public class ToolSetValidator {
 
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z0-9-_]+$");
+
     private final DeploymentManagerService deploymentManagerService;
     private final DeploymentInfoValidator deploymentInfoValidator;
     private final DeploymentValidator deploymentValidator;
@@ -40,13 +42,7 @@ public class ToolSetValidator {
         final String toolSetName = toolSet.getDeployment().getName();
 
         deploymentValidator.validateCreation("ToolSet", toolSetName);
-
-        if (StringUtils.isEmpty(toolSetNameValidationPattern)) {
-            log.debug("ToolSet name validation pattern is empty, skipping name pattern validation for ToolSet: {}", toolSetName);
-        } else if (!Pattern.matches(toolSetNameValidationPattern, toolSetName)) {
-            throw new IllegalArgumentException("toolSet name '" + toolSetName
-                        + "' does not match the required pattern: " + toolSetNameValidationPattern);
-        }
+        validateName(toolSetName);
         displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
@@ -55,6 +51,20 @@ public class ToolSetValidator {
         deploymentValidator.validateUpdate(toolSetName, toolSet.getDeployment(), "ToolSet");
         displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
+    }
+
+    private void validateName(String toolSetName) {
+        if (!NAME_PATTERN.matcher(toolSetName).matches()) {
+            throw new IllegalArgumentException("toolSet name '" + toolSetName
+                    + "' does not match the required pattern: " + NAME_PATTERN);
+        }
+
+        if (StringUtils.isEmpty(toolSetNameValidationPattern)) {
+            log.debug("ToolSet name validation pattern is empty, skipping name pattern validation for ToolSet: {}", toolSetName);
+        } else if (!Pattern.matches(toolSetNameValidationPattern, toolSetName)) {
+            throw new IllegalArgumentException("toolSet name '" + toolSetName
+                    + "' does not match the required pattern: " + toolSetNameValidationPattern);
+        }
     }
 
     private void validateToolSetSource(ToolSet toolSet) {
