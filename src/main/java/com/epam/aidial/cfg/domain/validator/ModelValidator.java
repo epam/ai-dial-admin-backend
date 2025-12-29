@@ -132,10 +132,7 @@ public class ModelValidator {
             throw new IllegalArgumentException("Adapter name is required when source type is 'Adapter'. Model: %s"
                     .formatted(name));
         }
-
-        String completionPath = adapterSource.getCompletionEndpointPath();
-        validateEndpointEnding(model.getType(), completionPath, name);
-        validateEndpointPath(completionPath, name);
+        validateEndpointEnding(model.getType(), adapterSource.getCompletionEndpointPath(), name);
     }
 
     private void validateContainerSource(ModelContainerSource containerSource, Model model) {

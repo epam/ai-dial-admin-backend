@@ -1,2 +1,0 @@
-update model_entity set adapter_completion_endpoint_path = replace(adapter_completion_endpoint_path, ' ', '%20');
-update model_entity_aud set adapter_completion_endpoint_path = replace(adapter_completion_endpoint_path, ' ', '%20');

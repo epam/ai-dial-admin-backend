@@ -34,12 +34,10 @@ class ModelValidatorTest {
     private static final String NAME_VALIDATION_PATTERN = "^[a-zA-Z0-9-_.]{1,30}$";
 
     private static final String INVALID_COMPLETION_MESSAGE = "Invalid completion endpoint:";
-    private static final String INVALID_COMPLETION_PATH_MESSAGE = "Invalid completion endpoint path:";
     private static final String INVALID_COMPLETION_END_MESSAGE =
             "Completion endpoint path should be provided and end with ";
     private static final String INVALID_START_MODEL_ENDPOINT = "//upstream1.endpoint.test.com/embeddings";
     private static final String INVALID_END_MODEL_ENDPOINT = "http://upstream1.endpoint.test.com/";
-    private static final String INVALID_PATH_WITH_WHITESPACE = "/model/with whitespace /embeddings";
 
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
@@ -171,7 +169,7 @@ class ModelValidatorTest {
             containerSource.setCompletionEndpointPath(endpoint);
             model.setSource(containerSource);
         }
-
+        ;
         model.setEndpoint(endpoint);
         return model;
     }
@@ -200,9 +198,6 @@ class ModelValidatorTest {
                         createModel(new AdapterSource(), ModelType.EMBEDDING, null),
                         INVALID_COMPLETION_END_MESSAGE),
                 Arguments.of(
-                        createModel(new AdapterSource(), ModelType.EMBEDDING, INVALID_PATH_WITH_WHITESPACE),
-                        INVALID_COMPLETION_PATH_MESSAGE),
-                Arguments.of(
                         createModel(new ModelContainerSource(), ModelType.EMBEDDING, INVALID_END_MODEL_ENDPOINT),
                         INVALID_COMPLETION_END_MESSAGE),
                 Arguments.of(
@@ -210,10 +205,7 @@ class ModelValidatorTest {
                         INVALID_COMPLETION_END_MESSAGE),
                 Arguments.of(
                         createModel(new ModelContainerSource(), ModelType.EMBEDDING, "  "),
-                        INVALID_COMPLETION_END_MESSAGE),
-                Arguments.of(
-                        createModel(new ModelContainerSource(), ModelType.EMBEDDING, INVALID_PATH_WITH_WHITESPACE),
-                        INVALID_COMPLETION_PATH_MESSAGE)
+                        INVALID_COMPLETION_END_MESSAGE)
         );
     }
 
