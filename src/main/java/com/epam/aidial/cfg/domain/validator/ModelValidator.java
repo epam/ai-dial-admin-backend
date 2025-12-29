@@ -137,7 +137,7 @@ public class ModelValidator {
         validateEndpointEnding(model.getType(), completionPath, name);
         // TODO: partial revert for https://github.com/epam/ai-dial-admin-backend/pull/547. will fix review env
         // validateEndpointPath(completionPath, name);
-        if (completionPath.contains(" ")) {
+        if (completionPath != null && completionPath.contains(" ")) {
             throw new IllegalArgumentException("Invalid completion endpoint path: '%s'. Model: %s".formatted(completionPath, name));
         }
     }
