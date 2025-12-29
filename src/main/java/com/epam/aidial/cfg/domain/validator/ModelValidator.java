@@ -135,7 +135,11 @@ public class ModelValidator {
 
         String completionPath = adapterSource.getCompletionEndpointPath();
         validateEndpointEnding(model.getType(), completionPath, name);
-        validateEndpointPath(completionPath, name);
+        // TODO: partial revert for https://github.com/epam/ai-dial-admin-backend/pull/547. will fix review env
+        // validateEndpointPath(completionPath, name);
+        if (completionPath.contains(" ")) {
+            throw new IllegalArgumentException("Invalid completion endpoint path: '%s'. Model: %s".formatted(completionPath, name));
+        }
     }
 
     private void validateContainerSource(ModelContainerSource containerSource, Model model) {
@@ -146,8 +150,7 @@ public class ModelValidator {
         String name = model.getDeployment().getName();
         String completionPath = containerSource.getCompletionEndpointPath();
         validateEndpointEnding(model.getType(), completionPath, name);
-        // TODO: partial revert for https://github.com/epam/ai-dial-admin-backend/pull/547. will fix review env
-        // validateEndpointPath(completionPath, name);
+        validateEndpointPath(completionPath, name);
     }
 
     private void validateEndpointEnding(ModelType type, String endpoint, String modelName) {
