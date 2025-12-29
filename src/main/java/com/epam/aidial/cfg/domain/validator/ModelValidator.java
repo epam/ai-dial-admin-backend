@@ -109,7 +109,7 @@ public class ModelValidator {
                 validateContainerSource(containerSource, model);
             } else {
                 throw new IllegalArgumentException(
-                    "Unsupported model source: %s. Model: %s".formatted(source, model.getDeployment().getName())
+                        "Unsupported model source: %s. Model: %s".formatted(source, model.getDeployment().getName())
                 );
             }
             return;
@@ -146,8 +146,8 @@ public class ModelValidator {
         String name = model.getDeployment().getName();
         String completionPath = containerSource.getCompletionEndpointPath();
         validateEndpointEnding(model.getType(), completionPath, name);
-//TODO: partial revert for https://github.com/epam/ai-dial-admin-backend/pull/547. will fix review env
-//        validateEndpointPath(completionPath, name);
+        // TODO: partial revert for https://github.com/epam/ai-dial-admin-backend/pull/547. will fix review env
+        // validateEndpointPath(completionPath, name);
     }
 
     private void validateEndpointEnding(ModelType type, String endpoint, String modelName) {
