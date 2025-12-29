@@ -26,7 +26,6 @@ public class InterceptorValidator {
     private final DeploymentInfoValidator deploymentInfoValidator;
     private final IdFieldValidator idFieldValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
-    private final FeaturesValidator featuresValidator;
 
     private final String interceptorNameValidationPattern;
 
@@ -34,13 +33,11 @@ public class InterceptorValidator {
                                 DeploymentInfoValidator deploymentInfoValidator,
                                 IdFieldValidator idFieldValidator,
                                 DisplayFieldsValidator displayFieldsValidator,
-                                FeaturesValidator featuresValidator,
                                 @Value("${validation.interceptor.name:}") String interceptorNameValidationPattern) {
         this.deploymentManagerService = deploymentManagerService;
         this.deploymentInfoValidator = deploymentInfoValidator;
         this.idFieldValidator = idFieldValidator;
         this.displayFieldsValidator = displayFieldsValidator;
-        this.featuresValidator = featuresValidator;
         this.interceptorNameValidationPattern = interceptorNameValidationPattern;
     }
 
@@ -48,7 +45,6 @@ public class InterceptorValidator {
         validateInterceptorName(interceptor);
         displayFieldsValidator.validateDisplayName(interceptor.getDisplayName(), "Interceptor", interceptor.getName());
         validateInterceptorSource(interceptor);
-        featuresValidator.validate(interceptor.getFeatures());
     }
 
     public void validateUpdate(String interceptorName, Interceptor interceptor) {
@@ -58,7 +54,6 @@ public class InterceptorValidator {
         }
         displayFieldsValidator.validateDisplayName(interceptor.getDisplayName(), "Interceptor", interceptor.getName());
         validateInterceptorSource(interceptor);
-        featuresValidator.validate(interceptor.getFeatures());
     }
 
     private void validateInterceptorName(Interceptor interceptor) {

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
@@ -24,13 +23,9 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FeaturesDto {
-    @Endpoint
     private String rateEndpoint;
-    @Endpoint
     private String tokenizeEndpoint;
-    @Endpoint
     private String truncatePromptEndpoint;
-    @Endpoint
     private String configurationEndpoint;
 
     private boolean systemPromptSupported = true;
