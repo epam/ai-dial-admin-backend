@@ -2,6 +2,7 @@
 
 This guide details the steps to configure Azure AD App Registrations for the `ai-dial-admin` application environment.
 
+
 ---
 
 ## 1. Configure App Registrations
