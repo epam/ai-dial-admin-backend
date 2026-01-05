@@ -67,9 +67,8 @@ public class ToolSetValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"invalid name", "invalid@name", "invalid#name"})
-    void validateCreation_shouldThrowExceptionForInvalidName() {
+    void validateCreation_shouldThrowExceptionForInvalidName(String toolSetName) {
         // given
-        String toolSetName = "invalid name with spaces";
         ToolSet toolSet = new ToolSet();
         toolSet.setDisplayName(toolSetName);
         SecuredResource deployment = new SecuredResource(toolSetName);
