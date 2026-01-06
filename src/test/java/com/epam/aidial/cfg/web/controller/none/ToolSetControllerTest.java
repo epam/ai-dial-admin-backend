@@ -44,6 +44,8 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
 
     private static final String DTO_JSON_PATH = "/tool_set_dto.json";
     private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";
+    private static final String CALL_TOOL_REQUEST_DTO_JSON_PATH = "/call_tool_request_dto.json";
+    private static final String CALL_TOOL_RESULT_DTO_JSON_PATH = "/call_tool_result_dto.json";
     private static final String TEST_TOOL_SET_NAME = "test_tool_set";
     private static final String TOOL_SET_BASE_API_PATH = "/api/v1/toolSets";
     private static final String TOOL_SET_API_PATH = TOOL_SET_BASE_API_PATH + "/{toolSetName}";
@@ -57,7 +59,8 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testGetAllToolSets() throws Exception {
         var dtosJson = ResourceUtils.readResource("/tool_set_dtos.json");
-        var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<ToolSetDto>>() {});
+        var dtos = objectMapper.readValue(dtosJson, new TypeReference<List<ToolSetDto>>() {
+        });
 
         when(toolSetFacade.getAllToolSets()).thenReturn(dtos);
 
@@ -112,7 +115,8 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testCreateToolSet() throws Exception {
         var dtoJson = ResourceUtils.readResource(DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {});
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<ToolSetDto>() {
+        });
 
         doNothing().when(toolSetFacade).createToolSet(eq(dto));
 
@@ -180,13 +184,33 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testDiscoverTools() throws Exception {
         var dtoJson = ResourceUtils.readResource(TOOLS_DTO_JSON_PATH);
-        var dto = objectMapper.readValue(dtoJson, new TypeReference<McpSchema.ListToolsResult>() {});
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<McpSchema.ListToolsResult>() {
+        });
 
         when(toolSetFacade.getDiscoveredTools(eq(TEST_TOOL_SET_NAME), eq(null))).thenReturn(dto);
 
         mockMvc.perform(get(TOOL_SET_API_PATH + "/discovered-tools", TEST_TOOL_SET_NAME))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testCallTool() throws Exception {
+        var callToolRequestDtoJson = ResourceUtils.readResource(CALL_TOOL_REQUEST_DTO_JSON_PATH);
+        var callToolRequestDto = objectMapper.readValue(callToolRequestDtoJson, new TypeReference<McpSchema.CallToolRequest>() {
+        });
+
+        var callToolResultDtoJson = ResourceUtils.readResource(CALL_TOOL_RESULT_DTO_JSON_PATH);
+        var callToolResultDto = objectMapper.readValue(callToolResultDtoJson, new TypeReference<McpSchema.CallToolResult>() {
+        });
+
+        when(toolSetFacade.callTool(TEST_TOOL_SET_NAME, callToolRequestDto)).thenReturn(callToolResultDto);
+
+        mockMvc.perform(post(TOOL_SET_API_PATH + "/call-tool", TEST_TOOL_SET_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(callToolRequestDtoJson))
+                .andExpect(status().isOk())
+                .andExpect(content().json(callToolResultDtoJson, JsonCompareMode.LENIENT));
     }
 
 }

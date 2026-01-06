@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.functional.tests;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
@@ -105,6 +104,28 @@ public abstract class ToolSetFunctionalTest {
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateToolSetAndCallTool() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetDto.setTransport(TransportDto.HTTP);
+        toolSetFacade.createToolSet(toolSetDto);
+
+        var callToolRequest = Mockito.mock(McpSchema.CallToolRequest.class);
+        var expectedCallToolResult = Mockito.mock(McpSchema.CallToolResult.class);
+        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
+
+        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP), any()))
+                .thenReturn(mcpSyncClient);
+        Mockito.when(mcpSyncClient.initialize())
+                .thenReturn(null);
+        Mockito.when(mcpSyncClient.callTool(callToolRequest))
+                .thenReturn(expectedCallToolResult);
+
+        var actualCallToolResult = toolSetFacade.callTool(toolSetDto.getName(), callToolRequest);
+
+        Assertions.assertEquals(expectedCallToolResult, actualCallToolResult);
     }
 
     @Test
