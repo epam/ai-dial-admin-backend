@@ -18,14 +18,17 @@ public class ApplicationValidator {
 
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
+    private final FeaturesValidator featuresValidator;
 
     private final String applicationNameValidationPattern;
 
     public ApplicationValidator(DisplayFieldsValidator displayFieldsValidator,
                                 DeploymentValidator deploymentValidator,
+                                FeaturesValidator featuresValidator,
                                 @Value("${validation.application.name:}") String applicationNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
+        this.featuresValidator = featuresValidator;
         this.applicationNameValidationPattern = applicationNameValidationPattern;
     }
 
@@ -33,12 +36,14 @@ public class ApplicationValidator {
         validateApplicationName(application);
         validateDisplayNameDisplayVersion(application);
         validateApplicationFields(application);
+        featuresValidator.validate(application.getFeatures());
     }
 
     public void validateUpdate(String applicationName, Application application) {
         deploymentValidator.validateUpdate(applicationName, application.getDeployment(), "Application");
         validateDisplayNameDisplayVersion(application);
         validateApplicationFields(application);
+        featuresValidator.validate(application.getFeatures());
     }
 
     private void validateApplicationName(Application application) {

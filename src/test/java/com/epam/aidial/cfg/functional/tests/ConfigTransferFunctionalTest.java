@@ -281,7 +281,7 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
             Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
             Assertions.assertThat(model.getDisplayVersion()).isEqualTo("2.0.0");
-            Assertions.assertThat(model.getEndpoint()).isEqualTo("https://endpoint1/embeddings");
+            Assertions.assertThat(model.getEndpoint()).isNull();
             Assertions.assertThat(model.getSource() instanceof AdapterSourceDto);
         });
     }

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -67,6 +65,34 @@ public class ToolSetValidatorTest {
         verify(deploymentValidator).validateCreation("ToolSet", toolSet.getDisplayName());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid name", "invalid@name", "invalid#name"})
+    void validateCreation_shouldThrowExceptionForInvalidName(String toolSetName) {
+        // given
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDisplayName(toolSetName);
+        SecuredResource deployment = new SecuredResource(toolSetName);
+        toolSet.setDeployment(deployment);
+
+        // when & then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not match the required pattern: ^[A-Za-z0-9-_]+$");
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowExceptionForValidName() {
+        // given
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
+        toolSet.setDeployment(deployment);
+        ReflectionTestUtils.setField(toolSetValidator, "toolSetNameValidationPattern", NAME_VALIDATION_PATTERN);
+
+        // when & then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
+    }
+
     @Test
     void validateCreation_withNameValidationPattern_shouldValidateNameAgainstPattern() {
         // given
@@ -81,7 +107,7 @@ public class ToolSetValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"invalid name", "invalid@name", "invalid#name"})
+    @ValueSource(strings = {"invalid_name_too___________long"})
     void validateCreation_withInvalidNameAgainstPattern_shouldThrowException(String invalidName) {
         // given
         ToolSet toolSet = new ToolSet();
@@ -94,19 +120,6 @@ public class ToolSetValidatorTest {
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match the required pattern: " + NAME_VALIDATION_PATTERN);
-    }
-
-    @Test
-    void validateCreation_withoutNameValidationPattern_shouldNotValidateNameAgainstPattern() {
-        // given
-        String toolSetName = "invalid name with spaces";
-        ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(toolSetName);
-        SecuredResource deployment = new SecuredResource(toolSetName);
-        toolSet.setDeployment(deployment);
-
-        // when & then
-        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
     }
 
     @Test

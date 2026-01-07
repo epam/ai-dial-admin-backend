@@ -30,6 +30,7 @@ public class ModelValidator {
     private final DeploymentInfoValidator deploymentInfoValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
+    private final FeaturesValidator featuresValidator;
     private final ModelEndpointUtils modelEndpointUtils;
 
     private final String modelNameValidationPattern;
@@ -38,12 +39,14 @@ public class ModelValidator {
                           DeploymentInfoValidator deploymentInfoValidator,
                           DisplayFieldsValidator displayFieldsValidator,
                           DeploymentValidator deploymentValidator,
+                          FeaturesValidator featuresValidator,
                           ModelEndpointUtils modelEndpointUtils,
                           @Value("${validation.model.name:}") String modelNameValidationPattern) {
         this.deploymentManagerService = deploymentManagerService;
         this.deploymentInfoValidator = deploymentInfoValidator;
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
+        this.featuresValidator = featuresValidator;
         this.modelEndpointUtils = modelEndpointUtils;
         this.modelNameValidationPattern = modelNameValidationPattern;
     }
@@ -52,12 +55,14 @@ public class ModelValidator {
         validateModelName(model);
         validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
+        featuresValidator.validate(model.getFeatures());
     }
 
     public void validateUpdate(String modelName, Model model) {
         deploymentValidator.validateUpdate(modelName, model.getDeployment(), "Model");
         validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
+        featuresValidator.validate(model.getFeatures());
     }
 
     private void validateModelName(Model model) {
@@ -104,7 +109,7 @@ public class ModelValidator {
                 validateContainerSource(containerSource, model);
             } else {
                 throw new IllegalArgumentException(
-                    "Unsupported model source: %s. Model: %s".formatted(source, model.getDeployment().getName())
+                        "Unsupported model source: %s. Model: %s".formatted(source, model.getDeployment().getName())
                 );
             }
             return;
@@ -127,7 +132,14 @@ public class ModelValidator {
             throw new IllegalArgumentException("Adapter name is required when source type is 'Adapter'. Model: %s"
                     .formatted(name));
         }
-        validateEndpointEnding(model.getType(), adapterSource.getCompletionEndpointPath(), name);
+
+        String completionPath = adapterSource.getCompletionEndpointPath();
+        validateEndpointEnding(model.getType(), completionPath, name);
+        // TODO: partial revert for https://github.com/epam/ai-dial-admin-backend/pull/547. will fix review env
+        // validateEndpointPath(completionPath, name);
+        if (completionPath != null && completionPath.contains(" ")) {
+            throw new IllegalArgumentException("Invalid completion endpoint path: '%s'. Model: %s".formatted(completionPath, name));
+        }
     }
 
     private void validateContainerSource(ModelContainerSource containerSource, Model model) {

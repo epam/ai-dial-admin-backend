@@ -128,6 +128,7 @@ public abstract class ModelFunctionalTest {
         expected.setMaxRetryAttempts(1);
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
+        expected.setEndpoint(null);
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
         assertModel(actual, expected);

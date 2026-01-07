@@ -43,6 +43,8 @@ class InterceptorValidatorTest {
     private IdFieldValidator idFieldValidator;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
+    @Mock
+    private FeaturesValidator featuresValidator;
 
     @BeforeEach
     void setUp() {
@@ -51,7 +53,9 @@ class InterceptorValidatorTest {
                 deploymentManagerService,
                 new DeploymentInfoValidator(),
                 idFieldValidator,
-                displayFieldsValidator, null
+                displayFieldsValidator,
+                featuresValidator,
+                null
         );
     }
 
