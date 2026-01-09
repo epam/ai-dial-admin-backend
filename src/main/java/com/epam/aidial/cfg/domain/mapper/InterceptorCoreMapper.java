@@ -23,6 +23,7 @@ public interface InterceptorCoreMapper {
     @Mapping(target = "source", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "topics", ignore = true)
     Interceptor mapInterceptor(CoreInterceptor interceptor);
 
 }

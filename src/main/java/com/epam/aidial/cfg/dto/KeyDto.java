@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class KeyDto {
@@ -30,6 +31,7 @@ public class KeyDto {
     private Instant expiresAt;
     private Instant keyGeneratedAt;
     private ValidityStateDto validityState;
+    private Set<String> topics;
 
     public String toString() {
         return "KeyDto(name=" + this.getName()

@@ -36,7 +36,8 @@
 					"tier": 1
 				}
 			],
-			"maxRetryAttempts": 3
+			"maxRetryAttempts": 3,
+			"topics": ["routeTestRoute1"]
 		}
 	},
 	"applications": {
@@ -300,7 +301,8 @@
 				"day": "222",
 				"week": "333",
 				"month": "444"
-			}
+			},
+			"topics": ["topicTestRole3"]
 		},
 		"testRole2": {
 			"name": "testRole2",
@@ -399,7 +401,8 @@
 				"testRole1"
 			],
 			"createdAt": 1746705584619,
-			"keyGeneratedAt": 1746705584619
+			"keyGeneratedAt": 1746705584619,
+			"topics": ["topicTestKey2"]
 		},
 		"testKey1": {
 			"name": "testKey1",
@@ -503,7 +506,8 @@
 				"autoCachingSupported": true,
 				"consentRequired": false,
 				"parallelToolCallsSupported": true
-			}
+			},
+			"topics": ["topicInterceptor1", "topicInterceptor2"]
 		},
 		"testInterceptor2": {
 			"name": "testInterceptor2",
@@ -539,7 +543,8 @@
 			"name": "testRunner1",
 			"displayName": "testRunner1",
 			"completionEndpoint": "https://template.test.com/api",
-			"configurationEndpoint": "https://template.test.com/conf"
+			"configurationEndpoint": "https://template.test.com/conf",
+			"topics": ["topicTestRunner1"]
 		}
 	},
 	"adapters": {
@@ -551,7 +556,8 @@
 			"author": "test-author",
 			"createdAt": 12345,
 			"updatedAt": 12345,
-			"dependencies": []
+			"dependencies": [],
+			"topics": ["topicAdapter1"]
 		}
 	}
 }

@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.model;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class Key {
@@ -19,4 +20,5 @@ public class Key {
     private Long expiresAt;
     private Long keyGeneratedAt;
     private ValidityState validityState;
+    private Set<String> topics;
 }

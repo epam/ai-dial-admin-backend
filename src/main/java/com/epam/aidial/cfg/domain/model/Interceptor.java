@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 public class Interceptor {
@@ -13,6 +14,7 @@ public class Interceptor {
     private String endpoint;
     private String iconUrl;
     private String description;
+    private Set<String> topics;
     private String displayName;
     private Boolean forwardAuthToken;
     private String author;

@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -600,7 +599,7 @@ public abstract class InterceptorFunctionalTest {
                   },
                   "defaults": {},
                   "interceptors": [],
-                  "descriptionKeywords": [],
+                  "descriptionKeywords":[],
                   "maxRetryAttempts": 1,
                   "createdAt": 1000,
                   "updatedAt": 1000

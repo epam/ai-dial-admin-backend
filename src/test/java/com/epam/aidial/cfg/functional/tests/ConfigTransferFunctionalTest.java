@@ -825,6 +825,7 @@ public abstract class ConfigTransferFunctionalTest {
         runnerDto.setDisplayName("someRunner");
         runnerDto.setCompletionEndpoint("https://endpoint.test.com/api");
         runnerDto.setConfigurationEndpoint("https://endpoint.test.com/config");
+        runnerDto.setTopics(Set.of("topic1", "topic2"));
 
         InterceptorRunnerSourceDto runnerSource = new InterceptorRunnerSourceDto("someRunner");
         interceptorDto.setSource(runnerSource);
@@ -1082,6 +1083,52 @@ public abstract class ConfigTransferFunctionalTest {
         toolSetDto2.setDescriptionKeywords(List.of("e", "f"));
         toolSetFacade.createToolSet(toolSetDto2);
 
+        KeyDto keyDto1 = createKeyDto("1");
+        keyDto1.setTopics(Set.of("a", "c"));
+        keyFacade.createKey(keyDto1);
+
+        KeyDto keyDto2 = createKeyDto("2");
+        keyDto2.setTopics(Set.of("b", "c"));
+        keyFacade.createKey(keyDto2);
+
+        RouteDto routeDto1 = createRouteDto("1");
+        routeDto1.setTopics(Set.of("c"));
+        routeFacade.createRoute(routeDto1);
+
+        RouteDto routeDto2 = createRouteDto("2");
+        routeDto2.setTopics(Set.of("b", "d"));
+        routeFacade.createRoute(routeDto2);
+
+        RoleDto roleDto1 = createRoleDto("1");
+        roleDto1.setTopics(Set.of("a"));
+        roleFacade.createRole(roleDto1);
+
+        RoleDto roleDto2 = createRoleDto("2");
+        roleDto2.setTopics(Set.of("c", "d", "e"));
+        roleFacade.createRole(roleDto2);
+
+        AdapterDto adapterDto1 = createAdapterDto("1");
+        adapterDto1.setTopics(Set.of("a", "c"));
+        adapterFacade.createAdapter(adapterDto1);
+
+        AdapterDto adapterDto2 = createAdapterDto("2");
+        adapterDto2.setTopics(Set.of("b", "c"));
+        adapterFacade.createAdapter(adapterDto2);
+
+        InterceptorDto interceptorDto1 = createInterceptorDto("1");
+        interceptorDto1.setTopics(Set.of("c"));
+        interceptorFacade.createInterceptor(interceptorDto1);
+
+        InterceptorDto interceptorDto2 = createInterceptorDto("2");
+        interceptorDto2.setTopics(Set.of("b", "c"));
+        interceptorFacade.createInterceptor(interceptorDto2);
+
+        InterceptorRunnerDto interceptorRunnerDto1 = new InterceptorRunnerDto();
+        interceptorRunnerDto1.setTopics(Set.of("b", "c"));
+        interceptorRunnerDto1.setName("interceptorRunnerDto1");
+        interceptorRunnerDto1.setDisplayName("interceptorRunnerDto1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto1);
+
         // When
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
 
@@ -1101,6 +1148,18 @@ public abstract class ConfigTransferFunctionalTest {
                     .containsOnlyKeys(modelDto1.getName());
             Assertions.assertThat(config.getToolsets()).isNotEmpty()
                     .containsOnlyKeys(toolSetDto1.getName());
+            Assertions.assertThat(config.getKeys()).isNotEmpty()
+                    .containsOnlyKeys(keyDto1.getName(), keyDto2.getName());
+            Assertions.assertThat(config.getRoles()).isNotEmpty()
+                    .containsOnlyKeys(roleDto1.getName());
+            Assertions.assertThat(config.getRoutes()).isNotEmpty()
+                    .containsOnlyKeys(routeDto2.getName());
+            Assertions.assertThat(config.getAdapters()).isNotEmpty()
+                    .containsOnlyKeys(adapterDto1.getName(), adapterDto2.getName());
+            Assertions.assertThat(config.getInterceptors()).isNotEmpty()
+                    .containsOnlyKeys(interceptorDto2.getName());
+            Assertions.assertThat(config.getInterceptorRunners()).isNotEmpty()
+                    .containsOnlyKeys(interceptorRunnerDto1.getName());
         });
     }
 
@@ -1408,6 +1467,7 @@ public abstract class ConfigTransferFunctionalTest {
         runnerDto.setDescription("Test interceptor runner");
         runnerDto.setCompletionEndpoint("https://test.com/completion");
         runnerDto.setConfigurationEndpoint("https://test.com/configuration");
+        runnerDto.setTopics(Set.of("topic1", "topic2"));
         interceptorRunnerFacade.createInterceptorRunner(runnerDto);
 
         // Create interceptors associated with the runner

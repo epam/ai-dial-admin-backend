@@ -76,7 +76,8 @@
           "day": "222",
           "week": "333",
           "month": "444"
-        }
+        },
+        "topics": ["topicTestRole3"]
       }
     },
     {
@@ -191,7 +192,8 @@
         ],
         "validityState": {
           "valid": true
-        }
+        },
+        "topics": ["topicTestKey2"]
       }
     },
     {
@@ -244,7 +246,8 @@
         "applicationTypeSchemas":[],
         "source": {
           "$type": "endpoints"
-        }
+        },
+        "topics": ["topicInterceptor1", "topicInterceptor2"]
       }
     },
     {
@@ -298,7 +301,8 @@
         "configurationEndpoint": "https://template.test.com/conf",
         "interceptors": [
           "testInterceptor2"
-        ]
+        ],
+        "topics": ["topicTestRunner1"]
       }
     }
   ],
@@ -440,7 +444,8 @@
         ],
         "maxRetryAttempts": 3,
         "order": 2147483647,
-        "displayName": "route1"
+        "displayName": "route1",
+        "topics": ["routeTestRoute1"]
       }
     }
   ],
@@ -454,7 +459,8 @@
         "description": "test adapter",
         "models": [
           "testModel1"
-        ]
+        ],
+        "topics": ["topicAdapter1"]
       }
     }
   ],

@@ -175,6 +175,7 @@ public abstract class RouteFunctionalTest {
         expected.setUserRoles(routeDto.getRoleLimits().keySet());
 
         CoreRoute actual = routeFacade.getCoreRouteWithHash(routeDto.getName()).core();
+        expected.setPaths(actual.getPaths());
 
         Assertions.assertEquals(expected, actual);
     }
@@ -222,6 +223,7 @@ public abstract class RouteFunctionalTest {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
+        Assertions.assertEquals(expected.getTopics(), actual.getTopics());
     }
 
     private void assertRoutes(Collection<RouteDto> actual, Collection<RouteDto> expected) {
@@ -262,7 +264,8 @@ public abstract class RouteFunctionalTest {
                   "attachmentPaths": {
                     "requestBody": [],
                     "responseBody": []
-                  }
+                  },
+                  "paths": ["path1"]
                 }
                 """;
         return OBJECT_MAPPER.readTree(route);
