@@ -45,6 +45,7 @@ public class JsonMapperConfiguration {
                 .addModule(new QueryLanguageModule())
                 .addModule(new ValidationModule())
                 .addModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
 }
