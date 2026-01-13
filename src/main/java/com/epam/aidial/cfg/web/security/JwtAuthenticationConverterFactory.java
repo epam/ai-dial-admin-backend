@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,10 +26,12 @@ public class JwtAuthenticationConverterFactory {
     }
 
     private JwtAuthenticationConverter create(JwtProvidersProperties.ProviderConfig config) {
-        final var grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthoritiesClaimName(config.getRoleClaims());
+        var grantedAuthoritiesConverter = new MultiPathGrantedAuthoritiesConverter();
+        var authoritiesPaths = config.getRoleClaims().stream()
+                .map(String::trim)
+                .toList();
+        grantedAuthoritiesConverter.setAuthoritiesPaths(authoritiesPaths);
         grantedAuthoritiesConverter.setAuthorityPrefix("");
-
         final var jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         jwtAuthenticationConverter.setPrincipalClaimName(principalClaim);
