@@ -88,7 +88,38 @@ public abstract class AbstractControllerSecurityTest {
                 ),
                 HttpStatus.UNAUTHORIZED
             ))
-
+                .add(Arguments.of(
+                        JwtUtils.generateTestToken(
+                                TEST_AUDIENCE,
+                                TEST_ISSUER,
+                                Map.of(
+                                        PRINCIPAL_CLAIM, "user_test",
+                                        "resource_access", Map.of(ROLES_CLAIM, "testRole")
+                                )
+                        ),
+                        HttpStatus.OK
+                ))
+                .add(Arguments.of(
+                        JwtUtils.generateTestToken(
+                                TEST_AUDIENCE,
+                                TEST_ISSUER,
+                                Map.of(
+                                        PRINCIPAL_CLAIM, "user_test",
+                                        "resource_access", "testRole")
+                        ),
+                        HttpStatus.FORBIDDEN
+                ))
+                .add(Arguments.of(
+                        JwtUtils.generateTestToken(
+                                TEST_AUDIENCE,
+                                TEST_ISSUER,
+                                Map.of(
+                                        PRINCIPAL_CLAIM, "user_test",
+                                        ROLES_CLAIM, "testRole",
+                                        "resource_access", "testRole")
+                        ),
+                        HttpStatus.OK
+                ))
                 .add(Arguments.of(
                         JwtUtils.generateTestToken(
                                 TEST_AUDIENCE,
