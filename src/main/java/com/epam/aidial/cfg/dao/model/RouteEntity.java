@@ -42,6 +42,7 @@ public class RouteEntity extends TimeTrackableEntity<String> {
     private int maxRetryAttempts = 1;
     @Column(name = "order_value")
     private int order;
+    private Set<String> topics;
 
     @Override
     public String getId() {

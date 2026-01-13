@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 public class InterceptorDto {
@@ -33,4 +34,5 @@ public class InterceptorDto {
     private List<String> dependencies;
     private Map<String, Object> defaults;
     private FeaturesDto features = new FeaturesDto();
+    private Set<String> topics;
 }

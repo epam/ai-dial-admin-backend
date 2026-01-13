@@ -43,6 +43,7 @@ public abstract class RouteCoreMapper {
     @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "topics", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public abstract Route mapRoute(CoreRoute coreRoute, @Context List<RoleLimit> roleLimits, @MappingTarget Route route);
 

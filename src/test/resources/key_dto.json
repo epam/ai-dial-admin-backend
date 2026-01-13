@@ -11,5 +11,6 @@
   "projectContactPoint": "owner@mail.com",
   "createdAt": "2025-01-12T01:30:00Z",
   "expiresAt": "2025-06-12T01:30:00Z",
-  "keyGeneratedAt": "2025-01-12T01:30:00Z"
+  "keyGeneratedAt": "2025-01-12T01:30:00Z",
+  "topics": ["topic1", "topic2"]
 }

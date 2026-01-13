@@ -35,6 +35,7 @@ public interface RoleCoreMapper {
     @Mapping(target = "displayName", ignore = true)
     @Mapping(target = "keys", ignore = true)
     @Mapping(target = "description", ignore = true)
+    @Mapping(target = "topics", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

@@ -25,7 +25,8 @@
         "seed",
         "system"
       ],
-      "endpoint": "https://endpoint1/embeddings"
+      "endpoint": "https://endpoint1/embeddings",
+      "descriptionKeywords": ["test1", "test2"]
     },
     "testModel2": {
       "type": "embedding",
@@ -105,7 +106,8 @@
         "day": "222",
         "week": "333",
         "month": "444"
-      }
+      },
+      "topics": ["test1", "test2"]
     },
     "testRole2": {
       "description": "test role 1 description",
@@ -186,7 +188,8 @@
       "dependencies": [],
       "defaults": {
         "defaults_key": "defaults_value"
-      }
+      },
+      "topics": ["test1", "test2"]
     }
   },
   "globalInterceptors": ["testInterceptor1"],
@@ -198,7 +201,8 @@
       "secured": true,
       "description": "key description",
       "projectContactPoint": "test@mail.com",
-      "expiresAt": 253402300799999
+      "expiresAt": 253402300799999,
+      "topics": ["test1", "test2"]
     },
     "testKey2": {
       "key": "key2",
@@ -318,14 +322,16 @@
       "userRoles": [
         "testRole1"
       ],
-      "order": 2
+      "order": 2,
+      "topics": ["test1", "test2"]
     }
   },
   "adapters": {
     "adapter1": {
       "name": "adapter1",
       "baseEndpoint": "http://adapter1/",
-      "description": "adapter1"
+      "description": "adapter1",
+      "topics": ["test1", "test2"]
     }
   },
   "toolsets": {

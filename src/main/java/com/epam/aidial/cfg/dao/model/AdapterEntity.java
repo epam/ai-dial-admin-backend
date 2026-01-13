@@ -11,6 +11,7 @@ import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -24,6 +25,7 @@ public class AdapterEntity extends TimeTrackableEntity<String> {
     private String displayName;
     private String baseEndpoint;
     private String description;
+    private Set<String> topics;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "adapter")

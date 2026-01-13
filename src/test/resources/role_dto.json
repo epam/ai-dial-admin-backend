@@ -7,5 +7,6 @@
       "maxAcceptedUsers": 10,
       "invitationTtl": 120
     }
-  }
+  },
+  "topics": ["topic1", "topic2"]
 }

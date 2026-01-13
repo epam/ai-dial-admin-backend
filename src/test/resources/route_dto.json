@@ -46,5 +46,6 @@
 			"requestHour":"1",
 			"requestDay":"1"
 		}
-	}
+	},
+	"topics": ["topic1", "topic2"]
 }

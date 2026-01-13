@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.model;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class InterceptorRunner {
@@ -15,4 +16,5 @@ public class InterceptorRunner {
     private Long createdAt;
     private Long updatedAt;
     private List<String> interceptors;
+    private Set<String> topics;
 }

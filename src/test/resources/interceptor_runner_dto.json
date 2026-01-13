@@ -3,5 +3,6 @@
   "displayName": "Test Interceptor",
   "description": "It is a test interceptor",
   "completionEndpoint": "https://endpoint.test.com/completion",
-  "configurationEndpoint": "https://endpoint.test.com/configuration"
+  "configurationEndpoint": "https://endpoint.test.com/configuration",
+  "topics": ["topic1", "topic2"]
 }

@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class Adapter {
@@ -15,4 +16,5 @@ public class Adapter {
     private Long createdAt;
     private Long updatedAt;
     private List<String> models = new ArrayList<>();
+    private Set<String> topics;
 }
