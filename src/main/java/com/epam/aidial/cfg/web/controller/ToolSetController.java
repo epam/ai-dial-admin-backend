@@ -106,4 +106,10 @@ public class ToolSetController extends AbstractController {
                                                         @RequestParam(required = false) String nextCursor) {
         return toolSetFacade.getDiscoveredTools(toolSetName, nextCursor);
     }
+
+    @PostMapping(path = "/{toolSetName}/call-tool", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.CallToolResult getDiscoveredTools(@PathVariable String toolSetName,
+                                                       @RequestBody McpSchema.CallToolRequest callToolRequest) {
+        return toolSetFacade.callTool(toolSetName, callToolRequest);
+    }
 }

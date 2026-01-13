@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.AuthenticationTypeResourceDto;
+import com.epam.aidial.cfg.dto.CallToolResourceRequestDto;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
 import com.epam.aidial.cfg.dto.CredentialsLevelDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
@@ -73,11 +74,13 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     private static final String LIST_API_PATH = APP_RESOURCE_BASE_API_PATH + "/list";
     private static final String MOVE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/move";
     private static final String DISCOVERY_API_PATH = APP_RESOURCE_BASE_API_PATH + "/discovered-tools";
+    private static final String CALL_TOOL_API_PATH = APP_RESOURCE_BASE_API_PATH + "/call-tool";
     private static final String TOOLSET_SIGN_IN = APP_RESOURCE_BASE_API_PATH + "/sign-in";
     private static final String TOOLSET_SIGN_OUT = APP_RESOURCE_BASE_API_PATH + "/sign-out";
     private static final String TEST_ETAG = "etag123";
     private static final String RETURNED_TEST_ETAG = "\"etag123\"";
     private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";
+    private static final String CALL_TOOL_RESULT_DTO_JSON_PATH = "/call_tool_result_dto.json";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -490,6 +493,33 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testCallTool() throws Exception {
+        var resourcePathDto = new ResourcePathDto();
+        resourcePathDto.setPath(APP_PATH);
+
+        var callToolRequest = new McpSchema.CallToolRequest(
+                "get_simple_price",
+                Map.of("vs_currencies", "usd", "ids", "bitcoin")
+        );
+
+        var callToolResourceRequestDto = new CallToolResourceRequestDto();
+        callToolResourceRequestDto.setToolSetPath(resourcePathDto);
+        callToolResourceRequestDto.setCallToolRequest(callToolRequest);
+
+        var resultDtoJson = ResourceUtils.readResource(CALL_TOOL_RESULT_DTO_JSON_PATH);
+        var resultDto = objectMapper.readValue(resultDtoJson, new TypeReference<McpSchema.CallToolResult>() {
+        });
+
+        when(toolSetResourceService.callTool(APP_PATH, callToolRequest)).thenReturn(resultDto);
+
+        mockMvc.perform(post(CALL_TOOL_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(callToolResourceRequestDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(resultDtoJson, JsonCompareMode.LENIENT));
     }
 
     @Test
