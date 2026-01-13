@@ -101,7 +101,10 @@ WHERE type IS NULL
 );
 
 UPDATE deployment_entity_aud SET deployment_type = 'SECURED_RESOURCE'
-WHERE deployment_type IS NULL AND type = 'TOOL_SET';
+WHERE deployment_type IS NULL AND type = 'TOOL_SET' and revtype != 2;
 
 UPDATE deployment_entity_aud SET deployment_type = 'DEPLOYMENT'
-WHERE deployment_type IS NULL AND type != 'TOOL_SET';
+WHERE deployment_type IS NULL AND type != 'TOOL_SET' and revtype != 2;
+
+UPDATE deployment_entity_aud SET deployment_type = NULL, type = NULL
+WHERE revtype = 2;
