@@ -16,6 +16,7 @@ import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -28,6 +29,7 @@ public class RoleEntity extends TimeTrackableEntity<String> {
     private String name;
     private String description;
     private String displayName;
+    private Set<String> topics;
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "role", orphanRemoval = true)
     @AuditJoinTable

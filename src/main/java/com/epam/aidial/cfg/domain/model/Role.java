@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 public class Role {
@@ -17,4 +18,5 @@ public class Role {
     private List<String> keys;
     private CostLimit costLimit = new CostLimit();
     private Map<ResourceType, ShareResourceLimit> share;
+    private Set<String> topics;
 }

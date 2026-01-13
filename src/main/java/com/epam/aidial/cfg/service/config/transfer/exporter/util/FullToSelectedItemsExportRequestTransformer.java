@@ -96,6 +96,7 @@ public class FullToSelectedItemsExportRequestTransformer {
 
     private List<ExportConfigComponent> getRouteExportComponents(FullExportRequest fullExportRequest) {
         return routeService.getAll().stream()
+                .filter(route -> ExportUtils.hasAnyRequestedTopic(route.getTopics(), fullExportRequest.getTopics()))
                 .map(route -> exportConfigComponent(fullExportRequest, route.getDeployment().getName(), ROUTE))
                 .toList();
     }
@@ -109,24 +110,28 @@ public class FullToSelectedItemsExportRequestTransformer {
 
     private List<ExportConfigComponent> getRoleExportComponents(FullExportRequest fullExportRequest) {
         return roleService.getAllRoles().stream()
+                .filter(role -> ExportUtils.hasAnyRequestedTopic(role.getTopics(), fullExportRequest.getTopics()))
                 .map(role -> exportConfigComponent(fullExportRequest, role.getName(), ROLE))
                 .toList();
     }
 
     private List<ExportConfigComponent> getKeyExportComponents(FullExportRequest fullExportRequest) {
         return keyService.getAllKeys().stream()
+                .filter(key -> ExportUtils.hasAnyRequestedTopic(key.getTopics(), fullExportRequest.getTopics()))
                 .map(key -> exportConfigComponent(fullExportRequest, key.getName(), KEY))
                 .toList();
     }
 
     private List<ExportConfigComponent> getInterceptorExportComponents(FullExportRequest fullExportRequest) {
         return interceptorService.getAll().stream()
+                .filter(interceptor -> ExportUtils.hasAnyRequestedTopic(interceptor.getTopics(), fullExportRequest.getTopics()))
                 .map(interceptor -> exportConfigComponent(fullExportRequest, interceptor.getName(), INTERCEPTOR))
                 .toList();
     }
 
     private List<ExportConfigComponent> getInterceptorRunnerExportComponents(FullExportRequest fullExportRequest) {
         return interceptorRunnerService.getAll().stream()
+                .filter(interceptorRunner -> ExportUtils.hasAnyRequestedTopic(interceptorRunner.getTopics(), fullExportRequest.getTopics()))
                 .map(interceptorRunner -> exportConfigComponent(fullExportRequest, interceptorRunner.getName(), INTERCEPTOR_RUNNER))
                 .toList();
     }
@@ -140,6 +145,7 @@ public class FullToSelectedItemsExportRequestTransformer {
 
     private List<ExportConfigComponent> getAdapterExportComponents(FullExportRequest fullExportRequest) {
         return adapterService.getAll().stream()
+                .filter(adapter -> ExportUtils.hasAnyRequestedTopic(adapter.getTopics(), fullExportRequest.getTopics()))
                 .map(adapter -> exportConfigComponent(fullExportRequest, adapter.getName(), ADAPTER))
                 .toList();
     }

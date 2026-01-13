@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -499,6 +500,7 @@ public abstract class KeyFunctionalTest {
         expected.setProject("newKeyProject");
         expected.setSecured(true);
         expected.setRoles(List.of("role2", "role3"));
+        expected.setTopics(Set.of("topic1"));
         expected.setValidityState(validState());
 
         keyFacade.updateKey(keyDto.getName(), coreKey, "*");

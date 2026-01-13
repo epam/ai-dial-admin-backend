@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
@@ -173,10 +174,17 @@ public abstract class RouteFunctionalTest {
         expected.setName(routeDto.getName());
         expected.setPaths(null);
         expected.setUserRoles(routeDto.getRoleLimits().keySet());
+        expected.setPaths(List.of(Pattern.compile("path1")));
 
         CoreRoute actual = routeFacade.getCoreRouteWithHash(routeDto.getName()).core();
 
-        Assertions.assertEquals(expected, actual);
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .withComparatorForType(
+                        (Pattern p1, Pattern p2) ->
+                                p1.pattern().equals(p2.pattern()) ? 0 : 1,
+                        Pattern.class)
+                .isEqualTo(expected);
     }
 
     @Test
@@ -222,6 +230,7 @@ public abstract class RouteFunctionalTest {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
+        Assertions.assertEquals(expected.getTopics(), actual.getTopics());
     }
 
     private void assertRoutes(Collection<RouteDto> actual, Collection<RouteDto> expected) {
@@ -262,7 +271,8 @@ public abstract class RouteFunctionalTest {
                   "attachmentPaths": {
                     "requestBody": [],
                     "responseBody": []
-                  }
+                  },
+                  "paths": ["path1"]
                 }
                 """;
         return OBJECT_MAPPER.readTree(route);

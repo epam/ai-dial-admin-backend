@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -219,6 +220,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         interceptorRunnerDto.setDescription("description" + suffix);
         interceptorRunnerDto.setCompletionEndpoint("https://endpoint.test.com/completion" + suffix);
         interceptorRunnerDto.setConfigurationEndpoint("https://endpoint.test.com/configuration" + suffix);
+        interceptorRunnerDto.setTopics(Set.of("topic" + suffix));
         return interceptorRunnerDto;
     }
     
@@ -237,6 +239,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getCompletionEndpoint(), actual.getCompletionEndpoint());
         Assertions.assertEquals(expected.getConfigurationEndpoint(), actual.getConfigurationEndpoint());
+        Assertions.assertEquals(expected.getTopics(), actual.getTopics());
     }
 
     private Map<String, InterceptorRunnerDto> toMap(Collection<InterceptorRunnerDto> dtos) {

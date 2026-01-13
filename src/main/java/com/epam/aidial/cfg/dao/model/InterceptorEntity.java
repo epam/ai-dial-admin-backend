@@ -16,6 +16,7 @@ import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -33,6 +34,7 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     private Boolean forwardAuthToken;
     private String author;
     private List<String> dependencies;
+    private Set<String> topics;
 
     @Column(columnDefinition = "CLOB")
     private String defaults;

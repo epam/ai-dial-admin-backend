@@ -14,6 +14,7 @@ import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -27,6 +28,7 @@ public class KeyEntity extends ValidityStateAwareEntity<String> {
     @Column(name = "key_value", unique = true)
     private String key;
     private String displayName;
+    private Set<String> topics;
     private String project;
     private boolean secured;
     @ToString.Exclude

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -26,6 +27,7 @@ public class InterceptorRunnerEntity extends TimeTrackableEntity<String> {
     private String description;
     private String completionEndpoint;
     private String configurationEndpoint;
+    private Set<String> topics;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "interceptorRunner")

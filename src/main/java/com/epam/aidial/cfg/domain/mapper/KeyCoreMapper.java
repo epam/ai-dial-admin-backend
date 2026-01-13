@@ -37,6 +37,7 @@ public interface KeyCoreMapper {
     @Mapping(target = "displayName", ignore = true)
     @Mapping(target = "name", ignore = true)
     @Mapping(target = "validityState", ignore = true)
+    @Mapping(target = "topics", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Key mapKey(CoreKey coreKey, String keyValue, @MappingTarget Key key);
 

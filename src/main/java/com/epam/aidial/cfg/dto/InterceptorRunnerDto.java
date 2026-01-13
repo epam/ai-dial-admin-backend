@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class InterceptorRunnerDto {
@@ -25,4 +26,5 @@ public class InterceptorRunnerDto {
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> interceptors;
+    private Set<String> topics;
 }
