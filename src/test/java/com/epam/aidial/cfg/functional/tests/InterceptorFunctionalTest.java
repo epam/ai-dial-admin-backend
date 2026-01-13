@@ -599,7 +599,7 @@ public abstract class InterceptorFunctionalTest {
                   },
                   "defaults": {},
                   "interceptors": [],
-                  "descriptionKeywords":[],
+                  "descriptionKeywords": [],
                   "maxRetryAttempts": 1,
                   "createdAt": 1000,
                   "updatedAt": 1000
