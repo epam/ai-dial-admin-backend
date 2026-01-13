@@ -93,6 +93,10 @@ public class ToolSetFacade {
         return toolSetService.getDiscoveredTools(toolSetName, nextCursor);
     }
 
+    public McpSchema.CallToolResult callTool(String toolSetName, McpSchema.CallToolRequest callToolRequest) {
+        return toolSetService.callTool(toolSetName, callToolRequest);
+    }
+
     public void refreshEndpoints() {
         toolSetService.refreshEndpoints();
     }
