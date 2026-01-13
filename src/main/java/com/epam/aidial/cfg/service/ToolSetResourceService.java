@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.service.ToolCallService;
 import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -53,6 +54,7 @@ public class ToolSetResourceService implements ResourceService {
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ToolDiscoveryService toolDiscoveryService;
+    private final ToolCallService toolCallService;
 
     @Value("${core.toolsets.metadata.default.limit}")
     private int toolSetsMetadataDefaultLimit;
@@ -160,11 +162,17 @@ public class ToolSetResourceService implements ResourceService {
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
         var toolSet = getToolSetResource(path);
         var authHeaders = getAuthHeaders();
-        var normalizedCoreClientUrl = coreClientUrl.endsWith("/")
-                ? coreClientUrl.substring(0, coreClientUrl.length() - 1)
-                : coreClientUrl;
+        var normalizedCoreClientUrl = getNormalizedCoreClientUrl();
         return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getUrl()),
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor, authHeaders);
+    }
+
+    public McpSchema.CallToolResult callTool(String path, McpSchema.CallToolRequest callToolRequest) {
+        var toolSet = getToolSetResource(path);
+        var authHeaders = getAuthHeaders();
+        var normalizedCoreClientUrl = getNormalizedCoreClientUrl();
+        return toolCallService.callTool(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getUrl()),
+                ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), authHeaders, callToolRequest);
     }
 
     private Map<String, String> getAuthHeaders() {
@@ -173,6 +181,12 @@ public class ToolSetResourceService implements ResourceService {
             return null;
         }
         return Map.of("Authorization", "Bearer " + token);
+    }
+
+    private String getNormalizedCoreClientUrl() {
+        return coreClientUrl.endsWith("/")
+                ? coreClientUrl.substring(0, coreClientUrl.length() - 1)
+                : coreClientUrl;
     }
 
     public void signIn(ResourceSignInRequest request) {

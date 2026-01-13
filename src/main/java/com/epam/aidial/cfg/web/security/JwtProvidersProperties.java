@@ -28,7 +28,7 @@ public class JwtProvidersProperties {
         private String jwkSetUri;
         private List<String> audiences;
         private List<String> aliases;
-        private String roleClaims;
+        private List<String> roleClaims;
         private Set<String> allowedRoles;
     }
 

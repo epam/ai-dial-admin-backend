@@ -51,6 +51,7 @@ public class ToolSetService {
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
     private final ToolDiscoveryService toolDiscoveryService;
+    private final ToolCallService toolCallService;
     private final ToolSetRefreshService toolSetRefreshService;
     private final ContainerEndpointResolver endpointResolver;
     private final HashCalculator calculator;
@@ -195,6 +196,12 @@ public class ToolSetService {
     public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
         var toolSet = get(toolSetName);
         return toolDiscoveryService.discoverTools(toolSet.getEndpoint(), toolSet.getTransport(), nextCursor);
+    }
+
+    @Transactional(readOnly = true)
+    public McpSchema.CallToolResult callTool(String toolSetName, McpSchema.CallToolRequest callToolRequest) {
+        var toolSet = get(toolSetName);
+        return toolCallService.callTool(toolSet.getEndpoint(), toolSet.getTransport(), callToolRequest);
     }
 
     @Transactional(readOnly = true)

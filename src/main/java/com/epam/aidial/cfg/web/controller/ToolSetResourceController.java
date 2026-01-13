@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dto.CallToolResourceRequestDto;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
@@ -119,6 +120,14 @@ public class ToolSetResourceController {
     public McpSchema.ListToolsResult getDiscoveredTools(@RequestBody ResourcePathDto toolSetPath,
                                                         @RequestParam(required = false) String nextCursor) {
         return toolSetResourceService.getDiscoveredTools(toolSetPath.getPath(), nextCursor);
+    }
+
+    @PostMapping(path = "/call-tool", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.CallToolResult callTool(@RequestBody CallToolResourceRequestDto callToolResourceRequestDto) {
+        return toolSetResourceService.callTool(
+                callToolResourceRequestDto.getToolSetPath().getPath(),
+                callToolResourceRequestDto.getCallToolRequest()
+        );
     }
 
     @PostMapping(path = "/sign-in")
