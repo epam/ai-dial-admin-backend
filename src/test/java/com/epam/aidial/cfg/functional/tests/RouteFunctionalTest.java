@@ -13,7 +13,6 @@ import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -193,11 +192,11 @@ public abstract class RouteFunctionalTest {
         routeDto.setDescription("description");
         routeFacade.createRoute(routeDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode routeState = coreRoute();
+        JsonNode routeState = config.get("routes").get("route1");
 
         EntitySyncStateDto actualSyncState = routeFacade.getSyncState(routeDto.getName(), "*");
 
@@ -212,12 +211,13 @@ public abstract class RouteFunctionalTest {
         routeDto.setRewritePath(true);
         routeFacade.createRoute(routeDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configRouteState = coreRoute();
-        JsonNode currentRouteState = ((ObjectNode) coreRoute()).put("rewritePath", true);
+        JsonNode configRouteState = config.get("routes").get("route1");
+        JsonNode currentRouteState = configRouteState.deepCopy();
+        ((ObjectNode) currentRouteState).put("rewritePath", true);
 
         EntitySyncStateDto actualSyncState = routeFacade.getSyncState(routeDto.getName(), "*");
 
@@ -247,34 +247,29 @@ public abstract class RouteFunctionalTest {
                 .collect(Collectors.toMap(RouteDto::getName, Function.identity()));
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ObjectNode coreRoutes = JsonNodeFactory.instance.objectNode();
-        coreRoutes.set("route1", coreRoute());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("routes", coreRoutes);
-
-        return config;
-    }
-
-    private JsonNode coreRoute() throws JsonProcessingException {
-        String route = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                  "name": "route1",
-                  "userRoles": [],
-                  "rewritePath": false,
-                  "methods": [],
-                  "upstreams": [],
-                  "maxRetryAttempts": 1,
-                  "order": 2147483647,
-                  "permissions": [],
-                  "attachmentPaths": {
-                    "requestBody": [],
-                    "responseBody": []
-                  },
-                  "paths": ["path1"]
+                  "routes": {
+                    "route1": {
+                      "name": "route1",
+                      "userRoles": [],
+                      "response": null,
+                      "rewritePath": false,
+                      "paths": ["path1"],
+                      "methods": [],
+                      "upstreams": [],
+                      "maxRetryAttempts": 1,
+                      "order": 2147483647,
+                      "permissions": [],
+                      "attachmentPaths": {
+                        "requestBody": [],
+                        "responseBody": []
+                      }
+                    }
+                  }
                 }
                 """;
-        return OBJECT_MAPPER.readTree(route);
+        return OBJECT_MAPPER.readTree(config);
     }
 }

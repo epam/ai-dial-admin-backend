@@ -20,7 +20,6 @@ import com.epam.aidial.core.config.CoreToolSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -362,11 +361,11 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode toolSetState = coreToolSet();
+        JsonNode toolSetState = config.get("toolsets").get("ToolSet1");
 
         EntitySyncStateDto actualSyncState = toolSetFacade.getSyncState(toolSetDto.getName(), "*");
 
@@ -382,12 +381,13 @@ public abstract class ToolSetFunctionalTest {
         toolSetDto.setDescription("description OLD");
         toolSetFacade.createToolSet(toolSetDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configToolSetState = coreToolSet();
-        JsonNode currentToolSetState = ((ObjectNode) coreToolSet()).put("description", "description OLD");
+        JsonNode configToolSetState = config.get("toolsets").get("ToolSet1");
+        JsonNode currentToolSetState = configToolSetState.deepCopy();
+        ((ObjectNode) currentToolSetState).put("description", "description OLD");
 
         EntitySyncStateDto actualSyncState = toolSetFacade.getSyncState(toolSetDto.getName(), "*");
 
@@ -416,38 +416,36 @@ public abstract class ToolSetFunctionalTest {
                 .collect(Collectors.toMap(ToolSetDto::getName, Function.identity()));
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ObjectNode coreToolSets = JsonNodeFactory.instance.objectNode();
-        coreToolSets.set("ToolSet1", coreToolSet());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("toolsets", coreToolSets);
-
-        return config;
-    }
-
-    private JsonNode coreToolSet() throws JsonProcessingException {
-        String toolSet = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                   "name": "ToolSet1",
-                   "user_roles": [
-                     "role1"
-                   ],
-                   "endpoint": "https://endpoint.test.com/toolset1",
-                   "display_name": "ToolSet1",
-                   "description": "description1",
-                   "forward_auth_token": false,
-                   "defaults": {},
-                   "interceptors": [],
-                   "description_keywords": [],
-                   "max_retry_attempts": 1,
-                   "created_at": 1000,
-                   "updated_at": 1000,
-                   "forward_per_request_key": false,
-                   "transport": "http",
-                   "allowed_tools": []
-                 }
+                  "toolsets": {
+                    "ToolSet1": {
+                      "name": "ToolSet1",
+                      "user_roles": [
+                        "role1"
+                      ],
+                      "endpoint": "https://endpoint.test.com/toolset1",
+                      "display_name": "ToolSet1",
+                      "description": "description1",
+                      "forward_auth_token": false,
+                      "defaults": {},
+                      "interceptors": [],
+                      "description_keywords": [],
+                      "max_retry_attempts": 1,
+                      "created_at": 1000,
+                      "updated_at": 1000,
+                      "dependencies": [],
+                      "forward_per_request_key": false,
+                      "auth_settings": {
+                        "authentication_type": "NONE"
+                      },
+                      "transport": "HTTP",
+                      "allowed_tools": []
+                    }
+                  }
+                }
                 """;
-        return OBJECT_MAPPER.readTree(toolSet);
+        return OBJECT_MAPPER.readTree(config);
     }
 }
