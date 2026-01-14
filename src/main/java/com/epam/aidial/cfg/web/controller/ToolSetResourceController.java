@@ -16,8 +16,10 @@ import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceNodeInfoDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
+import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.mapper.ToolSetResourceMapper;
+import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.ToolSetEximService;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
 import com.epam.aidial.cfg.service.ZipToolSetEximService;
@@ -49,8 +51,10 @@ import java.io.IOException;
 public class ToolSetResourceController {
 
     private final ToolSetResourceService toolSetResourceService;
+    private final ResourceCredentialService resourceCredentialService;
     private final ResourceMapper resourceMapper;
     private final ToolSetResourceMapper toolSetResourceMapper;
+    private final ResourceCredentialMapper resourceCredentialMapper;
     private final ToolSetEximService toolSetEximService;
     private final ZipToolSetEximService zipToolSetEximService;
 
@@ -132,12 +136,12 @@ public class ToolSetResourceController {
 
     @PostMapping(path = "/sign-in")
     public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
-        toolSetResourceService.signIn(toolSetResourceMapper.toResourceSignInRequest(requestDto));
+        resourceCredentialService.signIn(resourceCredentialMapper.toResourceSignInRequest(requestDto));
     }
 
     @PostMapping(path = "/sign-out")
     public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
-        toolSetResourceService.signOut(toolSetResourceMapper.toResourceSignOutRequest(requestDto));
+        resourceCredentialService.signOut(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
     }
 
     @PostMapping(path = "/export",

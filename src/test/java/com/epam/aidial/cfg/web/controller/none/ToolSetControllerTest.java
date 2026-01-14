@@ -4,6 +4,8 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
+import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ToolSetController;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
@@ -55,6 +57,10 @@ class ToolSetControllerTest extends AbstractControllerNoneSecureTest {
 
     @MockitoBean
     private ToolSetFacade toolSetFacade;
+    @MockitoBean
+    private ResourceCredentialService resourceCredentialService;
+    @MockitoBean
+    private ResourceCredentialMapper resourceCredentialMapper;
 
     @Test
     void testGetAllToolSets() throws Exception {

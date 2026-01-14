@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
+import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.mapper.ToolSetResourceMapperImpl;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
@@ -21,6 +22,7 @@ import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
+import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.ToolSetEximService;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
 import com.epam.aidial.cfg.service.ZipToolSetEximService;
@@ -93,6 +95,12 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
 
     @MockitoBean
     private ZipToolSetEximService zipToolSetEximService;
+
+    @MockitoBean
+    private ResourceCredentialService resourceCredentialService;
+
+    @MockitoBean
+    private ResourceCredentialMapper resourceCredentialMapper;
 
     @Test
     void testGetAllToolSetResources() throws Exception {

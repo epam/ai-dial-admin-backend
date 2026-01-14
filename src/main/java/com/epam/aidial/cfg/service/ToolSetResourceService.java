@@ -18,8 +18,6 @@ import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
-import com.epam.aidial.cfg.model.ResourceSignInRequest;
-import com.epam.aidial.cfg.model.ResourceSignOutRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
@@ -47,7 +45,6 @@ import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 @LogExecution
 public class ToolSetResourceService implements ResourceService {
     private static final String BASE_PATH = "public/";
-    private static final String SIGN_IN_MESSAGE = "The '%s' field must have a value. Authentication type: '%s'";
     private final ToolSetClient toolSetClient;
     private final ToolSetClientMapper toolSetClientMapper;
     private final ResourceClient resourceClient;
@@ -187,36 +184,5 @@ public class ToolSetResourceService implements ResourceService {
         return coreClientUrl.endsWith("/")
                 ? coreClientUrl.substring(0, coreClientUrl.length() - 1)
                 : coreClientUrl;
-    }
-
-    public void signIn(ResourceSignInRequest request) {
-        validateSignInRequest(request);
-        toolSetClient.signInToolSetResource(toolSetClientMapper.toResourceSignInRequestDto(request));
-    }
-
-    public void signOut(ResourceSignOutRequest request) {
-        toolSetClient.signOutToolSetResource(toolSetClientMapper.toResourceSignOutRequestDto(request));
-    }
-
-    private void validateSignInRequest(ResourceSignInRequest request) {
-        var authenticationType = request.getAuthenticationType();
-        switch (authenticationType) {
-            case OAUTH -> {
-                if (StringUtils.isBlank(request.getCode())) {
-                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "code"));
-                }
-            }
-            case API_KEY -> {
-                if (StringUtils.isBlank(request.getApiKey())) {
-                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "apiKey"));
-                }
-            }
-            case NONE -> {
-                if (StringUtils.isNotBlank(request.getApiKey()) || StringUtils.isNotBlank(request.getCode())) {
-                    throw new IllegalArgumentException("Neither Api key nor Code is not required when auth type is None");
-                }
-            }
-            default -> throw new IllegalArgumentException("Unsupported authentication type: " + authenticationType);
-        }
     }
 }
