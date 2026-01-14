@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -344,8 +343,8 @@ public abstract class InterceptorFunctionalTest {
         updatedInterceptor.setSource(source);
 
         DeploymentInfoDto deploymentInfoDto = new InterceptorDeploymentInfoDto();
-        deploymentInfoDto.setId(UUID.fromString(containerId));
-        deploymentInfoDto.setName(containerName);
+        deploymentInfoDto.setId(containerId);
+        deploymentInfoDto.setDisplayName(containerName);
         deploymentInfoDto.setUrl(containerUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
@@ -423,8 +422,8 @@ public abstract class InterceptorFunctionalTest {
         String configPath = "/api/config";
 
         DeploymentInfoDto deploymentInfoDto = new InterceptorDeploymentInfoDto();
-        deploymentInfoDto.setId(UUID.fromString(containerId));
-        deploymentInfoDto.setName("Test Container");
+        deploymentInfoDto.setId(containerId);
+        deploymentInfoDto.setDisplayName("Test Container");
         deploymentInfoDto.setUrl(containerUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
@@ -467,13 +466,13 @@ public abstract class InterceptorFunctionalTest {
         String configPath = "/api/config";
 
         DeploymentInfoDto initialDeploymentInfo = new InterceptorDeploymentInfoDto();
-        initialDeploymentInfo.setId(UUID.fromString(containerId));
-        initialDeploymentInfo.setName(deploymentName);
+        initialDeploymentInfo.setId(containerId);
+        initialDeploymentInfo.setDisplayName(deploymentName);
         initialDeploymentInfo.setUrl(initialUrl);
 
         DeploymentInfoDto updatedDeploymentInfo = new InterceptorDeploymentInfoDto();
-        updatedDeploymentInfo.setId(UUID.fromString(containerId));
-        updatedDeploymentInfo.setName(deploymentName);
+        updatedDeploymentInfo.setId(containerId);
+        updatedDeploymentInfo.setDisplayName(deploymentName);
         updatedDeploymentInfo.setUrl(updatedUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId))

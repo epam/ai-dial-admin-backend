@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -238,8 +237,8 @@ public abstract class ToolSetFunctionalTest {
 
         McpDeploymentInfoDto deploymentInfoDto = new McpDeploymentInfoDto();
         deploymentInfoDto.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
-        deploymentInfoDto.setId(UUID.fromString(containerId));
-        deploymentInfoDto.setName("Test Container");
+        deploymentInfoDto.setId(containerId);
+        deploymentInfoDto.setDisplayName("Test Container");
         deploymentInfoDto.setUrl(containerUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
@@ -279,14 +278,14 @@ public abstract class ToolSetFunctionalTest {
         String refreshedToolSetName = "refresh-toolset";
 
         McpDeploymentInfoDto initialDeploymentInfo = new McpDeploymentInfoDto();
-        initialDeploymentInfo.setId(UUID.fromString(containerId));
-        initialDeploymentInfo.setName(deploymentName);
+        initialDeploymentInfo.setId(containerId);
+        initialDeploymentInfo.setDisplayName(deploymentName);
         initialDeploymentInfo.setUrl(initialUrl);
         initialDeploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
         McpDeploymentInfoDto updatedDeploymentInfo = new McpDeploymentInfoDto();
-        updatedDeploymentInfo.setId(UUID.fromString(containerId));
-        updatedDeploymentInfo.setName(deploymentName);
+        updatedDeploymentInfo.setId(containerId);
+        updatedDeploymentInfo.setDisplayName(deploymentName);
         updatedDeploymentInfo.setUrl(updatedUrl);
         updatedDeploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
