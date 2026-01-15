@@ -4,24 +4,35 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.model.EntitySyncStateStatus;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 @LogExecution
 public class EntitySyncStateResolver {
 
     private final ObjectMapper objectMapper;
+    private final ObjectMapper coreObjectMapper;
     private final CoreConfigReloadCache coreConfigReloadCache;
     private final EntitySyncStateStatusResolver syncStateStatusResolver;
+
+    public EntitySyncStateResolver(ObjectMapper objectMapper,
+                                   @Qualifier("coreJsonMapper") ObjectMapper coreObjectMapper,
+                                   CoreConfigReloadCache coreConfigReloadCache,
+                                   EntitySyncStateStatusResolver syncStateStatusResolver) {
+        this.objectMapper = objectMapper;
+        this.coreObjectMapper = coreObjectMapper;
+        this.coreConfigReloadCache = coreConfigReloadCache;
+        this.syncStateStatusResolver = syncStateStatusResolver;
+    }
 
     public <T> EntitySyncState resolveForEntityInObject(T currentState,
                                                         long currentStateUpdatedAt,
@@ -92,27 +103,25 @@ public class EntitySyncStateResolver {
         }
 
         JsonNode configStateJsonNode = entityFinder.apply(entitiesJsonNode);
-        JsonNode currentStateJsonNode = objectMapper.valueToTree(currentState);
-
-        // needed for at least transformation of POJONode to ObjectNode,
-        // so that subsequent call to {@link com.fasterxml.jackson.databind.JsonNode#equals(Object o)} will not return false
-        // when comparing identical POJONode and ObjectNode
-        JsonNode normalizedConfigStateJson = configStateJsonNode != null
-                ? objectMapper.readTree(objectMapper.writeValueAsString(configStateJsonNode))
-                : null;
-        JsonNode normalizedCurrentStateJson = objectMapper.readTree(objectMapper.writeValueAsString(currentStateJsonNode));
-
+        JsonNode normalizedCurrentStateJsonNode = getNormalizedCurrentStateJsonNode(currentState);
 
         EntitySyncStateStatus syncStateStatus = syncStateStatusResolver.resolve(
-                normalizedCurrentStateJson,
-                normalizedConfigStateJson,
+                normalizedCurrentStateJsonNode,
+                configStateJsonNode,
                 isCurrentStateValid,
                 currentStateUpdatedAt,
                 cacheEntry.reloadTimestamp()
         );
 
-        normalizedCurrentStateJson = isCurrentStateValid ? normalizedCurrentStateJson : null;
+        normalizedCurrentStateJsonNode = isCurrentStateValid ? normalizedCurrentStateJsonNode : null;
 
-        return new EntitySyncState(normalizedCurrentStateJson, normalizedConfigStateJson, syncStateStatus);
+        return new EntitySyncState(normalizedCurrentStateJsonNode, configStateJsonNode, syncStateStatus);
+    }
+
+    private <T> JsonNode getNormalizedCurrentStateJsonNode(T currentState) throws JsonProcessingException {
+        String serializedCurrentStateOnOurSide = objectMapper.writeValueAsString(currentState);
+        Object deserializedCurrentStateOnCoreSide = coreObjectMapper.readValue(serializedCurrentStateOnOurSide, currentState.getClass());
+        String serializedCurrentStateOnCoreSide = coreObjectMapper.writeValueAsString(deserializedCurrentStateOnCoreSide);
+        return objectMapper.readTree(serializedCurrentStateOnCoreSide);
     }
 }

@@ -18,7 +18,6 @@ import com.epam.aidial.core.config.CoreApplication;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -423,11 +422,11 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationFacade.createApplication(applicationDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode applicationState = coreApplication();
+        JsonNode applicationState = config.get("applications").get("application1");
 
         EntitySyncStateDto actualSyncState = applicationFacade.getSyncState(applicationDto.getName(), "*");
 
@@ -443,12 +442,13 @@ public abstract class ApplicationFunctionalTest {
         applicationDto.setDescription("description OLD");
         applicationFacade.createApplication(applicationDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configApplicationState = coreApplication();
-        JsonNode currentApplicationState = ((ObjectNode) coreApplication()).put("description", "description OLD");
+        JsonNode configApplicationState = config.get("applications").get("application1");
+        JsonNode currentApplicationState = configApplicationState.deepCopy();
+        ((ObjectNode) currentApplicationState).put("description", "description OLD");
 
         EntitySyncStateDto actualSyncState = applicationFacade.getSyncState(applicationDto.getName(), "*");
 
@@ -493,47 +493,42 @@ public abstract class ApplicationFunctionalTest {
                 .collect(Collectors.toMap(getName, Function.identity()));
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ObjectNode coreApplications = JsonNodeFactory.instance.objectNode();
-        coreApplications.set("application1", coreApplication());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("applications", coreApplications);
-
-        return config;
-    }
-
-    private JsonNode coreApplication() throws JsonProcessingException {
-        String application = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                  "name": "application1",
-                  "user_roles": [],
-                  "endpoint": "endpoint1",
-                  "display_name": "application1",
-                  "description": "description1",
-                  "forward_auth_token": false,
-                  "features": {
-                    "system_prompt_supported": true,
-                    "tools_supported": false,
-                    "seed_supported": false,
-                    "url_attachments_supported": false,
-                    "folder_attachments_supported": false,
-                    "allow_resume": true,
-                    "accessible_by_per_request_key": true,
-                    "content_parts_supported": false,
-                    "temperature_supported": true,
-                    "parallel_tool_calls_supported": true,
-                    "assistant_attachments_in_request_supported": false
-                  },
-                  "defaults": {},
-                  "interceptors": [],
-                  "description_keywords": [],
-                  "max_retry_attempts": 1,
-                  "created_at": 1000,
-                  "updated_at": 1000,
-                  "application_properties": {}
+                  "applications": {
+                    "application1": {
+                      "name": "application1",
+                      "user_roles": [],
+                      "endpoint": "endpoint1",
+                      "display_name": "application1",
+                      "description": "description1",
+                      "forward_auth_token": false,
+                      "features": {
+                        "system_prompt_supported": true,
+                        "tools_supported": false,
+                        "seed_supported": false,
+                        "url_attachments_supported": false,
+                        "folder_attachments_supported": false,
+                        "allow_resume": true,
+                        "accessible_by_per_request_key": true,
+                        "content_parts_supported": false,
+                        "temperature_supported": true,
+                        "parallel_tool_calls_supported": true,
+                        "assistant_attachments_in_request_supported": false
+                      },
+                      "defaults": {},
+                      "interceptors": [],
+                      "description_keywords": [],
+                      "max_retry_attempts": 1,
+                      "created_at": 1000,
+                      "updated_at": 1000,
+                      "dependencies": [],
+                      "application_properties": {}
+                    }
+                  }
                 }
                 """;
-        return OBJECT_MAPPER.readTree(application);
+        return OBJECT_MAPPER.readTree(config);
     }
 }
