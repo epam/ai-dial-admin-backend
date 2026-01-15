@@ -34,12 +34,12 @@ public class ResourceCredentialService {
         switch (authenticationType) {
             case OAUTH -> {
                 if (StringUtils.isBlank(request.getCode())) {
-                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "code"));
+                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, "code", authenticationType));
                 }
             }
             case API_KEY -> {
                 if (StringUtils.isBlank(request.getApiKey())) {
-                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, authenticationType, "apiKey"));
+                    throw new IllegalArgumentException(String.format(SIGN_IN_MESSAGE, "apiKey", authenticationType));
                 }
             }
             case NONE -> {

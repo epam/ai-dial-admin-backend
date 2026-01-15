@@ -6,7 +6,11 @@ import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
+import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
+import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.core.CoreToolSetService;
 import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.ToolSetDtoMapper;
@@ -15,6 +19,7 @@ import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -30,6 +35,8 @@ public class ToolSetFacade {
     private final ToolSetDtoMapper mapper;
     private final CoreToolSetService coreToolSetService;
     private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
+    private final ResourceCredentialService resourceCredentialService;
+    private final ResourceCredentialMapper resourceCredentialMapper;
 
     public Collection<ToolSetDto> getAllToolSets() {
         return toolSetService.getAll()
@@ -99,5 +106,13 @@ public class ToolSetFacade {
 
     public void refreshEndpoints() {
         toolSetService.refreshEndpoints();
+    }
+
+    public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
+        resourceCredentialService.signIn(resourceCredentialMapper.toResourceSignInRequest(requestDto));
+    }
+
+    public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
+        resourceCredentialService.signOut(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
     }
 }

@@ -5,8 +5,6 @@ import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
 import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
-import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
-import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.CoreToolSet;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -40,8 +38,6 @@ import java.util.Collection;
 public class ToolSetController extends AbstractController {
 
     private final ToolSetFacade toolSetFacade;
-    private final ResourceCredentialService resourceCredentialService;
-    private final ResourceCredentialMapper resourceCredentialMapper;
 
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ToolSetDto> getAllToolSets() {
@@ -121,11 +117,11 @@ public class ToolSetController extends AbstractController {
 
     @PostMapping(path = "/sign-in")
     public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
-        resourceCredentialService.signIn(resourceCredentialMapper.toResourceSignInRequest(requestDto));
+        toolSetFacade.signIn(requestDto);
     }
 
     @PostMapping(path = "/sign-out")
     public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
-        resourceCredentialService.signOut(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
+        toolSetFacade.signOut(requestDto);
     }
 }

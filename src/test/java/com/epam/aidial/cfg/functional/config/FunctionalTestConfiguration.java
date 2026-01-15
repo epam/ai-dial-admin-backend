@@ -1,6 +1,9 @@
 package com.epam.aidial.cfg.functional.config;
 
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
+import com.epam.aidial.cfg.client.ResourceCredentialClient;
+import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
+import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
@@ -29,6 +32,9 @@ import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
+import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
+import com.epam.aidial.cfg.mapper.ResourceCredentialMapperImpl;
+import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
@@ -146,6 +152,26 @@ public class FunctionalTestConfiguration {
     @Bean
     public CoreConfigReloadCache coreConfigReloadCache() {
         return Mockito.mock(CoreConfigReloadCache.class);
+    }
+
+    @Bean
+    public ResourceCredentialMapper resourceCredentialMapper() {
+        return new ResourceCredentialMapperImpl();
+    }
+
+    @Bean
+    public ResourceCredentialClientMapper resourceCredentialClientMapper() {
+        return new ResourceCredentialClientMapperImpl();
+    }
+
+    @Bean
+    public ResourceCredentialClient resourceCredentialClient() {
+        return Mockito.mock(ResourceCredentialClient.class);
+    }
+
+    @Bean
+    public ResourceCredentialService resourceCredentialService(ResourceCredentialClient client, ResourceCredentialClientMapper resourceCredentialMapper) {
+        return new ResourceCredentialService(client, resourceCredentialMapper);
     }
 
 }
