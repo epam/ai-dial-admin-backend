@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.ApplicationResource;
@@ -118,8 +119,12 @@ public class ApplicationResourceService implements ResourceService {
         var path = buildPath(createApplicationResource.getFolderId(), createApplicationResource.getName(),
                 createApplicationResource.getVersion());
         var headers = createHeadersForCreate(allowOverride, etag);
-        var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
-        return applicationMetadata.getHeaders().getETag();
+        try {
+            var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
+            return applicationMetadata.getHeaders().getETag();
+        } catch (ResourcePreconditionFailedException ex) {
+            throw OptimisticLockConflictException.onUpdate("Application Resource", applicationResourceDto.getName());
+        }
     }
 
     public String createApplicationResource(CreateApplicationResource createApplicationResource) {
