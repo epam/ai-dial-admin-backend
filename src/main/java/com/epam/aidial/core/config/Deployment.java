@@ -1,13 +1,13 @@
 package com.epam.aidial.core.config;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonAlias;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -66,5 +66,5 @@ public abstract class Deployment extends RoleBasedEntity {
     /**
      * Dependent deployments
      */
-    private List<String> dependencies; // 0.27.0
+    private List<String> dependencies = List.of(); // 0.27.0
 }

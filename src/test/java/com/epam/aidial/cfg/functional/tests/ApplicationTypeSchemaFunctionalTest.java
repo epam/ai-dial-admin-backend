@@ -21,8 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -452,11 +450,11 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenSchemaIsEqualToConfigSchema() throws JsonProcessingException {
         typeSchemaFacade.create(dto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode schemaState = coreSchema();
+        JsonNode schemaState = config.get("applicationTypeSchemas").get(0);
 
         EntitySyncStateDto actualSyncState = typeSchemaFacade.getSyncState(dto.getId(), "*");
 
@@ -471,12 +469,13 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setTitle("Sample Schema NEW");
         typeSchemaFacade.create(dto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configSchemaState = coreSchema();
-        JsonNode currentSchemaState = ((ObjectNode) coreSchema()).put("title", "Sample Schema NEW");
+        JsonNode configSchemaState = config.get("applicationTypeSchemas").get(0);
+        JsonNode currentSchemaState = configSchemaState.deepCopy();
+        ((ObjectNode) currentSchemaState).put("title", "Sample Schema NEW");
 
         EntitySyncStateDto actualSyncState = typeSchemaFacade.getSyncState(dto.getId(), "*");
 
@@ -485,91 +484,88 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ArrayNode coreSchemas = JsonNodeFactory.instance.arrayNode();
-        coreSchemas.add(coreSchema());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("applicationTypeSchemas", coreSchemas);
-
-        return config;
-    }
-
-    private JsonNode coreSchema() throws JsonProcessingException {
-        String schema = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                  "$schema": "https://dial.epam.com/application_type_schemas/schema#",
-                  "$id": "https://test-schema.example",
-                  "dial:applicationTypeEditorUrl": "https://test.com/billings",
-                  "dial:applicationTypeViewerUrl": "https://test.com/claims",
-                  "dial:applicationTypeDisplayName": "Claims Use case",
-                  "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
-                  "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
-                  "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
-                  "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
-                  "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
-                  "dial:appendApplicationPropertiesHeader": true,
-                  "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
-                  "dial:applicationTypeInterceptors": [],
-                  "dial:applicationTypeBucketCopy": "ENABLED",
-                  "$defs": {
-                    "ToolEndpointInfo": {
-                      "properties": {
-                        "name": {
-                          "title": "Name",
-                          "type": "string"
-                        },
-                        "method_url": {
-                          "title": "Method Url",
-                          "type": "string"
-                        },
-                        "method_type": {
-                          "$ref": "#/$defs/ToolEndpointInfoMethodType"
-                        },
-                        "description": {
-                          "title": "Description",
-                          "type": "string"
-                        },
-                        "parameters": {
-                          "items": {
-                            "$ref": "#/$defs/ToolEndpointParameterInfo"
+                  "applicationTypeSchemas": [
+                    {
+                      "$schema": "https://dial.epam.com/application_type_schemas/schema#",
+                      "$id": "https://test-schema.example",
+                      "dial:applicationTypeEditorUrl": "https://test.com/billings",
+                      "dial:applicationTypeViewerUrl": "https://test.com/claims",
+                      "dial:applicationTypeDisplayName": "Claims Use case",
+                      "dial:applicationTypeCompletionEndpoint": "https://test.io/openai/deployments/mindmap/chat/completions",
+                      "dial:applicationTypeConfigurationEndpoint": "https://test.io/openai/configuration",
+                      "dial:applicationTypeRateEndpoint": "https://test.io/openai/rate",
+                      "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
+                      "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+                      "dial:appendApplicationPropertiesHeader": true,
+                      "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
+                      "dial:applicationTypeInterceptors": [],
+                      "dial:applicationTypeBucketCopy": "ENABLED",
+                      "dial:applicationTypeIconUrl": null,
+                      "dial:applicationTypePlaybackSupport": null,
+                      "dial:applicationTypeRoutes": null,
+                      "$defs": {
+                        "ToolEndpointInfo": {
+                          "properties": {
+                            "name": {
+                              "title": "Name",
+                              "type": "string"
+                            },
+                            "method_url": {
+                              "title": "Method Url",
+                              "type": "string"
+                            },
+                            "method_type": {
+                              "$ref": "#/$defs/ToolEndpointInfoMethodType"
+                            },
+                            "description": {
+                              "title": "Description",
+                              "type": "string"
+                            },
+                            "parameters": {
+                              "items": {
+                                "$ref": "#/$defs/ToolEndpointParameterInfo"
+                              },
+                              "title": "Parameters",
+                              "type": "array"
+                            }
                           },
-                          "title": "Parameters",
-                          "type": "array"
+                          "required": [
+                            "name",
+                            "method_url",
+                            "method_type",
+                            "description",
+                            "parameters"
+                          ],
+                          "title": "ToolEndpointInfo",
+                          "type": "object"
+                        }
+                      },
+                      "properties": {
+                        "temperature": {
+                          "title": "Temperature",
+                          "type": "number",
+                          "dial:meta": {
+                            "dial:propertyKind": "server",
+                            "dial:propertyOrder": 1
+                          }
                         }
                       },
                       "required": [
-                        "name",
-                        "method_url",
-                        "method_type",
-                        "description",
-                        "parameters"
+                        "temperature",
+                        "instructions",
+                        "model",
+                        "web_api_toolset"
                       ],
-                      "title": "ToolEndpointInfo",
-                      "type": "object"
+                      "description": "testDescription",
+                      "type": "OBJECT",
+                      "title": "Sample Schema"
                     }
-                  },
-                  "properties": {
-                    "temperature": {
-                      "title": "Temperature",
-                      "type": "number",
-                      "dial:meta": {
-                        "dial:propertyKind": "server",
-                        "dial:propertyOrder": 1
-                      }
-                    }
-                  },
-                  "required": [
-                    "temperature",
-                    "instructions",
-                    "model",
-                    "web_api_toolset"
-                  ],
-                  "description": "testDescription",
-                  "type": "object",
-                  "title": "Sample Schema"
+                  ]
                 }
                 """;
-        return objectMapper.readTree(schema);
+        return objectMapper.readTree(config);
     }
 }
