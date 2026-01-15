@@ -58,7 +58,7 @@ public class ConfigExporter {
     private final FullToSelectedItemsExportRequestTransformer fullToSelectedItemsExportRequestTransformer;
 
     public ExportConfig getConfig(ExportRequest request) {
-        if (request instanceof FullExportRequest exportRequest && exportRequest.getTopics() != null) {
+        if (request instanceof FullExportRequest exportRequest && CollectionUtils.isNotEmpty(exportRequest.getTopics())) {
             request = fullToSelectedItemsExportRequestTransformer.transform(exportRequest);
         }
 
@@ -96,7 +96,7 @@ public class ConfigExporter {
     }
 
     public ExportConfigPreview preview(ExportRequest request) {
-        if (request instanceof FullExportRequest exportRequest && exportRequest.getTopics() != null) {
+        if (request instanceof FullExportRequest exportRequest && CollectionUtils.isNotEmpty(exportRequest.getTopics())) {
             request = fullToSelectedItemsExportRequestTransformer.transform(exportRequest);
         }
 
