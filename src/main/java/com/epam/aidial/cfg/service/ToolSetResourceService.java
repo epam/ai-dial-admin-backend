@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
 import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
@@ -127,8 +128,12 @@ public class ToolSetResourceService implements ResourceService {
         var path = buildPath(createToolSetResource.getFolderId(), createToolSetResource.getName(),
                 createToolSetResource.getVersion());
         var headers = createHeadersForCreate(allowOverride, etag);
-        var toolSetMetadata = toolSetClient.putToolSetResource(path, toolSetResourceDto, headers);
-        return toolSetMetadata.getHeaders().getETag();
+        try {
+            var toolSetMetadata = toolSetClient.putToolSetResource(path, toolSetResourceDto, headers);
+            return toolSetMetadata.getHeaders().getETag();
+        } catch (ResourcePreconditionFailedException ex) {
+            throw OptimisticLockConflictException.onUpdate("ToolSet Resource", createToolSetResource.getName());
+        }
     }
 
     public String createToolSetResource(CreateToolSetResource createToolSetResource) {

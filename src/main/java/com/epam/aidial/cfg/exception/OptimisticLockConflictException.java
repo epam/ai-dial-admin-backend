@@ -44,6 +44,16 @@ public class OptimisticLockConflictException extends RuntimeException {
         return new OptimisticLockConflictException(message);
     }
 
+    public static OptimisticLockConflictException onUpdate(String resourceType, String resourceId) {
+        log.debug("Optimistic lock conflict on update resource: {} '{}'",
+                resourceType, resourceId);
+        String message = String.format(
+                "Unable to update  %s '%s'. The data may have been modified by another user. "
+                        + "Please reload the data and try again.",
+                resourceType, resourceId);
+        return new OptimisticLockConflictException(message);
+    }
+
     public static OptimisticLockConflictException onGetSyncState(String entityType,
                                                                  String entityId,
                                                                  String expectedHash,
