@@ -9,9 +9,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -26,12 +26,18 @@ class EntitySyncStateResolverTest {
     @Mock
     private ObjectMapper objectMapper;
     @Mock
+    private ObjectMapper coreObjectMapper;
+    @Mock
     private CoreConfigReloadCache coreConfigReloadCache;
     @Mock
     private EntitySyncStateStatusResolver syncStateStatusResolver;
 
-    @InjectMocks
     private EntitySyncStateResolver syncStateResolver;
+
+    @BeforeEach
+    void setUp() {
+        syncStateResolver = new EntitySyncStateResolver(objectMapper, coreObjectMapper, coreConfigReloadCache, syncStateStatusResolver);
+    }
 
     @Test
     void resolveForEntityInObject_cacheIsEmpty_returnsUnknownState() {
@@ -97,9 +103,10 @@ class EntitySyncStateResolverTest {
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
         String currentStateJsonNodeAsString = "currentStateJsonNodeAsString";
-        when(objectMapper.writeValueAsString(currentStateJsonNode)).thenReturn(currentStateJsonNodeAsString);
+        when(objectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
+        when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
+        when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, null, true, currentStateUpdatedAt, configReloadTimestamp))
@@ -146,13 +153,11 @@ class EntitySyncStateResolverTest {
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
         String currentStateJsonNodeAsString = "currentStateJsonNodeAsString";
-        String requestedEntityJsonNodeAsString = "requestedEntityJsonNodeAsString";
-        when(objectMapper.writeValueAsString(currentStateJsonNode)).thenReturn(currentStateJsonNodeAsString);
-        when(objectMapper.writeValueAsString(requestedEntity)).thenReturn(requestedEntityJsonNodeAsString);
+        when(objectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
+        when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
+        when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
-        when(objectMapper.readTree(requestedEntityJsonNodeAsString)).thenReturn(requestedEntity);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.FULLY_SYNCED);
@@ -199,13 +204,11 @@ class EntitySyncStateResolverTest {
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
         String currentStateJsonNodeAsString = "currentStateJsonNodeAsString";
-        String requestedEntityJsonNodeAsString = "requestedEntityJsonNodeAsString";
-        when(objectMapper.writeValueAsString(currentStateJsonNode)).thenReturn(currentStateJsonNodeAsString);
-        when(objectMapper.writeValueAsString(requestedEntity)).thenReturn(requestedEntityJsonNodeAsString);
+        when(objectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
+        when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
+        when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
-        when(objectMapper.readTree(requestedEntityJsonNodeAsString)).thenReturn(requestedEntity);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, false, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
@@ -284,9 +287,10 @@ class EntitySyncStateResolverTest {
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
         String currentStateJsonNodeAsString = "currentStateJsonNodeAsString";
-        when(objectMapper.writeValueAsString(currentStateJsonNode)).thenReturn(currentStateJsonNodeAsString);
+        when(objectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
+        when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
+        when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, null, true, currentStateUpdatedAt, configReloadTimestamp))
@@ -335,13 +339,11 @@ class EntitySyncStateResolverTest {
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
         String currentStateJsonNodeAsString = "currentStateJsonNodeAsString";
-        String requestedEntityJsonNodeAsString = "requestedEntityJsonNodeAsString";
-        when(objectMapper.writeValueAsString(currentStateJsonNode)).thenReturn(currentStateJsonNodeAsString);
-        when(objectMapper.writeValueAsString(requestedEntity)).thenReturn(requestedEntityJsonNodeAsString);
+        when(objectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
+        when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
+        when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
-        when(objectMapper.readTree(requestedEntityJsonNodeAsString)).thenReturn(requestedEntity);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.FULLY_SYNCED);
@@ -390,13 +392,11 @@ class EntitySyncStateResolverTest {
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, configReloadTimestamp);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        when(objectMapper.valueToTree(currentState)).thenReturn(currentStateJsonNode);
         String currentStateJsonNodeAsString = "currentStateJsonNodeAsString";
-        String requestedEntityJsonNodeAsString = "requestedEntityJsonNodeAsString";
-        when(objectMapper.writeValueAsString(currentStateJsonNode)).thenReturn(currentStateJsonNodeAsString);
-        when(objectMapper.writeValueAsString(requestedEntity)).thenReturn(requestedEntityJsonNodeAsString);
+        when(objectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
+        when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
+        when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
-        when(objectMapper.readTree(requestedEntityJsonNodeAsString)).thenReturn(requestedEntity);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, false, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);

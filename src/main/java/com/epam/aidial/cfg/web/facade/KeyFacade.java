@@ -5,10 +5,8 @@ import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
-import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.service.core.CoreKeyService;
-import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.KeyDtoMapper;
 import com.epam.aidial.core.config.CoreKey;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,6 @@ public class KeyFacade {
     private final KeyService keyService;
     private final KeyDtoMapper mapper;
     private final CoreKeyService coreKeyService;
-    private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
 
     public Collection<KeyDto> getAllKeys() {
         return keyService.getAllKeys()
@@ -48,11 +45,6 @@ public class KeyFacade {
 
     public CoreWithDomainHash<CoreKey> getCoreKeyWithHash(String keyName) {
         return coreKeyService.getCoreKeyWithHash(keyName);
-    }
-
-    public EntitySyncStateDto getSyncState(String keyName, String hash) {
-        var syncState = coreKeyService.getSyncState(keyName, hash);
-        return entitySyncStateDtoMapper.toDto(syncState);
     }
 
     public void createKey(KeyDto keyDto) {

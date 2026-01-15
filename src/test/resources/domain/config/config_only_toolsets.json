@@ -53,7 +53,8 @@
           "second"
         ]
       },
-      "forward_per_request_key":false
+      "forward_per_request_key": false,
+      "dependencies": []
     }
   }
 }

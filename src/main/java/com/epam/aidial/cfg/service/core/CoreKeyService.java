@@ -8,8 +8,6 @@ import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException.OptimisticLockConflictExceptionDetails;
-import com.epam.aidial.cfg.model.EntitySyncState;
-import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
@@ -34,7 +32,6 @@ public class CoreKeyService {
     private final KeyService keyService;
     private final KeyCoreMapper keyCoreMapper;
     private final ConfigImporter configImporter;
-    private final EntitySyncStateResolver entitySyncStateResolver;
 
     @Transactional(readOnly = true)
     public CoreWithDomainHash<CoreKey> getCoreKeyWithHash(String keyName) {
@@ -67,24 +64,6 @@ public class CoreKeyService {
         config.setKeys(coreKeys);
 
         configImporter.importConfigWithOverride(config);
-    }
-
-    @Transactional(readOnly = true)
-    public EntitySyncState getSyncState(String keyName, String hash) {
-        assertHashNotNull(keyName, hash);
-
-        var keyWithHash = keyService.getKeyWithHash(keyName);
-        assertKeyWasNotUpdated(keyWithHash, hash, OptimisticLockConflictException::onGetSyncState);
-
-        var key = keyWithHash.model();
-        if (StringUtils.isBlank(key.getKey())) {
-            return EntitySyncState.unknown();
-        }
-
-        var coreKey = keyCoreMapper.mapKey(key);
-        boolean isKeyValid = key.getValidityState().isValid();
-
-        return entitySyncStateResolver.resolveForEntityInObject(coreKey, isKeyValid, key.getUpdatedAt(), "keys", key.getKey());
     }
 
     private void assertHashNotNull(String keyName, String hash) {
