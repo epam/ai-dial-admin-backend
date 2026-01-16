@@ -24,12 +24,10 @@ JOIN all_zero_groups g
 
 -- Update interceptors_order in interceptor_model according to values from temporary interceptor_model_ranked table
 UPDATE interceptor_model t
-SET interceptors_order = (
-    SELECT r.new_order
-    FROM interceptor_model_ranked r
-    WHERE r.model_name = t.model_name
-      AND r.interceptor_name = t.interceptor_name
-);
+SET interceptors_order = r.new_order
+FROM interceptor_model_ranked r
+WHERE t.model_name = r.model_name
+  AND t.interceptor_name = r.interceptor_name;
 
 -- Drop temporary tables
 DROP TABLE interceptor_model_ranked;
@@ -63,13 +61,11 @@ JOIN all_zero_groups g
 
 -- Update interceptors_order in interceptor_model_aud according to values from temporary interceptor_model_aud_ranked table
 UPDATE interceptor_model_aud t
-SET interceptors_order = (
-    SELECT r.new_order
-    FROM interceptor_model_aud_ranked r
-    WHERE r.model_name = t.model_name
-      AND r.rev = t.rev
-      AND r.interceptor_name = t.interceptor_name
-);
+SET interceptors_order = r.new_order
+FROM interceptor_model_aud_ranked r
+WHERE t.model_name = r.model_name
+  AND t.rev = r.rev
+  AND t.interceptor_name = r.interceptor_name;
 
 -- Drop temporary tables
 DROP TABLE interceptor_model_aud_ranked;
