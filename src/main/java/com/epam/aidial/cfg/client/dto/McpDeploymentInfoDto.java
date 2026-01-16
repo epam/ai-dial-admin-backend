@@ -7,8 +7,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +16,7 @@ public class McpDeploymentInfoDto extends DeploymentInfoDto {
     @NotNull
     private McpTransport transport = McpTransport.HTTP_STREAMING;
 
-    public McpDeploymentInfoDto(UUID id, String name, String url, McpTransport transport) {
+    public McpDeploymentInfoDto(String id, String name, String url, McpTransport transport) {
         super(id, name, url);
         this.transport = transport;
     }

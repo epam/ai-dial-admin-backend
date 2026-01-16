@@ -27,7 +27,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -37,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -344,8 +342,8 @@ public abstract class InterceptorFunctionalTest {
         updatedInterceptor.setSource(source);
 
         DeploymentInfoDto deploymentInfoDto = new InterceptorDeploymentInfoDto();
-        deploymentInfoDto.setId(UUID.fromString(containerId));
-        deploymentInfoDto.setName(containerName);
+        deploymentInfoDto.setId(containerId);
+        deploymentInfoDto.setDisplayName(containerName);
         deploymentInfoDto.setUrl(containerUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
@@ -423,8 +421,8 @@ public abstract class InterceptorFunctionalTest {
         String configPath = "/api/config";
 
         DeploymentInfoDto deploymentInfoDto = new InterceptorDeploymentInfoDto();
-        deploymentInfoDto.setId(UUID.fromString(containerId));
-        deploymentInfoDto.setName("Test Container");
+        deploymentInfoDto.setId(containerId);
+        deploymentInfoDto.setDisplayName("Test Container");
         deploymentInfoDto.setUrl(containerUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
@@ -467,13 +465,13 @@ public abstract class InterceptorFunctionalTest {
         String configPath = "/api/config";
 
         DeploymentInfoDto initialDeploymentInfo = new InterceptorDeploymentInfoDto();
-        initialDeploymentInfo.setId(UUID.fromString(containerId));
-        initialDeploymentInfo.setName(deploymentName);
+        initialDeploymentInfo.setId(containerId);
+        initialDeploymentInfo.setDisplayName(deploymentName);
         initialDeploymentInfo.setUrl(initialUrl);
 
         DeploymentInfoDto updatedDeploymentInfo = new InterceptorDeploymentInfoDto();
-        updatedDeploymentInfo.setId(UUID.fromString(containerId));
-        updatedDeploymentInfo.setName(deploymentName);
+        updatedDeploymentInfo.setId(containerId);
+        updatedDeploymentInfo.setDisplayName(deploymentName);
         updatedDeploymentInfo.setUrl(updatedUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId))
@@ -532,11 +530,11 @@ public abstract class InterceptorFunctionalTest {
         InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode interceptorState = coreInterceptor();
+        JsonNode interceptorState = config.get("interceptors").get("interceptor1");
 
         EntitySyncStateDto actualSyncState = interceptorFacade.getSyncState(interceptorDto.getName(), "*");
 
@@ -552,12 +550,13 @@ public abstract class InterceptorFunctionalTest {
         interceptorDto.setDescription("description OLD");
         interceptorFacade.createInterceptor(interceptorDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configInterceptorState = coreInterceptor();
-        JsonNode currentInterceptorState = ((ObjectNode) coreInterceptor()).put("description", "description OLD");
+        JsonNode configInterceptorState = config.get("interceptors").get("interceptor1");
+        JsonNode currentInterceptorState = configInterceptorState.deepCopy();
+        ((ObjectNode) currentInterceptorState).put("description", "description OLD");
 
         EntitySyncStateDto actualSyncState = interceptorFacade.getSyncState(interceptorDto.getName(), "*");
 
@@ -566,45 +565,47 @@ public abstract class InterceptorFunctionalTest {
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ObjectNode coreInterceptors = JsonNodeFactory.instance.objectNode();
-        coreInterceptors.set("interceptor1", coreInterceptor());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("interceptors", coreInterceptors);
-
-        return config;
-    }
-
-    private JsonNode coreInterceptor() throws JsonProcessingException {
-        String interceptor = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                  "name": "interceptor1",
-                  "endpoint": "https://endpoint.test.com/interceptor1",
-                  "displayName": "displayName1",
-                  "description": "description1",
-                  "forwardAuthToken": false,
-                  "features": {
-                    "system_prompt_supported": true,
-                    "tools_supported": false,
-                    "seed_supported": false,
-                    "url_attachments_supported": false,
-                    "folder_attachments_supported": false,
-                    "allow_resume": true,
-                    "accessible_by_per_request_key": true,
-                    "content_parts_supported": false,
-                    "temperature_supported": true,
-                    "parallel_tool_calls_supported": true,
-                    "assistant_attachments_in_request_supported": false
-                  },
-                  "defaults": {},
-                  "interceptors": [],
-                  "descriptionKeywords": [],
-                  "maxRetryAttempts": 1,
-                  "createdAt": 1000,
-                  "updatedAt": 1000
+                  "interceptors": {
+                    "interceptor1": {
+                      "name": "interceptor1",
+                      "userRoles": null,
+                      "endpoint": "https://endpoint.test.com/interceptor1",
+                      "displayName": "displayName1",
+                      "displayVersion": null,
+                      "iconUrl": null,
+                      "description": "description1",
+                      "reference": null,
+                      "forwardAuthToken": false,
+                      "features": {
+                        "system_prompt_supported": true,
+                        "tools_supported": false,
+                        "seed_supported": false,
+                        "url_attachments_supported": false,
+                        "folder_attachments_supported": false,
+                        "allow_resume": true,
+                        "accessible_by_per_request_key": true,
+                        "content_parts_supported": false,
+                        "temperature_supported": true,
+                        "parallel_tool_calls_supported": true,
+                        "assistant_attachments_in_request_supported": false
+                      },
+                      "inputAttachmentTypes": null,
+                      "maxInputAttachments": null,
+                      "defaults": {},
+                      "interceptors": [],
+                      "descriptionKeywords": [],
+                      "maxRetryAttempts": 1,
+                      "author": null,
+                      "createdAt": 1000,
+                      "updatedAt": 1000,
+                      "dependencies": []
+                    }
+                  }
                 }
                 """;
-        return OBJECT_MAPPER.readTree(interceptor);
+        return OBJECT_MAPPER.readTree(config);
     }
 }

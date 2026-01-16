@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -21,7 +20,7 @@ public class DeploymentManagerService {
     private final DeploymentManagerClient deploymentManagerClient;
     private final String deploymentClientUrl;
 
-    private final Cache<UUID, DeploymentInfoDto> deploymentCache;
+    private final Cache<String, DeploymentInfoDto> deploymentCache;
 
     public DeploymentManagerService(DeploymentManagerClient deploymentManagerClient,
                                     @Value("${plugins.deployment.manager.cache.expiration.interval}") long cacheExpirationInterval,
@@ -35,7 +34,7 @@ public class DeploymentManagerService {
 
     public DeploymentInfoDto getById(String id) {
         try {
-            return deploymentCache.get(UUID.fromString(id), () -> {
+            return deploymentCache.get(id, () -> {
                 log.debug("Deployment '{}' is not present in cache, loading from deployment manager client", id);
                 return getDeploymentInfoDto(id);
             });

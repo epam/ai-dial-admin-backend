@@ -1,5 +1,11 @@
 package com.epam.aidial.cfg.configuration;
 
+import com.epam.aidial.core.config.CoreCostLimit;
+import com.epam.aidial.core.config.CoreCostLimitMixinForCoreObjectMapper;
+import com.epam.aidial.core.config.CoreLimit;
+import com.epam.aidial.core.config.CoreLimitMixinForCoreObjectMapper;
+import com.epam.aidial.core.config.CoreUpstream;
+import com.epam.aidial.core.config.CoreUpstreamMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.validation.ValidationModule;
 import com.epam.aidial.ql.deserializers.json.QueryLanguageModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,6 +18,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Created by Aliaksei Kurnosau on 9/9/24.
@@ -20,8 +27,14 @@ import org.springframework.context.annotation.Configuration;
 public class JsonMapperConfiguration {
 
     @Bean
+    @Primary
     public JsonMapper getJsonMapper() {
         return createJsonMapper();
+    }
+
+    @Bean
+    public JsonMapper coreJsonMapper() {
+        return createCoreJsonMapper();
     }
 
     public static JsonMapper createJsonMapper() {
@@ -32,6 +45,15 @@ public class JsonMapperConfiguration {
     public static JsonMapper createPrettyJsonMapper() {
         return createDefaultJsonMapperBuilder()
                 .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
+    }
+
+    public static JsonMapper createCoreJsonMapper() {
+        return JsonMapper.builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .addMixIn(CoreLimit.class, CoreLimitMixinForCoreObjectMapper.class)
+                .addMixIn(CoreCostLimit.class, CoreCostLimitMixinForCoreObjectMapper.class)
+                .addMixIn(CoreUpstream.class, CoreUpstreamMixinForCoreObjectMapper.class)
                 .build();
     }
 

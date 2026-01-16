@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelContainerSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
@@ -26,7 +27,6 @@ import com.epam.aidial.core.config.CoreModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -492,14 +492,19 @@ public abstract class ModelFunctionalTest {
     @Test
     public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenModelIsEqualToConfigModel() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        UpstreamDto upstreamDto = new UpstreamDto();
+        upstreamDto.setEndpoint("http://localhost");
+        upstreamDto.setKey("secretKey");
+        upstreamDto.setExtraData("{\"temp\":951}");
         ModelDto modelDto = createModelDto("1");
+        modelDto.setUpstreams(List.of(upstreamDto));
         modelFacade.createModel(modelDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode modelState = coreModel();
+        JsonNode modelState = config.get("models").get("model1");
 
         EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
 
@@ -511,16 +516,22 @@ public abstract class ModelFunctionalTest {
     @Test
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenModelIsNotEqualToConfigModelAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
+        UpstreamDto upstreamDto = new UpstreamDto();
+        upstreamDto.setEndpoint("http://localhost");
+        upstreamDto.setKey("secretKey");
+        upstreamDto.setExtraData("{\"temp\":951}");
         ModelDto modelDto = createModelDto("1");
+        modelDto.setUpstreams(List.of(upstreamDto));
         modelDto.setDescription("description OLD");
         modelFacade.createModel(modelDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configModelState = coreModel();
-        JsonNode currentModelState = ((ObjectNode) coreModel()).put("description", "description OLD");
+        JsonNode configModelState = config.get("models").get("model1");
+        JsonNode currentModelState = configModelState.deepCopy();
+        ((ObjectNode) currentModelState).put("description", "description OLD");
 
         EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
 
@@ -599,46 +610,61 @@ public abstract class ModelFunctionalTest {
         return modelDto;
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ObjectNode coreModels = JsonNodeFactory.instance.objectNode();
-        coreModels.set("model1", coreModel());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("models", coreModels);
-
-        return config;
-    }
-
-    private JsonNode coreModel() throws JsonProcessingException {
-        String model = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                   "name": "model1",
-                   "userRoles": [],
-                   "displayName": "model1",
-                   "description": "description1",
-                   "forwardAuthToken": false,
-                   "features": {
-                     "system_prompt_supported": true,
-                     "tools_supported": false,
-                     "seed_supported": false,
-                     "url_attachments_supported": false,
-                     "folder_attachments_supported": false,
-                     "allow_resume": true,
-                     "accessible_by_per_request_key": true,
-                     "content_parts_supported": false,
-                     "temperature_supported": true,
-                     "parallel_tool_calls_supported": true,
-                     "assistant_attachments_in_request_supported": false
-                   },
-                   "defaults": {},
-                   "interceptors": [],
-                   "descriptionKeywords": [],
-                   "maxRetryAttempts": 1,
-                   "createdAt": 1000,
-                   "updatedAt": 1000,
-                   "upstreams": []
-                 }
+                  "models": {
+                    "model1": {
+                      "name": "model1",
+                      "userRoles": [],
+                      "endpoint": null,
+                      "displayName": "model1",
+                      "displayVersion": null,
+                      "iconUrl": null,
+                      "description": "description1",
+                      "reference": null,
+                      "forwardAuthToken": false,
+                      "features": {
+                        "system_prompt_supported": true,
+                        "tools_supported": false,
+                        "seed_supported": false,
+                        "url_attachments_supported": false,
+                        "folder_attachments_supported": false,
+                        "allow_resume": true,
+                        "accessible_by_per_request_key": true,
+                        "content_parts_supported": false,
+                        "temperature_supported": true,
+                        "parallel_tool_calls_supported": true,
+                        "assistant_attachments_in_request_supported": false
+                      },
+                      "inputAttachmentTypes": null,
+                      "maxInputAttachments":null,
+                      "defaults": {},
+                      "interceptors": [],
+                      "descriptionKeywords": [],
+                      "maxRetryAttempts": 1,
+                      "author": null,
+                      "createdAt": 1000,
+                      "updatedAt": 1000,
+                      "dependencies": [],
+                      "type": null,
+                      "tokenizerModel": null,
+                      "limits": null,
+                      "pricing": null,
+                      "upstreams": [
+                        {
+                          "endpoint": "http://localhost",
+                          "extraData": "{\\"temp\\":951}",
+                          "weight": 1,
+                          "tier":0
+                        }
+                      ],
+                      "overrideName": null,
+                      "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"]
+                    }
+                  }
+                }
                 """;
-        return OBJECT_MAPPER.readTree(model);
+        return OBJECT_MAPPER.readTree(config);
     }
 }
