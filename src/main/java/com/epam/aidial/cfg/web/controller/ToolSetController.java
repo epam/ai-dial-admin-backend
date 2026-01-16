@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
+import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.CoreToolSet;
@@ -111,5 +113,15 @@ public class ToolSetController extends AbstractController {
     public McpSchema.CallToolResult getDiscoveredTools(@PathVariable String toolSetName,
                                                        @RequestBody McpSchema.CallToolRequest callToolRequest) {
         return toolSetFacade.callTool(toolSetName, callToolRequest);
+    }
+
+    @PostMapping(path = "/sign-in")
+    public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
+        toolSetFacade.signIn(requestDto);
+    }
+
+    @PostMapping(path = "/sign-out")
+    public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
+        toolSetFacade.signOut(requestDto);
     }
 }
