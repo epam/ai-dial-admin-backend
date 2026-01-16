@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         property = "$type"
@@ -28,9 +26,9 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class DeploymentInfoDto {
     @NotNull
-    private UUID id;
+    private String id;
     @NotNull
-    private String name;
+    private String displayName;
     @Nullable
     private String url;
 }
