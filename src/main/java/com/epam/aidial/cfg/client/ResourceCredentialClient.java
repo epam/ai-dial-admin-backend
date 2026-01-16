@@ -17,16 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
         })
 public interface ResourceCredentialClient {
 
-    /**
-     * Implementation Details:
-     *
-     * <p>The response from the server does not include a Content-Type header. To handle this, a custom decoder was created
-     * to facilitate the decoding of the response.
-     *
-     * <p>For more information, refer to the custom decoder implementation in:
-     * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
-     */
-
     @PostMapping("/v1/ops/toolset/signin")
     void signInToolSetResource(@RequestBody ResourceSignInRequestDto request);
 

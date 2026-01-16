@@ -20,12 +20,12 @@ public class ResourceCredentialService {
     private final ResourceCredentialClient resourceCredentialClient;
     private final ResourceCredentialClientMapper resourceCredentialMapper;
 
-    public void signIn(ResourceSignInRequest request) {
+    public void signInToolSet(ResourceSignInRequest request) {
         validateSignInRequest(request);
         resourceCredentialClient.signInToolSetResource(resourceCredentialMapper.toResourceSignInRequestDto(request));
     }
 
-    public void signOut(ResourceSignOutRequest request) {
+    public void signOutToolSet(ResourceSignOutRequest request) {
         resourceCredentialClient.signOutToolSetResource(resourceCredentialMapper.toResourceSignOutRequestDto(request));
     }
 

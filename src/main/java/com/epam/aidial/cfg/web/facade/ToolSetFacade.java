@@ -109,10 +109,10 @@ public class ToolSetFacade {
     }
 
     public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
-        resourceCredentialService.signIn(resourceCredentialMapper.toResourceSignInRequest(requestDto));
+        resourceCredentialService.signInToolSet(resourceCredentialMapper.toResourceSignInRequest(requestDto));
     }
 
     public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
-        resourceCredentialService.signOut(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
+        resourceCredentialService.signOutToolSet(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
     }
 }

@@ -136,12 +136,12 @@ public class ToolSetResourceController {
 
     @PostMapping(path = "/sign-in")
     public void signIn(@RequestBody ResourceSignInRequestDto requestDto) {
-        resourceCredentialService.signIn(resourceCredentialMapper.toResourceSignInRequest(requestDto));
+        resourceCredentialService.signInToolSet(resourceCredentialMapper.toResourceSignInRequest(requestDto));
     }
 
     @PostMapping(path = "/sign-out")
     public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
-        resourceCredentialService.signOut(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
+        resourceCredentialService.signOutToolSet(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
     }
 
     @PostMapping(path = "/export",
