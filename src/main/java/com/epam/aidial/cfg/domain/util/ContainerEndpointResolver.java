@@ -212,7 +212,7 @@ public class ContainerEndpointResolver {
             BiConsumer<R, ContainerEndpoints> endpointConsumer,
             R target) {
 
-        String containerName = deploymentInfo.getName();
+        String containerName = deploymentInfo.getDisplayName();
         String containerUrl = deploymentInfo.getUrl();
         String completionPath = completionPathExtractor.apply(pathProvider);
         String configPath = configPathExtractor != null ? configPathExtractor.apply(pathProvider) : null;

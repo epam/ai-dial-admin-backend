@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
@@ -21,7 +20,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
@@ -53,8 +51,8 @@ public abstract class ToolSetHistoryFunctionalTest {
         String containerName = "Test Container";
         String endpointPath = "/some-path";
         McpDeploymentInfoDto deploymentInfoDto = new McpDeploymentInfoDto();
-        deploymentInfoDto.setId(UUID.fromString(containerId));
-        deploymentInfoDto.setName(containerName);
+        deploymentInfoDto.setId(containerId);
+        deploymentInfoDto.setDisplayName(containerName);
         deploymentInfoDto.setUrl(containerUrl);
         deploymentInfoDto.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
 
