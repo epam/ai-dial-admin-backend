@@ -13,7 +13,6 @@ import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreToolSet;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
@@ -47,7 +46,7 @@ class ConfigSplitterTest {
     }
 
     @Test
-    void splitConfig() throws JsonProcessingException {
+    void splitConfig() {
         ConfigSplitter splitter = new ConfigSplitter();
         Config configBody = new Config();
         configBody.getRoutes().put("route1", generateRoute());
@@ -69,7 +68,7 @@ class ConfigSplitterTest {
         configBody.getApplicationTypeSchemas().put("schema1", generateSchema());
         configBody.getToolsets().put("toolset1", generateToolSet());
 
-        List<ConfigPart> splittedConfig = splitter.splitConfig(configBody, this::encode, 400, 10);
+        List<ConfigPart> splittedConfig = splitter.splitConfig(configBody, this::encode, 500, 10);
 
         Assertions.assertEquals(9, splittedConfig.size());
         List<Config> expected = expected();

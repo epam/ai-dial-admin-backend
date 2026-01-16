@@ -115,8 +115,13 @@
       "maxRetryAttempts": 5,
       "createdAt": 123,
       "updatedAt": 123,
+      "dependencies": [],
       "type": "embedding",
-      "upstreams": []
+      "upstreams": [],
+      "fieldsHashingOrder": [
+        "prefix.body.tools",
+        "prefix.body.messages"
+      ]
     },
     "testModel1": {
       "name": "testModel1",
@@ -225,6 +230,7 @@
       "max_retry_attempts": 1,
       "created_at": 123,
       "updated_at": 123,
+      "dependencies": [],
       "application_properties": {}
     }
   },
@@ -241,6 +247,7 @@
       "max_retry_attempts": 1,
       "created_at": 123,
       "updated_at": 123,
+      "dependencies": [],
       "auth_settings": {
         "authentication_type": "oauth",
         "client_id": "some-client-id"

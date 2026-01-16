@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.config.transfer.exporter.util;
 
 import lombok.experimental.UtilityClass;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Set;
 
@@ -8,7 +9,7 @@ import java.util.Set;
 public class ExportUtils {
 
     public static boolean hasAnyRequestedTopic(Set<String> entityTopics, Set<String> requestedTopics) {
-        return requestedTopics == null
+        return CollectionUtils.isEmpty(requestedTopics)
                 || (entityTopics != null && requestedTopics.stream().anyMatch(entityTopics::contains));
     }
 }

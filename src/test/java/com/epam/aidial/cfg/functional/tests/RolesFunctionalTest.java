@@ -24,7 +24,6 @@ import com.epam.aidial.core.config.CoreShareResourceLimit;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -553,15 +552,17 @@ public abstract class RolesFunctionalTest {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         CostLimitDto costLimitDto = new CostLimitDto();
         costLimitDto.setWeek(BigDecimal.valueOf(10));
-        RoleDto roleDto = createRoleDto("1");
+        LimitDto dayLimit = new LimitDto();
+        dayLimit.setDay(10L);
+        RoleDto roleDto = createDtoWithLimits("1", Map.of("addon1", dayLimit));
         roleDto.setCostLimit(costLimitDto);
         roleFacade.createRole(roleDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode roleState = coreRole();
+        JsonNode roleState = config.get("roles").get("role1");
 
         EntitySyncStateDto actualSyncState = roleFacade.getSyncState(roleDto.getName(), "*");
 
@@ -575,18 +576,19 @@ public abstract class RolesFunctionalTest {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         CostLimitDto costLimitDto = new CostLimitDto();
         costLimitDto.setWeek(BigDecimal.valueOf(15));
-        RoleDto roleDto = createRoleDto("1");
+        LimitDto dayLimit = new LimitDto();
+        dayLimit.setDay(10L);
+        RoleDto roleDto = createDtoWithLimits("1", Map.of("addon1", dayLimit));
         roleDto.setCostLimit(costLimitDto);
         roleFacade.createRole(roleDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configRoleState = coreRole();
-        ObjectNode costLimitJsonNode = JsonNodeFactory.instance.objectNode();
-        costLimitJsonNode.put("week", 15);
-        JsonNode currentRoleState = ((ObjectNode) coreRole()).set("costLimit", costLimitJsonNode);
+        JsonNode configRoleState = config.get("roles").get("role1");
+        JsonNode currentRoleState = configRoleState.deepCopy();
+        ((ObjectNode) currentRoleState.get("costLimit")).put("week", 15);
 
         EntitySyncStateDto actualSyncState = roleFacade.getSyncState(roleDto.getName(), "*");
 
@@ -664,26 +666,33 @@ public abstract class RolesFunctionalTest {
         return roleDto;
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ObjectNode coreRoles = JsonNodeFactory.instance.objectNode();
-        coreRoles.set("role1", coreRole());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("roles", coreRoles);
-
-        return config;
-    }
-
-    private JsonNode coreRole() throws JsonProcessingException {
-        String role = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                  "name": "role1",
-                  "limits": {},
-                  "costLimit": {
-                    "week": 10.0
+                  "roles": {
+                    "role1": {
+                      "name": "role1",
+                      "limits": {
+                        "addon1": {
+                          "minute": 9223372036854775807,
+                          "day": 10,
+                          "week": 9223372036854775807,
+                          "month": 9223372036854775807,
+                          "requestHour": 9223372036854775807,
+                          "requestDay": 9223372036854775807
+                        }
+                      },
+                      "costLimit": {
+                        "minute": 9223372036854775807,
+                        "day": 9223372036854775807,
+                        "week": 10.0,
+                        "month": 9223372036854775807
+                        },
+                      "share":{}
+                    }
                   }
                 }
                 """;
-        return OBJECT_MAPPER.readTree(role);
+        return OBJECT_MAPPER.readTree(config);
     }
 }

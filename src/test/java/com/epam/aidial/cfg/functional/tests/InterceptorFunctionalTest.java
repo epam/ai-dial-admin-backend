@@ -27,7 +27,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -531,11 +530,11 @@ public abstract class InterceptorFunctionalTest {
         InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode interceptorState = coreInterceptor();
+        JsonNode interceptorState = config.get("interceptors").get("interceptor1");
 
         EntitySyncStateDto actualSyncState = interceptorFacade.getSyncState(interceptorDto.getName(), "*");
 
@@ -551,12 +550,13 @@ public abstract class InterceptorFunctionalTest {
         interceptorDto.setDescription("description OLD");
         interceptorFacade.createInterceptor(interceptorDto);
 
-        ObjectNode config = coreConfig();
+        JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 122000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode configInterceptorState = coreInterceptor();
-        JsonNode currentInterceptorState = ((ObjectNode) coreInterceptor()).put("description", "description OLD");
+        JsonNode configInterceptorState = config.get("interceptors").get("interceptor1");
+        JsonNode currentInterceptorState = configInterceptorState.deepCopy();
+        ((ObjectNode) currentInterceptorState).put("description", "description OLD");
 
         EntitySyncStateDto actualSyncState = interceptorFacade.getSyncState(interceptorDto.getName(), "*");
 
@@ -565,45 +565,47 @@ public abstract class InterceptorFunctionalTest {
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
     }
 
-    private ObjectNode coreConfig() throws JsonProcessingException {
-        ObjectNode coreInterceptors = JsonNodeFactory.instance.objectNode();
-        coreInterceptors.set("interceptor1", coreInterceptor());
-
-        ObjectNode config = JsonNodeFactory.instance.objectNode();
-        config.set("interceptors", coreInterceptors);
-
-        return config;
-    }
-
-    private JsonNode coreInterceptor() throws JsonProcessingException {
-        String interceptor = """
+    private JsonNode coreConfig() throws JsonProcessingException {
+        String config = """
                 {
-                  "name": "interceptor1",
-                  "endpoint": "https://endpoint.test.com/interceptor1",
-                  "displayName": "displayName1",
-                  "description": "description1",
-                  "forwardAuthToken": false,
-                  "features": {
-                    "system_prompt_supported": true,
-                    "tools_supported": false,
-                    "seed_supported": false,
-                    "url_attachments_supported": false,
-                    "folder_attachments_supported": false,
-                    "allow_resume": true,
-                    "accessible_by_per_request_key": true,
-                    "content_parts_supported": false,
-                    "temperature_supported": true,
-                    "parallel_tool_calls_supported": true,
-                    "assistant_attachments_in_request_supported": false
-                  },
-                  "defaults": {},
-                  "interceptors": [],
-                  "descriptionKeywords": [],
-                  "maxRetryAttempts": 1,
-                  "createdAt": 1000,
-                  "updatedAt": 1000
+                  "interceptors": {
+                    "interceptor1": {
+                      "name": "interceptor1",
+                      "userRoles": null,
+                      "endpoint": "https://endpoint.test.com/interceptor1",
+                      "displayName": "displayName1",
+                      "displayVersion": null,
+                      "iconUrl": null,
+                      "description": "description1",
+                      "reference": null,
+                      "forwardAuthToken": false,
+                      "features": {
+                        "system_prompt_supported": true,
+                        "tools_supported": false,
+                        "seed_supported": false,
+                        "url_attachments_supported": false,
+                        "folder_attachments_supported": false,
+                        "allow_resume": true,
+                        "accessible_by_per_request_key": true,
+                        "content_parts_supported": false,
+                        "temperature_supported": true,
+                        "parallel_tool_calls_supported": true,
+                        "assistant_attachments_in_request_supported": false
+                      },
+                      "inputAttachmentTypes": null,
+                      "maxInputAttachments": null,
+                      "defaults": {},
+                      "interceptors": [],
+                      "descriptionKeywords": [],
+                      "maxRetryAttempts": 1,
+                      "author": null,
+                      "createdAt": 1000,
+                      "updatedAt": 1000,
+                      "dependencies": []
+                    }
+                  }
                 }
                 """;
-        return OBJECT_MAPPER.readTree(interceptor);
+        return OBJECT_MAPPER.readTree(config);
     }
 }

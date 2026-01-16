@@ -927,6 +927,7 @@
         },
         "applicationProperties": {},
         "routes": [],
+        "dependencies": [],
         "validityState": {
           "valid": true
         }
