@@ -33,6 +33,7 @@ JOIN #interceptor_application_ranked r
 -- Drop temporary tables
 DROP TABLE #interceptor_application_ranked;
 DROP TABLE #all_zero_groups;
+GO
 
 -- AUDIT TABLE
 
@@ -72,3 +73,4 @@ JOIN #interceptor_application_aud_ranked r
 -- Drop temporary tables
 DROP TABLE #interceptor_application_aud_ranked;
 DROP TABLE #all_zero_groups;
+GO
