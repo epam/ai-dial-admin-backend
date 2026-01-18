@@ -84,6 +84,7 @@ public class RouteExporter {
         return getRoutes(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getDeployment().getName())
+                        .displayName(component.getDisplayName())
                         .description(component.getDescription())
                         .type(ExportConfigComponentType.ROUTE)
                         .build())

@@ -2192,15 +2192,30 @@ public abstract class ConfigTransferFunctionalTest {
                         Assertions.assertThat(preview.getKeys()).isEmpty();
                     }
                     Assertions.assertThat(preview.getRoles()).hasSize(1).first()
-                            .satisfies(role -> Assertions.assertThat(role.getName()).isEqualTo("default"));
+                            .satisfies(role -> {
+                                Assertions.assertThat(role.getName()).isEqualTo("default");
+                                Assertions.assertThat(role.getDisplayName()).isEqualTo("default");
+                            });
                     Assertions.assertThat(preview.getModels()).hasSize(1).first()
-                            .satisfies(model -> Assertions.assertThat(model.getName()).isEqualTo("testModel1"));
+                            .satisfies(model -> {
+                                Assertions.assertThat(model.getName()).isEqualTo("testModel1");
+                                Assertions.assertThat(model.getName()).isEqualTo("testModel1");
+                            });
                     Assertions.assertThat(preview.getApplications()).hasSize(1).first()
-                            .satisfies(app -> Assertions.assertThat(app.getName()).isEqualTo("testApplication1"));
+                            .satisfies(app -> {
+                                Assertions.assertThat(app.getName()).isEqualTo("testApplication1");
+                                Assertions.assertThat(app.getDisplayName()).isEqualTo("Test Application1");
+                            });
                     Assertions.assertThat(preview.getRoutes()).hasSize(1).first()
-                            .satisfies(route -> Assertions.assertThat(route.getName()).isEqualTo("test_route1"));
+                            .satisfies(route -> {
+                                Assertions.assertThat(route.getName()).isEqualTo("test_route1");
+                                Assertions.assertThat(route.getDisplayName()).isEqualTo("test_route1");
+                            });
                     Assertions.assertThat(preview.getInterceptors()).hasSize(1).first()
-                            .satisfies(interceptor -> Assertions.assertThat(interceptor.getName()).isEqualTo("testInterceptor1"));
+                            .satisfies(interceptor -> {
+                                Assertions.assertThat(interceptor.getName()).isEqualTo("testInterceptor1");
+                                Assertions.assertThat(interceptor.getDisplayName()).isEqualTo("Test Interceptor1");
+                            });
                     Assertions.assertThat(preview.getApplicationRunners()).hasSize(1).first()
                             .isInstanceOfSatisfying(ExportApplicationTypeSchemaInfo.class,
                                     appRunner -> Assertions.assertThat(appRunner.getId()).isEqualTo("https://test-schema-id.example"));
@@ -2250,13 +2265,19 @@ public abstract class ConfigTransferFunctionalTest {
                                         Assertions.assertThat(key.getRoles()).containsExactly("default");
                                     });
                     Assertions.assertThat(preview.getRoles()).hasSize(1).first()
-                            .satisfies(role -> Assertions.assertThat(role.getName()).isEqualTo("default"));
+                            .satisfies(role -> {
+                                Assertions.assertThat(role.getName()).isEqualTo("default");
+                                Assertions.assertThat(role.getDisplayName()).isEqualTo("default");
+                            });
                     Assertions.assertThat(preview.getModels()).hasSize(1).first()
                             .satisfies(model -> Assertions.assertThat(model.getName()).isEqualTo("testModel1"));
                     Assertions.assertThat(preview.getApplications()).hasSize(1).first()
                             .satisfies(app -> Assertions.assertThat(app.getName()).isEqualTo("testApplication1"));
                     Assertions.assertThat(preview.getRoutes()).hasSize(1).first()
-                            .satisfies(route -> Assertions.assertThat(route.getName()).isEqualTo("test_route1"));
+                            .satisfies(route -> {
+                                Assertions.assertThat(route.getName()).isEqualTo("test_route1");
+                                Assertions.assertThat(route.getDisplayName()).isEqualTo("test_route1");
+                            });
                     Assertions.assertThat(preview.getInterceptors()).hasSize(1).first()
                             .satisfies(interceptor -> Assertions.assertThat(interceptor.getName()).isEqualTo("testInterceptor1"));
                     Assertions.assertThat(preview.getApplicationRunners()).hasSize(1).first()

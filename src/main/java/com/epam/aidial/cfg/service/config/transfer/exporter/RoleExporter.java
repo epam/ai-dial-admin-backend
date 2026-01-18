@@ -74,6 +74,7 @@ public class RoleExporter {
         return getRoles(request, Set.of()).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getName())
+                        .displayName(component.getDisplayName())
                         .description(component.getDescription())
                         .type(ExportConfigComponentType.ROLE)
                         .build())
