@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.handler;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.CoreConfigReloadException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
@@ -123,7 +124,7 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler({Exception.class, CoreConfigReloadException.class})
     public ErrorView handleGeneralError(HttpServletRequest req, Exception ex) {
         log.warn("[{}] Request: {} raised ", req.getMethod(), req.getServletPath(), ex);
 

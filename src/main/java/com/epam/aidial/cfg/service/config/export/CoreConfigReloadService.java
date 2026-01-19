@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.export;
 
 import com.epam.aidial.cfg.client.CoreConfigClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.CoreConfigReloadException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,14 +28,14 @@ public class CoreConfigReloadService {
         this.delayReloadMilliseconds = delayReloadMilliseconds;
     }
 
-    public void reloadConfig() throws Exception {
+    public void reloadConfig() throws CoreConfigReloadException {
         try {
             configExportFacade.exportCurrentConfig();
             TimeUnit.MILLISECONDS.sleep(delayReloadMilliseconds);
             coreConfigClient.reload();
         } catch (Exception exception) {
-            log.error("Failed reload : {}", exception.getMessage(), exception);
-            throw exception;
+            log.error("Failed to reload core configuration", exception);
+            throw new CoreConfigReloadException("Core configuration reload failed");
         }
     }
 
