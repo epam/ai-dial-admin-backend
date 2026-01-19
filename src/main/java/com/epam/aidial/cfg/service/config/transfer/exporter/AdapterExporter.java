@@ -71,6 +71,7 @@ public class AdapterExporter {
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getName())
                         .description(component.getDescription())
+                        .displayName(component.getDisplayName())
                         .type(ExportConfigComponentType.ADAPTER)
                         .build())
                 .collect(Collectors.toList());

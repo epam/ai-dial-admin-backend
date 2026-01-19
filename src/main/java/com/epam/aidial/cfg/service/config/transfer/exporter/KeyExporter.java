@@ -87,6 +87,7 @@ public class KeyExporter {
                         .expiresAt(component.getExpiresAt())
                         .keyGeneratedAt(component.getKeyGeneratedAt())
                         .name(component.getName())
+                        .displayName(component.getDisplayName())
                         .description(component.getDescription())
                         .type(ExportConfigComponentType.KEY)
                         .build())
