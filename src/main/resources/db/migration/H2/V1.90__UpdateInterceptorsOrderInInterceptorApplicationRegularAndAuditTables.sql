@@ -24,10 +24,18 @@ JOIN all_zero_groups g
 
 -- Update interceptors_order in interceptor_application according to values from temporary interceptor_application_ranked table
 UPDATE interceptor_application t
-SET interceptors_order = r.new_order
-FROM interceptor_application_ranked r
-WHERE t.application_name = r.application_name
-  AND t.interceptor_name = r.interceptor_name;
+SET interceptors_order = (
+    SELECT r.new_order
+    FROM interceptor_application_ranked r
+    WHERE r.application_name = t.application_name
+      AND r.interceptor_name = t.interceptor_name
+)
+WHERE EXISTS (
+    SELECT 1
+    FROM interceptor_application_ranked r
+    WHERE r.application_name = t.application_name
+      AND r.interceptor_name = t.interceptor_name
+);  
 
 -- Drop temporary tables
 DROP TABLE interceptor_application_ranked;
@@ -61,11 +69,20 @@ JOIN all_zero_groups g
 
 -- Update interceptors_order in interceptor_application_aud according to values from temporary interceptor_application_aud_ranked table
 UPDATE interceptor_application_aud t
-SET interceptors_order = r.new_order
-FROM interceptor_application_aud_ranked r
-WHERE t.application_name = r.application_name
-  AND t.rev = r.rev
-  AND t.interceptor_name = r.interceptor_name;
+SET interceptors_order = (
+    SELECT r.new_order
+    FROM interceptor_application_aud_ranked r
+    WHERE r.application_name = t.application_name
+      AND r.rev = t.rev
+      AND r.interceptor_name = t.interceptor_name
+)
+WHERE EXISTS (
+    SELECT 1
+    FROM interceptor_application_aud_ranked r
+    WHERE r.application_name = t.application_name
+      AND r.rev = t.rev
+      AND r.interceptor_name = t.interceptor_name
+);
 
 -- Drop temporary tables
 DROP TABLE interceptor_application_aud_ranked;
