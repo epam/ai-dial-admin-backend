@@ -33,6 +33,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
@@ -294,7 +295,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateAndUpdateApplicationTypeSchema() {
         // given
-        dto.setTopics(Set.of("test", "example"));
+        dto.setTopics(new TreeSet<>(Set.of("test", "example")));
         dto.setApplicationTypeAssistantAttachmentsInRequestSupported(true);
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
@@ -303,7 +304,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         ApplicationTypeSchemaDto schemaDto = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(schemaDto).isEqualTo(dto);
         dto.setDescription("newDescription");
-        dto.setTopics(Set.of("newTopic"));
+        dto.setTopics(new TreeSet<>(Set.of("newTopic")));
         // when
         typeSchemaFacade.update(dto.getId(), dto, "*");
         // then

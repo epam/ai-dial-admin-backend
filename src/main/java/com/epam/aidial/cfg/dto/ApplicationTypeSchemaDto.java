@@ -15,10 +15,9 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 @NoArgsConstructor
@@ -92,7 +91,7 @@ public class ApplicationTypeSchemaDto {
 
     private List<String> required;
     private List<String> applications;
-    private Set<String> topics;
+    private TreeSet<String> topics;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;
     @EqualsAndHashCode.Exclude
@@ -135,7 +134,7 @@ public class ApplicationTypeSchemaDto {
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;
         this.applications = other.applications != null ? new ArrayList<>(other.applications) : null;
-        this.topics = other.topics != null ? new HashSet<>(other.topics) : null;
+        this.topics = other.topics != null ? new TreeSet<>(other.topics) : null;
         this.createdAt = other.createdAt;
         this.updatedAt = other.updatedAt;
     }

@@ -24,9 +24,10 @@
       "display_name": "Sample ToolSet",
       "description": "Git remote tool set",
       "description_keywords": [
+        "git",
         "MCP",
-        "tool",
-        "git"
+        "tool"
+
       ],
       "transport": "http",
       "allowed_tools": ["branch", "remote"],

@@ -21,6 +21,7 @@ import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -57,7 +58,7 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     )
     @OrderColumn
     private List<InterceptorEntity> interceptors = new ArrayList<>();
-    private List<String> topics;
+    private Set<String> topics;
     private int maxRetryAttempts = 1;
     private String author;
     private List<String> dependencies;

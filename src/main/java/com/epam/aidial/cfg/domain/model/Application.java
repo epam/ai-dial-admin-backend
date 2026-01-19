@@ -6,9 +6,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.net.URI;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @ToString(callSuper = true)
@@ -24,7 +24,7 @@ public class Application extends RoleBased {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
-    private LinkedHashSet<String> descriptionKeywords;
+    private Set<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Map<String, Object> defaults;
     private List<String> interceptors;

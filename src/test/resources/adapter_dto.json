@@ -2,5 +2,5 @@
     "name": "test_adapter",
     "displayName": "test_adapter",
     "baseEndpoint": "http://baseEndpoint1",
-    "topics": ["test1"]
+    "topics": ["test1", "adapter1"]
   }
