@@ -51,6 +51,7 @@ class EntitySyncStateStatusResolverTest {
 
         return Stream.of(
                 Arguments.of(currentState, null, true, 1, 1, EntitySyncStateStatus.IN_PROGRESS),
+                Arguments.of(currentState, null, true, 1, 12, EntitySyncStateStatus.IN_PROGRESS_TOO_LONG),
 
                 Arguments.of(currentState, currentState,
                         true, 1, 1, EntitySyncStateStatus.FULLY_SYNCED),
