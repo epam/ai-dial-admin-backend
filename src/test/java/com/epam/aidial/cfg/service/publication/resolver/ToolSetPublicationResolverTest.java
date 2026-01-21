@@ -8,8 +8,10 @@ import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
@@ -27,6 +29,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,6 +51,8 @@ class ToolSetPublicationResolverTest {
     private PublicationResourceUrlResolver publicationResourceUrlResolver;
     @Mock
     private ToolSetResourceService toolSetResourceService;
+    @Mock
+    private FilePublicationResolver filePublicationResolver;
     @Spy
     private PublicationClientMapperImpl publicationClientMapper;
 
@@ -120,6 +125,7 @@ class ToolSetPublicationResolverTest {
         when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         when(toolSetResourceService.getToolSetResource(REVIEW_TOOL_SET_PATH)).thenReturn(toolSetResource);
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(REVIEW_FOLDER + FILE_NAME));
 
         // when
         var result = toolSetPublicationResolver.resolvePublication(publicationDto);
@@ -169,6 +175,32 @@ class ToolSetPublicationResolverTest {
                 .hasMessageContaining("Found not applicable resource types: [PROMPT].")
                 .hasMessageContaining("Publication: PublicationDto")
                 .hasMessageContaining("resourceTypes=[FILE, TOOL_SET, PROMPT]");
+    }
+
+    @Test
+    void resolvePublicationShouldReturnMissingResourceWhenSomeResourceNotPresent() {
+        // given
+        var publicationResource = createPublicationResourceDto();
+        var ruleDto = createRuleDto();
+        var publicationDto = createPublicationDto(List.of(publicationResource),
+                List.of(ResourceTypeDto.TOOL_SET),
+                List.of(ruleDto));
+        var toolSetResource = createToolSetResource();
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(TOOL_SET_PREFIX + REVIEW_TOOL_SET_PATH);
+
+        when(toolSetResourceService.getToolSetResource(REVIEW_TOOL_SET_PATH)).thenThrow(ResourceNotFoundException.class);
+
+        // when
+        var result = toolSetPublicationResolver.resolvePublication(publicationDto);
+
+        // then
+        assertThat(result.getMissingResources()).hasSize(1);
+        var missingResource = result.getMissingResources().get(0);
+        assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.TOOL_SET);
+        assertThat(missingResource.getMessage()).isEqualTo("ToolSet not found");
+        assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testToolSet");
     }
 
     private PublicationResourceDto createPublicationResourceDto() {

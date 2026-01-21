@@ -37,6 +37,7 @@ import com.epam.aidial.metric.util.CollectorsUtils;
 import org.mapstruct.Mapper;
 
 import java.util.List;
+import java.util.Objects;
 
 @Mapper(componentModel = "spring")
 public interface PublicationMapper {
@@ -64,6 +65,7 @@ public interface PublicationMapper {
     default PromptPublicationDto toPromptPublicationDto(PromptPublication model, PublicationResourceAction action) {
         var prompts = model.getResources()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(PromptPublicationResource::getPrompt)
                 .map(this::toPromptDto)
                 .toList();
@@ -76,6 +78,7 @@ public interface PublicationMapper {
     default FilePublicationDto toFilePublicationDto(FilePublication model, PublicationResourceAction action) {
         var files = model.getResources()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(FilePublicationResource::getFile)
                 .map(this::toFileInfoDto)
                 .toList();
@@ -88,6 +91,7 @@ public interface PublicationMapper {
     default ApplicationResourcePublicationDto toApplicationResourcePublicationDto(ApplicationPublication model, PublicationResourceAction action) {
         var applicationResources = model.getResources()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(ApplicationPublicationResource::getApplicationResource)
                 .map(this::toApplicationResourceDto)
                 .toList();
@@ -102,6 +106,7 @@ public interface PublicationMapper {
     default ConversationPublicationDto toConversationPublicationDto(ConversationPublication model, PublicationResourceAction action) {
         var conversations = model.getResources()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(ConversationPublicationResource::getConversation)
                 .map(this::toConversationDto)
                 .toList();
@@ -116,6 +121,7 @@ public interface PublicationMapper {
     default ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model, PublicationResourceAction action) {
         List<ToolSetResourceDto> toolSetResources = model.getResources()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(ToolSetPublicationResource::getToolSetResource)
                 .map(this::toToolSetResourceDto)
                 .toList();
@@ -128,8 +134,15 @@ public interface PublicationMapper {
                                                           List<ToolSetResourceDto> toolSetResources);
 
     private PublicationResourceAction getAction(Publication model) {
-        return model.getResources()
-                .stream()
+        var resources = model.getResources().stream()
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (resources.isEmpty()) {
+            return null;
+        }
+
+        return resources.stream()
                 .map(PublicationResource::getAction)
                 .distinct()
                 .collect(CollectorsUtils.toSingleton(()

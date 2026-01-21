@@ -8,11 +8,13 @@ import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -27,6 +29,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +39,8 @@ class ApplicationPublicationResolverTest {
     private PublicationResourceUrlResolver publicationResourceUrlResolver;
     @Mock
     private ApplicationResourceService applicationService;
+    @Mock
+    private FilePublicationResolver filePublicationResolver;
     @Spy
     private PublicationClientMapperImpl publicationClientMapper;
 
@@ -180,6 +185,7 @@ class ApplicationPublicationResolverTest {
         when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(filesPrefix + reviewFolder + fileName);
         when(applicationService.getApplicationResource(reviewApplicationPath)).thenReturn(applicationResource);
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(reviewFolder + fileName));
 
         // when
         var result = applicationPublicationResolver.resolvePublication(publicationDto);
@@ -229,6 +235,74 @@ class ApplicationPublicationResolverTest {
                 .hasMessageContaining("Found not applicable resource types: [PROMPT].")
                 .hasMessageContaining("Publication: PublicationDto")
                 .hasMessageContaining("resourceTypes=[FILE, APPLICATION, PROMPT]");
+    }
+
+    @Test
+    void resolvePublicationShouldReturnMissingResourceWhenSomeResourceNotPresent() {
+        // given
+        var publicationPath = "testPublication";
+        var fullPath = "publications/" + publicationPath;
+        var applicationsPrefix = "applications/";
+        var filesPrefix = "files/";
+        var applicationName = "testApplication";
+        var fileName = "testFile";
+
+        var reviewFolder = "reviewFolder/";
+        var reviewApplicationPath = reviewFolder + applicationName;
+
+        var targetFolder = "targetFolder/";
+        var targetApplicationPath = targetFolder + applicationName;
+
+        var sourceFolder = "sourceFolder/";
+        var sourceFolderPath = sourceFolder + applicationName;
+
+        var publicationResource = new PublicationResourceDto();
+        publicationResource.setAction(PublicationResourceActionDto.ADD);
+        publicationResource.setTargetUrl(applicationsPrefix + targetApplicationPath);
+        publicationResource.setReviewUrl(applicationsPrefix + reviewApplicationPath);
+        publicationResource.setSourceUrl(applicationsPrefix + sourceFolderPath);
+
+        var filePublicationResource = new PublicationResourceDto();
+        filePublicationResource.setAction(PublicationResourceActionDto.ADD);
+        filePublicationResource.setTargetUrl(filesPrefix + targetFolder + fileName);
+        filePublicationResource.setReviewUrl(filesPrefix + reviewFolder + fileName);
+        filePublicationResource.setSourceUrl(filesPrefix + sourceFolder + fileName);
+
+        var ruleDto = new RuleDto();
+        ruleDto.setSource("role");
+        ruleDto.setFunction(RuleFunctionDto.EQUAL);
+        ruleDto.setTargets(List.of("admin"));
+
+        var publicationDto = new PublicationDto();
+        publicationDto.setUrl(fullPath);
+        publicationDto.setName("Test Publication");
+        publicationDto.setAuthor("Author Name");
+        publicationDto.setCreatedAt(100);
+        publicationDto.setTargetFolder(targetFolder);
+        publicationDto.setStatus(PublicationStatusDto.PENDING);
+        publicationDto.setResources(List.of(publicationResource, filePublicationResource));
+        publicationDto.setResourceTypes(List.of(ResourceTypeDto.FILE, ResourceTypeDto.APPLICATION));
+        publicationDto.setRules(List.of(ruleDto));
+
+        var applicationResource = new ApplicationResource();
+        applicationResource.setPath(reviewApplicationPath);
+        applicationResource.setFolderId(reviewFolder);
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(applicationsPrefix + reviewApplicationPath);
+        when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(filesPrefix + reviewFolder + fileName);
+        when(applicationService.getApplicationResource(reviewApplicationPath)).thenThrow(ResourceNotFoundException.class);
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(reviewFolder + fileName));
+
+        // when
+        var result = applicationPublicationResolver.resolvePublication(publicationDto);
+
+        assertThat(result.getMissingResources()).hasSize(1);
+        var missingResource = result.getMissingResources().get(0);
+        assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.APPLICATION);
+        assertThat(missingResource.getMessage()).isEqualTo("Application not found");
+        assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testApplication");
     }
 
 }

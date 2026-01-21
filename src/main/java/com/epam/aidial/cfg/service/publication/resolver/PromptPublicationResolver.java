@@ -9,11 +9,15 @@ import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
+import com.epam.aidial.cfg.model.PublicationMissingResource;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.prompt.PromptService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -35,10 +39,18 @@ public class PromptPublicationResolver extends PublicationResolver {
     public Publication resolvePublication(PublicationDto publicationDto) {
         checkForNotApplicableResourceTypes(publicationDto);
 
+        List<PublicationMissingResource> missingResources = new ArrayList<>();
         var promptResources = publicationDto.getResources().stream()
-                .map(resource -> getPromptPublication(resource, publicationDto.getStatus()))
+                .map(resourceInfo(publicationDto.getStatus()))
+                .map(prompt -> resolveResource(
+                        () -> getPromptPublication(prompt.resource(), prompt.status()),
+                        ResourceType.PROMPT,
+                        extractPromptPath(prompt.resource(), prompt.status()),
+                        missingResources,
+                        "Prompt not found"))
+                .flatMap(Optional::stream)
                 .toList();
-        return mapper.toPromptPublication(publicationDto, promptResources);
+        return mapper.toPromptPublication(publicationDto, promptResources, missingResources);
     }
 
     @Override

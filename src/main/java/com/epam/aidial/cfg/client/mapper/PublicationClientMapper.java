@@ -25,6 +25,7 @@ import com.epam.aidial.cfg.model.PromptPublication;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
 import com.epam.aidial.cfg.model.PublicationInfo;
 import com.epam.aidial.cfg.model.PublicationInfos;
+import com.epam.aidial.cfg.model.PublicationMissingResource;
 import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.ToolSetPublication;
@@ -71,58 +72,70 @@ public interface PublicationClientMapper {
                 .build();
     }
 
-    default PromptPublication toPromptPublication(PublicationDto dto, List<PromptPublicationResource> resources) {
+    default PromptPublication toPromptPublication(PublicationDto dto, List<PromptPublicationResource> resources,
+                                                  List<PublicationMissingResource> missingResources) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toPromptPublication(dto, path, resources);
+        return toPromptPublication(dto, path, resources, missingResources);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
     @Mapping(target = "resources", source = "resources")
-    PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources);
+    @Mapping(target = "missingResources", source = "missingResources")
+    PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources, List<PublicationMissingResource> missingResources);
 
-    default FilePublication toFilePublication(PublicationDto dto, List<FilePublicationResource> resources) {
+    default FilePublication toFilePublication(PublicationDto dto, List<FilePublicationResource> resources, List<PublicationMissingResource> missingResources) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toFilePublication(dto, path, resources);
+        return toFilePublication(dto, path, resources, missingResources);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
     @Mapping(target = "resources", source = "resources")
-    FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources);
+    @Mapping(target = "missingResources", source = "missingResources")
+    FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationMissingResource> missingResources);
 
-    default ApplicationPublication toApplicationPublication(PublicationDto dto, List<ApplicationPublicationResource> resources, List<String> files) {
+    default ApplicationPublication toApplicationPublication(PublicationDto dto, List<ApplicationPublicationResource> resources, List<String> files,
+                                                            List<PublicationMissingResource> missingResources) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toApplicationPublication(dto, path, resources, files);
-    }
-
-    @Mapping(target = "requestName", source = "dto.name")
-    @Mapping(target = "folderId", source = "dto.targetFolder")
-    @Mapping(target = "resources", source = "resources")
-    @Mapping(target = "files", source = "files")
-    ApplicationPublication toApplicationPublication(PublicationDto dto, String path, List<ApplicationPublicationResource> resources, List<String> files);
-
-    default ConversationPublication toConversationPublication(PublicationDto dto, List<ConversationPublicationResource> resources, List<String> files) {
-        var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toConversationPublication(dto, path, resources, files);
+        return toApplicationPublication(dto, path, resources, files, missingResources);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
-    ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<String> files);
+    @Mapping(target = "missingResources", source = "missingResources")
+    ApplicationPublication toApplicationPublication(PublicationDto dto, String path, List<ApplicationPublicationResource> resources, List<String> files,
+                                                    List<PublicationMissingResource> missingResources);
 
-    default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<String> files) {
+    default ConversationPublication toConversationPublication(PublicationDto dto, List<ConversationPublicationResource> resources, List<String> files,
+                                                              List<PublicationMissingResource> missingResources) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toToolSetPublication(dto, path, resources, files);
+        return toConversationPublication(dto, path, resources, files, missingResources);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
-    ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files);
+    @Mapping(target = "missingResources", source = "missingResources")
+    ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<String> files,
+                                                      List<PublicationMissingResource> missingResources);
+
+    default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<String> files,
+                                                    List<PublicationMissingResource> missingResources) {
+        var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
+        return toToolSetPublication(dto, path, resources, files, missingResources);
+    }
+
+    @Mapping(target = "requestName", source = "dto.name")
+    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "resources", source = "resources")
+    @Mapping(target = "files", source = "files")
+    @Mapping(target = "missingResources", source = "missingResources")
+    ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files,
+                                            List<PublicationMissingResource> missingResources);
 
     @Mapping(target = "sourceUrl", ignore = true)
     @Mapping(target = "targetUrl", ignore = true)
