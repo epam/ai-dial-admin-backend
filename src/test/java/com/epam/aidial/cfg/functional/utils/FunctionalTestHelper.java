@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class FunctionalTestHelper {
     public static RoleDto createRoleDto(String suffix) {
@@ -28,7 +29,7 @@ public class FunctionalTestHelper {
         roleDto.setName("role" + suffix);
         roleDto.setDescription("role" + suffix);
         roleDto.setDisplayName("role" + suffix);
-        roleDto.setTopics(Set.of("role" + suffix));
+        roleDto.setTopics(new TreeSet<>(Set.of("role" + suffix)));
         return roleDto;
     }
 
@@ -62,7 +63,7 @@ public class FunctionalTestHelper {
         adapterDto.setDisplayName("adapter" + suffix);
         adapterDto.setBaseEndpoint("https://endpoint.test.com/adapter" + suffix);
         adapterDto.setDescription("description" + suffix);
-        adapterDto.setTopics(Set.of("topic" + suffix));
+        adapterDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
         adapterDto.setModels(List.of());
         return adapterDto;
     }
@@ -88,7 +89,7 @@ public class FunctionalTestHelper {
 
     public static RouteDto createRouteDto(String suffix) {
         RouteDto routeDto = new RouteDto();
-        routeDto.setTopics(Set.of("topic" + suffix));
+        routeDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
         routeDto.setName("route" + suffix);
         routeDto.setDescription("description" + suffix);
         routeDto.setDisplayName("displayName" + suffix);
@@ -138,7 +139,7 @@ public class FunctionalTestHelper {
         keyDto.setProject("project" + suffix);
         keyDto.setProjectContactPoint("test@mail.com");
         keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
-        keyDto.setTopics(Set.of("topic" + suffix));
+        keyDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
         return keyDto;
     }
 
@@ -155,7 +156,7 @@ public class FunctionalTestHelper {
         interceptorDto.setDisplayName("displayName" + suffix);
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         interceptorDto.setEntities(List.of());
-        interceptorDto.setTopics(Set.of("topic1", "topic2"));
+        interceptorDto.setTopics(new TreeSet<>(Set.of("topic1", "topic2")));
         interceptorDto.setSource(new InterceptorEndpointsSourceDto());
         return interceptorDto;
     }

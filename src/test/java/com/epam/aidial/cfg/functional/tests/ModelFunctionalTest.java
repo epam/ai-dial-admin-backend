@@ -35,6 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -394,12 +396,12 @@ public abstract class ModelFunctionalTest {
     @Test
     public void shouldSaveAndReturnModelWithUniqueTopics() {
         ModelDto modelDto = createModelDto("1");
-        modelDto.setTopics(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        modelDto.setTopics(new TreeSet<>(Set.of("topic3", "topic2", "topic1")));
         modelFacade.createModel(modelDto);
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
 
-        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getTopics());
+        Assertions.assertEquals(new TreeSet<>(Set.of("topic1", "topic2", "topic3")), actual.getTopics());
     }
 
     @Test

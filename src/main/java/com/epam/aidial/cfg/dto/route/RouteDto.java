@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 @ToString(callSuper = true)
@@ -13,5 +13,5 @@ import java.util.Set;
 public class RouteDto extends BaseRouteDto {
     @NotBlank(message = "DisplayName is required")
     private String displayName;
-    private Set<String> topics;
+    private TreeSet<String> topics;
 }

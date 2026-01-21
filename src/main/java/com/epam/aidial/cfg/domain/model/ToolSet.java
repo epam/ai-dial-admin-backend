@@ -6,8 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @ToString(callSuper = true)
@@ -18,7 +18,7 @@ public class ToolSet extends SecuredRoleBased {
     private String iconUrl;
     private String description;
     private String displayName;
-    private LinkedHashSet<String> descriptionKeywords;
+    private Set<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private ToolSetSource source;
     private String author;

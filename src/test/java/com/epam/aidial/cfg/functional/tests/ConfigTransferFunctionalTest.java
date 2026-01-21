@@ -106,6 +106,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -825,7 +826,7 @@ public abstract class ConfigTransferFunctionalTest {
         runnerDto.setDisplayName("someRunner");
         runnerDto.setCompletionEndpoint("https://endpoint.test.com/api");
         runnerDto.setConfigurationEndpoint("https://endpoint.test.com/config");
-        runnerDto.setTopics(Set.of("topic1", "topic2"));
+        runnerDto.setTopics(new TreeSet<>(Set.of("topic1", "topic2")));
 
         InterceptorRunnerSourceDto runnerSource = new InterceptorRunnerSourceDto("someRunner");
         interceptorDto.setSource(runnerSource);
@@ -1052,79 +1053,79 @@ public abstract class ConfigTransferFunctionalTest {
 
         ApplicationTypeSchemaDto typeSchemaDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<>() {
         });
-        typeSchemaDto.setTopics(Set.of("c", "d"));
+        typeSchemaDto.setTopics(new TreeSet<>(Set.of("c", "d")));
         applicationTypeSchemaFacade.create(typeSchemaDto);
 
         URI customAppSchemaId = new URI("https://test-schema-id.example");
 
         ApplicationDto applicationDto1 = createBaseApplicationDto("1");
         applicationDto1.setCustomAppSchemaId(customAppSchemaId);
-        applicationDto1.setTopics(List.of("b", "c", "d"));
+        applicationDto1.setTopics(new TreeSet<>(Set.of("b", "c", "d")));
         applicationFacade.createApplication(applicationDto1);
 
         ApplicationDto applicationDto2 = createBaseApplicationDto("2");
         applicationDto2.setCustomAppSchemaId(customAppSchemaId);
-        applicationDto2.setTopics(List.of("c", "d"));
+        applicationDto2.setTopics(new TreeSet<>(Set.of("c", "d")));
         applicationFacade.createApplication(applicationDto2);
 
         ModelDto modelDto1 = createModelDto("1");
-        modelDto1.setTopics(List.of("a"));
+        modelDto1.setTopics(new TreeSet<>(Set.of("a")));
         modelFacade.createModel(modelDto1);
 
         ModelDto modelDto2 = createModelDto("2");
-        modelDto2.setTopics(List.of("c"));
+        modelDto2.setTopics(new TreeSet<>(Set.of("c")));
         modelFacade.createModel(modelDto2);
 
         ToolSetDto toolSetDto1 = createToolSetDtoWithoutRoleLimits("1");
-        toolSetDto1.setDescriptionKeywords(List.of("a", "b", "c"));
+        toolSetDto1.setDescriptionKeywords(new TreeSet<>(Set.of("a", "b", "c")));
         toolSetFacade.createToolSet(toolSetDto1);
 
         ToolSetDto toolSetDto2 = createToolSetDtoWithoutRoleLimits("2");
-        toolSetDto2.setDescriptionKeywords(List.of("e", "f"));
+        toolSetDto2.setDescriptionKeywords(new TreeSet<>(Set.of("e", "f")));
         toolSetFacade.createToolSet(toolSetDto2);
 
         KeyDto keyDto1 = createKeyDto("1");
-        keyDto1.setTopics(Set.of("a", "c"));
+        keyDto1.setTopics(new TreeSet<>(Set.of("a", "c")));
         keyFacade.createKey(keyDto1);
 
         KeyDto keyDto2 = createKeyDto("2");
-        keyDto2.setTopics(Set.of("b", "c"));
+        keyDto2.setTopics(new TreeSet<>(Set.of("b", "c")));
         keyFacade.createKey(keyDto2);
 
         RouteDto routeDto1 = createRouteDto("1");
-        routeDto1.setTopics(Set.of("c"));
+        routeDto1.setTopics(new TreeSet<>(Set.of("c")));
         routeFacade.createRoute(routeDto1);
 
         RouteDto routeDto2 = createRouteDto("2");
-        routeDto2.setTopics(Set.of("b", "d"));
+        routeDto2.setTopics(new TreeSet<>(Set.of("b", "d")));
         routeFacade.createRoute(routeDto2);
 
         RoleDto roleDto1 = createRoleDto("1");
-        roleDto1.setTopics(Set.of("a"));
+        roleDto1.setTopics(new TreeSet<>(Set.of("a")));
         roleFacade.createRole(roleDto1);
 
         RoleDto roleDto2 = createRoleDto("2");
-        roleDto2.setTopics(Set.of("c", "d", "e"));
+        roleDto2.setTopics(new TreeSet<>(Set.of("c", "d", "e")));
         roleFacade.createRole(roleDto2);
 
         AdapterDto adapterDto1 = createAdapterDto("1");
-        adapterDto1.setTopics(Set.of("a", "c"));
+        adapterDto1.setTopics(new TreeSet<>(Set.of("a", "c")));
         adapterFacade.createAdapter(adapterDto1);
 
         AdapterDto adapterDto2 = createAdapterDto("2");
-        adapterDto2.setTopics(Set.of("b", "c"));
+        adapterDto2.setTopics(new TreeSet<>(Set.of("b", "c")));
         adapterFacade.createAdapter(adapterDto2);
 
         InterceptorDto interceptorDto1 = createInterceptorDto("1");
-        interceptorDto1.setTopics(Set.of("c"));
+        interceptorDto1.setTopics(new TreeSet<>(Set.of("c")));
         interceptorFacade.createInterceptor(interceptorDto1);
 
         InterceptorDto interceptorDto2 = createInterceptorDto("2");
-        interceptorDto2.setTopics(Set.of("b", "c"));
+        interceptorDto2.setTopics(new TreeSet<>(Set.of("b", "c")));
         interceptorFacade.createInterceptor(interceptorDto2);
 
         InterceptorRunnerDto interceptorRunnerDto1 = new InterceptorRunnerDto();
-        interceptorRunnerDto1.setTopics(Set.of("b", "c"));
+        interceptorRunnerDto1.setTopics(new TreeSet<>(Set.of("b", "c")));
         interceptorRunnerDto1.setName("interceptorRunnerDto1");
         interceptorRunnerDto1.setDisplayName("interceptorRunnerDto1");
         interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto1);
@@ -1173,14 +1174,14 @@ public abstract class ConfigTransferFunctionalTest {
 
         ApplicationTypeSchemaDto typeSchemaDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<>() {
         });
-        typeSchemaDto.setTopics(Set.of("a", "b"));
+        typeSchemaDto.setTopics(new TreeSet<>(Set.of("b", "a")));
         applicationTypeSchemaFacade.create(typeSchemaDto);
 
         URI customAppSchemaId = new URI("https://test-schema-id.example");
 
         ApplicationDto applicationDto1 = createBaseApplicationDto("1");
         applicationDto1.setCustomAppSchemaId(customAppSchemaId);
-        applicationDto1.setTopics(List.of("b", "c", "d"));
+        applicationDto1.setTopics(new TreeSet<>(Set.of("b", "c", "d")));
         applicationFacade.createApplication(applicationDto1);
 
         // When
@@ -1467,7 +1468,7 @@ public abstract class ConfigTransferFunctionalTest {
         runnerDto.setDescription("Test interceptor runner");
         runnerDto.setCompletionEndpoint("https://test.com/completion");
         runnerDto.setConfigurationEndpoint("https://test.com/configuration");
-        runnerDto.setTopics(Set.of("topic1", "topic2"));
+        runnerDto.setTopics(new TreeSet(Set.of("topic2", "topic1")));
         interceptorRunnerFacade.createInterceptorRunner(runnerDto);
 
         // Create interceptors associated with the runner
