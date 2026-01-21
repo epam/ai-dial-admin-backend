@@ -16,6 +16,7 @@ import org.hibernate.envers.Audited;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -36,7 +37,7 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private String iconUrl;
     private String description;
     private String displayName;
-    private List<String> descriptionKeywords;
+    private Set<String> descriptionKeywords;
     private int maxRetryAttempts = 1;
     private String author;
 

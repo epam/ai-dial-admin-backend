@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -37,7 +38,7 @@ public class ApplicationDto extends RoleBasedDto {
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
     private List<String> interceptors;
-    private List<String> topics;
+    private TreeSet<String> topics;
     @Positive(message = "Max retry attempts should be greater than 0")
     private Integer maxRetryAttempts;
     private String author;

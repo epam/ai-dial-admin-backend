@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 public class RoleDto {
@@ -29,6 +29,6 @@ public class RoleDto {
 
     private List<String> grantedKeys;
     private CostLimitDto costLimit = new CostLimitDto();
-    private Set<String> topics;
+    private TreeSet<String> topics;
 
 }

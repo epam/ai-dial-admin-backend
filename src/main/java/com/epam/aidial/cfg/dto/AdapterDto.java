@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 public class AdapterDto {
@@ -27,5 +27,5 @@ public class AdapterDto {
     @EqualsAndHashCode.Exclude
     private Instant updatedAt;
     private List<String> models = new ArrayList<>();
-    private Set<String> topics;
+    private TreeSet<String> topics;
 }

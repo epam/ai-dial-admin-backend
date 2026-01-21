@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -324,12 +326,12 @@ public abstract class ToolSetFunctionalTest {
     @Test
     public void shouldSaveAndReturnToolSetWithUniqueDescriptionKeywords() {
         ToolSetDto toolSetDto = createToolSetDto("1");
-        toolSetDto.setDescriptionKeywords(List.of("topic1", "topic2", "topic1", "topic3", "topic2"));
+        toolSetDto.setDescriptionKeywords(new TreeSet<>(Set.of("topic1", "topic3", "topic2")));
         toolSetFacade.createToolSet(toolSetDto);
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
-        Assertions.assertEquals(List.of("topic1", "topic2", "topic3"), actual.getDescriptionKeywords());
+        Assertions.assertEquals(new TreeSet<>(Set.of("topic1", "topic2", "topic3")), actual.getDescriptionKeywords());
     }
 
     @Test

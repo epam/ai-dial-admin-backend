@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -220,7 +221,7 @@ public abstract class InterceptorRunnerFunctionalTest {
         interceptorRunnerDto.setDescription("description" + suffix);
         interceptorRunnerDto.setCompletionEndpoint("https://endpoint.test.com/completion" + suffix);
         interceptorRunnerDto.setConfigurationEndpoint("https://endpoint.test.com/configuration" + suffix);
-        interceptorRunnerDto.setTopics(Set.of("topic" + suffix));
+        interceptorRunnerDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
         return interceptorRunnerDto;
     }
     

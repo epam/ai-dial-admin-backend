@@ -21,6 +21,7 @@ import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -46,7 +47,7 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
-    private List<String> descriptionKeywords;
+    private Set<String> descriptionKeywords;
     private int maxRetryAttempts = 1;
     @Column(columnDefinition = "CLOB")
     private String defaults;
