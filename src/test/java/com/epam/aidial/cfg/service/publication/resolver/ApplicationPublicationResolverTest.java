@@ -210,7 +210,8 @@ class ApplicationPublicationResolverTest {
         var filePublicationResource1 = getFilePublicationDto();
         var filePublicationResource2 = getFilePublicationDto();
         var ruleDto = getRuleDto();
-        var publicationDto = getPublicationDto(List.of(publicationResource, filePublicationResource1, filePublicationResource2), List.of(ResourceTypeDto.FILE, ResourceTypeDto.APPLICATION), List.of(ruleDto));
+        var publicationDto = getPublicationDto(List.of(publicationResource, filePublicationResource1, filePublicationResource2),
+                List.of(ResourceTypeDto.FILE, ResourceTypeDto.APPLICATION), List.of(ruleDto));
         var applicationResource = new ApplicationResource();
         applicationResource.setPath(REVIEW_APPLICATION_PATH);
         applicationResource.setFolderId(REVIEW_FOLDER);
