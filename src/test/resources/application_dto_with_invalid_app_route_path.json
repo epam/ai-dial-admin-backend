@@ -1,6 +1,8 @@
 {
-  "custom_property_1": "custom_value_1",
-  "custom_property_2": "custom_value_2",
+  "applicationProperties": {
+    "custom_property_1": "custom_value_1",
+    "custom_property_2": "custom_value_2"
+  },
   "name": "test_application",
   "viewerUrl": "https://viewer.test.com",
   "editorUrl": "https://editor.test.com",
@@ -9,9 +11,6 @@
   "description": "It is a test application",
   "displayVersion": "1.0.0",
   "reference": "test_reference",
-  "userRoles": [
-    "testRole1"
-  ],
   "forwardAuthToken": true,
   "features": {
     "rateEndpoint": "https://endpoint.test.com/rate",
