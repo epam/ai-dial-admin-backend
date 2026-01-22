@@ -233,9 +233,9 @@ class ToolSetPublicationResolverTest {
         assertThat(result.getMissingResources()).hasSize(2);
         assertThat(result.getFiles()).hasSize(1);
         var missingResource1 = result.getMissingResources().get(0);
-        assertThat(missingResource1.getResourceType()).isEqualTo(ResourceType.APPLICATION);
+        assertThat(missingResource1.getResourceType()).isEqualTo(ResourceType.TOOL_SET);
         assertThat(missingResource1.getMessage()).isEqualTo("ToolSet not found");
-        assertThat(missingResource1.getPath()).isEqualTo("reviewFolder/testApplication");
+        assertThat(missingResource1.getPath()).isEqualTo("reviewFolder/testToolSet");
         var missingResource2 = result.getMissingResources().get(1);
         assertThat(missingResource2.getResourceType()).isEqualTo(ResourceType.FILE);
         assertThat(missingResource2.getMessage()).isEqualTo("File not found");
