@@ -124,7 +124,7 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({Exception.class, CoreConfigReloadException.class})
+    @ExceptionHandler(Exception.class)
     public ErrorView handleGeneralError(HttpServletRequest req, Exception ex) {
         log.warn("[{}] Request: {} raised ", req.getMethod(), req.getServletPath(), ex);
 
@@ -200,6 +200,14 @@ public class DefaultExceptionHandler {
                                                            HttpServletRequest req) {
         logUncaught(ex);
         return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(ex.getEtag()).build();
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({CoreConfigReloadException.class})
+    public ErrorView handleCoreConfigReloadException(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
+        return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     protected void logUncaught(final Exception e) {

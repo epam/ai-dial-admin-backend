@@ -34,8 +34,8 @@ public class CoreConfigReloadService {
             TimeUnit.MILLISECONDS.sleep(delayReloadMilliseconds);
             coreConfigClient.reload();
         } catch (Exception exception) {
-            log.error("Failed to reload core configuration", exception);
-            throw new CoreConfigReloadException("Core configuration reload failed");
+            log.error("Failed to reload configuration in DIAL Core", exception);
+            throw new CoreConfigReloadException("Failed to reload configuration in DIAL Core");
         }
     }
 
