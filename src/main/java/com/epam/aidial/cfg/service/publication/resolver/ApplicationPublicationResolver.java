@@ -45,7 +45,7 @@ public class ApplicationPublicationResolver extends PublicationResolver {
         List<PublicationMissingResource> missingResources = new ArrayList<>();
         var applicationResources = resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(ApplicationClientMapper.APPLICATIONS_PREFIX))
-                .map(app -> resolveResource(
+                .map(app -> resolveResourceAndCollectMissing(
                         () -> getApplicationPublication(app),
                         ResourceType.APPLICATION,
                         extractApplicationPath(app),

@@ -47,7 +47,7 @@ public class FilePublicationResolver extends PublicationResolver {
         List<PublicationMissingResource> missingResources = new ArrayList<>();
         var fileResources = publicationDto.getResources().stream()
                 .map(resourceInfo(publicationDto.getStatus()))
-                .map(file -> resolveResource(
+                .map(file -> resolveResourceAndCollectMissing(
                         () -> getFilePublication(file.resource(), file.status()),
                         ResourceType.FILE,
                         extractFilePath(file.resource(), file.status()),
@@ -89,7 +89,7 @@ public class FilePublicationResolver extends PublicationResolver {
     protected List<String> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList, List<PublicationMissingResource> missingResources) {
         return resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(FileClientMapper.FILES_PREFIX))
-                .map(resource -> resolveResource(
+                .map(resource -> resolveResourceAndCollectMissing(
                         () -> {
                             getFilePublication(resource.resource(), resource.status());
                             return extractFilePath(resource);

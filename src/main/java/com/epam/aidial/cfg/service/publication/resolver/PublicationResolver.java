@@ -61,7 +61,7 @@ public abstract class PublicationResolver {
         return extractPath(resourceInfo, FileClientMapper.FILES_PREFIX);
     }
 
-    public <T> Optional<T> resolveResource(
+    public <T> Optional<T> resolveResourceAndCollectMissing(
             Supplier<T> resolver,
             ResourceType type,
             String path,

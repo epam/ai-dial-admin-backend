@@ -42,7 +42,7 @@ public class PromptPublicationResolver extends PublicationResolver {
         List<PublicationMissingResource> missingResources = new ArrayList<>();
         var promptResources = publicationDto.getResources().stream()
                 .map(resourceInfo(publicationDto.getStatus()))
-                .map(prompt -> resolveResource(
+                .map(prompt -> resolveResourceAndCollectMissing(
                         () -> getPromptPublication(prompt.resource(), prompt.status()),
                         ResourceType.PROMPT,
                         extractPromptPath(prompt.resource(), prompt.status()),

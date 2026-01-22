@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.model.PublicationMissingResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
@@ -30,6 +31,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -178,7 +180,7 @@ class ToolSetPublicationResolverTest {
     }
 
     @Test
-    void resolvePublicationShouldReturnMissingResourceWhenSomeResourceNotPresent() {
+    void resolvePublicationShouldReturnSingleMissingResourceWhenSomeResourceNotPresent() {
         // given
         var publicationResource = createPublicationResourceDto();
         var ruleDto = createRuleDto();
@@ -201,6 +203,43 @@ class ToolSetPublicationResolverTest {
         assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.TOOL_SET);
         assertThat(missingResource.getMessage()).isEqualTo("ToolSet not found");
         assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testToolSet");
+    }
+
+    @Test
+    void resolvePublicationShouldReturnManyMissingResourceWhenSomeResourceNotPresent() {
+        // given
+        var publicationResource = createPublicationResourceDto();
+        var ruleDto = createRuleDto();
+        var publicationDto = createPublicationDto(List.of(publicationResource),
+                List.of(ResourceTypeDto.TOOL_SET),
+                List.of(ruleDto));
+        var toolSetResource = createToolSetResource();
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(TOOL_SET_PREFIX + REVIEW_TOOL_SET_PATH);
+
+        when(toolSetResourceService.getToolSetResource(REVIEW_TOOL_SET_PATH)).thenThrow(ResourceNotFoundException.class);
+        doAnswer(invocation -> {
+            List<PublicationMissingResource> missing = invocation.getArgument(1);
+            missing.add(new PublicationMissingResource(ResourceType.FILE, "/missing/file", "File not found"));
+            return List.of(REVIEW_FOLDER + FILE_NAME);
+        }).when(filePublicationResolver)
+                .resolveFileResourcePaths(anyList(), anyList());
+
+        // when
+        var result = (ToolSetPublication) toolSetPublicationResolver.resolvePublication(publicationDto);
+
+        // then
+        assertThat(result.getMissingResources()).hasSize(2);
+        assertThat(result.getFiles()).hasSize(1);
+        var missingResource1 = result.getMissingResources().get(0);
+        assertThat(missingResource1.getResourceType()).isEqualTo(ResourceType.APPLICATION);
+        assertThat(missingResource1.getMessage()).isEqualTo("ToolSet not found");
+        assertThat(missingResource1.getPath()).isEqualTo("reviewFolder/testApplication");
+        var missingResource2 = result.getMissingResources().get(1);
+        assertThat(missingResource2.getResourceType()).isEqualTo(ResourceType.FILE);
+        assertThat(missingResource2.getMessage()).isEqualTo("File not found");
+        assertThat(missingResource2.getPath()).isEqualTo("/missing/file");
     }
 
     private PublicationResourceDto createPublicationResourceDto() {

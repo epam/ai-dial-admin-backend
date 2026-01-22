@@ -46,7 +46,7 @@ public class ToolSetPublicationResolver extends PublicationResolver {
 
         var toolSetResources = resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(ToolSetClientMapper.TOOLSETS_PREFIX))
-                .map(resource -> resolveResource(
+                .map(resource -> resolveResourceAndCollectMissing(
                         () -> getToolSetPublication(resource),
                         ResourceType.TOOL_SET,
                         extractToolSetPath(resource),

@@ -46,7 +46,7 @@ public class ConversationPublicationResolver extends PublicationResolver {
 
         var conversations = resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(ConversationClientMapper.CONVERSATIONS_PREFIX))
-                .map(resource -> resolveResource(
+                .map(resource -> resolveResourceAndCollectMissing(
                         () -> getConversationPublication(resource),
                         ResourceType.CONVERSATION,
                         extractConversationPath(resource),
