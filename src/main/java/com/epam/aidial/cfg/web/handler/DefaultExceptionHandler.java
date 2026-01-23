@@ -203,11 +203,11 @@ public class DefaultExceptionHandler {
     }
 
     @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({CoreConfigReloadException.class})
     public ErrorView handleCoreConfigReloadException(HttpServletRequest req, Exception ex) {
         logUncaught(ex);
-        return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
+        return new ErrorView(req, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     protected void logUncaught(final Exception e) {
