@@ -21,5 +21,6 @@ public abstract class PublicationDto {
     private String folderId;
     private PublicationResourceActionDto action;
     private List<RuleDto> rules;
+    private List<PublicationMissingResourceDto> missingResources;
 
 }
