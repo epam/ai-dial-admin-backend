@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.handler;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.CoreConfigReloadException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
@@ -199,6 +200,14 @@ public class DefaultExceptionHandler {
                                                            HttpServletRequest req) {
         logUncaught(ex);
         return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(ex.getEtag()).build();
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler({CoreConfigReloadException.class})
+    public ErrorView handleCoreConfigReloadException(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
+        return new ErrorView(req, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     protected void logUncaught(final Exception e) {
