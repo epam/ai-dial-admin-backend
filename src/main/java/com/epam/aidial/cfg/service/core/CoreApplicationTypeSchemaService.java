@@ -74,7 +74,7 @@ public class CoreApplicationTypeSchemaService {
         assertApplicationTypeSchemaWasNotUpdated(schemaWithHash, hash, OptimisticLockConflictException::onGetSyncState);
 
         var schema = schemaWithHash.model();
-        var coreApplicationTypeSchema = schemaCoreMapper.mapToCoreApplicationTypeSchema(schema);
+        var coreApplicationTypeSchema = schemaCoreMapper.mapToCoreString(schema);
 
         return entitySyncStateResolver.resolveForEntityInArray(
                 coreApplicationTypeSchema,

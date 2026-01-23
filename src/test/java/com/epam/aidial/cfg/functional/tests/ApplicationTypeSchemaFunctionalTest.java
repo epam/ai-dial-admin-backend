@@ -504,9 +504,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
                       "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
                       "dial:applicationTypeInterceptors": [],
                       "dial:applicationTypeBucketCopy": "ENABLED",
-                      "dial:applicationTypeIconUrl": null,
-                      "dial:applicationTypePlaybackSupport": null,
-                      "dial:applicationTypeRoutes": null,
                       "$defs": {
                         "ToolEndpointInfo": {
                           "properties": {
@@ -561,7 +558,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
                         "web_api_toolset"
                       ],
                       "description": "testDescription",
-                      "type": "OBJECT",
+                      "type": "object",
                       "title": "Sample Schema"
                     }
                   ]
