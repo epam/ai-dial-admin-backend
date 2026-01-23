@@ -13,7 +13,12 @@
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
       "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
-      "endpoint": "https://endpoint1/embeddings"
+      "endpoint": "https://endpoint1/embeddings",
+      "source": {
+              "$type": "adapter",
+              "adapterName": "adapter1",
+              "completionEndpointPath": "testModel1/chat/completions"
+          }
     },
     "testModel2": {
       "type": "embedding",
@@ -246,5 +251,13 @@
         "clientSecret": "some-client-secret"
       }
     }
-  }
+  },
+  "adapters" : {
+      "adapter1" : {
+        "name" : "adapter1",
+        "displayName" : "direct openai connector",
+        "baseEndpoint" : "http://test/",
+        "description" : ""
+      }
+    }
 }
