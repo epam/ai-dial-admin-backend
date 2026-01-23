@@ -37,7 +37,7 @@ public class CoreModel extends Deployment {
         coreModel.setDefaults(null);
         coreModel.setInterceptors(null);
         coreModel.setDescriptionKeywords(null);
-        coreModel.setMaxRetryAttempts(null);
+        //coreModel.setMaxRetryAttempts(null);
         coreModel.setDependencies(null);
 
         return coreModel;
