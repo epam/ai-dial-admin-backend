@@ -67,7 +67,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .filter(upstream -> upstream.getKey() != null)
                 .collect(Collectors.toList());
 
-        CoreModel model = new CoreModel();
+        CoreModel model = CoreModel.empty();
         model.setUpstreams(upstreams);
         return model;
     }
@@ -82,7 +82,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
             authSettings.setClientSecret(value.getAuthSettings().getClientSecret());
         }
 
-        CoreToolSet toolSet = new CoreToolSet();
+        CoreToolSet toolSet = CoreToolSet.empty();
         toolSet.setAuthSettings(authSettings);
 
         return toolSet;

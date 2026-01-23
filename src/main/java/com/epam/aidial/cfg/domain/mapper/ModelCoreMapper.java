@@ -11,6 +11,7 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
@@ -27,11 +28,15 @@ public abstract class ModelCoreMapper {
     @Mapping(target = "name", source = "model.deployment.name")
     @Mapping(target = "userRoles", source = "model.deployment")
     @Mapping(target = "endpoint", source = "endpoint")
+    @Mapping(target = "forwardAuthToken", source = "model.forwardAuthToken", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+    @Mapping(target = "maxRetryAttempts", source = "model.maxRetryAttempts", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     public abstract CoreModel mapModel(Model model, String endpoint);
 
     @Mapping(target = "descriptionKeywords", source = "topics")
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "userRoles", source = "deployment")
+    @Mapping(target = "forwardAuthToken", source = "model.forwardAuthToken", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+    @Mapping(target = "maxRetryAttempts", source = "model.maxRetryAttempts", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     public abstract CoreModel mapModel(Model model);
 
     @Mapping(target = "deployment", source = "coreModel", qualifiedByName = "toDeployment")
