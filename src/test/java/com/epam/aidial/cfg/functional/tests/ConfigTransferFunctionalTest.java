@@ -2288,6 +2288,42 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExportPreview_AdminFormatModelWithAdapterDependencies_SelectedItemsExportRequest() throws IOException {
+        // given
+        String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                importConfig.getBytes()
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+        String testKey1Name = findKeyNameByProject("testProject1");
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(false);
+        request.setComponents(List.of(new ExportConfigComponent(
+                "testModel1",
+                ExportConfigComponentType.MODEL,
+                Set.of(ExportConfigComponentType.ADAPTER)
+        )));
+
+        // when
+        ExportConfigPreview configPreview = configTransfer.exportPreview(request);
+
+        // then
+        Assertions.assertThat(configPreview).isNotNull()
+                .satisfies(preview -> {
+                    Assertions.assertThat(preview.getModels()).hasSize(1).first()
+                            .satisfies(model -> Assertions.assertThat(model.getName()).isEqualTo("testModel1"));
+                    Assertions.assertThat(preview.getAdapters()).hasSize(1);
+                });
+    }
+
+    @Test
     void testImportZip() throws IOException {
         // given
         var inputStream = getZipInputStreamWithAdminConfig();
