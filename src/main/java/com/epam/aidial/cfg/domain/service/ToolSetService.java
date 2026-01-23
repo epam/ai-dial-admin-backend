@@ -210,7 +210,7 @@ public class ToolSetService {
         var toolSet = get(toolSetName);
         var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
         return toolCallService.callTool(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getDeployment().getName()),
-                toolSet.getTransport(), callToolRequest);
+                toolSet.getTransport(), getAuthHeaders(), callToolRequest);
     }
 
     @Transactional(readOnly = true)

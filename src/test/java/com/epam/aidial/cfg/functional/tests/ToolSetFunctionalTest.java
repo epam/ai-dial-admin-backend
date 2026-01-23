@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
@@ -12,7 +13,6 @@ import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
-import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -29,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,14 +42,11 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRo
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
-@TestPropertySource(properties = {
-        "core.client.url= http\\://localhost:3131"
-})
 public abstract class ToolSetFunctionalTest {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
@@ -67,8 +63,8 @@ public abstract class ToolSetFunctionalTest {
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
-
-
+    @Autowired
+    private CoreClientUrlUtils coreClientUrlUtils;
 
     @BeforeEach
     public void beforeEach() {
@@ -106,8 +102,7 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(AuthorizationTokenHolder.getToken()).thenReturn("Bearer Test");
-        Mockito.when(mcpClientFactory.create(argThat(headers -> headers.contains("http://localhost:3131/v1/toolset/ToolSet1/mcp")),
+        Mockito.when(mcpClientFactory.create(anyString(),
                         eq(Transport.HTTP), any()))
                 .thenReturn(mcpSyncClient);
 
@@ -125,7 +120,7 @@ public abstract class ToolSetFunctionalTest {
         var callToolRequest = Mockito.mock(McpSchema.CallToolRequest.class);
         var expectedCallToolResult = Mockito.mock(McpSchema.CallToolResult.class);
         var mcpSyncClient = Mockito.mock(McpSyncClient.class);
-        Mockito.when(mcpClientFactory.create(argThat(mcpEndpoint -> mcpEndpoint.contains("http://localhost:3131/v1/toolset/ToolSet1/mcp")),
+        Mockito.when(mcpClientFactory.create(anyString(),
                         eq(Transport.HTTP), any()))
                 .thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.initialize())
