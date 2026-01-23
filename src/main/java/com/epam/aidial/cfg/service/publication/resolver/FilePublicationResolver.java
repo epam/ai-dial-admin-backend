@@ -10,12 +10,16 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Publication;
+import com.epam.aidial.cfg.model.PublicationMissingResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -40,10 +44,18 @@ public class FilePublicationResolver extends PublicationResolver {
     public Publication resolvePublication(PublicationDto publicationDto) {
         checkForNotApplicableResourceTypes(publicationDto);
 
+        List<PublicationMissingResource> missingResources = new ArrayList<>();
         var fileResources = publicationDto.getResources().stream()
-                .map(resource -> getFilePublication(resource, publicationDto.getStatus()))
+                .map(resourceInfo(publicationDto.getStatus()))
+                .map(file -> resolveResourceAndCollectMissing(
+                        () -> getFilePublication(file.resource(), file.status()),
+                        ResourceType.FILE,
+                        extractFilePath(file.resource(), file.status()),
+                        missingResources,
+                        "File not found"))
+                .flatMap(Optional::stream)
                 .toList();
-        return mapper.toFilePublication(publicationDto, fileResources);
+        return mapper.toFilePublication(publicationDto, fileResources, missingResources);
     }
 
     @Override
@@ -72,5 +84,21 @@ public class FilePublicationResolver extends PublicationResolver {
     private String extractFilePath(PublicationResourceDto publicationResource, PublicationStatusDto status) {
         var path = resolver.resolveUrl(publicationResource, status);
         return fileClientMapper.parsePath(path).getPath();
+    }
+
+    protected List<String> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList, List<PublicationMissingResource> missingResources) {
+        return resourceInfoList.stream()
+                .filter(resourceUrlStartsWith(FileClientMapper.FILES_PREFIX))
+                .map(resource -> resolveResourceAndCollectMissing(
+                        () -> {
+                            getFilePublication(resource.resource(), resource.status());
+                            return extractFilePath(resource);
+                        },
+                        ResourceType.FILE,
+                        extractFilePath(resource),
+                        missingResources,
+                        "File not found"))
+                .flatMap(Optional::stream)
+                .toList();
     }
 }

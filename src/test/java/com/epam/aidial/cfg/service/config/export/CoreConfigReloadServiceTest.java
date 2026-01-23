@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.config.export;
 
 import com.epam.aidial.cfg.client.CoreConfigClient;
+import com.epam.aidial.cfg.exception.CoreConfigReloadException;
 import feign.FeignException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,7 @@ class CoreConfigReloadServiceTest {
         when(coreConfigClient.reload()).thenThrow(exception);
         // when
         Assertions.assertThatThrownBy(() -> coreConfigReloadService.reloadConfig())
-                .isInstanceOf(FeignException.Unauthorized.class);
+                .isInstanceOf(CoreConfigReloadException.class);
         // then
         verify(configExportFacade).exportCurrentConfig();
         verify(coreConfigClient).reload();

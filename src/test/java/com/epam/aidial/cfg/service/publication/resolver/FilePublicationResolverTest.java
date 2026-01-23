@@ -9,11 +9,13 @@ import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -140,6 +142,67 @@ class FilePublicationResolverTest {
                 .hasMessageContaining("Found not applicable resource types: [APPLICATION, PROMPT].")
                 .hasMessageContaining("Publication: PublicationDto")
                 .hasMessageContaining("resourceTypes=[FILE, APPLICATION, PROMPT]");
+    }
+
+    @Test
+    void resolvePublicationShouldReturnMissingResourceWhenSomeResourceNotPresent() {
+        // given
+        var publicationPath = "testPublication";
+        var fullPath = "publications/" + publicationPath;
+        var filePrefix = "files/";
+        var fileName = "testFile";
+
+        var reviewFolder = "reviewFolder/";
+        var reviewFilePath = reviewFolder + fileName;
+
+        var targetFolder = "targetFolder/";
+        var targetFilePath = targetFolder + fileName;
+
+        var sourceFolder = "sourceFolder/";
+        var sourceFolderPath = sourceFolder + fileName;
+
+        var publicationResource = new PublicationResourceDto();
+        publicationResource.setAction(PublicationResourceActionDto.ADD);
+        publicationResource.setTargetUrl(filePrefix + targetFilePath);
+        publicationResource.setReviewUrl(filePrefix + reviewFilePath);
+        publicationResource.setSourceUrl(filePrefix + sourceFolderPath);
+
+        var ruleDto = new RuleDto();
+        ruleDto.setSource("role");
+        ruleDto.setFunction(RuleFunctionDto.EQUAL);
+        ruleDto.setTargets(List.of("user"));
+
+        var publicationDto = new PublicationDto();
+        publicationDto.setUrl(fullPath);
+        publicationDto.setName("Test Publication");
+        publicationDto.setAuthor("Author Name");
+        publicationDto.setCreatedAt(100);
+        publicationDto.setTargetFolder(targetFolder);
+        publicationDto.setStatus(PublicationStatusDto.PENDING);
+        publicationDto.setResources(List.of(publicationResource));
+        publicationDto.setResourceTypes(List.of(ResourceTypeDto.FILE));
+        publicationDto.setRules(List.of(ruleDto));
+
+        var fileNodeInfo = FileNodeInfo.builder()
+                .path(reviewFilePath)
+                .folderId(reviewFolder)
+                .name(fileName)
+                .nodeType(NodeType.ITEM)
+                .build();
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(filePrefix + reviewFilePath);
+        when(fileService.getAll(any())).thenThrow(ResourceNotFoundException.class);
+
+        // when
+        var result = filePublicationResolver.resolvePublication(publicationDto);
+
+        // then
+        assertThat(result.getMissingResources()).hasSize(1);
+        var missingResource = result.getMissingResources().get(0);
+        assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.FILE);
+        assertThat(missingResource.getMessage()).isEqualTo("File not found");
+        assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testFile");
     }
 
 }
