@@ -20,6 +20,7 @@ public abstract class Publication {
     private long createdAt;
     private PublicationStatus status;
     private List<Rule> rules;
+    private List<PublicationMissingResource> missingResources;
 
     public abstract List<? extends PublicationResource> getResources();
 

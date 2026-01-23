@@ -8,10 +8,12 @@ import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Prompt;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
+import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.prompt.PromptService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -132,6 +134,64 @@ class PromptPublicationResolverTest {
                 .hasMessageContaining("Found not applicable resource types: [APPLICATION].")
                 .hasMessageContaining("Publication: PublicationDto")
                 .hasMessageContaining("resourceTypes=[FILE, APPLICATION, PROMPT]");
+    }
+
+    @Test
+    void resolvePublicationShouldReturnMissingResourceWhenSomeResourceNotPresent() {
+        // given
+        var publicationPath = "testPublication";
+        var fullPath = "publications/" + publicationPath;
+        var promptsPrefix = "prompts/";
+        var promptName = "testPrompt";
+
+        var reviewFolder = "reviewFolder/";
+        var reviewPromptPath = reviewFolder + promptName;
+
+        var targetFolder = "targetFolder/";
+        var targetPromptPath = targetFolder + promptName;
+
+        var sourceFolder = "sourceFolder/";
+        var sourceFolderPath = sourceFolder + promptName;
+
+        var publicationResource = new PublicationResourceDto();
+        publicationResource.setAction(PublicationResourceActionDto.ADD);
+        publicationResource.setTargetUrl(promptsPrefix + targetPromptPath);
+        publicationResource.setReviewUrl(promptsPrefix + reviewPromptPath);
+        publicationResource.setSourceUrl(promptsPrefix + sourceFolderPath);
+
+        var ruleDto = new RuleDto();
+        ruleDto.setSource("role");
+        ruleDto.setFunction(RuleFunctionDto.EQUAL);
+        ruleDto.setTargets(List.of("admin"));
+
+        var publicationDto = new PublicationDto();
+        publicationDto.setUrl(fullPath);
+        publicationDto.setName("Test Publication");
+        publicationDto.setAuthor("Author Name");
+        publicationDto.setCreatedAt(100);
+        publicationDto.setTargetFolder(targetFolder);
+        publicationDto.setStatus(PublicationStatusDto.PENDING);
+        publicationDto.setResources(List.of(publicationResource));
+        publicationDto.setResourceTypes(List.of(ResourceTypeDto.PROMPT));
+        publicationDto.setRules(List.of(ruleDto));
+
+        var prompt = new Prompt();
+        prompt.setPath(reviewPromptPath);
+        prompt.setFolderId(reviewFolder);
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(promptsPrefix + reviewPromptPath);
+        when(promptService.getPrompt(reviewPromptPath)).thenThrow(ResourceNotFoundException.class);
+
+        // when
+        var result = promptPublicationResolver.resolvePublication(publicationDto);
+
+        // then
+        assertThat(result.getMissingResources()).hasSize(1);
+        var missingResource = result.getMissingResources().get(0);
+        assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.PROMPT);
+        assertThat(missingResource.getMessage()).isEqualTo("Prompt not found");
+        assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testPrompt");
     }
 
 }
