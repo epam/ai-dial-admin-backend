@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
@@ -23,6 +24,7 @@ import com.epam.aidial.cfg.service.config.transfer.exporter.util.FullToSelectedI
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.utils.StringUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -138,7 +140,7 @@ public class ConfigExporter {
         resolveKeyDependencies(result);
         resolveRoleDependencies(request, result);
         resolveAppDependencies(request, result);
-        resolveModelDependencies(result);
+        resolveModelDependencies(request, result);
         resolveGlobalSettingsDependencies(result);
         request.setComponents(result);
     }
@@ -229,7 +231,7 @@ public class ConfigExporter {
         return selectedItemsExportRequest.getExportFormat() != CORE || application.getValidityState().isValid();
     }
 
-    private void resolveModelDependencies(List<ExportConfigComponent> updatedComponents) {
+    private void resolveModelDependencies(SelectedItemsExportRequest request, List<ExportConfigComponent> updatedComponents) {
         List<ExportConfigComponent> models = filterComponentsByType(updatedComponents, ExportConfigComponentType.MODEL);
 
         for (ExportConfigComponent component : models) {
@@ -239,6 +241,10 @@ public class ConfigExporter {
             }
             Model model = modelExporter.getModel(component.getName());
             processInterceptorDependencies(model.getInterceptors(), dependencies, updatedComponents);
+            if (request.getExportFormat() != CORE && model.getSource() != null
+                    && model.getSource() instanceof AdapterSource adapterSource) {
+                processAdapterDependencies(adapterSource.getAdapterName(), dependencies, updatedComponents);
+            }
         }
     }
 
@@ -246,6 +252,12 @@ public class ConfigExporter {
         if (dependencies.contains(ExportConfigComponentType.INTERCEPTOR) && CollectionUtils.isNotEmpty(interceptors)) {
             interceptors.forEach(interceptor ->
                     updatedComponents.add(new ExportConfigComponent(interceptor, ExportConfigComponentType.INTERCEPTOR)));
+        }
+    }
+
+    private void processAdapterDependencies(String adapter, Set<ExportConfigComponentType> dependencies, List<ExportConfigComponent> updatedComponents) {
+        if (dependencies.contains(ExportConfigComponentType.ADAPTER) && StringUtils.isNotBlank(adapter)) {
+            updatedComponents.add(new ExportConfigComponent(adapter, ExportConfigComponentType.ADAPTER));
         }
     }
 
