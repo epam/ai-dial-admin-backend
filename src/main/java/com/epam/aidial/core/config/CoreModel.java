@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -24,5 +25,21 @@ public class CoreModel extends Deployment {
 
     public CoreModel() {
         setMaxRetryAttempts(5);
+    }
+
+    @JsonIgnore
+    public static CoreModel empty() {
+        CoreModel coreModel = new CoreModel();
+
+        coreModel.setUpstreams(null);
+        coreModel.setFieldsHashingOrder(null);
+        coreModel.setForwardAuthToken(null);
+        coreModel.setDefaults(null);
+        coreModel.setInterceptors(null);
+        coreModel.setDescriptionKeywords(null);
+        //coreModel.setMaxRetryAttempts(null);
+        coreModel.setDependencies(null);
+
+        return coreModel;
     }
 }

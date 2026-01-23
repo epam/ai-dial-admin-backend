@@ -200,7 +200,8 @@
         "dep2"
       ],
       "application_properties": {},
-      "application_type_schema_id": "https://test-schema-id.example"
+      "application_type_schema_id": "https://test-schema-id.example",
+      "routes": {}
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -231,7 +232,8 @@
       "created_at": 123,
       "updated_at": 123,
       "dependencies": [],
-      "application_properties": {}
+      "application_properties": {},
+      "routes": {}
     }
   },
   "toolsets": {

@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -31,5 +32,21 @@ public class CoreToolSet extends CoreSecuredResource {
 
     public CoreToolSet() {
         super();
+    }
+
+    @JsonIgnore
+    public static CoreToolSet empty() {
+        CoreToolSet coreToolSet = new CoreToolSet();
+
+        coreToolSet.setAllowedTools(null);
+        coreToolSet.setAuthSettings(null);
+        coreToolSet.setForwardAuthToken(null);
+        coreToolSet.setDefaults(null);
+        coreToolSet.setInterceptors(null);
+        coreToolSet.setDescriptionKeywords(null);
+        coreToolSet.setMaxRetryAttempts(null);
+        coreToolSet.setDependencies(null);
+
+        return coreToolSet;
     }
 }
