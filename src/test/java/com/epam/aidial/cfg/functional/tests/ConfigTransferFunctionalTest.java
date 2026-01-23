@@ -120,6 +120,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBa
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRouteDto;
@@ -2284,6 +2285,37 @@ public abstract class ConfigTransferFunctionalTest {
                     Assertions.assertThat(preview.getApplicationRunners()).hasSize(1).first()
                             .isInstanceOfSatisfying(ExportApplicationTypeSchemaInfo.class,
                                     appRunner -> Assertions.assertThat(appRunner.getId()).isEqualTo("https://test-schema-id.example"));
+                });
+    }
+
+    @Test
+    void testExportPreview_AdminFormatModelWithAdapterDependencies_SelectedItemsExportRequest() {
+        // given
+        var adapter = createAdapterDto("1");
+        adapterFacade.createAdapter(adapter);
+
+        var model = createModelDtoWithAdapter("1");
+        modelFacade.createModel(model);
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(false);
+        request.setComponents(List.of(new ExportConfigComponent(
+                "model1",
+                ExportConfigComponentType.MODEL,
+                Set.of(ExportConfigComponentType.ADAPTER)
+        )));
+
+        // when
+        ExportConfigPreview configPreview = configTransfer.exportPreview(request);
+
+        // then
+        Assertions.assertThat(configPreview).isNotNull()
+                .satisfies(preview -> {
+                    Assertions.assertThat(preview.getModels()).hasSize(1).first()
+                            .satisfies(m -> Assertions.assertThat(m.getName()).isEqualTo("model1"));
+                    Assertions.assertThat(preview.getAdapters()).hasSize(1).first()
+                            .satisfies(a -> Assertions.assertThat(a.getName()).isEqualTo("adapter1"));
                 });
     }
 

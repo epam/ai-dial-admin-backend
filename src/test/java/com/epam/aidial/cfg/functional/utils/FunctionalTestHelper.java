@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.core.config.CoreFeatures;
@@ -39,6 +40,12 @@ public class FunctionalTestHelper {
         modelDto.setDisplayName("model" + suffix);
         modelDto.setDescription("description" + suffix);
         modelDto.setMaxRetryAttempts(1);
+        return modelDto;
+    }
+
+    public static ModelDto createModelDtoWithAdapter(String suffix) {
+        ModelDto modelDto = createModelDto(suffix);
+        modelDto.setSource(new AdapterSourceDto("adapter" + suffix, "https://endpoint1/chat/completions"));
         return modelDto;
     }
 
