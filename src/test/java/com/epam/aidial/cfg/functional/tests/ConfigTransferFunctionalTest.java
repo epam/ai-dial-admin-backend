@@ -120,6 +120,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBa
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRouteDto;
@@ -2288,25 +2289,19 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
-    void testExportPreview_AdminFormatModelWithAdapterDependencies_SelectedItemsExportRequest() throws IOException {
+    void testExportPreview_AdminFormatModelWithAdapterDependencies_SelectedItemsExportRequest() {
         // given
-        String importConfig = FileUtils.readFileToString(new File("src/test/resources/import_for_export.json"),
-                StandardCharsets.UTF_8);
-        MockMultipartFile mockFile = new MockMultipartFile(
-                "file",
-                "test.json",
-                "application/json",
-                importConfig.getBytes()
-        );
+        var adapter = createAdapterDto("1");
+        adapterFacade.createAdapter(adapter);
 
-        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
-        String testKey1Name = findKeyNameByProject("testProject1");
+        var model = createModelDtoWithAdapter("1");
+        modelFacade.createModel(model);
 
         SelectedItemsExportRequest request = new SelectedItemsExportRequest();
         request.setExportFormat(ExportFormat.ADMIN);
         request.setAddSecrets(false);
         request.setComponents(List.of(new ExportConfigComponent(
-                "testModel1",
+                "model1",
                 ExportConfigComponentType.MODEL,
                 Set.of(ExportConfigComponentType.ADAPTER)
         )));
@@ -2318,8 +2313,9 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(configPreview).isNotNull()
                 .satisfies(preview -> {
                     Assertions.assertThat(preview.getModels()).hasSize(1).first()
-                            .satisfies(model -> Assertions.assertThat(model.getName()).isEqualTo("testModel1"));
-                    Assertions.assertThat(preview.getAdapters()).hasSize(1);
+                            .satisfies(m -> Assertions.assertThat(m.getName()).isEqualTo("model1"));
+                    Assertions.assertThat(preview.getAdapters()).hasSize(1).first()
+                            .satisfies(a -> Assertions.assertThat(a.getName()).isEqualTo("adapter1"));
                 });
     }
 
