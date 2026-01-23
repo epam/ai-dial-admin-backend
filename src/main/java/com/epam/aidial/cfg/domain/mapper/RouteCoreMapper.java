@@ -53,7 +53,7 @@ public abstract class RouteCoreMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deployment.roleLimits", ignore = true)
     @Mapping(target = "deployment.defaultRoleLimit", ignore = true)
-    public abstract DependentRoute mapDependentRoute(CoreRoute route);
+    public abstract DependentRoute mapDependentRoute(String name, CoreRoute route);
 
     public LinkedHashMap<String, CoreRoute> mapRoutes(List<DependentRoute> routes) {
         if (CollectionUtils.isEmpty(routes)) {
@@ -72,8 +72,8 @@ public abstract class RouteCoreMapper {
             return null;
         }
         List<DependentRoute> routes = new ArrayList<>();
-        for (CoreRoute coreRoute : coreRoutes.values()) {
-            var route = mapDependentRoute(coreRoute);
+        for (var entry : coreRoutes.entrySet()) {
+            var route = mapDependentRoute(entry.getKey(), entry.getValue());
             routes.add(route);
         }
         return routes;
