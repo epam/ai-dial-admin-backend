@@ -9,6 +9,7 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "dependencies", ignore = true)
     @Mapping(target = "authSettings", source = "deployment.authSettings")
     @Mapping(target = "forwardPerRequestKey", source = "deployment.forwardPerRequestKey")
+    @Mapping(target = "maxRetryAttempts", source = "maxRetryAttempts", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     public abstract CoreToolSet mapToolSet(ToolSet toolSet);
 
     @Mapping(target = "deployment", source = "coreToolSet", qualifiedByName = "toSecuredResource")

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -410,6 +411,7 @@ public abstract class ApplicationFunctionalTest {
         expected.setApplicationProperties(applicationDto.getApplicationProperties());
         expected.setFeatures(defaultCoreFeatures());
         expected.setUserRoles(applicationDto.getRoleLimits().keySet());
+        expected.setRoutes(new LinkedHashMap<>());
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
@@ -526,7 +528,8 @@ public abstract class ApplicationFunctionalTest {
                       "created_at": 1000,
                       "updated_at": 1000,
                       "dependencies": [],
-                      "application_properties": {}
+                      "application_properties": {},
+                      "routes": {}
                     }
                   }
                 }
