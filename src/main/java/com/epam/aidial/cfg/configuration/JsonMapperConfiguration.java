@@ -37,6 +37,11 @@ public class JsonMapperConfiguration {
         return createCoreJsonMapper();
     }
 
+    @Bean
+    public JsonMapper nullIncludedJsonMapper() {
+        return createNullIncludedJsonMapper();
+    }
+
     public static JsonMapper createJsonMapper() {
         return createDefaultJsonMapperBuilder()
                 .build();
@@ -45,6 +50,12 @@ public class JsonMapperConfiguration {
     public static JsonMapper createPrettyJsonMapper() {
         return createDefaultJsonMapperBuilder()
                 .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
+    }
+
+    public static JsonMapper createNullIncludedJsonMapper() {
+        return createDefaultJsonMapperBuilder()
+                .serializationInclusion(JsonInclude.Include.ALWAYS)
                 .build();
     }
 

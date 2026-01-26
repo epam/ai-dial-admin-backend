@@ -66,8 +66,7 @@
       "author": "test-author",
       "created_at": 12345,
       "updated_at": 12345,
-      "dependencies": ["dep1", "dep2"],
-      "routes": {}
+      "dependencies": ["dep1", "dep2"]
     }
   },
   "assistant": {

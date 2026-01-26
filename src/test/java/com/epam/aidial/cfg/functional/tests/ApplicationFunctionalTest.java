@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -411,7 +410,8 @@ public abstract class ApplicationFunctionalTest {
         expected.setApplicationProperties(applicationDto.getApplicationProperties());
         expected.setFeatures(defaultCoreFeatures());
         expected.setUserRoles(applicationDto.getRoleLimits().keySet());
-        expected.setRoutes(new LinkedHashMap<>());
+        expected.setRoutes(null);
+        expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
