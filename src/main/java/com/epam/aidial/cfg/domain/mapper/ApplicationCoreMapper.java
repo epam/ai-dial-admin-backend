@@ -8,7 +8,6 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
@@ -24,9 +23,6 @@ public abstract class ApplicationCoreMapper {
     @Mapping(target = "function", ignore = true)
     @Mapping(target = "name", source = "deployment.name")
     @Mapping(target = "userRoles", source = "deployment")
-    @Mapping(target = "forwardAuthToken", source = "forwardAuthToken", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    @Mapping(target = "maxRetryAttempts", source = "maxRetryAttempts", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    @Mapping(target = "routes", source = "routes", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     public abstract CoreApplication mapApplication(Application model);
 
     @Mapping(target = "deployment", source = "coreApplication", qualifiedByName = "toDeployment")

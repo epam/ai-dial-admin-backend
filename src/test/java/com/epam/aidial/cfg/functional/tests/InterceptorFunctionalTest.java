@@ -516,6 +516,7 @@ public abstract class InterceptorFunctionalTest {
         expected.setDescription(interceptorDto.getDescription());
         expected.setEndpoint(interceptorDto.getEndpoint());
         expected.setFeatures(defaultCoreFeatures());
+        expected.setForwardAuthToken(interceptorDto.getForwardAuthToken());
 
         CoreInterceptor actual = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
         actual.setCreatedAt(null);
