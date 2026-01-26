@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import java.util.Map;
+import java.util.Set;
 
 @Configuration
 public class TestAuthenticationConverterFactory {
@@ -18,6 +19,7 @@ public class TestAuthenticationConverterFactory {
 
     public static JwtAuthenticationConverterFactory createJwtAuthenticationConverterFactory() {
         var config = JwtProviderTestHelper.createProviderConfig();
-        return new JwtAuthenticationConverterFactory(Map.of(config.getIssuer(), config), "oid", new JwtProviderUtils());
+        return new JwtAuthenticationConverterFactory(Map.of(config.getIssuer(), config), "oid",
+                new JwtProviderUtils(), Set.of("admin", "ConfigAdmin"));
     }
 }

@@ -2,11 +2,15 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -43,5 +47,15 @@ public class JwtProviderUtils {
             log.debug("Invalid url format for url: {}", urlString, e);
             return false;
         }
+    }
+
+    public static Optional<String> extractFirstClaim(Jwt jwt, List<String> claims) {
+        if (jwt == null || claims == null) {
+            return Optional.empty();
+        }
+        return claims.stream()
+                .map(jwt::getClaimAsString)
+                .filter(StringUtils::hasText)
+                .findFirst();
     }
 }
