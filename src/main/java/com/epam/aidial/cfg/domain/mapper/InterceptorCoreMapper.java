@@ -4,7 +4,6 @@ import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.core.config.CoreInterceptor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(componentModel = "spring", uses = FeatureCoreMapper.class)
 public interface InterceptorCoreMapper {
@@ -17,7 +16,6 @@ public interface InterceptorCoreMapper {
     @Mapping(target = "interceptors", ignore = true)
     @Mapping(target = "descriptionKeywords", ignore = true)
     @Mapping(target = "maxRetryAttempts", ignore = true)
-    @Mapping(target = "forwardAuthToken", source = "forwardAuthToken", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     CoreInterceptor mapInterceptor(Interceptor interceptor);
 
     @Mapping(target = "entities", ignore = true)

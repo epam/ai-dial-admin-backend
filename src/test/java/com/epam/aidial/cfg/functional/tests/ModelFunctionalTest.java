@@ -421,6 +421,7 @@ public abstract class ModelFunctionalTest {
         expected.setFeatures(defaultCoreFeatures());
         expected.setMaxRetryAttempts(modelDto.getMaxRetryAttempts());
         expected.setUserRoles(modelDto.getRoleLimits().keySet());
+        expected.setForwardAuthToken(modelDto.getForwardAuthToken());
 
         CoreModel actual = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
         actual.setCreatedAt(null);
