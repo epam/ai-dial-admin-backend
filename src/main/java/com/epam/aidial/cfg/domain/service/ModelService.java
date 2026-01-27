@@ -203,13 +203,13 @@ public class ModelService {
                 refreshService.refreshEndpoints(entity);
                 successfulModels.add(modelName);
             } catch (Exception e) {
-                log.error("Failed to refresh endpoints for model '{}'", modelName, e);
+                log.debug("Failed to refresh endpoints for model '{}'", modelName, e);
                 failedModels.add(modelName);
             }
         }
 
         if (!failedModels.isEmpty()) {
-            log.warn("Failed to refresh endpoints for {} models: {}",
+            log.warn("Failed to refresh endpoints for {} models: {}. Use DEBUG log level for details",
                     failedModels.size(), String.join(", ", failedModels));
         }
 
