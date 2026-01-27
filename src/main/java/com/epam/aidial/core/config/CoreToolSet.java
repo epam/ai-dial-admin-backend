@@ -37,6 +37,7 @@ public class CoreToolSet extends CoreSecuredResource {
         CoreToolSet coreToolSet = new CoreToolSet();
 
         coreToolSet.setAllowedTools(null);
+        coreToolSet.setForwardPerRequestKey(null);
         coreToolSet.setAuthSettings(null);
         coreToolSet.setForwardAuthToken(null);
         coreToolSet.setDefaults(null);
