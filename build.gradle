@@ -116,7 +116,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql:11.4.1'
     implementation 'org.flywaydb:flyway-sqlserver:11.4.1'
 
-    implementation 'io.fabric8:kubernetes-client:7.4.0'
+    implementation 'io.fabric8:kubernetes-client:7.5.2'
 
     implementation 'com.influxdb:influxdb-client-java:7.2.0'
 
