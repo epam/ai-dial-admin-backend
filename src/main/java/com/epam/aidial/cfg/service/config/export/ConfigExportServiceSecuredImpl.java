@@ -73,7 +73,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
     }
 
     private CoreToolSet mapToolSet(CoreToolSet value) {
-        CoreResourceAuthSettings authSettings = new CoreResourceAuthSettings();
+        CoreResourceAuthSettings authSettings = CoreResourceAuthSettings.empty();
         authSettings.setClientSecret(StringUtils.EMPTY);
 
         if (value != null

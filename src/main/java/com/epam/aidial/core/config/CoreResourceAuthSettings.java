@@ -2,6 +2,7 @@ package com.epam.aidial.core.config;
 
 import com.epam.aidial.cfg.utils.SecretUtils;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -67,10 +68,19 @@ public class CoreResourceAuthSettings {
                 + ", tokenEndpoint='" + getTokenEndpoint()
                 + ", redirectUri='" + getRedirectUri()
                 + ", codeChallenge='" + getCodeChallenge()
-                + ", codeChallengeMethod='"+ getCodeChallengeMethod()
+                + ", codeChallengeMethod='" + getCodeChallengeMethod()
                 + ", codeVerifier='" + getCodeVerifier()
                 + ", apiKeyHeader='" + getApiKeyHeader()
                 + ", scopesSupported=" + getScopesSupported()
                 + ')';
+    }
+
+    @JsonIgnore
+    public static CoreResourceAuthSettings empty() {
+        CoreResourceAuthSettings coreResourceAuthSettings = new CoreResourceAuthSettings();
+
+        coreResourceAuthSettings.setAuthenticationType(null);
+
+        return coreResourceAuthSettings;
     }
 }
