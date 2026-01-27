@@ -43,6 +43,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @DataJpaTest
 @TestPropertySource(properties = {
         "datasource.vendor=POSTGRES",
+        "core.client.url=http://localhost:8181"
 })
 @Import(PostgresFunctionalTestConfiguration.class)
 @Testcontainers

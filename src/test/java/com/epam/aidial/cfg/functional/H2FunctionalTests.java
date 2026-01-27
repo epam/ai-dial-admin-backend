@@ -39,6 +39,7 @@ import org.springframework.test.context.TestPropertySource;
 @DataJpaTest
 @TestPropertySource(properties = {
         "datasource.vendor=H2",
+        "core.client.url=http://localhost:8181"
 })
 @Import(H2FunctionalTestConfiguration.class)
 public class H2FunctionalTests extends FunctionalTestSuite {
