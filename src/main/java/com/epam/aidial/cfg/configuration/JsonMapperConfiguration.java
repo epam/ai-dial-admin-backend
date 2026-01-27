@@ -4,6 +4,8 @@ import com.epam.aidial.core.config.CoreCostLimit;
 import com.epam.aidial.core.config.CoreCostLimitMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreLimitMixinForCoreObjectMapper;
+import com.epam.aidial.core.config.CoreToolSet;
+import com.epam.aidial.core.config.CoreToolSetMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstream;
 import com.epam.aidial.core.config.CoreUpstreamMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.validation.ValidationModule;
@@ -65,6 +67,7 @@ public class JsonMapperConfiguration {
                 .addMixIn(CoreLimit.class, CoreLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreCostLimit.class, CoreCostLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreUpstream.class, CoreUpstreamMixinForCoreObjectMapper.class)
+                .addMixIn(CoreToolSet.class, CoreToolSetMixinForCoreObjectMapper.class)
                 .build();
     }
 
