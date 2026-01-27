@@ -41,10 +41,12 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public abstract class ToolSetFunctionalTest {
@@ -91,7 +93,7 @@ public abstract class ToolSetFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateToolSetAndGetDiscoveredTools() {
-        ToolSetDto toolSetDto = createToolSetDto("1");
+        ToolSetDto toolSetDto = createToolSetDto("2");
         toolSetDto.setTransport(TransportDto.HTTP);
         toolSetFacade.createToolSet(toolSetDto);
 
@@ -102,13 +104,16 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(anyString(),
-                        eq(Transport.HTTP), any()))
+        Mockito.when(mcpClientFactory.create(anyString(), eq(Transport.HTTP), isNull()))
                 .thenReturn(mcpSyncClient);
-
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
+        verify(mcpClientFactory).create(
+                argThat(url -> url.contains("/v1/toolset/ToolSet2/mcp")),
+                eq(Transport.HTTP),
+                isNull()
+        );
     }
 
     @Test
@@ -120,17 +125,21 @@ public abstract class ToolSetFunctionalTest {
         var callToolRequest = Mockito.mock(McpSchema.CallToolRequest.class);
         var expectedCallToolResult = Mockito.mock(McpSchema.CallToolResult.class);
         var mcpSyncClient = Mockito.mock(McpSyncClient.class);
-        Mockito.when(mcpClientFactory.create(anyString(),
-                        eq(Transport.HTTP), any()))
-                .thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.initialize())
                 .thenReturn(null);
+        Mockito.when(mcpClientFactory.create(anyString(), eq(Transport.HTTP), isNull()))
+                .thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.callTool(callToolRequest))
                 .thenReturn(expectedCallToolResult);
 
         var actualCallToolResult = toolSetFacade.callTool(toolSetDto.getName(), callToolRequest);
 
         Assertions.assertEquals(expectedCallToolResult, actualCallToolResult);
+        verify(mcpClientFactory).create(
+                argThat(url -> url.contains("/v1/toolset/ToolSet1/mcp")),
+                eq(Transport.HTTP),
+                isNull()
+        );
     }
 
     @Test
@@ -269,7 +278,7 @@ public abstract class ToolSetFunctionalTest {
 
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     @Test
@@ -325,7 +334,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto refreshedResult = toolSetFacade.getToolSet(refreshedToolSetName);
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     @Test
