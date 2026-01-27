@@ -3,7 +3,7 @@
 
 #### Backup Process
 
-1. **Downscale MCP Manager Backend**: Set the Deployment manager backend replicas to 0 to ensure no new data is written during the backup process.
+1. **Downscale AI DIAL BACKEND**: Set the Deployment manager backend replicas to 0 to ensure no new data is written during the backup process.
 
 2. **Create a Simple Deployment**: Use a temporary deployment to access the database files.
 
@@ -28,7 +28,7 @@
          volumes:
            - name: test-admin-db
              persistentVolumeClaim:
-               claimName: test-admin-deployment-db
+               claimName: test-admin-db
          containers:
          - name: nginx
            image: nginx:1.14.2
@@ -59,22 +59,22 @@
 
 #### Restore Process
 
-1. **Upload and Rename Archive**:  Upload the archive to the file system with the new name `deployment_manager_db.mv.db`:
+1. **Upload and Rename Archive**:  Upload the archive to the file system with the new name `admin_database.mv.db-db`:
 
    ```bash
-   kubectl cp ./test.tar <ai-dial-mcp-manager-backend-pod>:../tmp -n dial-admin
+   kubectl cp ./test.tar <ai-dial-ADMIN-backend-pod>:../tmp -n dial-admin
    ```
 
 2. **Extract and Move Database**: Execute inside the pod to extract and move the database file.
 
    ```bash
-   kubectl exec -i -t -n dial-admin <ai-dial-mcp-manager-backend-pod> -- sh -c "cd /tmp && tar -xvf test.tar && mv app/data/db/deployment_manager_db.mv.db app/data/db/deployment_manager_db_restore.mv.db"
+   kubectl exec -i -t -n dial-admin <ai-dial-mcp-manager-backend-pod> -- sh -c "cd /tmp && tar -xvf test.tar && mv app/data/db/admin_database.mv.db-db app/data/db/admin_database_restore.mv.db-db.mv.db"
    ```
 
 3. **Update Database Configuration**: Update the `H2_FILE` variable in your application configuration to point to the new database file:
 
    ```yaml
-   H2_FILE: ./data/db/deployment_manager_db_restore
+   H2_FILE: ./data/db/admin_database_restore.mv.db-db
    ```
 
 4. **Switch MCP Manager to New Database**: Ensure that the application is configured to use the new database file.
@@ -84,6 +84,6 @@
 
 ### Important Considerations
 
-- **Ensure Data Consistency**: Downscale the MCP manager backend to prevent data changes during the backup process.
+- **Ensure Data Consistency**: Downscale the AI DIAL BACKEND to prevent data changes during the backup process.
 - **Secure Data Transfer**: Use secure methods to transfer the database archive to and from the Kubernetes cluster.
 - **Verify Configuration**: Double-check the `H2_FILE` configuration to ensure the application points to the correct database file.
