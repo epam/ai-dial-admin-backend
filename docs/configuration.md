@@ -110,6 +110,7 @@ Additional Kubernetes client configuration options are available from the [Fabri
 | config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions |
 | config.rest.security.principal-claim               | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | JWT claim name for user identification                |
 | config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                  |
+| config.rest.security.default.email.claims          | CLAIMS_EMAIL_KEY              | unique_name       | No                                                | config.rest.security.mode=oidc | Default JWT claim path used to extract user email     |
 
 ### Identity Providers Configuration
 

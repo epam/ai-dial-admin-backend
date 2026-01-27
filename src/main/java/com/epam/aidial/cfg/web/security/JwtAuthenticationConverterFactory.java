@@ -7,14 +7,16 @@ import java.util.Set;
 
 public class JwtAuthenticationConverterFactory {
     private final String principalClaim;
+    private final String defaultClaimsEmailKey;
     private final JwtProviderUtils jwtProviderUtils;
     private final Map<String, MultiIssuerJwtAuthenticationConverter> convertersByIssuer;
     private final Set<String> defaultAllowedRoles;
 
     public JwtAuthenticationConverterFactory(Map<String, JwtProvidersProperties.ProviderConfig> providers,
                                              String principalClaim, JwtProviderUtils jwtProviderUtils,
-                                             Set<String> defaultAllowedRoles) {
+                                             Set<String> defaultAllowedRoles, String defaultClaimsEmailKey) {
         this.principalClaim = principalClaim;
+        this.defaultClaimsEmailKey = defaultClaimsEmailKey;
         this.jwtProviderUtils = jwtProviderUtils;
         this.defaultAllowedRoles = defaultAllowedRoles;
         Map<String, MultiIssuerJwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
@@ -36,7 +38,7 @@ public class JwtAuthenticationConverterFactory {
         grantedAuthoritiesConverter.setAuthoritiesPaths(authoritiesPaths);
         grantedAuthoritiesConverter.setAuthorityPrefix("");
         final var jwtAuthenticationConverter = new MultiIssuerJwtAuthenticationConverter(config.getEmailClaims(),
-                getAllowedRoles(config.getAllowedRoles()));
+                getAllowedRoles(config.getAllowedRoles()), defaultClaimsEmailKey);
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         jwtAuthenticationConverter.setPrincipalClaimName(principalClaim);
         return jwtAuthenticationConverter;

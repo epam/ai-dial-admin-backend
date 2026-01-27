@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.security;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -25,16 +26,16 @@ public class MultiIssuerJwtAuthenticationConverter implements Converter<Jwt, Abs
     private String principalClaimName = JwtClaimNames.SUB;
     private final Set<String> emailClaims = new LinkedHashSet<>();
     private final Set<String> allowedRoles;
-    private static final String DEFAULT_CLAIMS_EMAIL_KEY = "unique_name";
-    private static final String CLAIMS_EMAIL_KEY = System.getenv().getOrDefault("CLAIMS_EMAIL_KEY", DEFAULT_CLAIMS_EMAIL_KEY);
 
-    public MultiIssuerJwtAuthenticationConverter(List<String> issuerEmailClaims, Set<String> allowedRoles) {
+    public MultiIssuerJwtAuthenticationConverter(List<String> issuerEmailClaims, Set<String> allowedRoles, String defaultClaimsEmailKey) {
         this.allowedRoles = allowedRoles;
 
         if (!CollectionUtils.isEmpty(issuerEmailClaims)) {
             emailClaims.addAll(issuerEmailClaims);
         }
-        emailClaims.add(DEFAULT_CLAIMS_EMAIL_KEY);
+        if (StringUtils.isNotBlank(defaultClaimsEmailKey)) {
+            emailClaims.add(defaultClaimsEmailKey);
+        }
     }
 
     @NotNull
@@ -60,7 +61,7 @@ public class MultiIssuerJwtAuthenticationConverter implements Converter<Jwt, Abs
                         : new JwtAuthenticationToken(jwt, filtered, principalClaimValue);
 
         if (filtered.isEmpty()) {
-            log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
+            log.warn("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
                     jwt, issuer, authToken, allowedRoles, authToken.getAuthorities());
         }
 

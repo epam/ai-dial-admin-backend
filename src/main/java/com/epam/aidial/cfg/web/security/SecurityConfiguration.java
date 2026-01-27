@@ -15,7 +15,6 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -38,8 +37,8 @@ public class SecurityConfiguration {
 
     @Bean
     public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim,
-                                                                               Map<String, Set<String>> allowedRolesByIssuer) {
-        return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, jwtProviderUtils, defaultAllowedRoles);
+                                                                               @Value("${config.rest.security.default.email.claims}") String defaultClaimsEmailKey) {
+        return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, jwtProviderUtils, defaultAllowedRoles, defaultClaimsEmailKey);
     }
 
     @Bean

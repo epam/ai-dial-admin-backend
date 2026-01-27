@@ -5,14 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-
-import java.util.Objects;
 
 @Slf4j
 public class SecurityClaimsExtractor {
-    private static final String CLAIMS_NAME_KEY = System.getenv().get("CLAIMS_NAME_KEY");
 
     public static String getAuthor() {
         SecurityContext context = SecurityContextHolder.getContext();
@@ -22,18 +18,8 @@ public class SecurityClaimsExtractor {
         }
         Authentication authentication = context.getAuthentication();
         log.trace("Authentication: {}", authentication);
-        if (CLAIMS_NAME_KEY == null) {
-            return authentication.getName();
-        }
-        if (context.getAuthentication() instanceof JwtAuthenticationToken jwtAuthenticationToken) {
-            Jwt token = jwtAuthenticationToken.getToken();
-            log.trace("token claims: {}", token.getClaims());
-            Object name = token.getClaims().get(CLAIMS_NAME_KEY);
-            if (name != null) {
-                return Objects.toString(name);
-            }
-        }
-        return null;
+
+        return authentication.getName();
     }
 
     public static String getEmail() {
