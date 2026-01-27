@@ -27,9 +27,8 @@ public class CoreConfigReloadScheduler {
             coreConfigReloadCache.put(config);
             errorHandler.setLastErrorMessage(null);
         } catch (Exception e) {
-            log.error("Error during config reload", e);
-            String lastErrorMessage = e.getMessage() == null ? "An unknown error occurred during config reload" : e.getMessage();
-            errorHandler.setLastErrorMessage(lastErrorMessage);
+            log.error("Failed to reload configuration in DIAL Core", e);
+            errorHandler.setLastErrorMessage("Failed to reload configuration in DIAL Core");
         }
     }
 
