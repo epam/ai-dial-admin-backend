@@ -3,7 +3,7 @@
 
 #### Backup Process
 
-1. **Downscale MCP Manager Backend**: Set the MCP manager backend replicas to 0 to ensure no new data is written during the backup process.
+1. **Downscale MCP Manager Backend**: Set the Deployment manager backend replicas to 0 to ensure no new data is written during the backup process.
 
 2. **Create a Simple Deployment**: Use a temporary deployment to access the database files.
 
