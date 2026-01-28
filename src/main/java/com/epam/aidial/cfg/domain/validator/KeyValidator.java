@@ -116,7 +116,7 @@ public class KeyValidator {
         try {
             baseAddr = InetAddress.getByName(base);
         } catch (UnknownHostException ex) {
-            throw new IllegalArgumentException(invalidCidr + ex.getMessage());
+            throw new IllegalArgumentException(invalidCidr + "No such host is known (" + base + ")");
         }
         byte[] baseBytes = baseAddr.getAddress();
 
