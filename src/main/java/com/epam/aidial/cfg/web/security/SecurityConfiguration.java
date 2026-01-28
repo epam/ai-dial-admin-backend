@@ -29,15 +29,13 @@ public class SecurityConfiguration {
     private final JwtProvidersProperties jwtProviderProperties;
     private final JwtProviderUtils jwtProviderUtils;
 
-    @Value("${config.rest.security.default.allowedRoles}")
-    protected Set<String> defaultAllowedRoles;
-
     @Value("${config.rest.security.disable-swagger-authorization}")
     protected boolean disableSwaggerAuthorization;
 
     @Bean
     public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim,
-                                                                               @Value("${config.rest.security.default.email.claims}") String defaultClaimsEmailKey) {
+                                                                               @Value("${config.rest.security.default.email.claims}") String defaultClaimsEmailKey,
+                                                                               @Value("${config.rest.security.default.allowedRoles}") Set<String> defaultAllowedRoles) {
         return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, jwtProviderUtils, defaultAllowedRoles, defaultClaimsEmailKey);
     }
 

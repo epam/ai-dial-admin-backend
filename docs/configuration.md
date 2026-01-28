@@ -108,9 +108,10 @@ Additional Kubernetes client configuration options are available from the [Fabri
 |----------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|-------------------------------------------------------|
 | config.rest.security.mode                          | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)            |
 | config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions |
+| config.rest.security.default.email.claims          | CLAIMS_EMAIL_KEY              | unique_name       | No                                                | config.rest.security.mode=oidc | Default JWT claim path used to extract user email     |
 | config.rest.security.principal-claim               | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | JWT claim name for user identification                |
 | config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                  |
-| config.rest.security.default.email.claims          | CLAIMS_EMAIL_KEY              | unique_name       | No                                                | config.rest.security.mode=oidc | Default JWT claim path used to extract user email     |
+
 
 ### Identity Providers Configuration
 
@@ -130,7 +131,7 @@ Applied when: config.rest.security.mode=oidc
 | providers.*.audiences     | providers.azure.audiences         | Yes      | config.rest.security.mode=oidc | List of accepted JWT token audiences. Specifies the intended recipients of the authorization token as defined in its aud claim. |
 | providers.*.role-claims   | providers.azure.role-claims       | No       | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user roles for the provider.                                            |
 | providers.*.allowed-roles | providers.azure.allowed-roles     | No       | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                                                          |
-| providers.*.role-claims   | providers.azure.role-claims       | No       | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user email                                                              |
+| providers.*.email-claims  | providers.azure.email-claims      | No       | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user email                                                              |
 
 ### Auth Token Provider Configuration to interact with the DIAL Core
 
