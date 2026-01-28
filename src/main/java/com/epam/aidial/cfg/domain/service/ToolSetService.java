@@ -226,13 +226,13 @@ public class ToolSetService {
                 toolSetRefreshService.refreshEndpoints(entity);
                 successfulToolSets.add(name);
             } catch (Exception e) {
-                log.error("Failed to refresh endpoints for toolset '{}'", name, e);
+                log.debug("Failed to refresh endpoints for toolset '{}'", name, e);
                 failedToolSets.add(name);
             }
         }
 
         if (!failedToolSets.isEmpty()) {
-            log.warn("Failed to refresh endpoints for {} toolsets: {}",
+            log.warn("Failed to refresh endpoints for {} toolsets: {}. Use DEBUG log level for details",
                     failedToolSets.size(), String.join(", ", failedToolSets));
         }
 

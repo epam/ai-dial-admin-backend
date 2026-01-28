@@ -199,13 +199,13 @@ public class InterceptorService {
                 interceptorRefreshService.refreshEndpoints(interceptorEntity);
                 successfulInterceptors.add(interceptorName);
             } catch (Exception e) {
-                log.error("Failed to refresh endpoints for interceptor '{}'", interceptorName, e);
+                log.debug("Failed to refresh endpoints for interceptor '{}'", interceptorName, e);
                 failedInterceptors.add(interceptorName);
             }
         }
 
         if (!failedInterceptors.isEmpty()) {
-            log.warn("Failed to refresh endpoints for {} interceptors: {}",
+            log.warn("Failed to refresh endpoints for {} interceptors: {}. Use DEBUG log level for details",
                     failedInterceptors.size(), String.join(", ", failedInterceptors));
         }
 
