@@ -34,7 +34,6 @@ public class SecurityClaimsExtractor {
             if (jwtAuthenticationToken.getDetails() instanceof UserSecurityDetails details) {
                 return details.email();
             }
-            return null;
         }
         return null;
     }
