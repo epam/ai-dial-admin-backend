@@ -1683,6 +1683,8 @@ public abstract class ConfigTransferFunctionalTest {
                 Assertions.assertThat(config.getKeys()).containsOnlyKeys("testKey1")
                         .satisfies(keys -> {
                             Assertions.assertThat(keys.get("testKey1").getRoles()).containsExactly("default");
+                            Assertions.assertThat(keys.get("testKey1").getAllowedIpAddressRanges())
+                                    .containsExactly("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64");
                         });
                 Assertions.assertThat(config.getToolsets()).containsOnlyKeys("toolset1")
                         .satisfies(toolsets -> {
@@ -2264,6 +2266,7 @@ public abstract class ConfigTransferFunctionalTest {
                             .isInstanceOfSatisfying(ExportKeyInfo.class,
                                     key -> {
                                         Assertions.assertThatCode(() -> UUID.fromString(key.getName())).doesNotThrowAnyException();
+                                        Assertions.assertThat(key.getRoles()).containsExactly("default");
                                         Assertions.assertThat(key.getRoles()).containsExactly("default");
                                     });
                     Assertions.assertThat(preview.getRoles()).hasSize(1).first()

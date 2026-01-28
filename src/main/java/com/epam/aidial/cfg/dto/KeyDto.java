@@ -32,6 +32,7 @@ public class KeyDto {
     private Instant keyGeneratedAt;
     private ValidityStateDto validityState;
     private TreeSet<String> topics;
+    private List<String> allowedIpAddressRanges;
 
     public String toString() {
         return "KeyDto(name=" + this.getName()

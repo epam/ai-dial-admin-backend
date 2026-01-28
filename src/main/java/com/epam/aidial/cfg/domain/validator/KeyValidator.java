@@ -7,7 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -33,6 +36,7 @@ public class KeyValidator {
     public void validateCreation(Key key) {
         validateKeyName(key);
         validateProject(key);
+        validateAllowedIpAddressRanges(key);
         displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         long now = transactionTimestampContext.getTimestamp();
         Long expiresAt = key.getExpiresAt();
@@ -62,6 +66,7 @@ public class KeyValidator {
             throw new IllegalArgumentException("Key with name: '" + keyName + "' can not be renamed. New key name: '" + key.getName() + "'");
         }
         validateProject(key);
+        validateAllowedIpAddressRanges(key);
         displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         Long expiresAt = key.getExpiresAt();
         long createdAt = existingEntity.getCreatedAt();
@@ -73,6 +78,52 @@ public class KeyValidator {
     private void validateProject(Key key) {
         if (StringUtils.isBlank(key.getProject())) {
             throw new IllegalArgumentException("Project is required. Key name: " + key.getName());
+        }
+    }
+
+    private void validateAllowedIpAddressRanges(Key key) {
+        if (CollectionUtils.isEmpty(key.getAllowedIpAddressRanges())) {
+            log.debug("Key allowed IpAddress ranges is empty, skipping validation for key: {}", key.getKey());
+            return;
+        }
+        var errors = key.getAllowedIpAddressRanges().stream()
+                .map(cidr -> {
+                    try {
+                        validateCidr(cidr);
+                        return null;
+                    } catch (IllegalArgumentException ex) {
+                        return ex.getMessage();
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (!errors.isEmpty()) {
+            throw new IllegalArgumentException(String.join(". ", errors));
+        }
+    }
+
+    private void validateCidr(String cidr) {
+        String[] parts = cidr.trim().split("/");
+        final String invalidCidr = "Invalid CIDR: " + cidr + ".";
+        if (parts.length != 2) {
+            throw new IllegalArgumentException(invalidCidr);
+        }
+
+        String base = parts[0].trim();
+        int prefixLen = Integer.parseInt(parts[1].trim());
+        InetAddress baseAddr;
+        try {
+            baseAddr = InetAddress.getByName(base);
+        } catch (UnknownHostException ex) {
+            throw new IllegalArgumentException(invalidCidr + ex.getMessage());
+        }
+        byte[] baseBytes = baseAddr.getAddress();
+
+        int maxPrefix = baseBytes.length * 8; // 32 for IPv4, 128 for IPv6
+        if (prefixLen < 0 || prefixLen > maxPrefix) {
+            throw new IllegalArgumentException(invalidCidr + "Invalid prefix length " + prefixLen
+                    + " for " + maxPrefix + "-bit address.");
         }
     }
 }

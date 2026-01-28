@@ -45,6 +45,7 @@ public class KeyEntity extends ValidityStateAwareEntity<String> {
     private Long expiresAt;
     @Column(name = "key_value_generated_at_ms")
     private long keyGeneratedAt;
+    private List<String> allowedIpAddressRanges = new ArrayList<>();
 
     @PreRemove
     public void preRemove() {

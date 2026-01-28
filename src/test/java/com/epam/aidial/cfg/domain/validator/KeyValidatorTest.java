@@ -14,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
@@ -183,4 +185,63 @@ class KeyValidatorTest {
                 .hasMessage("Project is required. Key name: key_name");
     }
 
+    @Test
+    void validateCreation_shouldNotThrowExceptionForValidRanges() {
+        // given
+        Key key = new Key();
+        key.setName("key_name");
+        key.setProject("project");
+        key.setExpiresAt(3L);
+        key.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> keyValidator.validateCreation(key));
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionForInvalidRanges() {
+        // given
+        Key key = new Key();
+        key.setName("key_name");
+        key.setProject("project");
+        key.setExpiresAt(3L);
+        key.setAllowedIpAddressRanges(List.of("198.51.10031.14/24", "2002::1234:abcd:ffff:c0a8:101"));
+
+        // when/then
+        assertThatThrownBy(() -> keyValidator.validateCreation(key))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid CIDR: 198.51.10031.14/24.No such host is known (198.51.10031.14).")
+                .hasMessageContaining("Invalid CIDR: 2002::1234:abcd:ffff:c0a8:101.");
+    }
+
+    @Test
+    void validateUpdate_shouldNotThrowExceptionForValidRanges() {
+        // given
+        Key key = new Key();
+        key.setName("key_name");
+        key.setProject("project");
+        key.setExpiresAt(3L);
+        key.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
+
+        KeyEntity keyEntity = new KeyEntity();
+        // when/then
+        assertThatNoException().isThrownBy(() -> keyValidator.validateUpdate(key.getName(), key, keyEntity));
+    }
+
+    @Test
+    void validateUpdate_shouldThrowExceptionForInvalidRanges() {
+        // given
+        Key key = new Key();
+        key.setName("key_name");
+        key.setProject("project");
+        key.setExpiresAt(3L);
+        key.setAllowedIpAddressRanges(List.of("198.51.1002.14/24", "2002::1234:abcd:ffff:c0a8:101"));
+
+        KeyEntity keyEntity = new KeyEntity();
+        // when/then
+        assertThatThrownBy(() -> keyValidator.validateUpdate(key.getName(), key, keyEntity))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid CIDR: 198.51.1002.14/24.No such host is known (198.51.1002.14)")
+                .hasMessageContaining("Invalid CIDR: 2002::1234:abcd:ffff:c0a8:101.");
+    }
 }
