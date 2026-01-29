@@ -101,9 +101,10 @@ public abstract class ToolSetFunctionalTest {
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
         Mockito.when(mcpClientFactory.create(argThat((String url) -> {
-                    String withoutPort = url.replaceFirst(":\\d+", "");
-                    return withoutPort.equals("http://localhost/v1/toolset/ToolSet1/mcp");
-                }), eq(Transport.HTTP), isNull()))
+                            String withoutPort = url.replaceFirst(":\\d+", "");
+                            return withoutPort.equals("http://localhost/v1/toolset/ToolSet1/mcp");
+                        }),
+                        eq(Transport.HTTP), isNull()))
                 .thenReturn(mcpSyncClient);
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
@@ -123,9 +124,10 @@ public abstract class ToolSetFunctionalTest {
         Mockito.when(mcpSyncClient.initialize())
                 .thenReturn(null);
         Mockito.when(mcpClientFactory.create(argThat((String url) -> {
-                    String withoutPort = url.replaceFirst(":\\d+", "");
-                    return withoutPort.equals("http://localhost/v1/toolset/ToolSet1/mcp");
-                }), eq(Transport.HTTP), isNull()))
+                            String withoutPort = url.replaceFirst(":\\d+", "");
+                            return withoutPort.equals("http://localhost/v1/toolset/ToolSet1/mcp");
+                        }),
+                        eq(Transport.HTTP), isNull()))
                 .thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.callTool(callToolRequest))
                 .thenReturn(expectedCallToolResult);
