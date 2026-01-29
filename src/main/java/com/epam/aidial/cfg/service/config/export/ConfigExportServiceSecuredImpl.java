@@ -80,6 +80,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 && value.getAuthSettings() != null
                 && StringUtils.isNotEmpty(value.getAuthSettings().getClientSecret())) {
             authSettings.setClientSecret(value.getAuthSettings().getClientSecret());
+            authSettings.setAuthenticationType(value.getAuthSettings().getAuthenticationType());
         }
 
         CoreToolSet toolSet = CoreToolSet.empty();

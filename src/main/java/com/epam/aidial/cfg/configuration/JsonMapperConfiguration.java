@@ -4,6 +4,8 @@ import com.epam.aidial.core.config.CoreCostLimit;
 import com.epam.aidial.core.config.CoreCostLimitMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreLimit;
 import com.epam.aidial.core.config.CoreLimitMixinForCoreObjectMapper;
+import com.epam.aidial.core.config.CoreResourceAuthSettings;
+import com.epam.aidial.core.config.CoreResourceAuthSettingsMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.CoreToolSetMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstream;
@@ -68,6 +70,7 @@ public class JsonMapperConfiguration {
                 .addMixIn(CoreCostLimit.class, CoreCostLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreUpstream.class, CoreUpstreamMixinForCoreObjectMapper.class)
                 .addMixIn(CoreToolSet.class, CoreToolSetMixinForCoreObjectMapper.class)
+                .addMixIn(CoreResourceAuthSettings.class, CoreResourceAuthSettingsMixinForCoreObjectMapper.class)
                 .build();
     }
 
