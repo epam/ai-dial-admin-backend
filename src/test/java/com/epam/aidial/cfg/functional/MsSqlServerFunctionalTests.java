@@ -50,7 +50,6 @@ import java.sql.Statement;
 @DataJpaTest
 @TestPropertySource(properties = {
         "datasource.vendor=MS_SQL_SERVER",
-        "core.client.url=http://localhost:8181"
 })
 @Import(MsSqlServerFunctionalTestConfiguration.class)
 @Testcontainers
