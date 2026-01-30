@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
@@ -100,10 +99,8 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(argThat((String url) -> {
-            String withoutPort = url.replaceFirst(":\\d+", "");
-            return withoutPort.equals("http://localhost/v1/toolset/ToolSet1/mcp");
-        }), eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost/v1/toolset/ToolSet1/mcp"),
+                eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
@@ -121,10 +118,8 @@ public abstract class ToolSetFunctionalTest {
         var mcpSyncClient = Mockito.mock(McpSyncClient.class);
         Mockito.when(mcpSyncClient.initialize())
                 .thenReturn(null);
-        Mockito.when(mcpClientFactory.create(argThat((String url) -> {
-            String withoutPort = url.replaceFirst(":\\d+", "");
-            return withoutPort.equals("http://localhost/v1/toolset/ToolSet1/mcp");
-        }), eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost/v1/toolset/ToolSet1/mcp"),
+                eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.callTool(callToolRequest))
                 .thenReturn(expectedCallToolResult);
 
