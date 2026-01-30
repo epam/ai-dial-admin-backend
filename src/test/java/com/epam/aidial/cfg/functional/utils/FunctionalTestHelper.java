@@ -147,6 +147,7 @@ public class FunctionalTestHelper {
         keyDto.setProjectContactPoint("test@mail.com");
         keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
         keyDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
+        keyDto.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
         return keyDto;
     }
 

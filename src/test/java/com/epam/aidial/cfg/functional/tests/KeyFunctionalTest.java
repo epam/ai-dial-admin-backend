@@ -235,6 +235,7 @@ public abstract class KeyFunctionalTest {
         expected.setCreatedAt(Instant.ofEpochMilli(1L));
         expected.setKeyGeneratedAt(Instant.ofEpochMilli(2L));
         expected.setValidityState(validState());
+        expected.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
 
         assertKey(actual, expected);
     }
@@ -462,6 +463,7 @@ public abstract class KeyFunctionalTest {
         expected.setProject(keyDto.getProject());
         expected.setSecured(keyDto.isSecured());
         expected.setRoles(keyDto.getRoles());
+        expected.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
 
         CoreKey actual = keyFacade.getCoreKeyWithHash(keyDto.getName()).core();
 
@@ -477,6 +479,7 @@ public abstract class KeyFunctionalTest {
         coreKey.setProject("newKeyProject");
         coreKey.setSecured(true);
         coreKey.setRoles(List.of("role2", "role3"));
+        coreKey.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
 
         KeyDto expected = new KeyDto();
         expected.setName(keyDto.getName());
@@ -490,6 +493,7 @@ public abstract class KeyFunctionalTest {
         expected.setRoles(List.of("role2", "role3"));
         expected.setTopics(new TreeSet<>(Set.of("topic1")));
         expected.setValidityState(validState());
+        expected.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
 
         keyFacade.updateKey(keyDto.getName(), coreKey, "*");
 

@@ -131,7 +131,8 @@
       "secured": true,
       "description": "key description",
       "projectContactPoint": "test@mail.com",
-      "expiresAt": 253402300799999
+      "expiresAt": 253402300799999,
+      "allowedIpAddressRanges": ["198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"]
     },
     "testKey2": {
       "key": "key2",
