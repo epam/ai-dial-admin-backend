@@ -1,18 +1,22 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.dto.FileNodeInfoDto;
 import com.epam.aidial.cfg.dto.FilePathDto;
 import com.epam.aidial.cfg.dto.FilePathsDto;
 import com.epam.aidial.cfg.dto.ImportResourcesConflictResolutionStrategyDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
-import com.epam.aidial.cfg.dto.ImportResourcesFileResultDto;
-import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.mapper.FileMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
+import com.epam.aidial.cfg.model.FileNodeInfo;
+import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
+import com.epam.aidial.cfg.model.ImportResources;
+import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.MoveResource;
+import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.service.FileService;
+import com.epam.aidial.cfg.service.FolderService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.FileController;
-import com.epam.aidial.cfg.web.facade.FileResourceFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
@@ -34,6 +38,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -58,16 +64,22 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private FileResourceFacade facade;
+    private FileService fileService;
+
+    @MockitoBean
+    private FolderService folderService;
 
     @Test
     void testGetAll() throws Exception {
         // given
         String filesInfoRequestDtoJson = ResourceUtils.readResource("/files/files_infos_request_dto.json");
-        String modelJson = ResourceUtils.readResource("/files/file_infos.json");
-        FileNodeInfoDto model = objectMapper.readValue(modelJson, new TypeReference<>() {
+        String filesInfoRequestJson = ResourceUtils.readResource("/files/file_infos_request.json");
+        ResourceMetadataRequest filesInfoRequest = objectMapper.readValue(filesInfoRequestJson, new TypeReference<>() {
         });
-        when(facade.getAll(any())).thenReturn(model);
+        String modelJson = ResourceUtils.readResource("/files/file_infos.json");
+        FileNodeInfo model = objectMapper.readValue(modelJson, new TypeReference<>() {
+        });
+        when(fileService.getAll(any())).thenReturn(model);
         String dtoJson = ResourceUtils.readResource("/files/file_infos_dto.json");
 
         // when
@@ -77,6 +89,8 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+
+        verify(fileService).getAll(eq(filesInfoRequest));
     }
 
     @Test
@@ -84,11 +98,13 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
         // given
         MockMultipartFile mockFile = new MockMultipartFile("files", "test.txt", MediaType.TEXT_PLAIN_VALUE, "test content".getBytes());
         String path = "public/uploads/test.txt";
-        ImportResourcesDto importResources = new ImportResourcesDto();
-        importResources.setPath(path);
-        importResources.setConflictResolutionStrategy(ImportResourcesConflictResolutionStrategyDto.OVERRIDE);
-        ImportResourcesFileResultDto importResult = new ImportResourcesFileResultDto();
-        when(facade.uploadFiles(List.of(mockFile), importResources)).thenReturn(importResult);
+        ImportResources importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+        ImportResourcesFileResult importResult = ImportResourcesFileResult.builder()
+                .build();
+        when(fileService.uploadFile(List.of(mockFile), importResources)).thenReturn(importResult);
 
         var configDto = new ImportResourcesDto();
         configDto.setPath(path);
@@ -103,7 +119,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 // then
                 .andExpect(status().isOk());
-        verify(facade).uploadFiles(List.of(mockFile), importResources);
+        verify(fileService).uploadFile(List.of(mockFile), importResources);
     }
 
     @Test
@@ -116,11 +132,13 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                 "mockData".getBytes()
         );
         String path = "public/uploads/";
-        ImportResourcesDto importResources = new ImportResourcesDto();
-        importResources.setPath(path);
-        importResources.setConflictResolutionStrategy(ImportResourcesConflictResolutionStrategyDto.OVERRIDE);
-        ImportResourcesFileResultDto importResult = new ImportResourcesFileResultDto();
-        when(facade.uploadFilesZip(zipFile, importResources)).thenReturn(importResult);
+        ImportResources importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+        ImportResourcesFileResult importResult = ImportResourcesFileResult.builder()
+                .build();
+        when(fileService.uploadFileZip(importResources, zipFile)).thenReturn(importResult);
 
         var configDto = new ImportResourcesDto();
         configDto.setPath(path);
@@ -135,6 +153,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 // then
                 .andExpect(status().isOk());
+        verify(fileService).uploadFileZip(importResources, zipFile);
     }
 
     @Test
@@ -147,7 +166,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
         Response mockResponse = mock(Response.class);
         Response.Body responceBody = mock(Response.Body.class);
 
-        when(facade.getByPath(path)).thenReturn(mockResponse);
+        when(fileService.get(path)).thenReturn(mockResponse);
         when(mockResponse.status()).thenReturn(200);
         when(mockResponse.body()).thenReturn(responceBody);
         when(responceBody.asInputStream()).thenReturn(new ByteArrayInputStream(fileContent));
@@ -163,7 +182,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                     Assertions.assertThat(actualContent).isEqualTo(fileContent);
                 });
 
-        verify(facade).getByPath(path);
+        verify(fileService).get(path);
     }
 
     @Test
@@ -171,7 +190,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
         // given
         String path = "public/to/nonexistent.txt";
         Response mockResponse = mock(Response.class);
-        when(facade.getByPath(path)).thenReturn(mockResponse);
+        when(fileService.get(path)).thenReturn(mockResponse);
         when(mockResponse.status()).thenReturn(404);
 
         // when
@@ -180,21 +199,21 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                 // then
                 .andExpect(status().isNotFound());
 
-        verify(facade).getByPath(path);
+        verify(fileService).get(path);
     }
 
     @Test
     void testDeleteFile() throws Exception {
         // given
         String path = "public/to/file.txt";
-        doNothing().when(facade).deleteFile(path);
+        doNothing().when(fileService).deleteFile(path);
 
         // when
         mockMvc.perform(delete("/api/v1/files")
                         .param("path", path))
                 // then
                 .andExpect(status().isOk());
-        verify(facade).deleteFile(path);
+        verify(fileService).deleteFile(path);
     }
 
     @Test
@@ -211,7 +230,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
 
         var pathsDto = new FilePathsDto();
         pathsDto.setPaths(List.of(pathDto1, pathDto2));
-        doNothing().when(facade).deleteFiles(pathsDto);
+        doNothing().when(fileService).deleteFiles(anyList());
 
         // when
         mockMvc.perform(post("/api/v1/files/delete/bulk")
@@ -219,7 +238,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                         .content(objectMapper.writeValueAsString(pathsDto)))
                 // then
                 .andExpect(status().isOk());
-        verify(facade).deleteFiles(pathsDto);
+        verify(fileService).deleteFiles(List.of(path1, path2));
     }
 
     @Test
@@ -227,7 +246,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
         var moveFileDtoJson = ResourceUtils.readResource("/files/move_file_dto.json");
 
         var moveFileJson = ResourceUtils.readResource("/files/move_file.json");
-        var moveFile = objectMapper.readValue(moveFileJson, new TypeReference<MoveResourceDto>() {
+        var moveFile = objectMapper.readValue(moveFileJson, new TypeReference<MoveResource>() {
         });
 
         mockMvc.perform(post("/api/v1/files/move")
@@ -235,7 +254,7 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                         .content(moveFileDtoJson))
                 .andExpect(status().isOk());
 
-        verify(facade).moveFile(moveFile);
+        verify(fileService).move(moveFile);
     }
 
 }
