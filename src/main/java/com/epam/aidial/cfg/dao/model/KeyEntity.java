@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.dao.model;
 
+import com.epam.aidial.cfg.dao.converter.StringListJsonConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -45,6 +47,8 @@ public class KeyEntity extends ValidityStateAwareEntity<String> {
     private Long expiresAt;
     @Column(name = "key_value_generated_at_ms")
     private long keyGeneratedAt;
+    @Convert(converter = StringListJsonConverter.class)
+    private List<String> allowedIpAddressRanges = new ArrayList<>();
 
     @PreRemove
     public void preRemove() {

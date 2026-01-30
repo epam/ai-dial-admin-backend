@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional;
 
+import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.config.persistence.TestPersistenceService;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
@@ -16,7 +17,8 @@ import static org.mockito.Mockito.reset;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class FunctionalTestSuite {
-
+    @Autowired
+    private McpClientFactory mcpClientFactory;
     @Autowired
     private TestPersistenceService persistenceService;
     @Autowired
@@ -35,7 +37,7 @@ abstract class FunctionalTestSuite {
     void afterEachTest() {
         persistenceService.restoreDb();
         doNothing().when(featureFlagAspect).evaluate(any(), any());
-        reset(transactionTimestampContext, coreConfigReloadCache);
+        reset(transactionTimestampContext, coreConfigReloadCache, mcpClientFactory);
     }
 
     @AfterAll

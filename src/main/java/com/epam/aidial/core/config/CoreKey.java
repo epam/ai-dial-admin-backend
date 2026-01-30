@@ -11,4 +11,5 @@ public class CoreKey {
     private String role;
     private boolean secured;
     private List<String> roles;
+    private List<String> allowedIpAddressRanges; // 0.40.0
 }

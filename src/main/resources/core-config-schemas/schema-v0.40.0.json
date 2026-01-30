@@ -1,0 +1,502 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Core Config Schema v0.40.0",
+  "type": "object",
+  "properties": {
+    "models": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Model"
+        }
+      }
+    },
+    "applications": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Application"
+        }
+      }
+    },
+    "assistant": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Assistants"
+        }
+      }
+    },
+    "addons": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Addon"
+        }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Role"
+        }
+      }
+    },
+    "keys": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Key"
+        }
+      }
+    },
+    "interceptors": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Interceptor"
+        }
+      }
+    },
+    "applicationTypeSchemas": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/ApplicationTypeSchema"
+        }
+      }
+    },
+    "routes": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/Route"
+        }
+      }
+    },
+    "toolsets": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "$ref": "#/definitions/ToolSet"
+        }
+      }
+    },
+    "retriableErrorCodes": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "globalInterceptors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+  },
+  "definitions": {
+    "RoleBasedEntity": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "userRoles": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "Deployment": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/RoleBasedEntity"},
+        {
+          "properties": {
+            "endpoint": {"type": "string"},
+            "displayName": {"type": "string"},
+            "displayVersion": {"type": "string"},
+            "iconUrl": {"type": "string"},
+            "description": {"type": "string"},
+            "reference": {"type": "string"},
+            "forwardAuthToken": {"type": "boolean"},
+            "features": {"$ref": "#/definitions/CoreFeatures"},
+            "inputAttachmentTypes": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "maxInputAttachments": {"type": "integer"},
+            "defaults": {"type": "object"},
+            "interceptors": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "descriptionKeywords": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "maxRetryAttempts": {"type": "integer"},
+            "author": {"type": "string"},
+            "createdAt": {"type": "integer"},
+            "updatedAt": {"type": "integer"},
+            "dependencies": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "Model": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/Deployment"},
+        {
+          "properties": {
+            "type": {"type": "string", "enum": ["CHAT", "COMPLETION", "EMBEDDING"]},
+            "tokenizerModel": {"type": "string"},
+            "limits": {"$ref": "#/definitions/TokenLimits"},
+            "pricing": {"$ref": "#/definitions/Pricing"},
+            "upstreams": {
+              "type": "array",
+              "items": {"$ref": "#/definitions/Upstream"}
+            },
+            "overrideName": {"type": "string"},
+            "fieldsHashingOrder": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "Application": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/Deployment"},
+        {
+          "properties": {
+            "function": {"$ref": "#/definitions/ApplicationFunction"},
+            "applicationProperties": {"type": "object"},
+            "applicationTypeSchemaId": {"type": "string", "format": "uri"},
+            "viewerUrl": {"type": "string"},
+            "editorUrl": {"type": "string"},
+            "routes": {"type": "object"}
+          }
+        }
+      ]
+    },
+    "ApplicationFunction": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "runtime": {"type": "string"},
+        "authorBucket": {"type": "string"},
+        "sourceFolder": {"type": "string"},
+        "targetFolder": {"type": "string"},
+        "status": {"type": "string", "enum": ["DEPLOYING", "UNDEPLOYING", "DEPLOYED", "UNDEPLOYED", "FAILED", "STARTING", "STOPPING", "STARTED", "CREATED", "STOPPED"]},
+        "error": {"type": "string"},
+        "mapping": {"$ref": "#/definitions/ApplicationFunctionMapping"},
+        "env": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "ApplicationFunctionMapping": {
+      "type": "object",
+      "properties": {
+        "chatCompletion": {"type": "string"},
+        "rate": {"type": "string"},
+        "tokenize": {"type": "string"},
+        "truncatePrompt": {"type": "string"},
+        "configuration": {"type": "string"}
+      }
+    },
+    "Assistants": {
+      "type": "object",
+      "allOf": [
+        {
+          "properties": {
+            "endpoint": {"type": "string"},
+            "features": {"$ref": "#/definitions/CoreFeatures"},
+            "assistants": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "Assistant": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/Deployment"},
+        {
+          "properties": {
+            "prompt": {"type": "string"},
+            "addons": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "Addon": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/Deployment"},
+        {
+          "properties": {
+            "token": {"type": "string"}
+          }
+        }
+      ]
+    },
+    "Role": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "limits": {"type": "object"},
+        "share": {"type": "object"},
+        "costLimit": {"$ref": "#/definitions/CoreCostLimit"}
+      }
+    },
+    "Key": {
+      "type": "object",
+      "properties": {
+        "key": {"type": "string"},
+        "project": {"type": "string"},
+        "role": {"type": "string"},
+        "secured": {"type": "boolean"},
+        "roles": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "allowedIpAddressRanges": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "Interceptor": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/Deployment"}
+      ]
+    },
+    "ApplicationTypeSchema": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/RoleBasedEntity"},
+        {
+          "properties": {
+            "$schema": {"type": "string"},
+            "$id": {"type": "string"},
+            "type": {"type": "string", "enum": ["OBJECT", "BOOLEAN"]},
+            "title": {"type": "string"},
+            "description": {"type": "string"},
+            "dial:applicationTypeEditorUrl": {"type": "string"},
+            "dial:applicationTypeViewerUrl": {"type": "string"},
+            "dial:applicationTypeDisplayName": {"type": "string"},
+            "dial:applicationTypeCompletionEndpoint": {"type": "string"},
+            "dial:applicationTypeConfigurationEndpoint": {"type": "string"},
+            "dial:applicationTypeRateEndpoint": {"type": "string"},
+            "dial:applicationTypeTokenizeEndpoint": {"type": "string"},
+            "dial:applicationTypeTruncatePromptEndpoint": {"type": "string"},
+            "dial:appendApplicationPropertiesHeader": {"type": "boolean"},
+            "dial:applicationTypeIconUrl": {"type": "string"},
+            "dial:applicationTypeRoutes": {"type": "object"},
+            "dial:applicationTypePlaybackSupport": {"type": "boolean"},
+            "dial:applicationTypeBucketCopy": {"type": "string", "enum": ["ENABLED", "DISABLED"]},
+            "dial:applicationTypeAssistantAttachmentsInRequestSupported": {"type": "boolean"},
+            "dial:applicationTypeInterceptors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "List of application type interceptors"
+                    },
+            "$defs": {"type": "object"},
+            "properties": {"type": "object"},
+            "required": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "Pricing": {
+      "type": "object",
+      "properties": {
+        "unit": {"type": "string"},
+        "prompt": {"type": "number"},
+        "completion": {"type": "number"}
+      }
+    },
+    "TokenLimits": {
+      "type": "object",
+      "properties": {
+        "maxTotalTokens": {"type": "number"},
+        "maxPromptTokens": {"type": "number"},
+        "maxCompletionTokens": {"type": "number"}
+      }
+    },
+    "Route": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/RoleBasedEntity"},
+        {
+          "properties": {
+            "response": {"$ref": "#/definitions/Response"},
+            "rewritePath": {"type": "boolean"},
+            "paths": {
+              "type": "array",
+              "items": {"type": "object"}
+            },
+            "methods": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "upstreams": {
+              "type": "array",
+              "items": {"$ref": "#/definitions/Upstream"}
+            },
+            "maxRetryAttempts": {"type": "integer"},
+            "order": {"type": "integer"},
+            "permissions": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "attachmentPaths": {
+              "type": "array",
+              "items": {"$ref": "#/definitions/AttachmentPath"}
+            }
+          }
+        }
+      ]
+    },
+    "Response": {
+      "type": "object",
+      "properties": {
+        "status": {"type": "integer"},
+        "body": {"type": "string"}
+      }
+    },
+    "Upstream": {
+      "type": "object",
+      "properties": {
+        "endpoint": {"type": "string"},
+        "key": {"type": "string"},
+        "extraData": {"type": "string"},
+        "weight": {"type": "integer"},
+        "tier": {"type": "integer"}
+      }
+    },
+    "AttachmentPath": {
+      "type": "object",
+      "properties": {
+        "requestBody": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "responseBody": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "CoreFeatures": {
+      "type": "object",
+      "properties": {
+        "rateEndpoint": {"type": "string"},
+        "tokenizeEndpoint": {"type": "string"},
+        "truncatePromptEndpoint": {"type": "string"},
+        "configurationEndpoint": {"type": "string"},
+        "systemPromptSupported": {"type": "boolean"},
+        "toolsSupported": {"type": "boolean"},
+        "seedSupported": {"type": "boolean"},
+        "urlAttachmentsSupported": {"type": "boolean"},
+        "folderAttachmentsSupported": {"type": "boolean"},
+        "allowResume": {"type": "boolean"},
+        "accessibleByPerRequestKey": {"type": "boolean"},
+        "contentPartsSupported": {"type": "boolean"},
+        "temperatureSupported": {"type": "boolean"},
+        "addonsSupported": {"type": "boolean"},
+        "cacheSupported": {"type": "boolean"},
+        "autoCachingSupported": {"type": "boolean"},
+        "consentRequired": {"type": "boolean"},
+        "parallelToolCallsSupported": {"type": "boolean"},
+        "assistantAttachmentsInRequestSupported": {"type": "boolean"},
+        "supportCommentInRateResponse": {"type": "boolean"}
+      }
+    },
+    "CoreSecuredResource": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/Deployment"},
+        {
+          "properties": {
+            "authSettings": {"$ref": "#/definitions/CoreResourceAuthSettings"},
+            "forwardPerRequestKey": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      ]
+    },
+    "CoreResourceAuthSettings": {
+      "type": "object",
+      "allOf": [
+        {
+          "properties": {
+            "authenticationType": {"type": "string", "enum": ["OAUTH", "API_KEY", "NONE"]},
+            "clientId": {"type": "string"},
+            "clientSecret": {"type": "string"},
+            "authorizationEndpoint": {"type": "string"},
+            "tokenEndpoint": {"type": "string"},
+            "redirectUri": {"type": "string"},
+            "codeChallenge": {"type": "string"},
+            "codeChallengeMethod": {"type": "string"},
+            "codeVerifier": {"type": "string"},
+            "apiKeyHeader": {"type": "string"},
+            "globalAuthStatus": {"type": "string", "enum": ["SIGNED_IN", "SIGNED_OUT", "FAILED"]},
+            "userLevelAuthStatus": {"type": "string", "enum": ["SIGNED_IN", "SIGNED_OUT", "FAILED"]},
+            "appLevelAuthStatus": {"type": "string", "enum": ["SIGNED_IN", "SIGNED_OUT", "FAILED"]},
+            "scopesSupported": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "ToolSet": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "#/definitions/CoreSecuredResource"},
+        {
+          "properties": {
+            "transport": {"type": "string", "enum": ["HTTP", "SSE"]},
+            "allowedTools": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "CoreCostLimit": {
+      "type": "object",
+      "properties": {
+        "minute": {"type": "number"},
+        "day": {"type": "number"},
+        "week": {"type": "number"},
+        "month": {"type": "number"}
+      }
+    }
+  }
+}
