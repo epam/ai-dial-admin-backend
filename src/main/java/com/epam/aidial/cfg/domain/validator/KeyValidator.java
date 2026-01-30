@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -21,15 +19,19 @@ public class KeyValidator {
     private final IdFieldValidator idFieldValidator;
     private final TransactionTimestampContext transactionTimestampContext;
     private final DisplayFieldsValidator displayFieldsValidator;
+    private final CidrValidator cidrValidator;
 
     private final String keyNameValidationPattern;
 
     public KeyValidator(IdFieldValidator idFieldValidator,
                         TransactionTimestampContext transactionTimestampContext,
-                        DisplayFieldsValidator displayFieldsValidator, @Value("${validation.key.name:}") String keyNameValidationPattern) {
+                        DisplayFieldsValidator displayFieldsValidator,
+                        CidrValidator cidrValidator,
+                        @Value("${validation.key.name:}") String keyNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.transactionTimestampContext = transactionTimestampContext;
         this.displayFieldsValidator = displayFieldsValidator;
+        this.cidrValidator = cidrValidator;
         this.keyNameValidationPattern = keyNameValidationPattern;
     }
 
@@ -83,13 +85,13 @@ public class KeyValidator {
 
     private void validateAllowedIpAddressRanges(Key key) {
         if (CollectionUtils.isEmpty(key.getAllowedIpAddressRanges())) {
-            log.debug("Key allowed IpAddress ranges is empty, skipping validation for key: {}", key.getKey());
+            log.debug("Key allowed IpAddress ranges is empty, skipping validation for key: {}", key.getName());
             return;
         }
         var errors = key.getAllowedIpAddressRanges().stream()
                 .map(cidr -> {
                     try {
-                        validateCidr(cidr);
+                        cidrValidator.validate(cidr);
                         return null;
                     } catch (IllegalArgumentException ex) {
                         return ex.getMessage();
@@ -99,31 +101,11 @@ public class KeyValidator {
                 .toList();
 
         if (!errors.isEmpty()) {
-            throw new IllegalArgumentException(String.join(". ", errors));
-        }
-    }
+            log.warn("Invalid allowedIpAddressRanges for key {}: {}",
+                    key.getName(),
+                    errors);
 
-    private void validateCidr(String cidr) {
-        String[] parts = cidr.trim().split("/");
-        final String invalidCidr = "Invalid CIDR: " + cidr + ".";
-        if (parts.length != 2) {
-            throw new IllegalArgumentException(invalidCidr);
-        }
-
-        String base = parts[0].trim();
-        int prefixLen = Integer.parseInt(parts[1].trim());
-        InetAddress baseAddr;
-        try {
-            baseAddr = InetAddress.getByName(base);
-        } catch (UnknownHostException ex) {
-            throw new IllegalArgumentException(invalidCidr + "No such host is known (" + base + ")");
-        }
-        byte[] baseBytes = baseAddr.getAddress();
-
-        int maxPrefix = baseBytes.length * 8; // 32 for IPv4, 128 for IPv6
-        if (prefixLen < 0 || prefixLen > maxPrefix) {
-            throw new IllegalArgumentException(invalidCidr + "Invalid prefix length " + prefixLen
-                    + " for " + maxPrefix + "-bit address.");
+            throw new IllegalArgumentException("Invalid allowed IP address ranges.");
         }
     }
 }

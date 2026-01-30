@@ -18,6 +18,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -32,12 +33,14 @@ class KeyValidatorTest {
     private IdFieldValidator idFieldValidator;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
+    @Mock
+    private CidrValidator cidrValidator;
 
     private KeyValidator keyValidator;
 
     @BeforeEach
     void setUp() {
-        keyValidator = new KeyValidator(idFieldValidator, transactionTimestampContext, displayFieldsValidator, null);
+        keyValidator = new KeyValidator(idFieldValidator, transactionTimestampContext, displayFieldsValidator, cidrValidator, null);
     }
 
     @ParameterizedTest
@@ -207,11 +210,11 @@ class KeyValidatorTest {
         key.setExpiresAt(3L);
         key.setAllowedIpAddressRanges(List.of("198.51.10031.14/24", "2002::1234:abcd:ffff:c0a8:101"));
 
+        doThrow(new IllegalArgumentException("Invalid CIDR")).when(cidrValidator).validate(anyString());
         // when/then
         assertThatThrownBy(() -> keyValidator.validateCreation(key))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid CIDR: 198.51.10031.14/24.No such host is known (198.51.10031.14).")
-                .hasMessageContaining("Invalid CIDR: 2002::1234:abcd:ffff:c0a8:101.");
+                .hasMessageContaining("Invalid allowed IP address ranges.");
     }
 
     @Test
@@ -238,10 +241,12 @@ class KeyValidatorTest {
         key.setAllowedIpAddressRanges(List.of("198.51.1002.14/24", "2002::1234:abcd:ffff:c0a8:101"));
 
         KeyEntity keyEntity = new KeyEntity();
+
+        doThrow(new IllegalArgumentException("Invalid CIDR")).when(cidrValidator).validate(anyString());
+
         // when/then
         assertThatThrownBy(() -> keyValidator.validateUpdate(key.getName(), key, keyEntity))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid CIDR: 198.51.1002.14/24.No such host is known (198.51.1002.14)")
-                .hasMessageContaining("Invalid CIDR: 2002::1234:abcd:ffff:c0a8:101.");
+                .hasMessageContaining("Invalid allowed IP address ranges.");
     }
 }

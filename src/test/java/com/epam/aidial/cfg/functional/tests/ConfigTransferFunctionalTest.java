@@ -2267,7 +2267,6 @@ public abstract class ConfigTransferFunctionalTest {
                                     key -> {
                                         Assertions.assertThatCode(() -> UUID.fromString(key.getName())).doesNotThrowAnyException();
                                         Assertions.assertThat(key.getRoles()).containsExactly("default");
-                                        Assertions.assertThat(key.getRoles()).containsExactly("default");
                                     });
                     Assertions.assertThat(preview.getRoles()).hasSize(1).first()
                             .satisfies(role -> {
