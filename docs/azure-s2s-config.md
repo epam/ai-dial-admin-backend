@@ -1,10 +1,3 @@
-
-# README: 
-
-Here's the updated README guide with the pre-requirements section added:
-
----
-
 # README: Implementing Authorized S2S Communication
 
 This guide provides a step-by-step process to implement authorized server-to-server (S2S) communication between DIAL Core and DIAL Admin backend, enabling interaction with DIAL Core.
