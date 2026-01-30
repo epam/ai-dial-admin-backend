@@ -1,0 +1,48 @@
+{
+  "root": {
+    "x1": {
+      "beta": [
+        1,
+        2,
+        3
+      ],
+      "enabled": true,
+      "alpha": [
+        {
+          "labels": [
+            "red",
+            "blue"
+          ],
+          "id": "a",
+          "score": 10,
+          "details": {
+            "flags": [
+              true,
+              false,
+              true
+            ],
+            "threshold": 0.75
+          }
+        },
+        {
+          "labels": [
+            "green"
+          ],
+          "id": "b",
+          "score": 20,
+          "details": {
+            "flags": [
+              false,
+              false
+            ],
+            "threshold": 0.55
+          }
+        }
+      ]
+    }
+  },
+  "meta": {
+    "generatedAt": "2026-01-01T10:00:00Z",
+    "checksum": "abc123"
+  }
+}

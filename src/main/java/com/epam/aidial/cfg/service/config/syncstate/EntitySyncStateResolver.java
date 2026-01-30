@@ -108,6 +108,7 @@ public class EntitySyncStateResolver {
         EntitySyncStateStatus syncStateStatus = syncStateStatusResolver.resolve(
                 normalizedCurrentStateJsonNode,
                 configStateJsonNode,
+                currentState.getClass(),
                 isCurrentStateValid,
                 currentStateUpdatedAt,
                 cacheEntry.reloadTimestamp()
