@@ -89,7 +89,7 @@ backend:
     CORE_AUTH_TOKEN_PROVIDER_CLIENT_SECRET: <keycloak_s2s_client_secret> # Created in Step 1
 ```
 
-**Note**: Replace all `<...>` with the appropriate values obtained during the app registration process.
+**Note**: `/token` will be added automatically to the end of the `CORE_AUTH_TOKEN_PROVIDER_URL` variable. Therefore, `CORE_AUTH_TOKEN_PROVIDER_URL` should not include this postfix.  
 
 ## Conclusion
 
