@@ -32,8 +32,12 @@ import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
+import com.epam.aidial.cfg.mapper.FileMapper;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapperImpl;
+import com.epam.aidial.cfg.mapper.ResourceMapper;
+import com.epam.aidial.cfg.service.FileService;
+import com.epam.aidial.cfg.service.FolderService;
 import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
@@ -174,4 +178,23 @@ public class FunctionalTestConfiguration {
         return new ResourceCredentialService(client, resourceCredentialMapper);
     }
 
+    @Bean
+    public FolderService folderService() {
+        return Mockito.mock(FolderService.class);
+    }
+
+    @Bean
+    public FileService fileService() {
+        return Mockito.mock(FileService.class);
+    }
+
+    @Bean
+    public FileMapper fileNapper() {
+        return Mockito.mock(FileMapper.class);
+    }
+
+    @Bean
+    public ResourceMapper resourceMapper() {
+        return Mockito.mock(ResourceMapper.class);
+    }
 }

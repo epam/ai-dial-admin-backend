@@ -2,22 +2,18 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.FileNodeInfoDto;
-import com.epam.aidial.cfg.dto.FilePathDto;
 import com.epam.aidial.cfg.dto.FilePathsDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
 import com.epam.aidial.cfg.dto.ImportResourcesFileResultDto;
 import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
 import com.epam.aidial.cfg.dto.validation.annotation.MetadataPath;
-import com.epam.aidial.cfg.mapper.FileMapper;
-import com.epam.aidial.cfg.mapper.ResourceMapper;
-import com.epam.aidial.cfg.model.ResourceMetadataRequest;
-import com.epam.aidial.cfg.service.FileService;
+import com.epam.aidial.cfg.web.facade.FileResourceFacade;
 import feign.Response;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -46,20 +42,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FileController {
 
-    private final FileService fileService;
-    private final FileMapper fileMapper;
-    private final ResourceMapper resourceMapper;
+    private final FileResourceFacade facade;
 
     @PostMapping()
     public FileNodeInfoDto getAll(@RequestBody(required = false) ResourceMetadataRequestDto requestDto) {
-        ResourceMetadataRequest request = resourceMapper.toRequest(requestDto);
-        var filesInfo = fileService.getAll(request);
-        return fileMapper.toFilesInfoDto(filesInfo);
+        return facade.getAll(requestDto);
     }
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> download(@RequestParam("path") String path) throws IOException {
-        Response response = fileService.get(path);
+        Response response = facade.getByPath(path);
         int status = response.status();
         if (status == 200) {
             String fileName = extractFileName(path);
@@ -79,41 +71,35 @@ public class FileController {
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ImportResourcesFileResultDto uploadFiles(@RequestPart("files") @Valid @Size(min = 1, max = 30) List<MultipartFile> files,
                                                     @RequestPart("config") @Validated ImportResourcesDto importFilesDto) {
-        var importFiles = resourceMapper.toImportResources(importFilesDto);
-        var importResults = fileService.uploadFile(files, importFiles);
-        return resourceMapper.toImportResourcesFileResultDto(importResults);
+        return facade.uploadFiles(files, importFilesDto);
     }
 
     @PostMapping(value = "/import/zip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ImportResourcesFileResultDto uploadFilesZip(@RequestPart("file") MultipartFile files,
                                                        @RequestPart("config") @Validated ImportResourcesDto importFilesDto) {
-        var importFiles = resourceMapper.toImportResources(importFilesDto);
-        var importResult = fileService.uploadFileZip(importFiles, files);
-        return resourceMapper.toImportResourcesFileResultDto(importResult);
+        return facade.uploadFilesZip(files, importFilesDto);
     }
 
     @DeleteMapping()
     public void deleteFile(@RequestParam("path") @MetadataPath String path) {
-        fileService.deleteFile(path);
+        facade.deleteFile(path);
     }
 
     @PostMapping(value = "/delete/bulk")
     public void deleteFiles(@RequestBody FilePathsDto filePaths) {
-        var paths = filePaths.getPaths().stream().map(FilePathDto::getPath).toList();
-        fileService.deleteFiles(paths);
+        facade.deleteFiles(filePaths);
     }
 
     @PostMapping(path = "/move",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void moveFile(@RequestBody MoveResourceDto moveResourceDto) {
-        var moveResource = resourceMapper.toMoveResource(moveResourceDto);
-        fileService.move(moveResource);
+        facade.moveFile(moveResourceDto);
     }
 
     @PostMapping(path = "/export",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StreamingResponseBody> exportPromptsToZip(@RequestBody ExportDto exportDto) {
-        var stream = fileService.export(exportDto.getPaths());
+    public ResponseEntity<StreamingResponseBody> export(@RequestBody ExportDto exportDto) {
+        var stream = facade.export(exportDto);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE);
