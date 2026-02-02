@@ -96,6 +96,7 @@ public abstract class KeyFunctionalTest {
     @Test
     public void shouldSuccessfullyCreateWithEmptyRolesAndGetKeys() {
         KeyDto keyDto = createKeyDto("1");
+        keyDto.setAllowedIpAddressRanges(null);
         keyFacade.createKey(keyDto);
 
         KeyDto actual = keyFacade.getKey(keyDto.getName());
