@@ -5,6 +5,8 @@ import com.epam.aidial.cfg.dto.FilePathDto;
 import com.epam.aidial.cfg.dto.FilePathsDto;
 import com.epam.aidial.cfg.dto.ImportResourcesConflictResolutionStrategyDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
+import com.epam.aidial.cfg.dto.RuleDto;
+import com.epam.aidial.cfg.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.mapper.FileMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.model.FileNodeInfo;
@@ -13,7 +15,11 @@ import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.Rule;
+import com.epam.aidial.cfg.model.RuleFunction;
+import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FileService;
+import com.epam.aidial.cfg.service.FolderService;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.FileController;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -64,6 +70,9 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
 
     @MockitoBean
     private FileService fileService;
+
+    @MockitoBean
+    private FolderService folderService;
 
     @Test
     void testGetAll() throws Exception {
@@ -119,6 +128,41 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
+    void testUploadFileWithRules() throws Exception {
+        // given
+        MockMultipartFile mockFile = new MockMultipartFile("files", "test.txt", MediaType.TEXT_PLAIN_VALUE, "test content".getBytes());
+        String path = "public/uploads/test.txt";
+        var rule = new Rule("groups", RuleFunction.EQUAL, List.of("admin"));
+        ImportResources importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .rules(List.of(rule))
+                .build();
+        ImportResourcesFileResult importResult = ImportResourcesFileResult.builder()
+                .build();
+        when(fileService.uploadFile(List.of(mockFile), importResources)).thenReturn(importResult);
+        doNothing().when(folderService).updatesRules(any());
+
+        var configDto = new ImportResourcesDto();
+        configDto.setPath(path);
+        var ruleDto = new RuleDto("groups", RuleFunctionDto.EQUAL, List.of("admin"));
+        configDto.setRules(List.of(ruleDto));
+        configDto.setConflictResolutionStrategy(ImportResourcesConflictResolutionStrategyDto.OVERRIDE);
+        MockMultipartFile configFile = new MockMultipartFile("config", "config.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(configDto));
+
+        // when
+        mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/files/import")
+                        .file(mockFile)
+                        .file(configFile)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                // then
+                .andExpect(status().isOk());
+        verify(fileService).uploadFile(List.of(mockFile), importResources);
+        verify(folderService).updatesRules(new UpdateRulesRequest(path, List.of(rule)));
+    }
+
+    @Test
     void testUploadZipFile() throws Exception {
         // given
         var zipFile = new MockMultipartFile(
@@ -150,6 +194,46 @@ class FileControllerTest extends AbstractControllerNoneSecureTest {
                 // then
                 .andExpect(status().isOk());
         verify(fileService).uploadFileZip(importResources, zipFile);
+    }
+
+    @Test
+    void testUploadZipFileWithRules() throws Exception {
+        // given
+        var zipFile = new MockMultipartFile(
+                "file",
+                "file.zip",
+                MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE,
+                "mockData".getBytes()
+        );
+        String path = "public/uploads/";
+        var rule = new Rule("groups", RuleFunction.EQUAL, List.of("admin"));
+        ImportResources importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .rules(List.of(rule))
+                .build();
+        ImportResourcesFileResult importResult = ImportResourcesFileResult.builder()
+                .build();
+        when(fileService.uploadFileZip(importResources, zipFile)).thenReturn(importResult);
+        doNothing().when(folderService).updatesRules(any());
+
+        var configDto = new ImportResourcesDto();
+        configDto.setPath(path);
+        var ruleDto = new RuleDto("groups", RuleFunctionDto.EQUAL, List.of("admin"));
+        configDto.setRules(List.of(ruleDto));
+        configDto.setConflictResolutionStrategy(ImportResourcesConflictResolutionStrategyDto.OVERRIDE);
+        MockMultipartFile configFile = new MockMultipartFile("config", "config.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(configDto));
+
+        // when
+        mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/files/import/zip")
+                        .file(zipFile)
+                        .file(configFile)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                // then
+                .andExpect(status().isOk());
+        verify(fileService).uploadFileZip(importResources, zipFile);
+        verify(folderService).updatesRules(new UpdateRulesRequest(path, List.of(rule)));
     }
 
     @Test

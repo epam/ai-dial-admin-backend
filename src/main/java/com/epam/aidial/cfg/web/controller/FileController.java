@@ -11,8 +11,11 @@ import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
 import com.epam.aidial.cfg.dto.validation.annotation.MetadataPath;
 import com.epam.aidial.cfg.mapper.FileMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
+import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
+import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FileService;
+import com.epam.aidial.cfg.service.FolderService;
 import feign.Response;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -47,6 +50,7 @@ import java.util.List;
 public class FileController {
 
     private final FileService fileService;
+    private final FolderService folderService;
     private final FileMapper fileMapper;
     private final ResourceMapper resourceMapper;
 
@@ -80,6 +84,7 @@ public class FileController {
     public ImportResourcesFileResultDto uploadFiles(@RequestPart("files") @Valid @Size(min = 1, max = 30) List<MultipartFile> files,
                                                     @RequestPart("config") @Validated ImportResourcesDto importFilesDto) {
         var importFiles = resourceMapper.toImportResources(importFilesDto);
+        importFolderRules(importFiles);
         var importResults = fileService.uploadFile(files, importFiles);
         return resourceMapper.toImportResourcesFileResultDto(importResults);
     }
@@ -88,6 +93,7 @@ public class FileController {
     public ImportResourcesFileResultDto uploadFilesZip(@RequestPart("file") MultipartFile files,
                                                        @RequestPart("config") @Validated ImportResourcesDto importFilesDto) {
         var importFiles = resourceMapper.toImportResources(importFilesDto);
+        importFolderRules(importFiles);
         var importResult = fileService.uploadFileZip(importFiles, files);
         return resourceMapper.toImportResourcesFileResultDto(importResult);
     }
@@ -139,5 +145,15 @@ public class FileController {
             throw new IllegalArgumentException("The file path does not contain a '/': %s".formatted(path));
         }
         return path.substring(lastSlashIndex + 1);
+    }
+
+    private void importFolderRules(ImportResources importFiles) {
+        if (importFiles.getRules() != null) {
+            var updateRulesRequest = UpdateRulesRequest.builder()
+                    .targetFolder(importFiles.getPath())
+                    .rules(importFiles.getRules())
+                    .build();
+            folderService.updatesRules(updateRulesRequest);
+        }
     }
 }
