@@ -516,6 +516,9 @@ public abstract class ModelFunctionalTest {
 
         JsonNode configModelState = config.get("models").get("model1");
         JsonNode currentModelState = configModelState.deepCopy();
+        // changing upstreams order for current state.
+        // in config state upstreams order can differ from current state.
+        // verifying that upstreams order doesn't matter for sync state comparison
         JsonNode upstreams = currentModelState.get("upstreams");
         JsonNode upstream0 = upstreams.get(0);
         JsonNode upstream1 = upstreams.get(1);
@@ -553,6 +556,9 @@ public abstract class ModelFunctionalTest {
 
         JsonNode configModelState = config.get("models").get("model1");
         JsonNode currentModelState = configModelState.deepCopy();
+        // changing upstreams order for current state.
+        // in config state upstreams order can differ from current state.
+        // verifying that upstreams order doesn't matter for sync state comparison
         JsonNode upstreams = currentModelState.get("upstreams");
         JsonNode upstream0 = upstreams.get(0);
         JsonNode upstream1 = upstreams.get(1);
