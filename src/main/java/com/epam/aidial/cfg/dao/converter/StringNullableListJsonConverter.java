@@ -27,9 +27,7 @@ public class StringNullableListJsonConverter implements AttributeConverter<List<
     @Override
     public List<String> convertToEntityAttribute(String data) {
         try {
-            return data == null
-                    ? null
-                    : mapper.readValue(data, new TypeReference<>() {
+            return data == null ? null : mapper.readValue(data, new TypeReference<>() {
             });
         } catch (Exception e) {
             log.debug("Failed to convert data to list. Raw attribute value: {}", data, e);
