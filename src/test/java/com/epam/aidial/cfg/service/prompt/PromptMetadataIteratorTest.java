@@ -111,9 +111,9 @@ class PromptMetadataIteratorTest {
         response.setItems(List.of());
         response.setNextToken(null);
 
-        when(promptClient.getPromptsMetadata(path, recursive, null, limit, recursive)).thenReturn(response);
+        when(promptClient.getPromptsMetadata(path, recursive, null, limit, permissions)).thenReturn(response);
 
-        var iterator = new PromptMetadataIterator(promptClient, path, recursive, limit, recursive);
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive, limit, permissions);
 
         assertThat(iterator.hasNext()).isFalse();
         assertThatThrownBy(iterator::next)
