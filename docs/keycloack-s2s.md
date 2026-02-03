@@ -36,34 +36,24 @@ clients:
     enabled: true
     clientAuthenticatorType: client-secret
     secret: $(env:KEYCLOAK_SECRET_S2S_AUTH)
-    redirectUris:
-      - "*"
-    webOrigins:
-      - "*"
+    redirectUris: []
+    webOrigins: []
     directAccessGrantsEnabled: false
     serviceAccountsEnabled: true
     authorizationServicesEnabled: false
     publicClient: false
     protocol: openid-connect
     attributes:
-      "access.token.lifespan": "300" # Token lifespan in seconds
-    fullScopeAllowed: true
+      "access.token.lifespan": "300" # Token lifespan in seconds default value may be skipped
+    fullScopeAllowed: true #to have necessary  claim in access token
     nodeReRegistrationTimeout: -1
     defaultClientScopes:
-      - basic
-      - web-origins
-      - acr
-      - profile
       - roles
-      - dial
-    optionalClientScopes:
-      - address
-      - phone
 ```
 
 ### Step 2: Assign Roles to Service Account User
 
-Assign roles to the service account user:
+Assign roles to the service account user :
 
 ```yaml
 users:
