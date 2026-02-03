@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.FileMetadataDto;
-import com.epam.aidial.cfg.dto.NodeTypeDto;
+import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.NodeType;
 import lombok.Builder;

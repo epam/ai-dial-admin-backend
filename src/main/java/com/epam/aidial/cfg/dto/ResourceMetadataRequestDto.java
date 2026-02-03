@@ -13,4 +13,5 @@ public class ResourceMetadataRequestDto {
     @Nullable
     private String nextToken;
     private Integer limit;
+    private boolean permissions;
 }

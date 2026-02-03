@@ -14,4 +14,5 @@ public class ResourceMetadataRequest {
     private String path;
     private String nextToken;
     private Integer limit;
+    private boolean permissions;
 }
