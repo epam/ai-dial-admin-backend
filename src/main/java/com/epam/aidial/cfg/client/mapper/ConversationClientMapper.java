@@ -2,7 +2,7 @@ package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.ConversationDto;
 import com.epam.aidial.cfg.client.dto.ConversationMetadataDto;
-import com.epam.aidial.cfg.dto.NodeTypeDto;
+import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.utils.PathUtils;
 import lombok.extern.slf4j.Slf4j;

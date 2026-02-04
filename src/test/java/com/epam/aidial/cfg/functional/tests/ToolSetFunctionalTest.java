@@ -40,9 +40,10 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public abstract class ToolSetFunctionalTest {
@@ -98,12 +99,12 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP), any()))
-                .thenReturn(mcpSyncClient);
-
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/ToolSet1/mcp"),
+                eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
+
     }
 
     @Test
@@ -115,11 +116,10 @@ public abstract class ToolSetFunctionalTest {
         var callToolRequest = Mockito.mock(McpSchema.CallToolRequest.class);
         var expectedCallToolResult = Mockito.mock(McpSchema.CallToolResult.class);
         var mcpSyncClient = Mockito.mock(McpSyncClient.class);
-
-        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP), any()))
-                .thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.initialize())
                 .thenReturn(null);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/ToolSet1/mcp"),
+                eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.callTool(callToolRequest))
                 .thenReturn(expectedCallToolResult);
 
@@ -264,7 +264,7 @@ public abstract class ToolSetFunctionalTest {
 
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     @Test
@@ -320,7 +320,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto refreshedResult = toolSetFacade.getToolSet(refreshedToolSetName);
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     @Test

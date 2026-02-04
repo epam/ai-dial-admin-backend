@@ -29,7 +29,8 @@ public interface ToolSetClient {
     ToolSetMetadataDto getToolSetMetadata(@PathVariable String path,
                                           @RequestParam boolean recursive,
                                           @RequestParam String token,
-                                          @RequestParam int limit);
+                                          @RequestParam int limit,
+                                          @RequestParam boolean permissions);
     /**
      * Implementation Details:
      *

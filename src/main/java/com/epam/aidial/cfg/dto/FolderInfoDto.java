@@ -10,5 +10,6 @@ public class FolderInfoDto {
     private String parentPath;
     private String bucket;
     private String path;
+    private List<ResourceAccessTypeDto> permissions;
     private List<FolderInfoDto> items;
 }
