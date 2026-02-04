@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.client.dto;
 
-import com.epam.aidial.cfg.dto.NodeTypeDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +22,7 @@ public abstract class BaseMetadataDto {
     private String author;
     private Long updatedAt;
     private String nextToken;
+    private List<ResourceAccessTypeDto> permissions;
 
     public abstract List<? extends BaseMetadataDto> getItems();
 

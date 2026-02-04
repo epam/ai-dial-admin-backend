@@ -22,7 +22,8 @@ public interface ConversationClient {
     @GetMapping("/v1/metadata/conversations/{path}")
     ConversationMetadataDto getConversationMetadata(@PathVariable String path,
                                                     @RequestParam boolean recursive,
-                                                    @RequestParam String token);
+                                                    @RequestParam String token,
+                                                    @RequestParam boolean permissions);
 
     /**
      * Implementation Details:
