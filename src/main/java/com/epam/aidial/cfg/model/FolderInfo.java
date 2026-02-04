@@ -17,5 +17,6 @@ public class FolderInfo {
     private String parentPath;
     private String bucket;
     private String path;
+    private List<ResourceAccessType> permissions;
     private List<FolderInfo> items;
 }

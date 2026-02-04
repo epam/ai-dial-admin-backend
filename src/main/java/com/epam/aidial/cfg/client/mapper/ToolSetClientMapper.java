@@ -1,15 +1,11 @@
 package com.epam.aidial.cfg.client.mapper;
 
-import com.epam.aidial.cfg.client.dto.ResourceSignInRequestDto;
-import com.epam.aidial.cfg.client.dto.ResourceSignOutRequestDto;
+import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
 import com.epam.aidial.cfg.client.dto.ToolSetResourceDto;
-import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.dto.ToolSetEximDto;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
 import com.epam.aidial.cfg.model.NodeType;
-import com.epam.aidial.cfg.model.ResourceSignInRequest;
-import com.epam.aidial.cfg.model.ResourceSignOutRequest;
 import com.epam.aidial.cfg.model.ToolSetExim;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
@@ -95,10 +91,6 @@ public abstract class ToolSetClientMapper {
     public abstract ToolSetResourceDto toToolSetResourceDto(CreateToolSetResource createToolSetResource);
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
-
-    public abstract ResourceSignInRequestDto toResourceSignInRequestDto(ResourceSignInRequest request);
-
-    public abstract ResourceSignOutRequestDto toResourceSignOutRequestDto(ResourceSignOutRequest request);
 
     public abstract ToolSetExim toToolSetExim(ToolSetResource toolSetResource);
 

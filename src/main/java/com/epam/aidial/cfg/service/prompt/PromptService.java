@@ -88,7 +88,8 @@ public class PromptService implements ResourceService {
         var nextToken = request.getNextToken();
         var path = request.getPath() != null ? request.getPath() : BASE_PATH;
         var limit = request.getLimit() != null ? request.getLimit() : promptsMetadataDefaultLimit;
-        return promptClient.getPromptsMetadata(path, recursive, nextToken, limit);
+        var permissions = request.isPermissions();
+        return promptClient.getPromptsMetadata(path, recursive, nextToken, limit, permissions);
     }
 
     public Prompt getPrompt(String path) {
@@ -101,7 +102,7 @@ public class PromptService implements ResourceService {
 
     private DomainModelWithEtag<Prompt> fetchApplicationResource(String path, String etag) {
         var response = promptClient.getPrompt(path, createIfNonMatchHeaders(etag));
-        var promptMetadata = promptClient.getPromptsMetadata(path, false, null, promptsMetadataDefaultLimit);
+        var promptMetadata = promptClient.getPromptsMetadata(path, false, null, promptsMetadataDefaultLimit, false);
         var prompt = promptClientMapper.toPrompt(response.getBody(), promptMetadata);
         var currentEtag = response.getHeaders().getETag();
         return new DomainModelWithEtag<>(prompt, currentEtag);
@@ -170,7 +171,7 @@ public class PromptService implements ResourceService {
     }
 
     private Stream<PromptMetadataDto> createStream(String path, boolean recursive) {
-        var iterator = new PromptMetadataIterator(promptClient, path, recursive, promptsMetadataDefaultLimit);
+        var iterator = new PromptMetadataIterator(promptClient, path, recursive, promptsMetadataDefaultLimit, false);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
     }
 

@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.BaseMetadataDto;
-import com.epam.aidial.cfg.dto.NodeTypeDto;
+import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.FolderInfo;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;

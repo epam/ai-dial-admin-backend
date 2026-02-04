@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
 import com.epam.aidial.cfg.configuration.JpaConfiguration;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.configuration.SyncStateConfiguration;
 import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
@@ -64,7 +65,7 @@ import java.util.Map;
         "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
-@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, HashCalculator.class})
+@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, HashCalculator.class, SyncStateConfiguration.class})
 @EnableAspectJAutoProxy
 public class FunctionalTestConfiguration {
 

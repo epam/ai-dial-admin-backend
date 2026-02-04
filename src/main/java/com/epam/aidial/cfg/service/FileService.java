@@ -76,7 +76,7 @@ public class FileService implements ResourceService {
 
     @Override
     public FileMetadataDto getMetadata(ResourceMetadataRequest request) {
-        return fileClient.getFilesMetadata(request.getPath(), request.isRecursive(), request.getNextToken());
+        return fileClient.getFilesMetadata(request.getPath(), request.isRecursive(), request.getNextToken(), request.isPermissions());
     }
 
     public Response get(String path) {

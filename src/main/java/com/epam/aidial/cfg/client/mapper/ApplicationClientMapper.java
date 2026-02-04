@@ -2,8 +2,8 @@ package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
+import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
-import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.ApplicationExim;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;

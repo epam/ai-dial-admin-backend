@@ -81,7 +81,8 @@ public class ToolSetResourceService implements ResourceService {
         var nextToken = request.getNextToken();
         var path = request.getPath() != null ? request.getPath() : BASE_PATH;
         var limit = request.getLimit() != null ? request.getLimit() : toolSetsMetadataDefaultLimit;
-        return toolSetClient.getToolSetMetadata(path, recursive, nextToken, limit);
+        var permissions = request.isPermissions();
+        return toolSetClient.getToolSetMetadata(path, recursive, nextToken, limit, permissions);
     }
 
     @Override
@@ -110,7 +111,9 @@ public class ToolSetResourceService implements ResourceService {
                 path,
                 false,
                 null,
-                toolSetsMetadataDefaultLimit);
+                toolSetsMetadataDefaultLimit,
+                false
+        );
 
         var toolSetResource = toolSetClientMapper.toToolSetResource(response.getBody(), metadata);
         var currentEtag = response.getHeaders().getETag();
