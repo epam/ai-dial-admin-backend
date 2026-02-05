@@ -128,10 +128,6 @@ class ModelSourceResolverTest {
         coreModel.setEndpoint("https://adapter/completions");
         coreModel.setType(ModelType.CHAT);
 
-        ModelSource existingSource = new ModelEndpointsSource();
-        Model model = new Model();
-        model.setSource(existingSource);
-
         ModelEndpointComponents modelEndpointComponents = new ModelEndpointComponents(
                 "https://adapter",
                 "/completions"
@@ -150,7 +146,7 @@ class ModelSourceResolverTest {
         expected.setCompletionEndpointPath("/completions");
 
         // when
-        ModelSource actual = resolver.resolveSourceForExistingModel(coreModel, model);
+        ModelSource actual = resolver.resolveSourceForNewModel(coreModel);
 
         // then
         assertThat(actual).isEqualTo(expected);

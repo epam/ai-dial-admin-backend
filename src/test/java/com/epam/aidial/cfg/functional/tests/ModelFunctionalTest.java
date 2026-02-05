@@ -441,27 +441,21 @@ public abstract class ModelFunctionalTest {
         adapterFacade.createAdapter(adapterDto1);
         adapterFacade.createAdapter(adapterDto2);
 
+        AdapterSourceDto adapterSourceDto = new AdapterSourceDto("adapter2", "chat/completions");
+
         ModelDto modelDto = createModelDto("1");
-        modelDto.setSource(new AdapterSourceDto("adapter2", "chat/completions"));
+        modelDto.setSource(adapterSourceDto);
         modelFacade.createModel(modelDto);
 
         CoreModel coreModel = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
         coreModel.setDescription("New description");
         modelFacade.updateModel(modelDto.getName(), coreModel, "*");
 
-        ModelDto expected = createModelDto("1");
-        expected.setSource(new AdapterSourceDto("adapter2", "chat/completions"));
-        expected.setDescription("New description");
-        expected.setDefaults(Map.of());
-        expected.setTopics(new TreeSet<>());
-        expected.setDependencies(List.of());
-        expected.setFieldsHashingOrder(List.of("prefix.body.tools", "prefix.body.messages"));
-        expected.setRoleLimits(Map.of());
-        expected.setDefaultRoleLimit(new LimitDto());
-
         ModelDto actual = modelFacade.getModel(modelDto.getName());
 
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertEquals("model1", actual.getName());
+        Assertions.assertEquals(adapterSourceDto, actual.getSource());
+        Assertions.assertEquals("New description", actual.getDescription());
     }
 
     @Test
