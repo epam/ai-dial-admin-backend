@@ -17,7 +17,7 @@ import java.util.Set;
 @Slf4j
 public class JwtProviderUtils {
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
-    private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0/";
+    private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0";
 
     public Set<String> getAcceptedIssuers(JwtProvidersProperties.ProviderConfig config) {
         final HashSet<String> acceptedIssuers = new HashSet<>();
