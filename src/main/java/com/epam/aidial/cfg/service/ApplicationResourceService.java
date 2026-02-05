@@ -157,4 +157,13 @@ public class ApplicationResourceService implements ResourceService {
         applicationClient.deleteApplicationResource(path, headers);
     }
 
+    public boolean applicationResourceExists(String path) {
+        try {
+            getApplicationResource(path);
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
+    }
+
 }

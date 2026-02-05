@@ -161,4 +161,13 @@ public class PromptService implements ResourceService {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
     }
 
+    public boolean promptExists(String path) {
+        try {
+            getPrompt(path);
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
+    }
+
 }

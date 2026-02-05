@@ -61,4 +61,10 @@ public class PublicationController {
         publicationService.rejectPublication(rejectPublicationDto.getPath(), rejectPublicationDto.getComment());
     }
 
+    @PostMapping(path = "/delete",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public void deletePublication(@RequestBody PublicationPathDto publicationPathDto) {
+        publicationService.deletePublication(publicationPathDto.getPath());
+    }
+
 }

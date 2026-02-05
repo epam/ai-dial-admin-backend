@@ -1,12 +1,15 @@
 package com.epam.aidial.cfg.service.publication.resolver;
 
 import com.epam.aidial.cfg.client.dto.PublicationDto;
+import com.epam.aidial.cfg.client.dto.PublicationResourceActionDto;
+import com.epam.aidial.cfg.client.dto.PublicationStatusDto;
 import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
 import com.epam.aidial.cfg.model.Publication;
-import com.epam.aidial.cfg.model.PublicationMissingResource;
+import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
@@ -39,25 +42,27 @@ public class ToolSetPublicationResolver extends PublicationResolver {
     public Publication resolvePublication(PublicationDto publicationDto) {
         checkForNotApplicableResourceTypes(publicationDto);
 
+        var status = publicationDto.getStatus();
         var resourceInfoList = publicationDto.getResources().stream()
-                .map(resourceInfo(publicationDto.getStatus()))
+                .map(resourceInfo(status))
                 .toList();
-        List<PublicationMissingResource> missingResources = new ArrayList<>();
+        List<PublicationResourceIssue> resourceIssues = new ArrayList<>();
 
         var toolSetResources = resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(ToolSetClientMapper.TOOLSETS_PREFIX))
-                .map(resource -> resolveResourceAndCollectMissing(
-                        () -> getToolSetPublication(resource),
-                        ResourceType.TOOL_SET,
-                        extractToolSetPath(resource),
-                        missingResources,
-                        "ToolSet not found"))
+                .map(resource -> resolveResourceAndCollectIssues(
+                        () -> getToolSetPublication(resource, status),
+                        resourceIssues,
+                        new PublicationResourceIssue(ResourceType.TOOL_SET, extractToolSetPath(resource),
+                                "ToolSet not found"),
+                        new PublicationResourceIssue(ResourceType.TOOL_SET, resource.resource().getTargetUrl(),
+                                "Target toolset already exists")))
                 .flatMap(Optional::stream)
                 .toList();
 
-        var files = filePublicationResolver.resolveFileResourcePaths(resourceInfoList, missingResources);
+        var files = filePublicationResolver.resolveFileResourcePaths(resourceInfoList, resourceIssues);
 
-        return mapper.toToolSetPublication(publicationDto, toolSetResources, files, missingResources);
+        return mapper.toToolSetPublication(publicationDto, toolSetResources, files, resourceIssues);
     }
 
     @Override
@@ -70,11 +75,26 @@ public class ToolSetPublicationResolver extends PublicationResolver {
         return Set.of(ResourceTypeDto.TOOL_SET, ResourceTypeDto.FILE);
     }
 
-    private ToolSetPublicationResource getToolSetPublication(ResourceInfo resourceInfo) {
+    private ToolSetPublicationResource getToolSetPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {
         var resource = resourceInfo.resource();
+        validateTargetNotPublished(resourceInfo, status);
         var toolsetPath = extractToolSetPath(resourceInfo);
         var toolsetResource = toolSetResourceService.getToolSetResource(toolsetPath);
         return mapper.toToolSetPublicationResource(resource.getAction(), toolsetResource);
+    }
+
+    public void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {
+        var resource = resourceInfo.resource();
+        if (status == PublicationStatusDto.PENDING && resource.getAction() != PublicationResourceActionDto.DELETE) {
+            var targetUrl = extractTargetPath(resourceInfo, ToolSetClientMapper.TOOLSETS_PREFIX);
+            validateNotPublishedAtPath(targetUrl);
+        }
+    }
+
+    public void validateNotPublishedAtPath(String targetUrl) {
+        if (toolSetResourceService.toolSetResourceExists(targetUrl)) {
+            throw new ResourceAlreadyExistsException("Target toolset already exists");
+        }
     }
 
     private String extractToolSetPath(ResourceInfo resourceInfo) {
