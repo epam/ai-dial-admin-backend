@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -427,6 +428,38 @@ public abstract class ModelFunctionalTest {
         CoreModel actual = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
         actual.setCreatedAt(null);
         actual.setUpdatedAt(null);
+
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateCoreModel() {
+        AdapterDto adapterDto1 = createAdapterDto("1");
+        adapterDto1.setBaseEndpoint("https://endpoint.test.com/adapter/v1/");
+        AdapterDto adapterDto2 = createAdapterDto("2");
+        adapterDto2.setBaseEndpoint("https://endpoint.test.com/adapter/v1/");
+        adapterFacade.createAdapter(adapterDto1);
+        adapterFacade.createAdapter(adapterDto2);
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new AdapterSourceDto("adapter2", "chat/completions"));
+        modelFacade.createModel(modelDto);
+
+        CoreModel coreModel = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
+        coreModel.setDescription("New description");
+        modelFacade.updateModel(modelDto.getName(), coreModel, "*");
+
+        ModelDto expected = createModelDto("1");
+        expected.setSource(new AdapterSourceDto("adapter2", "chat/completions"));
+        expected.setDescription("New description");
+        expected.setDefaults(Map.of());
+        expected.setTopics(new TreeSet<>());
+        expected.setDependencies(List.of());
+        expected.setFieldsHashingOrder(List.of("prefix.body.tools", "prefix.body.messages"));
+        expected.setRoleLimits(Map.of());
+        expected.setDefaultRoleLimit(new LimitDto());
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
 
         Assertions.assertEquals(expected, actual);
     }
