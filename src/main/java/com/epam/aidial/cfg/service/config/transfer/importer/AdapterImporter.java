@@ -5,10 +5,12 @@ import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.service.AdapterService;
+import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.config.transfer.importer.util.ModelSourceRetentionPolicy;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.ModelType;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,9 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 @RequiredArgsConstructor
 public class AdapterImporter {
     private final AdapterService adapterService;
+    private final ModelService modelService;
     private final ModelEndpointUtils modelEndpointUtils;
+    private final ModelSourceRetentionPolicy modelSourceRetentionPolicy;
 
     public Collection<ImportComponent<Adapter>> importAdapters(Map<String, CoreModel> coreModels,
                                                                ConfigImportOptions importOptions,
@@ -85,12 +89,19 @@ public class AdapterImporter {
     }
 
     private Set<String> getAdapterBaseEndpoints(Map<String, CoreModel> coreModels) {
-        return coreModels.values()
+        return coreModels.entrySet()
                 .stream()
-                .filter(coreModel -> coreModel.getEndpoint() != null)
+                .filter(entry -> shouldSearchForAdapter(entry.getKey(), entry.getValue()))
+                .map(Map.Entry::getValue)
                 .map(this::mapToAdapterBaseEndpoint)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+    }
+
+    private boolean shouldSearchForAdapter(String modelName, CoreModel coreModel) {
+        return modelService.tryGetModel(modelName)
+                .map(model -> modelSourceRetentionPolicy.shouldChangeSource(coreModel, model))
+                .orElseGet(() -> coreModel.getEndpoint() != null);
     }
 
     private String mapToAdapterBaseEndpoint(CoreModel coreModel) {
