@@ -20,6 +20,6 @@ public class TestAuthenticationConverterFactory {
     public static JwtAuthenticationConverterFactory createJwtAuthenticationConverterFactory() {
         var config = JwtProviderTestHelper.createProviderConfig();
         return new JwtAuthenticationConverterFactory(Map.of(config.getIssuer(), config), "oid",
-                new JwtProviderUtils(), Set.of("admin", "ConfigAdmin"), "unique_name");
+                new JwtProviderUtils(), Set.of("admin", "ConfigAdmin"), "unique_name", false);
     }
 }

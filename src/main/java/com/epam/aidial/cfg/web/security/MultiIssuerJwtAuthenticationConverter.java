@@ -26,9 +26,12 @@ public class MultiIssuerJwtAuthenticationConverter implements Converter<Jwt, Abs
     private String principalClaimName = JwtClaimNames.SUB;
     private final Set<String> emailClaims = new LinkedHashSet<>();
     private final Set<String> allowedRoles;
+    private final boolean requireEmail;
 
-    public MultiIssuerJwtAuthenticationConverter(List<String> issuerEmailClaims, Set<String> allowedRoles, String defaultClaimsEmailKey) {
+    public MultiIssuerJwtAuthenticationConverter(List<String> issuerEmailClaims, Set<String> allowedRoles, String defaultClaimsEmailKey,
+                                                 boolean requireEmail) {
         this.allowedRoles = allowedRoles;
+        this.requireEmail = requireEmail;
 
         if (!CollectionUtils.isEmpty(issuerEmailClaims)) {
             emailClaims.addAll(issuerEmailClaims);
@@ -50,9 +53,13 @@ public class MultiIssuerJwtAuthenticationConverter implements Converter<Jwt, Abs
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
-        UserSecurityDetails details = JwtProviderUtils
-                .extractFirstClaim(jwt, List.copyOf(emailClaims))
-                .map(UserSecurityDetails::new)
+        var email = JwtProviderUtils.extractFirstClaim(jwt, List.copyOf(emailClaims));
+
+        if (requireEmail && email.isEmpty()) {
+            throw new IllegalStateException("Email claim is required");
+        }
+
+        var details = email.map(UserSecurityDetails::new)
                 .orElseGet(() -> new UserSecurityDetails(null));
 
         JwtAuthenticationToken authToken =
@@ -61,8 +68,8 @@ public class MultiIssuerJwtAuthenticationConverter implements Converter<Jwt, Abs
                         : new JwtAuthenticationToken(jwt, filtered, principalClaimValue);
 
         if (filtered.isEmpty()) {
-            log.warn("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
-                    jwt, issuer, authToken, allowedRoles, authToken.getAuthorities());
+            log.warn("Authorization failed - issuer: {}, allowedRolesForIssuer: {}, authorities: {}",
+                    issuer, allowedRoles, authorities);
         }
 
         authToken.setDetails(details);

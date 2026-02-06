@@ -28,7 +28,7 @@ class JwtAuthenticationConverterFactoryTest {
                 "testPrincipal",
                 jwtProviderUtils,
                 Set.of("admin", "ConfigAdmin"),
-                "unique_name");
+                "unique_name", true);
         converter = factory.getConverter(TEST_ISSUER);
     }
 
