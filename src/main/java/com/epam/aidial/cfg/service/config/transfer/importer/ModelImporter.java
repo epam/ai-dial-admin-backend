@@ -3,23 +3,18 @@ package com.epam.aidial.cfg.service.config.transfer.importer;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
-import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
-import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
-import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.ModelService;
-import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
-import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
 import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
+import com.epam.aidial.cfg.service.config.transfer.importer.util.ModelSourceResolver;
 import com.epam.aidial.core.config.CoreModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,9 +41,8 @@ import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 public class ModelImporter extends DeploymentHolderImporter {
 
     private final ModelService modelService;
-    private final AdapterService adapterService;
     private final ModelCoreMapper modelMapper;
-    private final ModelEndpointUtils modelEndpointUtils;
+    private final ModelSourceResolver modelSourceResolver;
     private final DeploymentManagerService deploymentManagerService;
 
     public Collection<ImportComponent<Model>> importModels(Map<String, CoreModel> coreModels,
@@ -82,12 +76,14 @@ public class ModelImporter extends DeploymentHolderImporter {
             Model existingModel = model.get();
             Model existingModelCopy = modelMapper.copy(existingModel);
             List<RoleLimit> roleLimits = getRoleLimits(existingModelCopy.getDeployment(), coreModel.getUserRoles());
-            Model newModel = map(modelName, coreModel, roleLimits, existingModelCopy);
+            ModelSource modelSource = modelSourceResolver.resolveSourceForExistingModel(coreModel, existingModelCopy);
+            Model newModel = map(modelName, coreModel, roleLimits, existingModelCopy, modelSource);
             ImportAction importAction = handleExistingModel(newModel, resolutionPolicy, modelName);
             return new ImportComponent<>(importAction, existingModel, newModel);
         } else {
             List<RoleLimit> roleLimits = getRoleLimits(modelName, coreModel.getUserRoles());
-            Model newModel = map(modelName, coreModel, roleLimits, new Model());
+            ModelSource modelSource = modelSourceResolver.resolveSourceForNewModel(coreModel);
+            Model newModel = map(modelName, coreModel, roleLimits, new Model(), modelSource);
             modelService.createModel(newModel);
             return new ImportComponent<>(CREATE, null, newModel);
         }
@@ -142,33 +138,9 @@ public class ModelImporter extends DeploymentHolderImporter {
         };
     }
 
-    private Model map(String modelName, CoreModel coreModel, List<RoleLimit> roleLimits, Model model) {
+    private Model map(String modelName, CoreModel coreModel, List<RoleLimit> roleLimits, Model model, ModelSource source) {
         coreModel.setName(modelName);
-
-        ModelSource source = new ModelEndpointsSource();
-        ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(coreModel);
-        if (modelEndpointComponents == null) {
-            return modelMapper.mapModel(coreModel, source, roleLimits, model);
-        }
-
-        Adapter adapter = resolveAdapter(modelEndpointComponents);
-        if (adapter != null) {
-            source = new AdapterSource(adapter.getName(), modelEndpointComponents.completionEndpointPath());
-        }
-
         return modelMapper.mapModel(coreModel, source, roleLimits, model);
-    }
-
-    private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {
-        if (coreModel == null || coreModel.getEndpoint() == null) {
-            return null;
-        }
-        return modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
-    }
-
-    private Adapter resolveAdapter(ModelEndpointComponents modelEndpointComponents) {
-        String adapterEndpoint = modelEndpointComponents.adapterEndpoint();
-        return adapterService.getByEndpoint(adapterEndpoint);
     }
 
     public List<ImportComponent<Model>> getActualImportedModels(Collection<ImportComponent<Model>> modelImportComponents) {
