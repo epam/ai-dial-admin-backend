@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JwtAuthenticationConverterFactoryTest {
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
@@ -28,7 +29,7 @@ class JwtAuthenticationConverterFactoryTest {
                 "testPrincipal",
                 jwtProviderUtils,
                 Set.of("admin", "ConfigAdmin"),
-                "unique_name", true);
+                "unique_name", false);
         converter = factory.getConverter(TEST_ISSUER);
     }
 
@@ -98,6 +99,24 @@ class JwtAuthenticationConverterFactoryTest {
         var authenticationToken = converter.convert(jwtToken);
         var details = (UserSecurityDetails) authenticationToken.getDetails();
         assertThat(details.email()).isEqualTo(null);
+    }
+
+    @Test
+    void whenEmailNotPresentAndRequired_thenThrow() {
+        var factoryWithRequiredEmail = new JwtAuthenticationConverterFactory(
+                Map.of("test", JwtProviderTestHelper.createProviderConfig()),
+                "testPrincipal",
+                jwtProviderUtils,
+                Set.of("admin", "ConfigAdmin"),
+                "unique_name", true);
+        var converterWithRequiredEmail = factoryWithRequiredEmail.getConverter(TEST_ISSUER);
+        var jwtToken = generateTestToken(
+                Map.of(
+                        "iss", TEST_ISSUER,
+                        "roles", List.of("USER")
+                )
+        );
+        assertThrows(IllegalStateException.class, () -> converterWithRequiredEmail.convert(jwtToken));
     }
 
     private static List<String> authoritiesToStrings(Collection<? extends GrantedAuthority> auths) {
