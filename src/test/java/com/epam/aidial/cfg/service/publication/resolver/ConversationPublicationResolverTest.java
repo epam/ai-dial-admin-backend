@@ -115,8 +115,7 @@ class ConversationPublicationResolverTest {
     @Test
     void resolvePublicationShouldReturnCorrectConversationPublicationWithFiles() {
         // given
-        var publicationResource = new PublicationResourceDto();
-        publicationResource.setAction(PublicationResourceActionDto.ADD);
+        var publicationResource = getPublicationResourceDto();
         var filePublicationResource = getFilePublicationDto();
         var ruleDto = getRuleDto();
         var publicationDto = getPublicationDto(List.of(publicationResource, filePublicationResource),
