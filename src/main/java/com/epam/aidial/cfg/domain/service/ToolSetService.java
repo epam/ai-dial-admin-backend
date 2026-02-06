@@ -16,20 +16,24 @@ import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
 import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -55,6 +59,7 @@ public class ToolSetService {
     private final ToolSetRefreshService toolSetRefreshService;
     private final ContainerEndpointResolver endpointResolver;
     private final HashCalculator calculator;
+    private final CoreClientUrlUtils coreClientUrlUtils;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
@@ -195,13 +200,17 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
         var toolSet = get(toolSetName);
-        return toolDiscoveryService.discoverTools(toolSet.getEndpoint(), toolSet.getTransport(), nextCursor);
+        var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
+        return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getDeployment().getName()),
+                toolSet.getTransport(), nextCursor, getAuthHeaders());
     }
 
     @Transactional(readOnly = true)
     public McpSchema.CallToolResult callTool(String toolSetName, McpSchema.CallToolRequest callToolRequest) {
         var toolSet = get(toolSetName);
-        return toolCallService.callTool(toolSet.getEndpoint(), toolSet.getTransport(), callToolRequest);
+        var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
+        return toolCallService.callTool(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getDeployment().getName()),
+                toolSet.getTransport(), getAuthHeaders(), callToolRequest);
     }
 
     @Transactional(readOnly = true)
@@ -261,4 +270,11 @@ public class ToolSetService {
         return mapper.toEntity(domain, entity, toolSetContainer, roleLimits, rolesForLimits);
     }
 
+    private Map<String, String> getAuthHeaders() {
+        var token = AuthorizationTokenHolder.getToken();
+        if (StringUtils.isBlank(token)) {
+            return null;
+        }
+        return Map.of("Authorization", "Bearer " + token);
+    }
 }

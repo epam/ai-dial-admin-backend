@@ -73,7 +73,8 @@ public class ApplicationResourceService implements ResourceService {
         var nextToken = request.getNextToken();
         var path = request.getPath() != null ? request.getPath() : BASE_PATH;
         var limit = request.getLimit() != null ? request.getLimit() : applicationsMetadataDefaultLimit;
-        return applicationClient.getApplicationMetadata(path, recursive, nextToken, limit);
+        var permissions = request.isPermissions();
+        return applicationClient.getApplicationMetadata(path, recursive, nextToken, limit, permissions);
     }
 
     @Override
@@ -102,7 +103,8 @@ public class ApplicationResourceService implements ResourceService {
                 path,
                 false,
                 null,
-                applicationsMetadataDefaultLimit
+                applicationsMetadataDefaultLimit,
+                false
         );
 
         var applicationResourceDto = response.getBody();

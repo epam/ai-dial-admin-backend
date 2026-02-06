@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -18,21 +19,26 @@ public class KeyValidator {
     private final IdFieldValidator idFieldValidator;
     private final TransactionTimestampContext transactionTimestampContext;
     private final DisplayFieldsValidator displayFieldsValidator;
+    private final CidrValidator cidrValidator;
 
     private final String keyNameValidationPattern;
 
     public KeyValidator(IdFieldValidator idFieldValidator,
                         TransactionTimestampContext transactionTimestampContext,
-                        DisplayFieldsValidator displayFieldsValidator, @Value("${validation.key.name:}") String keyNameValidationPattern) {
+                        DisplayFieldsValidator displayFieldsValidator,
+                        CidrValidator cidrValidator,
+                        @Value("${validation.key.name:}") String keyNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.transactionTimestampContext = transactionTimestampContext;
         this.displayFieldsValidator = displayFieldsValidator;
+        this.cidrValidator = cidrValidator;
         this.keyNameValidationPattern = keyNameValidationPattern;
     }
 
     public void validateCreation(Key key) {
         validateKeyName(key);
         validateProject(key);
+        validateAllowedIpAddressRanges(key);
         displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         long now = transactionTimestampContext.getTimestamp();
         Long expiresAt = key.getExpiresAt();
@@ -62,6 +68,7 @@ public class KeyValidator {
             throw new IllegalArgumentException("Key with name: '" + keyName + "' can not be renamed. New key name: '" + key.getName() + "'");
         }
         validateProject(key);
+        validateAllowedIpAddressRanges(key);
         displayFieldsValidator.validateDisplayName(key.getDisplayName(), "Key", key.getName());
         Long expiresAt = key.getExpiresAt();
         long createdAt = existingEntity.getCreatedAt();
@@ -73,6 +80,32 @@ public class KeyValidator {
     private void validateProject(Key key) {
         if (StringUtils.isBlank(key.getProject())) {
             throw new IllegalArgumentException("Project is required. Key name: " + key.getName());
+        }
+    }
+
+    private void validateAllowedIpAddressRanges(Key key) {
+        if (CollectionUtils.isEmpty(key.getAllowedIpAddressRanges())) {
+            log.debug("Key allowed IpAddress ranges is empty, skipping validation for key: {}", key.getName());
+            return;
+        }
+        var errors = key.getAllowedIpAddressRanges().stream()
+                .map(cidr -> {
+                    try {
+                        cidrValidator.validate(cidr);
+                        return null;
+                    } catch (IllegalArgumentException ex) {
+                        return ex.getMessage();
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (!errors.isEmpty()) {
+            log.warn("Invalid allowedIpAddressRanges for key {}: {}",
+                    key.getName(),
+                    errors);
+
+            throw new IllegalArgumentException("Invalid allowed IP address ranges.");
         }
     }
 }

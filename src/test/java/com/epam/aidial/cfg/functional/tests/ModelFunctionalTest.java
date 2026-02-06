@@ -27,6 +27,7 @@ import com.epam.aidial.core.config.CoreModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -495,36 +496,57 @@ public abstract class ModelFunctionalTest {
     @Test
     public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenModelIsEqualToConfigModel() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
-        UpstreamDto upstreamDto = new UpstreamDto();
-        upstreamDto.setEndpoint("http://localhost");
-        upstreamDto.setKey("secretKey");
-        upstreamDto.setExtraData("{\"temp\":951}");
+
+        UpstreamDto secretUpstreamDto = new UpstreamDto();
+        secretUpstreamDto.setEndpoint("http://localhost");
+        secretUpstreamDto.setKey("secretKey");
+        secretUpstreamDto.setExtraData("{\"temp\":951}");
+
+        UpstreamDto publicUpstreamDto = new UpstreamDto();
+        publicUpstreamDto.setEndpoint("http://localhost");
+        publicUpstreamDto.setExtraData("{\"temp\":800}");
+
         ModelDto modelDto = createModelDto("1");
-        modelDto.setUpstreams(List.of(upstreamDto));
+        modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode modelState = config.get("models").get("model1");
+        JsonNode configModelState = config.get("models").get("model1");
+        JsonNode currentModelState = configModelState.deepCopy();
+        // changing upstreams order for current state.
+        // in config state upstreams order can differ from current state.
+        // verifying that upstreams order doesn't matter for sync state comparison
+        JsonNode upstreams = currentModelState.get("upstreams");
+        JsonNode upstream0 = upstreams.get(0);
+        JsonNode upstream1 = upstreams.get(1);
+        ((ArrayNode) currentModelState.get("upstreams")).removeAll();
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream1);
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream0);
 
         EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
 
-        assertThat(actualSyncState.getCurrentState()).isEqualTo(modelState);
-        assertThat(actualSyncState.getConfigState()).isEqualTo(modelState);
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentModelState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configModelState);
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
     }
 
     @Test
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenModelIsNotEqualToConfigModelAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
-        UpstreamDto upstreamDto = new UpstreamDto();
-        upstreamDto.setEndpoint("http://localhost");
-        upstreamDto.setKey("secretKey");
-        upstreamDto.setExtraData("{\"temp\":951}");
+        UpstreamDto secretUpstreamDto = new UpstreamDto();
+        secretUpstreamDto.setEndpoint("http://localhost");
+        secretUpstreamDto.setKey("secretKey");
+        secretUpstreamDto.setExtraData("{\"temp\":951}");
+
+        UpstreamDto publicUpstreamDto = new UpstreamDto();
+        publicUpstreamDto.setEndpoint("http://localhost");
+        publicUpstreamDto.setExtraData("{\"temp\":800}");
+
         ModelDto modelDto = createModelDto("1");
-        modelDto.setUpstreams(List.of(upstreamDto));
+        modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelDto.setDescription("description OLD");
         modelFacade.createModel(modelDto);
 
@@ -534,6 +556,15 @@ public abstract class ModelFunctionalTest {
 
         JsonNode configModelState = config.get("models").get("model1");
         JsonNode currentModelState = configModelState.deepCopy();
+        // changing upstreams order for current state.
+        // in config state upstreams order can differ from current state.
+        // verifying that upstreams order doesn't matter for sync state comparison
+        JsonNode upstreams = currentModelState.get("upstreams");
+        JsonNode upstream0 = upstreams.get(0);
+        JsonNode upstream1 = upstreams.get(1);
+        ((ArrayNode) currentModelState.get("upstreams")).removeAll();
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream1);
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream0);
         ((ObjectNode) currentModelState).put("description", "description OLD");
 
         EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
@@ -655,6 +686,12 @@ public abstract class ModelFunctionalTest {
                       "limits": null,
                       "pricing": null,
                       "upstreams": [
+                        {
+                          "endpoint": "http://localhost",
+                          "extraData": "{\\"temp\\":800}",
+                          "weight": 1,
+                          "tier":0
+                        },
                         {
                           "endpoint": "http://localhost",
                           "extraData": "{\\"temp\\":951}",
