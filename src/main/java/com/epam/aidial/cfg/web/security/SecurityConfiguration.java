@@ -36,7 +36,7 @@ public class SecurityConfiguration {
     public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim,
                                                                                @Value("${config.rest.security.default.email.claims}") String defaultClaimsEmailKey,
                                                                                @Value("${config.rest.security.default.allowedRoles}") Set<String> defaultAllowedRoles,
-                                                                               @Value("${audit.require-email}") boolean requireEmail) {
+                                                                               @Value("${config.rest.security.require-email}") boolean requireEmail) {
         return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, jwtProviderUtils, defaultAllowedRoles, defaultClaimsEmailKey,
                 requireEmail);
     }
