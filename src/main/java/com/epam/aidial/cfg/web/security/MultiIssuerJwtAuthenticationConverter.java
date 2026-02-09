@@ -35,8 +35,7 @@ public class MultiIssuerJwtAuthenticationConverter implements Converter<Jwt, Abs
 
         if (!CollectionUtils.isEmpty(issuerEmailClaims)) {
             emailClaims.addAll(issuerEmailClaims);
-        }
-        if (StringUtils.isNotBlank(defaultClaimsEmailKey)) {
+        } else if (StringUtils.isNotBlank(defaultClaimsEmailKey)) {
             emailClaims.add(defaultClaimsEmailKey);
         }
     }

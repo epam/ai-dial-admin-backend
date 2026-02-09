@@ -75,7 +75,7 @@ class JwtAuthenticationConverterFactoryTest {
     }
 
     @Test
-    void whenEmailPresentInDefaultEmailClaims_thenEmailInDetails() {
+    void whenEmailPresentInDefaultEmailClaimsButNotInIssuerEmailClaims_thenEmailInNull() {
         var jwtToken = generateTestToken(
                 Map.of(
                         "iss", TEST_ISSUER,
@@ -85,7 +85,7 @@ class JwtAuthenticationConverterFactoryTest {
         );
         var authenticationToken = converter.convert(jwtToken);
         var details = (UserSecurityDetails) authenticationToken.getDetails();
-        assertThat(details.email()).isEqualTo("default@test.com");
+        assertThat(details.email()).isNull();
     }
 
     @Test
