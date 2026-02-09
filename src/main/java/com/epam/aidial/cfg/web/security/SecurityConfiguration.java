@@ -6,16 +6,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
@@ -81,9 +81,14 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    public Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter(Map<String, JwtProviderSetup> jwtProviderSetupByIssuer) {
+        return new MultiIssuerJwtAuthenticationConverter(jwtProviderSetupByIssuer);
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwtDecoder jwtDecoder,
-                                                   Map<String, JwtProviderSetup> jwtProviderSetupByIssuer) throws Exception {
+                                                   Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(publicPathPatterns()).permitAll()
@@ -91,26 +96,7 @@ public class SecurityConfiguration {
                         .anyRequest().denyAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
-                        .jwt(jwt -> jwt.decoder(jwtDecoder)
-                                .jwtAuthenticationConverter(token -> {
-                                    var issuer = token.getIssuer().toString();
-                                    var jwtProviderSetup = jwtProviderSetupByIssuer.get(issuer);
-                                    var converter = jwtProviderSetup.getJwtAuthenticationConverter();
-                                    var authenticationToken = converter.convert(token);
-                                    var allowedRolesForIssuer = jwtProviderSetup.getAllowedRoles();
-                                    var filtered = authenticationToken.getAuthorities().stream()
-                                            .map(GrantedAuthority::getAuthority)
-                                            .filter(allowedRolesForIssuer::contains)
-                                            .map(SimpleGrantedAuthority::new)
-                                            .toList();
-                                    log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
-                                            token, issuer, authenticationToken, allowedRolesForIssuer, authenticationToken.getAuthorities());
-                                    if (filtered.isEmpty()) {
-                                        log.warn("Access denied for issuer:{}. No allowed roles for user {}", issuer, authenticationToken.getName());
-                                        return new JwtAuthenticationToken(token);
-                                    }
-                                    return new JwtAuthenticationToken(token, filtered, authenticationToken.getName());
-                                })));
+                        .jwt(jwt -> jwt.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter)));
         return http.build();
     }
 
