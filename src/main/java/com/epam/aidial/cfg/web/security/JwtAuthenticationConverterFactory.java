@@ -2,43 +2,20 @@ package com.epam.aidial.cfg.web.security;
 
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public class JwtAuthenticationConverterFactory {
-    private final String principalClaim;
-    private final JwtProviderUtils jwtProviderUtils;
-    private final Map<String, JwtAuthenticationConverter> convertersByIssuer;
 
-    public JwtAuthenticationConverterFactory(Map<String, JwtProvidersProperties.ProviderConfig> providers,
-                                             String principalClaim, JwtProviderUtils jwtProviderUtils) {
-        this.principalClaim = principalClaim;
-        this.jwtProviderUtils = jwtProviderUtils;
-        Map<String, JwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
-        providers.forEach((name, config) -> {
-            var converter = create(config);
-            var acceptedIssuers = this.jwtProviderUtils.getAcceptedIssuers(config);
-            for (var issuer : acceptedIssuers) {
-                tmpConvertersByIssuer.put(issuer, converter);
-            }
-        });
-        convertersByIssuer = Map.copyOf(tmpConvertersByIssuer);
-    }
-
-    private JwtAuthenticationConverter create(JwtProvidersProperties.ProviderConfig config) {
-        var grantedAuthoritiesConverter = new MultiPathGrantedAuthoritiesConverter();
-        var authoritiesPaths = config.getRoleClaims().stream()
+    public JwtAuthenticationConverter create(List<String> roleClaims, String principalClaim) {
+        var authoritiesPaths = roleClaims.stream()
                 .map(String::trim)
                 .toList();
-        grantedAuthoritiesConverter.setAuthoritiesPaths(authoritiesPaths);
-        grantedAuthoritiesConverter.setAuthorityPrefix("");
-        final var jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        var grantedAuthoritiesConverter = new MultiPathGrantedAuthoritiesConverter("", authoritiesPaths);
+
+        var jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         jwtAuthenticationConverter.setPrincipalClaimName(principalClaim);
-        return jwtAuthenticationConverter;
-    }
 
-    public JwtAuthenticationConverter getConverter(String issuer) {
-        return convertersByIssuer.get(issuer);
+        return jwtAuthenticationConverter;
     }
 }

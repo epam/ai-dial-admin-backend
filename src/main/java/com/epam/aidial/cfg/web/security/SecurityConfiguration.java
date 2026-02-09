@@ -13,12 +13,13 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,52 +33,57 @@ import java.util.stream.Stream;
 @Slf4j
 public class SecurityConfiguration {
 
-    private final JwtProvidersProperties jwtProviderProperties;
-    private final JwtProviderUtils jwtProviderUtils;
-
-    @Value("${config.rest.security.default.allowedRoles}")
-    protected Set<String> defaultAllowedRoles;
-
     @Value("${config.rest.security.disable-swagger-authorization}")
     protected boolean disableSwaggerAuthorization;
 
     @Bean
-    public Map<String, Set<String>> allowedRolesByIssuer() {
-        Map<String, Set<String>> tmpRolesByIssuer = new HashMap<>();
-        var providers = jwtProviderProperties.getProviders();
-        providers.forEach((name, config) -> {
-            Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
-            if (config.getAllowedRoles() != null) {
-                acceptedRoles.addAll(config.getAllowedRoles());
-            }
+    public Map<String, JwtProviderSetup> jwtProviderSetupByIssuer(
+            JwtProvidersProperties jwtProviderProperties,
+            NimbusJwtDecoderResolver nimbusJwtDecoderResolver,
+            @Value("${config.rest.security.default.allowedRoles}") Set<String> defaultAllowedRoles,
+            @Value("${config.rest.security.principal-claim}") String principalClaim) {
+        JwtProviderUtils jwtProviderUtils = new JwtProviderUtils();
+        JwtDecoderFactory jwtDecoderFactory = new JwtDecoderFactory();
+        JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory = new JwtAuthenticationConverterFactory();
+
+        Map<String, JwtProviderSetup> result = new HashMap<>();
+
+        for (var config : jwtProviderProperties.getProviders().values()) {
             var acceptedIssuers = jwtProviderUtils.getAcceptedIssuers(config);
+            var acceptedAudiences = jwtProviderUtils.getAcceptedAudiences(config);
+            var allowedRoles = jwtProviderUtils.getAllowedRoles(config, defaultAllowedRoles);
+
+            var jwtDecoder = jwtDecoderFactory.createDecoder(acceptedIssuers, acceptedAudiences, config, nimbusJwtDecoderResolver);
+            var jwtAuthenticationConverter = jwtAuthenticationConverterFactory.create(config.getRoleClaims(), principalClaim);
+
+            var jwtProviderSetup = JwtProviderSetup.builder()
+                    .allowedRoles(allowedRoles)
+                    .jwtDecoder(jwtDecoder)
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter)
+                    .build();
+
             for (var issuer : acceptedIssuers) {
-                tmpRolesByIssuer.put(issuer, acceptedRoles);
+                result.put(issuer, jwtProviderSetup);
             }
-        });
-        return Map.copyOf(tmpRolesByIssuer);
+        }
+
+        return result;
     }
 
     @Bean
-    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim) {
-        return new JwtAuthenticationConverterFactory(jwtProviderProperties.getProviders(), principalClaim, jwtProviderUtils);
+    public NimbusJwtDecoderResolver nimbusJwtDecoderResolver() {
+        return config -> NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri()).build();
     }
 
     @Bean
-    public IssuerToDecoderMapFactory issuerToDecoderMapFactory() {
-        return new IssuerToDecoderMapFactory(jwtProviderUtils);
-    }
-
-    @Bean
-    public TokenDecoderFactory tokenDecoderFactory(IssuerToDecoderMapFactory issuerToDecoderMapFactory) {
-        return new TokenDecoderFactoryImpl(jwtProviderProperties.getProviders(), issuerToDecoderMapFactory);
+    public JwtDecoder jwtDecoder(Map<String, JwtProviderSetup> jwtProviderSetupByIssuer) {
+        return new MultiIssuerJwtDecoder(jwtProviderSetupByIssuer);
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   TokenDecoderFactory tokenDecoderFactory,
-                                                   JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory,
-                                                   Map<String, Set<String>> allowedRolesByIssuer) throws Exception {
+                                                   JwtDecoder jwtDecoder,
+                                                   Map<String, JwtProviderSetup> jwtProviderSetupByIssuer) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(publicPathPatterns()).permitAll()
@@ -85,12 +91,13 @@ public class SecurityConfiguration {
                         .anyRequest().denyAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
-                        .jwt(jwt -> jwt.decoder(tokenDecoderFactory.createJwtDecoder())
+                        .jwt(jwt -> jwt.decoder(jwtDecoder)
                                 .jwtAuthenticationConverter(token -> {
                                     var issuer = token.getIssuer().toString();
-                                    var converter = jwtAuthenticationConverterFactory.getConverter(issuer);
+                                    var jwtProviderSetup = jwtProviderSetupByIssuer.get(issuer);
+                                    var converter = jwtProviderSetup.getJwtAuthenticationConverter();
                                     var authenticationToken = converter.convert(token);
-                                    var allowedRolesForIssuer = allowedRolesByIssuer.getOrDefault(issuer, Set.of());
+                                    var allowedRolesForIssuer = jwtProviderSetup.getAllowedRoles();
                                     var filtered = authenticationToken.getAuthorities().stream()
                                             .map(GrantedAuthority::getAuthority)
                                             .filter(allowedRolesForIssuer::contains)

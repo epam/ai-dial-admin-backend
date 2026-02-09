@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.converter.Converter;
@@ -16,14 +16,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@RequiredArgsConstructor
 @Slf4j
 public class MultiPathGrantedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
-    private static final String DEFAULT_AUTHORITY_PREFIX = "SCOPE_";
-    private String authorityPrefix = DEFAULT_AUTHORITY_PREFIX;
-
-    private List<String> authoritiesPaths;
+    private final String authorityPrefix;
+    private final List<String> authoritiesPaths;
 
     @NotNull
     @Override

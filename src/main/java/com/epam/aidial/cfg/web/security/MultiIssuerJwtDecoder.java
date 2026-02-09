@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.security;
 
 import com.epam.aidial.cfg.utils.SecretUtils;
 import com.nimbusds.jwt.SignedJWT;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -11,14 +12,11 @@ import org.springframework.security.oauth2.server.resource.InvalidBearerTokenExc
 import java.text.ParseException;
 import java.util.Map;
 
+@RequiredArgsConstructor
 @Slf4j
 public class MultiIssuerJwtDecoder implements JwtDecoder {
 
-    private final Map<String, JwtDecoder> issuerToDecoderMap;
-
-    public MultiIssuerJwtDecoder(Map<String, JwtDecoder> issuerToDecoderMap) {
-        this.issuerToDecoderMap = Map.copyOf(issuerToDecoderMap);
-    }
+    private final Map<String, JwtProviderSetup> jwtProviderSetupByIssuer;
 
     @Override
     public Jwt decode(final String token) throws JwtException {
@@ -29,20 +27,20 @@ public class MultiIssuerJwtDecoder implements JwtDecoder {
         }
 
         final var issuer = getIssuer(token);
-        final var jwtDecoder = issuerToDecoderMap.get(issuer);
+        final var jwtProviderSetup = jwtProviderSetupByIssuer.get(issuer);
 
-        if (jwtDecoder == null) {
+        if (jwtProviderSetup == null) {
             throw new InvalidBearerTokenException("Unrecognized issuer: " + issuer);
         }
 
-        return jwtDecoder.decode(token);
+        return jwtProviderSetup.getJwtDecoder().decode(token);
     }
 
     private String getIssuer(final String token) {
         try {
             return SignedJWT.parse(token)
-                .getJWTClaimsSet()
-                .getIssuer();
+                    .getJWTClaimsSet()
+                    .getIssuer();
         } catch (ParseException e) {
             log.warn("Failed to authenticate since the JWT token (value = {}***) was invalid: ",
                     SecretUtils.mask(token));

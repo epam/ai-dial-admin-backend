@@ -2,18 +2,19 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
-@Component
 @Slf4j
 public class JwtProviderUtils {
+
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0";
+
+    private static final String AUDIENCE_PREFIX = "api://";
 
     public Set<String> getAcceptedIssuers(JwtProvidersProperties.ProviderConfig config) {
         final HashSet<String> acceptedIssuers = new HashSet<>();
@@ -43,5 +44,24 @@ public class JwtProviderUtils {
             log.debug("Invalid url format for url: {}", urlString, e);
             return false;
         }
+    }
+
+    public Set<String> getAcceptedAudiences(JwtProvidersProperties.ProviderConfig config) {
+        final Set<String> allAcceptedAudiences = new HashSet<>();
+        for (final String audience : config.getAudiences()) {
+            allAcceptedAudiences.add(audience);
+            allAcceptedAudiences.add(AUDIENCE_PREFIX + audience);
+        }
+        return allAcceptedAudiences;
+    }
+
+    public Set<String> getAllowedRoles(JwtProvidersProperties.ProviderConfig config, Set<String> defaultAllowedRoles) {
+        var allowedRoles = new HashSet<>(defaultAllowedRoles);
+
+        if (config.getAllowedRoles() != null) {
+            allowedRoles.addAll(config.getAllowedRoles());
+        }
+
+        return allowedRoles;
     }
 }
