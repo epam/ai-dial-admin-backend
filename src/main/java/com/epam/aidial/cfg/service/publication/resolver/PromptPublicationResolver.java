@@ -48,7 +48,6 @@ public class PromptPublicationResolver extends PublicationResolver {
                         resourceIssues,
                         new PublicationResourceIssue(ResourceType.PROMPT, extractPromptPath(prompt.resource(), prompt.status()),
                                 "Prompt not found"),
-
                         new PublicationResourceIssue(ResourceType.PROMPT, prompt.resource().getTargetUrl(),
                                 "Target prompt already exists")))
                 .flatMap(Optional::stream)
