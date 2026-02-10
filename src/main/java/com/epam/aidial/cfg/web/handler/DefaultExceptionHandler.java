@@ -167,7 +167,7 @@ public class DefaultExceptionHandler {
         HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
         String message = clientException.contentUTF8();
         HttpStatus notNullHttpStatus = httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus;
-        return ResponseEntity.status(notNullHttpStatus).body(new ErrorView(req, httpStatus, message));
+        return ResponseEntity.status(notNullHttpStatus).body(new ErrorView(req, notNullHttpStatus, message));
     }
 
     @ResponseBody
