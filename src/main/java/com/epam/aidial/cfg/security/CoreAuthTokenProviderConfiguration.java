@@ -2,14 +2,16 @@ package com.epam.aidial.cfg.security;
 
 import com.epam.aidial.cfg.client.CoreAuthTokenProviderClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnProperty(value = "core.auth.method", havingValue = "token")
 public class CoreAuthTokenProviderConfiguration {
 
     @Bean
-    public AuthTokenProvider authTokenProvider(
+    public AuthTokenProvider coreAuthTokenProvider(
             CoreAuthTokenProviderClient client,
             @Value("${core.auth.token.provider.clientId}") String clientId,
             @Value("${core.auth.token.provider.clientSecret}") String clientSecret,
