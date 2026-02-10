@@ -80,11 +80,23 @@ public class PromptsController {
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PromptDto> createPrompt(@RequestBody CreatePromptDto createPromptDto) {
+    public ResponseEntity<Void> createPrompt(@RequestBody CreatePromptDto createPromptDto) {
         var createPrompt = promptMapper.toCreatePrompt(createPromptDto);
-        var prompt = promptService.createPrompt(createPrompt, true, null);
-        var promptDto = promptMapper.toPromptDto(prompt.model());
-        return ResponseEntity.status(HttpStatus.OK).eTag(prompt.etag()).body(promptDto);
+        var currentEtag = promptService.createPrompt(createPrompt);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
+    }
+
+    @PostMapping(
+            path = "/update",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Void> updatePrompt(
+            @RequestHeader("If-Match") String etag,
+            @RequestBody CreatePromptDto updatePromptDto) {
+        var updatePrompt = promptMapper.toCreatePrompt(updatePromptDto);
+        var currentEtag = promptService.putPrompt(updatePrompt, true,
+                etag);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 
     @PostMapping(path = "/delete",
