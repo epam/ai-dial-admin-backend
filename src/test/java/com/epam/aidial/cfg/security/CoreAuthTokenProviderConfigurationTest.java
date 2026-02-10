@@ -19,7 +19,7 @@ class CoreAuthTokenProviderConfigurationTest {
         boolean useCache = true;
 
         CoreAuthTokenProviderConfiguration config = new CoreAuthTokenProviderConfiguration();
-        AuthTokenProvider provider = config.authTokenProvider(
+        AuthTokenProvider provider = config.coreAuthTokenProvider(
                 client, clientId, clientSecret, scope, useCache, refreshBeforeExpirationSeconds
         );
 
@@ -31,7 +31,7 @@ class CoreAuthTokenProviderConfigurationTest {
         CoreAuthTokenProviderClient client = mock(CoreAuthTokenProviderClient.class);
 
         CoreAuthTokenProviderConfiguration config = new CoreAuthTokenProviderConfiguration();
-        AuthTokenProvider provider = config.authTokenProvider(
+        AuthTokenProvider provider = config.coreAuthTokenProvider(
                 client, clientId, clientSecret, scope, false, refreshBeforeExpirationSeconds
         );
 

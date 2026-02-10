@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.service.config.reload;
 
-import com.epam.aidial.cfg.client.BackendTokenAuthenticatedCoreClient;
+import com.epam.aidial.cfg.client.BackendAuthenticatedCoreConfigClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +16,14 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(value = "config.autoReload.enabled", havingValue = "true")
 public class CoreConfigReloadScheduler {
 
-    private final BackendTokenAuthenticatedCoreClient backendTokenAuthenticatedCoreClient;
+    private final BackendAuthenticatedCoreConfigClient backendAuthenticatedCoreConfigClient;
     private final ConfigReloadErrorHandler errorHandler;
     private final CoreConfigReloadCache coreConfigReloadCache;
 
     @Scheduled(fixedDelayString = "${config.autoReload.schedule.delayMs}")
     public void reloadCoreConfig() {
         try {
-            JsonNode config = backendTokenAuthenticatedCoreClient.reload();
+            JsonNode config = backendAuthenticatedCoreConfigClient.reload();
             coreConfigReloadCache.put(config);
             errorHandler.setLastErrorMessage(null);
         } catch (Exception e) {
