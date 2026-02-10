@@ -7,7 +7,10 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.DomainModelWithEtag;
 import com.epam.aidial.cfg.model.FolderInfo;
@@ -115,15 +118,26 @@ public class PromptService implements ResourceService {
                 .toList();
     }
 
-    public DomainModelWithEtag<Prompt> createPrompt(CreatePrompt createPrompt, boolean allowOverride, String etag) {
-        var promptDto = promptClientMapper.toPromptDto(createPrompt);
-        var path = buildPath(createPrompt.getFolderId(), createPrompt.getName(),
-                createPrompt.getVersion());
+    public String createPrompt(CreatePrompt createPrompt) {
+        try {
+            return putPrompt(createPrompt, false, null);
+        } catch (ResourcePreconditionFailedException ex) {
+            throw new EntityAlreadyExistsException("Prompt with name " + createPrompt.getName() + " already exists");
+        }
+    }
+
+    public String putPrompt(CreatePrompt updatePrompt,
+                            boolean allowOverride,
+                            String etag) {
+        var promptDto = promptClientMapper.toPromptDto(updatePrompt);
+        var path = buildPath(updatePrompt.getFolderId(), updatePrompt.getName(), updatePrompt.getVersion());
         var headers = createHeadersForCreate(allowOverride, etag);
-        var response = promptClient.createPrompt(path, promptDto, headers);
-        var prompt = promptClientMapper.toPrompt(promptDto, response.getBody());
-        var currentEtag = response.getHeaders().getETag();
-        return new DomainModelWithEtag<>(prompt, currentEtag);
+        try {
+            var response = promptClient.createPrompt(path, promptDto, headers);
+            return response.getHeaders().getETag();
+        } catch (ResourcePreconditionFailedException ex) {
+            throw OptimisticLockConflictException.onUpdate("Prompt", promptDto.getName());
+        }
     }
 
     public void deletePrompts(List<String> paths) {
