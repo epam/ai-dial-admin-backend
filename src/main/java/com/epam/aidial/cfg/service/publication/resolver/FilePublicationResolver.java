@@ -1,16 +1,18 @@
 package com.epam.aidial.cfg.service.publication.resolver;
 
 import com.epam.aidial.cfg.client.dto.PublicationDto;
+import com.epam.aidial.cfg.client.dto.PublicationResourceActionDto;
 import com.epam.aidial.cfg.client.dto.PublicationResourceDto;
 import com.epam.aidial.cfg.client.dto.PublicationStatusDto;
 import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
 import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Publication;
-import com.epam.aidial.cfg.model.PublicationMissingResource;
+import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.FileService;
@@ -44,18 +46,20 @@ public class FilePublicationResolver extends PublicationResolver {
     public Publication resolvePublication(PublicationDto publicationDto) {
         checkForNotApplicableResourceTypes(publicationDto);
 
-        List<PublicationMissingResource> missingResources = new ArrayList<>();
+        var status = publicationDto.getStatus();
+        List<PublicationResourceIssue> resourceIssues = new ArrayList<>();
         var fileResources = publicationDto.getResources().stream()
-                .map(resourceInfo(publicationDto.getStatus()))
-                .map(file -> resolveResourceAndCollectMissing(
-                        () -> getFilePublication(file.resource(), file.status()),
-                        ResourceType.FILE,
-                        extractFilePath(file.resource(), file.status()),
-                        missingResources,
-                        "File not found"))
+                .map(resourceInfo(status))
+                .map(file -> resolveResourceAndCollectIssues(
+                        () -> getFilePublication(file, status),
+                        resourceIssues,
+                        new PublicationResourceIssue(ResourceType.FILE, extractFilePath(file.resource(), status),
+                                "File not found"),
+                        new PublicationResourceIssue(ResourceType.FILE, file.resource().getTargetUrl(),
+                                "Target file already exists")))
                 .flatMap(Optional::stream)
                 .toList();
-        return mapper.toFilePublication(publicationDto, fileResources, missingResources);
+        return mapper.toFilePublication(publicationDto, fileResources, resourceIssues);
     }
 
     @Override
@@ -68,17 +72,18 @@ public class FilePublicationResolver extends PublicationResolver {
         return Set.of(ResourceTypeDto.FILE);
     }
 
-    private FilePublicationResource getFilePublication(PublicationResourceDto resource, PublicationStatusDto status) {
-        var filePath = extractFilePath(resource, status);
+    private FilePublicationResource getFilePublication(ResourceInfo resourceInfo, PublicationStatusDto status) {
+        var filePath = extractFilePath(resourceInfo.resource(), status);
+        validateTargetNotPublished(resourceInfo, status);
         var request = ResourceMetadataRequest.builder().path(filePath).build();
         var filesNode = fileService.getAll(request);
 
         if (filesNode.getNodeType() != NodeType.ITEM) {
             throw new IllegalStateException("Incorrect node type: %s. Resource: %s."
-                    .formatted(filesNode.getNodeType(), resource));
+                    .formatted(filesNode.getNodeType(), resourceInfo.resource()));
         }
 
-        return mapper.toFilePublicationResource(resource.getAction(), filesNode);
+        return mapper.toFilePublicationResource(resourceInfo.resource().getAction(), filesNode);
     }
 
     private String extractFilePath(PublicationResourceDto publicationResource, PublicationStatusDto status) {
@@ -86,19 +91,35 @@ public class FilePublicationResolver extends PublicationResolver {
         return fileClientMapper.parsePath(path).getPath();
     }
 
-    protected List<String> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList, List<PublicationMissingResource> missingResources) {
+    protected List<String> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList,
+                                                    List<PublicationResourceIssue> resourceIssues) {
         return resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(FileClientMapper.FILES_PREFIX))
-                .map(resource -> resolveResourceAndCollectMissing(
+                .map(resource -> resolveResourceAndCollectIssues(
                         () -> {
-                            getFilePublication(resource.resource(), resource.status());
+                            getFilePublication(resource, resource.status());
                             return extractFilePath(resource);
                         },
-                        ResourceType.FILE,
-                        extractFilePath(resource),
-                        missingResources,
-                        "File not found"))
+                        resourceIssues,
+                        new PublicationResourceIssue(ResourceType.FILE, extractFilePath(resource.resource(), resource.status()),
+                                "File not found"),
+                        new PublicationResourceIssue(ResourceType.FILE, resource.resource().getTargetUrl(),
+                                "Target file already exists")))
                 .flatMap(Optional::stream)
                 .toList();
+    }
+
+    public void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {
+        var insideResource = resourceInfo.resource();
+        if (status == PublicationStatusDto.PENDING && insideResource.getAction() != PublicationResourceActionDto.DELETE) {
+            var targetUrl = extractTargetPath(resourceInfo, FileClientMapper.FILES_PREFIX);
+            validateNotPublishedAtPath(targetUrl);
+        }
+    }
+
+    public void validateNotPublishedAtPath(String targetUrl) {
+        if (fileService.fileExists(targetUrl)) {
+            throw new ResourceAlreadyExistsException("Target file already exists");
+        }
     }
 }

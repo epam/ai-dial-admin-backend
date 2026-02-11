@@ -12,8 +12,8 @@ import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.ConversationPublicationResource;
-import com.epam.aidial.cfg.model.PublicationMissingResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
+import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.RuleFunction;
@@ -30,6 +30,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -114,8 +115,7 @@ class ConversationPublicationResolverTest {
     @Test
     void resolvePublicationShouldReturnCorrectConversationPublicationWithFiles() {
         // given
-        var publicationResource = new PublicationResourceDto();
-        publicationResource.setAction(PublicationResourceActionDto.ADD);
+        var publicationResource = getPublicationResourceDto();
         var filePublicationResource = getFilePublicationDto();
         var ruleDto = getRuleDto();
         var publicationDto = getPublicationDto(List.of(publicationResource, filePublicationResource),
@@ -204,8 +204,8 @@ class ConversationPublicationResolverTest {
         var result = conversationPublicationResolver.resolvePublication(publicationDto);
 
         // then
-        assertThat(result.getMissingResources()).hasSize(1);
-        var missingResource = result.getMissingResources().get(0);
+        assertThat(result.getResourceIssues()).hasSize(1);
+        var missingResource = result.getResourceIssues().get(0);
         assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.CONVERSATION);
         assertThat(missingResource.getMessage()).isEqualTo("Conversation not found");
         assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testConversation");
@@ -229,8 +229,8 @@ class ConversationPublicationResolverTest {
                 .thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         when(conversationService.getConversation(REVIEW_CONVERSATION_PATH)).thenThrow(ResourceNotFoundException.class);
         doAnswer(invocation -> {
-            List<PublicationMissingResource> missing = invocation.getArgument(1);
-            missing.add(new PublicationMissingResource(ResourceType.FILE, "/missing/file", "File not found"));
+            List<PublicationResourceIssue> missing = invocation.getArgument(1);
+            missing.add(new PublicationResourceIssue(ResourceType.FILE, "/missing/file", "File not found"));
             return List.of(REVIEW_FOLDER + FILE_NAME);
 
         }).when(filePublicationResolver)
@@ -239,12 +239,51 @@ class ConversationPublicationResolverTest {
         var result = conversationPublicationResolver.resolvePublication(publicationDto);
 
         // then
-        assertThat(result.getMissingResources()).hasSize(2);
-        var missingResource1 = result.getMissingResources().get(0);
+        assertThat(result.getResourceIssues()).hasSize(2);
+        var missingResource1 = result.getResourceIssues().get(0);
         assertThat(missingResource1.getResourceType()).isEqualTo(ResourceType.CONVERSATION);
         assertThat(missingResource1.getMessage()).isEqualTo("Conversation not found");
         assertThat(missingResource1.getPath()).isEqualTo("reviewFolder/testConversation");
-        var missingResource2 = result.getMissingResources().get(1);
+        var missingResource2 = result.getResourceIssues().get(1);
+        assertThat(missingResource2.getResourceType()).isEqualTo(ResourceType.FILE);
+        assertThat(missingResource2.getMessage()).isEqualTo("File not found");
+        assertThat(missingResource2.getPath()).isEqualTo("/missing/file");
+    }
+
+    @Test
+    void resolvePublicationShouldReturnResourceIssueWhenSomeResourceIsPublished() {
+        // given
+        var publicationResource = getPublicationResourceDto();
+        var filePublicationResource = getFilePublicationDto();
+        var ruleDto = getRuleDto();
+        var publicationDto = getPublicationDto(List.of(publicationResource, filePublicationResource),
+                List.of(ResourceTypeDto.FILE, ResourceTypeDto.CONVERSATION), List.of(ruleDto));
+        var conversation = new Conversation();
+        conversation.setPath(REVIEW_CONVERSATION_PATH);
+        conversation.setFolderId(REVIEW_FOLDER);
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(CONVERSATION_PREFIX + REVIEW_CONVERSATION_PATH);
+        when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
+        when(conversationService.conversationExists(any())).thenReturn(true);
+        doAnswer(invocation -> {
+            List<PublicationResourceIssue> missing = invocation.getArgument(1);
+            missing.add(new PublicationResourceIssue(ResourceType.FILE, "/missing/file", "File not found"));
+            return List.of(REVIEW_FOLDER + FILE_NAME);
+
+        }).when(filePublicationResolver)
+                .resolveFileResourcePaths(anyList(), anyList());
+        // when
+        var result = conversationPublicationResolver.resolvePublication(publicationDto);
+
+        // then
+        assertThat(result.getResourceIssues()).hasSize(2);
+        var missingResource1 = result.getResourceIssues().get(0);
+        assertThat(missingResource1.getResourceType()).isEqualTo(ResourceType.CONVERSATION);
+        assertThat(missingResource1.getMessage()).isEqualTo("Target conversation already exists");
+        assertThat(missingResource1.getPath()).isEqualTo("conversations/targetFolder/testConversation");
+        var missingResource2 = result.getResourceIssues().get(1);
         assertThat(missingResource2.getResourceType()).isEqualTo(ResourceType.FILE);
         assertThat(missingResource2.getMessage()).isEqualTo("File not found");
         assertThat(missingResource2.getPath()).isEqualTo("/missing/file");

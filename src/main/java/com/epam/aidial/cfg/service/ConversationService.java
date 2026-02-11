@@ -65,4 +65,13 @@ public class ConversationService implements ResourceService {
     public void delete(String path, String etag) {
         conversationClient.deleteConversation(path);
     }
+
+    public boolean conversationExists(String path) {
+        try {
+            getConversation(path);
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
+    }
 }
