@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.ql.common.deserializer.TriFunction;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.experimental.UtilityClass;
@@ -22,6 +23,7 @@ import java.util.function.Supplier;
 
 @Slf4j
 @UtilityClass
+@LogExecution
 public class OpaqueTokenCustomGrantedAuthoritiesConverters {
 
     private static final ParameterizedTypeReference<JsonNode> JSON_NODE = new ParameterizedTypeReference<>() {
@@ -60,16 +62,18 @@ public class OpaqueTokenCustomGrantedAuthoritiesConverters {
 
     private <T> ResponseEntity<T> makeRequest(Supplier<ResponseEntity<T>> request) {
         try {
-            return request.get();
+            ResponseEntity<T> response = request.get();
+            log.debug("Response: {}", response);
+            return response;
         } catch (Exception ex) {
-            log.debug("Failed to retrieve authorities", ex);
+            log.warn("Failed to retrieve authorities", ex);
             throw new OAuth2IntrospectionException(ex.getMessage(), ex);
         }
     }
 
     private void checkResponse(ResponseEntity<?> response) {
         if (response.getStatusCode() != HttpStatus.OK) {
-            log.debug("Failed to retrieve authorities. Response: {}", response);
+            log.warn("Failed to retrieve authorities. Response: {}", response);
             throw new OAuth2IntrospectionException("Failed to retrieve authorities. Status code: " + response.getStatusCode());
         }
     }

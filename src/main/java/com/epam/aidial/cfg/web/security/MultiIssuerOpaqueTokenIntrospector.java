@@ -1,9 +1,10 @@
 package com.epam.aidial.cfg.web.security;
 
+import com.epam.aidial.cfg.utils.SecretUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
-import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionException;
+import org.springframework.security.oauth2.server.resource.introspection.BadOpaqueTokenException;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
 import java.util.List;
@@ -20,10 +21,14 @@ public class MultiIssuerOpaqueTokenIntrospector implements OpaqueTokenIntrospect
             try {
                 return introspector.introspect(token);
             } catch (Exception ex) {
-                log.debug("Token introspection failed. Will try to use next introspector", ex);
+                log.debug(
+                        "Token introspection failed. Will try to use next introspector. Token: {}",
+                        SecretUtils.mask(token),
+                        ex
+                );
             }
         }
 
-        throw new OAuth2IntrospectionException("Token introspection failed. Unable to find applicable introspector");
+        throw new BadOpaqueTokenException("Token introspection failed. Unable to find applicable introspector");
     }
 }

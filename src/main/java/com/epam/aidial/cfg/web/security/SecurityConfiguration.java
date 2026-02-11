@@ -139,7 +139,7 @@ public class SecurityConfiguration {
             try {
                 if (log.isTraceEnabled()) {
                     log.trace("authManagerResolve. token: {}", token);
-                } else {
+                } else if (log.isDebugEnabled()) {
                     log.debug("authManagerResolve. token: {}", SecretUtils.mask(token));
                 }
                 SignedJWT.parse(token);

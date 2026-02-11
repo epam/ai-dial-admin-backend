@@ -55,4 +55,13 @@ class IdentityProvidersPropertiesTest {
         properties.getProviders().put("test", IdentityProviderTestHelper.createOpaqueTokenProviderConfig());
         assertDoesNotThrow(properties::checkProviders);
     }
+
+    @Test
+    void whenProvidersPresentAndRoleClaimsAreEmpty_thenThrows() {
+        IdentityProvidersProperties properties = new IdentityProvidersProperties();
+        IdentityProvidersProperties.ProviderConfig config = IdentityProviderTestHelper.createJwtProviderConfig();
+        config.setRoleClaims(null);
+        properties.getProviders().put("test", config);
+        assertThrows(IllegalStateException.class, properties::checkProviders);
+    }
 }

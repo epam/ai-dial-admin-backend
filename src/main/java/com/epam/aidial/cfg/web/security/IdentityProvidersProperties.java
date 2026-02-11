@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -86,6 +87,11 @@ public class IdentityProvidersProperties {
 
         if (provider.hasJwkSetUri() && !provider.hasIssuer()) {
             log.warn("Skipping provider '{}' — missing issuer", name);
+            return true;
+        }
+
+        if (CollectionUtils.isEmpty(provider.getRoleClaims())) {
+            log.warn("Skipping provider '{}' — missing role claims", name);
             return true;
         }
 

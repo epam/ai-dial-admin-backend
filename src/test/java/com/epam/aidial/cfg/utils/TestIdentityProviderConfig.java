@@ -8,10 +8,11 @@ import org.springframework.context.annotation.Primary;
 import java.util.Set;
 
 @Configuration
-public class TestJwtProviderConfig {
+public class TestIdentityProviderConfig {
+
     @Primary
     @Bean
-    public IdentityProvidersProperties jwtProvidersProperties() {
+    public IdentityProvidersProperties identityProvidersProperties() {
         var config = IdentityProviderTestHelper.createJwtProviderConfig();
         config.setAllowedRoles(Set.of("testRole"));
 

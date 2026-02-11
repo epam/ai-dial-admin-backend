@@ -55,7 +55,7 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         ResponseEntity<Map<String, Object>> responseEntity = makeRequest(requestEntity);
 
         if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            log.debug("Token introspection failed. Response: {}", responseEntity);
+            log.debug("Introspection endpoint responded with {}. Provider: {}", responseEntity, config);
             throw new OAuth2IntrospectionException("Introspection endpoint responded with " + responseEntity.getStatusCode());
         }
 
@@ -66,7 +66,7 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         try {
             return restTemplate.exchange(requestEntity, STRING_OBJECT_MAP);
         } catch (Exception ex) {
-            log.debug("Token introspection failed", ex);
+            log.debug("Token introspection request failed for provider {}", config, ex);
             throw new OAuth2IntrospectionException(ex.getMessage(), ex);
         }
     }
@@ -77,7 +77,8 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
             var converterName = roleClaims.get(0);
             var converter = OpaqueTokenCustomGrantedAuthoritiesConverters.CONVERTERS.get(converterName);
             if (converter == null) {
-                throw new OAuth2IntrospectionException("Unable to find custom converter: " + converterName);
+                log.debug("Unable to find custom granted authorities converter for provider {}", config);
+                throw new OAuth2IntrospectionException("Unable to find custom granted authorities converter: " + converterName);
             }
 
             return converter.apply(restTemplate, token, attributes);
