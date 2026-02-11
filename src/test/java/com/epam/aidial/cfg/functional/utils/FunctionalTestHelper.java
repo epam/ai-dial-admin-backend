@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.AdapterEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
@@ -72,6 +73,7 @@ public class FunctionalTestHelper {
         adapterDto.setDescription("description" + suffix);
         adapterDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
         adapterDto.setModels(List.of());
+        adapterDto.setSource(new AdapterEndpointsSourceDto());
         return adapterDto;
     }
 
