@@ -7,7 +7,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
-import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
@@ -193,7 +193,7 @@ public abstract class ModelHistoryFunctionalTest {
         // create model1
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelDto.setEndpoint(null);
-        modelDto.setSource(new AdapterSourceDto(adapter1.getName(), "/chat/completions"));
+        modelDto.setSource(new ModelAdapterSourceDto(adapter1.getName(), "/chat/completions"));
         modelFacade.createModel(modelDto);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
@@ -204,7 +204,7 @@ public abstract class ModelHistoryFunctionalTest {
         adapterFacade.createAdapter(adapter2);
 
         // update model
-        modelDto.setSource(new AdapterSourceDto(adapter2.getName(), "/chat/completions"));
+        modelDto.setSource(new ModelAdapterSourceDto(adapter2.getName(), "/chat/completions"));
         modelFacade.updateModel(modelDto.getName(), modelDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();

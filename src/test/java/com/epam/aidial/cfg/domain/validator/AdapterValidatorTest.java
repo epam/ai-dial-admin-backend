@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -25,12 +27,21 @@ class AdapterValidatorTest {
     private IdFieldValidator idFieldValidator;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
+    @Mock
+    private DeploymentManagerService deploymentManagerService;
 
     private AdapterValidator adapterValidator;
 
     @BeforeEach
     void setUp() {
-        adapterValidator = new AdapterValidator(idFieldValidator, displayFieldsValidator, null);
+        MockitoAnnotations.openMocks(this);
+        adapterValidator = new AdapterValidator(
+                idFieldValidator,
+                displayFieldsValidator,
+                deploymentManagerService,
+                new DeploymentInfoValidator(),
+                null
+        );
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -17,4 +18,5 @@ public class Adapter {
     private Long updatedAt;
     private List<String> models = new ArrayList<>();
     private Set<String> topics;
+    private AdapterSource source;
 }

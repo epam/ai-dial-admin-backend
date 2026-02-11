@@ -2,7 +2,7 @@ package com.epam.aidial.cfg.service.config.transfer.importer.util;
 
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
@@ -79,7 +79,7 @@ class ModelSourceResolverTest {
         when(adapterService.getByEndpoint("https://adapter"))
                 .thenReturn(adapter);
 
-        AdapterSource expected = new AdapterSource();
+        ModelAdapterSource expected = new ModelAdapterSource();
         expected.setAdapterName("test-adapter");
         expected.setCompletionEndpointPath("/completions");
 
@@ -122,7 +122,7 @@ class ModelSourceResolverTest {
     }
 
     @Test
-    void resolveSourceForNewModel_shouldReturnAdapterSourceWhenEndpointComponentsResolved() {
+    void resolveSourceForNewModel_shouldReturnModelAdapterSourceWhenEndpointComponentsResolved() {
         // given
         CoreModel coreModel = new CoreModel();
         coreModel.setEndpoint("https://adapter/completions");
@@ -141,7 +141,7 @@ class ModelSourceResolverTest {
         when(adapterService.getByEndpoint("https://adapter"))
                 .thenReturn(adapter);
 
-        AdapterSource expected = new AdapterSource();
+        ModelAdapterSource expected = new ModelAdapterSource();
         expected.setAdapterName("test-adapter");
         expected.setCompletionEndpointPath("/completions");
 
