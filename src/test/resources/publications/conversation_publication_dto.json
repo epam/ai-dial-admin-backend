@@ -1,114 +1,128 @@
 {
-  "path": "bucket/file",
-  "requestName": "Pub req 6",
-  "author": "Test Author",
-  "createdAt": 1741595184514,
-  "status": "pending",
-  "folderId": "Target folder 1",
-  "rules": [
-    {
-      "source": "role",
-      "function": "equal",
-      "targets": [
-        "admin"
-      ]
-    }
-  ],
-  "action": "add",
-  "conversations": [
-    {
-      "path": "Folder 1/Conversation 1",
-      "folderId": "Folder 1",
-      "updatedAt": 1741595170582,
-      "name": "Conversation 1",
-      "model": {
-        "id": "gpt-4"
-      },
-      "prompt": "/",
-      "temperature": 0.6,
-      "messages": [
-        {
-          "role": "user",
-          "content": "Hello GPT-4",
-          "templateMapping": [
-            [
-              "Hello",
-              "{{var1}}"
+   "$type":"conversation",
+   "path":"bucket/file",
+   "requestName":"Pub req 6",
+   "author":"Test Author",
+   "createdAt":1741595184514,
+   "status":"pending",
+   "folderId":"Target folder 1",
+   "reviewFolderId":"review/",
+   "action":"add",
+   "rules":[
+      {
+         "source":"role",
+         "function":"equal",
+         "targets":[
+            "admin"
+         ]
+      }
+   ],
+   "conversations":[
+      {
+         "sourceUrl":"conversations/source/Conversation_1",
+         "targetUrl":"conversations/public/Conversation_1",
+         "reviewUrl":"conversations/review/Conversation_1",
+         "action":"add",
+         "conversation":{
+            "path":"Folder 1/Conversation 1",
+            "folderId":"Folder 1",
+            "updatedAt":1741595170582,
+            "name":"Conversation 1",
+            "model":{
+               "id":"gpt-4"
+            },
+            "prompt":"/",
+            "temperature":0.6,
+            "messages":[
+               {
+                  "role":"user",
+                  "content":"Hello GPT-4",
+                  "templateMapping":[
+                     [
+                        "Hello",
+                        "{{var1}}"
+                     ],
+                     [
+                        "GPT-4",
+                        "{{var2}}"
+                     ]
+                  ],
+                  "model":{
+                     "id":"gpt-4"
+                  },
+                  "settings":{
+                     "prompt":"",
+                     "temperature":1
+                  }
+               },
+               {
+                  "role":"assistant",
+                  "content":"Hello! How can I assist you today?",
+                  "model":{
+                     "id":"gpt-4"
+                  },
+                  "settings":{
+                     "prompt":"",
+                     "temperature":1
+                  },
+                  "responseId":"chatcmpl-Bf0PPj1s8neTPEZA5EKqUK036BqCy"
+               }
             ],
-            [
-              "GPT-4",
-              "{{var2}}"
-            ]
-          ],
-          "model": {
-            "id": "gpt-4"
-          },
-          "settings": {
-            "prompt": "",
-            "temperature": 1
-          }
-        },
-        {
-          "content": "Hello! How can I assist you today?",
-          "model": {
-            "id": "gpt-4"
-          },
-          "settings": {
-            "prompt": "",
-            "temperature": 1
-          },
-          "role": "assistant",
-          "responseId": "chatcmpl-Bf0PPj1s8neTPEZA5EKqUK036BqCy"
-        }
-      ],
-      "assistantModelId": "gpt-4"
-    },
-    {
-      "path": "Folder 1/Conversation 2",
-      "folderId": "Folder 1",
-      "updatedAt": 1741595180582,
-      "name": "Conversation 2",
-      "model": {
-        "id": "gpt-4"
+            "assistantModelId":"gpt-4"
+         }
       },
-      "prompt": "/",
-      "temperature": 0.6,
-      "messages": [
-        {
-          "role": "user",
-          "content": "Hello, how are you",
-          "templateMapping": [
-            [
-              "Hello",
-              "{{var1}}"
+      {
+         "sourceUrl":"conversations/source/Conversation_2",
+         "targetUrl":"conversations/public/Conversation_2",
+         "reviewUrl":"conversations/review/Conversation_2",
+         "action":"add",
+         "conversation":{
+            "path":"Folder 1/Conversation 2",
+            "folderId":"Folder 1",
+            "updatedAt":1741595180582,
+            "name":"Conversation 2",
+            "model":{
+               "id":"gpt-4"
+            },
+            "prompt":"/",
+            "temperature":0.6,
+            "messages":[
+               {
+                  "role":"user",
+                  "content":"Hello, how are you",
+                  "templateMapping":[
+                     [
+                        "Hello",
+                        "{{var1}}"
+                     ],
+                     [
+                        "how are you",
+                        "{{var2}}"
+                     ]
+                  ],
+                  "model":{
+                     "id":"gpt-4"
+                  },
+                  "settings":{
+                     "prompt":"",
+                     "temperature":1
+                  }
+               },
+               {
+                  "role":"assistant",
+                  "content":"Hello! How can I assist you today?",
+                  "model":{
+                     "id":"gpt-4"
+                  },
+                  "settings":{
+                     "prompt":"",
+                     "temperature":1
+                  },
+                  "responseId":"chatcmpl-Mk0WEg5q7miPOWVS6FLwPL147NwDu"
+               }
             ],
-            [
-              "how are you",
-              "{{var2}}"
-            ]
-          ],
-          "model": {
-            "id": "gpt-4"
-          },
-          "settings": {
-            "prompt": "",
-            "temperature": 1
-          }
-        },
-        {
-          "content": "Hello! How can I assist you today?",
-          "model": {
-            "id": "gpt-4"
-          },
-          "settings": {
-            "prompt": "",
-            "temperature": 1
-          },
-          "role": "assistant",
-          "responseId": "chatcmpl-Mk0WEg5q7miPOWVS6FLwPL147NwDu"
-        }
-      ],
-      "assistantModelId": "gpt-4"
-    }
-  ]
+            "assistantModelId":"gpt-4"
+         }
+      }
+   ]
 }

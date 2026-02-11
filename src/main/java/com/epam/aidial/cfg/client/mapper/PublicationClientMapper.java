@@ -5,10 +5,10 @@ import com.epam.aidial.cfg.client.dto.PublicationDto;
 import com.epam.aidial.cfg.client.dto.PublicationInfoDto;
 import com.epam.aidial.cfg.client.dto.PublicationInfosDto;
 import com.epam.aidial.cfg.client.dto.PublicationPathDto;
-import com.epam.aidial.cfg.client.dto.PublicationResourceActionDto;
 import com.epam.aidial.cfg.client.dto.PublicationResourceDto;
 import com.epam.aidial.cfg.client.dto.PublicationsPathDto;
 import com.epam.aidial.cfg.client.dto.RejectPublicationsDto;
+import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
@@ -16,13 +16,16 @@ import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.ConversationPublicationResource;
+import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
+import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.Prompt;
 import com.epam.aidial.cfg.model.PromptPublication;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
+import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationInfo;
 import com.epam.aidial.cfg.model.PublicationInfos;
 import com.epam.aidial.cfg.model.PublicationMissingResource;
@@ -31,6 +34,7 @@ import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.model.ToolSetResource;
+import com.epam.aidial.cfg.utils.PathUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -39,6 +43,7 @@ import org.mapstruct.Named;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -80,6 +85,7 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "missingResources", source = "missingResources")
     PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources, List<PublicationMissingResource> missingResources);
@@ -91,6 +97,7 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "missingResources", source = "missingResources")
     FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationMissingResource> missingResources);
@@ -103,6 +110,7 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "missingResources", source = "missingResources")
@@ -117,6 +125,7 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "missingResources", source = "missingResources")
@@ -131,31 +140,32 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "missingResources", source = "missingResources")
     ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files,
                                             List<PublicationMissingResource> missingResources);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    PromptPublicationResource toPromptPublicationResource(PublicationResourceActionDto action, Prompt prompt);
+    @Named("getReviewFolder")
+    default String getReviewFolder(PublicationDto dto) {
+        return dto.getResources().stream()
+                .map(PublicationResourceDto::getReviewUrl)
+                .filter(Objects::nonNull)
+                .map(path -> PathUtils.extractPathAfterFirstSlashPrefix(path).getFolderId())
+                .findFirst()
+                .orElse(null);
+    }
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    FilePublicationResource toFilePublicationResource(PublicationResourceActionDto action, FileNodeInfo file);
+    PromptPublicationResource toPromptPublicationResource(PublicationResourceDto action, Prompt prompt);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceActionDto action, ApplicationResource applicationResource);
+    FilePublicationResource toFilePublicationResource(PublicationResourceDto resource, FileNodeInfo file);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    ConversationPublicationResource toConversationPublicationResource(PublicationResourceActionDto action, Conversation conversation);
+    ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceDto resource, ApplicationResource applicationResource);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    ToolSetPublicationResource toToolSetPublicationResource(PublicationResourceActionDto action, ToolSetResource toolSetResource);
+    ConversationPublicationResource toConversationPublicationResource(PublicationResourceDto resource, Conversation conversation);
+
+    ToolSetPublicationResource toToolSetPublicationResource(PublicationResourceDto resource, ToolSetResource toolSetResource);
 
     private static String removePrefix(String path, String prefix) {
         if (path.startsWith(prefix)) {
@@ -169,7 +179,6 @@ public interface PublicationClientMapper {
     @Mapping(target = "targetFolder", source = "targetFolder", qualifiedByName = "encodeFolderPath")
     CreatePublicationDto toCreatePublicationDto(CreatePublication createPublication);
 
-    @Mapping(target = "reviewUrl", ignore = true)
     PublicationResourceDto toPublicationResourceDto(PublicationResource publicationResource);
 
     default Map<String, List<Rule>> toRules(Map<String, List<RuleDto>> rules) {
@@ -194,4 +203,48 @@ public interface PublicationClientMapper {
     default String decodePath(String path) {
         return CoreMetadataUtils.decodePath(path);
     }
+
+    @Mapping(target = "targetFolder", source = "publication.folderId")
+    @Mapping(target = "resourceTypes", source = "publication", qualifiedByName = "getResourcesTypes")
+    @Mapping(target = "name", source = "publication.requestName")
+    @Mapping(target = "url", expression = "java(\"publications/\" + publication.getPath())")
+    @Mapping(target = "resources", source = "list")
+    PublicationDto toPublicationDto(Publication publication, List<PublicationResource> list);
+
+    @Named("getResourcesTypes")
+    default List<ResourceTypeDto> getResourcesTypes(Publication publication) {
+        if (publication == null || publication.getResources() == null) {
+            return Collections.emptyList();
+        }
+
+        return publication.getResources().stream()
+                .map(this::getResourceType)
+                .collect(Collectors.toSet()).stream().toList();
+    }
+
+    default ResourceTypeDto getResourceType(PublicationResource publicationResource) {
+        if (publicationResource instanceof PromptPublicationResource) {
+            return ResourceTypeDto.PROMPT;
+        } else if (publicationResource instanceof FilePublicationResource) {
+            return ResourceTypeDto.FILE;
+        } else if (publicationResource instanceof ApplicationPublicationResource) {
+            return ResourceTypeDto.APPLICATION;
+        } else if (publicationResource instanceof ConversationPublicationResource) {
+            return ResourceTypeDto.CONVERSATION;
+        } else if (publicationResource instanceof ToolSetPublicationResource) {
+            return ResourceTypeDto.TOOL_SET;
+        }
+        throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
+                .formatted(publicationResource.getClass(), publicationResource));
+    }
+
+    @Mapping(target = "action", constant = "ADD_IF_ABSENT")
+    @Mapping(target = "reviewUrl", expression = "java(\"files/\" + result.getTargetPath())")
+    @Mapping(target = "sourceUrl", expression = "java(\"files/\" + sourcePath)")
+    @Mapping(target = "targetUrl", expression = "java(\"files/\" + targetPath)")
+    PublicationResource toPublicationResource(ImportResourcesResult result, String targetPath, String sourcePath);
+
+    PublicationResource toPublicationResource(PromptPublicationResource resource);
+
+    CreatePrompt toCreatePrompt(Prompt prompt);
 }

@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,6 +9,17 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "$type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = FilePublicationDto.class, name = "file"),
+        @JsonSubTypes.Type(value = ConversationPublicationDto.class, name = "conversation"),
+        @JsonSubTypes.Type(value = ApplicationResourcePublicationDto.class, name = "application"),
+        @JsonSubTypes.Type(value = PromptPublicationDto.class, name = "prompt"),
+        @JsonSubTypes.Type(value = ToolSetResourcePublicationDto.class, name = "toolset"),
+})
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -19,6 +32,7 @@ public abstract class PublicationDto {
     private long createdAt;
     private PublicationStatusDto status;
     private String folderId;
+    private String reviewFolderId;
     private PublicationResourceActionDto action;
     private List<RuleDto> rules;
     private List<PublicationMissingResourceDto> missingResources;

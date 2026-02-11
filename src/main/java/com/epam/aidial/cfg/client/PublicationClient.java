@@ -38,6 +38,9 @@ public interface PublicationClient {
     @PostMapping("/v1/ops/publication/create")
     PublicationDto createPublication(@RequestBody CreatePublicationDto createPublicationsDto);
 
+    @PostMapping("/v1/ops/publication/update")
+    PublicationDto updatePublication(@RequestBody PublicationDto publicationDto);
+
     @PostMapping("/v1/ops/publication/rule/list")
     RulesDto getRules(@RequestBody RuleRequest requestDto);
 

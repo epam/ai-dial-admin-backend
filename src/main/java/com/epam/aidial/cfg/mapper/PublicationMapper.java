@@ -6,8 +6,10 @@ import com.epam.aidial.cfg.dto.ConversationDto;
 import com.epam.aidial.cfg.dto.ConversationPublicationDto;
 import com.epam.aidial.cfg.dto.FileInfoDto;
 import com.epam.aidial.cfg.dto.FilePublicationDto;
+import com.epam.aidial.cfg.dto.FilePublicationResourceDto;
 import com.epam.aidial.cfg.dto.PromptDto;
 import com.epam.aidial.cfg.dto.PromptPublicationDto;
+import com.epam.aidial.cfg.dto.PromptPublicationResourceDto;
 import com.epam.aidial.cfg.dto.PublicationDto;
 import com.epam.aidial.cfg.dto.PublicationInfosDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
@@ -35,6 +37,7 @@ import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 import java.util.Objects;
@@ -66,34 +69,31 @@ public interface PublicationMapper {
         var prompts = model.getResources()
                 .stream()
                 .filter(Objects::nonNull)
-                .map(PromptPublicationResource::getPrompt)
-                .map(this::toPromptDto)
                 .toList();
 
         return toPromptPublicationDto(model, action, prompts);
     }
 
-    PromptPublicationDto toPromptPublicationDto(PromptPublication model, PublicationResourceAction action, List<PromptDto> prompts);
+    PromptPublicationDto toPromptPublicationDto(PromptPublication model, PublicationResourceAction action,
+                                                List<PromptPublicationResource> prompts);
+
+    PromptPublicationResourceDto toPromptPublicationResourceDto(PromptPublicationResource resource);
 
     default FilePublicationDto toFilePublicationDto(FilePublication model, PublicationResourceAction action) {
         var files = model.getResources()
                 .stream()
                 .filter(Objects::nonNull)
-                .map(FilePublicationResource::getFile)
-                .map(this::toFileInfoDto)
                 .toList();
 
         return toFilePublicationDto(model, action, files);
     }
 
-    FilePublicationDto toFilePublicationDto(FilePublication model, PublicationResourceAction action, List<FileInfoDto> files);
+    FilePublicationDto toFilePublicationDto(FilePublication model, PublicationResourceAction action, List<FilePublicationResource> files);
 
     default ApplicationResourcePublicationDto toApplicationResourcePublicationDto(ApplicationPublication model, PublicationResourceAction action) {
         var applicationResources = model.getResources()
                 .stream()
                 .filter(Objects::nonNull)
-                .map(ApplicationPublicationResource::getApplicationResource)
-                .map(this::toApplicationResourceDto)
                 .toList();
 
         return toApplicationResourcePublicationDto(model, action, applicationResources);
@@ -101,14 +101,12 @@ public interface PublicationMapper {
 
     ApplicationResourcePublicationDto toApplicationResourcePublicationDto(ApplicationPublication model,
                                                                           PublicationResourceAction action,
-                                                                          List<ApplicationResourceDto> applicationResources);
+                                                                          List<ApplicationPublicationResource> applicationResources);
 
     default ConversationPublicationDto toConversationPublicationDto(ConversationPublication model, PublicationResourceAction action) {
         var conversations = model.getResources()
                 .stream()
                 .filter(Objects::nonNull)
-                .map(ConversationPublicationResource::getConversation)
-                .map(this::toConversationDto)
                 .toList();
 
         return toConversationPublicationDto(model, action, conversations);
@@ -116,14 +114,12 @@ public interface PublicationMapper {
 
     ConversationPublicationDto toConversationPublicationDto(ConversationPublication model,
                                                             PublicationResourceAction action,
-                                                            List<ConversationDto> conversations);
+                                                            List<ConversationPublicationResource> conversations);
 
     default ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model, PublicationResourceAction action) {
-        List<ToolSetResourceDto> toolSetResources = model.getResources()
+        var toolSetResources = model.getResources()
                 .stream()
                 .filter(Objects::nonNull)
-                .map(ToolSetPublicationResource::getToolSetResource)
-                .map(this::toToolSetResourceDto)
                 .toList();
 
         return toToolSetPublicationDto(model, action, toolSetResources);
@@ -131,7 +127,7 @@ public interface PublicationMapper {
 
     ToolSetResourcePublicationDto toToolSetPublicationDto(ToolSetPublication model,
                                                           PublicationResourceAction action,
-                                                          List<ToolSetResourceDto> toolSetResources);
+                                                          List<ToolSetPublicationResource> toolSetResources);
 
     private PublicationResourceAction getAction(Publication model) {
         var resources = model.getResources().stream()
@@ -162,4 +158,48 @@ public interface PublicationMapper {
 
     ResourceType toResourceType(ResourceTypeDto dto);
 
+    default Publication toPublication(PublicationDto publicationDto) {
+
+        if (publicationDto instanceof PromptPublicationDto promptPublicationDto) {
+            return toPromptPublication(promptPublicationDto);
+        } else if (publicationDto instanceof FilePublicationDto filePublicationDto) {
+            return toFilePublication(filePublicationDto);
+        } else if (publicationDto instanceof ApplicationResourcePublicationDto applicationPublicationDto) {
+            return toApplicationResourcePublication(applicationPublicationDto);
+        } else if (publicationDto instanceof ConversationPublicationDto conversationPublicationDto) {
+            return toConversationPublication(conversationPublicationDto);
+        } else if (publicationDto instanceof ToolSetResourcePublicationDto toolSetPublicationDto) {
+            return toToolSetPublication(toolSetPublicationDto);
+        }
+        throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
+                .formatted(publicationDto.getClass(), publicationDto));
+    }
+
+    @Mapping(target = "resources", source = "toolSetResources")
+    ToolSetPublication toToolSetPublication(ToolSetResourcePublicationDto toolSetPublicationDto);
+
+    @Mapping(target = "url", ignore = true)
+    ToolSetResource toToolSetResource(ToolSetResourceDto toolSetResourceDto);
+
+    @Mapping(target = "resources", source = "conversations")
+    ConversationPublication toConversationPublication(ConversationPublicationDto conversationPublicationDto);
+
+    @Mapping(target = "resources", source = "applicationResources")
+    ApplicationPublication toApplicationResourcePublication(ApplicationResourcePublicationDto applicationPublicationDto);
+
+    @Mapping(target = "validityState", ignore = true)
+    ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto);
+
+    @Mapping(target = "resources", source = "prompts")
+    PromptPublication toPromptPublication(PromptPublicationDto promptPublicationDto);
+
+    @Mapping(target = "resources", source = "files")
+    FilePublication toFilePublication(FilePublicationDto dto);
+
+    @Mapping(target = "action", source = "action")
+    @Mapping(target = "file", source = "file")
+    @Mapping(target = "file.nodeType", constant = "ITEM")
+    @Mapping(target = "file.nextToken", ignore = true)
+    @Mapping(target = "file.items", ignore = true)
+    FilePublicationResource toFilePublicationResource(FilePublicationResourceDto filePublicationResourceDto);
 }

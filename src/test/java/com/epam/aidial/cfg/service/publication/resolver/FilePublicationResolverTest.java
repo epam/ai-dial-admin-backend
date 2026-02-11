@@ -11,11 +11,16 @@ import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.FileNodeInfo;
+import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
+import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.ImportResourcesResult;
+import com.epam.aidial.cfg.model.ImportResourcesStatus;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -25,7 +30,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.util.MimeTypeUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -203,6 +211,90 @@ class FilePublicationResolverTest {
         assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.FILE);
         assertThat(missingResource.getMessage()).isEqualTo("File not found");
         assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testFile");
+    }
+
+    @Test
+    void resolveUpdatePublicationShouldReturnCorrectFilePublication() {
+        // given
+        var publicationPath = "testPublication";
+        var fullPath = "publications/" + publicationPath;
+        var filePrefix = "files/";
+        var fileName = "testFile";
+
+        var reviewFolder = "reviewFolder/";
+        var reviewFilePath = reviewFolder + fileName;
+
+        var targetFolder = "targetFolder/";
+        var targetFilePath = targetFolder + fileName;
+
+        var sourceFolder = "sourceFolder/";
+        var sourceFolderPath = sourceFolder + fileName;
+
+        var publicationResource = new FilePublicationResource();
+        publicationResource.setAction(PublicationResourceAction.ADD);
+        publicationResource.setTargetUrl(filePrefix + targetFilePath);
+        publicationResource.setReviewUrl(filePrefix + reviewFilePath);
+        publicationResource.setSourceUrl(filePrefix + sourceFolderPath);
+
+        var rule = new Rule();
+        rule.setSource("role");
+        rule.setFunction(RuleFunction.EQUAL);
+        rule.setTargets(List.of("user"));
+
+        var publication = new FilePublication();
+        publication.setPath(publicationPath);
+        publication.setRequestName("Test Publication");
+        publication.setAuthor("Author Name");
+        publication.setCreatedAt(100);
+        publication.setFolderId(targetFolder);
+        publication.setReviewFolderId("review/");
+        publication.setStatus(PublicationStatus.PENDING);
+        publication.setResources(List.of(publicationResource));
+        publication.setRules(List.of(rule));
+
+        var importResult = ImportResourcesResult.builder()
+                .targetPath("targetPath/1.txt")
+                .sourcePath("sourcePath/1.txt")
+                .status(ImportResourcesStatus.SUCCESS)
+                .build();
+
+        var importFileResult = new ImportResourcesFileResult();
+        importFileResult.setImportResults(List.of(importResult));
+
+        MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                "dtoJson".getBytes(StandardCharsets.UTF_8));
+
+        when(fileService.uploadFile(any(), any())).thenReturn(importFileResult);
+
+        // when
+        var result = filePublicationResolver.resolveUpdatePublication(publication, List.of(publicationFile));
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getUrl()).isEqualTo(fullPath);
+        assertThat(result.getName()).isEqualTo("Test Publication");
+        assertThat(result.getAuthor()).isEqualTo("Author Name");
+        assertThat(result.getStatus()).isEqualTo(PublicationStatusDto.PENDING);
+        assertThat(result.getTargetFolder()).isEqualTo(targetFolder);
+
+        assertThat(result.getRules()).hasSize(1);
+        var resultRule = result.getRules().get(0);
+        assertThat(resultRule.getSource()).isEqualTo("role");
+        assertThat(resultRule.getFunction()).isEqualTo(RuleFunctionDto.EQUAL);
+        assertThat(resultRule.getTargets()).containsExactly("user");
+
+        assertThat(result.getResources()).hasSize(2);
+        var resource = result.getResources().get(0);
+        assertThat(resource.getAction()).isEqualTo(PublicationResourceActionDto.ADD);
+        assertThat(resource.getSourceUrl()).isEqualTo("files/sourceFolder/testFile");
+        assertThat(resource.getTargetUrl()).isEqualTo("files/targetFolder/testFile");
+        assertThat(resource.getReviewUrl()).isEqualTo("files/reviewFolder/testFile");
+
+        var resource2 = result.getResources().get(1);
+        assertThat(resource2.getAction()).isEqualTo(PublicationResourceActionDto.ADD_IF_ABSENT);
+        assertThat(resource2.getSourceUrl()).isEqualTo("files/review/source/1.txt");
+        assertThat(resource2.getTargetUrl()).isEqualTo("files/targetFolder/1.txt");
+        assertThat(resource2.getReviewUrl()).isEqualTo("files/targetPath/1.txt");
     }
 
 }

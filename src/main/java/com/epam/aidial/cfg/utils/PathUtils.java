@@ -47,6 +47,18 @@ public class PathUtils {
                 .build();
     }
 
+    public static PathParts extractPathAfterFirstSlashPrefix(String path) {
+        path = trimTrailingSlash(path);
+        int firstSlashIndex = path.indexOf('/');
+        if (firstSlashIndex == -1) {
+            throw new IllegalArgumentException("The path does not contain a '/': %s".formatted(path));
+        }
+
+        var prefix = path.substring(0, firstSlashIndex + 1);
+        var pathWithoutPrefix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
+        return parsePath(pathWithoutPrefix);
+    }
+
     public static VersionedPathParts parseEncodedVersionedPath(String path, String prefix) {
         var pathWithoutPrefix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
         var pathDecoded = UrlUtil.decodePath(pathWithoutPrefix);

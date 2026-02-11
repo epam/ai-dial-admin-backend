@@ -8,10 +8,12 @@ import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationMissingResource;
+import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,8 @@ public abstract class PublicationResolver {
     }
 
     public abstract Publication resolvePublication(PublicationDto publicationDto);
+
+    public abstract PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files);
 
     public abstract ResourceType getResourceType();
 
@@ -51,6 +55,10 @@ public abstract class PublicationResolver {
 
     public Predicate<ResourceInfo> resourceUrlStartsWith(String prefix) {
         return resourceInfo -> resourceInfo.resourceUrl().startsWith(prefix);
+    }
+
+    public Predicate<PublicationResource> publicationResourceUrlStartsWith(String prefix) {
+        return resource -> resource.getSourceUrl().startsWith(prefix);
     }
 
     public String extractPath(ResourceInfo resourceInfo, String prefix) {

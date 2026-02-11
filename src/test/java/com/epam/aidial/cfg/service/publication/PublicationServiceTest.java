@@ -16,6 +16,8 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.PromptPublication;
+import com.epam.aidial.cfg.model.PromptPublicationResource;
+import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationInfo;
 import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
@@ -277,6 +279,57 @@ class PublicationServiceTest {
 
         // then
         Assertions.assertThat(publication).isEqualTo("publications/publicationUrl");
+    }
+
+    @Test
+    void testUpdatePublication() {
+        // given
+        PromptPublicationResource resource = PromptPublicationResource.builder()
+                .action(PublicationResourceAction.ADD)
+                .targetUrl("files/public/test.json")
+                .build();
+
+        Rule rule = Rule.builder()
+                .source("role")
+                .function(RuleFunction.EQUAL)
+                .targets(List.of("admin"))
+                .build();
+
+        Publication updatePublication = PromptPublication.builder()
+                .path("path/")
+                .resources(List.of(resource))
+                .rules(List.of(rule))
+                .build();
+
+        PublicationDto publicationDto = PublicationDto.builder()
+                .url("publications/publicationUrl")
+                .resourceTypes(List.of(ResourceTypeDto.PROMPT))
+                .build();
+
+        Publication updatedPublication = PromptPublication.builder()
+                .path("path/")
+                .resources(List.of(resource))
+                .rules(List.of(rule))
+                .build();
+
+        when(promptPublicationResolver.resolveUpdatePublication(updatePublication, null))
+                .thenReturn(publicationDto);
+
+        when(publicationClient.updatePublication(any()))
+                .thenReturn(publicationDto);
+
+        when(promptPublicationResolver.resolvePublication(any()))
+                .thenReturn(updatedPublication);
+
+        // when
+        var result = publicationService.updatePublication(updatePublication, null);
+
+        // then
+        Assertions.assertThat(result).isEqualTo(updatedPublication);
+
+        verify(promptPublicationResolver).resolveUpdatePublication(updatePublication, null);
+        verify(publicationClient).updatePublication(publicationDto);
+        verify(promptPublicationResolver).resolvePublication(publicationDto);
     }
 
     @Test

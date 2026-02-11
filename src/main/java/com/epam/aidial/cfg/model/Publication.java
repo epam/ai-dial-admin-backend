@@ -16,6 +16,7 @@ public abstract class Publication {
     private String path;
     private String requestName;
     private String folderId;
+    private String reviewFolderId;
     private String author;
     private long createdAt;
     private PublicationStatus status;

@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,11 @@ public class ToolSetPublicationResolver extends PublicationResolver {
     }
 
     @Override
+    public PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
     public ResourceType getResourceType() {
         return ResourceType.TOOL_SET;
     }
@@ -74,7 +80,7 @@ public class ToolSetPublicationResolver extends PublicationResolver {
         var resource = resourceInfo.resource();
         var toolsetPath = extractToolSetPath(resourceInfo);
         var toolsetResource = toolSetResourceService.getToolSetResource(toolsetPath);
-        return mapper.toToolSetPublicationResource(resource.getAction(), toolsetResource);
+        return mapper.toToolSetPublicationResource(resource, toolsetResource);
     }
 
     private String extractToolSetPath(ResourceInfo resourceInfo) {

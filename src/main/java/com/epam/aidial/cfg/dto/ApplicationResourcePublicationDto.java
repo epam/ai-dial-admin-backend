@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ApplicationResourcePublicationDto extends PublicationDto {
 
-    private List<ApplicationResourceDto> applicationResources;
+    private List<PublicationApplicationResourceDto> applicationResources;
     private List<String> files;
 
 }
