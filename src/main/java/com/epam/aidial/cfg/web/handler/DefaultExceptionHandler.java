@@ -161,12 +161,13 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ExceptionHandler(FeignException.FeignClientException.class)
-    public ErrorView handleFeignClientError(FeignException.FeignClientException clientException,
-                                            HttpServletRequest req) {
+    public ResponseEntity<ErrorView> handleFeignClientError(FeignException.FeignClientException clientException,
+                                                            HttpServletRequest req) {
         logUncaught(clientException);
-        final HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
+        HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
         String message = clientException.contentUTF8();
-        return new ErrorView(req, httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus, message);
+        HttpStatus notNullHttpStatus = httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus;
+        return ResponseEntity.status(notNullHttpStatus).body(new ErrorView(req, notNullHttpStatus, message));
     }
 
     @ResponseBody

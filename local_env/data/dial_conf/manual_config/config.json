@@ -1,0 +1,38 @@
+{
+  "routes": {
+  },
+  "models": {
+  },
+  "addons": {
+  },
+  "applications": {
+  },
+  "toolsets": {
+  },
+  "assistant": {
+    "assistants": {
+    }
+  },
+  "keys": {
+    "dial_api_key": {
+      "project": "test",
+      "secured": false,
+      "roles": [
+        "admin"
+      ]
+    }
+  },
+  "roles": {
+    "admin": {
+      "name": "admin",
+      "limits": {
+      }
+    }
+  },
+  "retriableErrorCodes": [
+  ],
+  "interceptors": {
+  },
+  "applicationTypeSchemas": [
+  ]
+}

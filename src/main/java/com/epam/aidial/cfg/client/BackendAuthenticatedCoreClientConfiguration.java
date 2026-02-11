@@ -1,29 +1,21 @@
 package com.epam.aidial.cfg.client;
 
 import com.epam.aidial.cfg.security.AuthApiKeyProvider;
-import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
+import com.epam.aidial.cfg.security.AuthTokenProvider;
 import feign.RequestInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.access.AccessDeniedException;
 
-public class AuthorizationCoreClientConfiguration {
+@Slf4j
+public class BackendAuthenticatedCoreClientConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "core.auth.method", havingValue = "token")
-    public RequestInterceptor coreAuthTokenRequestInterceptor() {
-        return requestTemplate -> {
-            var token = getAuthorizationToken();
-            requestTemplate.header("Authorization", "Bearer " + token);
-        };
-    }
-
-    private String getAuthorizationToken() {
-        var token = AuthorizationTokenHolder.getToken();
-        if (token == null) {
-            throw new AccessDeniedException("JWT token header is not provided");
-        }
-        return token;
+    public RequestInterceptor coreAuthTokenRequestInterceptor(AuthTokenProvider coreAuthTokenProvider) {
+        return requestTemplate -> requestTemplate.header("Authorization",
+                "Bearer " + coreAuthTokenProvider.getAuthToken().accessToken()
+        );
     }
 
     @Bean
@@ -33,5 +25,4 @@ public class AuthorizationCoreClientConfiguration {
                 authApiKeyProvider.getAuthApiKey()
         );
     }
-
 }
