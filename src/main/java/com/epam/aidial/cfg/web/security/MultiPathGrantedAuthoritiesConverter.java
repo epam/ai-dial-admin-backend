@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.core.ClaimAccessor;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Data
 @Slf4j
-public class MultiPathGrantedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+public class MultiPathGrantedAuthoritiesConverter<T extends ClaimAccessor> implements Converter<T, Collection<GrantedAuthority>> {
 
     private static final String DEFAULT_AUTHORITY_PREFIX = "SCOPE_";
     private String authorityPrefix = DEFAULT_AUTHORITY_PREFIX;
@@ -27,14 +27,14 @@ public class MultiPathGrantedAuthoritiesConverter implements Converter<Jwt, Coll
 
     @NotNull
     @Override
-    public List<GrantedAuthority> convert(@NotNull Jwt token) {
+    public List<GrantedAuthority> convert(@NotNull T token) {
         var authorities = getAuthorities(token);
         return authorities.stream()
                 .map(authority -> new SimpleGrantedAuthority(authorityPrefix + authority))
                 .collect(Collectors.toList());
     }
 
-    private Set<String> getAuthorities(Jwt token) {
+    private Set<String> getAuthorities(T token) {
         Set<String> authorities = new HashSet<>();
         final Map<String, Object> claims = token.getClaims();
         authoritiesPaths.stream()

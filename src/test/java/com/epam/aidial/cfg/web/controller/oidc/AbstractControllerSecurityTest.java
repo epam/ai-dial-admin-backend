@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.web.controller.oidc;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.utils.JwtUtils;
 import com.epam.aidial.cfg.utils.TestAuthenticationConverterFactory;
-import com.epam.aidial.cfg.utils.TestJwtProviderConfig;
+import com.epam.aidial.cfg.utils.TestIdentityProviderConfig;
 import com.epam.aidial.cfg.utils.TestTokenDecoderFactory;
 import com.epam.aidial.cfg.web.security.SecurityPackage;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         JsonMapperConfiguration.class,
         TestTokenDecoderFactory.class,
         TestAuthenticationConverterFactory.class,
-        TestJwtProviderConfig.class
+        TestIdentityProviderConfig.class
 })
 @TestPropertySource(properties = "spring.main.allow-bean-definition-overriding=true")
 public abstract class AbstractControllerSecurityTest {
