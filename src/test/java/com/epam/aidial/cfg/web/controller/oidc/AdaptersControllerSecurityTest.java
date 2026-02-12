@@ -18,8 +18,8 @@ class AdaptersControllerSecurityTest extends AbstractControllerSecurityTest {
 
     @ParameterizedTest
     @MethodSource("arguments")
-    void testGetAllKeys(final String jwtToken,
-                        final HttpStatus expectedStatus) throws Exception {
+    void testGetAllAdapters(final String jwtToken,
+                            final HttpStatus expectedStatus) throws Exception {
         // Given & When
         final var result = performGet("/api/v1/adapters", jwtToken);
 

@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
-import com.epam.aidial.cfg.utils.JwtProviderTestHelper;
+import com.epam.aidial.cfg.utils.IdentityProviderTestHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,12 +15,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtAuthenticationConverterFactoryTest {
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
-    private final JwtProviderUtils jwtProviderUtils = new JwtProviderUtils();
+    private final IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils();
 
     @Test
     void whenNoProviders_thenThrows() {
         var factory = new JwtAuthenticationConverterFactory(
-                Map.of("test", JwtProviderTestHelper.createProviderConfig()), "testPrincipal", jwtProviderUtils);
+                List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
+                "testPrincipal",
+                identityProviderUtils
+        );
         var converter = factory.getConverter(TEST_ISSUER);
         var jwtToken = generateTestToken(
                 Map.of(
