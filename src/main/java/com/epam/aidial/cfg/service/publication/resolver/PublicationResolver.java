@@ -5,10 +5,11 @@ import com.epam.aidial.cfg.client.dto.PublicationResourceDto;
 import com.epam.aidial.cfg.client.dto.PublicationStatusDto;
 import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapper;
+import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Publication;
-import com.epam.aidial.cfg.model.PublicationMissingResource;
 import com.epam.aidial.cfg.model.PublicationResource;
+import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
@@ -65,23 +66,27 @@ public abstract class PublicationResolver {
         return PathUtils.parseEncodedVersionedPath(resourceInfo.resourceUrl(), prefix).getPath();
     }
 
+    public String extractTargetPath(ResourceInfo resourceInfo, String prefix) {
+        return PathUtils.parseEncodedVersionedPath(resourceInfo.resource().getTargetUrl(), prefix).getPath();
+    }
+
     public String extractFilePath(ResourceInfo resourceInfo) {
         return extractPath(resourceInfo, FileClientMapper.FILES_PREFIX);
     }
 
-    public <T> Optional<T> resolveResourceAndCollectMissing(
+    public <T> Optional<T> resolveResourceAndCollectIssues(
             Supplier<T> resolver,
-            ResourceType type,
-            String path,
-            List<PublicationMissingResource> missingResources,
-            String message
+            List<PublicationResourceIssue> resourceIssues,
+            PublicationResourceIssue notFound,
+            PublicationResourceIssue alreadyExists
     ) {
         try {
             return Optional.ofNullable(resolver.get());
         } catch (ResourceNotFoundException e) {
-            missingResources.add(
-                    new PublicationMissingResource(type, path, message)
-            );
+            resourceIssues.add(notFound);
+            return Optional.empty();
+        } catch (ResourceAlreadyExistsException e) {
+            resourceIssues.add(alreadyExists);
             return Optional.empty();
         }
     }

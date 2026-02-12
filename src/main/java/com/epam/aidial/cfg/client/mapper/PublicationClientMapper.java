@@ -28,8 +28,8 @@ import com.epam.aidial.cfg.model.PromptPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationInfo;
 import com.epam.aidial.cfg.model.PublicationInfos;
-import com.epam.aidial.cfg.model.PublicationMissingResource;
 import com.epam.aidial.cfg.model.PublicationResource;
+import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
@@ -78,7 +78,7 @@ public interface PublicationClientMapper {
     }
 
     default PromptPublication toPromptPublication(PublicationDto dto, List<PromptPublicationResource> resources,
-                                                  List<PublicationMissingResource> missingResources) {
+                                                  List<PublicationResourceIssue> missingResources) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
         return toPromptPublication(dto, path, resources, missingResources);
     }
@@ -87,25 +87,25 @@ public interface PublicationClientMapper {
     @Mapping(target = "folderId", source = "dto.targetFolder")
     @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
-    @Mapping(target = "missingResources", source = "missingResources")
-    PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources, List<PublicationMissingResource> missingResources);
+    @Mapping(target = "resourceIssues", source = "resourceIssues")
+    PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
 
-    default FilePublication toFilePublication(PublicationDto dto, List<FilePublicationResource> resources, List<PublicationMissingResource> missingResources) {
+    default FilePublication toFilePublication(PublicationDto dto, List<FilePublicationResource> resources, List<PublicationResourceIssue> resourceIssues) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toFilePublication(dto, path, resources, missingResources);
+        return toFilePublication(dto, path, resources, resourceIssues);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
     @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
-    @Mapping(target = "missingResources", source = "missingResources")
-    FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationMissingResource> missingResources);
+    @Mapping(target = "resourceIssues", source = "resourceIssues")
+    FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
 
     default ApplicationPublication toApplicationPublication(PublicationDto dto, List<ApplicationPublicationResource> resources, List<String> files,
-                                                            List<PublicationMissingResource> missingResources) {
+                                                            List<PublicationResourceIssue> resourceIssues) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toApplicationPublication(dto, path, resources, files, missingResources);
+        return toApplicationPublication(dto, path, resources, files, resourceIssues);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
@@ -113,14 +113,14 @@ public interface PublicationClientMapper {
     @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
-    @Mapping(target = "missingResources", source = "missingResources")
+    @Mapping(target = "resourceIssues", source = "resourceIssues")
     ApplicationPublication toApplicationPublication(PublicationDto dto, String path, List<ApplicationPublicationResource> resources, List<String> files,
-                                                    List<PublicationMissingResource> missingResources);
+                                                    List<PublicationResourceIssue> resourceIssues);
 
     default ConversationPublication toConversationPublication(PublicationDto dto, List<ConversationPublicationResource> resources, List<String> files,
-                                                              List<PublicationMissingResource> missingResources) {
+                                                              List<PublicationResourceIssue> resourceIssues) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toConversationPublication(dto, path, resources, files, missingResources);
+        return toConversationPublication(dto, path, resources, files, resourceIssues);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
@@ -128,14 +128,14 @@ public interface PublicationClientMapper {
     @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
-    @Mapping(target = "missingResources", source = "missingResources")
+    @Mapping(target = "resourceIssues", source = "resourceIssues")
     ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<String> files,
-                                                      List<PublicationMissingResource> missingResources);
+                                                      List<PublicationResourceIssue> resourceIssues);
 
     default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<String> files,
-                                                    List<PublicationMissingResource> missingResources) {
+                                                    List<PublicationResourceIssue> resourceIssues) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
-        return toToolSetPublication(dto, path, resources, files, missingResources);
+        return toToolSetPublication(dto, path, resources, files, resourceIssues);
     }
 
     @Mapping(target = "requestName", source = "dto.name")
@@ -143,9 +143,9 @@ public interface PublicationClientMapper {
     @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
-    @Mapping(target = "missingResources", source = "missingResources")
+    @Mapping(target = "resourceIssues", source = "resourceIssues")
     ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files,
-                                            List<PublicationMissingResource> missingResources);
+                                            List<PublicationResourceIssue> resourceIssues);
 
     @Named("getReviewFolder")
     default String getReviewFolder(PublicationDto dto) {

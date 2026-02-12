@@ -35,6 +35,6 @@ public abstract class PublicationDto {
     private String reviewFolderId;
     private PublicationResourceActionDto action;
     private List<RuleDto> rules;
-    private List<PublicationMissingResourceDto> missingResources;
+    private List<PublicationResourceIssueDto> resourceIssues;
 
 }

@@ -8,8 +8,6 @@ import com.epam.aidial.cfg.dto.RejectPublicationDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.mapper.PublicationMapper;
 import com.epam.aidial.cfg.service.publication.PublicationService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -50,10 +48,8 @@ public class PublicationController {
     @PostMapping(path = "/get",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public PublicationDto getPublication(@RequestBody PublicationPathDto publicationPathDto) throws JsonProcessingException {
+    public PublicationDto getPublication(@RequestBody PublicationPathDto publicationPathDto) {
         var publication = publicationService.getPublication(publicationPathDto.getPath());
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValueAsString(publicationMapper.toPublicationDto(publication));
         return publicationMapper.toPublicationDto(publication);
 
     }
@@ -79,6 +75,12 @@ public class PublicationController {
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void rejectPublication(@RequestBody RejectPublicationDto rejectPublicationDto) {
         publicationService.rejectPublication(rejectPublicationDto.getPath(), rejectPublicationDto.getComment());
+    }
+
+    @PostMapping(path = "/delete",
+            consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
+    public void deletePublication(@RequestBody PublicationPathDto publicationPathDto) {
+        publicationService.deletePublication(publicationPathDto.getPath());
     }
 
 }

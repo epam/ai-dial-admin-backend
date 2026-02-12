@@ -108,6 +108,11 @@ public class PublicationService {
         return publication.getUrl();
     }
 
+    public void deletePublication(String path) {
+        var pathDto = mapper.toPublicationPathDto(path);
+        publicationClient.deletePublication(pathDto);
+    }
+
     public Map<String, List<Rule>> getRules(String path) {
         RuleRequest ruleRequest = new RuleRequest(encodeFolderPath(path));
         RulesDto rules = publicationClient.getRules(ruleRequest);

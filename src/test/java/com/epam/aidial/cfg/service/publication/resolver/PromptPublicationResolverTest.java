@@ -187,8 +187,8 @@ class PromptPublicationResolverTest {
         var result = promptPublicationResolver.resolvePublication(publicationDto);
 
         // then
-        assertThat(result.getMissingResources()).hasSize(1);
-        var missingResource = result.getMissingResources().get(0);
+        assertThat(result.getResourceIssues()).hasSize(1);
+        var missingResource = result.getResourceIssues().get(0);
         assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.PROMPT);
         assertThat(missingResource.getMessage()).isEqualTo("Prompt not found");
         assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testPrompt");
