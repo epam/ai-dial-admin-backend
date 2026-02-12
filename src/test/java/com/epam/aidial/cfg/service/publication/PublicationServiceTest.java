@@ -306,12 +306,6 @@ class PublicationServiceTest {
                 .resourceTypes(List.of(ResourceTypeDto.PROMPT))
                 .build();
 
-        Publication updatedPublication = PromptPublication.builder()
-                .path("path/")
-                .resources(List.of(resource))
-                .rules(List.of(rule))
-                .build();
-
         when(promptPublicationResolver.resolveUpdatePublication(updatePublication, null))
                 .thenReturn(publicationDto);
 
