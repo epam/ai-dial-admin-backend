@@ -34,10 +34,12 @@ import org.springframework.test.json.JsonCompareMode;
 import org.springframework.util.MimeTypeUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -121,7 +123,7 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
         var modelJson = ResourceUtils.readResource(publicationFilePath);
         var model = objectMapper.readValue(modelJson, publicationClass);
 
-        when(publicationService.updatePublication(any(), any())).thenReturn(model);
+        doNothing().when(publicationService).updatePublication(any(), any());
 
         var dtoJson = ResourceUtils.readResource(publicationDtoFilePath);
         MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -132,8 +134,8 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
                         .file(mockFile)
                         .file(publicationFile)
                         .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isOk())
-                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+                .andExpect(status().isOk());
+        verify(publicationService).updatePublication(model, List.of(mockFile));
     }
 
     @Test

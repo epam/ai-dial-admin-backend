@@ -51,16 +51,13 @@ public class PublicationController {
     public PublicationDto getPublication(@RequestBody PublicationPathDto publicationPathDto) {
         var publication = publicationService.getPublication(publicationPathDto.getPath());
         return publicationMapper.toPublicationDto(publication);
-
     }
 
     @PostMapping(path = "/update",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-    public PublicationDto updatePublication(@RequestPart(value = "files", required = false) @Valid @Size(min = 1, max = 30) List<MultipartFile> files,
-                                            @RequestPart("publication") PublicationDto publicationDto) {
-        var publication = publicationService.updatePublication(publicationMapper.toPublication(publicationDto), files);
-        return publicationMapper.toPublicationDto(publication);
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void updatePublication(@RequestPart(value = "files", required = false) @Valid @Size(min = 1, max = 30) List<MultipartFile> files,
+                                  @RequestPart("publication") PublicationDto publicationDto) {
+        publicationService.updatePublication(publicationMapper.toPublication(publicationDto), files);
     }
 
     @PostMapping(path = "/approve",

@@ -28,7 +28,8 @@
             "updatedAt":1741595170582,
             "author":"File Author",
             "contentLength":12345,
-            "contentType":"text/plain"
+            "contentType":"text/plain",
+            "nodeType": "ITEM"
          }
       },
       {
@@ -43,7 +44,8 @@
             "updatedAt":1741595170789,
             "author":"File Author",
             "contentLength":12345,
-            "contentType":"text/plain"
+            "contentType":"text/plain",
+            "nodeType": "ITEM"
          }
       }
    ]

@@ -72,8 +72,8 @@ public class FilePublicationResolver extends PublicationResolver {
 
     @Override
     public PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
-        var listFiles = resolveUpdateFileResource(publication, files);
-        return mapper.toPublicationDto(publication, listFiles);
+        var updatedListFiles = resolveUpdateFileResource(publication, files);
+        return mapper.toPublicationDto(publication, updatedListFiles);
     }
 
     @Override
@@ -136,6 +136,7 @@ public class FilePublicationResolver extends PublicationResolver {
             throw new ResourceAlreadyExistsException("Target file already exists");
         }
     }
+
     protected List<PublicationResource> resolveUpdateFileResource(Publication publication, List<MultipartFile> files) {
         var existingFileResources = publication.getResources().stream()
                 .filter(publicationResourceUrlStartsWith(FileClientMapper.FILES_PREFIX)).toList();
@@ -155,11 +156,11 @@ public class FilePublicationResolver extends PublicationResolver {
         validateUploadResult(uploadedReviewFiles);
         validateUploadResult(uploadedSourceFiles);
 
-        var newResources = uploadedReviewFiles.getImportResults().stream()
+        var newFileResources = uploadedReviewFiles.getImportResults().stream()
                 .map(importResult -> getPublicationResource(importResult, publication, sourceFolder))
                 .toList();
 
-        resultList.addAll(newResources);
+        resultList.addAll(newFileResources);
 
         return resultList;
     }

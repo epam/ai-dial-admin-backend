@@ -88,6 +88,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
+    @Mapping(target = "author", source = "dto.displayAuthor")
     PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
 
     default FilePublication toFilePublication(PublicationDto dto, List<FilePublicationResource> resources, List<PublicationResourceIssue> resourceIssues) {
@@ -100,6 +101,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
+    @Mapping(target = "author", source = "dto.displayAuthor")
     FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
 
     default ApplicationPublication toApplicationPublication(PublicationDto dto, List<ApplicationPublicationResource> resources, List<String> files,
@@ -114,6 +116,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
+    @Mapping(target = "author", source = "dto.displayAuthor")
     ApplicationPublication toApplicationPublication(PublicationDto dto, String path, List<ApplicationPublicationResource> resources, List<String> files,
                                                     List<PublicationResourceIssue> resourceIssues);
 
@@ -129,6 +132,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
+    @Mapping(target = "author", source = "dto.displayAuthor")
     ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<String> files,
                                                       List<PublicationResourceIssue> resourceIssues);
 
@@ -144,6 +148,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
+    @Mapping(target = "author", source = "dto.displayAuthor")
     ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files,
                                             List<PublicationResourceIssue> resourceIssues);
 
@@ -209,6 +214,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "name", source = "publication.requestName")
     @Mapping(target = "url", expression = "java(\"publications/\" + publication.getPath())")
     @Mapping(target = "resources", source = "list")
+    @Mapping(target = "displayAuthor", source = "publication.author")
     PublicationDto toPublicationDto(Publication publication, List<PublicationResource> list);
 
     @Named("getResourcesTypes")

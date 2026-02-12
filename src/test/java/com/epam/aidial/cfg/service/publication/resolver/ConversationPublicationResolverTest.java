@@ -312,7 +312,7 @@ class ConversationPublicationResolverTest {
         var publicationDto = new PublicationDto();
         publicationDto.setUrl(FULL_PATH);
         publicationDto.setName("Test Publication");
-        publicationDto.setAuthor("Author Name");
+        publicationDto.setDisplayAuthor("Author Name");
         publicationDto.setCreatedAt(100);
         publicationDto.setTargetFolder(TARGET_FOLDER);
         publicationDto.setStatus(PublicationStatusDto.PENDING);

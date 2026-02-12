@@ -84,11 +84,10 @@ public class PublicationService {
         return resolvePublication(publicationDto);
     }
 
-    public Publication updatePublication(Publication publication, List<MultipartFile> files) {
+    public void updatePublication(Publication publication, List<MultipartFile> files) {
         validateTargetFolder(publication);
         var publicationDto = resolveUpdatePublication(publication, files);
-        var updatedPublicationDto = publicationClient.updatePublication(publicationDto);
-        return resolvePublication(updatedPublicationDto);
+        publicationClient.updatePublication(publicationDto);
     }
 
     public void approvePublication(String path) {

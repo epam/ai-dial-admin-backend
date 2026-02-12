@@ -88,7 +88,7 @@ class FilePublicationResolverTest {
         var publicationDto = new PublicationDto();
         publicationDto.setUrl(fullPath);
         publicationDto.setName("Test Publication");
-        publicationDto.setAuthor("Author Name");
+        publicationDto.setDisplayAuthor("Author Name");
         publicationDto.setCreatedAt(100);
         publicationDto.setTargetFolder(targetFolder);
         publicationDto.setStatus(PublicationStatusDto.PENDING);
@@ -185,7 +185,7 @@ class FilePublicationResolverTest {
         var publicationDto = new PublicationDto();
         publicationDto.setUrl(fullPath);
         publicationDto.setName("Test Publication");
-        publicationDto.setAuthor("Author Name");
+        publicationDto.setDisplayAuthor("Author Name");
         publicationDto.setCreatedAt(100);
         publicationDto.setTargetFolder(targetFolder);
         publicationDto.setStatus(PublicationStatusDto.PENDING);
@@ -246,7 +246,7 @@ class FilePublicationResolverTest {
         var publicationDto = new PublicationDto();
         publicationDto.setUrl(fullPath);
         publicationDto.setName("Test Publication");
-        publicationDto.setAuthor("Author Name");
+        publicationDto.setDisplayAuthor("Author Name");
         publicationDto.setCreatedAt(100);
         publicationDto.setTargetFolder(targetFolder);
         publicationDto.setStatus(PublicationStatusDto.PENDING);
@@ -330,7 +330,7 @@ class FilePublicationResolverTest {
         assertThat(result).isNotNull();
         assertThat(result.getUrl()).isEqualTo(fullPath);
         assertThat(result.getName()).isEqualTo("Test Publication");
-        assertThat(result.getAuthor()).isEqualTo("Author Name");
+        assertThat(result.getDisplayAuthor()).isEqualTo("Author Name");
         assertThat(result.getStatus()).isEqualTo(PublicationStatusDto.PENDING);
         assertThat(result.getTargetFolder()).isEqualTo(targetFolder);
 

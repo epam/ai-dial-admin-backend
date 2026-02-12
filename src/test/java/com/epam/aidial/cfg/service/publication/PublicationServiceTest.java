@@ -318,18 +318,12 @@ class PublicationServiceTest {
         when(publicationClient.updatePublication(any()))
                 .thenReturn(publicationDto);
 
-        when(promptPublicationResolver.resolvePublication(any()))
-                .thenReturn(updatedPublication);
-
         // when
-        var result = publicationService.updatePublication(updatePublication, null);
+        publicationService.updatePublication(updatePublication, null);
 
         // then
-        Assertions.assertThat(result).isEqualTo(updatedPublication);
-
         verify(promptPublicationResolver).resolveUpdatePublication(updatePublication, null);
         verify(publicationClient).updatePublication(publicationDto);
-        verify(promptPublicationResolver).resolvePublication(publicationDto);
     }
 
     @Test
