@@ -29,6 +29,7 @@ public abstract class PublicationDto {
     private String path;
     private String requestName;
     private String author;
+    private String displayAuthor;
     private long createdAt;
     private PublicationStatusDto status;
     private String folderId;

@@ -74,7 +74,7 @@ class PromptPublicationResolverTest {
         var publicationDto = new PublicationDto();
         publicationDto.setUrl(fullPath);
         publicationDto.setName("Test Publication");
-        publicationDto.setDisplayAuthor("Author Name");
+        publicationDto.setAuthor("Author Name");
         publicationDto.setCreatedAt(100);
         publicationDto.setTargetFolder(targetFolder);
         publicationDto.setStatus(PublicationStatusDto.PENDING);
@@ -167,7 +167,7 @@ class PromptPublicationResolverTest {
         var publicationDto = new PublicationDto();
         publicationDto.setUrl(fullPath);
         publicationDto.setName("Test Publication");
-        publicationDto.setDisplayAuthor("Author Name");
+        publicationDto.setAuthor("Author Name");
         publicationDto.setCreatedAt(100);
         publicationDto.setTargetFolder(targetFolder);
         publicationDto.setStatus(PublicationStatusDto.PENDING);

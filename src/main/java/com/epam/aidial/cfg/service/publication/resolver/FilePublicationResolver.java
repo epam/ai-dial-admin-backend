@@ -25,6 +25,7 @@ import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -143,7 +144,7 @@ public class FilePublicationResolver extends PublicationResolver {
 
         var resultList = new ArrayList<PublicationResource>(existingFileResources);
 
-        if (files.isEmpty()) {
+        if (CollectionUtils.isEmpty(files)) {
             return resultList;
         }
 

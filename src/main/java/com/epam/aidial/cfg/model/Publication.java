@@ -18,6 +18,7 @@ public abstract class Publication {
     private String folderId;
     private String reviewFolderId;
     private String author;
+    private String displayAuthor;
     private long createdAt;
     private PublicationStatus status;
     private List<Rule> rules;
