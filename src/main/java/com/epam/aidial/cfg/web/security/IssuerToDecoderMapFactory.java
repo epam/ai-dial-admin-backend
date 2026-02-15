@@ -14,17 +14,17 @@ import java.util.Set;
 
 public class IssuerToDecoderMapFactory {
     private static final String AUDIENCE_PREFIX = "api://";
-    private final JwtProviderUtils jwtProviderUtils;
+    private final IdentityProviderUtils identityProviderUtils;
 
-    public IssuerToDecoderMapFactory(JwtProviderUtils jwtProviderUtils) {
-        this.jwtProviderUtils = jwtProviderUtils;
+    public IssuerToDecoderMapFactory(IdentityProviderUtils identityProviderUtils) {
+        this.identityProviderUtils = identityProviderUtils;
     }
 
     @NotNull
     public Map<String, JwtDecoder> createIssuerToDecoderMap(final NimbusJwtDecoder jwtDecoder,
-                                                            final JwtProvidersProperties.ProviderConfig config) {
+                                                            final JwtProviderConfig config) {
         final var issuerToDecoderMap = new HashMap<String, JwtDecoder>();
-        final var acceptedIssuers = jwtProviderUtils.getAcceptedIssuers(config);
+        final var acceptedIssuers = identityProviderUtils.getAcceptedIssuers(config);
         for (final String issuer : acceptedIssuers) {
             issuerToDecoderMap.put(issuer, jwtDecoder);
         }

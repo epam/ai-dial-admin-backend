@@ -186,4 +186,13 @@ public class ToolSetResourceService implements ResourceService {
         }
         return Map.of("Authorization", "Bearer " + token);
     }
+
+    public boolean toolSetResourceExists(String path) {
+        try {
+            getToolSetResource(path);
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
+    }
 }

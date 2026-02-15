@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
-import com.epam.aidial.cfg.utils.JwtProviderTestHelper;
+import com.epam.aidial.cfg.utils.IdentityProviderTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,23 +18,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JwtAuthenticationConverterFactoryTest {
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
-    private final JwtProviderUtils jwtProviderUtils = new JwtProviderUtils();
+    private final IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils();
     private JwtAuthenticationConverterFactory factory;
     private MultiIssuerJwtAuthenticationConverter converter;
 
     @BeforeEach
     void setup() {
         factory = new JwtAuthenticationConverterFactory(
-                Map.of("test", JwtProviderTestHelper.createProviderConfig()),
+                List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
                 "testPrincipal",
-                jwtProviderUtils,
+                identityProviderUtils,
                 Set.of("admin", "ConfigAdmin"),
                 "unique_name", false);
         converter = factory.getConverter(TEST_ISSUER);
     }
 
     @Test
-    void whenRolesNotAllowed_thenAuthoritiesEmpty() {
+    void whenNoProviders_thenThrows() {
         var jwtToken = generateTestToken(
                 Map.of(
                         "iss", TEST_ISSUER,
@@ -104,9 +104,9 @@ class JwtAuthenticationConverterFactoryTest {
     @Test
     void whenEmailNotPresentAndRequired_thenThrow() {
         var factoryWithRequiredEmail = new JwtAuthenticationConverterFactory(
-                Map.of("test", JwtProviderTestHelper.createProviderConfig()),
+                List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
                 "testPrincipal",
-                jwtProviderUtils,
+                identityProviderUtils,
                 Set.of("admin", "ConfigAdmin"),
                 "unique_name", true);
         var converterWithRequiredEmail = factoryWithRequiredEmail.getConverter(TEST_ISSUER);

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.client;
 
+import com.epam.aidial.cfg.security.AuthApiKeyProvider;
 import com.epam.aidial.cfg.security.AuthToken;
 import com.epam.aidial.cfg.security.AuthTokenProvider;
 import feign.RequestTemplate;
@@ -10,15 +11,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CoreAuthTokenProviderClientConfigurationTest {
+class BackendAuthenticatedCoreClientConfigurationTest {
 
     private AuthTokenProvider authTokenProvider;
-    private CoreAuthTokenProviderClientConfiguration configuration;
+    private AuthApiKeyProvider authApiKeyProvider;
+    private BackendAuthenticatedCoreClientConfiguration configuration;
 
     @BeforeEach
     void setUp() {
         authTokenProvider = mock(AuthTokenProvider.class);
-        configuration = new CoreAuthTokenProviderClientConfiguration();
+        authApiKeyProvider = mock(AuthApiKeyProvider.class);
+        configuration = new BackendAuthenticatedCoreClientConfiguration();
     }
 
     @Test
@@ -35,5 +38,21 @@ class CoreAuthTokenProviderClientConfigurationTest {
 
         // Assert
         verify(mockRequestTemplate).header("Authorization", "Bearer test-access-token");
+    }
+
+    @Test
+    void testCoreAuthApiKeyRequestInterceptor_Success() {
+        // Arrange
+        String apiKey = "test-api-key";
+        when(authApiKeyProvider.getAuthApiKey()).thenReturn(apiKey);
+
+        // Create a mock RequestTemplate
+        RequestTemplate mockRequestTemplate = mock(RequestTemplate.class);
+
+        // Act
+        configuration.coreAuthApiKeyRequestInterceptor(authApiKeyProvider).apply(mockRequestTemplate);
+
+        // Assert
+        verify(mockRequestTemplate).header("API-KEY", "test-api-key");
     }
 }

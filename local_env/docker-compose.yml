@@ -38,6 +38,8 @@ services:
       POSTGRES_HOST: postgres
       MS_SQL_SERVER_HOST: sqlserver
       MS_SQL_SERVER_OPS: encrypt=false;
+      CORE_AUTH_METHOD: api-key
+      CORE_AUTH_API_KEY_VALUE: dial_api_key
 
   redis:
     container_name: ai-dial-redis
@@ -114,7 +116,7 @@ services:
     environment:
       'AIDIAL_SETTINGS': '/opt/settings/settings.json'
       'JAVA_OPTS': '-Dgflog.config=/opt/settings/gflog.xml'
-      'aidial.config.files': '["/opt/config/out.json"]'
+      'aidial.config.files': '["/opt/config/out.json", "/opt/manual_config/config.json"]'
       'aidial.redis.singleServerConfig.address': 'redis://redis:6379'
       'aidial.access.admin.rules': '[{"source": "roles", "function": "TRUE"}]'
     depends_on:
@@ -122,6 +124,7 @@ services:
       - init-container
     volumes:
       - ./data/dial_conf/settings:/opt/settings
+      - ./data/dial_conf/manual_config:/opt/manual_config
       - ./data/export:/opt/config
       - ./data/logs/core-logs:/app/log
 

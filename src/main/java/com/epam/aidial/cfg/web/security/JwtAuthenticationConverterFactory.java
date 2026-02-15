@@ -1,28 +1,32 @@
 package com.epam.aidial.cfg.web.security;
 
+import org.springframework.security.oauth2.jwt.Jwt;
+
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class JwtAuthenticationConverterFactory {
     private final String principalClaim;
     private final String defaultClaimsEmailKey;
-    private final JwtProviderUtils jwtProviderUtils;
+    private final IdentityProviderUtils identityProviderUtils;
     private final Map<String, MultiIssuerJwtAuthenticationConverter> convertersByIssuer;
     private final Set<String> defaultAllowedRoles;
 
-    public JwtAuthenticationConverterFactory(Map<String, JwtProvidersProperties.ProviderConfig> providers,
-                                             String principalClaim, JwtProviderUtils jwtProviderUtils,
+    public JwtAuthenticationConverterFactory(List<JwtProviderConfig> providers,
+                                             String principalClaim,
+                                             IdentityProviderUtils identityProviderUtils,
                                              Set<String> defaultAllowedRoles, String defaultClaimsEmailKey, boolean requireEmail) {
         this.principalClaim = principalClaim;
         this.defaultClaimsEmailKey = defaultClaimsEmailKey;
-        this.jwtProviderUtils = jwtProviderUtils;
+        this.identityProviderUtils = identityProviderUtils;
         this.defaultAllowedRoles = defaultAllowedRoles;
         Map<String, MultiIssuerJwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
-        providers.forEach((name, config) -> {
+        providers.forEach(config -> {
             var converter = create(config, requireEmail);
-            var acceptedIssuers = this.jwtProviderUtils.getAcceptedIssuers(config);
+            var acceptedIssuers = this.identityProviderUtils.getAcceptedIssuers(config);
             for (var issuer : acceptedIssuers) {
                 tmpConvertersByIssuer.put(issuer, converter);
             }
@@ -30,8 +34,8 @@ public class JwtAuthenticationConverterFactory {
         convertersByIssuer = Map.copyOf(tmpConvertersByIssuer);
     }
 
-    private MultiIssuerJwtAuthenticationConverter create(JwtProvidersProperties.ProviderConfig config, boolean requireEmail) {
-        var grantedAuthoritiesConverter = new MultiPathGrantedAuthoritiesConverter();
+    private MultiIssuerJwtAuthenticationConverter create(JwtProviderConfig config, boolean requireEmail) {
+        var grantedAuthoritiesConverter = new MultiPathGrantedAuthoritiesConverter<Jwt>();
         var authoritiesPaths = config.getRoleClaims().stream()
                 .map(String::trim)
                 .toList();

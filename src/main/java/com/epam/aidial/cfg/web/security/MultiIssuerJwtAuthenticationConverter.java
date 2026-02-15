@@ -52,7 +52,7 @@ public class MultiIssuerJwtAuthenticationConverter implements Converter<Jwt, Abs
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
-        var email = JwtProviderUtils.extractFirstClaim(jwt, List.copyOf(emailClaims));
+        var email = IdentityProviderUtils.extractFirstClaim(jwt, List.copyOf(emailClaims));
 
         if (requireEmail && email.isEmpty()) {
             throw new IllegalStateException("Email claim is required");

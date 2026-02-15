@@ -1,12 +1,13 @@
 package com.epam.aidial.cfg.utils;
 
+import com.epam.aidial.cfg.web.security.IdentityProviderUtils;
 import com.epam.aidial.cfg.web.security.JwtAuthenticationConverterFactory;
-import com.epam.aidial.cfg.web.security.JwtProviderUtils;
+import com.epam.aidial.cfg.web.security.JwtProviderConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 @Configuration
@@ -18,8 +19,8 @@ public class TestAuthenticationConverterFactory {
     }
 
     public static JwtAuthenticationConverterFactory createJwtAuthenticationConverterFactory() {
-        var config = JwtProviderTestHelper.createProviderConfig();
-        return new JwtAuthenticationConverterFactory(Map.of(config.getIssuer(), config), "oid",
-                new JwtProviderUtils(), Set.of("admin", "ConfigAdmin"), "unique_name", false);
+        var config = IdentityProviderTestHelper.createJwtProviderConfig();
+        return new JwtAuthenticationConverterFactory(List.of(JwtProviderConfig.from(config.getIssuer(), config)),
+                "oid", new IdentityProviderUtils(), Set.of("admin", "ConfigAdmin"), "unique_name", false);
     }
 }

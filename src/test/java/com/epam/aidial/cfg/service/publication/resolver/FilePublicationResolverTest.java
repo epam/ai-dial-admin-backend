@@ -31,6 +31,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -97,6 +98,7 @@ class FilePublicationResolverTest {
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(filePrefix + reviewFilePath);
         when(fileService.getAll(any())).thenReturn(fileNodeInfo);
+        when(fileService.fileExists(anyString())).thenReturn(false);
 
         // when
         var result = filePublicationResolver.resolvePublication(publicationDto);
@@ -198,11 +200,66 @@ class FilePublicationResolverTest {
         var result = filePublicationResolver.resolvePublication(publicationDto);
 
         // then
-        assertThat(result.getMissingResources()).hasSize(1);
-        var missingResource = result.getMissingResources().get(0);
+        assertThat(result.getResourceIssues()).hasSize(1);
+        var missingResource = result.getResourceIssues().get(0);
         assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.FILE);
         assertThat(missingResource.getMessage()).isEqualTo("File not found");
         assertThat(missingResource.getPath()).isEqualTo("reviewFolder/testFile");
+    }
+
+    @Test
+    void resolvePublicationShouldReturnResourceIssueWhenSomeResourceIsPublished() {
+        // given
+        var publicationPath = "testPublication";
+        var fullPath = "publications/" + publicationPath;
+        var filePrefix = "files/";
+        var fileName = "testFile";
+
+        var reviewFolder = "reviewFolder/";
+        var reviewFilePath = reviewFolder + fileName;
+
+        var targetFolder = "targetFolder/";
+        var targetFilePath = targetFolder + fileName;
+
+        var sourceFolder = "sourceFolder/";
+        var sourceFolderPath = sourceFolder + fileName;
+
+        var publicationResource = new PublicationResourceDto();
+        publicationResource.setAction(PublicationResourceActionDto.ADD);
+        publicationResource.setTargetUrl(filePrefix + targetFilePath);
+        publicationResource.setReviewUrl(filePrefix + reviewFilePath);
+        publicationResource.setSourceUrl(filePrefix + sourceFolderPath);
+
+        var ruleDto = new RuleDto();
+        ruleDto.setSource("role");
+        ruleDto.setFunction(RuleFunctionDto.EQUAL);
+        ruleDto.setTargets(List.of("user"));
+
+        var publicationDto = new PublicationDto();
+        publicationDto.setUrl(fullPath);
+        publicationDto.setName("Test Publication");
+        publicationDto.setAuthor("Author Name");
+        publicationDto.setCreatedAt(100);
+        publicationDto.setTargetFolder(targetFolder);
+        publicationDto.setStatus(PublicationStatusDto.PENDING);
+        publicationDto.setResources(List.of(publicationResource));
+        publicationDto.setResourceTypes(List.of(ResourceTypeDto.FILE));
+        publicationDto.setRules(List.of(ruleDto));
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(filePrefix + reviewFilePath);
+
+        when(fileService.fileExists(anyString())).thenReturn(true);
+
+        // when
+        var result = filePublicationResolver.resolvePublication(publicationDto);
+
+        // then
+        assertThat(result.getResourceIssues()).hasSize(1);
+        var missingResource = result.getResourceIssues().get(0);
+        assertThat(missingResource.getResourceType()).isEqualTo(ResourceType.FILE);
+        assertThat(missingResource.getMessage()).isEqualTo("Target file already exists");
+        assertThat(missingResource.getPath()).isEqualTo("files/targetFolder/testFile");
     }
 
 }

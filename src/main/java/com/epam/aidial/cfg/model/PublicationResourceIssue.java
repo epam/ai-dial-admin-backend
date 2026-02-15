@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PublicationMissingResource {
+public class PublicationResourceIssue {
 
     private ResourceType resourceType;
     private String path;
