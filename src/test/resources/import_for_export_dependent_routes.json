@@ -120,6 +120,7 @@
       "dial:applicationTypeDisplayName": "schema-2",
       "dial:applicationTypeCompletionEndpoint": "http://ai-dial-test/openai/deployments/gpt-4o/chat/completions",
       "dial:applicationTypeIconUrl": "http://ai-dial-test/openai/deployments/gpt-4o/chat/icon",
+      "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
       "dial:applicationTypeRoutes": {
         "route1": {
           "dial:response": {
