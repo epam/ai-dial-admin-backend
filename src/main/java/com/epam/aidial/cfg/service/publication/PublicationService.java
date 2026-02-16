@@ -185,7 +185,11 @@ public class PublicationService {
                 ? path.substring(prefix.length())
                 : path;
         var name = PathUtils.parsePath(pathWithoutPrefix).getName();
-        resource.setTargetUrl(prefix + targetFolder + name);
+
+        var normalizedPrefix = PathUtils.ensureTrailingSlash(prefix);
+        var normalizedFolder = PathUtils.ensureTrailingSlash(targetFolder);
+
+        resource.setTargetUrl(normalizedPrefix + normalizedFolder + name);
     }
 
     private String getPrefix(PublicationResource publicationResource) {

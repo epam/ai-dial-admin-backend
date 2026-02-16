@@ -25,6 +25,7 @@ import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UserBucket;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -194,13 +195,6 @@ class FilePublicationResolverTest {
         publicationDto.setResourceTypes(List.of(ResourceTypeDto.FILE));
         publicationDto.setRules(List.of(ruleDto));
 
-        var fileNodeInfo = FileNodeInfo.builder()
-                .path(reviewFilePath)
-                .folderId(reviewFolder)
-                .name(fileName)
-                .nodeType(NodeType.ITEM)
-                .build();
-
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(filePrefix + reviewFilePath);
         when(fileService.getAll(any())).thenThrow(ResourceNotFoundException.class);
@@ -350,9 +344,9 @@ class FilePublicationResolverTest {
 
         var resource2 = result.getResources().get(1);
         assertThat(resource2.getAction()).isEqualTo(PublicationResourceActionDto.ADD_IF_ABSENT);
-        assertThat(resource2.getSourceUrl()).isEqualTo("files/sourceFolder/1.txt");
+        assertThat(resource2.getSourceUrl()).isEqualTo("files/sourceFolder/publications_updates/1.txt");
         assertThat(resource2.getTargetUrl()).isEqualTo("files/targetFolder/1.txt");
-        assertThat(resource2.getReviewUrl()).isEqualTo("files/targetPath/1.txt");
+        Assertions.assertNull(resource2.getReviewUrl());
     }
 
 }

@@ -37,6 +37,8 @@ import java.util.stream.Stream;
 @LogExecution
 public class FilePublicationResolver extends PublicationResolver {
 
+    public static final String PUBLICATIONS_UPDATES_FOLDER = "publications_updates/";
+
     private final PublicationClientMapper mapper;
     private final FileClientMapper fileClientMapper;
     private final FileService fileService;
@@ -152,11 +154,12 @@ public class FilePublicationResolver extends PublicationResolver {
         }
 
         var sourceFolder = PathUtils.ensureTrailingSlash(fileService.getBucket().getBucket());
-        var uploadedReviewFiles = upload(files, sourceFolder);
-        validateUploadResult(uploadedReviewFiles);
+        var updatesFolderPath = sourceFolder + PUBLICATIONS_UPDATES_FOLDER;
+        var uploadedSourceFiles = upload(files, updatesFolderPath);
+        validateUploadResult(uploadedSourceFiles);
 
-        var newFileResources = uploadedReviewFiles.getImportResults().stream()
-                .map(importResult -> getPublicationResource(importResult, publication, sourceFolder))
+        var newFileResources = uploadedSourceFiles.getImportResults().stream()
+                .map(importResult -> getPublicationResource(importResult, publication, updatesFolderPath))
                 .toList();
 
         return Stream.concat(existingFileResources.stream(), newFileResources.stream()).toList();
@@ -193,14 +196,14 @@ public class FilePublicationResolver extends PublicationResolver {
     private FilePublicationResource getPublicationResource(
             ImportResourcesResult importResult,
             Publication publication,
-            String reviewSourceFolder
+            String sourceFolder
     ) {
         var fileName = PathUtils.parsePath(importResult.getTargetPath()).getName();
 
         return mapper.toFilePublicationResource(
                 importResult,
                 publication.getFolderId() + fileName,
-                reviewSourceFolder + fileName
+                sourceFolder + fileName
         );
     }
 }

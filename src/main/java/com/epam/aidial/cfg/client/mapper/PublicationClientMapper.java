@@ -146,9 +146,9 @@ public interface PublicationClientMapper {
     FilePublicationResource toFilePublicationResource(PublicationResourceDto resource, FileNodeInfo file);
 
     @Mapping(target = "action", constant = "ADD_IF_ABSENT")
-    @Mapping(target = "reviewUrl", expression = "java(\"files/\" + result.getTargetPath())")
     @Mapping(target = "sourceUrl", expression = "java(\"files/\" + sourcePath)")
     @Mapping(target = "targetUrl", expression = "java(\"files/\" + targetPath)")
+    @Mapping(target = "reviewUrl", ignore = true)
     @Mapping(target = "file", ignore = true)
     FilePublicationResource toFilePublicationResource(ImportResourcesResult result, String targetPath, String sourcePath);
 
