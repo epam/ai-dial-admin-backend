@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
@@ -24,7 +23,7 @@ import java.util.Set;
 public class ConfigurableJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
     private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    private String principalClaimName;
+    private final String principalClaimName;
     private final Set<String> emailClaims = new LinkedHashSet<>();
     private final Set<String> allowedRoles;
     private final boolean requireEmail;
@@ -85,17 +84,6 @@ public class ConfigurableJwtAuthenticationConverter implements Converter<Jwt, Ab
                 jwt, issuer, authToken, allowedRoles, authorities);
 
         return authToken;
-    }
-
-    public void setJwtGrantedAuthoritiesConverter(
-            Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter) {
-        Assert.notNull(jwtGrantedAuthoritiesConverter, "jwtGrantedAuthoritiesConverter cannot be null");
-        this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
-    }
-
-    public void setPrincipalClaimName(String principalClaimName) {
-        Assert.hasText(principalClaimName, "principalClaimName cannot be empty");
-        this.principalClaimName = principalClaimName;
     }
 
 }
