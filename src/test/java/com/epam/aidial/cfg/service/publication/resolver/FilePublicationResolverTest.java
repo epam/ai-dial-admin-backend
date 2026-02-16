@@ -22,6 +22,7 @@ import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
+import com.epam.aidial.cfg.model.UserBucket;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.junit.jupiter.api.Test;
@@ -321,6 +322,7 @@ class FilePublicationResolverTest {
                 "dtoJson".getBytes(StandardCharsets.UTF_8));
 
         when(fileService.uploadFile(any(), any())).thenReturn(importFileResult);
+        when(fileService.getBucket()).thenReturn(new UserBucket(sourceFolder, null));
 
         // when
         var result = filePublicationResolver.resolveUpdatePublication(publication, List.of(publicationFile));
@@ -348,7 +350,7 @@ class FilePublicationResolverTest {
 
         var resource2 = result.getResources().get(1);
         assertThat(resource2.getAction()).isEqualTo(PublicationResourceActionDto.ADD_IF_ABSENT);
-        assertThat(resource2.getSourceUrl()).isEqualTo("files/review/source/1.txt");
+        assertThat(resource2.getSourceUrl()).isEqualTo("files/sourceFolder/1.txt");
         assertThat(resource2.getTargetUrl()).isEqualTo("files/targetFolder/1.txt");
         assertThat(resource2.getReviewUrl()).isEqualTo("files/targetPath/1.txt");
     }
