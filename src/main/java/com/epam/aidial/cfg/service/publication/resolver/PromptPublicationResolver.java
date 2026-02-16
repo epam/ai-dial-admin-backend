@@ -30,13 +30,15 @@ public class PromptPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final PromptService promptService;
+    private final PromptClientMapper promptClientMapper;
 
     protected PromptPublicationResolver(PublicationResourceUrlResolver resolver,
                                         PublicationClientMapper mapper,
-                                        PromptService promptService) {
+                                        PromptService promptService, PromptClientMapper promptClientMapper) {
         super(resolver);
         this.mapper = mapper;
         this.promptService = promptService;
+        this.promptClientMapper = promptClientMapper;
     }
 
     @Override
@@ -58,14 +60,14 @@ public class PromptPublicationResolver extends PublicationResolver {
     }
 
     @Override
-    public PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
+    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
         var promptPublication = (PromptPublication) publication;
 
         var prompts = promptPublication.getResources();
 
         prompts.stream()
                 .map(PromptPublicationResource::getPrompt)
-                .map(mapper::toCreatePrompt)
+                .map(promptClientMapper::toCreatePrompt)
                 .forEach(prompt -> promptService.putPrompt(prompt, true, null));
 
         return mapper.toPublicationDto(publication, prompts);

@@ -319,7 +319,7 @@ class FilePublicationResolverTest {
         when(fileService.getBucket()).thenReturn(new UserBucket(sourceFolder, null));
 
         // when
-        var result = filePublicationResolver.resolveUpdatePublication(publication, List.of(publicationFile));
+        var result = filePublicationResolver.updatePublicationResources(publication, List.of(publicationFile));
 
         // then
         assertThat(result).isNotNull();

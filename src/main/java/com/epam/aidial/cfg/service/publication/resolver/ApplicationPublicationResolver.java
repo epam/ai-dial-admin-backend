@@ -65,7 +65,7 @@ public class ApplicationPublicationResolver extends PublicationResolver {
     }
 
     @Override
-    public PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
+    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
         throw new UnsupportedOperationException("Operation not supported");
     }
 

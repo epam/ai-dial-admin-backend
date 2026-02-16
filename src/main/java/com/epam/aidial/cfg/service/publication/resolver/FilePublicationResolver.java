@@ -74,8 +74,8 @@ public class FilePublicationResolver extends PublicationResolver {
     }
 
     @Override
-    public PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
-        var updatedListFiles = resolveUpdateFileResource(publication, files);
+    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
+        var updatedListFiles = updateFileResources(publication, files);
         return mapper.toPublicationDto(publication, updatedListFiles);
     }
 
@@ -140,7 +140,7 @@ public class FilePublicationResolver extends PublicationResolver {
         }
     }
 
-    protected List<FilePublicationResource> resolveUpdateFileResource(Publication publication, List<MultipartFile> files) {
+    protected List<FilePublicationResource> updateFileResources(Publication publication, List<MultipartFile> files) {
 
         var existingFileResources = Optional.ofNullable(publication.getResources())
                 .orElseGet(List::of)

@@ -33,7 +33,7 @@ public abstract class PublicationResolver {
 
     public abstract Publication resolvePublication(PublicationDto publicationDto);
 
-    public abstract PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files);
+    public abstract PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files);
 
     public abstract ResourceType getResourceType();
 

@@ -131,7 +131,7 @@ public class PublicationService {
         var filesProvided = CollectionUtils.isNotEmpty(files);
         var resourceTypes = getResourcesTypes(publication, filesProvided);
         var publicationResolver = getPublicationResolver(resourceTypes);
-        return publicationResolver.resolveUpdatePublication(publication, files);
+        return publicationResolver.updatePublicationResources(publication, files);
     }
 
     private PublicationResolver getPublicationResolver(Collection<ResourceTypeDto> resourceTypes) {

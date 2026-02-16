@@ -16,7 +16,6 @@ import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.ConversationPublicationResource;
-import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublication;
@@ -230,7 +229,4 @@ public interface PublicationClientMapper {
                 .formatted(publicationResource.getClass(), publicationResource));
     }
 
-
-
-    CreatePrompt toCreatePrompt(Prompt prompt);
 }
