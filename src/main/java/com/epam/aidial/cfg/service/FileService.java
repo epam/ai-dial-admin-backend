@@ -18,7 +18,6 @@ import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
-import com.epam.aidial.cfg.model.UserBucket;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
 import com.epam.aidial.cfg.utils.PathUtils;
@@ -307,10 +306,6 @@ public class FileService implements ResourceService {
                 throw e;
             }
         };
-    }
-
-    public UserBucket getBucket() {
-        return fileClientMapper.toUserBucket(fileClient.getBucket());
     }
 
     public boolean fileExists(String path) {

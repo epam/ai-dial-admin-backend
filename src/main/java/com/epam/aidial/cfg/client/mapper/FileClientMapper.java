@@ -2,10 +2,8 @@ package com.epam.aidial.cfg.client.mapper;
 
 import com.epam.aidial.cfg.client.dto.FileMetadataDto;
 import com.epam.aidial.cfg.client.dto.NodeTypeDto;
-import com.epam.aidial.cfg.client.dto.UserBucketDto;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.NodeType;
-import com.epam.aidial.cfg.model.UserBucket;
 import lombok.Builder;
 import lombok.Data;
 import org.mapstruct.Mapper;
@@ -85,5 +83,4 @@ public interface FileClientMapper {
         private String name;
     }
 
-    UserBucket toUserBucket(UserBucketDto bucketDto);
 }

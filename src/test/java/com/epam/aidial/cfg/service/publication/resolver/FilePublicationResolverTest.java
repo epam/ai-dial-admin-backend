@@ -23,6 +23,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UserBucket;
+import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.junit.jupiter.api.Assertions;
@@ -51,6 +52,8 @@ class FilePublicationResolverTest {
     private PublicationResourceUrlResolver publicationResourceUrlResolver;
     @Mock
     private FileService fileService;
+    @Mock
+    private BucketService bucketService;
     @Spy
     private FileClientMapperImpl fileClientMapper;
     @Spy
@@ -316,7 +319,7 @@ class FilePublicationResolverTest {
                 "dtoJson".getBytes(StandardCharsets.UTF_8));
 
         when(fileService.uploadFile(any(), any())).thenReturn(importFileResult);
-        when(fileService.getBucket()).thenReturn(new UserBucket(sourceFolder, null));
+        when(bucketService.getBucket()).thenReturn(new UserBucket(sourceFolder, null));
 
         // when
         var result = filePublicationResolver.updatePublicationResources(publication, List.of(publicationFile));

@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.mapper;
 
+import com.epam.aidial.cfg.dto.ApplicationPublicationDto;
 import com.epam.aidial.cfg.dto.ApplicationResourceDto;
-import com.epam.aidial.cfg.dto.ApplicationResourcePublicationDto;
 import com.epam.aidial.cfg.dto.ConversationDto;
 import com.epam.aidial.cfg.dto.ConversationPublicationDto;
 import com.epam.aidial.cfg.dto.FileInfoDto;
@@ -55,7 +55,7 @@ public interface PublicationMapper {
         } else if (model instanceof FilePublication filePublication) {
             return toFilePublicationDto(filePublication, action);
         } else if (model instanceof ApplicationPublication applicationPublication) {
-            return toApplicationResourcePublicationDto(applicationPublication, action);
+            return toApplicationPublicationDto(applicationPublication, action);
         } else if (model instanceof ConversationPublication conversationPublication) {
             return toConversationPublicationDto(conversationPublication, action);
         } else if (model instanceof ToolSetPublication toolSetPublication) {
@@ -90,18 +90,18 @@ public interface PublicationMapper {
 
     FilePublicationDto toFilePublicationDto(FilePublication model, PublicationResourceAction action, List<FilePublicationResource> files);
 
-    default ApplicationResourcePublicationDto toApplicationResourcePublicationDto(ApplicationPublication model, PublicationResourceAction action) {
+    default ApplicationPublicationDto toApplicationPublicationDto(ApplicationPublication model, PublicationResourceAction action) {
         var applicationResources = model.getResources()
                 .stream()
                 .filter(Objects::nonNull)
                 .toList();
 
-        return toApplicationResourcePublicationDto(model, action, applicationResources);
+        return toApplicationPublicationDto(model, action, applicationResources);
     }
 
-    ApplicationResourcePublicationDto toApplicationResourcePublicationDto(ApplicationPublication model,
-                                                                          PublicationResourceAction action,
-                                                                          List<ApplicationPublicationResource> applicationResources);
+    ApplicationPublicationDto toApplicationPublicationDto(ApplicationPublication model,
+                                                          PublicationResourceAction action,
+                                                          List<ApplicationPublicationResource> applicationResources);
 
     default ConversationPublicationDto toConversationPublicationDto(ConversationPublication model, PublicationResourceAction action) {
         var conversations = model.getResources()
@@ -164,7 +164,7 @@ public interface PublicationMapper {
             return toPromptPublication(promptPublicationDto);
         } else if (publicationDto instanceof FilePublicationDto filePublicationDto) {
             return toFilePublication(filePublicationDto);
-        } else if (publicationDto instanceof ApplicationResourcePublicationDto applicationPublicationDto) {
+        } else if (publicationDto instanceof ApplicationPublicationDto applicationPublicationDto) {
             return toApplicationResourcePublication(applicationPublicationDto);
         } else if (publicationDto instanceof ConversationPublicationDto conversationPublicationDto) {
             return toConversationPublication(conversationPublicationDto);
@@ -185,7 +185,7 @@ public interface PublicationMapper {
     ConversationPublication toConversationPublication(ConversationPublicationDto conversationPublicationDto);
 
     @Mapping(target = "resources", source = "applicationResources")
-    ApplicationPublication toApplicationResourcePublication(ApplicationResourcePublicationDto applicationPublicationDto);
+    ApplicationPublication toApplicationResourcePublication(ApplicationPublicationDto applicationPublicationDto);
 
     @Mapping(target = "validityState", ignore = true)
     ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto);

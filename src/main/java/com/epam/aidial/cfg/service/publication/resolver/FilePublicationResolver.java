@@ -20,6 +20,7 @@ import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
@@ -42,15 +43,17 @@ public class FilePublicationResolver extends PublicationResolver {
     private final PublicationClientMapper mapper;
     private final FileClientMapper fileClientMapper;
     private final FileService fileService;
+    private final BucketService bucketService;
 
     protected FilePublicationResolver(PublicationResourceUrlResolver resolver,
                                       PublicationClientMapper mapper,
                                       FileClientMapper fileClientMapper,
-                                      FileService fileService) {
+                                      FileService fileService, BucketService bucketService) {
         super(resolver);
         this.mapper = mapper;
         this.fileClientMapper = fileClientMapper;
         this.fileService = fileService;
+        this.bucketService = bucketService;
     }
 
     @Override
@@ -153,7 +156,7 @@ public class FilePublicationResolver extends PublicationResolver {
             return existingFileResources;
         }
 
-        var sourceFolder = PathUtils.ensureTrailingSlash(fileService.getBucket().getBucket());
+        var sourceFolder = PathUtils.ensureTrailingSlash(bucketService.getBucket().getBucket());
         var updatesFolderPath = sourceFolder + PUBLICATIONS_UPDATES_FOLDER;
         var uploadedSourceFiles = upload(files, updatesFolderPath);
         validateUploadResult(uploadedSourceFiles);

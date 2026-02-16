@@ -16,7 +16,7 @@ import java.util.List;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = FilePublicationDto.class, name = "file"),
         @JsonSubTypes.Type(value = ConversationPublicationDto.class, name = "conversation"),
-        @JsonSubTypes.Type(value = ApplicationResourcePublicationDto.class, name = "application"),
+        @JsonSubTypes.Type(value = ApplicationPublicationDto.class, name = "application"),
         @JsonSubTypes.Type(value = PromptPublicationDto.class, name = "prompt"),
         @JsonSubTypes.Type(value = ToolSetResourcePublicationDto.class, name = "toolset"),
 })
