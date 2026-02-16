@@ -201,11 +201,9 @@ public class FilePublicationResolver extends PublicationResolver {
             String sourceFolder
     ) {
         var fileName = PathUtils.parsePath(importResult.getTargetPath()).getName();
+        var targetPath = FileClientMapper.FILES_PREFIX + PathUtils.ensureTrailingSlash(publication.getFolderId()) + fileName;
+        var sourcePath = FileClientMapper.FILES_PREFIX + sourceFolder + fileName;
 
-        return mapper.toFilePublicationResource(
-                importResult,
-                publication.getFolderId() + fileName,
-                sourceFolder + fileName
-        );
+        return mapper.toFilePublicationResource(targetPath, sourcePath);
     }
 }

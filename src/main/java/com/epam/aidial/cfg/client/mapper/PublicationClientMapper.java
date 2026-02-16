@@ -20,7 +20,6 @@ import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
-import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.Prompt;
 import com.epam.aidial.cfg.model.PromptPublication;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
@@ -145,11 +144,11 @@ public interface PublicationClientMapper {
     FilePublicationResource toFilePublicationResource(PublicationResourceDto resource, FileNodeInfo file);
 
     @Mapping(target = "action", constant = "ADD_IF_ABSENT")
-    @Mapping(target = "sourceUrl", expression = "java(\"files/\" + sourcePath)")
-    @Mapping(target = "targetUrl", expression = "java(\"files/\" + targetPath)")
+    @Mapping(target = "sourceUrl", source = "sourcePath")
+    @Mapping(target = "targetUrl", source = "targetPath")
     @Mapping(target = "reviewUrl", ignore = true)
     @Mapping(target = "file", ignore = true)
-    FilePublicationResource toFilePublicationResource(ImportResourcesResult result, String targetPath, String sourcePath);
+    FilePublicationResource toFilePublicationResource(String targetPath, String sourcePath);
 
     ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceDto resource, ApplicationResource applicationResource);
 

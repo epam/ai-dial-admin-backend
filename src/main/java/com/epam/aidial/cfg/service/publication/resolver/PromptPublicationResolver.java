@@ -34,7 +34,8 @@ public class PromptPublicationResolver extends PublicationResolver {
 
     protected PromptPublicationResolver(PublicationResourceUrlResolver resolver,
                                         PublicationClientMapper mapper,
-                                        PromptService promptService, PromptClientMapper promptClientMapper) {
+                                        PromptService promptService,
+                                        PromptClientMapper promptClientMapper) {
         super(resolver);
         this.mapper = mapper;
         this.promptService = promptService;
