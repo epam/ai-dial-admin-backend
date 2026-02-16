@@ -20,7 +20,7 @@ class JwtAuthenticationConverterFactoryTest {
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
     private final IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils();
     private JwtAuthenticationConverterFactory factory;
-    private MultiIssuerJwtAuthenticationConverter converter;
+    private ConfigurableJwtAuthenticationConverter converter;
 
     @BeforeEach
     void setup() {

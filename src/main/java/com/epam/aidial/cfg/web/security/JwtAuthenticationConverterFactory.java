@@ -12,7 +12,7 @@ public class JwtAuthenticationConverterFactory {
     private final String principalClaim;
     private final String defaultClaimsEmailKey;
     private final IdentityProviderUtils identityProviderUtils;
-    private final Map<String, MultiIssuerJwtAuthenticationConverter> convertersByIssuer;
+    private final Map<String, ConfigurableJwtAuthenticationConverter> convertersByIssuer;
     private final Set<String> defaultAllowedRoles;
 
     public JwtAuthenticationConverterFactory(List<JwtProviderConfig> providers,
@@ -23,7 +23,7 @@ public class JwtAuthenticationConverterFactory {
         this.defaultClaimsEmailKey = defaultClaimsEmailKey;
         this.identityProviderUtils = identityProviderUtils;
         this.defaultAllowedRoles = defaultAllowedRoles;
-        Map<String, MultiIssuerJwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
+        Map<String, ConfigurableJwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
         providers.forEach(config -> {
             var converter = create(config, requireEmail);
             var acceptedIssuers = this.identityProviderUtils.getAcceptedIssuers(config);
@@ -34,18 +34,21 @@ public class JwtAuthenticationConverterFactory {
         convertersByIssuer = Map.copyOf(tmpConvertersByIssuer);
     }
 
-    private MultiIssuerJwtAuthenticationConverter create(JwtProviderConfig config, boolean requireEmail) {
+    private ConfigurableJwtAuthenticationConverter create(JwtProviderConfig config,
+                                                          boolean requireEmail) {
         var grantedAuthoritiesConverter = new MultiPathGrantedAuthoritiesConverter<Jwt>();
         var authoritiesPaths = config.getRoleClaims().stream()
                 .map(String::trim)
                 .toList();
         grantedAuthoritiesConverter.setAuthoritiesPaths(authoritiesPaths);
         grantedAuthoritiesConverter.setAuthorityPrefix("");
-        final var jwtAuthenticationConverter = new MultiIssuerJwtAuthenticationConverter(config.getEmailClaims(),
-                getAllowedRoles(config.getAllowedRoles()), defaultClaimsEmailKey, requireEmail);
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        jwtAuthenticationConverter.setPrincipalClaimName(principalClaim);
-        return jwtAuthenticationConverter;
+        return new ConfigurableJwtAuthenticationConverter(config.getEmailClaims(),
+                getAllowedRoles(config.getAllowedRoles()),
+                defaultClaimsEmailKey,
+                requireEmail,
+                this.identityProviderUtils,
+                grantedAuthoritiesConverter,
+                principalClaim);
     }
 
     private Set<String> getAllowedRoles(Set<String> allowedRoles) {
@@ -56,7 +59,7 @@ public class JwtAuthenticationConverterFactory {
         return Set.copyOf(acceptedRoles);
     }
 
-    public MultiIssuerJwtAuthenticationConverter getConverter(String issuer) {
+    public ConfigurableJwtAuthenticationConverter getConverter(String issuer) {
         return convertersByIssuer.get(issuer);
     }
 }

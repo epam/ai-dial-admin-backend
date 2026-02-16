@@ -50,7 +50,7 @@ public class IdentityProviderUtils {
         }
     }
 
-    public static Optional<String> extractFirstClaim(Jwt jwt, List<String> claims) {
+    public Optional<String> extractFirstClaim(Jwt jwt, List<String> claims) {
         if (jwt == null || claims == null) {
             return Optional.empty();
         }
