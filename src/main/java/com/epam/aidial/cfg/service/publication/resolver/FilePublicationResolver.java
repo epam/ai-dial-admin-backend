@@ -144,7 +144,6 @@ public class FilePublicationResolver extends PublicationResolver {
     }
 
     protected List<FilePublicationResource> updateFileResources(Publication publication, List<MultipartFile> files) {
-
         var existingFileResources = Optional.ofNullable(publication.getResources())
                 .orElseGet(List::of)
                 .stream()

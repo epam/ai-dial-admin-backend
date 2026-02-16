@@ -86,7 +86,7 @@ public class PublicationService {
 
     public void updatePublication(Publication publication, List<MultipartFile> files) {
         updateTargetFolder(publication);
-        var publicationDto = resolveUpdatePublication(publication, files);
+        var publicationDto = updatePublicationResources(publication, files);
         publicationClient.updatePublication(publicationDto);
     }
 
@@ -127,7 +127,7 @@ public class PublicationService {
         return publicationResolver.resolvePublication(publicationDto);
     }
 
-    private PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
+    private PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
         var filesProvided = CollectionUtils.isNotEmpty(files);
         var resourceTypes = getResourcesTypes(publication, filesProvided);
         var publicationResolver = getPublicationResolver(resourceTypes);
@@ -160,7 +160,7 @@ public class PublicationService {
 
     private Set<ResourceTypeDto> getResourcesTypes(Publication publication, boolean isFilesProvided) {
         if (publication == null) {
-            return Set.of();
+            throw new IllegalStateException("Publication must not be null");
         }
 
         if (CollectionUtils.isEmpty(publication.getResources())) {

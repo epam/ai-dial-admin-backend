@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
         name = "bucketClient",
         url = "${core.client.url}",
         configuration = {
-                AuthorizationCoreClientConfiguration.class
+                AuthorizationCoreClientConfiguration.class,
+                FeignErrorDecoderConfiguration.class
         }
 )
 public interface BucketClient {

@@ -201,7 +201,6 @@ public interface PublicationClientMapper {
     @Mapping(target = "resources", source = "list")
     PublicationDto toPublicationDto(Publication publication, List<? extends PublicationResource> list);
 
-
     @Named("getResourcesTypes")
     default List<ResourceTypeDto> getResourcesTypes(List<? extends PublicationResource> list) {
         if (CollectionUtils.isEmpty(list)) {
@@ -210,7 +209,8 @@ public interface PublicationClientMapper {
 
         return list.stream()
                 .map(this::getResourceType)
-                .collect(Collectors.toSet()).stream().toList();
+                .distinct()
+                .toList();
     }
 
     default ResourceTypeDto getResourceType(PublicationResource publicationResource) {
