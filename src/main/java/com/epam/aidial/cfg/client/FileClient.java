@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.client;
 
 
 import com.epam.aidial.cfg.client.dto.FileMetadataDto;
+import com.epam.aidial.cfg.client.dto.UserBucketDto;
 import feign.Response;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -41,4 +42,6 @@ public interface FileClient {
                     @PathVariable("path") String path,
                     @RequestHeader Map<String, String> headers);
 
+    @GetMapping("/v1/bucket")
+    UserBucketDto getBucket();
 }

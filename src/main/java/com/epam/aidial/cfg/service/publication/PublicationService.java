@@ -85,7 +85,7 @@ public class PublicationService {
     }
 
     public void updatePublication(Publication publication, List<MultipartFile> files) {
-        validateTargetFolder(publication);
+        updateTargetFolder(publication);
         var publicationDto = resolveUpdatePublication(publication, files);
         publicationClient.updatePublication(publicationDto);
     }
@@ -128,7 +128,8 @@ public class PublicationService {
     }
 
     private PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
-        var resourceTypes = getResourcesTypes(publication);
+        var filesProvided = CollectionUtils.isNotEmpty(files);
+        var resourceTypes = getResourcesTypes(publication, filesProvided);
         var publicationResolver = getPublicationResolver(resourceTypes);
         return publicationResolver.resolveUpdatePublication(publication, files);
     }
@@ -157,17 +158,23 @@ public class PublicationService {
         return resourceType == publicationResourceTypeResolver.resolveResourceType(resourceTypes);
     }
 
-    private List<ResourceTypeDto> getResourcesTypes(Publication publication) {
-        if (publication == null || publication.getResources() == null) {
-            return Collections.emptyList();
+    private Set<ResourceTypeDto> getResourcesTypes(Publication publication, boolean isFilesProvided) {
+        if (publication == null) {
+            return Set.of();
+        }
+
+        if (CollectionUtils.isEmpty(publication.getResources())) {
+            return isFilesProvided
+                    ? Set.of(ResourceTypeDto.FILE)
+                    : Set.of();
         }
 
         return publication.getResources().stream()
                 .map(mapper::getResourceType)
-                .collect(Collectors.toSet()).stream().toList();
+                .collect(Collectors.toSet());
     }
 
-    private void validateTargetFolder(Publication publication) {
+    private void updateTargetFolder(Publication publication) {
         var targetFolder = publication.getFolderId();
         publication.getResources().forEach(s -> updateTargetFolder(s, targetFolder, getPrefix(s)));
     }

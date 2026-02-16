@@ -34,7 +34,7 @@ import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.model.ToolSetResource;
-import com.epam.aidial.cfg.utils.PathUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -43,7 +43,6 @@ import org.mapstruct.Named;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -85,7 +84,6 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
-    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
     PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
@@ -97,7 +95,6 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
-    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
     FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
@@ -110,7 +107,6 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
-    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
@@ -125,7 +121,6 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
-    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
@@ -140,26 +135,22 @@ public interface PublicationClientMapper {
 
     @Mapping(target = "requestName", source = "dto.name")
     @Mapping(target = "folderId", source = "dto.targetFolder")
-    @Mapping(target = "reviewFolderId", source = "dto", qualifiedByName = "getReviewFolder")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
     ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files,
                                             List<PublicationResourceIssue> resourceIssues);
 
-    @Named("getReviewFolder")
-    default String getReviewFolder(PublicationDto dto) {
-        return dto.getResources().stream()
-                .map(PublicationResourceDto::getReviewUrl)
-                .filter(Objects::nonNull)
-                .map(path -> PathUtils.extractPathAfterFirstSlashPrefix(path).getFolderId())
-                .findFirst()
-                .orElse(null);
-    }
-
     PromptPublicationResource toPromptPublicationResource(PublicationResourceDto action, Prompt prompt);
 
     FilePublicationResource toFilePublicationResource(PublicationResourceDto resource, FileNodeInfo file);
+
+    @Mapping(target = "action", constant = "ADD_IF_ABSENT")
+    @Mapping(target = "reviewUrl", expression = "java(\"files/\" + result.getTargetPath())")
+    @Mapping(target = "sourceUrl", expression = "java(\"files/\" + sourcePath)")
+    @Mapping(target = "targetUrl", expression = "java(\"files/\" + targetPath)")
+    @Mapping(target = "file", ignore = true)
+    FilePublicationResource toFilePublicationResource(ImportResourcesResult result, String targetPath, String sourcePath);
 
     ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceDto resource, ApplicationResource applicationResource);
 
@@ -205,19 +196,20 @@ public interface PublicationClientMapper {
     }
 
     @Mapping(target = "targetFolder", source = "publication.folderId")
-    @Mapping(target = "resourceTypes", source = "publication", qualifiedByName = "getResourcesTypes")
+    @Mapping(target = "resourceTypes", source = "list", qualifiedByName = "getResourcesTypes")
     @Mapping(target = "name", source = "publication.requestName")
     @Mapping(target = "url", expression = "java(\"publications/\" + publication.getPath())")
     @Mapping(target = "resources", source = "list")
-    PublicationDto toPublicationDto(Publication publication, List<PublicationResource> list);
+    PublicationDto toPublicationDto(Publication publication, List<? extends PublicationResource> list);
+
 
     @Named("getResourcesTypes")
-    default List<ResourceTypeDto> getResourcesTypes(Publication publication) {
-        if (publication == null || publication.getResources() == null) {
+    default List<ResourceTypeDto> getResourcesTypes(List<? extends PublicationResource> list) {
+        if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
 
-        return publication.getResources().stream()
+        return list.stream()
                 .map(this::getResourceType)
                 .collect(Collectors.toSet()).stream().toList();
     }
@@ -238,13 +230,7 @@ public interface PublicationClientMapper {
                 .formatted(publicationResource.getClass(), publicationResource));
     }
 
-    @Mapping(target = "action", constant = "ADD_IF_ABSENT")
-    @Mapping(target = "reviewUrl", expression = "java(\"files/\" + result.getTargetPath())")
-    @Mapping(target = "sourceUrl", expression = "java(\"files/\" + sourcePath)")
-    @Mapping(target = "targetUrl", expression = "java(\"files/\" + targetPath)")
-    PublicationResource toPublicationResource(ImportResourcesResult result, String targetPath, String sourcePath);
 
-    PublicationResource toPublicationResource(PromptPublicationResource resource);
 
     CreatePrompt toCreatePrompt(Prompt prompt);
 }

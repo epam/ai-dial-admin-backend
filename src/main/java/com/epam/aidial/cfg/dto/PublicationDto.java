@@ -33,7 +33,6 @@ public abstract class PublicationDto {
     private long createdAt;
     private PublicationStatusDto status;
     private String folderId;
-    private String reviewFolderId;
     private PublicationResourceActionDto action;
     private List<RuleDto> rules;
     private List<PublicationResourceIssueDto> resourceIssues;

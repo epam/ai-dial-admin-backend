@@ -30,6 +30,13 @@ public class PathUtils {
         return path;
     }
 
+    public static String ensureTrailingSlash(String path) {
+        if (path == null || path.isEmpty()) {
+            return "/";
+        }
+        return path.endsWith("/") ? path : path + "/";
+    }
+
     public static PathParts parsePath(String path) {
         path = trimTrailingSlash(path);
         int lastSlashIndex = path.lastIndexOf('/');
@@ -45,18 +52,6 @@ public class PathUtils {
                 .folderId(folderId)
                 .name(name)
                 .build();
-    }
-
-    public static PathParts extractPathAfterFirstSlashPrefix(String path) {
-        path = trimTrailingSlash(path);
-        int firstSlashIndex = path.indexOf('/');
-        if (firstSlashIndex == -1) {
-            throw new IllegalArgumentException("The path does not contain a '/': %s".formatted(path));
-        }
-
-        var prefix = path.substring(0, firstSlashIndex + 1);
-        var pathWithoutPrefix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
-        return parsePath(pathWithoutPrefix);
     }
 
     public static VersionedPathParts parseEncodedVersionedPath(String path, String prefix) {

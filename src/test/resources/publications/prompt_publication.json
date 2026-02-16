@@ -5,7 +5,6 @@
   "createdAt": 1741595184514,
   "status": "pending",
   "folderId": "Target folder 1",
-  "reviewFolderId": "review/",
   "rules": [
     {
       "source": "role",

@@ -304,7 +304,6 @@ class FilePublicationResolverTest {
         publication.setAuthor("Author Name");
         publication.setCreatedAt(100);
         publication.setFolderId(targetFolder);
-        publication.setReviewFolderId("review/");
         publication.setStatus(PublicationStatus.PENDING);
         publication.setResources(List.of(publicationResource));
         publication.setRules(List.of(rule));

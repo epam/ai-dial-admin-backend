@@ -61,19 +61,14 @@ public class PromptPublicationResolver extends PublicationResolver {
     public PublicationDto resolveUpdatePublication(Publication publication, List<MultipartFile> files) {
         var promptPublication = (PromptPublication) publication;
 
-        var prompts = promptPublication.getResources().stream()
-                .filter(publicationResourceUrlStartsWith(PromptClientMapper.PROMPTS_PREFIX)).toList();
+        var prompts = promptPublication.getResources();
 
         prompts.stream()
                 .map(PromptPublicationResource::getPrompt)
                 .map(mapper::toCreatePrompt)
                 .forEach(prompt -> promptService.putPrompt(prompt, true, null));
 
-        var publicationResources = prompts.stream()
-                .map(mapper::toPublicationResource)
-                .toList();
-
-        return mapper.toPublicationDto(publication, publicationResources);
+        return mapper.toPublicationDto(publication, prompts);
     }
 
     @Override
@@ -98,7 +93,7 @@ public class PromptPublicationResolver extends PublicationResolver {
         return PromptClientMapper.parseEncodedVersionedPath(promptUrl).getPath();
     }
 
-    public void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {
+    private void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {
         var insideResource = resourceInfo.resource();
         if (status == PublicationStatusDto.PENDING && insideResource.getAction() != PublicationResourceActionDto.DELETE) {
             var targetUrl = extractTargetPath(resourceInfo, PromptClientMapper.PROMPTS_PREFIX);
@@ -106,7 +101,7 @@ public class PromptPublicationResolver extends PublicationResolver {
         }
     }
 
-    public void validateNotPublishedAtPath(String path) {
+    private void validateNotPublishedAtPath(String path) {
         if (promptService.promptExists(path)) {
             throw new ResourceAlreadyExistsException("Target prompt already exist");
         }

@@ -17,7 +17,6 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Publication;
-import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
@@ -32,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Component
 @LogExecution
@@ -138,36 +138,31 @@ public class FilePublicationResolver extends PublicationResolver {
         }
     }
 
-    protected List<PublicationResource> resolveUpdateFileResource(Publication publication, List<MultipartFile> files) {
-        var existingFileResources = publication.getResources().stream()
-                .filter(publicationResourceUrlStartsWith(FileClientMapper.FILES_PREFIX)).toList();
+    protected List<FilePublicationResource> resolveUpdateFileResource(Publication publication, List<MultipartFile> files) {
 
-        var resultList = new ArrayList<PublicationResource>(existingFileResources);
+        var existingFileResources = Optional.ofNullable(publication.getResources())
+                .orElseGet(List::of)
+                .stream()
+                .filter(resource -> resource instanceof FilePublicationResource)
+                .map(resource -> (FilePublicationResource) resource)
+                .toList();
 
         if (CollectionUtils.isEmpty(files)) {
-            return resultList;
+            return existingFileResources;
         }
 
-        var reviewFolder = publication.getReviewFolderId();
-        var sourceFolder = publication.getReviewFolderId() + "source/";
-
-        var uploadedReviewFiles = upload(files, reviewFolder);
-        var uploadedSourceFiles = upload(files, sourceFolder);
-
+        var sourceFolder = PathUtils.ensureTrailingSlash(fileService.getBucket().getBucket());
+        var uploadedReviewFiles = upload(files, sourceFolder);
         validateUploadResult(uploadedReviewFiles);
-        validateUploadResult(uploadedSourceFiles);
 
         var newFileResources = uploadedReviewFiles.getImportResults().stream()
                 .map(importResult -> getPublicationResource(importResult, publication, sourceFolder))
                 .toList();
 
-        resultList.addAll(newFileResources);
-
-        return resultList;
+        return Stream.concat(existingFileResources.stream(), newFileResources.stream()).toList();
     }
 
     private ImportResourcesFileResult upload(List<MultipartFile> files, String path) {
-
         var importResources = ImportResources.builder().path(path)
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
@@ -175,7 +170,6 @@ public class FilePublicationResolver extends PublicationResolver {
     }
 
     private void validateUploadResult(ImportResourcesFileResult result) {
-
         if (result == null || result.hasError()) {
             throw new PublicationFileUploadException(
                     "Publication files upload failed: " + (result != null ? result.getError() : "null result")
@@ -196,14 +190,14 @@ public class FilePublicationResolver extends PublicationResolver {
         }
     }
 
-    private PublicationResource getPublicationResource(
+    private FilePublicationResource getPublicationResource(
             ImportResourcesResult importResult,
             Publication publication,
             String reviewSourceFolder
     ) {
         var fileName = PathUtils.parsePath(importResult.getTargetPath()).getName();
 
-        return mapper.toPublicationResource(
+        return mapper.toFilePublicationResource(
                 importResult,
                 publication.getFolderId() + fileName,
                 reviewSourceFolder + fileName

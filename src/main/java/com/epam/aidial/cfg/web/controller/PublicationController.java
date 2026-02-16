@@ -8,8 +8,6 @@ import com.epam.aidial.cfg.dto.RejectPublicationDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.mapper.PublicationMapper;
 import com.epam.aidial.cfg.service.publication.PublicationService;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.util.MimeTypeUtils;
@@ -55,7 +53,7 @@ public class PublicationController {
 
     @PostMapping(path = "/update",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void updatePublication(@RequestPart(value = "files", required = false) @Valid @Size(min = 1, max = 30) List<MultipartFile> files,
+    public void updatePublication(@RequestPart(value = "files", required = false) List<MultipartFile> files,
                                   @RequestPart("publication") PublicationDto publicationDto) {
         publicationService.updatePublication(publicationMapper.toPublication(publicationDto), files);
     }
