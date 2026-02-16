@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.security;
 import com.epam.aidial.cfg.utils.IdentityProviderTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -116,7 +117,7 @@ class JwtAuthenticationConverterFactoryTest {
                         "roles", List.of("USER")
                 )
         );
-        assertThrows(IllegalStateException.class, () -> converterWithRequiredEmail.convert(jwtToken));
+        assertThrows(AuthenticationServiceException.class, () -> converterWithRequiredEmail.convert(jwtToken));
     }
 
     private static List<String> authoritiesToStrings(Collection<? extends GrantedAuthority> auths) {
