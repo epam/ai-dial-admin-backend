@@ -143,13 +143,6 @@ public interface PublicationClientMapper {
 
     FilePublicationResource toFilePublicationResource(PublicationResourceDto resource, FileNodeInfo file);
 
-    @Mapping(target = "action", constant = "ADD_IF_ABSENT")
-    @Mapping(target = "sourceUrl", source = "sourcePath")
-    @Mapping(target = "targetUrl", source = "targetPath")
-    @Mapping(target = "reviewUrl", ignore = true)
-    @Mapping(target = "file", ignore = true)
-    FilePublicationResource toFilePublicationResource(String targetPath, String sourcePath);
-
     ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceDto resource, ApplicationResource applicationResource);
 
     ConversationPublicationResource toConversationPublicationResource(PublicationResourceDto resource, Conversation conversation);

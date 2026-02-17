@@ -17,6 +17,7 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Publication;
+import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
@@ -204,6 +205,10 @@ public class FilePublicationResolver extends PublicationResolver {
         var targetPath = FileClientMapper.FILES_PREFIX + PathUtils.ensureTrailingSlash(publication.getFolderId()) + fileName;
         var sourcePath = FileClientMapper.FILES_PREFIX + sourceFolder + fileName;
 
-        return mapper.toFilePublicationResource(targetPath, sourcePath);
+        return FilePublicationResource.builder()
+                .action(PublicationResourceAction.ADD_IF_ABSENT)
+                .targetUrl(targetPath)
+                .sourceUrl(sourcePath)
+                .build();
     }
 }

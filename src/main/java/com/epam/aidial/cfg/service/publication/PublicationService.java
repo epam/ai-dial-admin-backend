@@ -164,9 +164,10 @@ public class PublicationService {
         }
 
         if (CollectionUtils.isEmpty(publication.getResources())) {
-            return isFilesProvided
-                    ? Set.of(ResourceTypeDto.FILE)
-                    : Set.of();
+            if (isFilesProvided) {
+                return Set.of(ResourceTypeDto.FILE);
+            }
+            throw new IllegalStateException("Publication has no resources and no files were provided");
         }
 
         return publication.getResources().stream()
