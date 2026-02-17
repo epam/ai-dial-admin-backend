@@ -8,7 +8,6 @@ import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Publication;
-import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -56,10 +55,6 @@ public abstract class PublicationResolver {
 
     public Predicate<ResourceInfo> resourceUrlStartsWith(String prefix) {
         return resourceInfo -> resourceInfo.resourceUrl().startsWith(prefix);
-    }
-
-    public Predicate<PublicationResource> publicationResourceUrlStartsWith(String prefix) {
-        return resource -> resource.getSourceUrl().startsWith(prefix);
     }
 
     public String extractPath(ResourceInfo resourceInfo, String prefix) {

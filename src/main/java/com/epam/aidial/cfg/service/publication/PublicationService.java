@@ -15,16 +15,21 @@ import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
+import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.ConversationPublicationResource;
 import com.epam.aidial.cfg.model.CreatePublication;
+import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
+import com.epam.aidial.cfg.model.PromptPublication;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationInfos;
 import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
+import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.service.publication.resolver.PublicationResolver;
 import com.epam.aidial.cfg.service.publication.resolver.type.PublicationResourceTypeResolver;
@@ -128,9 +133,8 @@ public class PublicationService {
     }
 
     private PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
-        var filesProvided = CollectionUtils.isNotEmpty(files);
-        var resourceTypes = getResourcesTypes(publication, filesProvided);
-        var publicationResolver = getPublicationResolver(resourceTypes);
+        var resourceType = getPublicationType(publication);
+        var publicationResolver = getPublicationResolver(List.of(resourceType));
         return publicationResolver.updatePublicationResources(publication, files);
     }
 
@@ -156,23 +160,6 @@ public class PublicationService {
             return false;
         }
         return resourceType == publicationResourceTypeResolver.resolveResourceType(resourceTypes);
-    }
-
-    private Set<ResourceTypeDto> getResourcesTypes(Publication publication, boolean isFilesProvided) {
-        if (publication == null) {
-            throw new IllegalStateException("Publication must not be null");
-        }
-
-        if (CollectionUtils.isEmpty(publication.getResources())) {
-            if (isFilesProvided) {
-                return Set.of(ResourceTypeDto.FILE);
-            }
-            throw new IllegalStateException("Publication has no resources and no files were provided");
-        }
-
-        return publication.getResources().stream()
-                .map(mapper::getResourceType)
-                .collect(Collectors.toSet());
     }
 
     private void updateTargetFolder(Publication publication) {
@@ -207,6 +194,22 @@ public class PublicationService {
         }
         throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
                 .formatted(publicationResource.getClass(), publicationResource));
+    }
+
+    private ResourceTypeDto getPublicationType(Publication publication) {
+        if (publication instanceof PromptPublication) {
+            return ResourceTypeDto.PROMPT;
+        } else if (publication instanceof FilePublication) {
+            return ResourceTypeDto.FILE;
+        } else if (publication instanceof ApplicationPublication) {
+            return ResourceTypeDto.APPLICATION;
+        } else if (publication instanceof ConversationPublication) {
+            return ResourceTypeDto.CONVERSATION;
+        } else if (publication instanceof ToolSetPublication) {
+            return ResourceTypeDto.TOOL_SET;
+        }
+        throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
+                .formatted(publication.getClass(), publication));
     }
 
 }
