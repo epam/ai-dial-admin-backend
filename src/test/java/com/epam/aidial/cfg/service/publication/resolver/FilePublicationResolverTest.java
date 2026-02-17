@@ -269,7 +269,7 @@ class FilePublicationResolverTest {
     }
 
     @Test
-    void resolveUpdatePublicationShouldReturnCorrectFilePublication() {
+    void updatePublicationResourcesShouldReturnCorrectFilePublication() {
         // given
         var publicationPath = "testPublication";
         var fullPath = "publications/" + publicationPath;

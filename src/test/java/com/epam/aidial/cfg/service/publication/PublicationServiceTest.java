@@ -286,7 +286,7 @@ class PublicationServiceTest {
         // given
         PromptPublicationResource resource = PromptPublicationResource.builder()
                 .action(PublicationResourceAction.ADD)
-                .targetUrl("files/public/test.json")
+                .targetUrl("prompts/public/test.json")
                 .build();
 
         Rule rule = Rule.builder()

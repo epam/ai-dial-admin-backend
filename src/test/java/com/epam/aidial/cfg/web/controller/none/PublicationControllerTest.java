@@ -119,7 +119,6 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
     @ParameterizedTest
     @MethodSource("testGetPublicationParams")
     void testUpdatePublication(String publicationFilePath, String publicationDtoFilePath, Class<? extends Publication> publicationClass) throws Exception {
-
         var modelJson = ResourceUtils.readResource(publicationFilePath);
         var model = objectMapper.readValue(modelJson, publicationClass);
 
