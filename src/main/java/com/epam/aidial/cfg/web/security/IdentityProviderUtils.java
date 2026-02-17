@@ -2,14 +2,15 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -50,13 +51,15 @@ public class IdentityProviderUtils {
         }
     }
 
-    public Optional<String> extractFirstClaim(Jwt jwt, List<String> claims) {
-        if (jwt == null || claims == null) {
+    public Optional<String> extractFirstClaim(Map<String, Object> attributes,
+                                              List<String> claims) {
+        if (MapUtils.isEmpty(attributes) || CollectionUtils.isEmpty(claims)) {
             return Optional.empty();
         }
         return claims.stream()
-                .map(jwt::getClaimAsString)
-                .filter(StringUtils::hasText)
+                .map(attributes::get)
+                .filter(Objects::nonNull)
+                .map(Object::toString)
                 .findFirst();
     }
 }

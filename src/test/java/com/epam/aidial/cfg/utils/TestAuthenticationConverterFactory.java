@@ -21,6 +21,6 @@ public class TestAuthenticationConverterFactory {
     public static JwtAuthenticationConverterFactory createJwtAuthenticationConverterFactory() {
         var config = IdentityProviderTestHelper.createJwtProviderConfig();
         return new JwtAuthenticationConverterFactory(List.of(JwtProviderConfig.from(config.getIssuer(), config)),
-                "oid", new IdentityProviderUtils(), Set.of("admin", "ConfigAdmin"), "unique_name", false);
+                new IdentityProviderUtils(), Set.of("admin", "ConfigAdmin"), "unique_name", false);
     }
 }

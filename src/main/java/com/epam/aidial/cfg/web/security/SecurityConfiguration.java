@@ -17,14 +17,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
@@ -32,10 +27,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -56,27 +48,29 @@ public class SecurityConfiguration {
     @Value("${config.rest.security.default.allowedRoles}")
     protected Set<String> defaultAllowedRoles;
 
+    @Value("${config.rest.security.default.email.claims}")
+    protected String defaultClaimsEmailKey;
+
+    @Value("${config.rest.security.require-email}")
+    protected boolean requireEmail;
+
     @Bean
-    public Map<String, Set<String>> allowedRolesByOpaqueProviderName() {
-        Map<String, Set<String>> tmpRolesByProviderName = new HashMap<>();
-        var providers = identityProvidersProperties.getOpaqueTokenProviders();
-        providers.forEach(config -> {
-            Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
-            if (config.getAllowedRoles() != null) {
-                acceptedRoles.addAll(config.getAllowedRoles());
-            }
-            tmpRolesByProviderName.put(config.getName(), acceptedRoles);
-        });
-        return Map.copyOf(tmpRolesByProviderName);
+    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory() {
+        return new JwtAuthenticationConverterFactory(
+                identityProvidersProperties.getJwtProviders(),
+                identityProviderUtils,
+                defaultAllowedRoles,
+                defaultClaimsEmailKey,
+                requireEmail);
     }
 
     @Bean
-    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim,
-                                                                               @Value("${config.rest.security.default.email.claims}") String defaultClaimsEmailKey,
-                                                                               @Value("${config.rest.security.default.allowedRoles}") Set<String> defaultAllowedRoles,
-                                                                               @Value("${config.rest.security.require-email}") boolean requireEmail) {
-        return new JwtAuthenticationConverterFactory(identityProvidersProperties.getJwtProviders(), principalClaim, identityProviderUtils,
-                defaultAllowedRoles, defaultClaimsEmailKey,
+    public OpaqueAuthenticationConverterFactory opaqueAuthenticationConverterFactory() {
+        return new OpaqueAuthenticationConverterFactory(
+                identityProvidersProperties.getOpaqueTokenProviders(),
+                identityProviderUtils,
+                defaultAllowedRoles,
+                defaultClaimsEmailKey,
                 requireEmail);
     }
 
@@ -142,7 +136,6 @@ public class SecurityConfiguration {
         JwtDecoder jwtDecoder = tokenDecoderFactory.createJwtDecoder();
         JwtAuthenticationProvider jwtAuthenticationProvider = new JwtAuthenticationProvider(jwtDecoder);
         jwtAuthenticationProvider.setJwtAuthenticationConverter(token -> {
-
             String issuer = token.getIssuer().toString();
             var converter = jwtAuthenticationConverterFactory.getConverter(issuer);
             return converter.convert(token);
@@ -153,37 +146,15 @@ public class SecurityConfiguration {
     @Bean
     public OpaqueTokenAuthenticationProvider opaqueTokenAuthenticationProvider(
             TokenIntrospectorFactory tokenIntrospectorFactory,
-            OpaqueTokenAuthenticationConverter opaqueTokenAuthenticationConverter) {
+            OpaqueAuthenticationConverterFactory opaqueAuthenticationConverterFactory) {
         OpaqueTokenIntrospector opaqueTokenIntrospector = tokenIntrospectorFactory.createOpaqueTokenIntrospector();
         OpaqueTokenAuthenticationProvider opaqueTokenAuthenticationProvider = new OpaqueTokenAuthenticationProvider(opaqueTokenIntrospector);
-        opaqueTokenAuthenticationProvider.setAuthenticationConverter(opaqueTokenAuthenticationConverter);
-        return opaqueTokenAuthenticationProvider;
-    }
-
-    @Bean
-    public OpaqueTokenAuthenticationConverter opaqueTokenAuthenticationConverter(Map<String, Set<String>> allowedRolesByOpaqueProviderName) {
-        return (introspectedToken, authenticatedPrincipal) -> {
+        opaqueTokenAuthenticationProvider.setAuthenticationConverter((introspectedToken, authenticatedPrincipal) -> {
             var providerName = (String) authenticatedPrincipal.getAttribute(OpaqueTokenProviderConfig.IDP_CLAIM);
-            var accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null);
-
-            var allowedRolesForProvider = allowedRolesByOpaqueProviderName.getOrDefault(providerName, Set.of());
-            List<SimpleGrantedAuthority> filtered = authenticatedPrincipal.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .filter(allowedRolesForProvider::contains)
-                    .map(SimpleGrantedAuthority::new)
-                    .toList();
-            log.trace("Authorization state - token: {}, idp: {}, allowedRoles: {}, authorities: {}",
-                    introspectedToken, providerName, allowedRolesForProvider, authenticatedPrincipal.getAuthorities());
-
-            BearerTokenAuthentication authentication = new BearerTokenAuthentication(authenticatedPrincipal, accessToken, filtered);
-
-            if (filtered.isEmpty()) {
-                log.warn("Access denied for idp: {}. No allowed roles for user {}", providerName, authenticatedPrincipal.getName());
-                authentication.setAuthenticated(false);
-            }
-
-            return authentication;
-        };
+            var converter = opaqueAuthenticationConverterFactory.getConverter(providerName);
+            return converter.convert(introspectedToken, authenticatedPrincipal);
+        });
+        return opaqueTokenAuthenticationProvider;
     }
 
     protected String[] publicPathPatterns() {

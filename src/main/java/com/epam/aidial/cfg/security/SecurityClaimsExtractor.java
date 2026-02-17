@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @Slf4j
 public class SecurityClaimsExtractor {
@@ -30,10 +29,9 @@ public class SecurityClaimsExtractor {
         }
         Authentication authentication = context.getAuthentication();
         log.trace("Authentication: {}", authentication);
-        if (context.getAuthentication() instanceof JwtAuthenticationToken jwtAuthenticationToken) {
-            if (jwtAuthenticationToken.getDetails() instanceof UserSecurityDetails details) {
-                return details.email();
-            }
+
+        if (authentication.getDetails() instanceof UserSecurityDetails userDetails) {
+            return userDetails.email();
         }
         return null;
     }

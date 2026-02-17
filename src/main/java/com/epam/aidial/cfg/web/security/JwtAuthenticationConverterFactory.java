@@ -9,17 +9,16 @@ import java.util.Map;
 import java.util.Set;
 
 public class JwtAuthenticationConverterFactory {
-    private final String principalClaim;
     private final String defaultClaimsEmailKey;
     private final IdentityProviderUtils identityProviderUtils;
     private final Map<String, ConfigurableJwtAuthenticationConverter> convertersByIssuer;
     private final Set<String> defaultAllowedRoles;
 
     public JwtAuthenticationConverterFactory(List<JwtProviderConfig> providers,
-                                             String principalClaim,
                                              IdentityProviderUtils identityProviderUtils,
-                                             Set<String> defaultAllowedRoles, String defaultClaimsEmailKey, boolean requireEmail) {
-        this.principalClaim = principalClaim;
+                                             Set<String> defaultAllowedRoles,
+                                             String defaultClaimsEmailKey,
+                                             boolean requireEmail) {
         this.defaultClaimsEmailKey = defaultClaimsEmailKey;
         this.identityProviderUtils = identityProviderUtils;
         this.defaultAllowedRoles = defaultAllowedRoles;
@@ -48,7 +47,7 @@ public class JwtAuthenticationConverterFactory {
                 requireEmail,
                 this.identityProviderUtils,
                 grantedAuthoritiesConverter,
-                principalClaim);
+                config.getPrincipalClaim());
     }
 
     private Set<String> getAllowedRoles(Set<String> allowedRoles) {

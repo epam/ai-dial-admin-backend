@@ -43,16 +43,16 @@ public class ConfigurableJwtAuthenticationConverter implements Converter<Jwt, Ab
                 StringUtils.defaultIfBlank(principalClaimName, JwtClaimNames.SUB);
         this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
         if (!CollectionUtils.isEmpty(issuerEmailClaims)) {
-            emailClaims.addAll(issuerEmailClaims);
+            this.emailClaims.addAll(issuerEmailClaims);
         } else if (StringUtils.isNotBlank(defaultClaimsEmailKey)) {
-            emailClaims.add(defaultClaimsEmailKey);
+            this.emailClaims.add(defaultClaimsEmailKey);
         }
     }
 
     @NotNull
     @Override
     public AbstractAuthenticationToken convert(@NotNull Jwt jwt) {
-        var email = identityProviderUtils.extractFirstClaim(jwt, List.copyOf(emailClaims));
+        var email = identityProviderUtils.extractFirstClaim(jwt.getClaims(), List.copyOf(emailClaims));
 
         if (requireEmail && email.isEmpty()) {
             throw new AuthenticationServiceException("Email claim is required");

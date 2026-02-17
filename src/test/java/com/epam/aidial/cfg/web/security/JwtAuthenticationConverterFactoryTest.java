@@ -27,7 +27,6 @@ class JwtAuthenticationConverterFactoryTest {
     void setup() {
         factory = new JwtAuthenticationConverterFactory(
                 List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
-                "testPrincipal",
                 identityProviderUtils,
                 Set.of("admin", "ConfigAdmin"),
                 "unique_name", false);
@@ -106,10 +105,10 @@ class JwtAuthenticationConverterFactoryTest {
     void whenEmailNotPresentAndRequired_thenThrow() {
         var factoryWithRequiredEmail = new JwtAuthenticationConverterFactory(
                 List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
-                "testPrincipal",
                 identityProviderUtils,
                 Set.of("admin", "ConfigAdmin"),
-                "unique_name", true);
+                "unique_name",
+                true);
         var converterWithRequiredEmail = factoryWithRequiredEmail.getConverter(TEST_ISSUER);
         var jwtToken = generateTestToken(
                 Map.of(
