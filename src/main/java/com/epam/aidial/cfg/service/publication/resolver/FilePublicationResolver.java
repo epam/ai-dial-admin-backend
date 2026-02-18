@@ -10,6 +10,9 @@ import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.PublicationFileUploadException;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
+import com.epam.aidial.cfg.model.ApplicationPublication;
+import com.epam.aidial.cfg.model.ConversationPublication;
+import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
@@ -21,6 +24,7 @@ import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -112,15 +116,12 @@ public class FilePublicationResolver extends PublicationResolver {
         return fileClientMapper.parsePath(path).getPath();
     }
 
-    protected List<String> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList,
-                                                    List<PublicationResourceIssue> resourceIssues) {
+    protected List<FilePublicationResource> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList,
+                                                                     List<PublicationResourceIssue> resourceIssues) {
         return resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(FileClientMapper.FILES_PREFIX))
                 .map(resource -> resolveResourceAndCollectIssues(
-                        () -> {
-                            getFilePublication(resource, resource.status());
-                            return extractFilePath(resource);
-                        },
+                        () -> getFilePublication(resource, resource.status()),
                         resourceIssues,
                         new PublicationResourceIssue(ResourceType.FILE, extractFilePath(resource.resource(), resource.status()),
                                 "File not found"),
@@ -145,12 +146,7 @@ public class FilePublicationResolver extends PublicationResolver {
     }
 
     protected List<FilePublicationResource> updateFileResources(Publication publication, List<MultipartFile> files) {
-        var existingFileResources = Optional.ofNullable(publication.getResources())
-                .orElseGet(List::of)
-                .stream()
-                .filter(resource -> resource instanceof FilePublicationResource)
-                .map(resource -> (FilePublicationResource) resource)
-                .toList();
+        List<FilePublicationResource> existingFileResources = getFilePublicationResources(publication);
 
         if (CollectionUtils.isEmpty(files)) {
             return existingFileResources;
@@ -166,6 +162,22 @@ public class FilePublicationResolver extends PublicationResolver {
                 .toList();
 
         return Stream.concat(existingFileResources.stream(), newFileResources.stream()).toList();
+    }
+
+    private List<FilePublicationResource> getFilePublicationResources(Publication publication) {
+        List<FilePublicationResource> existingFileResources;
+        if (publication instanceof ApplicationPublication applicationPublication) {
+            existingFileResources = applicationPublication.getFiles();
+        } else if (publication instanceof ToolSetPublication toolSetPublication) {
+            existingFileResources = toolSetPublication.getFiles();
+        } else if (publication instanceof ConversationPublication conversationPublication) {
+            existingFileResources = conversationPublication.getFiles();
+        } else if (publication instanceof FilePublication file) {
+            existingFileResources = file.getResources();
+        } else {
+            existingFileResources = List.of();
+        }
+        return existingFileResources;
     }
 
     private ImportResourcesFileResult upload(List<MultipartFile> files, String path) {

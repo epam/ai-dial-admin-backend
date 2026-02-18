@@ -7,15 +7,20 @@ import com.epam.aidial.cfg.client.dto.PublicationStatusDto;
 import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
+import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.CreateApplicationResource;
+import com.epam.aidial.cfg.model.FileNodeInfo;
+import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -25,11 +30,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.util.MimeTypeUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -54,6 +63,8 @@ class ApplicationPublicationResolverTest {
     private PublicationResourceUrlResolver publicationResourceUrlResolver;
     @Mock
     private ApplicationResourceService applicationService;
+    @Mock
+    private ApplicationClientMapper applicationClientMapper;
     @Mock
     private FilePublicationResolver filePublicationResolver;
     @Spy
@@ -122,11 +133,12 @@ class ApplicationPublicationResolverTest {
         var applicationResource = new ApplicationResource();
         applicationResource.setPath(REVIEW_APPLICATION_PATH);
         applicationResource.setFolderId(REVIEW_FOLDER);
+        var fileResource = getFilePublicationResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING)).thenReturn(APPLICATION_PREFIX + REVIEW_APPLICATION_PATH);
         when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING)).thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         when(applicationService.getApplicationResource(REVIEW_APPLICATION_PATH)).thenReturn(applicationResource);
-        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(REVIEW_FOLDER + FILE_NAME));
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(fileResource));
 
         // when
         var result = applicationPublicationResolver.resolvePublication(publicationDto);
@@ -160,7 +172,7 @@ class ApplicationPublicationResolverTest {
 
         assertThat(result).isInstanceOf(ApplicationPublication.class);
         var applicationPublication = (ApplicationPublication) result;
-        assertThat(applicationPublication.getFiles()).containsExactly(REVIEW_FOLDER + FILE_NAME);
+        assertThat(applicationPublication.getFiles()).containsExactly(fileResource);
     }
 
     @Test
@@ -188,11 +200,12 @@ class ApplicationPublicationResolverTest {
         var applicationResource = new ApplicationResource();
         applicationResource.setPath(REVIEW_APPLICATION_PATH);
         applicationResource.setFolderId(REVIEW_FOLDER);
+        var fileResource = getFilePublicationResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING)).thenReturn(APPLICATION_PREFIX + REVIEW_APPLICATION_PATH);
         when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING)).thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         when(applicationService.getApplicationResource(REVIEW_APPLICATION_PATH)).thenThrow(ResourceNotFoundException.class);
-        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(REVIEW_FOLDER + FILE_NAME));
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(fileResource));
 
         // when
         var result = applicationPublicationResolver.resolvePublication(publicationDto);
@@ -280,6 +293,47 @@ class ApplicationPublicationResolverTest {
         assertThat(missingResource2.getPath()).isEqualTo("/missing/file");
     }
 
+    @Test
+    void updatePublicationResourcesShouldReturnCorrectApplicationPublicationWithFiles() {
+        // given
+        var applicationPublication = createApplicationPublication();
+        var fileResource = getFilePublicationResource();
+
+        when(applicationClientMapper.toCreateApplicationResource(any())).thenReturn(new CreateApplicationResource());
+        MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                "dtoJson".getBytes(StandardCharsets.UTF_8));
+        when(filePublicationResolver.updateFileResources(any(), any())).thenReturn(List.of(fileResource));
+
+        // when
+        var result = applicationPublicationResolver.updatePublicationResources(applicationPublication, List.of(publicationFile));
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getUrl()).isEqualTo("publications/reviewFolder/testApplication");
+        assertThat(result.getName()).isEqualTo("Test Publication");
+        assertThat(result.getAuthor()).isEqualTo("Author Name");
+        assertThat(result.getStatus()).isEqualTo(PublicationStatusDto.PENDING);
+        assertThat(result.getTargetFolder()).isEqualTo(TARGET_FOLDER);
+
+        assertThat(result.getRules()).hasSize(1);
+        var rule = result.getRules().get(0);
+        assertThat(rule.getSource()).isEqualTo("role");
+        assertThat(rule.getFunction()).isEqualTo(RuleFunctionDto.EQUAL);
+        assertThat(rule.getTargets()).containsExactly("admin");
+
+        assertThat(result.getResources()).hasSize(2);
+        var resource = result.getResources().get(0);
+        assertThat(resource.getAction()).isEqualTo(PublicationResourceActionDto.ADD);
+        assertThat(resource.getSourceUrl()).isEqualTo("applications/sourceFolder/testApplication");
+        assertThat(resource.getTargetUrl()).isEqualTo("applications/targetFolder/testApplication");
+        assertThat(resource.getReviewUrl()).isEqualTo("applications/reviewFolder/testApplication");
+        var resource1 = result.getResources().get(1);
+        assertThat(resource1.getAction()).isEqualTo(PublicationResourceActionDto.ADD_IF_ABSENT);
+        assertThat(resource1.getSourceUrl()).isEqualTo("files/sourceFolder/testFile");
+        assertThat(resource1.getTargetUrl()).isEqualTo("files/targetFolder/testFile");
+        assertThat(resource1.getReviewUrl()).isEqualTo("files/reviewFolder/testFile");
+    }
+
     private PublicationResourceDto getPublicationResourceDto() {
         var publicationResource = new PublicationResourceDto();
         publicationResource.setAction(PublicationResourceActionDto.ADD);
@@ -318,6 +372,50 @@ class ApplicationPublicationResolverTest {
         filePublicationResource.setReviewUrl(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         filePublicationResource.setSourceUrl(FILES_PREFIX + SOURCE_FOLDER + FILE_NAME);
         return filePublicationResource;
+    }
+
+    private ApplicationPublication createApplicationPublication() {
+        var applicationResource = new ApplicationResource();
+        applicationResource.setPath(REVIEW_APPLICATION_PATH);
+        applicationResource.setFolderId(REVIEW_FOLDER);
+
+        var applicationPublicationResource = ApplicationPublicationResource.builder()
+                .action(PublicationResourceAction.ADD)
+                .targetUrl(APPLICATION_PREFIX + TARGET_FOLDER + APPLICATION_NAME)
+                .reviewUrl(APPLICATION_PREFIX + REVIEW_FOLDER + APPLICATION_NAME)
+                .sourceUrl(APPLICATION_PREFIX + SOURCE_FOLDER + APPLICATION_NAME)
+                .applicationResource(applicationResource)
+                .build();
+
+        var rule = new Rule();
+        rule.setSource("role");
+        rule.setFunction(RuleFunction.EQUAL);
+        rule.setTargets(List.of("admin"));
+
+        return ApplicationPublication.builder()
+                .path(REVIEW_FOLDER + APPLICATION_NAME)
+                .createdAt(100)
+                .requestName("Test Publication")
+                .displayAuthor("Display Author Name")
+                .author("Author Name")
+                .folderId(TARGET_FOLDER)
+                .status(PublicationStatus.PENDING)
+                .rules(List.of(rule))
+                .resources(List.of(applicationPublicationResource))
+                .files(List.of(getFilePublicationResource()))
+                .build();
+    }
+
+    private FilePublicationResource getFilePublicationResource() {
+        return FilePublicationResource.builder()
+                .file(FileNodeInfo.builder()
+                        .path("test")
+                        .build())
+                .action(PublicationResourceAction.ADD_IF_ABSENT)
+                .targetUrl(FILES_PREFIX + TARGET_FOLDER + FILE_NAME)
+                .reviewUrl(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME)
+                .sourceUrl(FILES_PREFIX + SOURCE_FOLDER + FILE_NAME)
+                .build();
     }
 
 }

@@ -18,6 +18,6 @@ import java.util.List;
 public class ConversationPublication extends Publication {
 
     private List<ConversationPublicationResource> resources;
-    private List<String> files;
+    private List<FilePublicationResource> files;
 
 }

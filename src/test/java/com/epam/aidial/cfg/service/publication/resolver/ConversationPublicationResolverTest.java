@@ -12,6 +12,8 @@ import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.ConversationPublicationResource;
+import com.epam.aidial.cfg.model.FileNodeInfo;
+import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.PublicationStatus;
@@ -123,13 +125,14 @@ class ConversationPublicationResolverTest {
         var conversation = new Conversation();
         conversation.setPath(REVIEW_CONVERSATION_PATH);
         conversation.setFolderId(REVIEW_FOLDER);
+        var fileResource = getFilePublicationResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(CONVERSATION_PREFIX + REVIEW_CONVERSATION_PATH);
         when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         when(conversationService.getConversation(REVIEW_CONVERSATION_PATH)).thenReturn(conversation);
-        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(REVIEW_FOLDER + FILE_NAME));
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(fileResource));
 
         // when
         var result = conversationPublicationResolver.resolvePublication(publicationDto);
@@ -163,7 +166,7 @@ class ConversationPublicationResolverTest {
 
         assertThat(result).isInstanceOf(ConversationPublication.class);
         var conversationPublication = (ConversationPublication) result;
-        assertThat(conversationPublication.getFiles()).containsExactly(REVIEW_FOLDER + FILE_NAME);
+        assertThat(conversationPublication.getFiles()).containsExactly(fileResource);
     }
 
     @Test
@@ -192,13 +195,14 @@ class ConversationPublicationResolverTest {
         var conversation = new Conversation();
         conversation.setPath(REVIEW_CONVERSATION_PATH);
         conversation.setFolderId(REVIEW_FOLDER);
+        var fileResource = getFilePublicationResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(CONVERSATION_PREFIX + REVIEW_CONVERSATION_PATH);
         when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         when(conversationService.getConversation(REVIEW_CONVERSATION_PATH)).thenThrow(ResourceNotFoundException.class);
-        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(REVIEW_FOLDER + FILE_NAME));
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(fileResource));
 
         // when
         var result = conversationPublicationResolver.resolvePublication(publicationDto);
@@ -329,5 +333,17 @@ class ConversationPublicationResolverTest {
         filePublicationResource.setReviewUrl(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         filePublicationResource.setSourceUrl(FILES_PREFIX + SOURCE_FOLDER + FILE_NAME);
         return filePublicationResource;
+    }
+
+    private FilePublicationResource getFilePublicationResource() {
+        return FilePublicationResource.builder()
+                .file(FileNodeInfo.builder()
+                        .path("test")
+                        .build())
+                .action(PublicationResourceAction.ADD_IF_ABSENT)
+                .targetUrl(FILES_PREFIX + TARGET_FOLDER + FILE_NAME)
+                .reviewUrl(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME)
+                .sourceUrl(FILES_PREFIX + SOURCE_FOLDER + FILE_NAME)
+                .build();
     }
 }

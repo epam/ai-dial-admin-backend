@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
+import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Component
 @LogExecution
@@ -28,14 +30,18 @@ public class ApplicationPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final ApplicationResourceService applicationService;
+    private final ApplicationClientMapper applicationClientMapper;
     private final FilePublicationResolver filePublicationResolver;
 
     protected ApplicationPublicationResolver(PublicationResourceUrlResolver resolver,
                                              PublicationClientMapper mapper,
-                                             ApplicationResourceService applicationService, FilePublicationResolver filePublicationResolver) {
+                                             ApplicationResourceService applicationService,
+                                             ApplicationClientMapper applicationClientMapper,
+                                             FilePublicationResolver filePublicationResolver) {
         super(resolver);
         this.mapper = mapper;
         this.applicationService = applicationService;
+        this.applicationClientMapper = applicationClientMapper;
         this.filePublicationResolver = filePublicationResolver;
     }
 
@@ -66,7 +72,21 @@ public class ApplicationPublicationResolver extends PublicationResolver {
 
     @Override
     public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
-        throw new UnsupportedOperationException("Operation not supported");
+        var applicationPublication = (ApplicationPublication) publication;
+        var applications = applicationPublication.getResources();
+        applications.stream()
+                .map(ApplicationPublicationResource::getApplicationResource)
+                .map(applicationClientMapper::toCreateApplicationResource)
+                .forEach(application -> applicationService.putApplicationResource(application, true, null));
+
+        var updatedFileResources = filePublicationResolver.updateFileResources(publication, files);
+
+        var resources = Stream.concat(
+                        applications.stream(),
+                        updatedFileResources.stream())
+                .toList();
+
+        return mapper.toPublicationDto(publication, resources);
     }
 
     @Override

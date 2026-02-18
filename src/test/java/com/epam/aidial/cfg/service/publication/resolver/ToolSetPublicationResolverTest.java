@@ -8,11 +8,16 @@ import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.model.CreateToolSetResource;
+import com.epam.aidial.cfg.model.FileNodeInfo;
+import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
@@ -25,11 +30,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.util.MimeTypeUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -54,6 +63,8 @@ class ToolSetPublicationResolverTest {
     private PublicationResourceUrlResolver publicationResourceUrlResolver;
     @Mock
     private ToolSetResourceService toolSetResourceService;
+    @Mock
+    private ToolSetClientMapper toolSetClientMapper;
     @Mock
     private FilePublicationResolver filePublicationResolver;
     @Spy
@@ -122,13 +133,14 @@ class ToolSetPublicationResolverTest {
                 List.of(ResourceTypeDto.FILE, ResourceTypeDto.TOOL_SET),
                 List.of(ruleDto));
         var toolSetResource = createToolSetResource();
+        var fileResource = getFilePublicationResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(TOOL_SET_PREFIX + REVIEW_TOOL_SET_PATH);
         when(publicationResourceUrlResolver.resolveUrl(filePublicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME);
         when(toolSetResourceService.getToolSetResource(REVIEW_TOOL_SET_PATH)).thenReturn(toolSetResource);
-        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(REVIEW_FOLDER + FILE_NAME));
+        when(filePublicationResolver.resolveFileResourcePaths(anyList(), anyList())).thenReturn(List.of(fileResource));
 
         // when
         var result = toolSetPublicationResolver.resolvePublication(publicationDto);
@@ -162,7 +174,7 @@ class ToolSetPublicationResolverTest {
 
         assertThat(result).isInstanceOf(ToolSetPublication.class);
         var toolSetPublication = (ToolSetPublication) result;
-        assertThat(toolSetPublication.getFiles()).containsExactly(REVIEW_FOLDER + FILE_NAME);
+        assertThat(toolSetPublication.getFiles()).containsExactly(fileResource);
     }
 
     @Test
@@ -280,6 +292,47 @@ class ToolSetPublicationResolverTest {
         assertThat(missingResource2.getPath()).isEqualTo("/missing/file");
     }
 
+    @Test
+    void updatePublicationResourcesShouldReturnCorrectToolSetPublicationWithFiles() {
+        // given
+        var toolSetPublication = createToolSetPublication();
+        var fileResource = getFilePublicationResource();
+
+        when(toolSetClientMapper.toCreateToolSetResource(any())).thenReturn(new CreateToolSetResource());
+        MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                "dtoJson".getBytes(StandardCharsets.UTF_8));
+        when(filePublicationResolver.updateFileResources(any(), any())).thenReturn(List.of(fileResource));
+
+        // when
+        var result = toolSetPublicationResolver.updatePublicationResources(toolSetPublication, List.of(publicationFile));
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getUrl()).isEqualTo("publications/reviewFolder/testToolSet");
+        assertThat(result.getName()).isEqualTo("Test Publication");
+        assertThat(result.getAuthor()).isEqualTo("Author Name");
+        assertThat(result.getStatus()).isEqualTo(PublicationStatusDto.PENDING);
+        assertThat(result.getTargetFolder()).isEqualTo(TARGET_FOLDER);
+
+        assertThat(result.getRules()).hasSize(1);
+        var rule = result.getRules().get(0);
+        assertThat(rule.getSource()).isEqualTo("role");
+        assertThat(rule.getFunction()).isEqualTo(RuleFunctionDto.EQUAL);
+        assertThat(rule.getTargets()).containsExactly("admin");
+
+        assertThat(result.getResources()).hasSize(2);
+        var resource = result.getResources().get(0);
+        assertThat(resource.getAction()).isEqualTo(PublicationResourceActionDto.ADD);
+        assertThat(resource.getSourceUrl()).isEqualTo("toolsets/sourceFolder/testToolSet");
+        assertThat(resource.getTargetUrl()).isEqualTo("toolsets/targetFolder/testToolSet");
+        assertThat(resource.getReviewUrl()).isEqualTo("toolsets/reviewFolder/testToolSet");
+        var resource1 = result.getResources().get(1);
+        assertThat(resource1.getAction()).isEqualTo(PublicationResourceActionDto.ADD_IF_ABSENT);
+        assertThat(resource1.getSourceUrl()).isEqualTo("files/sourceFolder/testFile");
+        assertThat(resource1.getTargetUrl()).isEqualTo("files/targetFolder/testFile");
+        assertThat(resource1.getReviewUrl()).isEqualTo("files/reviewFolder/testFile");
+    }
+
     private PublicationResourceDto createPublicationResourceDto() {
         var publicationResource = new PublicationResourceDto();
         publicationResource.setAction(PublicationResourceActionDto.ADD);
@@ -327,5 +380,45 @@ class ToolSetPublicationResolverTest {
         publicationDto.setResourceTypes(resourceTypes);
         publicationDto.setRules(rules);
         return publicationDto;
+    }
+
+    private ToolSetPublication createToolSetPublication() {
+        var toolSetResource = ToolSetPublicationResource.builder()
+                .action(PublicationResourceAction.ADD)
+                .targetUrl(TOOL_SET_PREFIX + TARGET_FOLDER + TOOL_SET_NAME)
+                .reviewUrl(TOOL_SET_PREFIX + REVIEW_FOLDER + TOOL_SET_NAME)
+                .sourceUrl(TOOL_SET_PREFIX + SOURCE_FOLDER + TOOL_SET_NAME)
+                .toolSetResource(createToolSetResource())
+                .build();
+
+        var rule = new Rule();
+        rule.setSource("role");
+        rule.setFunction(RuleFunction.EQUAL);
+        rule.setTargets(List.of("admin"));
+
+        return ToolSetPublication.builder()
+                .path(REVIEW_FOLDER + TOOL_SET_NAME)
+                .createdAt(100)
+                .requestName("Test Publication")
+                .displayAuthor("Display Author Name")
+                .author("Author Name")
+                .folderId(TARGET_FOLDER)
+                .status(PublicationStatus.PENDING)
+                .rules(List.of(rule))
+                .resources(List.of(toolSetResource))
+                .files(List.of(getFilePublicationResource()))
+                .build();
+    }
+
+    private FilePublicationResource getFilePublicationResource() {
+        return FilePublicationResource.builder()
+                .file(FileNodeInfo.builder()
+                        .path("test")
+                        .build())
+                .action(PublicationResourceAction.ADD_IF_ABSENT)
+                .targetUrl(FILES_PREFIX + TARGET_FOLDER + FILE_NAME)
+                .reviewUrl(FILES_PREFIX + REVIEW_FOLDER + FILE_NAME)
+                .sourceUrl(FILES_PREFIX + SOURCE_FOLDER + FILE_NAME)
+                .build();
     }
 }

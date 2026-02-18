@@ -99,4 +99,6 @@ public abstract class ToolSetClientMapper {
     @Mapping(target = "version", source = "itemParts.version")
     public abstract CreateToolSetResource toCreateToolSetResource(ToolSetEximDto dto, PathUtils.VersionedPathParts itemParts);
 
+    public abstract CreateToolSetResource toCreateToolSetResource(ToolSetResource resource);
+
 }

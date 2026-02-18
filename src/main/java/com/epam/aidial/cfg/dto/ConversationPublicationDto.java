@@ -18,6 +18,6 @@ import java.util.List;
 public class ConversationPublicationDto extends PublicationDto {
 
     private List<ConversationPublicationResourceDto> conversations;
-    private List<String> files;
+    private List<FilePublicationResourceDto> files;
 
 }

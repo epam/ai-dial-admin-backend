@@ -18,6 +18,6 @@ import java.util.List;
 public class ToolSetResourcePublicationDto extends PublicationDto {
 
     private List<ToolSetPublicationResourceDto> toolSetResources;
-    private List<String> files;
+    private List<FilePublicationResourceDto> files;
 
 }

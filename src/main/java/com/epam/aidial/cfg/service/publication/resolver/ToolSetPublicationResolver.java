@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Component
 @LogExecution
@@ -28,14 +30,18 @@ public class ToolSetPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final ToolSetResourceService toolSetResourceService;
+    private final ToolSetClientMapper toolSetClientMapper;
     private final FilePublicationResolver filePublicationResolver;
 
     protected ToolSetPublicationResolver(PublicationResourceUrlResolver resolver,
                                          PublicationClientMapper mapper,
-                                         ToolSetResourceService toolSetResourceService, FilePublicationResolver filePublicationResolver) {
+                                         ToolSetResourceService toolSetResourceService,
+                                         ToolSetClientMapper toolSetClientMapper,
+                                         FilePublicationResolver filePublicationResolver) {
         super(resolver);
         this.mapper = mapper;
         this.toolSetResourceService = toolSetResourceService;
+        this.toolSetClientMapper = toolSetClientMapper;
         this.filePublicationResolver = filePublicationResolver;
     }
 
@@ -68,7 +74,21 @@ public class ToolSetPublicationResolver extends PublicationResolver {
 
     @Override
     public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
-        throw new UnsupportedOperationException("Operation not supported");
+        var toolSetPublication = (ToolSetPublication) publication;
+        var toolSets = toolSetPublication.getResources();
+        toolSets.stream()
+                .map(ToolSetPublicationResource::getToolSetResource)
+                .map(toolSetClientMapper::toCreateToolSetResource)
+                .forEach(toolSet -> toolSetResourceService.putToolSetResource(toolSet, true, null));
+
+        var updatedFileResources = filePublicationResolver.updateFileResources(publication, files);
+
+        var resources = Stream.concat(
+                        toolSets.stream(),
+                        updatedFileResources.stream())
+                .toList();
+
+        return mapper.toPublicationDto(publication, resources);
     }
 
     @Override
