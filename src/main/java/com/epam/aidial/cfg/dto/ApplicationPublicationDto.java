@@ -15,9 +15,9 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ToolSetResourcePublicationDto extends PublicationDto {
+public class ApplicationPublicationDto extends PublicationDto {
 
-    private List<ToolSetPublicationResourceDto> toolSetResources;
+    private List<ApplicationResourcePublicationDto> applicationResources;
     private List<String> files;
 
 }

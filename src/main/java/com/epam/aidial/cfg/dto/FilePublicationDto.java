@@ -17,6 +17,6 @@ import java.util.List;
 @AllArgsConstructor
 public class FilePublicationDto extends PublicationDto {
 
-    private List<FileInfoDto> files;
+    private List<FilePublicationResourceDto> files;
 
 }

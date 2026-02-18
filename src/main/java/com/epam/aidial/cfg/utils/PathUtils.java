@@ -30,6 +30,13 @@ public class PathUtils {
         return path;
     }
 
+    public static String ensureTrailingSlash(String path) {
+        if (path == null || path.isEmpty()) {
+            return "/";
+        }
+        return path.endsWith("/") ? path : path + "/";
+    }
+
     public static PathParts parsePath(String path) {
         path = trimTrailingSlash(path);
         int lastSlashIndex = path.lastIndexOf('/');

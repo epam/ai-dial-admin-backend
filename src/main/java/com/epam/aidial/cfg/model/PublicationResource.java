@@ -13,6 +13,7 @@ public class PublicationResource {
 
     private PublicationResourceAction action;
     private String sourceUrl;
+    private String reviewUrl;
     private String targetUrl;
 
 }

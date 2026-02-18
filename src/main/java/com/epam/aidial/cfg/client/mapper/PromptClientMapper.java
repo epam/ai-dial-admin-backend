@@ -122,4 +122,6 @@ public abstract class PromptClientMapper {
                 .build();
     }
 
+    public abstract CreatePrompt toCreatePrompt(Prompt prompt);
+
 }
