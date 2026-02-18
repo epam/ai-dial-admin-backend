@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ModelEndpointsSource.class, name = "endpoints"),
         @JsonSubTypes.Type(value = ModelContainerSource.class, name = "container"),
-        @JsonSubTypes.Type(value = AdapterSource.class, name = "adapter"),
+        @JsonSubTypes.Type(value = ModelAdapterSource.class, name = "adapter"),
 })
 public abstract class ModelSource {
 }
