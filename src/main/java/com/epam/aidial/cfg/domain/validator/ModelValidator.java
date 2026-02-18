@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
@@ -95,7 +95,7 @@ public class ModelValidator {
         ModelSource source = model.getSource();
         String modelName = model.getDeployment().getName();
 
-        // Model source types are mutually exclusive: a model can have either AdapterSource,
+        // Model source types are mutually exclusive: a model can have either ModelAdapterSource,
         // ModelContainerSource, or ModelEndpointsSource, but not multiple sources simultaneously.
         // This is enforced by the type system (Model has a single 'source' field of type ModelSource).
         // Additional validation in ModelEntityMapper.toEntity() ensures adapter and container
@@ -103,7 +103,7 @@ public class ModelValidator {
         if (source != null) {
             if (source instanceof ModelEndpointsSource) {
                 validateEndpointsSource(model);
-            } else if (source instanceof AdapterSource adapterSource) {
+            } else if (source instanceof ModelAdapterSource adapterSource) {
                 validateAdapterSource(adapterSource, model);
             } else if (source instanceof ModelContainerSource containerSource) {
                 validateContainerSource(containerSource, model);
@@ -125,7 +125,7 @@ public class ModelValidator {
         validateEndpoint(completionEndpoint, name);
     }
 
-    private void validateAdapterSource(AdapterSource adapterSource, Model model) {
+    private void validateAdapterSource(ModelAdapterSource adapterSource, Model model) {
         String name = model.getDeployment().getName();
 
         if (StringUtils.isBlank(adapterSource.getAdapterName())) {

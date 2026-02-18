@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.dto.AdapterDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = InstantMapper.class)
+@Mapper(componentModel = "spring", uses = {InstantMapper.class, AdapterSourceDtoMapper.class})
 public interface AdapterDtoMapper {
 
     @Mapping(target = "createdAt", ignore = true)

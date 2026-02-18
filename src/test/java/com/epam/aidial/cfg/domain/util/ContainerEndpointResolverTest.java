@@ -5,6 +5,8 @@ import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.NimDeploymentInfoDto;
+import com.epam.aidial.cfg.dao.model.AdapterContainerEntity;
+import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
@@ -12,10 +14,12 @@ import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
+import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
@@ -58,6 +62,73 @@ class ContainerEndpointResolverTest {
     @BeforeEach
     void setUp() {
         containerEndpointResolver = new ContainerEndpointResolver(deploymentManagerService, deploymentInfoValidator);
+    }
+
+    @Test
+    void processContainerEndpoints_ForAdapter_ShouldSetBaseEndpointAndContainerName() {
+        // given
+        Adapter adapter = new Adapter();
+        AdapterContainerSource containerSource = new AdapterContainerSource(CONTAINER_ID, null, COMPLETION_PATH);
+        adapter.setSource(containerSource);
+
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(adapter);
+
+        // then
+        verify(deploymentManagerService).getById(CONTAINER_ID);
+        verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
+        assertThat(adapter.getBaseEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerSource.getContainerName()).isEqualTo(CONTAINER_NAME);
+    }
+
+    @Test
+    void processContainerEndpoints_ForAdapterEntity_ShouldSetBaseEndpointAndContainerName() {
+        // given
+        AdapterEntity adapterEntity = new AdapterEntity();
+        AdapterContainerEntity containerEntity = new AdapterContainerEntity();
+        containerEntity.setContainerId(CONTAINER_ID);
+        containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        adapterEntity.setAdapterContainer(containerEntity);
+
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(adapterEntity);
+
+        // then
+        verify(deploymentManagerService).getById(CONTAINER_ID);
+        verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
+        assertThat(adapterEntity.getBaseEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerEntity.getContainerName()).isEqualTo(CONTAINER_NAME);
+    }
+
+    @Test
+    void processContainerEndpoints_ForAdapter_WithNullCompletionPath_ShouldSetBaseEndpointToContainerUrl() {
+        // given
+        Adapter adapter = new Adapter();
+        AdapterContainerSource containerSource = new AdapterContainerSource(CONTAINER_ID, null, null);
+        adapter.setSource(containerSource);
+
+        InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(adapter);
+
+        // then
+        assertThat(adapter.getBaseEndpoint()).isEqualTo(CONTAINER_URL);
     }
 
     @Test

@@ -12,6 +12,9 @@ public interface AdapterJpaRepository extends CrudRepository<AdapterEntity, Stri
 
     Iterable<AdapterEntity> findByBaseEndpointOrderByNameAsc(String endpoint);
 
+    @Query("SELECT a FROM AdapterEntity a WHERE a.adapterContainer IS NOT NULL")
+    List<AdapterEntity> findByAdapterContainerIsNotNull();
+
     @Query("DELETE FROM AdapterEntity a WHERE a.name NOT IN :names")
     @Modifying
     void deleteAllExcept(@Param("names") List<String> names);

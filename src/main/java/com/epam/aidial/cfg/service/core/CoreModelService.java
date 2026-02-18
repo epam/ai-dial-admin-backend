@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ModelCoreMapper;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
@@ -90,7 +90,7 @@ public class CoreModelService {
     }
 
     private String getModelEndpoint(Model model) {
-        if (model.getSource() instanceof AdapterSource adapterSource) {
+        if (model.getSource() instanceof ModelAdapterSource adapterSource) {
             var adapter = adapterService.get(adapterSource.getAdapterName());
             return ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath());
         }
