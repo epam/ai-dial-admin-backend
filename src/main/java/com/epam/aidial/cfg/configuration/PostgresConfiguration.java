@@ -56,6 +56,7 @@ public class PostgresConfiguration {
         hikariConfig.setDriverClassName(driverClassName);
         hikariConfig.setJdbcUrl(url);
         hikariConfig.addDataSourceProperty("socketFactory", "com.google.cloud.sql.postgres.SocketFactory");
+        hikariConfig.addDataSourceProperty("enableIamAuth", "true");
 
         return new HikariDataSource(hikariConfig);
     }
