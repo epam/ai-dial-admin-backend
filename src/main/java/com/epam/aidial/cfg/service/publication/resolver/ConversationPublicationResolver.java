@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.ConversationService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +67,11 @@ public class ConversationPublicationResolver extends PublicationResolver {
     }
 
     @Override
+    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
     public ResourceType getResourceType() {
         return ResourceType.CONVERSATION;
     }
@@ -80,7 +86,7 @@ public class ConversationPublicationResolver extends PublicationResolver {
         validateTargetNotPublished(resourceInfo, status);
         var conversationPath = extractConversationPath(resourceInfo);
         var conversation = conversationService.getConversation(conversationPath);
-        return mapper.toConversationPublicationResource(resource.getAction(), conversation);
+        return mapper.toConversationPublicationResource(resource, conversation);
     }
 
     public void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {

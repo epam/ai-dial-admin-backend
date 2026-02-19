@@ -8,7 +8,7 @@ import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import org.apache.commons.collections4.CollectionUtils;
@@ -50,7 +50,7 @@ public abstract class ModelEntityMapper {
         }
 
         if (adapterEntity != null) {
-            return new AdapterSource(adapterEntity.getName(), entity.getAdapterCompletionEndpointPath());
+            return new ModelAdapterSource(adapterEntity.getName(), entity.getAdapterCompletionEndpointPath());
         } else if (containerEntity != null) {
             return modelContainerEntityMapper.toDomain(containerEntity);
         }

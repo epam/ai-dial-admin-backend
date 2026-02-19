@@ -3,6 +3,8 @@ package com.epam.aidial.cfg.domain.util;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.model.AdapterContainerEntity;
+import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
@@ -10,10 +12,12 @@ import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
+import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
@@ -88,6 +92,38 @@ public class ContainerEndpointResolver {
                     }
                 },
                 toolSetEntity
+        );
+    }
+
+    public void processContainerEndpoints(Adapter adapter) {
+        AdapterContainerSource containerSource = (AdapterContainerSource) adapter.getSource();
+        processContainerEndpoints(
+                containerSource.getContainerId(),
+                containerSource,
+                AdapterContainerSource::getCompletionEndpointPath,
+                null,
+                (target, endpoints) -> {
+                    AdapterContainerSource targetSource = (AdapterContainerSource) target.getSource();
+                    targetSource.setContainerName(endpoints.containerName());
+                    target.setBaseEndpoint(endpoints.completionEndpoint());
+                },
+                adapter
+        );
+    }
+
+    public void processContainerEndpoints(AdapterEntity adapterEntity) {
+        AdapterContainerEntity adapterContainerEntity = adapterEntity.getAdapterContainer();
+        processContainerEndpoints(
+                adapterContainerEntity.getContainerId(),
+                adapterContainerEntity,
+                AdapterContainerEntity::getCompletionEndpointPath,
+                null,
+                (entity, endpoints) -> {
+                    AdapterContainerEntity targetContainer = entity.getAdapterContainer();
+                    targetContainer.setContainerName(endpoints.containerName());
+                    entity.setBaseEndpoint(endpoints.completionEndpoint());
+                },
+                adapterEntity
         );
     }
 
