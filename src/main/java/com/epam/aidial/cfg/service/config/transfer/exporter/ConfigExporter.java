@@ -15,7 +15,7 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
@@ -242,7 +242,7 @@ public class ConfigExporter {
             Model model = modelExporter.getModel(component.getName());
             processInterceptorDependencies(model.getInterceptors(), dependencies, updatedComponents);
             if (request.getExportFormat() != CORE && model.getSource() != null
-                    && model.getSource() instanceof AdapterSource adapterSource) {
+                    && model.getSource() instanceof ModelAdapterSource adapterSource) {
                 processAdapterDependencies(adapterSource.getAdapterName(), dependencies, updatedComponents);
             }
         }

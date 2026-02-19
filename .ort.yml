@@ -21,3 +21,9 @@ resolutions:
     - message: "No license information is available for dependency 'Maven:org.antlr:ST4:4.3.4'."
       reason: 'CANT_FIX_EXCEPTION'
       comment: "The dependency has 'The BSD License' license in github repo"
+    - message: "The dependency 'Maven:com.github.jnr:jnr-posix:3.1.21' is licensed under the ScanCode 'copyleft' categorized license GPL-2.0-only."
+      reason: 'CANT_FIX_EXCEPTION'
+      comment: "The dependency has 'tri EPL/GPL/LGPL license' license in github repo"
+    - message: "The declared license 'GNU Lesser General Public License version 3' could not be mapped to a valid license or parsed as an SPDX expression. The license was found in package 'Maven:com.github.jnr:jffi:1.3.14'."
+      reason: 'CANT_FIX_EXCEPTION'
+      comment: "The dependency has 'Apache-2.0 license' license in github repo"

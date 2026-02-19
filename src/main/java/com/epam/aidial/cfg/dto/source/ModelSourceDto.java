@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ModelEndpointsSourceDto.class, name = "endpoints"),
         @JsonSubTypes.Type(value = ModelContainerSourceDto.class, name = "container"),
-        @JsonSubTypes.Type(value = AdapterSourceDto.class, name = "adapter"),
+        @JsonSubTypes.Type(value = ModelAdapterSourceDto.class, name = "adapter"),
 })
 public interface ModelSourceDto {
 }

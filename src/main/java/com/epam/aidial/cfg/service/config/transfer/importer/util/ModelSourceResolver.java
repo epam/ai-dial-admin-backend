@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.service.config.transfer.importer.util;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
@@ -37,7 +37,7 @@ public class ModelSourceResolver {
         }
 
         Adapter adapter = resolveAdapter(modelEndpointComponents);
-        return new AdapterSource(adapter.getName(), modelEndpointComponents.completionEndpointPath());
+        return new ModelAdapterSource(adapter.getName(), modelEndpointComponents.completionEndpointPath());
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {

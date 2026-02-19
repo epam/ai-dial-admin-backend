@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
+import com.epam.aidial.cfg.model.PromptPublication;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
@@ -16,6 +17,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.prompt.PromptService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +30,16 @@ public class PromptPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final PromptService promptService;
+    private final PromptClientMapper promptClientMapper;
 
     protected PromptPublicationResolver(PublicationResourceUrlResolver resolver,
                                         PublicationClientMapper mapper,
-                                        PromptService promptService) {
+                                        PromptService promptService,
+                                        PromptClientMapper promptClientMapper) {
         super(resolver);
         this.mapper = mapper;
         this.promptService = promptService;
+        this.promptClientMapper = promptClientMapper;
     }
 
     @Override
@@ -56,6 +61,20 @@ public class PromptPublicationResolver extends PublicationResolver {
     }
 
     @Override
+    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
+        var promptPublication = (PromptPublication) publication;
+
+        var prompts = promptPublication.getResources();
+
+        prompts.stream()
+                .map(PromptPublicationResource::getPrompt)
+                .map(promptClientMapper::toCreatePrompt)
+                .forEach(prompt -> promptService.putPrompt(prompt, true, null));
+
+        return mapper.toPublicationDto(publication, prompts);
+    }
+
+    @Override
     public ResourceType getResourceType() {
         return ResourceType.PROMPT;
     }
@@ -69,7 +88,7 @@ public class PromptPublicationResolver extends PublicationResolver {
         validateTargetNotPublished(resourceInfo, status);
         var promptPath = extractPromptPath(resourceInfo.resource(), status);
         var prompt = promptService.getPrompt(promptPath);
-        return mapper.toPromptPublicationResource(resourceInfo.resource().getAction(), prompt);
+        return mapper.toPromptPublicationResource(resourceInfo.resource(), prompt);
     }
 
     private String extractPromptPath(PublicationResourceDto publicationResource, PublicationStatusDto status) {
@@ -77,7 +96,7 @@ public class PromptPublicationResolver extends PublicationResolver {
         return PromptClientMapper.parseEncodedVersionedPath(promptUrl).getPath();
     }
 
-    public void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {
+    private void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {
         var insideResource = resourceInfo.resource();
         if (status == PublicationStatusDto.PENDING && insideResource.getAction() != PublicationResourceActionDto.DELETE) {
             var targetUrl = extractTargetPath(resourceInfo, PromptClientMapper.PROMPTS_PREFIX);
@@ -85,7 +104,7 @@ public class PromptPublicationResolver extends PublicationResolver {
         }
     }
 
-    public void validateNotPublishedAtPath(String path) {
+    private void validateNotPublishedAtPath(String path) {
         if (promptService.promptExists(path)) {
             throw new ResourceAlreadyExistsException("Target prompt already exist");
         }

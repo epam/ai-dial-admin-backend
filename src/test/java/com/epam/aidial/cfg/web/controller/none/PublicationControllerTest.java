@@ -26,17 +26,24 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.json.JsonCompareMode;
+import org.springframework.util.MimeTypeUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -107,6 +114,27 @@ class PublicationControllerTest extends AbstractControllerNoneSecureTest {
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @ParameterizedTest
+    @MethodSource("testGetPublicationParams")
+    void testUpdatePublication(String publicationFilePath, String publicationDtoFilePath, Class<? extends Publication> publicationClass) throws Exception {
+        var modelJson = ResourceUtils.readResource(publicationFilePath);
+        var model = objectMapper.readValue(modelJson, publicationClass);
+
+        doNothing().when(publicationService).updatePublication(any(), any());
+
+        var dtoJson = ResourceUtils.readResource(publicationDtoFilePath);
+        MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                dtoJson.getBytes(StandardCharsets.UTF_8));
+        MockMultipartFile mockFile = new MockMultipartFile("files", "test.txt", MediaType.TEXT_PLAIN_VALUE, "test content".getBytes());
+
+        mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/publications/update")
+                        .file(mockFile)
+                        .file(publicationFile)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk());
+        verify(publicationService).updatePublication(model, List.of(mockFile));
     }
 
     @Test

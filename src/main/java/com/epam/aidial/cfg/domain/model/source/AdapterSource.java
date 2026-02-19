@@ -1,17 +1,21 @@
 package com.epam.aidial.cfg.domain.model.source;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @NoArgsConstructor
-@AllArgsConstructor
-public class AdapterSource extends ModelSource {
-    private String adapterName;
-    private String completionEndpointPath;
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "$type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = AdapterEndpointsSource.class, name = "endpoints"),
+        @JsonSubTypes.Type(value = AdapterContainerSource.class, name = "container")
+})
+public abstract class AdapterSource {
 }

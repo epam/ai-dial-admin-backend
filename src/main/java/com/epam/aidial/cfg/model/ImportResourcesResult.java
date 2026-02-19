@@ -2,9 +2,11 @@ package com.epam.aidial.cfg.model;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ImportResourcesResult {
     private final String sourcePath;

@@ -525,7 +525,10 @@
         "baseEndpoint": "https://endpoint2/",
         "models": [
           "testModel2"
-        ]
+        ],
+        "source": {
+          "$type": "endpoints"
+        }
       }
     },
     {
@@ -536,7 +539,10 @@
         "baseEndpoint": "https://endpoint1/",
         "models": [
           "testModel1"
-        ]
+        ],
+        "source": {
+          "$type": "endpoints"
+        }
       }
     }
   ],

@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -118,7 +118,7 @@ public abstract class AdapterFunctionalTest {
 
         adapterFacade.createAdapter(adapterDto);
 
-        AdapterSourceDto sourceDto = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
+        ModelAdapterSourceDto sourceDto = new ModelAdapterSourceDto("adapter1", "/some-path/chat/completions");
 
         ModelDto model1 = createModelDto("1");
         model1.setSource(sourceDto);
@@ -143,10 +143,10 @@ public abstract class AdapterFunctionalTest {
         adapterFacade.createAdapter(adapterDto2);
 
         ModelDto model1 = createModelDto("1");
-        AdapterSourceDto source1 = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
+        ModelAdapterSourceDto source1 = new ModelAdapterSourceDto("adapter1", "/some-path/chat/completions");
         model1.setSource(source1);
         modelFacade.createModel(model1);
-        AdapterSourceDto source2 = new AdapterSourceDto("adapter2", "/model1/chat/completions");
+        ModelAdapterSourceDto source2 = new ModelAdapterSourceDto("adapter2", "/model1/chat/completions");
         model1.setSource(source2);
         modelFacade.updateModel(model1.getName(), model1, "*");
 
@@ -178,7 +178,7 @@ public abstract class AdapterFunctionalTest {
         ModelDto model1 = createModelDto("1");
         modelFacade.createModel(model1);
 
-        model1.setSource(new AdapterSourceDto(adapterDto1.getName(), "/chat/completions"));
+        model1.setSource(new ModelAdapterSourceDto(adapterDto1.getName(), "/chat/completions"));
         modelFacade.updateModel(model1.getName(), model1, "*");
 
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
@@ -190,7 +190,7 @@ public abstract class AdapterFunctionalTest {
         Assertions.assertEquals(expectedAdapter1, actualAdapter1);
 
         ModelDto expectedModel1 = createModelDto("1");
-        expectedModel1.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
+        expectedModel1.setSource(new ModelAdapterSourceDto("adapter1", "/chat/completions"));
         expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());

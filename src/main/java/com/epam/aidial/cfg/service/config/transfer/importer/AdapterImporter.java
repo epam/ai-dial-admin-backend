@@ -1,13 +1,17 @@
 package com.epam.aidial.cfg.service.config.transfer.importer;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
+import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils.ModelEndpointComponents;
+import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.transfer.importer.util.ModelSourceRetentionPolicy;
@@ -17,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -44,6 +49,7 @@ public class AdapterImporter {
     private final ModelService modelService;
     private final ModelEndpointUtils modelEndpointUtils;
     private final ModelSourceRetentionPolicy modelSourceRetentionPolicy;
+    private final DeploymentManagerService deploymentManagerService;
 
     public Collection<ImportComponent<Adapter>> importAdapters(Map<String, CoreModel> coreModels,
                                                                ConfigImportOptions importOptions,
@@ -113,24 +119,46 @@ public class AdapterImporter {
 
     public List<ImportComponent<Adapter>> importAdminAdapters(Map<String, Adapter> adapters,
                                                               ConfigImportOptions importOptions) {
-        if (MapUtils.isNotEmpty(adapters)) {
-            return adapters.entrySet()
-                    .stream()
-                    .map(e -> getImportComponent(importOptions, e.getKey(), e.getValue()))
-                    .collect(Collectors.toList());
+        if (MapUtils.isEmpty(adapters)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        return adapters.entrySet()
+                .stream()
+                .map(e -> getImportComponent(importOptions, e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
     }
 
     private ImportComponent<Adapter> getImportComponent(ConfigImportOptions importOptions,
                                                         String name,
                                                         Adapter adapter) {
         removeDependency(adapter);
+        removeContainerSourceDependencyIfContainerIsAbsent(adapter);
         return processAdapter(name, adapter, importOptions.conflictResolutionPolicy());
     }
 
     private void removeDependency(Adapter adapter) {
         adapter.setModels(null);
+    }
+
+    private void removeContainerSourceDependencyIfContainerIsAbsent(Adapter adapter) {
+        if (!(adapter.getSource() instanceof AdapterContainerSource containerSource)) {
+            return;
+        }
+
+        String containerId = containerSource.getContainerId();
+        DeploymentInfoDto deploymentInfo = null;
+
+        try {
+            deploymentInfo = deploymentManagerService.getById(containerId);
+        } catch (DeploymentClientNotExistsException e) {
+            log.warn("Failed to get deployment by ID '{}' on Adapter '{}' import",
+                    containerId, adapter.getName(), e);
+        }
+
+        if (deploymentInfo == null || StringUtils.isBlank(deploymentInfo.getUrl())) {
+            log.debug("Container is missing or not deployed. ContainerId: {}, deploymentInfo: {}", containerId, deploymentInfo);
+            adapter.setSource(null);
+        }
     }
 
     private ImportComponent<Adapter> processAdapter(String adapterName,

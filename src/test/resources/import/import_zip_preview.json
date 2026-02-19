@@ -461,7 +461,10 @@
         "models": [
           "testModel1"
         ],
-        "topics": ["topicAdapter1"]
+        "topics": ["topicAdapter1"],
+        "source": {
+          "$type": "endpoints"
+        }
       }
     }
   ],

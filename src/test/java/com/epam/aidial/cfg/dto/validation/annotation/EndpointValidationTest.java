@@ -172,7 +172,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validEndpoints")
+    @MethodSource("validEndpointsIncludingEmpty")
     void testAdapterDto_ValidBaseEndpoint(String endpoint) {
         AdapterDto dto = new AdapterDto();
         dto.setName("test-adapter");
@@ -184,7 +184,7 @@ class EndpointValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidEndpointsIncludingEmpty")
+    @MethodSource("invalidEndpoints")
     void testAdapterDto_InvalidBaseEndpoint(String endpoint) {
         AdapterDto dto = new AdapterDto();
         dto.setName("test-adapter");
@@ -275,15 +275,6 @@ class EndpointValidationTest {
                 Arguments.of("http://"),
                 Arguments.of("http://example.com:invalidport"),
                 Arguments.of("http://example.local:999999")
-        );
-    }
-
-    // empty value validation added to tests by current state. it makes sense to add empty value validation for other entities too in separate PR
-    // Invalid endpoints including empty string (for adapter)
-    private static Stream<Arguments> invalidEndpointsIncludingEmpty() {
-        return Stream.concat(
-                Stream.of(Arguments.of("")), // Empty string is invalid for adapter
-                invalidEndpoints()
         );
     }
 }

@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.service.config.transfer.importer.util;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.core.config.CoreModel;
@@ -30,7 +30,7 @@ public class ModelSourceRetentionPolicy {
     }
 
     private boolean endpointMatchesAdapterSource(String endpoint, Model model) {
-        if (model.getSource() instanceof AdapterSource adapterSource) {
+        if (model.getSource() instanceof ModelAdapterSource adapterSource) {
             Adapter adapter = adapterService.get(adapterSource.getAdapterName());
             return endpoint.equals(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
         }
