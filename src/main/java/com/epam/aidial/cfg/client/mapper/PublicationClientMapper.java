@@ -5,10 +5,10 @@ import com.epam.aidial.cfg.client.dto.PublicationDto;
 import com.epam.aidial.cfg.client.dto.PublicationInfoDto;
 import com.epam.aidial.cfg.client.dto.PublicationInfosDto;
 import com.epam.aidial.cfg.client.dto.PublicationPathDto;
-import com.epam.aidial.cfg.client.dto.PublicationResourceActionDto;
 import com.epam.aidial.cfg.client.dto.PublicationResourceDto;
 import com.epam.aidial.cfg.client.dto.PublicationsPathDto;
 import com.epam.aidial.cfg.client.dto.RejectPublicationsDto;
+import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.dto.RuleDto;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ApplicationPublicationResource;
@@ -23,6 +23,7 @@ import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.Prompt;
 import com.epam.aidial.cfg.model.PromptPublication;
 import com.epam.aidial.cfg.model.PromptPublicationResource;
+import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationInfo;
 import com.epam.aidial.cfg.model.PublicationInfos;
 import com.epam.aidial.cfg.model.PublicationResource;
@@ -31,6 +32,7 @@ import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.model.ToolSetResource;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -137,25 +139,15 @@ public interface PublicationClientMapper {
     ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files,
                                             List<PublicationResourceIssue> resourceIssues);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    PromptPublicationResource toPromptPublicationResource(PublicationResourceActionDto action, Prompt prompt);
+    PromptPublicationResource toPromptPublicationResource(PublicationResourceDto action, Prompt prompt);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    FilePublicationResource toFilePublicationResource(PublicationResourceActionDto action, FileNodeInfo file);
+    FilePublicationResource toFilePublicationResource(PublicationResourceDto resource, FileNodeInfo file);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceActionDto action, ApplicationResource applicationResource);
+    ApplicationPublicationResource toApplicationPublicationResource(PublicationResourceDto resource, ApplicationResource applicationResource);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    ConversationPublicationResource toConversationPublicationResource(PublicationResourceActionDto action, Conversation conversation);
+    ConversationPublicationResource toConversationPublicationResource(PublicationResourceDto resource, Conversation conversation);
 
-    @Mapping(target = "sourceUrl", ignore = true)
-    @Mapping(target = "targetUrl", ignore = true)
-    ToolSetPublicationResource toToolSetPublicationResource(PublicationResourceActionDto action, ToolSetResource toolSetResource);
+    ToolSetPublicationResource toToolSetPublicationResource(PublicationResourceDto resource, ToolSetResource toolSetResource);
 
     private static String removePrefix(String path, String prefix) {
         if (path.startsWith(prefix)) {
@@ -169,7 +161,6 @@ public interface PublicationClientMapper {
     @Mapping(target = "targetFolder", source = "targetFolder", qualifiedByName = "encodeFolderPath")
     CreatePublicationDto toCreatePublicationDto(CreatePublication createPublication);
 
-    @Mapping(target = "reviewUrl", ignore = true)
     PublicationResourceDto toPublicationResourceDto(PublicationResource publicationResource);
 
     default Map<String, List<Rule>> toRules(Map<String, List<RuleDto>> rules) {
@@ -194,4 +185,40 @@ public interface PublicationClientMapper {
     default String decodePath(String path) {
         return CoreMetadataUtils.decodePath(path);
     }
+
+    @Mapping(target = "targetFolder", source = "publication.folderId")
+    @Mapping(target = "resourceTypes", source = "list", qualifiedByName = "getResourcesTypes")
+    @Mapping(target = "name", source = "publication.requestName")
+    @Mapping(target = "url", expression = "java(\"publications/\" + publication.getPath())")
+    @Mapping(target = "resources", source = "list")
+    PublicationDto toPublicationDto(Publication publication, List<? extends PublicationResource> list);
+
+    @Named("getResourcesTypes")
+    default List<ResourceTypeDto> getResourcesTypes(List<? extends PublicationResource> list) {
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+
+        return list.stream()
+                .map(this::getResourceType)
+                .distinct()
+                .toList();
+    }
+
+    default ResourceTypeDto getResourceType(PublicationResource publicationResource) {
+        if (publicationResource instanceof PromptPublicationResource) {
+            return ResourceTypeDto.PROMPT;
+        } else if (publicationResource instanceof FilePublicationResource) {
+            return ResourceTypeDto.FILE;
+        } else if (publicationResource instanceof ApplicationPublicationResource) {
+            return ResourceTypeDto.APPLICATION;
+        } else if (publicationResource instanceof ConversationPublicationResource) {
+            return ResourceTypeDto.CONVERSATION;
+        } else if (publicationResource instanceof ToolSetPublicationResource) {
+            return ResourceTypeDto.TOOL_SET;
+        }
+        throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
+                .formatted(publicationResource.getClass(), publicationResource));
+    }
+
 }

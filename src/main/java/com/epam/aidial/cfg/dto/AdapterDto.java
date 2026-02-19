@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -18,7 +19,6 @@ public class AdapterDto {
     private String name;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
-    @NotEmpty
     @Endpoint
     private String baseEndpoint;
     private String description;
@@ -28,4 +28,5 @@ public class AdapterDto {
     private Instant updatedAt;
     private List<String> models = new ArrayList<>();
     private TreeSet<String> topics;
+    private AdapterSourceDto source;
 }

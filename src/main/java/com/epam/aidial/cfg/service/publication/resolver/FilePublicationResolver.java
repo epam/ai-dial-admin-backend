@@ -8,38 +8,53 @@ import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.PublicationFileUploadException;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
 import com.epam.aidial.cfg.model.FilePublicationResource;
+import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
+import com.epam.aidial.cfg.model.ImportResources;
+import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Publication;
+import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
+import com.epam.aidial.cfg.utils.PathUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Component
 @LogExecution
 public class FilePublicationResolver extends PublicationResolver {
 
+    public static final String PUBLICATIONS_UPDATES_FOLDER = "publications_updates/";
+
     private final PublicationClientMapper mapper;
     private final FileClientMapper fileClientMapper;
     private final FileService fileService;
+    private final BucketService bucketService;
 
     protected FilePublicationResolver(PublicationResourceUrlResolver resolver,
                                       PublicationClientMapper mapper,
                                       FileClientMapper fileClientMapper,
-                                      FileService fileService) {
+                                      FileService fileService, BucketService bucketService) {
         super(resolver);
         this.mapper = mapper;
         this.fileClientMapper = fileClientMapper;
         this.fileService = fileService;
+        this.bucketService = bucketService;
     }
 
     @Override
@@ -63,6 +78,12 @@ public class FilePublicationResolver extends PublicationResolver {
     }
 
     @Override
+    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
+        var updatedListFiles = updateFileResources(publication, files);
+        return mapper.toPublicationDto(publication, updatedListFiles);
+    }
+
+    @Override
     public ResourceType getResourceType() {
         return ResourceType.FILE;
     }
@@ -80,10 +101,10 @@ public class FilePublicationResolver extends PublicationResolver {
 
         if (filesNode.getNodeType() != NodeType.ITEM) {
             throw new IllegalStateException("Incorrect node type: %s. Resource: %s."
-                    .formatted(filesNode.getNodeType(), resourceInfo.resource()));
+                    .formatted(filesNode.getNodeType(), resourceInfo));
         }
 
-        return mapper.toFilePublicationResource(resourceInfo.resource().getAction(), filesNode);
+        return mapper.toFilePublicationResource(resourceInfo.resource(), filesNode);
     }
 
     private String extractFilePath(PublicationResourceDto publicationResource, PublicationStatusDto status) {
@@ -121,5 +142,73 @@ public class FilePublicationResolver extends PublicationResolver {
         if (fileService.fileExists(targetUrl)) {
             throw new ResourceAlreadyExistsException("Target file already exists");
         }
+    }
+
+    protected List<FilePublicationResource> updateFileResources(Publication publication, List<MultipartFile> files) {
+        var existingFileResources = Optional.ofNullable(publication.getResources())
+                .orElseGet(List::of)
+                .stream()
+                .filter(resource -> resource instanceof FilePublicationResource)
+                .map(resource -> (FilePublicationResource) resource)
+                .toList();
+
+        if (CollectionUtils.isEmpty(files)) {
+            return existingFileResources;
+        }
+
+        var sourceFolder = PathUtils.ensureTrailingSlash(bucketService.getBucket().getBucket());
+        var updatesFolderPath = sourceFolder + PUBLICATIONS_UPDATES_FOLDER;
+        var uploadedSourceFiles = upload(files, updatesFolderPath);
+        validateUploadResult(uploadedSourceFiles);
+
+        var newFileResources = uploadedSourceFiles.getImportResults().stream()
+                .map(importResult -> getPublicationResource(importResult, publication, updatesFolderPath))
+                .toList();
+
+        return Stream.concat(existingFileResources.stream(), newFileResources.stream()).toList();
+    }
+
+    private ImportResourcesFileResult upload(List<MultipartFile> files, String path) {
+        var importResources = ImportResources.builder().path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+        return fileService.uploadFile(files, importResources);
+    }
+
+    private void validateUploadResult(ImportResourcesFileResult result) {
+        if (result == null || result.hasError()) {
+            throw new PublicationFileUploadException(
+                    "Publication files upload failed: " + (result != null ? result.getError() : "null result")
+            );
+        }
+
+        var errors = result.getImportResults().stream()
+                .filter(importResourcesResult -> importResourcesResult.getError() != null)
+                .map(importResourcesResult -> String.format(
+                        "%s -> %s: %s",
+                        importResourcesResult.getSourcePath(),
+                        importResourcesResult.getTargetPath(),
+                        importResourcesResult.getError()))
+                .toList();
+
+        if (!errors.isEmpty()) {
+            throw new PublicationFileUploadException("Publication files upload failed: " + String.join("; ", errors));
+        }
+    }
+
+    private FilePublicationResource getPublicationResource(
+            ImportResourcesResult importResult,
+            Publication publication,
+            String sourceFolder
+    ) {
+        var fileName = PathUtils.parsePath(importResult.getTargetPath()).getName();
+        var targetPath = FileClientMapper.FILES_PREFIX + PathUtils.ensureTrailingSlash(publication.getFolderId()) + fileName;
+        var sourcePath = FileClientMapper.FILES_PREFIX + sourceFolder + fileName;
+
+        return FilePublicationResource.builder()
+                .action(PublicationResourceAction.ADD_IF_ABSENT)
+                .targetUrl(targetPath)
+                .sourceUrl(sourcePath)
+                .build();
     }
 }

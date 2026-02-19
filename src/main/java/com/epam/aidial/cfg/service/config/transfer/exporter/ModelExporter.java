@@ -6,7 +6,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Upstream;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
@@ -106,7 +106,7 @@ public class ModelExporter {
 
         if ((exportFormat == ExportFormat.CORE || !componentTypes.contains(ExportConfigComponentType.ADAPTER))
                 && model.getSource() != null
-                && model.getSource() instanceof AdapterSource adapterSource) {
+                && model.getSource() instanceof ModelAdapterSource adapterSource) {
             var adapter = adapterService.get(adapterSource.getAdapterName());
             model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
             model.setSource(null);

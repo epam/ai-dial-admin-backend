@@ -12,7 +12,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
-import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelContainerSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -116,11 +116,11 @@ public abstract class ModelFunctionalTest {
         adapterFacade.createAdapter(createAdapterDto("2"));
 
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
-        modelDto.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
+        modelDto.setSource(new ModelAdapterSourceDto("adapter1", "/chat/completions"));
         modelFacade.createModel(modelDto);
 
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
-        updatedModel.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
+        updatedModel.setSource(new ModelAdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
@@ -131,7 +131,7 @@ public abstract class ModelFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setMaxRetryAttempts(1);
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
+        expected.setSource(new ModelAdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
         expected.setEndpoint(null);
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
@@ -148,11 +148,11 @@ public abstract class ModelFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
-        updatedModel.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
+        updatedModel.setSource(new ModelAdapterSourceDto("adapter2", "/chat/completions"));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role3", limitDto));
-        expected.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
+        expected.setSource(new ModelAdapterSourceDto("adapter2", "/chat/completions"));
         assertModel(actual, expected);
 
         roleFacade.deleteRole("role3");
@@ -441,7 +441,7 @@ public abstract class ModelFunctionalTest {
         adapterFacade.createAdapter(adapterDto1);
         adapterFacade.createAdapter(adapterDto2);
 
-        AdapterSourceDto adapterSourceDto = new AdapterSourceDto("adapter2", "chat/completions");
+        ModelAdapterSourceDto adapterSourceDto = new ModelAdapterSourceDto("adapter2", "chat/completions");
 
         ModelDto modelDto = createModelDto("1");
         modelDto.setSource(adapterSourceDto);
@@ -467,14 +467,14 @@ public abstract class ModelFunctionalTest {
 
         // Create a model with adapter source
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
-        modelDto.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
+        modelDto.setSource(new ModelAdapterSourceDto("adapter1", "/chat/completions"));
         modelFacade.createModel(modelDto);
 
         // Verify the model has adapter source
         ModelDto actualModel = modelFacade.getModel(modelDto.getName());
         Assertions.assertNotNull(actualModel.getSource());
-        Assertions.assertInstanceOf(AdapterSourceDto.class, actualModel.getSource());
-        AdapterSourceDto adapterSource = (AdapterSourceDto) actualModel.getSource();
+        Assertions.assertInstanceOf(ModelAdapterSourceDto.class, actualModel.getSource());
+        ModelAdapterSourceDto adapterSource = (ModelAdapterSourceDto) actualModel.getSource();
         Assertions.assertEquals("adapter1", adapterSource.adapterName());
 
         // Verify the adapter has the model in its models list
@@ -511,8 +511,8 @@ public abstract class ModelFunctionalTest {
         // Verify the model now has adapter source again
         actualModel = modelFacade.getModel(modelDto.getName());
         Assertions.assertNotNull(actualModel.getSource());
-        Assertions.assertInstanceOf(AdapterSourceDto.class, actualModel.getSource());
-        AdapterSourceDto adapterSourceAgain = (AdapterSourceDto) actualModel.getSource();
+        Assertions.assertInstanceOf(ModelAdapterSourceDto.class, actualModel.getSource());
+        ModelAdapterSourceDto adapterSourceAgain = (ModelAdapterSourceDto) actualModel.getSource();
         Assertions.assertEquals("adapter1", adapterSourceAgain.adapterName());
         // Verify the adapter has the model again in its models list
         adapter = adapterFacade.getAdapter("adapter1");

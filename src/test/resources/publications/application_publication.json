@@ -1,79 +1,92 @@
 {
-  "path": "bucket/file",
-  "requestName": "Pub req 6",
-  "author": "Test Author",
-  "createdAt": 1741595184514,
-  "status": "pending",
-  "folderId": "Target folder 1",
-  "rules": [
-    {
-      "source": "role",
-      "function": "EQUAL",
-      "targets": ["admin"]
-    }
-  ],
-  "resources": [
-    {
-      "action": "add",
-      "applicationResource": {
-        "path": "Folder 1/Application 1",
-        "folderId": "Folder 1",
-        "updatedAt": 1741595170582,
-        "name": "Application 1",
-        "endpoint": "https://app1.test.com",
-        "viewerUrl": "https://viewer.app1.test.com",
-        "editorUrl": "https://editor.app1.test.com",
-        "displayName": "Application 1",
-        "description": "Description 1",
-        "reference": "test_reference",
-        "forwardAuthToken": true,
-        "inputAttachmentTypes": [
-          "application/json"
-        ],
-        "defaults": {
-          "test_key": "test_value"
-        },
-        "interceptors": [
-          "test_interceptor"
-        ],
-        "descriptionKeywords": [
-          "Test Topic"
-        ],
-        "author": "test-author",
-        "createdAt": 12345,
-        "dependencies": ["dep1", "dep2"]
+   "path":"bucket/file",
+   "requestName":"Pub req 6",
+   "author":"Test Author",
+   "createdAt":1741595184514,
+   "status":"pending",
+   "folderId":"Target folder 1",
+   "rules":[
+      {
+         "source":"role",
+         "function":"EQUAL",
+         "targets":[
+            "admin"
+         ]
       }
-    },
-    {
-      "action": "add",
-      "applicationResource": {
-        "path": "Folder 1/Application 2",
-        "folderId": "Folder 1",
-        "updatedAt": 1741595170789,
-        "name": "Application 2",
-        "endpoint": "https://app2.test.com",
-        "viewerUrl": "https://viewer.app2.test.com",
-        "editorUrl": "https://editor.app2.test.com",
-        "displayName": "Application 2",
-        "description": "Description 2",
-        "reference": "test_reference",
-        "forwardAuthToken": true,
-        "inputAttachmentTypes": [
-          "application/json"
-        ],
-        "defaults": {
-          "test_key": "test_value"
-        },
-        "interceptors": [
-          "test_interceptor"
-        ],
-        "descriptionKeywords": [
-          "Test Topic"
-        ],
-        "author": "test-author",
-        "createdAt": 12345,
-        "dependencies": []
+   ],
+   "resources":[
+      {
+         "sourceUrl":"applications/source/Application_1",
+         "targetUrl":"applications/public/Application_1",
+         "reviewUrl":"applications/review/Application_1",
+         "action":"add",
+         "applicationResource":{
+            "path":"Folder 1/Application 1",
+            "folderId":"Folder 1",
+            "updatedAt":1741595170582,
+            "name":"Application 1",
+            "endpoint":"https://app1.test.com",
+            "viewerUrl":"https://viewer.app1.test.com",
+            "editorUrl":"https://editor.app1.test.com",
+            "displayName":"Application 1",
+            "description":"Description 1",
+            "reference":"test_reference",
+            "forwardAuthToken":true,
+            "inputAttachmentTypes":[
+               "application/json"
+            ],
+            "defaults":{
+               "test_key":"test_value"
+            },
+            "interceptors":[
+               "test_interceptor"
+            ],
+            "descriptionKeywords":[
+               "Test Topic"
+            ],
+            "author":"test-author",
+            "createdAt":12345,
+            "dependencies":[
+               "dep1",
+               "dep2"
+            ]
+         }
+      },
+      {
+         "sourceUrl":"applications/source/Application_2",
+         "targetUrl":"applications/public/Application_2",
+         "reviewUrl":"applications/review/Application_2",
+         "action":"add",
+         "applicationResource":{
+            "path":"Folder 1/Application 2",
+            "folderId":"Folder 1",
+            "updatedAt":1741595170789,
+            "name":"Application 2",
+            "endpoint":"https://app2.test.com",
+            "viewerUrl":"https://viewer.app2.test.com",
+            "editorUrl":"https://editor.app2.test.com",
+            "displayName":"Application 2",
+            "description":"Description 2",
+            "reference":"test_reference",
+            "forwardAuthToken":true,
+            "inputAttachmentTypes":[
+               "application/json"
+            ],
+            "defaults":{
+               "test_key":"test_value"
+            },
+            "interceptors":[
+               "test_interceptor"
+            ],
+            "descriptionKeywords":[
+               "Test Topic"
+            ],
+            "author":"test-author",
+            "createdAt":12345,
+            "dependencies":[
+
+            ]
+         }
       }
-    }
-  ]
+   ]
 }

@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.exception.GlobalInterceptorDeletionException;
 import com.epam.aidial.cfg.exception.ImportPreviewException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.PublicationFileUploadException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
@@ -118,6 +119,14 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ImportPreviewException.class)
     public ErrorView handleImportPreviewError(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
+        return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PublicationFileUploadException.class)
+    public ErrorView handlePublicationUpload(HttpServletRequest req, Exception ex) {
         logUncaught(ex);
         return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
     }

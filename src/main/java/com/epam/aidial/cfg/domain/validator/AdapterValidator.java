@@ -1,6 +1,11 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
+import com.epam.aidial.cfg.domain.model.source.AdapterEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,13 +20,19 @@ public class AdapterValidator {
 
     private final IdFieldValidator idFieldValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
+    private final DeploymentManagerService deploymentManagerService;
+    private final DeploymentInfoValidator deploymentInfoValidator;
     private final String adapterNameValidationPattern;
 
     public AdapterValidator(IdFieldValidator idFieldValidator,
                             DisplayFieldsValidator displayFieldsValidator,
+                            DeploymentManagerService deploymentManagerService,
+                            DeploymentInfoValidator deploymentInfoValidator,
                             @Value("${validation.adapter.name:}") String adapterNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.displayFieldsValidator = displayFieldsValidator;
+        this.deploymentManagerService = deploymentManagerService;
+        this.deploymentInfoValidator = deploymentInfoValidator;
         this.adapterNameValidationPattern = adapterNameValidationPattern;
     }
 
@@ -36,7 +47,7 @@ public class AdapterValidator {
                     + "' does not match the required pattern: " + adapterNameValidationPattern);
         }
         displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
-        validateBaseEndpoint(adapter.getBaseEndpoint(), adapterName);
+        validateAdapterSource(adapter);
     }
 
     public void validateUpdate(String adapterName, Adapter adapter) {
@@ -44,14 +55,55 @@ public class AdapterValidator {
             throw new IllegalArgumentException("Adapter with name: '" + adapterName + "' can not be renamed. New adapter name: '" + adapter.getName() + "'");
         }
         displayFieldsValidator.validateDisplayName(adapter.getDisplayName(), "Adapter", adapterName);
-        validateBaseEndpoint(adapter.getBaseEndpoint(), adapterName);
+        validateAdapterSource(adapter);
+    }
+
+    private void validateAdapterSource(Adapter adapter) {
+        AdapterSource source = adapter.getSource();
+        String adapterName = adapter.getName();
+        String baseEndpoint = adapter.getBaseEndpoint();
+
+        if (source != null) {
+            if (source instanceof AdapterEndpointsSource) {
+                validateEndpointsSource(baseEndpoint, adapterName);
+            } else if (source instanceof AdapterContainerSource containerSource) {
+                validateContainerSource(containerSource, adapterName);
+            } else {
+                throw new IllegalArgumentException(
+                        "Unsupported adapter source: %s. Adapter: %s".formatted(source, adapterName)
+                );
+            }
+            return;
+        }
+
+        validateBaseEndpoint(baseEndpoint, adapterName);
+    }
+
+    private void validateEndpointsSource(String baseEndpoint, String adapterName) {
+        if (baseEndpoint == null) {
+            throw new IllegalArgumentException("Base endpoint is required when source type is 'Adapter endpoints'. Adapter: %s"
+                    .formatted(adapterName));
+        }
+        validateBaseEndpoint(baseEndpoint, adapterName);
+    }
+
+    private void validateContainerSource(AdapterContainerSource containerSource, String adapterName) {
+        String containerId = containerSource.getContainerId();
+        DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
+        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
+
+        validateEndpointPath(containerSource.getCompletionEndpointPath(), adapterName);
     }
 
     private void validateBaseEndpoint(String baseEndpoint, String adapterName) {
-        if (StringUtils.isBlank(baseEndpoint)) {
-            throw new IllegalArgumentException("Blank adapter base endpoint. Adapter: %s".formatted(adapterName));
-        } else if (EndpointValidator.isInvalidUrl(baseEndpoint)) {
-            throw new IllegalArgumentException("Invalid adapter base endpoint: '%s'. Adapter: %s".formatted(baseEndpoint, adapterName));
+        if (baseEndpoint != null && EndpointValidator.isInvalidUrl(baseEndpoint)) {
+            throw new IllegalArgumentException("Invalid base endpoint: '%s'. Adapter: %s".formatted(baseEndpoint, adapterName));
+        }
+    }
+
+    private void validateEndpointPath(String endpoint, String adapterName) {
+        if (StringUtils.isNotEmpty(endpoint) && EndpointValidator.isInvalidUrlPath(endpoint)) {
+            throw new IllegalArgumentException("Invalid endpoint path: '%s'. Adapter: %s".formatted(endpoint, adapterName));
         }
     }
 }

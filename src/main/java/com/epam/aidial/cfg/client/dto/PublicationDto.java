@@ -22,5 +22,6 @@ public class PublicationDto {
     private List<RuleDto> rules;
     private List<ResourceTypeDto> resourceTypes;
     private String author;
+    private String displayAuthor;
 
 }
