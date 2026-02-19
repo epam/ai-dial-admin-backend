@@ -17,6 +17,6 @@ import java.util.List;
 @AllArgsConstructor
 public class PromptPublicationDto extends PublicationDto {
 
-    private List<PromptDto> prompts;
+    private List<PromptPublicationResourceDto> prompts;
 
 }

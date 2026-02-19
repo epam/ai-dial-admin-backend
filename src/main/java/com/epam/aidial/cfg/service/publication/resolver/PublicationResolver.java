@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,8 @@ public abstract class PublicationResolver {
     }
 
     public abstract Publication resolvePublication(PublicationDto publicationDto);
+
+    public abstract PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files);
 
     public abstract ResourceType getResourceType();
 

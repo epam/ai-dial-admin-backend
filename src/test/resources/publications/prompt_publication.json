@@ -14,6 +14,9 @@
   ],
   "resources": [
     {
+      "sourceUrl": "prompts/source/Prompt_1",
+      "targetUrl": "prompts/public/Prompt_1",
+      "reviewUrl": "prompts/review/Prompt_1",
       "action": "add",
       "prompt": {
         "path": "Folder 1/Prompt 1",
@@ -25,6 +28,9 @@
       }
     },
     {
+      "sourceUrl": "prompts/source/Prompt_2",
+      "targetUrl": "prompts/public/Prompt_2",
+      "reviewUrl": "prompts/review/Prompt_2",
       "action": "add",
       "prompt": {
         "path": "Folder 1/Prompt 2",

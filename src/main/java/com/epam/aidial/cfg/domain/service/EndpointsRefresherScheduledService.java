@@ -16,12 +16,14 @@ public class EndpointsRefresherScheduledService {
 
     private final InterceptorService interceptorService;
     private final ToolSetService toolSetService;
+    private final AdapterService adapterService;
     private final ModelService modelService;
 
     // TODO [VPA]: use system user
     @Scheduled(fixedDelayString = "${plugins.deployment.manager.endpoint.refresh.interval}")
     public void refreshEndpoints() {
         refreshEndpoints(interceptorService::refreshEndpoints, "interceptor");
+        refreshEndpoints(adapterService::refreshEndpoints, "adapter");
         refreshEndpoints(toolSetService::refreshEndpoints, "toolset");
         refreshEndpoints(modelService::refreshEndpoints, "model");
     }

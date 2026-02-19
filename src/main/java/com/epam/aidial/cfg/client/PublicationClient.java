@@ -41,6 +41,9 @@ public interface PublicationClient {
     @PostMapping("/v1/ops/publication/delete")
     void deletePublication(@RequestBody PublicationPathDto publicationPathDto);
 
+    @PostMapping("/v1/ops/publication/update")
+    PublicationDto updatePublication(@RequestBody PublicationDto publicationDto);
+
     @PostMapping("/v1/ops/publication/rule/list")
     RulesDto getRules(@RequestBody RuleRequest requestDto);
 

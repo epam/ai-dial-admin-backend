@@ -19,7 +19,10 @@
         "baseEndpoint": "http://endpoint2/",
         "models": [
           "testModel2"
-        ]
+        ],
+        "source": {
+          "$type": "endpoints"
+        }
       }
     }
   ],
