@@ -15,7 +15,7 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '3.5.3'
+    id 'org.springframework.boot' version '3.5.10'
 }
 
 group = 'com.epam.aidial'
@@ -78,10 +78,12 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-sts:1.12.663'
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
     implementation 'com.azure:azure-identity:1.15.3'
+    implementation 'com.azure:azure-identity-extensions:1.2.7'
     implementation 'com.azure:azure-security-keyvault-secrets:4.8.3'
     implementation 'org.springframework.vault:spring-vault-core:3.1.2'
     implementation 'software.amazon.awssdk:secretsmanager:2.30.27'
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
+    implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
     implementation("org.jsoup:jsoup:1.21.1")
     implementation 'io.modelcontextprotocol.sdk:mcp:0.11.3'
@@ -162,7 +164,7 @@ dependencies {
     testImplementation 'org.testcontainers:mssqlserver'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.13') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.14') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
