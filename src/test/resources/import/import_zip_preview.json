@@ -322,6 +322,7 @@
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
         "applicationTypeAssistantAttachmentsInRequestSupported": false,
+        "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
         "interceptors":[],
         "$defs": {},
         "properties": {},

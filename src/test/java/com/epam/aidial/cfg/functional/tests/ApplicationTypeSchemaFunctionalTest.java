@@ -81,6 +81,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setApplicationTypeRoutes(List.of());
         dto.setInterceptors(List.of());
         dto.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
+        dto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
         Assertions.assertThat(actual).isEqualTo(dto);
     }
 
@@ -300,6 +301,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
+        dto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
         dto.setInterceptors(List.of());
         ApplicationTypeSchemaDto schemaDto = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(schemaDto).isEqualTo(dto);
@@ -441,6 +443,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         expected.setProperties(dto.getProperties());
         expected.setRequired(dto.getRequired());
         expected.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
+        expected.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
 
         CoreApplicationTypeSchema actual = typeSchemaFacade.getCoreSchemaWithHash(dto.getId()).core();
 
@@ -503,6 +506,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
                       "dial:appendApplicationPropertiesHeader": true,
                       "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
                       "dial:applicationTypeInterceptors": [],
+                      "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
                       "dial:applicationTypeBucketCopy": "ENABLED",
                       "$defs": {
                         "ToolEndpointInfo": {
