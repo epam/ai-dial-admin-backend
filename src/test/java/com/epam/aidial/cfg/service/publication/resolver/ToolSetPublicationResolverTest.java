@@ -301,7 +301,7 @@ class ToolSetPublicationResolverTest {
         when(toolSetClientMapper.toCreateToolSetResource(any())).thenReturn(new CreateToolSetResource());
         MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
                 "dtoJson".getBytes(StandardCharsets.UTF_8));
-        when(filePublicationResolver.updateFileResources(any(), any())).thenReturn(List.of(fileResource));
+        when(filePublicationResolver.updateFileResources(any(), any(), anyString())).thenReturn(List.of(fileResource));
 
         // when
         var result = toolSetPublicationResolver.updatePublicationResources(toolSetPublication, List.of(publicationFile));

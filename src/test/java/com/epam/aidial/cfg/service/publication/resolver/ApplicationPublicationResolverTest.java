@@ -302,7 +302,7 @@ class ApplicationPublicationResolverTest {
         when(applicationClientMapper.toCreateApplicationResource(any())).thenReturn(new CreateApplicationResource());
         MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
                 "dtoJson".getBytes(StandardCharsets.UTF_8));
-        when(filePublicationResolver.updateFileResources(any(), any())).thenReturn(List.of(fileResource));
+        when(filePublicationResolver.updateFileResources(any(), any(), anyString())).thenReturn(List.of(fileResource));
 
         // when
         var result = applicationPublicationResolver.updatePublicationResources(applicationPublication, List.of(publicationFile));

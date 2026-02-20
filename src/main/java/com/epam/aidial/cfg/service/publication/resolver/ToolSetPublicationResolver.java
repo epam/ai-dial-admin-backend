@@ -81,7 +81,8 @@ public class ToolSetPublicationResolver extends PublicationResolver {
                 .map(toolSetClientMapper::toCreateToolSetResource)
                 .forEach(toolSet -> toolSetResourceService.putToolSetResource(toolSet, true, null));
 
-        var updatedFileResources = filePublicationResolver.updateFileResources(publication, files);
+        var existingFileResources = filePublicationResolver.getFilePublicationResources(publication);
+        var updatedFileResources = filePublicationResolver.updateFileResources(existingFileResources, files, publication.getFolderId());
 
         var resources = Stream.concat(
                         toolSets.stream(),

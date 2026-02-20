@@ -83,7 +83,8 @@ public class FilePublicationResolver extends PublicationResolver {
 
     @Override
     public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
-        var updatedListFiles = updateFileResources(publication, files);
+        var existingFileResources = getFilePublicationResources(publication);
+        var updatedListFiles = updateFileResources(existingFileResources, files, publication.getFolderId());
         return mapper.toPublicationDto(publication, updatedListFiles);
     }
 
@@ -145,9 +146,9 @@ public class FilePublicationResolver extends PublicationResolver {
         }
     }
 
-    protected List<FilePublicationResource> updateFileResources(Publication publication, List<MultipartFile> files) {
-        List<FilePublicationResource> existingFileResources = getFilePublicationResources(publication);
-
+    protected List<FilePublicationResource> updateFileResources(List<FilePublicationResource> existingFileResources,
+                                                                List<MultipartFile> files,
+                                                                String folderId) {
         if (CollectionUtils.isEmpty(files)) {
             return existingFileResources;
         }
@@ -158,13 +159,13 @@ public class FilePublicationResolver extends PublicationResolver {
         validateUploadResult(uploadedSourceFiles);
 
         var newFileResources = uploadedSourceFiles.getImportResults().stream()
-                .map(importResult -> getPublicationResource(importResult, publication, updatesFolderPath))
+                .map(importResult -> getPublicationResource(importResult, folderId, updatesFolderPath))
                 .toList();
 
         return Stream.concat(existingFileResources.stream(), newFileResources.stream()).toList();
     }
 
-    private List<FilePublicationResource> getFilePublicationResources(Publication publication) {
+    List<FilePublicationResource> getFilePublicationResources(Publication publication) {
         List<FilePublicationResource> existingFileResources;
         if (publication instanceof ApplicationPublication applicationPublication) {
             existingFileResources = applicationPublication.getFiles();
@@ -210,11 +211,11 @@ public class FilePublicationResolver extends PublicationResolver {
 
     private FilePublicationResource getPublicationResource(
             ImportResourcesResult importResult,
-            Publication publication,
+            String folderId,
             String sourceFolder
     ) {
         var fileName = PathUtils.parsePath(importResult.getTargetPath()).getName();
-        var targetPath = FileClientMapper.FILES_PREFIX + PathUtils.ensureTrailingSlash(publication.getFolderId()) + fileName;
+        var targetPath = FileClientMapper.FILES_PREFIX + PathUtils.ensureTrailingSlash(folderId) + fileName;
         var sourcePath = FileClientMapper.FILES_PREFIX + sourceFolder + fileName;
 
         return FilePublicationResource.builder()
