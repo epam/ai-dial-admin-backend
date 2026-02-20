@@ -30,6 +30,11 @@ public class TestHistoryFacade {
         return historyFacade.getRevisionsList(pageRequestDto);
     }
 
+    public int getRevisionsListSize() {
+        PageRequestDto pageRequestDto = new PageRequestDto();
+        return historyFacade.getRevisionsList(pageRequestDto).size();
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void rollbackToRevision(Number revision) {
         historyFacade.rollbackToRevision(revision);
