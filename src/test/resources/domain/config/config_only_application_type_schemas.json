@@ -34,6 +34,7 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
+      "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
       "$defs": {
         "maxLength": 255
       }

@@ -35,6 +35,7 @@ public class ApplicationTypeSchema {
     private CopyAppBucketOptions applicationTypeBucketCopy;
     private List<String> interceptors;
     private boolean applicationTypeAssistantAttachmentsInRequestSupported;
+    private String applicationTypeSchemaEndpoint;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)

@@ -53,6 +53,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         expected.setAppendApplicationPropertiesHeader(true);
         expected.setInterceptors(List.of("interceptor1"));
         expected.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
+        expected.setApplicationTypeSchemaEndpoint("https://test.com/endpoint_1");
         assertApplicationTypeSchema(actual, expected);
 
         var actualAtOldRevision = applicationTypeSchemaFacade.getAll();
@@ -97,6 +98,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         applicationDto.setId("id" + suffix);
         applicationDto.setDescription("description" + suffix);
         applicationDto.setApplicationTypeDisplayName("id" + suffix);
+        applicationDto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint_" + suffix);
         return applicationDto;
     }
 }
