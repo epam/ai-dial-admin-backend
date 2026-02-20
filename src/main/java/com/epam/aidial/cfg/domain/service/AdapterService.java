@@ -208,6 +208,7 @@ public class AdapterService {
 
         Collection<Adapter> adapters = getAllAtRevision(revision);
         adapterJpaRepository.deleteAllExcept(adapters.stream().map(Adapter::getName).collect(Collectors.toList()));
+
         for (Adapter adapter : adapters) {
             adapter.setModels(List.of());
             AdapterEntity entity = adapterJpaRepository.findById(adapter.getName()).orElseGet(AdapterEntity::new);
