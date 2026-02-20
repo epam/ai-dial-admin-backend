@@ -79,8 +79,7 @@ public class ApplicationPublicationResolver extends PublicationResolver {
                 .map(applicationClientMapper::toCreateApplicationResource)
                 .forEach(application -> applicationService.putApplicationResource(application, true, null));
 
-        var existingFileResources = filePublicationResolver.getFilePublicationResources(publication);
-        var updatedFileResources = filePublicationResolver.updateFileResources(existingFileResources, files, publication.getFolderId());
+        var updatedFileResources = filePublicationResolver.updateFileResources(applicationPublication.getFiles(), files, publication.getFolderId());
 
         var resources = Stream.concat(
                         applications.stream(),

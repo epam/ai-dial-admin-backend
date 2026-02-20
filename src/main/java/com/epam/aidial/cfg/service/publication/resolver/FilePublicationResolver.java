@@ -10,8 +10,6 @@ import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.PublicationFileUploadException;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
-import com.epam.aidial.cfg.model.ApplicationPublication;
-import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -24,7 +22,6 @@ import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
-import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
@@ -83,8 +80,8 @@ public class FilePublicationResolver extends PublicationResolver {
 
     @Override
     public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
-        var existingFileResources = getFilePublicationResources(publication);
-        var updatedListFiles = updateFileResources(existingFileResources, files, publication.getFolderId());
+        var filePublication = (FilePublication) publication;
+        var updatedListFiles = updateFileResources(filePublication.getResources(), files, publication.getFolderId());
         return mapper.toPublicationDto(publication, updatedListFiles);
     }
 
@@ -163,22 +160,6 @@ public class FilePublicationResolver extends PublicationResolver {
                 .toList();
 
         return Stream.concat(existingFileResources.stream(), newFileResources.stream()).toList();
-    }
-
-    List<FilePublicationResource> getFilePublicationResources(Publication publication) {
-        List<FilePublicationResource> existingFileResources;
-        if (publication instanceof ApplicationPublication applicationPublication) {
-            existingFileResources = applicationPublication.getFiles();
-        } else if (publication instanceof ToolSetPublication toolSetPublication) {
-            existingFileResources = toolSetPublication.getFiles();
-        } else if (publication instanceof ConversationPublication conversationPublication) {
-            existingFileResources = conversationPublication.getFiles();
-        } else if (publication instanceof FilePublication file) {
-            existingFileResources = file.getResources();
-        } else {
-            existingFileResources = List.of();
-        }
-        return existingFileResources;
     }
 
     private ImportResourcesFileResult upload(List<MultipartFile> files, String path) {
