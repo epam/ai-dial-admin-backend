@@ -68,5 +68,6 @@
   "dial:appendApplicationPropertiesHeader": true,
   "dial:applicationTypeInterceptors":[],
   "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
+  "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
   "$defs": {}
 }

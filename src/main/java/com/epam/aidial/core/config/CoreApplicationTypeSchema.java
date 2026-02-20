@@ -71,7 +71,10 @@ public class CoreApplicationTypeSchema {
     
     @JsonProperty("dial:applicationTypeAssistantAttachmentsInRequestSupported")
     private boolean applicationTypeAssistantAttachmentsInRequestSupported; //0.39.0
-    
+
+    @JsonProperty("dial:applicationTypeSchemaEndpoint")
+    private String applicationTypeSchemaEndpoint; //0.41.0
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)

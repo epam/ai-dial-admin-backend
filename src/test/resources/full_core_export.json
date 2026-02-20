@@ -410,6 +410,7 @@
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeInterceptors":["testInterceptor1"],
       "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
+      "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
       "$defs": {}
     }
   ]
