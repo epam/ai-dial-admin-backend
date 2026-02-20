@@ -79,6 +79,9 @@ public class ApplicationTypeSchemaDto {
 
     @JsonProperty("dial:applicationTypeAssistantAttachmentsInRequestSupported")
     private boolean applicationTypeAssistantAttachmentsInRequestSupported;
+
+    @JsonProperty("dial:applicationTypeSchemaEndpoint")
+    private String applicationTypeSchemaEndpoint;
     
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
@@ -130,6 +133,7 @@ public class ApplicationTypeSchemaDto {
         this.applicationTypeBucketCopy = other.applicationTypeBucketCopy;
         this.interceptors = other.interceptors != null ? new ArrayList<>(other.interceptors) : null;
         this.applicationTypeAssistantAttachmentsInRequestSupported = other.applicationTypeAssistantAttachmentsInRequestSupported;
+        this.applicationTypeSchemaEndpoint = other.applicationTypeSchemaEndpoint;
         this.defs = other.defs != null ? new HashMap<>(other.defs) : null;
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;

@@ -14,6 +14,7 @@
     "applicationTypeRateEndpoint": "https://example.com/rate",
     "applicationTypeTokenizeEndpoint": "https://example.com/tokenize",
     "applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
+    "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
     "appendApplicationPropertiesHeader": true,
     "$defs": {
       "maxLength": 255
