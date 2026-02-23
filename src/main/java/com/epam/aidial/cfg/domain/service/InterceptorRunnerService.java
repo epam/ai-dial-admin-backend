@@ -167,6 +167,7 @@ public class InterceptorRunnerService {
         interceptorRunnerJpaRepository.deleteAllExcept(interceptorRunners.stream().map(InterceptorRunner::getName).toList());
 
         for (InterceptorRunner interceptorRunner : interceptorRunners) {
+            interceptorRunner.setInterceptors(List.of());
             InterceptorRunnerEntity entity = interceptorRunnerJpaRepository.findById(interceptorRunner.getName()).orElseGet(InterceptorRunnerEntity::new);
             InterceptorRunnerEntity interceptorRunnerEntity = toEntity(interceptorRunner, entity);
             interceptorRunnerJpaRepository.save(interceptorRunnerEntity);

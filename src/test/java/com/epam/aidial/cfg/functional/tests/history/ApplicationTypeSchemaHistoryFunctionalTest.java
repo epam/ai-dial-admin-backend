@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
+import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.functional.utils.FunctionalTestHelper;
@@ -8,12 +9,17 @@ import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 
 public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
 
@@ -34,7 +40,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         ApplicationTypeSchemaDto applicationDto = createDto("1");
         applicationDto.setInterceptors(List.of("interceptor1", "interceptor2"));
         applicationTypeSchemaFacade.create(applicationDto);
-        applicationTypeSchemaFacade.get("id1");
+        applicationTypeSchemaFacade.get("https://test-schema.example/1");
 
         // 2 update application1 description
         ApplicationTypeSchemaDto updatedApplicationTypeSchema = createDto("1");
@@ -83,10 +89,34 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         Assertions.assertEquals(actualAtOldRevision, applicationsAfterRollback);
     }
 
-    private ApplicationTypeSchemaDto createAppTypeSchema(String suffix) {
-        ApplicationTypeSchemaDto dto = new ApplicationTypeSchemaDto();
-        dto.setId("https://test-schema.example/" + suffix);
-        return dto;
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    public void shouldSuccessfullyRollbackDeletedApplicationTypeSchemaWithApplication(boolean removeApplication) {
+        // create application type schema
+        ApplicationTypeSchemaDto applicationTypeSchemaDto = createDto("1");
+        applicationTypeSchemaFacade.create(applicationTypeSchemaDto);
+
+        // create application
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));
+        applicationFacade.createApplication(applicationDto);
+
+        // remember rev number and expected application type schemas state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<ApplicationTypeSchemaDto> actualAtRevision = applicationTypeSchemaFacade.getAll();
+
+        // delete application type schema
+        applicationTypeSchemaFacade.delete(applicationTypeSchemaDto.getId(), removeApplication);
+
+        // rollback and verify
+        int revisionsListSizeBeforeRollback = historyFacade.getRevisionsListSize();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        int revisionsListSizeAfterRollback = historyFacade.getRevisionsListSize();
+
+        Assertions.assertEquals(revisionsListSizeBeforeRollback + 1, revisionsListSizeAfterRollback);
+
+        Collection<ApplicationTypeSchemaDto> applicationTypeSchemasAfterRollbackToRevision = applicationTypeSchemaFacade.getAll();
+        Assertions.assertEquals(actualAtRevision, applicationTypeSchemasAfterRollbackToRevision);
     }
 
     private void assertApplicationTypeSchema(ApplicationTypeSchemaDto actual, ApplicationTypeSchemaDto expected) {
@@ -95,7 +125,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
 
     private ApplicationTypeSchemaDto createDto(String suffix) {
         ApplicationTypeSchemaDto applicationDto = new ApplicationTypeSchemaDto();
-        applicationDto.setId("id" + suffix);
+        applicationDto.setId("https://test-schema.example/" + suffix);
         applicationDto.setDescription("description" + suffix);
         applicationDto.setApplicationTypeDisplayName("id" + suffix);
         applicationDto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint_" + suffix);
