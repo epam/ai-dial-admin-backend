@@ -306,9 +306,7 @@ class PublicationServiceTest {
                 .resourceTypes(List.of(ResourceTypeDto.PROMPT))
                 .build();
 
-        when(promptPublicationResolver.updatePublicationResources(updatePublication, null))
-                .thenReturn(publicationDto);
-
+        when(promptPublicationResolver.updatePublicationResourceTargets(any())).thenReturn(publicationDto);
         when(publicationClient.updatePublication(any()))
                 .thenReturn(publicationDto);
 
@@ -316,7 +314,8 @@ class PublicationServiceTest {
         publicationService.updatePublication(updatePublication, null);
 
         // then
-        verify(promptPublicationResolver).updatePublicationResources(updatePublication, null);
+        verify(promptPublicationResolver).updatePublicationResources(updatePublication);
+        verify(promptPublicationResolver).updatePublicationResources(updatePublication);
         verify(publicationClient).updatePublication(publicationDto);
     }
 

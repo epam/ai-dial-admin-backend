@@ -32,7 +32,9 @@ public abstract class PublicationResolver {
 
     public abstract Publication resolvePublication(PublicationDto publicationDto);
 
-    public abstract PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files);
+    public abstract void updatePublicationResources(Publication publication);
+
+    public abstract PublicationDto updatePublicationResourceTargets(Publication publication);
 
     public abstract ResourceType getResourceType();
 
@@ -67,6 +69,9 @@ public abstract class PublicationResolver {
 
     public String extractFilePath(ResourceInfo resourceInfo) {
         return extractPath(resourceInfo, FileClientMapper.FILES_PREFIX);
+    }
+
+    public void attachUploadedFiles(Publication publication, List<MultipartFile> files) {
     }
 
     public <T> Optional<T> resolveResourceAndCollectIssues(
