@@ -16,8 +16,8 @@ import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.prompt.PromptService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
+import com.epam.aidial.cfg.utils.PathUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +61,7 @@ public class PromptPublicationResolver extends PublicationResolver {
     }
 
     @Override
-    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
+    public void updatePublicationResources(Publication publication) {
         var promptPublication = (PromptPublication) publication;
 
         var prompts = promptPublication.getResources();
@@ -70,8 +70,6 @@ public class PromptPublicationResolver extends PublicationResolver {
                 .map(PromptPublicationResource::getPrompt)
                 .map(promptClientMapper::toCreatePrompt)
                 .forEach(prompt -> promptService.putPrompt(prompt, true, null));
-
-        return mapper.toPublicationDto(publication, prompts);
     }
 
     @Override
@@ -82,6 +80,24 @@ public class PromptPublicationResolver extends PublicationResolver {
     @Override
     public Set<ResourceTypeDto> applicableResourceTypes() {
         return Set.of(ResourceTypeDto.PROMPT, ResourceTypeDto.FILE);
+    }
+
+    @Override
+    public PublicationDto updatePublicationResourceTargets(Publication publication) {
+        var promptPublication = (PromptPublication) publication;
+        var updatedResources = promptPublication.getResources().stream()
+                .map(fileResource -> recalculateTargetUrl(fileResource, publication.getFolderId()))
+                .toList();
+        return mapper.toPublicationDto(publication, updatedResources);
+    }
+
+    private PromptPublicationResource recalculateTargetUrl(PromptPublicationResource resource, String folderId) {
+        var folder = PathUtils.ensureTrailingSlash(folderId);
+        var promptResource = resource.getPrompt();
+        var newTargetPath = PathUtils.buildPath(PromptClientMapper.PROMPTS_PREFIX + folder,
+                promptResource.getName(), promptResource.getVersion());
+        resource.setTargetUrl(newTargetPath);
+        return resource;
     }
 
     private PromptPublicationResource getPromptPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {

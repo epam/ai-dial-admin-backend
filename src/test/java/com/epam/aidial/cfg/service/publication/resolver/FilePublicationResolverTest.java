@@ -13,6 +13,8 @@ import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
+import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
+import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
@@ -20,15 +22,14 @@ import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
-import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UserBucket;
 import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -37,12 +38,15 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.MimeTypeUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -269,10 +273,22 @@ class FilePublicationResolverTest {
     }
 
     @Test
+    void attachUploadedFilesShouldDoNothingWhenFilesEmpty() {
+        // given
+        var publication = new FilePublication();
+        publication.setResources(new ArrayList<>());
+
+        // when
+        filePublicationResolver.attachUploadedFiles(publication, List.of());
+
+        // then
+        assertThat(publication.getResources()).isEmpty();
+        verifyNoInteractions(bucketService);
+    }
+
+    @Test
     void updatePublicationResourcesShouldReturnCorrectFilePublication() {
         // given
-        var publicationPath = "testPublication";
-        var fullPath = "publications/" + publicationPath;
         var filePrefix = "files/";
         var fileName = "testFile";
 
@@ -285,30 +301,19 @@ class FilePublicationResolverTest {
         var sourceFolder = "sourceFolder/";
         var sourceFolderPath = sourceFolder + fileName;
 
-        var publicationResource = new FilePublicationResource();
-        publicationResource.setAction(PublicationResourceAction.ADD);
-        publicationResource.setTargetUrl(filePrefix + targetFilePath);
-        publicationResource.setReviewUrl(filePrefix + reviewFilePath);
-        publicationResource.setSourceUrl(filePrefix + sourceFolderPath);
-
-        var rule = new Rule();
-        rule.setSource("role");
-        rule.setFunction(RuleFunction.EQUAL);
-        rule.setTargets(List.of("user"));
+        var existingResource = new FilePublicationResource();
+        existingResource.setAction(PublicationResourceAction.ADD);
+        existingResource.setTargetUrl(filePrefix + targetFilePath);
+        existingResource.setReviewUrl(filePrefix + reviewFilePath);
+        existingResource.setSourceUrl(filePrefix + sourceFolderPath);
 
         var publication = new FilePublication();
-        publication.setPath(publicationPath);
-        publication.setRequestName("Test Publication");
-        publication.setAuthor("Author Name");
-        publication.setCreatedAt(100);
         publication.setFolderId(targetFolder);
-        publication.setStatus(PublicationStatus.PENDING);
-        publication.setResources(List.of(publicationResource));
-        publication.setRules(List.of(rule));
+        publication.setResources(List.of(existingResource));
 
         var importResult = ImportResourcesResult.builder()
-                .targetPath("targetPath/1.txt")
-                .sourcePath("sourcePath/1.txt")
+                .sourcePath("userFolder/publications_updates/1.txt")
+                .targetPath("targetFolder/1.txt")
                 .status(ImportResourcesStatus.SUCCESS)
                 .build();
 
@@ -319,37 +324,25 @@ class FilePublicationResolverTest {
                 "dtoJson".getBytes(StandardCharsets.UTF_8));
 
         when(fileService.uploadFile(any(), any())).thenReturn(importFileResult);
-        when(bucketService.getBucket()).thenReturn(new UserBucket(sourceFolder, null));
+        when(bucketService.getBucket()).thenReturn(new UserBucket("userFolder", null));
 
         // when
-        var result = filePublicationResolver.updatePublicationResources(publication, List.of(publicationFile));
+        filePublicationResolver.attachUploadedFiles(publication, List.of(publicationFile));
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getUrl()).isEqualTo(fullPath);
-        assertThat(result.getName()).isEqualTo("Test Publication");
-        assertThat(result.getAuthor()).isEqualTo("Author Name");
-        assertThat(result.getStatus()).isEqualTo(PublicationStatusDto.PENDING);
-        assertThat(result.getTargetFolder()).isEqualTo(targetFolder);
+        verify(bucketService).getBucket();
 
-        assertThat(result.getRules()).hasSize(1);
-        var resultRule = result.getRules().get(0);
-        assertThat(resultRule.getSource()).isEqualTo("role");
-        assertThat(resultRule.getFunction()).isEqualTo(RuleFunctionDto.EQUAL);
-        assertThat(resultRule.getTargets()).containsExactly("user");
-
-        assertThat(result.getResources()).hasSize(2);
-        var resource = result.getResources().get(0);
-        assertThat(resource.getAction()).isEqualTo(PublicationResourceActionDto.ADD);
-        assertThat(resource.getSourceUrl()).isEqualTo("files/sourceFolder/testFile");
-        assertThat(resource.getTargetUrl()).isEqualTo("files/targetFolder/testFile");
-        assertThat(resource.getReviewUrl()).isEqualTo("files/reviewFolder/testFile");
-
-        var resource2 = result.getResources().get(1);
-        assertThat(resource2.getAction()).isEqualTo(PublicationResourceActionDto.ADD_IF_ABSENT);
-        assertThat(resource2.getSourceUrl()).isEqualTo("files/sourceFolder/publications_updates/1.txt");
-        assertThat(resource2.getTargetUrl()).isEqualTo("files/targetFolder/1.txt");
-        Assertions.assertNull(resource2.getReviewUrl());
+        ArgumentCaptor<ImportResources> captor = ArgumentCaptor.forClass(ImportResources.class);
+        verify(fileService).uploadFile(any(), captor.capture());
+        var capturedImport = captor.getValue();
+        assertThat(capturedImport.getPath()).isEqualTo("userFolder/publications_updates/");
+        assertThat(capturedImport.getConflictResolutionStrategy()).isEqualTo(ImportConflictResolutionStrategy.OVERRIDE);
+        assertThat(publication.getResources()).hasSize(2);
+        var appendedResource = publication.getResources().get(1);
+        assertThat(appendedResource.getAction()).isEqualTo(PublicationResourceAction.ADD_IF_ABSENT);
+        assertThat(appendedResource.getTargetUrl()).isEqualTo("files/targetFolder/1.txt");
+        assertThat(appendedResource.getSourceUrl()).isEqualTo("files/userFolder/publications_updates/1.txt");
+        assertThat(appendedResource.getReviewUrl()).isNull();
     }
 
 }

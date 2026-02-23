@@ -66,8 +66,12 @@ public class ToolSetPublicationResolver extends PublicationResolver {
         return mapper.toToolSetPublication(publicationDto, toolSetResources, files, resourceIssues);
     }
 
+    public void updatePublicationResources(Publication publications) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
     @Override
-    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
+    public PublicationDto updatePublicationResourceTargets(Publication publication) {
         throw new UnsupportedOperationException("Operation not supported");
     }
 
