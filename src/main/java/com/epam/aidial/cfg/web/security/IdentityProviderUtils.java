@@ -2,16 +2,12 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -20,6 +16,13 @@ public class IdentityProviderUtils {
 
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0";
+
+    private final Set<String> defaultAllowedRoles;
+
+    public IdentityProviderUtils(@Value("${config.rest.security.default.allowedRoles}")
+                                 Set<String> defaultAllowedRoles) {
+        this.defaultAllowedRoles = Set.copyOf(defaultAllowedRoles);
+    }
 
     public Set<String> getAcceptedIssuers(JwtProviderConfig config) {
         final HashSet<String> acceptedIssuers = new HashSet<>();
@@ -51,15 +54,11 @@ public class IdentityProviderUtils {
         }
     }
 
-    public Optional<String> extractFirstClaim(Map<String, Object> attributes,
-                                              List<String> claims) {
-        if (MapUtils.isEmpty(attributes) || CollectionUtils.isEmpty(claims)) {
-            return Optional.empty();
+    public Set<String> getAllowedRoles(Set<String> allowedRoles) {
+        Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
+        if (allowedRoles != null) {
+            acceptedRoles.addAll(allowedRoles);
         }
-        return claims.stream()
-                .map(attributes::get)
-                .filter(Objects::nonNull)
-                .map(Object::toString)
-                .findFirst();
+        return Set.copyOf(acceptedRoles);
     }
 }

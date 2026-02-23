@@ -28,7 +28,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 @Configuration(proxyBeanMethods = false)
@@ -45,9 +44,6 @@ public class SecurityConfiguration {
     @Value("${config.rest.security.disable-swagger-authorization}")
     protected boolean disableSwaggerAuthorization;
 
-    @Value("${config.rest.security.default.allowedRoles}")
-    protected Set<String> defaultAllowedRoles;
-
     @Value("${config.rest.security.default.email.claims}")
     protected String defaultClaimsEmailKey;
 
@@ -55,11 +51,11 @@ public class SecurityConfiguration {
     protected boolean requireEmail;
 
     @Bean
-    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory() {
+    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String defaultPrincipalClaim) {
         return new JwtAuthenticationConverterFactory(
                 identityProvidersProperties.getJwtProviders(),
                 identityProviderUtils,
-                defaultAllowedRoles,
+                defaultPrincipalClaim,
                 defaultClaimsEmailKey,
                 requireEmail);
     }
@@ -69,7 +65,6 @@ public class SecurityConfiguration {
         return new OpaqueAuthenticationConverterFactory(
                 identityProvidersProperties.getOpaqueTokenProviders(),
                 identityProviderUtils,
-                defaultAllowedRoles,
                 defaultClaimsEmailKey,
                 requireEmail);
     }

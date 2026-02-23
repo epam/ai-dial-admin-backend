@@ -19,16 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JwtAuthenticationConverterFactoryTest {
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
-    private final IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils();
+    private final IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils(Set.of("admin", "ConfigAdmin"));
     private JwtAuthenticationConverterFactory factory;
-    private ConfigurableJwtAuthenticationConverter converter;
+    private JwtAuthenticationConverter converter;
 
     @BeforeEach
     void setup() {
         factory = new JwtAuthenticationConverterFactory(
                 List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
                 identityProviderUtils,
-                Set.of("admin", "ConfigAdmin"),
+                "oid",
                 "unique_name", false);
         converter = factory.getConverter(TEST_ISSUER);
     }
@@ -106,8 +106,8 @@ class JwtAuthenticationConverterFactoryTest {
         var factoryWithRequiredEmail = new JwtAuthenticationConverterFactory(
                 List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
                 identityProviderUtils,
-                Set.of("admin", "ConfigAdmin"),
                 "unique_name",
+                "oid",
                 true);
         var converterWithRequiredEmail = factoryWithRequiredEmail.getConverter(TEST_ISSUER);
         var jwtToken = generateTestToken(

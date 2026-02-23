@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
+import com.epam.aidial.cfg.utils.MapExtractionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -9,9 +10,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
@@ -20,27 +19,25 @@ import java.util.List;
 import java.util.Set;
 
 @Slf4j
-public class ConfigurableJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
-    private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    private final Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter;
     private final String principalClaimName;
     private final Set<String> emailClaims = new LinkedHashSet<>();
     private final Set<String> allowedRoles;
     private final boolean requireEmail;
-    private final IdentityProviderUtils identityProviderUtils;
 
-    public ConfigurableJwtAuthenticationConverter(List<String> issuerEmailClaims,
-                                                  Set<String> allowedRoles,
-                                                  String defaultClaimsEmailKey,
-                                                  boolean requireEmail,
-                                                  IdentityProviderUtils identityProviderUtils,
-                                                  Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter,
-                                                  String principalClaimName) {
+    public JwtAuthenticationConverter(List<String> issuerEmailClaims,
+                                      Set<String> allowedRoles,
+                                      String defaultClaimsEmailKey,
+                                      String defaultPrincipalClaim,
+                                      boolean requireEmail,
+                                      Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter,
+                                      String principalClaimName) {
         this.allowedRoles = allowedRoles;
         this.requireEmail = requireEmail;
-        this.identityProviderUtils = identityProviderUtils;
         this.principalClaimName =
-                StringUtils.defaultIfBlank(principalClaimName, JwtClaimNames.SUB);
+                StringUtils.defaultIfBlank(principalClaimName, defaultPrincipalClaim);
         this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
         if (!CollectionUtils.isEmpty(issuerEmailClaims)) {
             this.emailClaims.addAll(issuerEmailClaims);
@@ -52,7 +49,7 @@ public class ConfigurableJwtAuthenticationConverter implements Converter<Jwt, Ab
     @NotNull
     @Override
     public AbstractAuthenticationToken convert(@NotNull Jwt jwt) {
-        var email = identityProviderUtils.extractFirstClaim(jwt.getClaims(), List.copyOf(emailClaims));
+        var email = MapExtractionUtils.extractFirstPresentValue(jwt.getClaims(), List.copyOf(emailClaims));
 
         if (requireEmail && email.isEmpty()) {
             throw new AuthenticationServiceException("Email claim is required");

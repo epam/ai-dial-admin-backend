@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
+import com.epam.aidial.cfg.utils.MapExtractionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -17,21 +18,18 @@ import java.util.List;
 import java.util.Set;
 
 @Slf4j
-public class ConfigurableOpaqueAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
+public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     private final Set<String> emailClaims = new LinkedHashSet<>();
     private final Set<String> allowedRoles;
     private final boolean requireEmail;
-    private final IdentityProviderUtils identityProviderUtils;
 
-    public ConfigurableOpaqueAuthenticationConverter(List<String> emailClaims,
-                                                     Set<String> allowedRoles,
-                                                     String defaultClaimsEmailKey,
-                                                     boolean requireEmail,
-                                                     IdentityProviderUtils identityProviderUtils) {
+    public OpaqueAuthenticationConverter(List<String> emailClaims,
+                                         Set<String> allowedRoles,
+                                         String defaultClaimsEmailKey,
+                                         boolean requireEmail) {
         this.allowedRoles = allowedRoles;
         this.requireEmail = requireEmail;
-        this.identityProviderUtils = identityProviderUtils;
         if (!CollectionUtils.isEmpty(emailClaims)) {
             this.emailClaims.addAll(emailClaims);
         } else if (StringUtils.isNotBlank(defaultClaimsEmailKey)) {
@@ -45,7 +43,7 @@ public class ConfigurableOpaqueAuthenticationConverter implements OpaqueTokenAut
 
         var accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null);
 
-        var email = identityProviderUtils.extractFirstClaim(authenticatedPrincipal.getAttributes(), List.copyOf(emailClaims));
+        var email = MapExtractionUtils.extractFirstPresentValue(authenticatedPrincipal.getAttributes(), List.copyOf(emailClaims));
 
         if (requireEmail && email.isEmpty()) {
             throw new AuthenticationServiceException("Email claim is required");
