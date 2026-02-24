@@ -182,7 +182,12 @@ public class ApplicationService {
     public void rollbackApplications(Number revision) {
         Collection<Application> applications = getAllAtRevision(revision);
         List<String> ids = applications.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
-        applicationJpaRepository.deleteAllExcept(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            applicationJpaRepository.deleteAll();
+        } else {
+            Iterable<ApplicationEntity> applicationsToDelete = applicationJpaRepository.findByIdNotIn(ids);
+            applicationJpaRepository.deleteAll(applicationsToDelete);
+        }
 
         for (Application application : applications) {
             application.setInterceptors(List.of());
