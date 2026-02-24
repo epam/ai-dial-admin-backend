@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dao.model.AdapterContainerEntity;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
+import com.epam.aidial.cfg.dao.model.ModelTypeEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.source.AdapterEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
@@ -15,10 +16,16 @@ import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public abstract class AdapterEntityMapper {
+
+    private static final Map<Boolean, String> ENDPOINT_ENDING_MAP = Map.of(
+            true, "chat/completions",
+            false, "embeddings"
+    );
 
     @Autowired
     protected AdapterContainerEntityMapper adapterContainerEntityMapper;
@@ -59,8 +66,11 @@ public abstract class AdapterEntityMapper {
                         // Clear container when setting adapter to ensure mutual exclusivity
                         model.setModelContainer(null);
                         model.setAdapter(updatedEntity);
-                        model.setAdapterCompletionEndpointPath(model.getId() + "/chat/completions");
                         model.setEndpoint(null);
+
+                        boolean isChat = isChat(model.getType());
+                        String endpointEnding = ENDPOINT_ENDING_MAP.get(isChat);
+                        model.setAdapterCompletionEndpointPath("%s/%s".formatted(model.getId(), endpointEnding));
                     });
             updatedEntity.getModels().clear();
             updatedEntity.getModels().addAll(models);
@@ -83,5 +93,9 @@ public abstract class AdapterEntityMapper {
                 .map(ModelEntity::getDeployment)
                 .map(DeploymentEntity::getName)
                 .collect(Collectors.toList());
+    }
+
+    private boolean isChat(ModelTypeEntity type) {
+        return type == ModelTypeEntity.CHAT || type == null;
     }
 }
