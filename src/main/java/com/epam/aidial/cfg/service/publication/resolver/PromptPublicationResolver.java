@@ -17,6 +17,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.prompt.PromptService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
+import com.epam.aidial.core.util.UrlUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -94,8 +95,8 @@ public class PromptPublicationResolver extends PublicationResolver {
     private PromptPublicationResource recalculateTargetUrl(PromptPublicationResource resource, String folderId) {
         var folder = PathUtils.ensureTrailingSlash(folderId);
         var promptResource = resource.getPrompt();
-        var newTargetPath = PathUtils.buildPath(PromptClientMapper.PROMPTS_PREFIX + folder,
-                promptResource.getName(), promptResource.getVersion());
+        var newTargetPath = UrlUtil.encodePath(PathUtils.buildPath(PromptClientMapper.PROMPTS_PREFIX + folder,
+                promptResource.getName(), promptResource.getVersion()));
         resource.setTargetUrl(newTargetPath);
         return resource;
     }
