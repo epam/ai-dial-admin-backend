@@ -95,7 +95,7 @@ public class PathUtils {
 
     public static String buildPath(String folderId, String name, String version) {
         var cleanFolderId = StringUtils.stripEnd(folderId, "/");
-        return cleanFolderId + "/" + name + "__" + version;
+        return UrlUtil.encodePath(cleanFolderId + "/" + name + "__" + version);
     }
 
     /**
