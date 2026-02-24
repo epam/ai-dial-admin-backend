@@ -43,7 +43,7 @@ public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationC
 
         var accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null);
 
-        var email = MapExtractionUtils.extractFirstPresentValue(authenticatedPrincipal.getAttributes(), List.copyOf(emailClaims));
+        var email = MapExtractionUtils.extractFirstNonNullValue(authenticatedPrincipal.getAttributes(), List.copyOf(emailClaims));
 
         if (requireEmail && email.isEmpty()) {
             throw new AuthenticationServiceException("Email claim is required");

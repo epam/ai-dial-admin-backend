@@ -19,8 +19,7 @@ public class IdentityProviderUtils {
 
     private final Set<String> defaultAllowedRoles;
 
-    public IdentityProviderUtils(@Value("${config.rest.security.default.allowedRoles}")
-                                 Set<String> defaultAllowedRoles) {
+    public IdentityProviderUtils(@Value("${config.rest.security.default.allowedRoles}") Set<String> defaultAllowedRoles) {
         this.defaultAllowedRoles = Set.copyOf(defaultAllowedRoles);
     }
 

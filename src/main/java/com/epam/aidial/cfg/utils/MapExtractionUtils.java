@@ -12,11 +12,11 @@ import java.util.Optional;
 @UtilityClass
 public final class MapExtractionUtils {
 
-    public static Optional<String> extractFirstPresentValue(
+    public static Optional<String> extractFirstNonNullValue(
             Map<String, ?> source,
             List<String> keys) {
 
-        if (MapUtils.isEmpty(source) || keys == null || CollectionUtils.isEmpty(keys)) {
+        if (MapUtils.isEmpty(source) || CollectionUtils.isEmpty(keys)) {
             return Optional.empty();
         }
 

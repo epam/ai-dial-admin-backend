@@ -49,7 +49,7 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
     @NotNull
     @Override
     public AbstractAuthenticationToken convert(@NotNull Jwt jwt) {
-        var email = MapExtractionUtils.extractFirstPresentValue(jwt.getClaims(), List.copyOf(emailClaims));
+        var email = MapExtractionUtils.extractFirstNonNullValue(jwt.getClaims(), List.copyOf(emailClaims));
 
         if (requireEmail && email.isEmpty()) {
             throw new AuthenticationServiceException("Email claim is required");

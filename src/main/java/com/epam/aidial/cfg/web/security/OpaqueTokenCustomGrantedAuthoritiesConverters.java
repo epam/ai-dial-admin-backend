@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.web.security;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.ql.common.deserializer.TriFunction;
+import com.epam.aidial.cfg.utils.MapExtractionUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -29,22 +29,25 @@ public class OpaqueTokenCustomGrantedAuthoritiesConverters {
     private static final ParameterizedTypeReference<JsonNode> JSON_NODE = new ParameterizedTypeReference<>() {
     };
 
-    public static final Map<String, TriFunction<RestTemplate, String, Map<String, Object>, List<GrantedAuthority>>> CONVERTERS = Map.of(
+    public static final Map<String, Function<OpaqueAuthorityExtractionContext, List<GrantedAuthority>>> CONVERTERS = Map.of(
             "fn:getGoogleWorkspaceGroups", OpaqueTokenCustomGrantedAuthoritiesConverters::getGoogleAuthorities
     );
 
-    private static List<GrantedAuthority> getGoogleAuthorities(RestTemplate restTemplate, String token, Map<String, Object> attributes) {
+    private static List<GrantedAuthority> getGoogleAuthorities(OpaqueAuthorityExtractionContext context) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
+        headers.setBearerAuth(context.token());
 
         HttpEntity<JsonNode> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<JsonNode> response = makeRequest(() -> restTemplate.exchange(
+        var email = MapExtractionUtils.extractFirstNonNullValue(context.attributes(), context.emailClaims()).orElseThrow(
+                () -> new OAuth2IntrospectionException("Email claim is missing in token"));
+
+        ResponseEntity<JsonNode> response = makeRequest(() -> context.restTemplate().exchange(
                 "https://content-cloudidentity.googleapis.com/v1/groups/-/memberships:searchDirectGroups?query=member_key_id=='{email}'",
                 HttpMethod.GET,
                 entity,
                 JSON_NODE,
-                attributes.get("email")
+                email
         ));
 
         checkResponse(response);
