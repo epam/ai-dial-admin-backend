@@ -17,14 +17,14 @@ import java.util.List;
 public class ExportConfigMetadataProvider {
 
     public ExportConfigMetadata getMetadata(ExportFormat exportFormat) {
-        var components = getAllMetadata(exportFormat);
+        var components = getComponents(exportFormat);
 
         return ExportConfigMetadata.builder()
                 .components(components)
                 .build();
     }
 
-    private List<ExportConfigComponentMetadata> getAllMetadata(ExportFormat exportFormat) {
+    private List<ExportConfigComponentMetadata> getComponents(ExportFormat exportFormat) {
         return Arrays.stream(ExportConfigComponentType.values())
                 .filter(type -> type.supports(exportFormat))
                 .map(type -> new ExportConfigComponentMetadata(type, type.getAllDependencies(exportFormat)))
