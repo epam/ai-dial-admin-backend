@@ -12,9 +12,9 @@ import java.util.Optional;
 @UtilityClass
 public final class MapExtractionUtils {
 
-    public static Optional<String> extractFirstNonNullValue(
-            Map<String, ?> source,
-            List<String> keys) {
+    public static <K, V> Optional<V> extractFirstNonNullValue(
+            Map<K, V> source,
+            List<K> keys) {
 
         if (MapUtils.isEmpty(source) || CollectionUtils.isEmpty(keys)) {
             return Optional.empty();
@@ -23,7 +23,6 @@ public final class MapExtractionUtils {
         return keys.stream()
                 .map(source::get)
                 .filter(Objects::nonNull)
-                .map(Object::toString)
                 .findFirst();
     }
 }

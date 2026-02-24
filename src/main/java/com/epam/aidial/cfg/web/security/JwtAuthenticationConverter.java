@@ -55,7 +55,8 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
             throw new AuthenticationServiceException("Email claim is required");
         }
 
-        var details = email.map(UserSecurityDetails::new)
+        var details = email.map(Object::toString)
+                .map(UserSecurityDetails::new)
                 .orElseGet(() -> new UserSecurityDetails(null));
         var issuer = jwt.getIssuer().toString();
         var authorities = this.jwtGrantedAuthoritiesConverter.convert(jwt);
