@@ -39,8 +39,8 @@ public class OpaqueTokenCustomGrantedAuthoritiesConverters {
 
         HttpEntity<JsonNode> entity = new HttpEntity<>(headers);
 
-        var email = MapExtractionUtils.extractFirstNonNullValue(context.attributes(), context.emailClaims()).orElseThrow(
-                () -> new OAuth2IntrospectionException("Email claim is missing in token"));
+        var email = MapExtractionUtils.extractFirstNonNullValue(context.attributes(), context.emailClaims())
+                .orElseThrow(() -> new OAuth2IntrospectionException("Email claim is missing in token"));
 
         ResponseEntity<JsonNode> response = makeRequest(() -> context.restTemplate().exchange(
                 "https://content-cloudidentity.googleapis.com/v1/groups/-/memberships:searchDirectGroups?query=member_key_id=='{email}'",
