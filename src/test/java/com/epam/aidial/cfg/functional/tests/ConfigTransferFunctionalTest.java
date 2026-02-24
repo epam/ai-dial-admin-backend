@@ -118,6 +118,7 @@ import java.util.zip.ZipOutputStream;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorRunnerDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
@@ -2322,6 +2323,61 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
+    void testExportPreview_AdminFormatAppTypeSchemaWithInterceptorAndInterceptorRunnerDependencies_SelectedItemsExportRequest() throws IOException {
+        // given
+        InterceptorRunnerDto interceptorRunnerDto = createInterceptorRunnerDto("1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
+
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setEndpoint(null);
+        interceptorDto.setSource(new InterceptorRunnerSourceDto(interceptorRunnerDto.getName()));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        var appRunnerDto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
+        });
+        appRunnerDto.setInterceptors(List.of(interceptorDto.getName()));
+        applicationTypeSchemaFacade.create(appRunnerDto);
+
+        SelectedItemsExportRequest request = new SelectedItemsExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(false);
+        request.setComponents(List.of(new ExportConfigComponent(
+                "https://test-schema-id.example",
+                ExportConfigComponentType.APPLICATION_TYPE_SCHEMA,
+                Set.of(ExportConfigComponentType.INTERCEPTOR, ExportConfigComponentType.INTERCEPTOR_RUNNER)
+        )));
+
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        // then
+        ExportConfig result = extractConfigFromZip(streamingResponseBody);
+        Assertions.assertThat(result).isNotNull()
+                .satisfies(config -> {
+                    Assertions.assertThat(config.getApplicationRunners()).hasSize(1)
+                            .satisfies(schemas -> {
+                                var schema = schemas.get(appRunnerDto.getId());
+                                Assertions.assertThat(schema).isNotNull();
+                                Assertions.assertThat(schema.getInterceptors()).isEqualTo(List.of(interceptorDto.getName()));
+                            });
+                    Assertions.assertThat(config.getInterceptors()).hasSize(1)
+                            .satisfies(interceptors -> {
+                                var interceptor = interceptors.get(interceptorDto.getName());
+                                Assertions.assertThat(interceptor).isNotNull();
+                                Assertions.assertThat(interceptor.getApplicationTypeSchemas()).isNull();
+                                Assertions.assertThat(interceptor.getSource()).isEqualTo(new InterceptorRunnerSource(interceptorRunnerDto.getName()));
+                            });
+                    Assertions.assertThat(config.getInterceptorRunners()).hasSize(1)
+                            .satisfies(interceptorRunners -> {
+                                var interceptorRunner = interceptorRunners.get(interceptorRunnerDto.getName());
+                                Assertions.assertThat(interceptorRunner).isNotNull();
+                                Assertions.assertThat(interceptorRunner.getInterceptors()).isNull();
+                            });
+                });
+    }
+
+    @Test
     void testImportZip() throws IOException {
         // given
         var inputStream = getZipInputStreamWithAdminConfig();
@@ -2988,7 +3044,7 @@ public abstract class ConfigTransferFunctionalTest {
 
             String exportedSchemaJson = result.getApplicationTypeSchemas().get(schemaId);
             String expectedExportedCoreSchemaJson = ResourceUtils.readResource("/filtering/core_app_type_schema.json");
-            assertEquals(exportedSchemaJson, expectedExportedCoreSchemaJson);
+            assertEquals(expectedExportedCoreSchemaJson, exportedSchemaJson);
 
             // Test with version 0.28.0 - applicationTypeIconUrl, applicationTypeRoutes and applicationTypePlaybackSupport should be absent
             // given

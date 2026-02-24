@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ConfigMapper;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
+import com.epam.aidial.cfg.domain.model.ExportConfigMetadata;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
@@ -14,6 +15,7 @@ import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.normalizer.CoreConfigNormalizer;
 import com.epam.aidial.cfg.service.config.transfer.exporter.ConfigExporter;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
+import com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportConfigMetadataProvider;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,6 +58,7 @@ public class ConfigTransfer {
     private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final List<CoreConfigNormalizer> normalizers;
     private final ConfigImporter configImporter;
+    private final ExportConfigMetadataProvider exportConfigMetadataProvider;
 
     @Transactional(readOnly = true)
     public StreamingResponseBody exportConfig(ExportRequest request) {
@@ -184,6 +187,10 @@ public class ConfigTransfer {
             log.debug("Config file {} import failed", zipFile.getOriginalFilename(), ex);
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
+    }
+
+    public ExportConfigMetadata getExportConfigMetadata(ExportFormat exportFormat) {
+        return exportConfigMetadataProvider.getMetadata(exportFormat);
     }
 
     private Config readAndMergeConfig(List<MultipartFile> files) {
