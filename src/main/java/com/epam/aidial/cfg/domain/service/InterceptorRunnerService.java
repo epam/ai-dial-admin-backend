@@ -166,7 +166,7 @@ public class InterceptorRunnerService {
         Collection<InterceptorRunner> interceptorRunners = getAllAtRevision(revision);
         List<String> ids = interceptorRunners.stream().map(InterceptorRunner::getName).toList();
         if (CollectionUtils.isEmpty(ids)) {
-            interceptorJpaRepository.deleteAll();
+            interceptorRunnerJpaRepository.deleteAll();
         } else {
             Iterable<InterceptorRunnerEntity> interceptorRunnersToDelete = interceptorRunnerJpaRepository.findByIdNotIn(ids);
             interceptorRunnerJpaRepository.deleteAll(interceptorRunnersToDelete);
