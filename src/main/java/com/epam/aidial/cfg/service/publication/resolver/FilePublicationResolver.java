@@ -27,6 +27,7 @@ import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
+import com.epam.aidial.core.util.UrlUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -105,7 +106,7 @@ public class FilePublicationResolver extends PublicationResolver {
     private FilePublicationResource recalculateTargetUrl(FilePublicationResource resource, String folderId) {
         var folder = PathUtils.ensureTrailingSlash(folderId);
         var name = resource.getFile().getName();
-        var newTargetPath = FileClientMapper.FILES_PREFIX + folder + name;
+        var newTargetPath = UrlUtil.encodePath(FileClientMapper.FILES_PREFIX + folder + name);
         resource.setTargetUrl(newTargetPath);
         return resource;
     }
