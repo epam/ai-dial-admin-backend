@@ -55,11 +55,12 @@ public abstract class AdapterEntityMapper {
                     });
             models.stream()
                     .filter(model -> !updatedEntity.getModels().contains(model))
-                    .forEach(app -> {
+                    .forEach(model -> {
                         // Clear container when setting adapter to ensure mutual exclusivity
-                        app.setModelContainer(null);
-                        app.setAdapter(updatedEntity);
-                        app.setEndpoint(null);
+                        model.setModelContainer(null);
+                        model.setAdapter(updatedEntity);
+                        model.setAdapterCompletionEndpointPath(model.getId() + "/chat/completions");
+                        model.setEndpoint(null);
                     });
             updatedEntity.getModels().clear();
             updatedEntity.getModels().addAll(models);

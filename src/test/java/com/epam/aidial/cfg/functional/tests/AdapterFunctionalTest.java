@@ -172,6 +172,8 @@ public abstract class AdapterFunctionalTest {
 
     @Test
     public void shouldChangeModelsInAdapter() {
+        // Verify model is assigned to adapter after model source update
+
         AdapterDto adapterDto1 = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto1);
 
@@ -184,7 +186,6 @@ public abstract class AdapterFunctionalTest {
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel1 = modelFacade.getModel(model1.getName());
 
-        // verify adapter and model
         AdapterDto expectedAdapter1 = createAdapterDto("1");
         expectedAdapter1.setModels(List.of("model1"));
         Assertions.assertEquals(expectedAdapter1, actualAdapter1);
@@ -196,9 +197,34 @@ public abstract class AdapterFunctionalTest {
         expectedModel1.setDefaultRoleLimit(new LimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
 
-        // remove model from adapter
+        // Cleanup by removing model from adapter
         adapterDto1.setModels(List.of());
 
+        // Verify model is assigned to adapter and model source is updated after adapter update
+        ModelDto detachedModel = createModelDto("3");
+        modelFacade.createModel(detachedModel);
+
+        adapterDto1.setModels(List.of(detachedModel.getName()));
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
+
+        AdapterDto actualAdapterWithDetachedModel = adapterFacade.getAdapter(adapterDto1.getName());
+        ModelDto actualDetachedModel = modelFacade.getModel(detachedModel.getName());
+
+        AdapterDto expectedAdapter1WithDetachedModel = createAdapterDto("1");
+        expectedAdapter1WithDetachedModel.setModels(List.of("model3"));
+        Assertions.assertEquals(expectedAdapter1WithDetachedModel, actualAdapterWithDetachedModel);
+
+        ModelDto expectedDetachedModel = createModelDto("3");
+        expectedDetachedModel.setSource(new ModelAdapterSourceDto("adapter1", "model3/chat/completions"));
+        expectedDetachedModel.setDefaults(Map.of());
+        expectedDetachedModel.setRoleLimits(Map.of());
+        expectedDetachedModel.setDefaultRoleLimit(new LimitDto());
+        Assertions.assertEquals(expectedDetachedModel, actualDetachedModel);
+
+        // Cleanup by removing model from adapter
+        adapterDto1.setModels(List.of());
+
+        // Verify model is de-attached from adapter after adapter update
         adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
         AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel2 = modelFacade.getModel(model1.getName());
