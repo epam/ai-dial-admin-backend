@@ -7,8 +7,10 @@ import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
@@ -37,6 +39,8 @@ public abstract class ApplicationHistoryFunctionalTest {
     private ApplicationTypeSchemaFacade applicationTypeSchemaFacade;
     @Autowired
     private ApplicationFacade applicationFacade;
+    @Autowired
+    private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
 
@@ -130,6 +134,9 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         Collection<ApplicationInfoDto> applicationsAfterRollback = applicationFacade.getAllApplications();
         Assertions.assertEquals(actualAtOldRevision, applicationsAfterRollback);
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("application2"));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("application3"));
     }
 
     @Test

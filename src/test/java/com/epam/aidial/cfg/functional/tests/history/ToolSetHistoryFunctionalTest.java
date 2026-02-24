@@ -9,6 +9,8 @@ import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import org.junit.jupiter.api.Assertions;
@@ -30,6 +32,8 @@ public abstract class ToolSetHistoryFunctionalTest {
     private RoleFacade roleFacade;
     @Autowired
     private ToolSetFacade toolSetFacade;
+    @Autowired
+    private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
     @Autowired
@@ -163,6 +167,9 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         Collection<ToolSetDto> toolSetsAfterRollback = toolSetFacade.getAllToolSets();
         Assertions.assertEquals(actualAtOldRevision, toolSetsAfterRollback);
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("ToolSet2"));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("ToolSet3"));
     }
 
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {

@@ -164,7 +164,13 @@ public class InterceptorRunnerService {
         interceptorJpaRepository.saveAllAndFlush(interceptors);
 
         Collection<InterceptorRunner> interceptorRunners = getAllAtRevision(revision);
-        interceptorRunnerJpaRepository.deleteAllExcept(interceptorRunners.stream().map(InterceptorRunner::getName).toList());
+        List<String> ids = interceptorRunners.stream().map(InterceptorRunner::getName).toList();
+        if (CollectionUtils.isEmpty(ids)) {
+            interceptorJpaRepository.deleteAll();
+        } else {
+            Iterable<InterceptorRunnerEntity> interceptorRunnersToDelete = interceptorRunnerJpaRepository.findByIdNotIn(ids);
+            interceptorRunnerJpaRepository.deleteAll(interceptorRunnersToDelete);
+        }
 
         for (InterceptorRunner interceptorRunner : interceptorRunners) {
             interceptorRunner.setInterceptors(List.of());
