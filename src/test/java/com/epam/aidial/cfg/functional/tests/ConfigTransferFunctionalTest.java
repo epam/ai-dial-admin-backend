@@ -2342,11 +2342,10 @@ public abstract class ConfigTransferFunctionalTest {
         request.setExportFormat(ExportFormat.ADMIN);
         request.setAddSecrets(false);
         request.setComponents(List.of(new ExportConfigComponent(
-                "https://test-schema-id.example",
+                appRunnerDto.getId(),
                 ExportConfigComponentType.APPLICATION_TYPE_SCHEMA,
                 Set.of(ExportConfigComponentType.INTERCEPTOR, ExportConfigComponentType.INTERCEPTOR_RUNNER)
         )));
-
 
         // when
         StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
