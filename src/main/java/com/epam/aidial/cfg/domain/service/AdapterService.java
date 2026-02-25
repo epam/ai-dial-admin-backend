@@ -207,7 +207,13 @@ public class AdapterService {
         modelJpaRepository.saveAllAndFlush(models);
 
         Collection<Adapter> adapters = getAllAtRevision(revision);
-        adapterJpaRepository.deleteAllExcept(adapters.stream().map(Adapter::getName).collect(Collectors.toList()));
+        List<String> ids = adapters.stream().map(Adapter::getName).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(ids)) {
+            adapterJpaRepository.deleteAll();
+        } else {
+            Iterable<AdapterEntity> adaptersToDelete = adapterJpaRepository.findByIdNotIn(ids);
+            adapterJpaRepository.deleteAll(adaptersToDelete);
+        }
 
         for (Adapter adapter : adapters) {
             adapter.setModels(List.of());

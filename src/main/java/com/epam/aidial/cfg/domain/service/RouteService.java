@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -161,7 +162,12 @@ public class RouteService {
     public void rollbackRoutes(Number revision) {
         Collection<Route> routes = getAllAtRevision(revision);
         List<String> ids = routes.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
-        routeJpaRepository.deleteAllExcept(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            routeJpaRepository.deleteAll();
+        } else {
+            Iterable<RouteEntity> routesToDelete = routeJpaRepository.findByIdNotIn(ids);
+            routeJpaRepository.deleteAll(routesToDelete);
+        }
 
         for (Route route : routes) {
             RouteEntity entity = routeJpaRepository.findById(route.getDeployment().getName()).orElseGet(RouteEntity::new);
