@@ -18,18 +18,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JwtAuthenticationConverterFactoryTest {
+
     private static final String TEST_ISSUER = "https://sts.windows.net/issuer_test/";
-    private final IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils(Set.of("admin", "ConfigAdmin"));
-    private JwtAuthenticationConverterFactory factory;
+
     private JwtAuthenticationConverter converter;
 
     @BeforeEach
     void setup() {
-        factory = new JwtAuthenticationConverterFactory(
+        IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils(
+                Set.of("admin", "ConfigAdmin"), "unique_name", "oid", false
+        );
+        JwtAuthenticationConverterFactory factory = new JwtAuthenticationConverterFactory(
                 List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
-                identityProviderUtils,
-                "oid",
-                "unique_name", false);
+                identityProviderUtils
+        );
         converter = factory.getConverter(TEST_ISSUER);
     }
 
@@ -103,12 +105,13 @@ class JwtAuthenticationConverterFactoryTest {
 
     @Test
     void whenEmailNotPresentAndRequired_thenThrow() {
+        IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils(
+                Set.of("admin", "ConfigAdmin"), "unique_name", "oid", true
+        );
         var factoryWithRequiredEmail = new JwtAuthenticationConverterFactory(
                 List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig())),
-                identityProviderUtils,
-                "unique_name",
-                "oid",
-                true);
+                identityProviderUtils
+        );
         var converterWithRequiredEmail = factoryWithRequiredEmail.getConverter(TEST_ISSUER);
         var jwtToken = generateTestToken(
                 Map.of(

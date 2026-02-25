@@ -10,6 +10,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TokenIntrospectorFactoryImpl implements TokenIntrospectorFactory {
 
+    private final IdentityProviderUtils identityProviderUtils;
     private final List<OpaqueTokenProviderConfig> providerConfigs;
 
     @Override
@@ -24,7 +25,13 @@ public class TokenIntrospectorFactoryImpl implements TokenIntrospectorFactory {
             grantedAuthoritiesConverter.setAuthoritiesPaths(authoritiesPaths);
             grantedAuthoritiesConverter.setAuthorityPrefix("");
 
-            var opaqueTokenIntrospector = new DefaultOpaqueTokenIntrospector(new RestTemplate(), config, grantedAuthoritiesConverter);
+            var opaqueTokenIntrospector = new DefaultOpaqueTokenIntrospector(
+                    new RestTemplate(),
+                    config,
+                    grantedAuthoritiesConverter,
+                    identityProviderUtils.getPrincipalClaim(config.getPrincipalClaim()),
+                    identityProviderUtils.getEmailClaims(config.getEmailClaims())
+            );
             opaqueTokenIntrospectors.add(opaqueTokenIntrospector);
         }
 
