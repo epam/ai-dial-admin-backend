@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.utils;
 
+import com.epam.aidial.cfg.dao.model.ModelTypeEntity;
 import com.epam.aidial.core.config.ModelType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,16 @@ public class ModelEndpointUtils {
         }
 
         return new ModelEndpointComponents(getValueFromMatcherGroup(matcher, 1), getValueFromMatcherGroup(matcher, 2) + endpointEnding);
+    }
+
+    public static String getAdapterCompletionEndpointPath(ModelTypeEntity type, String id) {
+        boolean isChat = isChat(type);
+        String endpointEnding = MODEL_PATTERN_MAP.get(isChat).getLeft();
+        return "%s/%s".formatted(id, endpointEnding);
+    }
+
+    private static boolean isChat(ModelTypeEntity type) {
+        return type == ModelTypeEntity.CHAT || type == null;
     }
 
     public boolean isChat(com.epam.aidial.cfg.domain.model.ModelType type) {
