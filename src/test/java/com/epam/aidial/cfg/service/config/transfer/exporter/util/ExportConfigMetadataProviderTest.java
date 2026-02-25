@@ -135,6 +135,10 @@ class ExportConfigMetadataProviderTest {
                                 ExportConfigComponentMetadata.builder()
                                         .type(APPLICATION_TYPE_SCHEMA)
                                         .dependencies(Set.of(INTERCEPTOR))
+                                        .build(),
+                                ExportConfigComponentMetadata.builder()
+                                        .type(GLOBAL_INTERCEPTOR)
+                                        .dependencies(Set.of(INTERCEPTOR))
                                         .build())
                 )
         );

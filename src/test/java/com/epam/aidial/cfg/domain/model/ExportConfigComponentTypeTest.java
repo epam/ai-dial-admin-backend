@@ -63,15 +63,15 @@ class ExportConfigComponentTypeTest {
                 Arguments.of(ROLE, ExportFormat.CORE, Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA)),
                 Arguments.of(KEY, ExportFormat.CORE, Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA)),
                 Arguments.of(INTERCEPTOR, ExportFormat.CORE, Set.of()),
-                Arguments.of(APPLICATION_TYPE_SCHEMA, ExportFormat.CORE, Set.of(INTERCEPTOR))
+                Arguments.of(APPLICATION_TYPE_SCHEMA, ExportFormat.CORE, Set.of(INTERCEPTOR)),
+                Arguments.of(GLOBAL_INTERCEPTOR, ExportFormat.ADMIN, Set.of(INTERCEPTOR, INTERCEPTOR_RUNNER))
         );
     }
 
     private static Stream<Arguments> getAllDependencies_shouldThrowExceptionWhenUnsupportedExportFormat_testParams() {
         return Stream.of(
                 Arguments.of(INTERCEPTOR_RUNNER, ExportFormat.CORE),
-                Arguments.of(ADAPTER, ExportFormat.CORE),
-                Arguments.of(GLOBAL_INTERCEPTOR, ExportFormat.CORE)
+                Arguments.of(ADAPTER, ExportFormat.CORE)
         );
     }
 }

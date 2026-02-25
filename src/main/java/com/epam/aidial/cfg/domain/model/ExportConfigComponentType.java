@@ -140,10 +140,7 @@ public enum ExportConfigComponentType {
     GLOBAL_INTERCEPTOR {
         @Override
         public boolean supports(ExportFormat exportFormat) {
-            return switch (exportFormat) {
-                case CORE -> false;
-                case ADMIN -> true;
-            };
+            return true;
         }
 
         @Override
