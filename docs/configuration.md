@@ -133,6 +133,7 @@ Applied when: config.rest.security.mode=oidc
 | providers.*.role-claims        | providers.azure.role-claims        | Yes                                         | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user roles for the provider.                                            |
 | providers.*.allowed-roles      | providers.azure.allowed-roles      | No                                          | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                                                          |
 | providers.*.email-claims       | providers.azure.email-claims       | No                                          | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user email                                                              |
+| providers.*.principal-claim    | providers.azure.principal-claim    | No                                          | config.rest.security.mode=oidc | Specifies which claim is used as the application’s principal                                                                    |
 
 ### Auth Token Provider Configuration to interact with the DIAL Core
 
