@@ -27,7 +27,7 @@ public class IdentityProviderUtils {
 
     public IdentityProviderUtils(
             @Value("${config.rest.security.default.allowedRoles}") Set<String> defaultAllowedRoles,
-            @Value("${config.rest.security.default.email-claims}") String defaultEmailClaim,
+            @Value("${config.rest.security.default.email-claim}") String defaultEmailClaim,
             @Value("${config.rest.security.default.principal-claim}") String defaultPrincipalClaim,
             @Value("${config.rest.security.require-email}") boolean requireEmail) {
         this.defaultAllowedRoles = Set.copyOf(defaultAllowedRoles);
