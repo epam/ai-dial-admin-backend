@@ -174,7 +174,13 @@ public class RoleService {
     public void rollbackRoles(Number revision) {
         Collection<Role> roles = getAllAtRevision(revision);
         List<String> roleNames = roles.stream().map(Role::getName).collect(Collectors.toList());
-        roleJpaRepository.deleteAllExcept(roleNames);
+        if (CollectionUtils.isEmpty(roleNames)) {
+            roleJpaRepository.deleteAll();
+        } else {
+            Iterable<RoleEntity> rolesToDelete = roleJpaRepository.findByIdNotIn(roleNames);
+            roleJpaRepository.deleteAll(rolesToDelete);
+        }
+
         Set<String> allDeploymentNames = deploymentJpaRepository.findAllNames();
         Set<String> allKeys = keyJpaRepository.findAllKeys();
         for (Role role : roles) {

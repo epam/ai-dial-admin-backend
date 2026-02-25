@@ -5,7 +5,9 @@ import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
+import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,8 @@ public abstract class AssistantHistoryFunctionalTest {
     private RoleFacade roleFacade;
     @Autowired
     private AssistantFacade assistantFacade;
+    @Autowired
+    private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
 
@@ -101,6 +105,9 @@ public abstract class AssistantHistoryFunctionalTest {
 
         Collection<AssistantDto> assistantsAfterRollbackToRevision7 = assistantFacade.getAllAssistants();
         Assertions.assertEquals(List.of(actualAtRevision7), assistantsAfterRollbackToRevision7);
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("assistant2"));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("assistant3"));
     }
 
     private void assertAssistant(AssistantDto actual, AssistantDto expected) {
