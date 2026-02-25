@@ -25,11 +25,6 @@ public class ModelEndpointUtils {
             false, Pair.of("embeddings", NON_CHAT_MODEL_ENDPOINT_PATTERN)
     );
 
-    private static final Map<Boolean, String> ENDPOINT_ENDING_MAP = Map.of(
-            true, "chat/completions",
-            false, "embeddings"
-    );
-
     public ModelEndpointComponents parseModelEndpoint(String modelEndpoint, ModelType type) {
         boolean isChat = isChat(type);
         String endpointEnding = MODEL_PATTERN_MAP.get(isChat).getLeft();
@@ -54,7 +49,7 @@ public class ModelEndpointUtils {
 
     public static String getAdapterCompletionEndpointPath(ModelTypeEntity type, String id) {
         boolean isChat = isChat(type);
-        String endpointEnding = ENDPOINT_ENDING_MAP.get(isChat);
+        String endpointEnding = MODEL_PATTERN_MAP.get(isChat).getLeft();
         return "%s/%s".formatted(id, endpointEnding);
     }
 
