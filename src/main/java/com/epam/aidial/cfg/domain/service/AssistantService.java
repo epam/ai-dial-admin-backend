@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.domain.validator.AssistantValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,7 +121,12 @@ public class AssistantService {
     public void rollbackAssistants(Number revision) {
         Collection<Assistant> assistants = getAllAtRevision(revision);
         List<String> ids = assistants.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
-        assistantJpaRepository.deleteAllExcept(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            assistantJpaRepository.deleteAll();
+        } else {
+            Iterable<AssistantEntity> assistantsToDelete = assistantJpaRepository.findByIdNotIn(ids);
+            assistantJpaRepository.deleteAll(assistantsToDelete);
+        }
 
         for (Assistant assistant : assistants) {
             AssistantEntity entity = assistantJpaRepository.findById(assistant.getDeployment().getName()).orElseGet(AssistantEntity::new);

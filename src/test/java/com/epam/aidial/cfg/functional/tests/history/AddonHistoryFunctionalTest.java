@@ -4,7 +4,9 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
+import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,8 @@ public abstract class AddonHistoryFunctionalTest {
     private RoleFacade roleFacade;
     @Autowired
     private AddonFacade addonFacade;
+    @Autowired
+    private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
 
@@ -97,6 +101,9 @@ public abstract class AddonHistoryFunctionalTest {
 
         Collection<AddonDto> addonsAfterRollbackToOldRevision = addonFacade.getAllAddons();
         Assertions.assertEquals(List.of(actualAtRevision), addonsAfterRollbackToOldRevision);
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("addon2"));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("addon3"));
     }
 
     private void assertAddon(AddonDto actual, AddonDto expected) {

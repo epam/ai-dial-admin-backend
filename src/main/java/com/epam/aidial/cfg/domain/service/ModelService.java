@@ -180,7 +180,12 @@ public class ModelService {
     public void rollbackModels(Number revision) {
         Collection<Model> models = getAllAtRevision(revision);
         List<String> ids = models.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
-        modelJpaRepository.deleteAllExcept(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            modelJpaRepository.deleteAll();
+        } else {
+            List<ModelEntity> modelsToDelete = modelJpaRepository.findByIdNotIn(ids);
+            modelJpaRepository.deleteAll(modelsToDelete);
+        }
 
         for (Model model : models) {
             model.setInterceptors(List.of());
