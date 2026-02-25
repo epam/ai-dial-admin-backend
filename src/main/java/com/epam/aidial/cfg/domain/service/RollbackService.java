@@ -39,8 +39,8 @@ public class RollbackService {
         assistantService.rollbackAssistants(revision);
         assistantsPropertyService.rollbackAssistantsProperties(revision);
         routeService.rollbackRoutes(revision);
-        interceptorService.rollbackInterceptors(revision);
         interceptorRunnerService.rollbackInterceptorRunners(revision);
+        interceptorService.rollbackInterceptors(revision);
         globalSettingsService.rollbackGlobalSettings(revision);
         adminSettingsService.rollbackAdminSettings(revision);
     }

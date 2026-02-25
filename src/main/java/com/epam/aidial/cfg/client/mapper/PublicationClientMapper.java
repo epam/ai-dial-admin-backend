@@ -161,6 +161,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "targetFolder", source = "targetFolder", qualifiedByName = "encodeFolderPath")
     CreatePublicationDto toCreatePublicationDto(CreatePublication createPublication);
 
+    @Mapping(target = "reviewUrl", ignore = true)
     PublicationResourceDto toPublicationResourceDto(PublicationResource publicationResource);
 
     default Map<String, List<Rule>> toRules(Map<String, List<RuleDto>> rules) {

@@ -34,6 +34,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.MimeTypeUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +42,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -200,7 +203,6 @@ class ToolSetPublicationResolverTest {
         var publicationDto = createPublicationDto(List.of(publicationResource),
                 List.of(ResourceTypeDto.TOOL_SET),
                 List.of(ruleDto));
-        var toolSetResource = createToolSetResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(TOOL_SET_PREFIX + REVIEW_TOOL_SET_PATH);
@@ -226,7 +228,6 @@ class ToolSetPublicationResolverTest {
         var publicationDto = createPublicationDto(List.of(publicationResource),
                 List.of(ResourceTypeDto.TOOL_SET),
                 List.of(ruleDto));
-        var toolSetResource = createToolSetResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(TOOL_SET_PREFIX + REVIEW_TOOL_SET_PATH);
@@ -263,7 +264,6 @@ class ToolSetPublicationResolverTest {
         var publicationDto = createPublicationDto(List.of(publicationResource),
                 List.of(ResourceTypeDto.TOOL_SET),
                 List.of(ruleDto));
-        var toolSetResource = createToolSetResource();
 
         when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
                 .thenReturn(TOOL_SET_PREFIX + REVIEW_TOOL_SET_PATH);
@@ -293,44 +293,85 @@ class ToolSetPublicationResolverTest {
     }
 
     @Test
-    void updatePublicationResourcesShouldReturnCorrectToolSetPublicationWithFiles() {
+    void updatePublicationResourcesShouldUpdateAllToolSetResources() {
         // given
         var toolSetPublication = createToolSetPublication();
-        var fileResource = getFilePublicationResource();
-
-        when(toolSetClientMapper.toCreateToolSetResource(any())).thenReturn(new CreateToolSetResource());
-        MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
-                "dtoJson".getBytes(StandardCharsets.UTF_8));
-        when(filePublicationResolver.updateFileResources(any(), any(), anyString())).thenReturn(List.of(fileResource));
+        var toolSetPublicationResource = toolSetPublication.getResources().get(0);
+        var toolSetResource = toolSetPublicationResource.getToolSetResource();
+        var createToolSetResource = new CreateToolSetResource();
+        when(toolSetClientMapper.toCreateToolSetResource(toolSetResource))
+                .thenReturn(createToolSetResource);
 
         // when
-        var result = toolSetPublicationResolver.updatePublicationResources(toolSetPublication, List.of(publicationFile));
+        toolSetPublicationResolver.updatePublicationResources(toolSetPublication);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getUrl()).isEqualTo("publications/reviewFolder/testToolSet");
-        assertThat(result.getName()).isEqualTo("Test Publication");
-        assertThat(result.getAuthor()).isEqualTo("Author Name");
-        assertThat(result.getStatus()).isEqualTo(PublicationStatusDto.PENDING);
-        assertThat(result.getTargetFolder()).isEqualTo(TARGET_FOLDER);
+        verify(toolSetClientMapper).toCreateToolSetResource(toolSetResource);
+        verify(toolSetResourceService).putToolSetResource(createToolSetResource, true, null);
+    }
 
-        assertThat(result.getRules()).hasSize(1);
-        var rule = result.getRules().get(0);
-        assertThat(rule.getSource()).isEqualTo("role");
-        assertThat(rule.getFunction()).isEqualTo(RuleFunctionDto.EQUAL);
-        assertThat(rule.getTargets()).containsExactly("admin");
+    @Test
+    void attachUploadedFilesShouldDoNothingWhenFilesEmpty() {
+        // given
+        var publication = new ToolSetPublication();
+        publication.setResources(new ArrayList<>());
 
-        assertThat(result.getResources()).hasSize(2);
-        var resource = result.getResources().get(0);
-        assertThat(resource.getAction()).isEqualTo(PublicationResourceActionDto.ADD);
-        assertThat(resource.getSourceUrl()).isEqualTo("toolsets/sourceFolder/testToolSet");
-        assertThat(resource.getTargetUrl()).isEqualTo("toolsets/targetFolder/testToolSet");
-        assertThat(resource.getReviewUrl()).isEqualTo("toolsets/reviewFolder/testToolSet");
-        var resource1 = result.getResources().get(1);
-        assertThat(resource1.getAction()).isEqualTo(PublicationResourceActionDto.ADD_IF_ABSENT);
-        assertThat(resource1.getSourceUrl()).isEqualTo("files/sourceFolder/testFile");
-        assertThat(resource1.getTargetUrl()).isEqualTo("files/targetFolder/testFile");
-        assertThat(resource1.getReviewUrl()).isEqualTo("files/reviewFolder/testFile");
+        // when
+        toolSetPublicationResolver.attachUploadedFiles(publication, List.of());
+
+        // then
+        assertThat(publication.getResources()).isEmpty();
+    }
+
+    @Test
+    void attachUploadedFilesShouldAppendNewFilesToExisting() {
+        // given
+        var targetFolder = "targetFolder/";
+        var existingFileResource = new FilePublicationResource();
+        var newFileResource = new FilePublicationResource();
+
+        var publication = new ToolSetPublication();
+        publication.setFolderId(targetFolder);
+        publication.setFiles(List.of(existingFileResource));
+
+        var publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                "dtoJson".getBytes(StandardCharsets.UTF_8));
+
+        when(filePublicationResolver.uploadNewFileResources(any(), any()))
+                .thenReturn(List.of(newFileResource));
+
+        // when
+        toolSetPublicationResolver.attachUploadedFiles(publication, List.of(publicationFile));
+
+        // then
+        assertThat(publication.getFiles()).hasSize(2);
+        assertThat(publication.getFiles()).containsExactly(existingFileResource, newFileResource);
+        verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder));
+    }
+
+    @Test
+    void attachUploadedFilesShouldOnlyNewFilesWhenNoExisting() {
+        // given
+        var targetFolder = "targetFolder/";
+        var newFileResource = new FilePublicationResource();
+
+        var publication = new ToolSetPublication();
+        publication.setFolderId(targetFolder);
+        publication.setFiles(List.of());
+
+        var publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                "dtoJson".getBytes(StandardCharsets.UTF_8));
+
+        when(filePublicationResolver.uploadNewFileResources(any(), any()))
+                .thenReturn(List.of(newFileResource));
+
+        // when
+        toolSetPublicationResolver.attachUploadedFiles(publication, List.of(publicationFile));
+
+        // then
+        assertThat(publication.getFiles()).hasSize(1);
+        assertThat(publication.getFiles()).containsExactly(newFileResource);
+        verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder));
     }
 
     private PublicationResourceDto createPublicationResourceDto() {

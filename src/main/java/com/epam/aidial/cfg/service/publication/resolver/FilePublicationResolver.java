@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.PublicationFileUploadException;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
+import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FilePublication;
 import com.epam.aidial.cfg.model.FilePublicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -26,6 +27,7 @@ import com.epam.aidial.cfg.service.BucketService;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
+import com.epam.aidial.core.util.UrlUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -79,10 +81,7 @@ public class FilePublicationResolver extends PublicationResolver {
     }
 
     @Override
-    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
-        var filePublication = (FilePublication) publication;
-        var updatedListFiles = updateFileResources(filePublication.getResources(), files, publication.getFolderId());
-        return mapper.toPublicationDto(publication, updatedListFiles);
+    public void updatePublicationResources(Publication publication) {
     }
 
     @Override
@@ -93,6 +92,23 @@ public class FilePublicationResolver extends PublicationResolver {
     @Override
     public Set<ResourceTypeDto> applicableResourceTypes() {
         return Set.of(ResourceTypeDto.FILE);
+    }
+
+    @Override
+    public PublicationDto updatePublicationResourceTargets(Publication publication) {
+        var filePublication = (FilePublication) publication;
+        var updatedResources = filePublication.getResources().stream()
+                .map(fileResource -> recalculateTargetUrl(fileResource, publication.getFolderId()))
+                .toList();
+        return mapper.toPublicationDto(publication, updatedResources);
+    }
+
+    protected FilePublicationResource recalculateTargetUrl(FilePublicationResource resource, String folderId) {
+        var folder = PathUtils.ensureTrailingSlash(folderId);
+        var name = resource.getFile().getName();
+        var newTargetPath = UrlUtil.encodePath(FileClientMapper.FILES_PREFIX + folder + name);
+        resource.setTargetUrl(newTargetPath);
+        return resource;
     }
 
     private FilePublicationResource getFilePublication(ResourceInfo resourceInfo, PublicationStatusDto status) {
@@ -143,23 +159,30 @@ public class FilePublicationResolver extends PublicationResolver {
         }
     }
 
-    protected List<FilePublicationResource> updateFileResources(List<FilePublicationResource> existingFileResources,
-                                                                List<MultipartFile> files,
-                                                                String folderId) {
+    public void attachUploadedFiles(Publication publication, List<MultipartFile> files) {
         if (CollectionUtils.isEmpty(files)) {
-            return existingFileResources;
+            return;
         }
+        var filePublication = (FilePublication) publication;
+        var newFileResources = uploadNewFileResources(files, publication.getFolderId());
+        var updated = Stream.concat(
+                Optional.ofNullable(filePublication.getResources())
+                        .orElseGet(List::of)
+                        .stream(),
+                newFileResources.stream()
+        ).toList();
+        filePublication.setResources(updated);
+    }
 
+    protected List<FilePublicationResource> uploadNewFileResources(List<MultipartFile> files, String folderId) {
         var sourceFolder = PathUtils.ensureTrailingSlash(bucketService.getBucket().getBucket());
         var updatesFolderPath = sourceFolder + PUBLICATIONS_UPDATES_FOLDER;
         var uploadedSourceFiles = upload(files, updatesFolderPath);
         validateUploadResult(uploadedSourceFiles);
 
-        var newFileResources = uploadedSourceFiles.getImportResults().stream()
+        return uploadedSourceFiles.getImportResults().stream()
                 .map(importResult -> getPublicationResource(importResult, folderId, updatesFolderPath))
                 .toList();
-
-        return Stream.concat(existingFileResources.stream(), newFileResources.stream()).toList();
     }
 
     private ImportResourcesFileResult upload(List<MultipartFile> files, String path) {
@@ -203,6 +226,7 @@ public class FilePublicationResolver extends PublicationResolver {
                 .action(PublicationResourceAction.ADD_IF_ABSENT)
                 .targetUrl(targetPath)
                 .sourceUrl(sourcePath)
+                .file(FileNodeInfo.builder().name(fileName).build())
                 .build();
     }
 }

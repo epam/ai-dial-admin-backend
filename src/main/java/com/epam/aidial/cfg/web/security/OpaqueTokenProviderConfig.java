@@ -21,6 +21,7 @@ public class OpaqueTokenProviderConfig {
     private String principalClaim;
     private List<String> roleClaims;
     private Set<String> allowedRoles;
+    private List<String> emailClaims;
 
     public static OpaqueTokenProviderConfig from(String name, IdentityProvidersProperties.ProviderConfig config) {
         return OpaqueTokenProviderConfig.builder()
@@ -28,6 +29,7 @@ public class OpaqueTokenProviderConfig {
                 .userInfoEndpoint(config.getUserInfoEndpoint())
                 .principalClaim(config.getPrincipalClaim())
                 .roleClaims(config.getRoleClaims())
+                .emailClaims(config.getEmailClaims())
                 .allowedRoles(config.getAllowedRoles())
                 .build();
     }

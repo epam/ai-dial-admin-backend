@@ -7,8 +7,10 @@ import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
@@ -37,6 +39,8 @@ public abstract class ApplicationHistoryFunctionalTest {
     private ApplicationTypeSchemaFacade applicationTypeSchemaFacade;
     @Autowired
     private ApplicationFacade applicationFacade;
+    @Autowired
+    private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
 
@@ -130,6 +134,9 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         Collection<ApplicationInfoDto> applicationsAfterRollback = applicationFacade.getAllApplications();
         Assertions.assertEquals(actualAtOldRevision, applicationsAfterRollback);
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("application2"));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("application3"));
     }
 
     @Test
@@ -149,7 +156,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         var actualApplicationAtRevision = applicationFacade.getApplication(applicationDto.getName());
 
         // create interceptor1
-        InterceptorDto interceptor2 =  createInterceptorDto("2");
+        InterceptorDto interceptor2 = createInterceptorDto("2");
         interceptorFacade.createInterceptor(interceptor2);
 
         // update application
@@ -239,6 +246,35 @@ public abstract class ApplicationHistoryFunctionalTest {
         var applicationAfterRollbackToRevision = applicationFacade.getApplication(application1Dto.getName());
         Assertions.assertEquals(actualAtRevision, applicationsAfterRollbackToRevision);
         Assertions.assertEquals(actualApplication1AtRevision, applicationAfterRollbackToRevision);
+    }
+
+    @Test
+    public void shouldSuccessfullyRollbackDeletedApplicationWithAppTypeSchema() {
+        // create application type schema
+        ApplicationTypeSchemaDto applicationTypeSchemaDto = createAppTypeSchema("1");
+        applicationTypeSchemaFacade.create(applicationTypeSchemaDto);
+
+        // create application
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));
+        applicationFacade.createApplication(applicationDto);
+
+        // remember rev number and expected applications state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<ApplicationInfoDto> actualAtRevision = applicationFacade.getAllApplications();
+
+        // delete application
+        applicationFacade.deleteApplication(applicationDto.getName());
+
+        // rollback and verify
+        int revisionsListSizeBeforeRollback = historyFacade.getRevisionsListSize();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        int revisionsListSizeAfterRollback = historyFacade.getRevisionsListSize();
+
+        Assertions.assertEquals(revisionsListSizeBeforeRollback + 1, revisionsListSizeAfterRollback);
+
+        Collection<ApplicationInfoDto> applicationsAfterRollbackToRevision = applicationFacade.getAllApplications();
+        Assertions.assertEquals(actualAtRevision, applicationsAfterRollbackToRevision);
     }
 
     private ApplicationTypeSchemaDto createAppTypeSchema(String suffix) {

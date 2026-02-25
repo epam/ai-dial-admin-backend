@@ -80,8 +80,8 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
                 log.debug("Unable to find custom granted authorities converter for provider {}", config);
                 throw new OAuth2IntrospectionException("Unable to find custom granted authorities converter: " + converterName);
             }
-
-            return converter.apply(restTemplate, token, attributes);
+            var authorityExtractionContext = new OpaqueAuthorityExtractionContext(restTemplate, token, attributes, config.getEmailClaims());
+            return converter.apply(authorityExtractionContext);
         } else {
             return multiPathGrantedAuthoritiesConverter.convert(() -> attributes);
         }

@@ -21,6 +21,7 @@ public class JwtProviderConfig {
     private List<String> audiences;
     private List<String> aliases;
     private List<String> roleClaims;
+    private List<String> emailClaims;
     private Set<String> allowedRoles;
 
     public static JwtProviderConfig from(String name, IdentityProvidersProperties.ProviderConfig config) {
@@ -32,6 +33,7 @@ public class JwtProviderConfig {
                 .audiences(config.getAudiences())
                 .aliases(config.getAliases())
                 .roleClaims(config.getRoleClaims())
+                .emailClaims(config.getEmailClaims())
                 .allowedRoles(config.getAllowedRoles())
                 .build();
     }

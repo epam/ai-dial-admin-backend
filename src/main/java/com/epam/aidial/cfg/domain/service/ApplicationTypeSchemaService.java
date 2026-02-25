@@ -167,9 +167,18 @@ public class ApplicationTypeSchemaService {
             applicationEntity.setEndpoint("endpoint");
         });
         applicationJpaRepository.saveAllAndFlush(applications);
+
         Collection<ApplicationTypeSchema> applicationTypeSchemas = getAllAtRevision(revision);
-        jpaRepository.deleteAllExcept(applicationTypeSchemas.stream().map(ApplicationTypeSchema::getSchemaId).collect(Collectors.toList()));
+        List<String> ids = applicationTypeSchemas.stream().map(ApplicationTypeSchema::getSchemaId).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(ids)) {
+            jpaRepository.deleteAll();
+        } else {
+            Iterable<ApplicationTypeSchemaEntity> applicationTypeSchemasToDelete = jpaRepository.findByIdNotIn(ids);
+            jpaRepository.deleteAll(applicationTypeSchemasToDelete);
+        }
+
         for (ApplicationTypeSchema domain : applicationTypeSchemas) {
+            domain.setApplications(List.of());
             ApplicationTypeSchemaEntity entity = jpaRepository.findById(domain.getSchemaId()).orElseGet(ApplicationTypeSchemaEntity::new);
             ApplicationTypeSchemaEntity applicationTypeSchemaEntity = toEntity(domain, entity);
             jpaRepository.save(applicationTypeSchemaEntity);

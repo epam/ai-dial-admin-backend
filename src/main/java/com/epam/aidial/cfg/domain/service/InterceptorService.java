@@ -178,7 +178,13 @@ public class InterceptorService {
     @Transactional
     public void rollbackInterceptors(Number revision) {
         Collection<Interceptor> interceptors = getAllAtRevision(revision);
-        interceptorJpaRepository.deleteAllExcept(interceptors.stream().map(Interceptor::getName).toList());
+        List<String> ids = interceptors.stream().map(Interceptor::getName).toList();
+        if (CollectionUtils.isEmpty(ids)) {
+            interceptorJpaRepository.deleteAll();
+        } else {
+            Iterable<InterceptorEntity> interceptorsToDelete = interceptorJpaRepository.findByIdNotIn(ids);
+            interceptorJpaRepository.deleteAll(interceptorsToDelete);
+        }
 
         for (Interceptor interceptor : interceptors) {
             InterceptorEntity entity = interceptorJpaRepository.findById(interceptor.getName()).orElseGet(InterceptorEntity::new);

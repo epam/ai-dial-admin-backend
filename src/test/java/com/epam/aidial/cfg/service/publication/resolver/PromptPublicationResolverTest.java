@@ -27,16 +27,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.util.MimeTypeUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -222,11 +220,16 @@ class PromptPublicationResolverTest {
         var sourceFolder = "sourceFolder/";
         var sourceFolderPath = sourceFolder + promptName;
 
+        var prompt = new Prompt();
+        prompt.setPath(reviewPromptPath);
+        prompt.setFolderId(reviewFolder);
+
         var publicationResource = new PromptPublicationResource();
         publicationResource.setAction(PublicationResourceAction.ADD);
         publicationResource.setTargetUrl(promptsPrefix + targetPromptPath);
         publicationResource.setReviewUrl(promptsPrefix + reviewPromptPath);
         publicationResource.setSourceUrl(promptsPrefix + sourceFolderPath);
+        publicationResource.setPrompt(prompt);
 
         var rule = new Rule();
         rule.setSource("role");
@@ -243,38 +246,18 @@ class PromptPublicationResolverTest {
         publication.setResources(List.of(publicationResource));
         publication.setRules(List.of(rule));
 
-        var prompt = new Prompt();
-        prompt.setPath(reviewPromptPath);
-        prompt.setFolderId(reviewFolder);
+        // then
+        var createPrompt = new CreatePrompt();
+        when(promptClientMapper.toCreatePrompt(prompt)).thenReturn(createPrompt);
+        when(promptService.putPrompt(createPrompt, true, null)).thenReturn("test");
 
-        when(promptClientMapper.toCreatePrompt(any())).thenReturn(new CreatePrompt());
-        when(promptService.putPrompt(any(), anyBoolean(), any())).thenReturn("test");
-
-        MockMultipartFile publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
-                "dtoJson".getBytes(StandardCharsets.UTF_8));
         // when
-        var result = promptPublicationResolver.updatePublicationResources(publication, List.of(publicationFile));
+        promptPublicationResolver.updatePublicationResources(publication);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getUrl()).isEqualTo(fullPath);
-        assertThat(result.getName()).isEqualTo("Test Publication");
-        assertThat(result.getAuthor()).isEqualTo("Author Name");
-        assertThat(result.getStatus()).isEqualTo(PublicationStatusDto.PENDING);
-        assertThat(result.getTargetFolder()).isEqualTo(targetFolder);
-
-        assertThat(result.getRules()).hasSize(1);
-        var ruleDto = result.getRules().get(0);
-        assertThat(ruleDto.getSource()).isEqualTo("role");
-        assertThat(ruleDto.getFunction()).isEqualTo(RuleFunctionDto.EQUAL);
-        assertThat(ruleDto.getTargets()).containsExactly("admin");
-
-        assertThat(result.getResources()).hasSize(1);
-        var resource = result.getResources().get(0);
-        assertThat(resource.getAction()).isEqualTo(PublicationResourceActionDto.ADD);
-        assertThat(resource.getSourceUrl()).isEqualTo("prompts/sourceFolder/testPrompt");
-        assertThat(resource.getTargetUrl()).isEqualTo("prompts/targetFolder/testPrompt");
-        assertThat(resource.getReviewUrl()).isEqualTo("prompts/reviewFolder/testPrompt");
+        verify(promptClientMapper, times(1)).toCreatePrompt(any());
+        verify(promptService, times(1))
+                .putPrompt(createPrompt, true, null);
     }
 
 }

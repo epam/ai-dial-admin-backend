@@ -15,10 +15,13 @@ import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
+import com.epam.aidial.cfg.utils.PathUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -71,22 +74,43 @@ public class ApplicationPublicationResolver extends PublicationResolver {
     }
 
     @Override
-    public PublicationDto updatePublicationResources(Publication publication, List<MultipartFile> files) {
+    public void updatePublicationResources(Publication publication) {
         var applicationPublication = (ApplicationPublication) publication;
         var applications = applicationPublication.getResources();
         applications.stream()
                 .map(ApplicationPublicationResource::getApplicationResource)
                 .map(applicationClientMapper::toCreateApplicationResource)
                 .forEach(application -> applicationService.putApplicationResource(application, true, null));
+    }
 
-        var updatedFileResources = filePublicationResolver.updateFileResources(applicationPublication.getFiles(), files, publication.getFolderId());
+    @Override
+    public PublicationDto updatePublicationResourceTargets(Publication publication) {
+        var applicationPublication = (ApplicationPublication) publication;
+        var folderId = publication.getFolderId();
 
-        var resources = Stream.concat(
-                        applications.stream(),
-                        updatedFileResources.stream())
+        var updatedApplicationResources = applicationPublication.getResources().stream()
+                .map(application -> recalculateTargetUrl(application, folderId))
+                .toList();
+        var updatedFileResources = Optional.ofNullable(applicationPublication.getFiles())
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .map(file -> filePublicationResolver.recalculateTargetUrl(file, folderId))
                 .toList();
 
-        return mapper.toPublicationDto(publication, resources);
+        var updatedResources = Stream.concat(
+                        updatedApplicationResources.stream(),
+                        updatedFileResources.stream())
+                .toList();
+        return mapper.toPublicationDto(publication, updatedResources);
+    }
+
+    private ApplicationPublicationResource recalculateTargetUrl(ApplicationPublicationResource resource, String folderId) {
+        var folder = PathUtils.ensureTrailingSlash(folderId);
+        var applicationResource = resource.getApplicationResource();
+        var newTargetPath = PathUtils.buildPath(ApplicationClientMapper.APPLICATIONS_PREFIX + folder,
+                applicationResource.getName(), applicationResource.getVersion());
+        resource.setTargetUrl(newTargetPath);
+        return resource;
     }
 
     @Override
@@ -97,6 +121,21 @@ public class ApplicationPublicationResolver extends PublicationResolver {
     @Override
     public Set<ResourceTypeDto> applicableResourceTypes() {
         return Set.of(ResourceTypeDto.APPLICATION, ResourceTypeDto.FILE);
+    }
+
+    public void attachUploadedFiles(Publication publication, List<MultipartFile> files) {
+        if (CollectionUtils.isEmpty(files)) {
+            return;
+        }
+        var applicationPublication = (ApplicationPublication) publication;
+        var newFileResources = filePublicationResolver.uploadNewFileResources(files, publication.getFolderId());
+        var updatedFileResources = Stream.concat(
+                Optional.ofNullable(applicationPublication.getFiles())
+                        .orElseGet(List::of)
+                        .stream(),
+                newFileResources.stream()
+        ).toList();
+        applicationPublication.setFiles(updatedFileResources);
     }
 
     private ApplicationPublicationResource getApplicationPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {

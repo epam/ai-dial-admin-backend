@@ -8,8 +8,10 @@ import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
+import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
@@ -24,6 +26,7 @@ import java.util.Map;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 
@@ -35,6 +38,8 @@ public abstract class ModelHistoryFunctionalTest {
     private InterceptorFacade interceptorFacade;
     @Autowired
     private ModelFacade modelFacade;
+    @Autowired
+    private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
     @Autowired
@@ -118,6 +123,9 @@ public abstract class ModelHistoryFunctionalTest {
 
         Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
         Assertions.assertEquals(List.of(actualAtRevision), modelsAfterRollbackToRevision);
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("model2"));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("model3"));
     }
 
     @Test
@@ -245,6 +253,34 @@ public abstract class ModelHistoryFunctionalTest {
         List<ConfigRevisionDto> revisionsListAfterRollback = historyFacade.getRevisionsList();
 
         Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
+
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
+        Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
+    }
+
+    @Test
+    public void shouldSuccessfullyRollbackDeletedModelWithAdapter() {
+        // create adapter
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        // create model
+        ModelDto modelDto = createModelDtoWithAdapter("1");
+        modelFacade.createModel(modelDto);
+
+        // remember rev number and expected models state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<ModelDto> actualAtRevision = modelFacade.getAll();
+
+        // delete model
+        modelFacade.deleteModel(modelDto.getName());
+
+        // rollback and verify
+        int revisionsListSizeBeforeRollback = historyFacade.getRevisionsListSize();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        int revisionsListSizeAfterRollback = historyFacade.getRevisionsListSize();
+
+        Assertions.assertEquals(revisionsListSizeBeforeRollback + 1, revisionsListSizeAfterRollback);
 
         Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
         Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);

@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.dto.AdminSettingsDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -20,6 +21,7 @@ import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.core.config.CoreFeatures;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -245,5 +247,16 @@ public class FunctionalTestHelper {
         AdminSettingsDto adminSettingsDto = new AdminSettingsDto();
         adminSettingsDto.setCoreConfigVersion(coreConfigVersion);
         return adminSettingsDto;
+    }
+
+    public static InterceptorRunnerDto createInterceptorRunnerDto(String suffix) {
+        InterceptorRunnerDto interceptorRunnerDto = new InterceptorRunnerDto();
+        interceptorRunnerDto.setName("interceptorRunner" + suffix);
+        interceptorRunnerDto.setDisplayName("Interceptor Runner " + suffix);
+        interceptorRunnerDto.setDescription("description" + suffix);
+        interceptorRunnerDto.setCompletionEndpoint("https://endpoint.test.com/completion" + suffix);
+        interceptorRunnerDto.setConfigurationEndpoint("https://endpoint.test.com/configuration" + suffix);
+        interceptorRunnerDto.setInterceptors(new ArrayList<>());
+        return interceptorRunnerDto;
     }
 }

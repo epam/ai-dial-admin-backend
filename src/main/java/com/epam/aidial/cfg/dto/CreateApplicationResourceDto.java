@@ -1,11 +1,12 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,13 +28,17 @@ public class CreateApplicationResourceDto {
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
+    @Positive(message = "Attachments max number must be positive")
+    @Max(value = 1000, message = "Attachments max number exceeds allowed limit")
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private List<String> dependencies;
+    @Endpoint
     private String viewerUrl;
+    @Endpoint
     private String editorUrl;
     private Boolean invalid;
     private List<String> userRoles;

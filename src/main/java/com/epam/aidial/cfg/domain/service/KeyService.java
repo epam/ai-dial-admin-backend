@@ -175,7 +175,13 @@ public class KeyService {
     @Transactional
     public void rollbackKeys(Number revision) {
         Collection<Key> keys = getAllAtRevision(revision);
-        keyJpaRepository.deleteAllExcept(keys.stream().map(Key::getName).collect(Collectors.toList()));
+        List<String> ids = keys.stream().map(Key::getName).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(ids)) {
+            keyJpaRepository.deleteAll();
+        } else {
+            Iterable<KeyEntity> keyToDelete = keyJpaRepository.findByIdNotIn(ids);
+            keyJpaRepository.deleteAll(keyToDelete);
+        }
 
         for (Key key : keys) {
             KeyEntity entity = keyJpaRepository.findById(key.getName()).orElseGet(KeyEntity::new);

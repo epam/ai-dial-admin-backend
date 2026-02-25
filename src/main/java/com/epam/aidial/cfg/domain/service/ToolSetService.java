@@ -25,6 +25,7 @@ import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -188,7 +189,12 @@ public class ToolSetService {
     public void rollbackToolSets(Number revision) {
         Collection<ToolSet> toolSets = getAllAtRevision(revision);
         List<String> ids = toolSets.stream().map(SecuredRoleBased::getDeployment).map(SecuredResource::getName).toList();
-        toolSetJpaRepository.deleteAllExcept(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            toolSetJpaRepository.deleteAll();
+        } else {
+            Iterable<ToolSetEntity> toolSetsToDelete = toolSetJpaRepository.findByIdNotIn(ids);
+            toolSetJpaRepository.deleteAll(toolSetsToDelete);
+        }
 
         for (ToolSet toolSet : toolSets) {
             ToolSetEntity entity = toolSetJpaRepository.findById(toolSet.getDeployment().getName()).orElseGet(ToolSetEntity::new);
