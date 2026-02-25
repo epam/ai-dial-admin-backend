@@ -46,6 +46,7 @@ public class IdentityProvidersProperties {
         private List<String> audiences;
         private List<String> aliases;
         private List<String> roleClaims;
+        private List<String> emailClaims;
         private Set<String> allowedRoles;
 
         public boolean hasIssuer() {

@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -15,6 +16,12 @@ public class IdentityProviderUtils {
 
     private static final String V1_ISSUER_FORMAT = "https://%s/%s/";
     private static final String V2_ISSUER_FORMAT = "https://%s/%s/v2.0";
+
+    private final Set<String> defaultAllowedRoles;
+
+    public IdentityProviderUtils(@Value("${config.rest.security.default.allowedRoles}") Set<String> defaultAllowedRoles) {
+        this.defaultAllowedRoles = Set.copyOf(defaultAllowedRoles);
+    }
 
     public Set<String> getAcceptedIssuers(JwtProviderConfig config) {
         final HashSet<String> acceptedIssuers = new HashSet<>();
@@ -44,5 +51,13 @@ public class IdentityProviderUtils {
             log.debug("Invalid url format for url: {}", urlString, e);
             return false;
         }
+    }
+
+    public Set<String> getAllowedRoles(Set<String> allowedRoles) {
+        Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
+        if (allowedRoles != null) {
+            acceptedRoles.addAll(allowedRoles);
+        }
+        return Set.copyOf(acceptedRoles);
     }
 }
