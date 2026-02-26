@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OAuth2I
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -52,15 +53,7 @@ public class OpaqueTokenCustomGrantedAuthoritiesConverters {
 
         checkResponse(response);
 
-        List<GrantedAuthority> result = new ArrayList<>();
-
-        for (var membership : response.getBody().get("memberships")) {
-            String id = membership.get("groupKey").get("id").textValue();
-            SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority(id);
-            result.add(simpleGrantedAuthority);
-        }
-
-        return result;
+        return extractGoogleAuthorities(response.getBody());
     }
 
     private <T> ResponseEntity<T> makeRequest(Supplier<ResponseEntity<T>> request) {
@@ -79,6 +72,26 @@ public class OpaqueTokenCustomGrantedAuthoritiesConverters {
             log.warn("Failed to retrieve authorities. Response: {}", response);
             throw new OAuth2IntrospectionException("Failed to retrieve authorities. Status code: " + response.getStatusCode());
         }
+    }
+
+    private List<GrantedAuthority> extractGoogleAuthorities(JsonNode response) {
+        JsonNode memberships = response.get("memberships");
+        if (memberships == null) {
+            return List.of();
+        }
+
+        List<GrantedAuthority> result = new ArrayList<>();
+
+        for (var membership : memberships) {
+            Optional.ofNullable(membership)
+                    .map(m -> m.get("groupKey"))
+                    .map(groupKey -> groupKey.get("id"))
+                    .map(JsonNode::textValue)
+                    .map(SimpleGrantedAuthority::new)
+                    .ifPresent(result::add);
+        }
+
+        return result;
     }
 
 }

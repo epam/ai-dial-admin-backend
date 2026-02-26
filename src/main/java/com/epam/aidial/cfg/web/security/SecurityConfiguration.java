@@ -44,29 +44,20 @@ public class SecurityConfiguration {
     @Value("${config.rest.security.disable-swagger-authorization}")
     protected boolean disableSwaggerAuthorization;
 
-    @Value("${config.rest.security.default.email.claims}")
-    protected String defaultClaimsEmailKey;
-
-    @Value("${config.rest.security.require-email}")
-    protected boolean requireEmail;
-
     @Bean
-    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String defaultPrincipalClaim) {
+    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory() {
         return new JwtAuthenticationConverterFactory(
                 identityProvidersProperties.getJwtProviders(),
-                identityProviderUtils,
-                defaultPrincipalClaim,
-                defaultClaimsEmailKey,
-                requireEmail);
+                identityProviderUtils
+        );
     }
 
     @Bean
     public OpaqueAuthenticationConverterFactory opaqueAuthenticationConverterFactory() {
         return new OpaqueAuthenticationConverterFactory(
                 identityProvidersProperties.getOpaqueTokenProviders(),
-                identityProviderUtils,
-                defaultClaimsEmailKey,
-                requireEmail);
+                identityProviderUtils
+        );
     }
 
     @Bean
@@ -81,7 +72,7 @@ public class SecurityConfiguration {
 
     @Bean
     public TokenIntrospectorFactory tokenIntrospectorFactory() {
-        return new TokenIntrospectorFactoryImpl(identityProvidersProperties.getOpaqueTokenProviders());
+        return new TokenIntrospectorFactoryImpl(identityProviderUtils, identityProvidersProperties.getOpaqueTokenProviders());
     }
 
     @Bean

@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -30,6 +31,8 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
     private final RestTemplate restTemplate;
     private final OpaqueTokenProviderConfig config;
     private final MultiPathGrantedAuthoritiesConverter<ClaimAccessor> multiPathGrantedAuthoritiesConverter;
+    private final String principalClaim;
+    private final Set<String> emailClaims;
 
     @Override
     public OAuth2AuthenticatedPrincipal introspect(String token) {
@@ -41,7 +44,7 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         newAttributes.put(OpaqueTokenProviderConfig.IDP_CLAIM, config.getName());
 
         return new OAuth2IntrospectionAuthenticatedPrincipal(
-                (String) attributes.get(config.getPrincipalClaim()), newAttributes, grantedAuthorities);
+                (String) attributes.get(principalClaim), newAttributes, grantedAuthorities);
     }
 
     private Map<String, Object> introspectToken(String token) {
@@ -80,7 +83,7 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
                 log.debug("Unable to find custom granted authorities converter for provider {}", config);
                 throw new OAuth2IntrospectionException("Unable to find custom granted authorities converter: " + converterName);
             }
-            var authorityExtractionContext = new OpaqueAuthorityExtractionContext(restTemplate, token, attributes, config.getEmailClaims());
+            var authorityExtractionContext = new OpaqueAuthorityExtractionContext(restTemplate, token, attributes, emailClaims);
             return converter.apply(authorityExtractionContext);
         } else {
             return multiPathGrantedAuthoritiesConverter.convert(() -> attributes);
