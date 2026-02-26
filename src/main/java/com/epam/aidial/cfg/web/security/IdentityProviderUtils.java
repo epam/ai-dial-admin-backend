@@ -85,7 +85,7 @@ public class IdentityProviderUtils {
             result.add(defaultEmailClaim);
         }
 
-        return Set.copyOf(result);
+        return result;
     }
 
     public String getPrincipalClaim(String principalClaim) {
