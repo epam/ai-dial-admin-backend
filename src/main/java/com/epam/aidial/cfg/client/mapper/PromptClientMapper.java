@@ -79,7 +79,7 @@ public abstract class PromptClientMapper {
         var itemParts = parseEncodedVersionedPath(metadataDto.getUrl());
         return Prompt.builder()
                 .path(itemParts.getPath())
-                .name(itemParts.getName())
+                .name(promptDto.getName())
                 .version(itemParts.getVersion())
                 .folderId(itemParts.getFolderId())
                 .updatedAt(metadataDto.getUpdatedAt())
