@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.web.security;
 
 import com.epam.aidial.cfg.utils.MapExtractionUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,31 +11,16 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
-import org.springframework.util.CollectionUtils;
 
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 @Slf4j
+@RequiredArgsConstructor
 public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
-    private final Set<String> emailClaims = new LinkedHashSet<>();
+    private final Set<String> emailClaims;
     private final Set<String> allowedRoles;
     private final boolean requireEmail;
-
-    public OpaqueAuthenticationConverter(List<String> emailClaims,
-                                         Set<String> allowedRoles,
-                                         String defaultClaimsEmailKey,
-                                         boolean requireEmail) {
-        this.allowedRoles = allowedRoles;
-        this.requireEmail = requireEmail;
-        if (!CollectionUtils.isEmpty(emailClaims)) {
-            this.emailClaims.addAll(emailClaims);
-        } else if (StringUtils.isNotBlank(defaultClaimsEmailKey)) {
-            this.emailClaims.add(defaultClaimsEmailKey);
-        }
-    }
 
     @Override
     public Authentication convert(String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) {
@@ -43,7 +28,7 @@ public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationC
 
         var accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null);
 
-        var email = MapExtractionUtils.extractFirstNonNullValue(authenticatedPrincipal.getAttributes(), List.copyOf(emailClaims));
+        var email = MapExtractionUtils.extractFirstNonNullValue(authenticatedPrincipal.getAttributes(), emailClaims);
 
         if (requireEmail && email.isEmpty()) {
             throw new AuthenticationServiceException("Email claim is required");
