@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,7 @@ public class ApplicationTypeSchemaExporter {
     protected Map<String, ApplicationTypeSchema> getApplicationTypeSchemas(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
-                    ? getApplicationTypeSchemasWithRemovedDependencies().stream()
+                    ? getApplicationTypeSchemasWithRemovedDependencies(fullExportRequest).stream()
                     .collect(Collectors.toMap(ApplicationTypeSchema::getSchemaId, Function.identity()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
@@ -51,19 +52,30 @@ public class ApplicationTypeSchemaExporter {
                 ))
                 .values()
                 .stream()
-                .map(component -> service.get(component.getName()))
-                .map(this::removeDependency)
+                .map(component -> {
+                    var applicationTypeSchema = getApplicationTypeSchema(component.getName());
+                    return removeDependency(applicationTypeSchema, component.getDependencies());
+                })
                 .toList();
     }
 
-    private Collection<ApplicationTypeSchema> getApplicationTypeSchemasWithRemovedDependencies() {
+    protected ApplicationTypeSchema getApplicationTypeSchema(String id) {
+        return service.get(id);
+    }
+
+    private Collection<ApplicationTypeSchema> getApplicationTypeSchemasWithRemovedDependencies(FullExportRequest fullExportRequest) {
         return service.getAll().stream()
-                .map(this::removeDependency)
+                .map(schema -> removeDependency(schema, fullExportRequest.getComponentTypes()))
                 .toList();
     }
 
-    private ApplicationTypeSchema removeDependency(ApplicationTypeSchema applicationTypeSchema) {
+    private ApplicationTypeSchema removeDependency(ApplicationTypeSchema applicationTypeSchema, Set<ExportConfigComponentType> componentTypes) {
         applicationTypeSchema.setApplications(null);
+
+        if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {
+            applicationTypeSchema.setInterceptors(null);
+        }
+
         return applicationTypeSchema;
     }
 

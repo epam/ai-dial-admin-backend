@@ -61,10 +61,14 @@ public class InterceptorExporter {
                 .values()
                 .stream()
                 .map(component -> {
-                    Interceptor interceptor = interceptorService.get(component.getName());
+                    Interceptor interceptor = getInterceptor(component.getName());
                     return removeDependencies(interceptor, component.getDependencies(), exportFormat);
                 })
                 .toList();
+    }
+
+    protected Interceptor getInterceptor(String name) {
+        return interceptorService.get(name);
     }
 
     private Interceptor removeDependencies(Interceptor interceptor, Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
@@ -79,6 +83,7 @@ public class InterceptorExporter {
             }
         }
         interceptor.setEntities(null);
+        interceptor.setApplicationTypeSchemas(null);
         return interceptor;
     }
 
