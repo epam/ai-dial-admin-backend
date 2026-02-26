@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 public class TestAuthenticationConverterFactory {
@@ -19,6 +20,9 @@ public class TestAuthenticationConverterFactory {
 
     public static JwtAuthenticationConverterFactory createJwtAuthenticationConverterFactory() {
         var config = IdentityProviderTestHelper.createJwtProviderConfig();
-        return new JwtAuthenticationConverterFactory(List.of(JwtProviderConfig.from(config.getIssuer(), config)), "oid", new IdentityProviderUtils());
+        return new JwtAuthenticationConverterFactory(
+                List.of(JwtProviderConfig.from(config.getIssuer(), config)),
+                new IdentityProviderUtils(Set.of("admin", "ConfigAdmin"), "unique_name", "oid", false)
+        );
     }
 }

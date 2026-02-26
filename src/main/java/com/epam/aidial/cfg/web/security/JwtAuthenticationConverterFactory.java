@@ -1,21 +1,19 @@
 package com.epam.aidial.cfg.web.security;
 
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class JwtAuthenticationConverterFactory {
-    private final String principalClaim;
+
     private final IdentityProviderUtils identityProviderUtils;
     private final Map<String, JwtAuthenticationConverter> convertersByIssuer;
 
+
     public JwtAuthenticationConverterFactory(List<JwtProviderConfig> providers,
-                                             String principalClaim,
                                              IdentityProviderUtils identityProviderUtils) {
-        this.principalClaim = principalClaim;
         this.identityProviderUtils = identityProviderUtils;
         Map<String, JwtAuthenticationConverter> tmpConvertersByIssuer = new HashMap<>();
         providers.forEach(config -> {
@@ -35,10 +33,14 @@ public class JwtAuthenticationConverterFactory {
                 .toList();
         grantedAuthoritiesConverter.setAuthoritiesPaths(authoritiesPaths);
         grantedAuthoritiesConverter.setAuthorityPrefix("");
-        final var jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        jwtAuthenticationConverter.setPrincipalClaimName(principalClaim);
-        return jwtAuthenticationConverter;
+
+        return new JwtAuthenticationConverter(
+                grantedAuthoritiesConverter,
+                identityProviderUtils.getPrincipalClaim(config.getPrincipalClaim()),
+                identityProviderUtils.getEmailClaims(config.getEmailClaims()),
+                identityProviderUtils.getAllowedRoles(config.getAllowedRoles()),
+                identityProviderUtils.isEmailRequired()
+        );
     }
 
     public JwtAuthenticationConverter getConverter(String issuer) {

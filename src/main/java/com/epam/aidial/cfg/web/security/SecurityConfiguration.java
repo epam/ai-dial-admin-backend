@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.authentication.ProviderManager;
@@ -19,16 +17,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
@@ -36,11 +27,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 @Configuration(proxyBeanMethods = false)
@@ -54,46 +41,23 @@ public class SecurityConfiguration {
     private final IdentityProvidersProperties identityProvidersProperties;
     private final IdentityProviderUtils identityProviderUtils;
 
-    @Value("${config.rest.security.default.allowedRoles}")
-    protected Set<String> defaultAllowedRoles;
-
     @Value("${config.rest.security.disable-swagger-authorization}")
     protected boolean disableSwaggerAuthorization;
 
     @Bean
-    public Map<String, Set<String>> allowedRolesByIssuer() {
-        Map<String, Set<String>> tmpRolesByIssuer = new HashMap<>();
-        var providers = identityProvidersProperties.getJwtProviders();
-        providers.forEach(config -> {
-            Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
-            if (config.getAllowedRoles() != null) {
-                acceptedRoles.addAll(config.getAllowedRoles());
-            }
-            var acceptedIssuers = identityProviderUtils.getAcceptedIssuers(config);
-            for (var issuer : acceptedIssuers) {
-                tmpRolesByIssuer.put(issuer, acceptedRoles);
-            }
-        });
-        return Map.copyOf(tmpRolesByIssuer);
+    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory() {
+        return new JwtAuthenticationConverterFactory(
+                identityProvidersProperties.getJwtProviders(),
+                identityProviderUtils
+        );
     }
 
     @Bean
-    public Map<String, Set<String>> allowedRolesByOpaqueProviderName() {
-        Map<String, Set<String>> tmpRolesByProviderName = new HashMap<>();
-        var providers = identityProvidersProperties.getOpaqueTokenProviders();
-        providers.forEach(config -> {
-            Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
-            if (config.getAllowedRoles() != null) {
-                acceptedRoles.addAll(config.getAllowedRoles());
-            }
-            tmpRolesByProviderName.put(config.getName(), acceptedRoles);
-        });
-        return Map.copyOf(tmpRolesByProviderName);
-    }
-
-    @Bean
-    public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory(@Value("${config.rest.security.principal-claim}") String principalClaim) {
-        return new JwtAuthenticationConverterFactory(identityProvidersProperties.getJwtProviders(), principalClaim, identityProviderUtils);
+    public OpaqueAuthenticationConverterFactory opaqueAuthenticationConverterFactory() {
+        return new OpaqueAuthenticationConverterFactory(
+                identityProvidersProperties.getOpaqueTokenProviders(),
+                identityProviderUtils
+        );
     }
 
     @Bean
@@ -108,7 +72,7 @@ public class SecurityConfiguration {
 
     @Bean
     public TokenIntrospectorFactory tokenIntrospectorFactory() {
-        return new TokenIntrospectorFactoryImpl(identityProvidersProperties.getOpaqueTokenProviders());
+        return new TokenIntrospectorFactoryImpl(identityProviderUtils, identityProvidersProperties.getOpaqueTokenProviders());
     }
 
     @Bean
@@ -154,71 +118,29 @@ public class SecurityConfiguration {
     @Bean
     public JwtAuthenticationProvider jwtAuthenticationProvider(
             TokenDecoderFactory tokenDecoderFactory,
-            Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+            JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory) {
         JwtDecoder jwtDecoder = tokenDecoderFactory.createJwtDecoder();
         JwtAuthenticationProvider jwtAuthenticationProvider = new JwtAuthenticationProvider(jwtDecoder);
-        jwtAuthenticationProvider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-        return jwtAuthenticationProvider;
-    }
-
-    @Bean
-    public Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter(
-            JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory,
-            Map<String, Set<String>> allowedRolesByIssuer) {
-        return token -> {
-            var issuer = token.getIssuer().toString();
+        jwtAuthenticationProvider.setJwtAuthenticationConverter(token -> {
+            String issuer = token.getIssuer().toString();
             var converter = jwtAuthenticationConverterFactory.getConverter(issuer);
-            var authenticationToken = converter.convert(token);
-            var allowedRolesForIssuer = allowedRolesByIssuer.getOrDefault(issuer, Set.of());
-            var filtered = authenticationToken.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .filter(allowedRolesForIssuer::contains)
-                    .map(SimpleGrantedAuthority::new)
-                    .toList();
-            log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
-                    token, issuer, authenticationToken, allowedRolesForIssuer, authenticationToken.getAuthorities());
-            if (filtered.isEmpty()) {
-                log.warn("Access denied for issuer:{}. No allowed roles for user {}", issuer, authenticationToken.getName());
-                return new JwtAuthenticationToken(token);
-            }
-            return new JwtAuthenticationToken(token, filtered, authenticationToken.getName());
-        };
+            return converter.convert(token);
+        });
+        return jwtAuthenticationProvider;
     }
 
     @Bean
     public OpaqueTokenAuthenticationProvider opaqueTokenAuthenticationProvider(
             TokenIntrospectorFactory tokenIntrospectorFactory,
-            OpaqueTokenAuthenticationConverter opaqueTokenAuthenticationConverter) {
+            OpaqueAuthenticationConverterFactory opaqueAuthenticationConverterFactory) {
         OpaqueTokenIntrospector opaqueTokenIntrospector = tokenIntrospectorFactory.createOpaqueTokenIntrospector();
         OpaqueTokenAuthenticationProvider opaqueTokenAuthenticationProvider = new OpaqueTokenAuthenticationProvider(opaqueTokenIntrospector);
-        opaqueTokenAuthenticationProvider.setAuthenticationConverter(opaqueTokenAuthenticationConverter);
-        return opaqueTokenAuthenticationProvider;
-    }
-
-    @Bean
-    public OpaqueTokenAuthenticationConverter opaqueTokenAuthenticationConverter(Map<String, Set<String>> allowedRolesByOpaqueProviderName) {
-        return (introspectedToken, authenticatedPrincipal) -> {
+        opaqueTokenAuthenticationProvider.setAuthenticationConverter((introspectedToken, authenticatedPrincipal) -> {
             var providerName = (String) authenticatedPrincipal.getAttribute(OpaqueTokenProviderConfig.IDP_CLAIM);
-            var accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken, null, null);
-
-            var allowedRolesForProvider = allowedRolesByOpaqueProviderName.getOrDefault(providerName, Set.of());
-            List<SimpleGrantedAuthority> filtered = authenticatedPrincipal.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .filter(allowedRolesForProvider::contains)
-                    .map(SimpleGrantedAuthority::new)
-                    .toList();
-            log.trace("Authorization state - token: {}, idp: {}, allowedRoles: {}, authorities: {}",
-                    introspectedToken, providerName, allowedRolesForProvider, authenticatedPrincipal.getAuthorities());
-
-            BearerTokenAuthentication authentication = new BearerTokenAuthentication(authenticatedPrincipal, accessToken, filtered);
-
-            if (filtered.isEmpty()) {
-                log.warn("Access denied for idp: {}. No allowed roles for user {}", providerName, authenticatedPrincipal.getName());
-                authentication.setAuthenticated(false);
-            }
-
-            return authentication;
-        };
+            var converter = opaqueAuthenticationConverterFactory.getConverter(providerName);
+            return converter.convert(introspectedToken, authenticatedPrincipal);
+        });
+        return opaqueTokenAuthenticationProvider;
     }
 
     protected String[] publicPathPatterns() {

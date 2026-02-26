@@ -46,6 +46,7 @@ public class IdentityProvidersProperties {
         private List<String> audiences;
         private List<String> aliases;
         private List<String> roleClaims;
+        private List<String> emailClaims;
         private Set<String> allowedRoles;
 
         public boolean hasIssuer() {
@@ -69,7 +70,7 @@ public class IdentityProvidersProperties {
             throw new IllegalStateException("No identity providers configured. Application cannot start.");
         }
 
-        log.info("Loaded {} provider configurations", providers.size());
+        log.info("Loaded configurations for {} providers", providers.keySet().stream().toList());
     }
 
     private boolean isInvalidProvider(String name, ProviderConfig provider) {
