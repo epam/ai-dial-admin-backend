@@ -94,7 +94,7 @@ public class PromptPublicationResolver extends PublicationResolver {
     private PromptPublicationResource recalculateTargetUrl(PromptPublicationResource resource, String folderId) {
         var folder = PathUtils.ensureTrailingSlash(folderId);
         var promptResource = resource.getPrompt();
-        var newTargetPath = PathUtils.buildPath(PromptClientMapper.PROMPTS_PREFIX + folder,
+        var newTargetPath = PathUtils.buildEncodePath(PromptClientMapper.PROMPTS_PREFIX + folder,
                 promptResource.getName(), promptResource.getVersion());
         resource.setTargetUrl(newTargetPath);
         return resource;
