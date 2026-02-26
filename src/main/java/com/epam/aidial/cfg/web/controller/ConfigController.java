@@ -5,7 +5,9 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.mapper.ExportConfigMapper;
 import com.epam.aidial.cfg.dto.ConfigSyncStatusDto;
 import com.epam.aidial.cfg.dto.CoreExportRequestDto;
+import com.epam.aidial.cfg.dto.ExportConfigMetadataDto;
 import com.epam.aidial.cfg.dto.ExportConfigPreviewDto;
+import com.epam.aidial.cfg.dto.ExportFormatDto;
 import com.epam.aidial.cfg.dto.ExportRequestDto;
 import com.epam.aidial.cfg.dto.ImportConfigPreviewDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -124,6 +126,13 @@ public class ConfigController {
         var request = exportConfigMapper.toExportRequest(dto);
         var preview = configTransfer.exportPreview(request);
         return exportConfigMapper.toExportConfigPreviewDto(preview);
+    }
+
+    @GetMapping(path = "/export-metadata", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExportConfigMetadataDto getComponentDependencies(@RequestParam ExportFormatDto exportFormatDto) {
+        var exportFormat = exportConfigMapper.toExportFormat(exportFormatDto);
+        var exportConfigMetadata = configTransfer.getExportConfigMetadata(exportFormat);
+        return exportConfigMapper.toExportConfigMetadataDto(exportConfigMetadata);
     }
 
     @PostMapping(path = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

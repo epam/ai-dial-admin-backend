@@ -1,10 +1,14 @@
 package com.epam.aidial.cfg.domain.mapper;
 
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
+import com.epam.aidial.cfg.domain.model.ExportConfigMetadata;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.dto.ExportApplicationTypeSchemaInfoDto;
+import com.epam.aidial.cfg.dto.ExportConfigMetadataDto;
 import com.epam.aidial.cfg.dto.ExportConfigPreviewDto;
+import com.epam.aidial.cfg.dto.ExportFormatDto;
 import com.epam.aidial.cfg.dto.ExportKeyInfoDto;
 import com.epam.aidial.cfg.dto.ExportRequestDto;
 import com.epam.aidial.cfg.dto.FullExportRequestDto;
@@ -31,4 +35,8 @@ public interface ExportConfigMapper {
     ExportKeyInfoDto toExportKeyInfoDto(ExportKeyInfo exportKeyInfo);
 
     ExportApplicationTypeSchemaInfoDto toExportApplicationTypeSchemaInfoDto(ExportApplicationTypeSchemaInfo typeSchemaInfo);
+
+    ExportFormat toExportFormat(ExportFormatDto exportFormatDto);
+
+    ExportConfigMetadataDto toExportConfigMetadataDto(ExportConfigMetadata exportConfigMetadata);
 }
