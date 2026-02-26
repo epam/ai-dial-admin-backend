@@ -70,7 +70,7 @@ public class IdentityProvidersProperties {
             throw new IllegalStateException("No identity providers configured. Application cannot start.");
         }
 
-        log.info("Loaded configurations for {} providers", providers.entrySet().stream().toList());
+        log.info("Loaded configurations for {} providers", providers.keySet().stream().toList());
     }
 
     private boolean isInvalidProvider(String name, ProviderConfig provider) {
