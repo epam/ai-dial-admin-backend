@@ -161,7 +161,7 @@ public class FullToSelectedItemsExportRequestTransformer {
                                                         ExportConfigComponentType exportConfigComponentType) {
         var dependencies = SetUtils.intersection(
                 fullExportRequest.getComponentTypes(),
-                exportConfigComponentType.getDependencies(fullExportRequest.getExportFormat())
+                exportConfigComponentType.getAllDependencies(fullExportRequest.getExportFormat())
         );
         return new ExportConfigComponent(name, exportConfigComponentType, new HashSet<>(dependencies));
     }
