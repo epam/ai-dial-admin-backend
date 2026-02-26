@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.config.transfer.exporter;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.DeploymentHolder;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
@@ -11,10 +12,12 @@ import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.GlobalSettings;
+import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
+import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -27,8 +30,8 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.utils.StringUtils;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,16 +139,18 @@ public class ConfigExporter {
 
     private void resolveDependencies(SelectedItemsExportRequest request) {
         List<ExportConfigComponent> components = request.getComponents();
-        List<ExportConfigComponent> result = new ArrayList<>(components);
+        Set<ExportConfigComponent> result = new HashSet<>(components);
         resolveKeyDependencies(result);
         resolveRoleDependencies(request, result);
         resolveAppDependencies(request, result);
         resolveModelDependencies(request, result);
+        resolveApplicationTypeSchemaDependencies(result);
         resolveGlobalSettingsDependencies(result);
-        request.setComponents(result);
+        resolveInterceptorDependencies(request, result);
+        request.setComponents(result.stream().toList());
     }
 
-    private void resolveKeyDependencies(List<ExportConfigComponent> result) {
+    private void resolveKeyDependencies(Set<ExportConfigComponent> result) {
         List<ExportConfigComponent> keys = filterComponentsByType(result, ExportConfigComponentType.KEY);
         for (ExportConfigComponent component : keys) {
             String keyName = component.getName();
@@ -168,7 +173,7 @@ public class ConfigExporter {
         return keys.stream().anyMatch(key -> Objects.equals(keyName, key));
     }
 
-    private void resolveRoleDependencies(SelectedItemsExportRequest request, List<ExportConfigComponent> updatedComponents) {
+    private void resolveRoleDependencies(SelectedItemsExportRequest request, Set<ExportConfigComponent> updatedComponents) {
         List<ExportConfigComponent> roles = filterComponentsByType(updatedComponents, ExportConfigComponentType.ROLE);
         for (ExportConfigComponent component : roles) {
             String roleName = component.getName();
@@ -191,7 +196,7 @@ public class ConfigExporter {
                                                                 Set<ExportConfigComponentType> dependencies,
                                                                 ExportConfigComponentType dependencyType,
                                                                 Collection<T> entities,
-                                                                List<ExportConfigComponent> updatedComponents) {
+                                                                Set<ExportConfigComponent> updatedComponents) {
         if (!dependencies.contains(dependencyType)) {
             return;
         }
@@ -204,13 +209,13 @@ public class ConfigExporter {
         enabledEntities.forEach(entity -> updatedComponents.add(new ExportConfigComponent(entity.getDeployment().getName(), dependencyType, dependencies)));
     }
 
-    private List<ExportConfigComponent> filterComponentsByType(List<ExportConfigComponent> components, ExportConfigComponentType type) {
+    private List<ExportConfigComponent> filterComponentsByType(Collection<ExportConfigComponent> components, ExportConfigComponentType type) {
         return components.stream()
                 .filter(c -> c.getType().equals(type))
                 .toList();
     }
 
-    private void resolveAppDependencies(SelectedItemsExportRequest request, List<ExportConfigComponent> updatedComponents) {
+    private void resolveAppDependencies(SelectedItemsExportRequest request, Set<ExportConfigComponent> updatedComponents) {
         List<ExportConfigComponent> apps = filterComponentsByType(updatedComponents, ExportConfigComponentType.APPLICATION);
 
         for (ExportConfigComponent component : apps) {
@@ -231,7 +236,7 @@ public class ConfigExporter {
         return selectedItemsExportRequest.getExportFormat() != CORE || application.getValidityState().isValid();
     }
 
-    private void resolveModelDependencies(SelectedItemsExportRequest request, List<ExportConfigComponent> updatedComponents) {
+    private void resolveModelDependencies(SelectedItemsExportRequest request, Set<ExportConfigComponent> updatedComponents) {
         List<ExportConfigComponent> models = filterComponentsByType(updatedComponents, ExportConfigComponentType.MODEL);
 
         for (ExportConfigComponent component : models) {
@@ -248,25 +253,63 @@ public class ConfigExporter {
         }
     }
 
-    private void processInterceptorDependencies(List<String> interceptors, Set<ExportConfigComponentType> dependencies, List<ExportConfigComponent> updatedComponents) {
+    private void resolveApplicationTypeSchemaDependencies(Set<ExportConfigComponent> updatedComponents) {
+        List<ExportConfigComponent> appTypeSchemas = filterComponentsByType(updatedComponents, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA);
+
+        for (ExportConfigComponent component : appTypeSchemas) {
+            Set<ExportConfigComponentType> dependencies = component.getDependencies();
+            if (CollectionUtils.isEmpty(dependencies)) {
+                continue;
+            }
+
+            ApplicationTypeSchema applicationTypeSchema = applicationTypeSchemaExporter.getApplicationTypeSchema(component.getName());
+            processInterceptorDependencies(applicationTypeSchema.getInterceptors(), dependencies, updatedComponents);
+        }
+    }
+
+    private void resolveInterceptorDependencies(SelectedItemsExportRequest request, Set<ExportConfigComponent> updatedComponents) {
+        List<ExportConfigComponent> interceptors = filterComponentsByType(updatedComponents, ExportConfigComponentType.INTERCEPTOR);
+
+        for (ExportConfigComponent component : interceptors) {
+            Set<ExportConfigComponentType> dependencies = component.getDependencies();
+            if (CollectionUtils.isEmpty(dependencies)) {
+                continue;
+            }
+
+            Interceptor interceptor = interceptorExporter.getInterceptor(component.getName());
+            if (request.getExportFormat() != CORE
+                    && interceptor.getSource() != null
+                    && interceptor.getSource() instanceof InterceptorRunnerSource interceptorRunnerSource) {
+                processInterceptorRunnerDependencies(interceptorRunnerSource.getRunnerName(), dependencies, updatedComponents);
+            }
+        }
+    }
+
+    private void processInterceptorDependencies(List<String> interceptors, Set<ExportConfigComponentType> dependencies, Set<ExportConfigComponent> updatedComponents) {
         if (dependencies.contains(ExportConfigComponentType.INTERCEPTOR) && CollectionUtils.isNotEmpty(interceptors)) {
             interceptors.forEach(interceptor ->
-                    updatedComponents.add(new ExportConfigComponent(interceptor, ExportConfigComponentType.INTERCEPTOR)));
+                    updatedComponents.add(new ExportConfigComponent(interceptor, ExportConfigComponentType.INTERCEPTOR, dependencies)));
         }
     }
 
-    private void processAdapterDependencies(String adapter, Set<ExportConfigComponentType> dependencies, List<ExportConfigComponent> updatedComponents) {
+    private void processAdapterDependencies(String adapter, Set<ExportConfigComponentType> dependencies, Set<ExportConfigComponent> updatedComponents) {
         if (dependencies.contains(ExportConfigComponentType.ADAPTER) && StringUtils.isNotBlank(adapter)) {
-            updatedComponents.add(new ExportConfigComponent(adapter, ExportConfigComponentType.ADAPTER));
+            updatedComponents.add(new ExportConfigComponent(adapter, ExportConfigComponentType.ADAPTER, dependencies));
         }
     }
 
-    private void processApplicationTypeSchemaDependencies(Application application, Set<ExportConfigComponentType> dependencies, List<ExportConfigComponent> updatedComponents) {
+    private void processApplicationTypeSchemaDependencies(Application application, Set<ExportConfigComponentType> dependencies, Set<ExportConfigComponent> updatedComponents) {
         if (dependencies.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)) {
             URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
             if (applicationTypeSchemaId != null) {
-                updatedComponents.add(new ExportConfigComponent(applicationTypeSchemaId.toString(), ExportConfigComponentType.APPLICATION_TYPE_SCHEMA));
+                updatedComponents.add(new ExportConfigComponent(applicationTypeSchemaId.toString(), ExportConfigComponentType.APPLICATION_TYPE_SCHEMA, dependencies));
             }
+        }
+    }
+
+    private void processInterceptorRunnerDependencies(String interceptorRunner, Set<ExportConfigComponentType> dependencies, Set<ExportConfigComponent> updatedComponents) {
+        if (dependencies.contains(ExportConfigComponentType.INTERCEPTOR_RUNNER) && StringUtils.isNotBlank(interceptorRunner)) {
+            updatedComponents.add(new ExportConfigComponent(interceptorRunner, ExportConfigComponentType.INTERCEPTOR_RUNNER, dependencies));
         }
     }
 
@@ -279,7 +322,7 @@ public class ConfigExporter {
                 .collect(Collectors.toSet());
     }
 
-    private void resolveGlobalSettingsDependencies(List<ExportConfigComponent> updatedComponents) {
+    private void resolveGlobalSettingsDependencies(Set<ExportConfigComponent> updatedComponents) {
         List<ExportConfigComponent> globalInterceptors = filterComponentsByType(updatedComponents, ExportConfigComponentType.GLOBAL_INTERCEPTOR);
         if (CollectionUtils.isEmpty(globalInterceptors)) {
             return;
