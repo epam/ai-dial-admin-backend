@@ -109,7 +109,7 @@ public class ToolSetPublicationResolver extends PublicationResolver {
     private ToolSetPublicationResource recalculateTargetUrl(ToolSetPublicationResource resource, String folderId) {
         var folder = PathUtils.ensureTrailingSlash(folderId);
         var toolSetResource = resource.getToolSetResource();
-        var newTargetPath = PathUtils.buildPath(ToolSetClientMapper.TOOLSETS_PREFIX + folder,
+        var newTargetPath = PathUtils.buildEncodedPath(ToolSetClientMapper.TOOLSETS_PREFIX + folder,
                 toolSetResource.getName(), toolSetResource.getVersion());
         resource.setTargetUrl(newTargetPath);
         return resource;

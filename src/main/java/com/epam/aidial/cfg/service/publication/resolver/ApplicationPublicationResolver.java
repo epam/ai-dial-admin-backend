@@ -107,7 +107,7 @@ public class ApplicationPublicationResolver extends PublicationResolver {
     private ApplicationPublicationResource recalculateTargetUrl(ApplicationPublicationResource resource, String folderId) {
         var folder = PathUtils.ensureTrailingSlash(folderId);
         var applicationResource = resource.getApplicationResource();
-        var newTargetPath = PathUtils.buildPath(ApplicationClientMapper.APPLICATIONS_PREFIX + folder,
+        var newTargetPath = PathUtils.buildEncodedPath(ApplicationClientMapper.APPLICATIONS_PREFIX + folder,
                 applicationResource.getName(), applicationResource.getVersion());
         resource.setTargetUrl(newTargetPath);
         return resource;
