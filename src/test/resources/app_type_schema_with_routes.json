@@ -2,6 +2,7 @@
   "type": "object",
   "title": "Some Title",
   "description": "some desc",
+  "properties": {},
   "$schema": "https://dial.epam.com/application_type_schemas/schema#",
   "$id": "https://schema2",
   "dial:applicationTypeDisplayName": "schema-2",
@@ -66,5 +67,6 @@
   "dial:applicationTypePlaybackSupport": true,
   "dial:appendApplicationPropertiesHeader": true,
   "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
-  "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint"
+  "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+  "$defs": {}
 }

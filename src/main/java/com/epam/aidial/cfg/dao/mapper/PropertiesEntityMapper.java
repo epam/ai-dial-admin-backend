@@ -3,8 +3,6 @@ package com.epam.aidial.cfg.dao.mapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,7 +16,7 @@ public abstract class PropertiesEntityMapper {
 
     @SneakyThrows
     public Map<String, String> mapToStringMap(String value) {
-        if (StringUtils.isBlank(value)) {
+        if (value == null) {
             return null;
         }
         return objectMapper.readValue(value, new TypeReference<>() {
@@ -27,7 +25,7 @@ public abstract class PropertiesEntityMapper {
 
     @SneakyThrows
     public String mapFromStringMap(Map<String, String> value) {
-        if (MapUtils.isEmpty(value)) {
+        if (value == null) {
             return null;
         }
         return objectMapper.writeValueAsString(value);
