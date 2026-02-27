@@ -128,14 +128,10 @@ public class ApplicationPublicationResolver extends PublicationResolver {
             return;
         }
         var applicationPublication = (ApplicationPublication) publication;
-        var newFileResources = filePublicationResolver.uploadNewFileResources(files, publication.getFolderId());
-        var updatedFileResources = Stream.concat(
-                Optional.ofNullable(applicationPublication.getFiles())
-                        .orElseGet(List::of)
-                        .stream(),
-                newFileResources.stream()
-        ).toList();
-        applicationPublication.setFiles(updatedFileResources);
+        applicationPublication.setFiles(
+                filePublicationResolver.merge(
+                        applicationPublication.getFiles(),
+                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId())));
     }
 
     private ApplicationPublicationResource getApplicationPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {

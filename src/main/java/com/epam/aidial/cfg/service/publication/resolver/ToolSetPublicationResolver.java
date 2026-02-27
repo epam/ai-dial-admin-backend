@@ -130,14 +130,10 @@ public class ToolSetPublicationResolver extends PublicationResolver {
             return;
         }
         var toolSetPublication = (ToolSetPublication) publication;
-        var newFileResources = filePublicationResolver.uploadNewFileResources(files, publication.getFolderId());
-        var updatedFileResources = Stream.concat(
-                Optional.ofNullable(toolSetPublication.getFiles())
-                        .orElseGet(List::of)
-                        .stream(),
-                newFileResources.stream()
-        ).toList();
-        toolSetPublication.setFiles(updatedFileResources);
+        toolSetPublication.setFiles(
+                filePublicationResolver.merge(
+                        toolSetPublication.getFiles(),
+                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId())));
     }
 
     private ToolSetPublicationResource getToolSetPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {

@@ -164,14 +164,8 @@ public class FilePublicationResolver extends PublicationResolver {
             return;
         }
         var filePublication = (FilePublication) publication;
-        var newFileResources = uploadNewFileResources(files, publication.getFolderId());
-        var updated = Stream.concat(
-                Optional.ofNullable(filePublication.getResources())
-                        .orElseGet(List::of)
-                        .stream(),
-                newFileResources.stream()
-        ).toList();
-        filePublication.setResources(updated);
+        filePublication.setResources(
+                merge(filePublication.getResources(), uploadNewFileResources(files, publication.getFolderId())));
     }
 
     protected List<FilePublicationResource> uploadNewFileResources(List<MultipartFile> files, String folderId) {
@@ -183,6 +177,13 @@ public class FilePublicationResolver extends PublicationResolver {
         return uploadedSourceFiles.getImportResults().stream()
                 .map(importResult -> getPublicationResource(importResult, folderId, updatesFolderPath))
                 .toList();
+    }
+
+    protected <T> List<T> merge(List<T> existingResources, List<T> newResources) {
+        return Stream.concat(
+                Optional.ofNullable(existingResources).orElseGet(List::of).stream(),
+                newResources.stream()
+        ).toList();
     }
 
     private ImportResourcesFileResult upload(List<MultipartFile> files, String path) {
