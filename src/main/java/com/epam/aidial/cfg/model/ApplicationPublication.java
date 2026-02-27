@@ -18,6 +18,6 @@ import java.util.List;
 public class ApplicationPublication extends Publication {
 
     private List<ApplicationPublicationResource> resources;
-    private List<String> files;
+    private List<FilePublicationResource> files;
 
 }

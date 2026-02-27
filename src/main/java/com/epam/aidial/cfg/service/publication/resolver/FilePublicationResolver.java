@@ -103,7 +103,7 @@ public class FilePublicationResolver extends PublicationResolver {
         return mapper.toPublicationDto(publication, updatedResources);
     }
 
-    private FilePublicationResource recalculateTargetUrl(FilePublicationResource resource, String folderId) {
+    protected FilePublicationResource recalculateTargetUrl(FilePublicationResource resource, String folderId) {
         var folder = PathUtils.ensureTrailingSlash(folderId);
         var name = resource.getFile().getName();
         var newTargetPath = UrlUtil.encodePath(FileClientMapper.FILES_PREFIX + folder + name);
@@ -130,15 +130,12 @@ public class FilePublicationResolver extends PublicationResolver {
         return fileClientMapper.parsePath(path).getPath();
     }
 
-    protected List<String> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList,
-                                                    List<PublicationResourceIssue> resourceIssues) {
+    protected List<FilePublicationResource> resolveFileResourcePaths(List<ResourceInfo> resourceInfoList,
+                                                                     List<PublicationResourceIssue> resourceIssues) {
         return resourceInfoList.stream()
                 .filter(resourceUrlStartsWith(FileClientMapper.FILES_PREFIX))
                 .map(resource -> resolveResourceAndCollectIssues(
-                        () -> {
-                            getFilePublication(resource, resource.status());
-                            return extractFilePath(resource);
-                        },
+                        () -> getFilePublication(resource, resource.status()),
                         resourceIssues,
                         new PublicationResourceIssue(ResourceType.FILE, extractFilePath(resource.resource(), resource.status()),
                                 "File not found"),
@@ -167,17 +164,11 @@ public class FilePublicationResolver extends PublicationResolver {
             return;
         }
         var filePublication = (FilePublication) publication;
-        var newFileResources = uploadNewFileResources(files, publication.getFolderId());
-        var updated = Stream.concat(
-                Optional.ofNullable(filePublication.getResources())
-                        .orElseGet(List::of)
-                        .stream(),
-                newFileResources.stream()
-        ).toList();
-        filePublication.setResources(updated);
+        filePublication.setResources(
+                merge(filePublication.getResources(), uploadNewFileResources(files, publication.getFolderId())));
     }
 
-    private List<FilePublicationResource> uploadNewFileResources(List<MultipartFile> files, String folderId) {
+    protected List<FilePublicationResource> uploadNewFileResources(List<MultipartFile> files, String folderId) {
         var sourceFolder = PathUtils.ensureTrailingSlash(bucketService.getBucket().getBucket());
         var updatesFolderPath = sourceFolder + PUBLICATIONS_UPDATES_FOLDER;
         var uploadedSourceFiles = upload(files, updatesFolderPath);
@@ -186,6 +177,13 @@ public class FilePublicationResolver extends PublicationResolver {
         return uploadedSourceFiles.getImportResults().stream()
                 .map(importResult -> getPublicationResource(importResult, folderId, updatesFolderPath))
                 .toList();
+    }
+
+    protected <T> List<T> merge(List<T> existingResources, List<T> newResources) {
+        return Stream.concat(
+                Optional.ofNullable(existingResources).orElseGet(List::of).stream(),
+                newResources.stream()
+        ).toList();
     }
 
     private ImportResourcesFileResult upload(List<MultipartFile> files, String path) {

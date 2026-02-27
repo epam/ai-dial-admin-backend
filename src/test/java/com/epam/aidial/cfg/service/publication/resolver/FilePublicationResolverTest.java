@@ -287,7 +287,7 @@ class FilePublicationResolverTest {
     }
 
     @Test
-    void updatePublicationResourcesShouldReturnCorrectFilePublication() {
+    void attachUploadedFilesShouldAppendNewFilesToExisting() {
         // given
         var filePrefix = "files/";
         var fileName = "testFile";

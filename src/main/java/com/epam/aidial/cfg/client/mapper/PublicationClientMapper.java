@@ -97,7 +97,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "resourceIssues", source = "resourceIssues")
     FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
 
-    default ApplicationPublication toApplicationPublication(PublicationDto dto, List<ApplicationPublicationResource> resources, List<String> files,
+    default ApplicationPublication toApplicationPublication(PublicationDto dto, List<ApplicationPublicationResource> resources, List<FilePublicationResource> files,
                                                             List<PublicationResourceIssue> resourceIssues) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
         return toApplicationPublication(dto, path, resources, files, resourceIssues);
@@ -108,10 +108,10 @@ public interface PublicationClientMapper {
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
-    ApplicationPublication toApplicationPublication(PublicationDto dto, String path, List<ApplicationPublicationResource> resources, List<String> files,
+    ApplicationPublication toApplicationPublication(PublicationDto dto, String path, List<ApplicationPublicationResource> resources, List<FilePublicationResource> files,
                                                     List<PublicationResourceIssue> resourceIssues);
 
-    default ConversationPublication toConversationPublication(PublicationDto dto, List<ConversationPublicationResource> resources, List<String> files,
+    default ConversationPublication toConversationPublication(PublicationDto dto, List<ConversationPublicationResource> resources, List<FilePublicationResource> files,
                                                               List<PublicationResourceIssue> resourceIssues) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
         return toConversationPublication(dto, path, resources, files, resourceIssues);
@@ -122,10 +122,10 @@ public interface PublicationClientMapper {
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
-    ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<String> files,
+    ConversationPublication toConversationPublication(PublicationDto dto, String path, List<ConversationPublicationResource> resources, List<FilePublicationResource> files,
                                                       List<PublicationResourceIssue> resourceIssues);
 
-    default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<String> files,
+    default ToolSetPublication toToolSetPublication(PublicationDto dto, List<ToolSetPublicationResource> resources, List<FilePublicationResource> files,
                                                     List<PublicationResourceIssue> resourceIssues) {
         var path = removePrefix(dto.getUrl(), PUBLICATIONS_PREFIX);
         return toToolSetPublication(dto, path, resources, files, resourceIssues);
@@ -136,7 +136,7 @@ public interface PublicationClientMapper {
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
-    ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<String> files,
+    ToolSetPublication toToolSetPublication(PublicationDto dto, String path, List<ToolSetPublicationResource> resources, List<FilePublicationResource> files,
                                             List<PublicationResourceIssue> resourceIssues);
 
     PromptPublicationResource toPromptPublicationResource(PublicationResourceDto action, Prompt prompt);

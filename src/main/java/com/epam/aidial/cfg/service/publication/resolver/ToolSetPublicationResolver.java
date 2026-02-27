@@ -11,16 +11,21 @@ import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.model.ToolSetPublicationResource;
 import com.epam.aidial.cfg.service.ToolSetResourceService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
+import com.epam.aidial.cfg.utils.PathUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Component
 @LogExecution
@@ -28,14 +33,18 @@ public class ToolSetPublicationResolver extends PublicationResolver {
 
     private final PublicationClientMapper mapper;
     private final ToolSetResourceService toolSetResourceService;
+    private final ToolSetClientMapper toolSetClientMapper;
     private final FilePublicationResolver filePublicationResolver;
 
     protected ToolSetPublicationResolver(PublicationResourceUrlResolver resolver,
                                          PublicationClientMapper mapper,
-                                         ToolSetResourceService toolSetResourceService, FilePublicationResolver filePublicationResolver) {
+                                         ToolSetResourceService toolSetResourceService,
+                                         ToolSetClientMapper toolSetClientMapper,
+                                         FilePublicationResolver filePublicationResolver) {
         super(resolver);
         this.mapper = mapper;
         this.toolSetResourceService = toolSetResourceService;
+        this.toolSetClientMapper = toolSetClientMapper;
         this.filePublicationResolver = filePublicationResolver;
     }
 
@@ -66,13 +75,44 @@ public class ToolSetPublicationResolver extends PublicationResolver {
         return mapper.toToolSetPublication(publicationDto, toolSetResources, files, resourceIssues);
     }
 
-    public void updatePublicationResources(Publication publications) {
-        throw new UnsupportedOperationException("Operation not supported");
+    @Override
+    public void updatePublicationResources(Publication publication) {
+        var toolSetPublication = (ToolSetPublication) publication;
+        var toolSets = toolSetPublication.getResources();
+        toolSets.stream()
+                .map(ToolSetPublicationResource::getToolSetResource)
+                .map(toolSetClientMapper::toCreateToolSetResource)
+                .forEach(toolSet -> toolSetResourceService.putToolSetResource(toolSet, true, null));
     }
 
     @Override
     public PublicationDto updatePublicationResourceTargets(Publication publication) {
-        throw new UnsupportedOperationException("Operation not supported");
+        var toolSetPublication = (ToolSetPublication) publication;
+        var folderId = publication.getFolderId();
+
+        var updatedToolSetResources = toolSetPublication.getResources().stream()
+                .map(toolSet -> recalculateTargetUrl(toolSet, folderId))
+                .toList();
+        var updatedFileResources = Optional.ofNullable(toolSetPublication.getFiles())
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .map(file -> filePublicationResolver.recalculateTargetUrl(file, folderId))
+                .toList();
+
+        var updatedResources = Stream.concat(
+                        updatedToolSetResources.stream(),
+                        updatedFileResources.stream())
+                .toList();
+        return mapper.toPublicationDto(publication, updatedResources);
+    }
+
+    private ToolSetPublicationResource recalculateTargetUrl(ToolSetPublicationResource resource, String folderId) {
+        var folder = PathUtils.ensureTrailingSlash(folderId);
+        var toolSetResource = resource.getToolSetResource();
+        var newTargetPath = PathUtils.buildEncodedPath(ToolSetClientMapper.TOOLSETS_PREFIX + folder,
+                toolSetResource.getName(), toolSetResource.getVersion());
+        resource.setTargetUrl(newTargetPath);
+        return resource;
     }
 
     @Override
@@ -83,6 +123,17 @@ public class ToolSetPublicationResolver extends PublicationResolver {
     @Override
     public Set<ResourceTypeDto> applicableResourceTypes() {
         return Set.of(ResourceTypeDto.TOOL_SET, ResourceTypeDto.FILE);
+    }
+
+    public void attachUploadedFiles(Publication publication, List<MultipartFile> files) {
+        if (CollectionUtils.isEmpty(files)) {
+            return;
+        }
+        var toolSetPublication = (ToolSetPublication) publication;
+        toolSetPublication.setFiles(
+                filePublicationResolver.merge(
+                        toolSetPublication.getFiles(),
+                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId())));
     }
 
     private ToolSetPublicationResource getToolSetPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {

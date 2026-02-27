@@ -108,4 +108,6 @@ public abstract class ApplicationClientMapper {
     @Mapping(target = "routes", source = "dto.routes")
     public abstract CreateApplicationResource toCreateApplicationResource(ApplicationEximDto dto, PathUtils.VersionedPathParts itemParts);
 
+    public abstract CreateApplicationResource toCreateApplicationResource(ApplicationResource applicationResource);
+
 }
