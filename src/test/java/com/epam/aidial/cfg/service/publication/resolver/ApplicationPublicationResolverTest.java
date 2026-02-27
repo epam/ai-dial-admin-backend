@@ -36,6 +36,7 @@ import org.springframework.util.MimeTypeUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -342,6 +343,12 @@ class ApplicationPublicationResolverTest {
 
         when(filePublicationResolver.uploadNewFileResources(any(), any()))
                 .thenReturn(List.of(newFileResource));
+        when(filePublicationResolver.merge(anyList(), anyList()))
+                .thenAnswer(invocation -> {
+                    var existing = invocation.getArgument(0, List.class);
+                    var added = invocation.getArgument(1, List.class);
+                    return Stream.concat(existing.stream(), added.stream()).toList();
+                });
 
         // when
         applicationPublicationResolver.attachUploadedFiles(publication, List.of(publicationFile));
@@ -350,6 +357,7 @@ class ApplicationPublicationResolverTest {
         assertThat(publication.getFiles()).hasSize(2);
         assertThat(publication.getFiles()).containsExactly(existingFileResource, newFileResource);
         verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder));
+        verify(filePublicationResolver).merge(eq(List.of(existingFileResource)), eq(List.of(newFileResource)));
     }
 
     @Test
@@ -367,7 +375,12 @@ class ApplicationPublicationResolverTest {
 
         when(filePublicationResolver.uploadNewFileResources(any(), any()))
                 .thenReturn(List.of(newFileResource));
-
+        when(filePublicationResolver.merge(anyList(), anyList()))
+                .thenAnswer(invocation -> {
+                    var existing = invocation.getArgument(0, List.class);
+                    var added = invocation.getArgument(1, List.class);
+                    return Stream.concat(existing.stream(), added.stream()).toList();
+                });
         // when
         applicationPublicationResolver.attachUploadedFiles(publication, List.of(publicationFile));
 
@@ -375,6 +388,7 @@ class ApplicationPublicationResolverTest {
         assertThat(publication.getFiles()).hasSize(1);
         assertThat(publication.getFiles()).containsExactly(newFileResource);
         verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder));
+        verify(filePublicationResolver).merge(eq(List.of()), eq(List.of(newFileResource)));
     }
 
     private PublicationResourceDto getPublicationResourceDto() {
