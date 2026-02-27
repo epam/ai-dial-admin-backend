@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @TestPropertySource(properties = {
         "config.rest.security.mode=oidc",
-        "config.rest.security.principal-claim=" + PRINCIPAL_CLAIM,
+        "config.rest.security.default.principal-claim=" + PRINCIPAL_CLAIM,
         "config.rest.security.default.allowedRoles=ConfigAdmin,admin"
 })
 @ComponentScan(basePackageClasses = {
