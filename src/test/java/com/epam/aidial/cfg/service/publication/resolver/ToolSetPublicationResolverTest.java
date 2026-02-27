@@ -358,7 +358,7 @@ class ToolSetPublicationResolverTest {
     }
 
     @Test
-    void attachUploadedFilesShouldOnlyNewFilesWhenNoExisting() {
+    void attachUploadedFilesShouldAppendOnlyNewFilesWhenNoExisting() {
         // given
         var targetFolder = "targetFolder/";
         var newFileResource = new FilePublicationResource();

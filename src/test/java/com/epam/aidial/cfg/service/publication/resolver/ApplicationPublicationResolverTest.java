@@ -361,7 +361,7 @@ class ApplicationPublicationResolverTest {
     }
 
     @Test
-    void attachUploadedFilesShouldOnlyNewFilesWhenNoExisting() {
+    void attachUploadedFilesShouldAppendNewFilesWhenNoExisting() {
         // given
         var targetFolder = "targetFolder/";
         var newFileResource = new FilePublicationResource();
