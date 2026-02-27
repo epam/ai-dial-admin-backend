@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.validator.RoleValidator;
@@ -168,6 +169,11 @@ public class RoleService {
                 .stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<EntityRevision<Role>> getEntityRevisionsAt(Number revision) {
+        return historyService.getEntityRevisionsAt(revision, RoleEntity.class, mapper::toDomain);
     }
 
     @Transactional

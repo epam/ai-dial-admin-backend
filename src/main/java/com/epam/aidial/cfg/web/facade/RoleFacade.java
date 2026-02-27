@@ -5,9 +5,11 @@ import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.EntityRevisionDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.service.core.CoreRoleService;
+import com.epam.aidial.cfg.web.facade.mapper.EntityRevisionDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.RoleDtoMapper;
 import com.epam.aidial.core.config.CoreRole;
@@ -27,6 +29,7 @@ public class RoleFacade {
     private final RoleDtoMapper mapper;
     private final CoreRoleService coreRoleService;
     private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
+    private final EntityRevisionDtoMapper entityRevisionDtoMapper;
 
     public Collection<RoleDto> getAllRoles() {
         return roleService.getAllRoles()
@@ -83,5 +86,12 @@ public class RoleFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public Collection<EntityRevisionDto<RoleDto>> getEntityRevisionsAt(Integer revision) {
+        return roleService.getEntityRevisionsAt(revision)
+                .stream()
+                .map(entityRevision -> entityRevisionDtoMapper.toDto(entityRevision, mapper::toDto))
+                .toList();
     }
 }

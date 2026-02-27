@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dao.mapper.KeyEntityMapper;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
 import com.epam.aidial.cfg.domain.resolver.key.KeyValidityStateOnGetResolver;
@@ -170,6 +171,11 @@ public class KeyService {
                 .stream()
                 .map(this::toDomainWithValidityStateAdjustment)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<EntityRevision<Key>> getEntityRevisionsAt(Number revision) {
+        return historyService.getEntityRevisionsAt(revision, KeyEntity.class, this::toDomainWithValidityStateAdjustment);
     }
 
     @Transactional

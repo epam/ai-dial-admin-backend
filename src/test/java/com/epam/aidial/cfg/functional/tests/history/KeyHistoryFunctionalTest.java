@@ -1,20 +1,28 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
+import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
+import com.epam.aidial.cfg.dto.EntityRevisionDto;
 import com.epam.aidial.cfg.dto.KeyDto;
+import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
+import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDtoWithRole;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
+import static org.mockito.Mockito.doReturn;
 
 public abstract class KeyHistoryFunctionalTest {
 
@@ -23,7 +31,11 @@ public abstract class KeyHistoryFunctionalTest {
     @Autowired
     private KeyFacade keyFacade;
     @Autowired
+    private ModelFacade modelFacade;
+    @Autowired
     private TestHistoryFacade historyFacade;
+    @Autowired
+    private TransactionTimestampContext transactionTimestampContext;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -86,6 +98,63 @@ public abstract class KeyHistoryFunctionalTest {
 
         Collection<KeyDto> keysAfterRollbackToRevision = keyFacade.getAllKeys();
         assertKeysWithoutKey(List.of(actualAtRevision), keysAfterRollbackToRevision.stream().toList());
+    }
+
+    @Test
+    public void shouldCorrectlyTrackRoleUpdatedAtInLatestAndAuditStatesWhenKeyIsCreatedWithRole() {
+        // create role
+        doReturn(111L).when(transactionTimestampContext).getTimestamp();
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create key
+        doReturn(222L).when(transactionTimestampContext).getTimestamp();
+        keyFacade.createKey(createKeyDtoWithRole("1"));
+
+        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        // verify
+        Assertions.assertEquals(Instant.ofEpochMilli(222L), roleFacade.getRole(roleDto.getName()).getUpdatedAt());
+        Assertions.assertEquals(Instant.ofEpochMilli(222L), roleFacade.getSnapshot(roleDto.getName(), latestRevision).getUpdatedAt());
+    }
+
+    @Test
+    public void shouldNotTrackIrrelevantChangesDuringRollback() {
+        // create role
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create key
+        keyFacade.createKey(createKeyDtoWithRole("1"));
+
+        // create model
+        modelFacade.createModel(createModelDto("1"));
+
+        // remember rev number
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        // update model
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setDescription("new description");
+        modelFacade.updateModel(modelDto.getName(), modelDto, "*");
+
+        // rollback
+        historyFacade.rollbackToRevision(revNumberToRollback);
+
+        // verify
+        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        Collection<EntityRevisionDto<RoleDto>> roleEntityRevisions = roleFacade.getEntityRevisionsAt(latestRevision);
+        Assertions.assertTrue(roleEntityRevisions.isEmpty());
+        Collection<EntityRevisionDto<KeyDto>> keyEntityRevisions = keyFacade.getEntityRevisionsAt(latestRevision);
+        Assertions.assertTrue(keyEntityRevisions.isEmpty());
+
+        Collection<AuditActivityDto> auditActivities = historyFacade.getActivities().getData()
+                .stream()
+                .filter(act -> act.getRevision().equals(latestRevision))
+                .toList();
+        Assertions.assertTrue(auditActivities.stream().noneMatch(act -> act.getResourceType().equals("Role")));
+        Assertions.assertTrue(auditActivities.stream().noneMatch(act -> act.getResourceType().equals("Key")));
     }
 
     private void assertKeysWithoutKey(List<KeyDto> actual, List<KeyDto> expected) {
