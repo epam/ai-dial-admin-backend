@@ -324,8 +324,6 @@
         "applicationTypeAssistantAttachmentsInRequestSupported": false,
         "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
         "interceptors":[],
-        "$defs": {},
-        "properties": {},
         "required": [],
         "applicationTypeRoutes": [
           {

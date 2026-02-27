@@ -2,7 +2,6 @@
   "type": "object",
   "title": "Some Title",
   "description": "Some Desc",
-  "properties": {},
   "$schema": "https://dial.epam.com/application_type_schemas/schema#",
   "$id": "https://test-schema-id.example",
   "dial:applicationTypeEditorUrl": "https://test.com/billings",
@@ -13,6 +12,5 @@
   "dial:applicationTypeRateEndpoint": "https://test.com/rate",
   "dial:applicationTypeTokenizeEndpoint": "https://test.com/tokenize",
   "dial:applicationTypeTruncatePromptEndpoint": "https://test.com/truncate-prompt",
-  "dial:appendApplicationPropertiesHeader": false,
-  "$defs": {}
+  "dial:appendApplicationPropertiesHeader": false
 }

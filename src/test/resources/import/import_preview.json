@@ -449,8 +449,6 @@
           }
         ],
         "interceptors":[],
-        "$defs": {},
-        "properties": {},
         "required": [],
         "type": "object",
         "title": "Sample Schema",

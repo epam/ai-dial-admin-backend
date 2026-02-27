@@ -17,7 +17,6 @@ import org.springframework.util.CollectionUtils;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 
@@ -52,8 +51,6 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         ApplicationTypeSchemaDto actual = applicationTypeSchemaFacade.get(applicationDto.getId());
         var expected = createDto("1");
         expected.setDescription("new application description");
-        expected.setDefs(Map.of());
-        expected.setProperties(Map.of());
         expected.setApplications(List.of());
         expected.setApplicationTypeRoutes(List.of());
         expected.setAppendApplicationPropertiesHeader(true);

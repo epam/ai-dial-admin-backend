@@ -396,7 +396,6 @@
   "globalInterceptors": ["testInterceptor2", "testInterceptor1"],
   "applicationTypeSchemas": [
     {
-      "properties": {},
       "required": [],
       "$id": "https://test-schema-id.example",
       "dial:applicationTypeEditorUrl": "https://test.com/billings",
@@ -410,8 +409,7 @@
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeInterceptors":["testInterceptor1"],
       "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
-      "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
-      "$defs": {}
+      "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint"
     }
   ]
 }
