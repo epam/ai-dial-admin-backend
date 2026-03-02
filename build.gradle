@@ -144,6 +144,8 @@ dependencies {
 
     implementation project(':query-language')
 
+    implementation("com.nimbusds:oauth2-oidc-sdk:11.33")
+
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
     annotationProcessor "org.mapstruct:mapstruct-processor:1.6.0"
