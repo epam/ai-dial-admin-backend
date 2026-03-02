@@ -986,9 +986,9 @@
             "authorizationEndpoint": "https://some-auth-endpoint",
             "tokenEndpoint": "https://some-token-endpoint",
             "redirectUri": "https://some-redirect-uri",
-            "codeChallenge": "someCodeChallenge",
-            "codeChallengeMethod": "someCodeChallengeMethod",
-            "codeVerifier": "someCodeVerifier",
+            "codeChallenge": "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+            "codeChallengeMethod": "S256",
+            "codeVerifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
             "apiKeyHeader": "someApiKeyHeader",
             "scopesSupported": [
               "first",

@@ -3137,9 +3137,9 @@ public abstract class ConfigTransferFunctionalTest {
         authSettings.setAuthorizationEndpoint("https://some-auth-endpoint");
         authSettings.setTokenEndpoint("https://some-token-endpoint");
         authSettings.setRedirectUri("https://some-redirect-uri");
-        authSettings.setCodeChallenge("someCodeChallenge");
-        authSettings.setCodeChallengeMethod("someCodeChallengeMethod");
-        authSettings.setCodeVerifier("someCodeVerifier");
+        authSettings.setCodeChallenge("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM");
+        authSettings.setCodeChallengeMethod("S256");
+        authSettings.setCodeVerifier("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk");
         authSettings.setApiKeyHeader("someApiKeyHeader");
         authSettings.setScopesSupported(List.of("first", "second"));
         return authSettings;
