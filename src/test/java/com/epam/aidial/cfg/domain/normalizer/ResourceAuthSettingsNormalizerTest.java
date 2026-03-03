@@ -27,7 +27,7 @@ class ResourceAuthSettingsNormalizerTest {
 
     @ParameterizedTest
     @CsvSource(value = {"null", "''"}, nullValues = "null")
-    void normalize_shouldDoNothingWhenCodeChallengeMethodIsEmpty(String codeChallengeMethod) {
+    void normalize_shouldDoNothingWhenCodeChallengeMethodIsEmptyAndCodeVerifierAndCodeChallengeAreNotProvided(String codeChallengeMethod) {
         ResourceAuthSettings resourceAuthSettings = new ResourceAuthSettings();
         resourceAuthSettings.setCodeChallengeMethod(codeChallengeMethod);
 
@@ -35,6 +35,30 @@ class ResourceAuthSettingsNormalizerTest {
 
         Assertions.assertThat(resourceAuthSettings.getCodeVerifier()).isNull();
         Assertions.assertThat(resourceAuthSettings.getCodeChallenge()).isNull();
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"null", "''"}, nullValues = "null")
+    void normalize_shouldThrowExceptionWhenCodeChallengeMethodIsEmptyAndCodeVerifierIsProvided(String codeChallengeMethod) {
+        ResourceAuthSettings resourceAuthSettings = new ResourceAuthSettings();
+        resourceAuthSettings.setCodeChallengeMethod(codeChallengeMethod);
+        resourceAuthSettings.setCodeVerifier("43_characters_verifier_____________________");
+
+        assertThatThrownBy(() -> normalizer.normalize(resourceAuthSettings))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Both code_verifier and code_challenge must not be provided when empty code_challenge_method");
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"null", "''"}, nullValues = "null")
+    void normalize_shouldThrowExceptionWhenCodeChallengeMethodIsEmptyAndCodeChallengeIsProvided(String codeChallengeMethod) {
+        ResourceAuthSettings resourceAuthSettings = new ResourceAuthSettings();
+        resourceAuthSettings.setCodeChallengeMethod(codeChallengeMethod);
+        resourceAuthSettings.setCodeChallenge("code-challenge");
+
+        assertThatThrownBy(() -> normalizer.normalize(resourceAuthSettings))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Both code_verifier and code_challenge must not be provided when empty code_challenge_method");
     }
 
     @Test
