@@ -7,6 +7,9 @@ buildscript {
             classpath ('org.springframework:spring-core:6.2.11') {
                 because("previous versions have vulnerabilities")
             }
+            classpath ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
@@ -144,6 +147,8 @@ dependencies {
 
     implementation project(':query-language')
 
+    implementation("com.nimbusds:oauth2-oidc-sdk:11.33")
+
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
     annotationProcessor "org.mapstruct:mapstruct-processor:1.6.0"
@@ -195,6 +200,9 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.springframework:spring-core:6.2.11') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
             because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
