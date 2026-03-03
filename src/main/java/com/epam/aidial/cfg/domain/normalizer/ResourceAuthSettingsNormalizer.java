@@ -20,15 +20,19 @@ public class ResourceAuthSettingsNormalizer {
 
     private void normalizePkceData(ResourceAuthSettings resourceAuthSettings) {
         String codeChallengeMethodStr = resourceAuthSettings.getCodeChallengeMethod();
-        if (StringUtils.isEmpty(codeChallengeMethodStr)) {
-            return;
-        }
 
         String codeVerifier = resourceAuthSettings.getCodeVerifier();
         String codeChallenge = resourceAuthSettings.getCodeChallenge();
 
         boolean hasVerifier = codeVerifier != null;
         boolean hasChallenge = codeChallenge != null;
+
+        if (StringUtils.isEmpty(codeChallengeMethodStr)) {
+            if (hasVerifier || hasChallenge) {
+                throw new IllegalArgumentException("Both code_verifier and code_challenge must not be provided when empty code_challenge_method");
+            }
+            return;
+        }
 
         // XOR condition: if one is present but not the other, it's an invalid state.
         if (hasVerifier ^ hasChallenge) {
