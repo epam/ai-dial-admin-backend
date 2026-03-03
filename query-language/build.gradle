@@ -46,6 +46,12 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testImplementation 'org.mockito:mockito-core:5.15.2'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.15.2'
+
+    constraints {
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
+            because("previous versions have vulnerabilities")
+        }
+    }
 }
 
 generateGrammarSource {
