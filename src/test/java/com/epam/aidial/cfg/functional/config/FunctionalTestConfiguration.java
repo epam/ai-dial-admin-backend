@@ -24,6 +24,7 @@ import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.ExternalSchemaLoader;
 import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -173,6 +174,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public ResourceCredentialService resourceCredentialService(ResourceCredentialClient client, ResourceCredentialClientMapper resourceCredentialMapper) {
         return new ResourceCredentialService(client, resourceCredentialMapper);
+    }
+
+    @Bean
+    public ExternalSchemaLoader externalSchemaLoader() {
+        return Mockito.mock(ExternalSchemaLoader.class);
     }
 
 }

@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDtoWithValidation;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
@@ -102,5 +103,11 @@ public class ApplicationTypeSchemaController extends AbstractController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationTypeSchemaDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationTypeSchemaFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/resolvedSchema", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ApplicationTypeSchemaDtoWithValidation> getResolvedSchema(@RequestParam(name = "id") String id) {
+        var schema = applicationTypeSchemaFacade.getResolvedTypeSchema(id);
+        return ResponseEntity.ok(schema);
     }
 }

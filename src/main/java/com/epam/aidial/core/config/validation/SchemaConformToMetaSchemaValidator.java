@@ -1,6 +1,10 @@
 package com.epam.aidial.core.config.validation;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.core.metaschemas.MetaSchemaHolder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -15,17 +19,34 @@ public class SchemaConformToMetaSchemaValidator {
 
     private static final JsonSchemaFactory SCHEMA_FACTORY = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
     private static final JsonSchema SCHEMA = SCHEMA_FACTORY.getSchema(MetaSchemaHolder.getCustomApplicationMetaSchema());
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     public static boolean isValid(String schema) {
+        return getValidationErrors(schema) == null;
+    }
+
+    public static String getValidationErrors(String schema) {
         var validations = SCHEMA.validate(schema, InputFormat.JSON);
-        if (!validations.isEmpty()) {
-            String validationsMessage = validations.stream()
-                    .map(ValidationMessage::getMessage)
-                    .collect(Collectors.joining(","));
-            String message = "Application type schema doesn't conform to meta schema: %s".formatted(validationsMessage);
-            log.warn(message);
-            return false;
+        if (validations.isEmpty()) {
+            return null;
         }
-        return true;
+        String validationsMessage = validations.stream()
+                .map(ValidationMessage::getMessage)
+                .collect(Collectors.joining(", "));
+
+        String message = "ApplicationTypeSchema doesn't conform to meta schema: " + validationsMessage;
+        log.warn(message);
+        return message;
+    }
+
+    public static String getValidationErrors(ApplicationTypeSchema schema) {
+        try {
+            var json = OBJECT_MAPPER.writeValueAsString(schema);
+            return getValidationErrors(json);
+        } catch (JsonProcessingException e) {
+            String message = "Failed to serialize ApplicationTypeSchema for validation: " + e.getMessage();
+            log.warn(message, e);
+            return message;
+        }
     }
 }
