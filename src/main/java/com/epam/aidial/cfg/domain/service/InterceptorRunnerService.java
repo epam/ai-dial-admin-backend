@@ -159,10 +159,6 @@ public class InterceptorRunnerService {
 
     @Transactional
     public void rollbackInterceptorRunners(Number revision) {
-        Iterable<InterceptorEntity> interceptors = interceptorJpaRepository.findAll();
-        interceptors.forEach(entity -> entity.setInterceptorRunner(null));
-        interceptorJpaRepository.saveAllAndFlush(interceptors);
-
         Collection<InterceptorRunner> interceptorRunners = getAllAtRevision(revision);
         List<String> ids = interceptorRunners.stream().map(InterceptorRunner::getName).toList();
         if (CollectionUtils.isEmpty(ids)) {
@@ -173,7 +169,6 @@ public class InterceptorRunnerService {
         }
 
         for (InterceptorRunner interceptorRunner : interceptorRunners) {
-            interceptorRunner.setInterceptors(List.of());
             InterceptorRunnerEntity entity = interceptorRunnerJpaRepository.findById(interceptorRunner.getName()).orElseGet(InterceptorRunnerEntity::new);
             InterceptorRunnerEntity interceptorRunnerEntity = toEntity(interceptorRunner, entity);
             interceptorRunnerJpaRepository.save(interceptorRunnerEntity);

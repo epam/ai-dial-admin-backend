@@ -195,6 +195,41 @@ public abstract class InterceptorHistoryFunctionalTest {
         Assertions.assertEquals(actualAtRevision, interceptorsAfterRollbackToRevision);
     }
 
+    @Test
+    public void shouldSuccessfullyRollbackInterceptorsWithInterceptorRunner() {
+        initRoles();
+
+        // create interceptor runner 1
+        InterceptorRunnerDto interceptorRunnerDto = createInterceptorRunnerDto("1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
+
+        // create interceptor
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setSource(new InterceptorRunnerSourceDto(interceptorRunnerDto.getName()));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        // remember rev number and expected interceptors state
+        final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        var actualAtRevision = interceptorFacade.getAllInterceptors();
+
+        // create interceptor runner 2
+        InterceptorRunnerDto interceptorRunnerDto2 = createInterceptorRunnerDto("2");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto2);
+
+        // update interceptor
+        interceptorDto.setSource(new InterceptorRunnerSourceDto(interceptorRunnerDto2.getName()));
+        interceptorFacade.updateInterceptor(interceptorDto.getName(), interceptorDto, "*");
+
+        int revisionsListSizeBeforeRollback = historyFacade.getRevisionsListSize();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        int revisionsListSizeAfterRollback = historyFacade.getRevisionsListSize();
+
+        Assertions.assertEquals(revisionsListSizeBeforeRollback + 1, revisionsListSizeAfterRollback);
+
+        Collection<InterceptorDto> interceptorsAfterRollbackToRevision = interceptorFacade.getAllInterceptors();
+        Assertions.assertEquals(actualAtRevision, interceptorsAfterRollbackToRevision);
+    }
+
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
         roleFacade.createRole(createRoleDto("2"));

@@ -8,6 +8,8 @@ import com.epam.aidial.cfg.dao.mapper.RoleEntityMapper;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
+import com.epam.aidial.cfg.dao.model.RoleLimitId;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.Role;
@@ -26,6 +28,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -187,11 +190,20 @@ public class RoleService {
             roleJpaRepository.deleteAll(rolesToDelete);
         }
 
-        Set<String> allDeploymentNames = deploymentJpaRepository.findAllNames();
         Set<String> allKeys = keyJpaRepository.findAllKeys();
         for (Role role : roles) {
             RoleEntity entity = roleJpaRepository.findById(role.getName()).orElseGet(RoleEntity::new);
-            role.getLimits().removeIf(roleLimit -> !allDeploymentNames.contains(roleLimit.getDeploymentName()));
+            List<RoleLimitEntity> entityRoleLimits = entity.getLimits();
+            List<RoleLimit> roleLimitsToSave = new ArrayList<>();
+            for (var roleLimit : role.getLimits()) {
+                for (var entityRoleLimit : entityRoleLimits) {
+                    RoleLimitId roleLimitId = entityRoleLimit.getId();
+                    if (roleLimitId.getRoleName().equals(roleLimit.getRole()) && roleLimitId.getDeploymentName().equals(roleLimit.getDeploymentName())) {
+                        roleLimitsToSave.add(roleLimit);
+                    }
+                }
+            }
+            role.setLimits(roleLimitsToSave);
             role.getKeys().removeIf(key -> !allKeys.contains(key));
             RoleEntity roleEntity = toEntity(role, entity);
             roleJpaRepository.save(roleEntity);

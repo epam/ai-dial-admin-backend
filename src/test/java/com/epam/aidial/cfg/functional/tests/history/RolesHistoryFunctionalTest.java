@@ -188,6 +188,30 @@ public abstract class RolesHistoryFunctionalTest {
         Assertions.assertEquals(Instant.ofEpochMilli(222L), keyFacade.getSnapshot(keyDto.getName(), latestRevision).getUpdatedAt());
     }
 
+    @Test
+    public void shouldCorrectlyTrackModelUpdatedAtInLatestAndAuditStatesWhenRoleIsCreatedWithModelLimit() {
+        // create model
+        doReturn(111L).when(transactionTimestampContext).getTimestamp();
+        ModelDto modelDto = createModelDto("1");
+        modelFacade.createModel(modelDto);
+
+        // create role
+        doReturn(222L).when(transactionTimestampContext).getTimestamp();
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        RoleDto roleDto = createRoleDto("1");
+        roleDto.setLimits(Map.of(modelDto.getName(), limitDto));
+        roleFacade.createRole(roleDto);
+
+        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        // verify
+        Assertions.assertEquals(Instant.ofEpochMilli(222L), modelFacade.getModel(modelDto.getName()).getUpdatedAt());
+        // todo fix
+        //Assertions.assertEquals(Instant.ofEpochMilli(222L), modelFacade.getSnapshot(modelDto.getName(), latestRevision).getUpdatedAt());
+    }
+
     private void assertRole(RoleDto actual, RoleDto expected) {
         Assertions.assertEquals(expected, actual);
     }

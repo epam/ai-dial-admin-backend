@@ -5,7 +5,9 @@ import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
+import com.epam.aidial.cfg.dto.EntityRevisionDto;
 import com.epam.aidial.cfg.web.facade.mapper.AdapterDtoMapper;
+import com.epam.aidial.cfg.web.facade.mapper.EntityRevisionDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ public class AdapterFacade {
 
     private final AdapterService adapterService;
     private final AdapterDtoMapper mapper;
+    private final EntityRevisionDtoMapper entityRevisionDtoMapper;
 
     public Collection<AdapterDto> getAllAdapters() {
         return adapterService.getAll()
@@ -66,5 +69,12 @@ public class AdapterFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public Collection<EntityRevisionDto<AdapterDto>> getEntityRevisionsAt(Integer revision) {
+        return adapterService.getEntityRevisionsAt(revision)
+                .stream()
+                .map(entityRevision -> entityRevisionDtoMapper.toDto(entityRevision, mapper::toDto))
+                .toList();
     }
 }

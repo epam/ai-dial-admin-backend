@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
@@ -246,6 +247,38 @@ public abstract class ModelHistoryFunctionalTest {
         // remove model role limit
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
         updatedModel.setRoleLimits(null);
+        modelFacade.updateModel(updatedModel.getName(), updatedModel, "*");
+
+        List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        List<ConfigRevisionDto> revisionsListAfterRollback = historyFacade.getRevisionsList();
+
+        Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
+
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
+        Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
+    }
+
+    @Test
+    public void shouldSuccessfullyRollbackModelAfterRoleLimitAddition() {
+        // create role
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create model
+        ModelDto modelDto = createModelDto("1");
+        modelFacade.createModel(modelDto);
+
+        // remember rev number and expected models state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<ModelDto> actualAtRevision = modelFacade.getAll();
+
+        // add model role limit
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        ModelDto updatedModel = createModelDto("1");
+        updatedModel.setRoleLimits(Map.of(roleDto.getName(), limitDto));
         modelFacade.updateModel(updatedModel.getName(), updatedModel, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();

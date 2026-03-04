@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
@@ -200,12 +201,13 @@ public class AdapterService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public Collection<EntityRevision<Adapter>> getEntityRevisionsAt(Number revision) {
+        return historyService.getEntityRevisionsAt(revision, AdapterEntity.class, mapper::toDomain);
+    }
+
     @Transactional
     public void rollbackAdapters(Number revision) {
-        Iterable<ModelEntity> models = modelJpaRepository.findAll();
-        models.forEach(entity -> entity.setAdapter(null));
-        modelJpaRepository.saveAllAndFlush(models);
-
         Collection<Adapter> adapters = getAllAtRevision(revision);
         List<String> ids = adapters.stream().map(Adapter::getName).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(ids)) {
@@ -216,10 +218,9 @@ public class AdapterService {
         }
 
         for (Adapter adapter : adapters) {
-            adapter.setModels(List.of());
             AdapterEntity entity = adapterJpaRepository.findById(adapter.getName()).orElseGet(AdapterEntity::new);
-            AdapterEntity keyEntity = toEntity(adapter, entity);
-            adapterJpaRepository.save(keyEntity);
+            AdapterEntity adapterEntity = toEntity(adapter, entity);
+            adapterJpaRepository.save(adapterEntity);
         }
     }
 

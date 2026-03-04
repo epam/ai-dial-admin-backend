@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface InterceptorJpaRepository extends JpaRepository<InterceptorEntity, String> {
 
@@ -13,4 +14,7 @@ public interface InterceptorJpaRepository extends JpaRepository<InterceptorEntit
 
     @Query("SELECT i FROM InterceptorEntity i WHERE i.interceptorContainer IS NOT NULL")
     List<InterceptorEntity> findByContainerIdIsNotNull();
+
+    @Query("SELECT i.name FROM InterceptorEntity i")
+    Set<String> findAllNames();
 }
