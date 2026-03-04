@@ -20,7 +20,7 @@ class ApplicationTypeSchemaMergerTest {
 
     @BeforeEach
     void setUp() {
-        applicationTypeSchemaMerger = new ApplicationTypeSchemaMerger();
+        applicationTypeSchemaMerger = new ApplicationTypeSchemaMerger(OBJECT_MAPPER);
     }
 
     @Test

@@ -106,8 +106,7 @@ public class ApplicationTypeSchemaController extends AbstractController {
     }
 
     @GetMapping(path = "/resolvedSchema", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationTypeSchemaDtoWithValidation> getResolvedSchema(@RequestParam(name = "id") String id) {
-        var schema = applicationTypeSchemaFacade.getResolvedTypeSchema(id);
-        return ResponseEntity.ok(schema);
+    public ApplicationTypeSchemaDtoWithValidation getResolvedSchema(@RequestParam(name = "id") String id) {
+        return applicationTypeSchemaFacade.getResolvedTypeSchema(id);
     }
 }

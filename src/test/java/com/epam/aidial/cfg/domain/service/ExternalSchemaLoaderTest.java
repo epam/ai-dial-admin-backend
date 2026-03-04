@@ -52,21 +52,12 @@ class ExternalSchemaLoaderTest {
 
     @Test
     void fetchExternalSchema_ShouldReturnSchema() throws JsonProcessingException {
-        when(restTemplate.getForObject(SCHEMA_URL, String.class)).thenReturn(appSchema);
-        var resultSchema = externalSchemaLoader.fetchExternalSchema(SCHEMA_URL);
         var expected = OBJECT_MAPPER.readValue(appSchema, ExternalSchema.class);
+        when(restTemplate.getForObject(SCHEMA_URL, ExternalSchema.class))
+                .thenReturn(expected);
+        var resultSchema = externalSchemaLoader.fetchExternalSchema(SCHEMA_URL);
+
         Assertions.assertEquals(expected, resultSchema);
-    }
-
-    @Test
-    void fetchExternalSchema_WhenInvalidJson_ShouldThrow() {
-        when(restTemplate.getForObject(SCHEMA_URL, String.class)).thenReturn("invalid-json");
-
-        var ex = Assertions.assertThrows(
-                ApplicationTypeSchemaProcessingException.class,
-                () -> externalSchemaLoader.fetchExternalSchema(SCHEMA_URL)
-        );
-        Assertions.assertTrue(ex.getMessage().contains("Failed to parse JSON"));
     }
 
     @Test
@@ -77,6 +68,6 @@ class ExternalSchemaLoaderTest {
                 ApplicationTypeSchemaProcessingException.class,
                 () -> externalSchemaLoader.fetchExternalSchema(SCHEMA_URL)
         );
-        Assertions.assertTrue(ex.getMessage().contains("Application schema is not JSON object"));
+        Assertions.assertTrue(ex.getMessage().contains("Failed to deserialize external schema into ExternalSchema class"));
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.util.Collection;
@@ -71,8 +72,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public TokenIntrospectorFactory tokenIntrospectorFactory() {
-        return new TokenIntrospectorFactoryImpl(identityProviderUtils, identityProvidersProperties.getOpaqueTokenProviders());
+    public TokenIntrospectorFactory tokenIntrospectorFactory(RestTemplate restTemplate) {
+        return new TokenIntrospectorFactoryImpl(identityProviderUtils, identityProvidersProperties.getOpaqueTokenProviders(), restTemplate);
     }
 
     @Bean

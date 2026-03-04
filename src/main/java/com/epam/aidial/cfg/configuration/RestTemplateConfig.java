@@ -11,6 +11,6 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() {
         var factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(5000);
-        return new RestTemplate();
+        return new RestTemplate(factory);
     }
 }

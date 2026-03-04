@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.domain.service;
 
-import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
@@ -13,11 +12,13 @@ import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchemaWithValidation;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
+import com.epam.aidial.cfg.exception.ApplicationTypeSchemaProcessingException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,6 @@ import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
 public class ApplicationTypeSchemaService {
 
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Application type schema with schema id %s does not exist";
-    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     private final ApplicationTypeSchemaJpaRepository jpaRepository;
     private final ApplicationTypeSchemaEntityMapper mapper;
@@ -55,6 +55,7 @@ public class ApplicationTypeSchemaService {
     private final HashCalculator calculator;
     private final ExternalSchemaLoader externalSchemaLoader;
     private final ApplicationTypeSchemaMerger applicationTypeSchemaMerger;
+    private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
     public Collection<ApplicationTypeSchema> getAll() {
@@ -82,7 +83,7 @@ public class ApplicationTypeSchemaService {
         if (applicationTypeSchema.getApplicationTypeSchemaEndpoint() != null) {
             var externalSchema = externalSchemaLoader.fetchExternalSchema(applicationTypeSchema.getApplicationTypeSchemaEndpoint());
             applicationTypeSchemaMerger.merge(applicationTypeSchema, externalSchema);
-            var validationMessage = SchemaConformToMetaSchemaValidator.getValidationErrors(applicationTypeSchema);
+            var validationMessage = SchemaConformToMetaSchemaValidator.getValidationErrors(writeAsString(applicationTypeSchema));
             return new ApplicationTypeSchemaWithValidation(applicationTypeSchema, validationMessage, true);
         }
         return new ApplicationTypeSchemaWithValidation(applicationTypeSchema, null, true);
@@ -260,15 +261,27 @@ public class ApplicationTypeSchemaService {
         if (CollectionUtils.isEmpty(names)) {
             return List.of();
         }
+
         List<InterceptorEntity> existingInterceptors = Lists.newArrayList(interceptorJpaRepository.findAllById(names));
         Set<String> existingInterceptorsNames = existingInterceptors.stream()
                 .map(InterceptorEntity::getName)
                 .collect(Collectors.toSet());
+
         Set<String> namesDiff = SetUtils.difference(new HashSet<>(names), existingInterceptorsNames);
         if (!namesDiff.isEmpty()) {
             throw new EntityNotFoundException("Unable to find interceptors: " + namesDiff);
         }
+
         return existingInterceptors;
+    }
+
+    private String writeAsString(ApplicationTypeSchema schema) {
+        try {
+            return objectMapper.writeValueAsString(schema);
+        } catch (JsonProcessingException e) {
+            throw new ApplicationTypeSchemaProcessingException(
+                    "Failed to serialize ApplicationTypeSchema for validation");
+        }
     }
 
 }

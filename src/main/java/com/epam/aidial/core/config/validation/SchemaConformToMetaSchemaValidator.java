@@ -1,9 +1,7 @@
 package com.epam.aidial.core.config.validation;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.core.metaschemas.MetaSchemaHolder;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
@@ -37,16 +35,5 @@ public class SchemaConformToMetaSchemaValidator {
         String message = "ApplicationTypeSchema doesn't conform to meta schema: " + validationsMessage;
         log.warn(message);
         return message;
-    }
-
-    public static String getValidationErrors(ApplicationTypeSchema schema) {
-        try {
-            var json = OBJECT_MAPPER.writeValueAsString(schema);
-            return getValidationErrors(json);
-        } catch (JsonProcessingException e) {
-            String message = "Failed to serialize ApplicationTypeSchema for validation: " + e.getMessage();
-            log.warn(message, e);
-            return message;
-        }
     }
 }
