@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.cli;
 
 import com.epam.aidial.cfg.cli.dto.FileValidationResult;
 import com.epam.aidial.cfg.cli.dto.ValidateResult;
+import com.epam.aidial.cfg.cli.dto.ValidationStatus;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.transfer.JsonConfigMerger;
@@ -32,15 +33,15 @@ import java.util.concurrent.Callable;
 public class ValidateCommand implements Callable<Integer> {
 
     @Parameters(arity = "1..*", description = "Paths to DIAL Core JSON config files to validate")
-    private List<String> filePaths;
+    List<String> filePaths;
 
     @Option(names = "--strategy", defaultValue = "MERGE_JSON",
             description = "Multi-file strategy: MERGE_JSON (default) or SEQUENTIAL")
-    private MultiFileImportStrategy strategy = MultiFileImportStrategy.MERGE_JSON;
+    MultiFileImportStrategy strategy = MultiFileImportStrategy.MERGE_JSON;
 
     @Option(names = "--conflict-resolution", defaultValue = "OVERRIDE",
             description = "Conflict resolution for SEQUENTIAL strategy: OVERRIDE (default) or SKIP")
-    private ConflictResolutionPolicy conflictResolution = ConflictResolutionPolicy.OVERRIDE;
+    ConflictResolutionPolicy conflictResolution = ConflictResolutionPolicy.OVERRIDE;
 
     private final ConfigImporter configImporter;
     private final JsonConfigMerger jsonConfigMerger;
@@ -55,14 +56,14 @@ public class ValidateCommand implements Callable<Integer> {
             if (strategy == MultiFileImportStrategy.MERGE_JSON) {
                 FileValidationResult result = validateMerged(filePaths);
                 results.add(result);
-                if ("invalid".equals(result.getStatus())) {
+                if (result.getStatus() == ValidationStatus.INVALID) {
                     anyInvalid = true;
                 }
             } else {
                 for (String path : filePaths) {
                     FileValidationResult result = validateSingle(path);
                     results.add(result);
-                    if ("invalid".equals(result.getStatus())) {
+                    if (result.getStatus() == ValidationStatus.INVALID) {
                         anyInvalid = true;
                         break; // stop on first failure in sequential mode
                     }
@@ -70,7 +71,7 @@ public class ValidateCommand implements Callable<Integer> {
             }
 
             ValidateResult output = ValidateResult.builder()
-                    .status(anyInvalid ? "invalid" : "valid")
+                    .status(anyInvalid ? ValidationStatus.INVALID : ValidationStatus.VALID)
                     .strategy(strategy.name())
                     .files(results)
                     .build();
@@ -89,12 +90,12 @@ public class ValidateCommand implements Callable<Integer> {
         try {
             var config = jsonConfigMerger.merge(paths);
             configImporter.importConfigWithOverride(config);
-            return FileValidationResult.builder().path(displayPath).status("valid").build();
+            return FileValidationResult.builder().path(displayPath).status(ValidationStatus.VALID).build();
         } catch (IllegalArgumentException e) {
-            return FileValidationResult.builder().path(displayPath).status("invalid")
+            return FileValidationResult.builder().path(displayPath).status(ValidationStatus.INVALID)
                     .error(e.getMessage()).build();
         } catch (Exception e) {
-            return FileValidationResult.builder().path(displayPath).status("invalid")
+            return FileValidationResult.builder().path(displayPath).status(ValidationStatus.INVALID)
                     .error(toErrorMessage(e)).build();
         }
     }
@@ -103,12 +104,12 @@ public class ValidateCommand implements Callable<Integer> {
         try {
             var config = jsonConfigMerger.merge(List.of(path));
             configImporter.importConfig(config, new ConfigImportOptions(conflictResolution));
-            return FileValidationResult.builder().path(path).status("valid").build();
+            return FileValidationResult.builder().path(path).status(ValidationStatus.VALID).build();
         } catch (IllegalArgumentException e) {
-            return FileValidationResult.builder().path(path).status("invalid")
+            return FileValidationResult.builder().path(path).status(ValidationStatus.INVALID)
                     .error(e.getMessage()).build();
         } catch (Exception e) {
-            return FileValidationResult.builder().path(path).status("invalid")
+            return FileValidationResult.builder().path(path).status(ValidationStatus.INVALID)
                     .error(toErrorMessage(e)).build();
         }
     }

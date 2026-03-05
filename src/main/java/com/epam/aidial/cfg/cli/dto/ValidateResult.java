@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 @Jacksonized
 public class ValidateResult {
-    String status;
+    ValidationStatus status;
     String strategy;
     List<FileValidationResult> files;
 }

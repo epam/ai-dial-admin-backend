@@ -11,6 +11,6 @@ import lombok.extern.jackson.Jacksonized;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FileValidationResult {
     String path;
-    String status;
+    ValidationStatus status;
     String error;
 }

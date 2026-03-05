@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.cli;
 
 import com.epam.aidial.cfg.cli.dto.ValidateResult;
+import com.epam.aidial.cfg.cli.dto.ValidationStatus;
 import com.epam.aidial.cfg.functional.config.H2FunctionalTestConfiguration;
 import com.epam.aidial.cfg.service.config.transfer.MultiFileImportStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,9 +58,9 @@ class ValidateCommandIntegrationTest {
 
         assertThat(code).isZero();
         ValidateResult result = parseOutput();
-        assertThat(result.getStatus()).isEqualTo("valid");
+        assertThat(result.getStatus()).isEqualTo(ValidationStatus.VALID);
         assertThat(result.getFiles()).hasSize(1);
-        assertThat(result.getFiles().get(0).getStatus()).isEqualTo("valid");
+        assertThat(result.getFiles().get(0).getStatus()).isEqualTo(ValidationStatus.VALID);
     }
 
     @Test
@@ -69,7 +71,7 @@ class ValidateCommandIntegrationTest {
 
         assertThat(code).isEqualTo(1);
         ValidateResult result = parseOutput();
-        assertThat(result.getStatus()).isEqualTo("invalid");
+        assertThat(result.getStatus()).isEqualTo(ValidationStatus.INVALID);
         assertThat(result.getFiles().get(0).getError()).contains("Invalid JSON");
     }
 
@@ -94,7 +96,7 @@ class ValidateCommandIntegrationTest {
         int code = validateCommand.call();
 
         assertThat(code).isZero();
-        assertThat(parseOutput().getStatus()).isEqualTo("valid");
+        assertThat(parseOutput().getStatus()).isEqualTo(ValidationStatus.VALID);
     }
 
     @Test
@@ -113,16 +115,12 @@ class ValidateCommandIntegrationTest {
 
     // --- helpers ---
 
-    private void setFilePaths(String... paths) throws Exception {
-        var field = ValidateCommand.class.getDeclaredField("filePaths");
-        field.setAccessible(true);
-        field.set(validateCommand, java.util.List.of(paths));
+    private void setFilePaths(String... paths) {
+        validateCommand.filePaths = List.of(paths);
     }
 
-    private void setStrategy(MultiFileImportStrategy strategy) throws Exception {
-        var field = ValidateCommand.class.getDeclaredField("strategy");
-        field.setAccessible(true);
-        field.set(validateCommand, strategy);
+    private void setStrategy(MultiFileImportStrategy strategy) {
+        validateCommand.strategy = strategy;
     }
 
     private Path copyResource(String resource) throws Exception {
