@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "config.import.autoImportOnBootstrap")
+@ConfigurationProperties(prefix = "config.import.auto-import-on-bootstrap")
 public class AutoImportOnBootstrapProperties {
 
     private boolean enabled = false;

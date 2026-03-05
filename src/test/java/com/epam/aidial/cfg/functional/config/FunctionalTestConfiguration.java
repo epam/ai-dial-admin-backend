@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.ResourceCredentialClient;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
+import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
@@ -99,6 +100,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public TestHistoryFacade testHistoryFacade(HistoryFacade historyFacade, AuditActivityFacade activityFacade) {
         return new TestHistoryFacade(historyFacade, activityFacade);
+    }
+
+    @Bean
+    public AutoImportOnBootstrapProperties autoImportOnBootstrapProperties() {
+        return new AutoImportOnBootstrapProperties();
     }
 
     @Bean
