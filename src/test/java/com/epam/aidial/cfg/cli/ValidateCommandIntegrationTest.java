@@ -15,10 +15,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 import java.io.ByteArrayOutputStream;
-import java.util.List;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,17 +27,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import({H2FunctionalTestConfiguration.class, ValidateCommand.class})
 class ValidateCommandIntegrationTest {
 
-    @Autowired
-    private ValidateCommand validateCommand;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
+    private final PrintStream originalOut = System.out;
     @TempDir
     Path tempDir;
-
+    @Autowired
+    private ValidateCommand validateCommand;
+    @Autowired
+    private ObjectMapper objectMapper;
     private ByteArrayOutputStream stdout;
-    private final PrintStream originalOut = System.out;
 
     @BeforeEach
     void redirectStdout() {
@@ -103,9 +100,9 @@ class ValidateCommandIntegrationTest {
     void sequentialStrategy_secondFileSeesFirstFileEntities() throws Exception {
         Path fileA = copyResource("cli/valid-role.json");
         Path fileB = writeJson(tempDir.resolve("model-with-role.json"),
-                "{\"models\":{\"gpt-4\":{\"displayName\":\"GPT-4\"," +
-                "\"endpoint\":\"https://api/v1/chat/completions\"," +
-                "\"userRoles\":[\"admin-role\"]}}}");
+                "{\"models\":{\"gpt-4\":{\"displayName\":\"GPT-4\","
+                        + "\"endpoint\":\"https://api/v1/chat/completions\","
+                        + "\"userRoles\":[\"admin-role\"]}}}");
         setFilePaths(fileA.toString(), fileB.toString());
         setStrategy(MultiFileImportStrategy.SEQUENTIAL);
         int code = validateCommand.call();

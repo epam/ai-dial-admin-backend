@@ -35,9 +35,9 @@ public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
     @TestPropertySource(properties = {
             "config.import.autoImportOnBootstrap.enabled=true",
             "config.import.autoImportOnBootstrap.strategy=MERGE_JSON",
-            "config.import.autoImportOnBootstrap.filePaths=" +
-                    "src/test/resources/import/multifile/config-a.json," +
-                    "src/test/resources/import/multifile/config-b.json"
+            "config.import.autoImportOnBootstrap.filePaths="
+                    + "src/test/resources/import/multifile/config-a.json,"
+                    + "src/test/resources/import/multifile/config-b.json"
     })
     public abstract static class MergeJsonTests {
 
@@ -59,9 +59,9 @@ public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
             "config.import.autoImportOnBootstrap.enabled=true",
             "config.import.autoImportOnBootstrap.strategy=SEQUENTIAL",
             "config.import.autoImportOnBootstrap.conflictResolutionPolicy=OVERRIDE",
-            "config.import.autoImportOnBootstrap.filePaths=" +
-                    "src/test/resources/import/multifile/config-a.json," +
-                    "src/test/resources/import/multifile/config-b.json"
+            "config.import.autoImportOnBootstrap.filePaths="
+                    + "src/test/resources/import/multifile/config-a.json,"
+                    + "src/test/resources/import/multifile/config-b.json"
     })
     public abstract static class SequentialTests {
 
