@@ -36,11 +36,11 @@ public class ValidateCommand implements Callable<Integer> {
 
     @Option(names = "--strategy", defaultValue = "MERGE_JSON",
             description = "Multi-file strategy: MERGE_JSON (default) or SEQUENTIAL")
-    private MultiFileImportStrategy strategy;
+    private MultiFileImportStrategy strategy = MultiFileImportStrategy.MERGE_JSON;
 
     @Option(names = "--conflict-resolution", defaultValue = "OVERRIDE",
             description = "Conflict resolution for SEQUENTIAL strategy: OVERRIDE (default) or SKIP")
-    private ConflictResolutionPolicy conflictResolution;
+    private ConflictResolutionPolicy conflictResolution = ConflictResolutionPolicy.OVERRIDE;
 
     private final ConfigImporter configImporter;
     private final JsonConfigMerger jsonConfigMerger;
