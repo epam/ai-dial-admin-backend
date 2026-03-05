@@ -17,7 +17,7 @@ import java.util.Objects;
 
 /**
  * @see <a href="https://hibernate.zulipchat.com/#narrow/stream/132096-hibernate-user/topic/Modification.20of.20collection.20notification">
- * Modification of collection notification</a>
+ *     Modification of collection notification</a>
  */
 
 @RequiredArgsConstructor
