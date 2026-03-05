@@ -1,0 +1,12 @@
+{
+  "models": {
+    "model-a": {
+      "displayName": "Model A",
+      "endpoint": "https://endpoint-a/chat/completions"
+    },
+    "model-shared": {
+      "displayName": "Shared from A",
+      "endpoint": "https://endpoint-shared-a/chat/completions"
+    }
+  }
+}
