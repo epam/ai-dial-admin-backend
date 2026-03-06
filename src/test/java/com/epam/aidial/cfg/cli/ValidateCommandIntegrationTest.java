@@ -110,6 +110,30 @@ class ValidateCommandIntegrationTest {
         assertThat(code).isZero();
     }
 
+    @Test
+    void unknownPropertiesFail_fileWithUnknownField_returns1() throws Exception {
+        Path file = writeJson(tempDir.resolve("unknown.json"),
+                "{\"unknownTopLevelField\":\"value\"}");
+        setFilePaths(file.toString());
+        validateCommand.unknownProperties = UnknownPropertiesPolicy.FAIL;
+        int code = validateCommand.call();
+
+        assertThat(code).isEqualTo(1);
+        assertThat(parseOutput().getStatus()).isEqualTo(ValidationStatus.INVALID);
+    }
+
+    @Test
+    void unknownPropertiesIgnore_fileWithUnknownField_returns0() throws Exception {
+        Path file = writeJson(tempDir.resolve("unknown.json"),
+                "{\"unknownTopLevelField\":\"value\"}");
+        setFilePaths(file.toString());
+        validateCommand.unknownProperties = UnknownPropertiesPolicy.IGNORE;
+        int code = validateCommand.call();
+
+        assertThat(code).isZero();
+        assertThat(parseOutput().getStatus()).isEqualTo(ValidationStatus.VALID);
+    }
+
     // --- helpers ---
 
     private void setFilePaths(String... paths) {

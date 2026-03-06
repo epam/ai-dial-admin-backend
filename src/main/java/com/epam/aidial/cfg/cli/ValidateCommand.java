@@ -43,6 +43,10 @@ public class ValidateCommand implements Callable<Integer> {
             description = "Conflict resolution for SEQUENTIAL strategy: OVERRIDE (default) or SKIP")
     ConflictResolutionPolicy conflictResolution = ConflictResolutionPolicy.OVERRIDE;
 
+    @Option(names = "--unknown-properties", defaultValue = "FAIL",
+            description = "Unknown JSON properties handling: FAIL (default) or IGNORE")
+    UnknownPropertiesPolicy unknownProperties = UnknownPropertiesPolicy.FAIL;
+
     private final ConfigImporter configImporter;
     private final JsonConfigMerger jsonConfigMerger;
     private final ObjectMapper objectMapper;
@@ -88,7 +92,7 @@ public class ValidateCommand implements Callable<Integer> {
     private FileValidationResult validateMerged(List<String> paths) {
         String displayPath = paths.size() == 1 ? paths.get(0) : paths.toString();
         try {
-            var config = jsonConfigMerger.merge(paths);
+            var config = jsonConfigMerger.merge(paths, unknownProperties == UnknownPropertiesPolicy.FAIL);
             configImporter.importConfigWithOverride(config);
             return FileValidationResult.builder().path(displayPath).status(ValidationStatus.VALID).build();
         } catch (IllegalArgumentException e) {
@@ -102,7 +106,7 @@ public class ValidateCommand implements Callable<Integer> {
 
     private FileValidationResult validateSingle(String path) {
         try {
-            var config = jsonConfigMerger.merge(List.of(path));
+            var config = jsonConfigMerger.merge(List.of(path), unknownProperties == UnknownPropertiesPolicy.FAIL);
             configImporter.importConfig(config, new ConfigImportOptions(conflictResolution));
             return FileValidationResult.builder().path(path).status(ValidationStatus.VALID).build();
         } catch (IllegalArgumentException e) {
