@@ -37,9 +37,11 @@ class ValidateCommandIntegrationTest {
     private ByteArrayOutputStream stdout;
 
     @BeforeEach
-    void redirectStdout() {
+    void setUp() {
         stdout = new ByteArrayOutputStream();
         System.setOut(new PrintStream(stdout));
+        validateCommand.strategy = MultiFileImportStrategy.MERGE_JSON;
+        validateCommand.unknownProperties = UnknownPropertiesPolicy.IGNORE;
     }
 
     @AfterEach
@@ -111,6 +113,20 @@ class ValidateCommandIntegrationTest {
     }
 
     @Test
+    void unknownPropertiesIgnore_default_fileWithUnknownField_returns0_withWarning() throws Exception {
+        Path file = writeJson(tempDir.resolve("unknown.json"),
+                "{\"unknownTopLevelField\":\"value\"}");
+        setFilePaths(file.toString());
+        // unknownProperties defaults to IGNORE
+        int code = validateCommand.call();
+
+        assertThat(code).isZero();
+        ValidateResult result = parseOutput();
+        assertThat(result.getStatus()).isEqualTo(ValidationStatus.VALID);
+        assertThat(result.getFiles().get(0).getWarnings()).containsExactly("Unknown property: 'unknownTopLevelField'");
+    }
+
+    @Test
     void unknownPropertiesFail_fileWithUnknownField_returns1() throws Exception {
         Path file = writeJson(tempDir.resolve("unknown.json"),
                 "{\"unknownTopLevelField\":\"value\"}");
@@ -120,18 +136,6 @@ class ValidateCommandIntegrationTest {
 
         assertThat(code).isEqualTo(1);
         assertThat(parseOutput().getStatus()).isEqualTo(ValidationStatus.INVALID);
-    }
-
-    @Test
-    void unknownPropertiesIgnore_fileWithUnknownField_returns0() throws Exception {
-        Path file = writeJson(tempDir.resolve("unknown.json"),
-                "{\"unknownTopLevelField\":\"value\"}");
-        setFilePaths(file.toString());
-        validateCommand.unknownProperties = UnknownPropertiesPolicy.IGNORE;
-        int code = validateCommand.call();
-
-        assertThat(code).isZero();
-        assertThat(parseOutput().getStatus()).isEqualTo(ValidationStatus.VALID);
     }
 
     // --- helpers ---

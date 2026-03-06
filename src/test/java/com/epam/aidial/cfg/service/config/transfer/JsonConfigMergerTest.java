@@ -64,16 +64,17 @@ class JsonConfigMergerTest {
     @Test
     void unknownProperty_failOnUnknownTrue_throwsException() throws Exception {
         Path file = tempFile("{\"unknownField\":\"value\"}");
-        assertThatThrownBy(() -> merger.merge(List.of(file.toString()), true))
+        assertThatThrownBy(() -> merger.mergeWithResult(List.of(file.toString()), true))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Merged config cannot be deserialized");
     }
 
     @Test
-    void unknownProperty_failOnUnknownFalse_succeeds() throws Exception {
+    void unknownProperty_failOnUnknownFalse_returnsWarning() throws Exception {
         Path file = tempFile("{\"unknownField\":\"value\"}");
-        Config result = merger.merge(List.of(file.toString()), false);
-        assertThat(result).isNotNull();
+        ConfigMergeResult result = merger.mergeWithResult(List.of(file.toString()), false);
+        assertThat(result.config()).isNotNull();
+        assertThat(result.warnings()).containsExactly("Unknown property: 'unknownField'");
     }
 
     private Path tempFile(String json) throws IOException {

@@ -3,15 +3,19 @@ package com.epam.aidial.cfg.service.config.transfer;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,20 +30,43 @@ public class JsonConfigMerger {
     private final ObjectMapper objectMapper;
 
     public Config merge(List<String> filePaths) {
-        return merge(filePaths, false);
-    }
-
-    public Config merge(List<String> filePaths, boolean failOnUnknownProperties) {
         if (filePaths.isEmpty()) {
             return new Config();
         }
+        return mergeNodes(filePaths, objectMapper);
+    }
 
-        ObjectMapper mapper = failOnUnknownProperties
-                ? objectMapper.copy()
-                        .addMixIn(Config.class, StrictConfigMixin.class)
-                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
-                : objectMapper;
+    public ConfigMergeResult mergeWithResult(List<String> filePaths, boolean failOnUnknownProperties) {
+        if (filePaths.isEmpty()) {
+            return new ConfigMergeResult(new Config(), List.of());
+        }
 
+        ObjectMapper baseMapper = objectMapper.copy()
+                .addMixIn(Config.class, StrictConfigMixin.class);
+
+        if (failOnUnknownProperties) {
+            baseMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+            Config config = mergeNodes(filePaths, baseMapper);
+            return new ConfigMergeResult(config, List.of());
+        } else {
+            List<String> warnings = new ArrayList<>();
+            baseMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    .addHandler(new DeserializationProblemHandler() {
+                        @Override
+                        public boolean handleUnknownProperty(DeserializationContext ctxt, JsonParser p,
+                                com.fasterxml.jackson.databind.JsonDeserializer<?> deserializer,
+                                Object beanOrClass, String propertyName) throws IOException {
+                            warnings.add("Unknown property: '" + propertyName + "'");
+                            p.skipChildren();
+                            return true;
+                        }
+                    });
+            Config config = mergeNodes(filePaths, baseMapper);
+            return new ConfigMergeResult(config, List.copyOf(warnings));
+        }
+    }
+
+    private Config mergeNodes(List<String> filePaths, ObjectMapper mapper) {
         JsonNode merged = null;
         for (String path : filePaths) {
             File file = new File(path);
