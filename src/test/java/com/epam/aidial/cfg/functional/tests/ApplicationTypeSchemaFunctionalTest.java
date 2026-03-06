@@ -78,7 +78,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         // then
         ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
         dto.setApplications(List.of());
-        dto.setApplicationTypeRoutes(List.of());
         dto.setInterceptors(List.of());
         dto.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
         dto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
@@ -300,7 +299,6 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setApplicationTypeAssistantAttachmentsInRequestSupported(true);
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
-        dto.setApplicationTypeRoutes(List.of());
         dto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
         dto.setInterceptors(List.of());
         ApplicationTypeSchemaDto schemaDto = typeSchemaFacade.get(dto.getId());

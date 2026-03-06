@@ -24,6 +24,7 @@ import com.epam.aidial.cfg.functional.tests.history.ApplicationHistoryFunctional
 import com.epam.aidial.cfg.functional.tests.history.ApplicationTypeSchemaHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AssistantHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AssistantsPropertyHistoryFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.history.GeneralHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.InterceptorHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.InterceptorRunnerHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.KeyHistoryFunctionalTest;
@@ -162,5 +163,9 @@ public class H2FunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class ToolSetHistoryTests extends ToolSetHistoryFunctionalTest {
+    }
+
+    @Nested
+    class GeneralHistoryTests extends GeneralHistoryFunctionalTest {
     }
 }

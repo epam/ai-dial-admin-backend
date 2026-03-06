@@ -1,16 +1,10 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
-import com.epam.aidial.cfg.dto.AdapterDto;
-import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
-import com.epam.aidial.cfg.dto.EntityRevisionDto;
 import com.epam.aidial.cfg.dto.KeyDto;
-import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
-import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
-import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -21,9 +15,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
-import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDtoWithRole;
-import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static org.mockito.Mockito.doReturn;
 
@@ -33,10 +25,6 @@ public abstract class KeyHistoryFunctionalTest {
     private RoleFacade roleFacade;
     @Autowired
     private KeyFacade keyFacade;
-    @Autowired
-    private ModelFacade modelFacade;
-    @Autowired
-    private AdapterFacade adapterFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
     @Autowired
@@ -121,51 +109,6 @@ public abstract class KeyHistoryFunctionalTest {
         // verify
         Assertions.assertEquals(Instant.ofEpochMilli(222L), roleFacade.getRole(roleDto.getName()).getUpdatedAt());
         Assertions.assertEquals(Instant.ofEpochMilli(222L), roleFacade.getSnapshot(roleDto.getName(), latestRevision).getUpdatedAt());
-    }
-
-    @Test
-    public void shouldNotTrackIrrelevantChangesDuringRollback() {
-        // create role
-        RoleDto roleDto = createRoleDto("1");
-        roleFacade.createRole(roleDto);
-
-        // create key
-        keyFacade.createKey(createKeyDtoWithRole("1"));
-
-        // create adapter
-        adapterFacade.createAdapter(createAdapterDto("1"));
-
-        // create model
-        modelFacade.createModel(createModelDtoWithAdapter("1"));
-
-        // remember rev number
-        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
-
-        // update model
-        ModelDto modelDto = createModelDtoWithAdapter("1");
-        modelDto.setDescription("new description");
-        modelFacade.updateModel(modelDto.getName(), modelDto, "*");
-
-        // rollback
-        historyFacade.rollbackToRevision(revNumberToRollback);
-
-        // verify
-        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
-
-        Collection<EntityRevisionDto<RoleDto>> roleEntityRevisions = roleFacade.getEntityRevisionsAt(latestRevision);
-        Assertions.assertTrue(roleEntityRevisions.isEmpty());
-        Collection<EntityRevisionDto<KeyDto>> keyEntityRevisions = keyFacade.getEntityRevisionsAt(latestRevision);
-        Assertions.assertTrue(keyEntityRevisions.isEmpty());
-        Collection<EntityRevisionDto<AdapterDto>> adapterEntityRevisions = adapterFacade.getEntityRevisionsAt(latestRevision);
-        Assertions.assertTrue(adapterEntityRevisions.isEmpty());
-
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivities().getData()
-                .stream()
-                .filter(act -> act.getRevision().equals(latestRevision))
-                .toList();
-        Assertions.assertTrue(auditActivities.stream().noneMatch(act -> act.getResourceType().equals("Role")));
-        Assertions.assertTrue(auditActivities.stream().noneMatch(act -> act.getResourceType().equals("Key")));
-        Assertions.assertTrue(auditActivities.stream().noneMatch(act -> act.getResourceType().equals("Adapter")));
     }
 
     private void assertKeysWithoutKey(List<KeyDto> actual, List<KeyDto> expected) {

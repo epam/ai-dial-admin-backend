@@ -28,7 +28,6 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -193,16 +192,11 @@ public class RoleService {
         Set<String> allKeys = keyJpaRepository.findAllKeys();
         for (Role role : roles) {
             RoleEntity entity = roleJpaRepository.findById(role.getName()).orElseGet(RoleEntity::new);
-            List<RoleLimitEntity> entityRoleLimits = entity.getLimits();
-            List<RoleLimit> roleLimitsToSave = new ArrayList<>();
-            for (var roleLimit : role.getLimits()) {
-                for (var entityRoleLimit : entityRoleLimits) {
-                    RoleLimitId roleLimitId = entityRoleLimit.getId();
-                    if (roleLimitId.getRoleName().equals(roleLimit.getRole()) && roleLimitId.getDeploymentName().equals(roleLimit.getDeploymentName())) {
-                        roleLimitsToSave.add(roleLimit);
-                    }
-                }
-            }
+            Set<RoleLimitId> roleLimitIds = entity.getLimits().stream().map(RoleLimitEntity::getId).collect(Collectors.toSet());
+            List<RoleLimit> roleLimitsToSave = role.getLimits().stream()
+                    .filter(roleLimit -> roleLimitIds.contains(new RoleLimitId(roleLimit.getDeploymentName(), roleLimit.getRole())))
+                    .toList();
+
             role.setLimits(roleLimitsToSave);
             role.getKeys().removeIf(key -> !allKeys.contains(key));
             RoleEntity roleEntity = toEntity(role, entity);
