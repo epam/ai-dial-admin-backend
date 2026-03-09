@@ -1,0 +1,14 @@
+{
+  "models": {
+    "gpt-4": {
+      "displayName": "GPT-4",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "userRoles": ["data-scientist", "admin"]
+    },
+    "gpt-4o-mini": {
+      "displayName": "GPT-4o Mini",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "userRoles": ["data-scientist"]
+    }
+  }
+}
