@@ -15,5 +15,11 @@ DEBUG_OPTS=${DEBUG_OPTS:-}
 # Check if JAVA_OPTS is set, if not, set it to an empty string
 JAVA_OPTS=${JAVA_OPTS:-}
 
-# Execute the Java application with the provided options
-exec java $DEBUG_OPTS $JAVA_OPTS -jar app.jar
+# Execute the Java application with the provided options.
+# If arguments are passed, treat this as a CLI invocation: activate the cli profile and forward all args.
+# Otherwise start the application normally as a web server.
+if [ $# -gt 0 ]; then
+    exec java $DEBUG_OPTS $JAVA_OPTS -jar app.jar --spring.profiles.active=cli "$@"
+else
+    exec java $DEBUG_OPTS $JAVA_OPTS -jar app.jar
+fi
