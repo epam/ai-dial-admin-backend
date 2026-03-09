@@ -152,7 +152,9 @@ class ValidateCommandIntegrationTest {
         assertThat(result.getStatus()).isEqualTo(ValidationStatus.VALID);
         // No schema-version warnings for a clean minimal config
         List<String> warnings = result.getFiles().get(0).getWarnings();
-        assertThat(warnings == null || warnings.stream().noneMatch(w -> w.contains("not supported by Core version"))).isTrue();
+        if (warnings != null) {
+            assertThat(warnings).noneMatch(w -> w.contains("not supported by Core version"));
+        }
     }
 
     @Test
@@ -213,7 +215,12 @@ class ValidateCommandIntegrationTest {
 
         // Should succeed (resolved to latest schema, minimal config is fully valid)
         assertThat(code).isZero();
-        assertThat(parseOutput().getStatus()).isEqualTo(ValidationStatus.VALID);
+        ValidateResult futureResult = parseOutput();
+        assertThat(futureResult.getStatus()).isEqualTo(ValidationStatus.VALID);
+        List<String> futureVersionWarnings = futureResult.getFiles().get(0).getWarnings();
+        if (futureVersionWarnings != null) {
+            assertThat(futureVersionWarnings).noneMatch(w -> w.contains("not supported by Core version"));
+        }
     }
 
     @Test
