@@ -2,11 +2,11 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
-import com.epam.aidial.cfg.exception.ApplicationTypeSchemaProcessingException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -15,6 +15,7 @@ import java.util.Map;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class ApplicationTypeSchemaMerger {
     private final ObjectMapper mapper;
 
@@ -41,7 +42,8 @@ public class ApplicationTypeSchemaMerger {
             try {
                 result.put(k, mapper.writeValueAsString(v));
             } catch (JsonProcessingException e) {
-                throw new ApplicationTypeSchemaProcessingException(
+                log.warn("Failed to serialize " + name + " entry: " + k);
+                throw new RuntimeException(
                         "Failed to serialize " + name + " entry: " + k
                 );
             }

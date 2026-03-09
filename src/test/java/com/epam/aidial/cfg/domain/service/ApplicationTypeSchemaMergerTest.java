@@ -24,7 +24,7 @@ class ApplicationTypeSchemaMergerTest {
     }
 
     @Test
-    void shouldMergePropertiesDefRequired_whenTargetPropertiesDefRequiredAreNull() throws Exception {
+    void shouldMergePropertiesDefRequired_whenTargetPropertiesDefsRequiredAreNull() throws Exception {
         String targetJson = """
                 {
                   "$schema": "https://dial.epam.com/application_type_schemas/schema#",
@@ -49,16 +49,16 @@ class ApplicationTypeSchemaMergerTest {
         var target = getApplicationTypeSchema(targetJson);
         var external = getExternalSchema(externalJson);
 
-        var result = applicationTypeSchemaMerger.merge(target, external);
+        applicationTypeSchemaMerger.merge(target, external);
 
-        assertEquals(1, result.getDefs().size());
-        assertTrue(result.getDefs().containsKey("serverFile"));
+        assertEquals(1, target.getDefs().size());
+        assertTrue(target.getDefs().containsKey("serverFile"));
 
-        assertEquals(1, result.getProperties().size());
-        assertTrue(result.getProperties().containsKey("serverFile"));
+        assertEquals(1, target.getProperties().size());
+        assertTrue(target.getProperties().containsKey("serverFile"));
 
-        assertEquals(1, result.getProperties().size());
-        assertTrue(result.getProperties().containsKey("serverFile"));
+        assertEquals(1, target.getProperties().size());
+        assertTrue(target.getProperties().containsKey("serverFile"));
     }
 
     @Test
@@ -92,17 +92,17 @@ class ApplicationTypeSchemaMergerTest {
         var target = getApplicationTypeSchema(targetJson);
         var external = getExternalSchema(externalJson);
 
-        var result = applicationTypeSchemaMerger.merge(target, external);
+        applicationTypeSchemaMerger.merge(target, external);
 
-        assertEquals(2, result.getProperties().size());
-        assertTrue(result.getProperties().containsKey("clientFile"));
-        assertTrue(result.getProperties().containsKey("serverFile"));
+        assertEquals(2, target.getProperties().size());
+        assertTrue(target.getProperties().containsKey("clientFile"));
+        assertTrue(target.getProperties().containsKey("serverFile"));
 
-        assertEquals(2, result.getDefs().size());
-        assertTrue(result.getProperties().containsKey("clientFile"));
-        assertTrue(result.getProperties().containsKey("serverFile"));
+        assertEquals(2, target.getDefs().size());
+        assertTrue(target.getProperties().containsKey("clientFile"));
+        assertTrue(target.getProperties().containsKey("serverFile"));
 
-        assertEquals(List.of("clientFile"), result.getRequired());
+        assertEquals(List.of("clientFile"), target.getRequired());
     }
 
     @Test
@@ -131,11 +131,11 @@ class ApplicationTypeSchemaMergerTest {
         var target = getApplicationTypeSchema(targetJson);
         var external = getExternalSchema(externalJson);
 
-        var result = applicationTypeSchemaMerger.merge(target, external);
+        applicationTypeSchemaMerger.merge(target, external);
 
-        assertTrue(result.getProperties().isEmpty());
-        assertTrue(result.getDefs().isEmpty());
-        assertTrue(result.getRequired().isEmpty());
+        assertTrue(target.getProperties().isEmpty());
+        assertTrue(target.getDefs().isEmpty());
+        assertTrue(target.getRequired().isEmpty());
     }
 
     private ApplicationTypeSchema getApplicationTypeSchema(String schema) throws JsonProcessingException {

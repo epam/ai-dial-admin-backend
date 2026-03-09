@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
-import com.epam.aidial.cfg.exception.ApplicationTypeSchemaProcessingException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -64,8 +63,8 @@ class ExternalSchemaLoaderTest {
     void fetchExternalSchema_WhenNotObject_ShouldThrow() {
         when(restTemplate.getForObject(SCHEMA_URL, String.class)).thenReturn("123");
 
-        ApplicationTypeSchemaProcessingException ex = Assertions.assertThrows(
-                ApplicationTypeSchemaProcessingException.class,
+        RuntimeException ex = Assertions.assertThrows(
+                RuntimeException.class,
                 () -> externalSchemaLoader.fetchExternalSchema(SCHEMA_URL)
         );
         Assertions.assertTrue(ex.getMessage().contains("Failed to deserialize external schema into ExternalSchema class"));

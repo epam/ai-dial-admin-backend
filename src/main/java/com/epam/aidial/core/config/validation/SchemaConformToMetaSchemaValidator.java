@@ -10,6 +10,7 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -20,11 +21,16 @@ public class SchemaConformToMetaSchemaValidator {
     private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     public static boolean isValid(String schema) {
-        return getValidationErrors(schema) == null;
+        return getValidationMessages(schema).isEmpty();
     }
 
+    public static Set<ValidationMessage> getValidationMessages(String schema) {
+        return SCHEMA.validate(schema, InputFormat.JSON);
+    }
+
+
     public static String getValidationErrors(String schema) {
-        var validations = SCHEMA.validate(schema, InputFormat.JSON);
+        var validations = getValidationMessages(schema);
         if (validations.isEmpty()) {
             return null;
         }

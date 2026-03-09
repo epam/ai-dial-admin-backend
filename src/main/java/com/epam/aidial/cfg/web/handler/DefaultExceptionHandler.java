@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.web.handler;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.exception.ApplicationTypeSchemaProcessingException;
 import com.epam.aidial.cfg.exception.CoreConfigReloadException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -217,14 +216,6 @@ public class DefaultExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({CoreConfigReloadException.class})
     public ErrorView handleCoreConfigReloadException(HttpServletRequest req, Exception ex) {
-        logUncaught(ex);
-        return new ErrorView(req, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-    }
-
-    @ResponseBody
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({ApplicationTypeSchemaProcessingException.class})
-    public ErrorView handleApplicationTypeSchemaProcessingException(HttpServletRequest req, Exception ex) {
         logUncaught(ex);
         return new ErrorView(req, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }

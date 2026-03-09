@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
-import com.epam.aidial.cfg.exception.ApplicationTypeSchemaProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,8 +9,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-@RequiredArgsConstructor
+@LogExecution
 @Slf4j
+@RequiredArgsConstructor
 public class ExternalSchemaLoader {
     private final RestTemplate restTemplate;
 
@@ -19,11 +20,13 @@ public class ExternalSchemaLoader {
             return restTemplate.getForObject(url, ExternalSchema.class);
 
         } catch (RestClientException ex) {
-            throw new ApplicationTypeSchemaProcessingException(
-                    "Failed to download external schema from " + url);
+            log.warn("Failed to download external schema from " + url);
+            throw new RuntimeException(
+                    "Failed to download external schema from " + url, ex);
         } catch (Exception ex) {
-            throw new ApplicationTypeSchemaProcessingException(
-                    "Failed to deserialize external schema into ExternalSchema class");
+            log.warn("Failed to deserialize external schema into ExternalSchema class");
+            throw new RuntimeException(
+                    "Failed to deserialize external schema into ExternalSchema class", ex);
         }
     }
 }
