@@ -16,10 +16,12 @@ DEBUG_OPTS=${DEBUG_OPTS:-}
 JAVA_OPTS=${JAVA_OPTS:-}
 
 # Execute the Java application with the provided options.
-# If arguments are passed, treat this as a CLI invocation: activate the cli profile and forward all args.
-# Otherwise start the application normally as a web server.
+# If arguments are passed, treat this as a CLI invocation: activate the cli profile via env var
+# (not via --spring.profiles.active=cli arg, which would be forwarded to picocli and rejected),
+# then forward all arguments to the jar. Otherwise start normally as a web server.
 if [ $# -gt 0 ]; then
-    exec java $DEBUG_OPTS $JAVA_OPTS -jar app.jar --spring.profiles.active=cli "$@"
+    export SPRING_PROFILES_ACTIVE=cli
+    exec java $DEBUG_OPTS $JAVA_OPTS -jar app.jar "$@"
 else
     exec java $DEBUG_OPTS $JAVA_OPTS -jar app.jar
 fi
