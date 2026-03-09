@@ -27,18 +27,20 @@ public class JsonConfigMerger {
     @JsonIgnoreProperties(ignoreUnknown = false)
     private interface StrictConfigMixin {}
 
+    private record RawMergeResult(Config config, JsonNode rawNode) {}
+
     private final ObjectMapper objectMapper;
 
     public Config merge(List<String> filePaths) {
         if (filePaths.isEmpty()) {
             return new Config();
         }
-        return mergeNodes(filePaths, objectMapper);
+        return mergeNodes(filePaths, objectMapper).config();
     }
 
     public ConfigMergeResult mergeWithResult(List<String> filePaths, boolean failOnUnknownProperties) {
         if (filePaths.isEmpty()) {
-            return new ConfigMergeResult(new Config(), List.of());
+            return new ConfigMergeResult(new Config(), List.of(), objectMapper.createObjectNode());
         }
 
         ObjectMapper baseMapper = objectMapper.copy()
@@ -46,8 +48,8 @@ public class JsonConfigMerger {
 
         if (failOnUnknownProperties) {
             baseMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-            Config config = mergeNodes(filePaths, baseMapper);
-            return new ConfigMergeResult(config, List.of());
+            RawMergeResult raw = mergeNodes(filePaths, baseMapper);
+            return new ConfigMergeResult(raw.config(), List.of(), raw.rawNode());
         } else {
             List<String> warnings = new ArrayList<>();
             baseMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -61,12 +63,12 @@ public class JsonConfigMerger {
                             return true;
                         }
                     });
-            Config config = mergeNodes(filePaths, baseMapper);
-            return new ConfigMergeResult(config, List.copyOf(warnings));
+            RawMergeResult raw = mergeNodes(filePaths, baseMapper);
+            return new ConfigMergeResult(raw.config(), List.copyOf(warnings), raw.rawNode());
         }
     }
 
-    private Config mergeNodes(List<String> filePaths, ObjectMapper mapper) {
+    private RawMergeResult mergeNodes(List<String> filePaths, ObjectMapper mapper) {
         JsonNode merged = null;
         for (String path : filePaths) {
             File file = new File(path);
@@ -83,9 +85,8 @@ public class JsonConfigMerger {
                 throw new IllegalArgumentException("Cannot read file: " + path, e);
             }
         }
-
         try {
-            return mapper.treeToValue(merged, Config.class);
+            return new RawMergeResult(mapper.treeToValue(merged, Config.class), merged);
         } catch (IOException e) {
             throw new IllegalArgumentException("Merged config cannot be deserialized: " + e.getMessage(), e);
         }
