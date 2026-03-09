@@ -11,7 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -142,5 +141,36 @@ class VersionAwareSchemaCheckerTest {
         when(schemaLoader.loadSchema("0.41.0")).thenReturn(schema);
 
         checker.preloadSchema("0.41.0"); // should not throw
+    }
+
+    @Test
+    void openObjectField_noViolationForContents() throws Exception {
+        // 'defaults' is an open object in the schema — its children should not be flagged
+        JsonNode schema = mapper.readTree("""
+                {
+                  "properties": {
+                    "models": {
+                      "patternProperties": {
+                        ".*": {
+                          "properties": {
+                            "displayName": {},
+                            "defaults": {
+                              "type": "object"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """);
+        when(schemaLoader.loadSchema("0.37.0")).thenReturn(schema);
+
+        JsonNode node = mapper.readTree("""
+                {"models":{"gpt-4":{"displayName":"GPT-4","defaults":{"maxTokens":4096,"temperature":0.7}}}}
+                """);
+        List<String> violations = checker.check(node, "0.37.0");
+
+        assertThat(violations).isEmpty();
     }
 }

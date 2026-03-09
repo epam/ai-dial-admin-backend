@@ -59,6 +59,11 @@ public class VersionAwareSchemaChecker {
             return;
         }
 
+        // Open object (no properties/patternProperties/allOf/$ref) — everything is allowed inside
+        if (!resolvedSchema.has("properties") && !resolvedSchema.has("allOf") && !resolvedSchema.has("$ref")) {
+            return;
+        }
+
         Map<String, JsonNode> allowedFields = resolveProperties(resolvedSchema, root);
 
         Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
