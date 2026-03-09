@@ -94,9 +94,6 @@ public class VersionAwareSchemaChecker {
                 props.putAll(resolveProperties(resolveRef(sub, root), root));
             }
         }
-        if (schema.has("$ref")) {
-            props.putAll(resolveProperties(resolveRef(schema, root), root));
-        }
         return props;
     }
 
