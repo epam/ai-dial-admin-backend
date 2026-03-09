@@ -18,7 +18,7 @@ Validates one or more DIAL Core JSON config files using the same import logic as
 docker run --rm \
   -v /path/to/your/configs:/data \
   epam/ai-dial-admin-backend:<tag> \
-  validate [--strategy <MERGE_JSON|SEQUENTIAL>] [--conflict-resolution <OVERRIDE|SKIP>] <file1> [file2 ...]
+  validate [--strategy <MERGE_JSON|SEQUENTIAL>] [--conflict-resolution <OVERRIDE|SKIP>] [--unknown-properties <IGNORE|FAIL>] [--core-config-version <X.Y.Z|latest>] <file1> [file2 ...]
 ```
 
 **Options:**
@@ -27,6 +27,7 @@ docker run --rm \
 |--------|---------|-------------|
 | `--strategy` | `MERGE_JSON` | How multiple files are combined before validation |
 | `--conflict-resolution` | `OVERRIDE` | Conflict policy used for `SEQUENTIAL` strategy |
+| `--unknown-properties` | `IGNORE` | How unknown JSON properties are handled: `IGNORE` (default, reported as warnings) or `FAIL` |
 | `--core-config-version` | `latest` | Core version schema to validate fields against (`X.Y.Z` or `latest`) |
 | `--help` | | Show command help |
 
@@ -51,7 +52,7 @@ Every `validate` run checks the input JSON against the bundled schema for the sp
 |------|---------|
 | `0` | All files are valid |
 | `1` | One or more files are invalid — JSON output on stdout with details (includes file-not-found and JSON parse errors) |
-| `2` | Unexpected internal error — message on stderr |
+| `2` | Unexpected internal error or invalid `--core-config-version` argument — message on stderr |
 
 ## Output Format
 
