@@ -3,11 +3,14 @@ package com.epam.aidial.cfg.cli;
 import com.epam.aidial.cfg.cli.dto.FileValidationResult;
 import com.epam.aidial.cfg.cli.dto.ValidateResult;
 import com.epam.aidial.cfg.cli.dto.ValidationStatus;
+import com.epam.aidial.cfg.domain.validator.CoreConfigVersionValidator;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.transfer.JsonConfigMerger;
 import com.epam.aidial.cfg.service.config.transfer.MultiFileImportStrategy;
+import com.epam.aidial.cfg.service.config.transfer.VersionAwareSchemaChecker;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
+import com.epam.aidial.cfg.utils.CoreConfigVersionNormalizer;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,12 +50,30 @@ public class ValidateCommand implements Callable<Integer> {
             description = "Unknown JSON properties handling: IGNORE (default) or FAIL")
     UnknownPropertiesPolicy unknownProperties = UnknownPropertiesPolicy.IGNORE;
 
+    @Option(names = "--core-config-version", defaultValue = "latest",
+            description = "Core version schema to validate against: X.Y.Z or 'latest' (default)")
+    String coreConfigVersion = "latest";
+
     private final ConfigImporter configImporter;
     private final JsonConfigMerger jsonConfigMerger;
     private final ObjectMapper objectMapper;
+    private final VersionAwareSchemaChecker schemaChecker;
+    private final CoreConfigVersionValidator coreConfigVersionValidator;
 
     @Override
     public Integer call() {
+        // Normalise and pre-validate --core-config-version before processing any files
+        String normalizedVersion = CoreConfigVersionNormalizer.normalizeCoreVersion(coreConfigVersion);
+        try {
+            coreConfigVersionValidator.validateVersionFormat(normalizedVersion);
+            schemaChecker.preloadSchema(normalizedVersion);
+        } catch (Exception e) {
+            System.err.println("Invalid --core-config-version '" + coreConfigVersion + "': " + e.getMessage());
+            log.error("Invalid --core-config-version", e);
+            return 2;
+        }
+        coreConfigVersion = normalizedVersion;
+
         List<FileValidationResult> results = new ArrayList<>();
         boolean anyInvalid = false;
 
@@ -93,9 +114,19 @@ public class ValidateCommand implements Callable<Integer> {
         String displayPath = paths.size() == 1 ? paths.get(0) : paths.toString();
         try {
             var result = jsonConfigMerger.mergeWithResult(paths, unknownProperties == UnknownPropertiesPolicy.FAIL);
+
+            List<String> allWarnings = new ArrayList<>(result.warnings());
+
+            List<String> schemaViolations = schemaChecker.check(result.rawMergedNode(), coreConfigVersion);
+            if (!schemaViolations.isEmpty() && unknownProperties == UnknownPropertiesPolicy.FAIL) {
+                return FileValidationResult.builder().path(displayPath).status(ValidationStatus.INVALID)
+                        .error(schemaViolations.get(0)).build();
+            }
+            allWarnings.addAll(schemaViolations);
+
             configImporter.importConfigWithOverride(result.config());
             return FileValidationResult.builder().path(displayPath).status(ValidationStatus.VALID)
-                    .warnings(result.warnings()).build();
+                    .warnings(allWarnings).build();
         } catch (IllegalArgumentException e) {
             return FileValidationResult.builder().path(displayPath).status(ValidationStatus.INVALID)
                     .error(e.getMessage()).build();
@@ -108,9 +139,19 @@ public class ValidateCommand implements Callable<Integer> {
     private FileValidationResult validateSingle(String path) {
         try {
             var result = jsonConfigMerger.mergeWithResult(List.of(path), unknownProperties == UnknownPropertiesPolicy.FAIL);
+
+            List<String> allWarnings = new ArrayList<>(result.warnings());
+
+            List<String> schemaViolations = schemaChecker.check(result.rawMergedNode(), coreConfigVersion);
+            if (!schemaViolations.isEmpty() && unknownProperties == UnknownPropertiesPolicy.FAIL) {
+                return FileValidationResult.builder().path(path).status(ValidationStatus.INVALID)
+                        .error(schemaViolations.get(0)).build();
+            }
+            allWarnings.addAll(schemaViolations);
+
             configImporter.importConfig(result.config(), new ConfigImportOptions(conflictResolution));
             return FileValidationResult.builder().path(path).status(ValidationStatus.VALID)
-                    .warnings(result.warnings()).build();
+                    .warnings(allWarnings).build();
         } catch (IllegalArgumentException e) {
             return FileValidationResult.builder().path(path).status(ValidationStatus.INVALID)
                     .error(e.getMessage()).build();
