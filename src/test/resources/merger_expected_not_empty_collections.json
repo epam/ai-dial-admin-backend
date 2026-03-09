@@ -1,0 +1,11 @@
+{
+  "$defs": {
+    "clientFile": { "type": "string" },
+    "serverFile": { "type": "string" }
+  },
+  "properties": {
+    "clientFile": { "$ref": "#/$defs/clientFile" },
+    "serverFile": { "$ref": "#/$defs/serverFile" }
+  },
+  "required": ["clientFile"]
+ }

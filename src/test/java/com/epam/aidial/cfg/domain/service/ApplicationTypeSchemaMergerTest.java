@@ -3,16 +3,15 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
+import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApplicationTypeSchemaMergerTest {
     private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
@@ -24,7 +23,7 @@ class ApplicationTypeSchemaMergerTest {
     }
 
     @Test
-    void shouldMergePropertiesDefRequired_whenTargetPropertiesDefsRequiredAreNull() throws Exception {
+    void shouldMergePropertiesDefsRequired_whenTargetPropertiesDefsRequiredAreNull() throws Exception {
         String targetJson = """
                 {
                   "$schema": "https://dial.epam.com/application_type_schemas/schema#",
@@ -50,19 +49,15 @@ class ApplicationTypeSchemaMergerTest {
         var external = getExternalSchema(externalJson);
 
         applicationTypeSchemaMerger.merge(target, external);
+        var expected = OBJECT_MAPPER.readValue(ResourceUtils.readResource("/merger_expected_with_null_properties_defs_required.json"),
+                new TypeReference<ApplicationTypeSchema>() {
+                });
 
-        assertEquals(1, target.getDefs().size());
-        assertTrue(target.getDefs().containsKey("serverFile"));
-
-        assertEquals(1, target.getProperties().size());
-        assertTrue(target.getProperties().containsKey("serverFile"));
-
-        assertEquals(1, target.getProperties().size());
-        assertTrue(target.getProperties().containsKey("serverFile"));
+        assertEquals(target, expected);
     }
 
     @Test
-    void shouldKeepTargetPropertiesDefRequired_whenTargetPropertiesDefRequiredNotNull() throws Exception {
+    void shouldKeepTargetPropertiesDefsRequired_whenTargetPropertiesDefsRequiredNotEmpty() throws Exception {
         String targetJson = """
                 {
                       "$defs": {
@@ -93,20 +88,15 @@ class ApplicationTypeSchemaMergerTest {
         var external = getExternalSchema(externalJson);
 
         applicationTypeSchemaMerger.merge(target, external);
+        var expected = OBJECT_MAPPER.readValue(ResourceUtils.readResource("/merger_expected_not_empty_collections.json"),
+                new TypeReference<ApplicationTypeSchema>() {
+                });
 
-        assertEquals(2, target.getProperties().size());
-        assertTrue(target.getProperties().containsKey("clientFile"));
-        assertTrue(target.getProperties().containsKey("serverFile"));
-
-        assertEquals(2, target.getDefs().size());
-        assertTrue(target.getProperties().containsKey("clientFile"));
-        assertTrue(target.getProperties().containsKey("serverFile"));
-
-        assertEquals(List.of("clientFile"), target.getRequired());
+        assertEquals(target, expected);
     }
 
     @Test
-    void shouldKeepTargetProperties_whenTargetPropertiesEmpty() throws Exception {
+    void shouldKeepTargetPropertiesDefsRequired_whenTargetPropertiesDefsRequiredEmpty() throws Exception {
         String targetJson = """
                 {
                   "properties": {},
@@ -132,10 +122,11 @@ class ApplicationTypeSchemaMergerTest {
         var external = getExternalSchema(externalJson);
 
         applicationTypeSchemaMerger.merge(target, external);
+        var expected = OBJECT_MAPPER.readValue(ResourceUtils.readResource("/merger_expected_empty_collections.json"),
+                new TypeReference<ApplicationTypeSchema>() {
+                });
 
-        assertTrue(target.getProperties().isEmpty());
-        assertTrue(target.getDefs().isEmpty());
-        assertTrue(target.getRequired().isEmpty());
+        assertEquals(target, expected);
     }
 
     private ApplicationTypeSchema getApplicationTypeSchema(String schema) throws JsonProcessingException {
