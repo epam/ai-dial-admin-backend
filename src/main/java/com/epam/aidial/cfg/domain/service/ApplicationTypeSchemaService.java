@@ -86,7 +86,7 @@ public class ApplicationTypeSchemaService {
             var validationMessage = SchemaConformToMetaSchemaValidator.getValidationErrors(coreMapper.mapToCoreString(applicationTypeSchema));
             return new ApplicationTypeSchemaWithValidation(applicationTypeSchema, validationMessage, true);
         }
-        return new ApplicationTypeSchemaWithValidation(applicationTypeSchema, null, true);
+        return new ApplicationTypeSchemaWithValidation(applicationTypeSchema, null, false);
     }
 
     @Transactional(readOnly = true)
