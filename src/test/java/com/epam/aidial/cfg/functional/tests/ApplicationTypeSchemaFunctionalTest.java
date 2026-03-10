@@ -43,6 +43,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createIn
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -69,6 +70,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
+        clearInvocations(externalSchemaLoader);
         var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
         dto = objectMapper.readValue(dtosJson, new TypeReference<>() {
         });
