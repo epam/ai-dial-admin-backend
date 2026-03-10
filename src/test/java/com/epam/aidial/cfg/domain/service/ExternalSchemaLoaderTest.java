@@ -10,8 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,13 +62,15 @@ class ExternalSchemaLoaderTest {
     }
 
     @Test
-    void fetchExternalSchema_WhenNotObject_ShouldThrow() {
-        when(restTemplate.getForObject(SCHEMA_URL, String.class)).thenReturn("123");
+    void fetchExternalSchema_whenRestCallFails_shouldThrowRuntimeException() {
+        doThrow(new RestClientException("error"))
+                .when(restTemplate)
+                .getForObject(SCHEMA_URL, ExternalSchema.class);
 
         RuntimeException ex = Assertions.assertThrows(
                 RuntimeException.class,
                 () -> externalSchemaLoader.fetchExternalSchema(SCHEMA_URL)
         );
-        Assertions.assertTrue(ex.getMessage().contains("Failed to deserialize external schema into ExternalSchema class"));
+        Assertions.assertTrue(ex.getMessage().contains("Failed to download external schema from"));
     }
 }

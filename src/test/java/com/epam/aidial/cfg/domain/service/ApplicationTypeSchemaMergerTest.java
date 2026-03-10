@@ -3,10 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
-import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,15 +42,29 @@ class ApplicationTypeSchemaMergerTest {
                 }
                 """;
 
+        String expected = """
+                {
+                    "$schema": "https://dial.epam.com/application_type_schemas/schema#",
+                    "$id": "https://test-schema.example",
+                    "dial:applicationTypeEditorUrl": "https://test.com/billings",
+                    "dial:applicationTypeViewerUrl": "https://test.com/claims",
+                    "dial:applicationTypeDisplayName": "Claims Use case",
+                    "$defs": {
+                      "serverFile": { "type": "string" }
+                    },
+                    "properties": {
+                      "serverFile": { "$ref": "#/$defs/serverFile" }
+                    },
+                    "required": ["serverFile"]
+                  }
+                """;
+
         var target = getApplicationTypeSchema(targetJson);
         var external = getExternalSchema(externalJson);
 
         applicationTypeSchemaMerger.merge(target, external);
-        var expected = OBJECT_MAPPER.readValue(ResourceUtils.readResource("/merger_expected_with_null_properties_defs_required.json"),
-                new TypeReference<ApplicationTypeSchema>() {
-                });
 
-        assertEquals(target, expected);
+        assertEquals(getApplicationTypeSchema(expected), target);
     }
 
     @Test
@@ -84,15 +95,25 @@ class ApplicationTypeSchemaMergerTest {
                 }
                 """;
 
+        String expected = """
+                {
+                  "$defs": {
+                    "clientFile": { "type": "string" },
+                    "serverFile": { "type": "string" }
+                  },
+                  "properties": {
+                    "clientFile": { "$ref": "#/$defs/clientFile" },
+                    "serverFile": { "$ref": "#/$defs/serverFile" }
+                  },
+                  "required": ["clientFile"]
+                 }
+                """;
+
         var target = getApplicationTypeSchema(targetJson);
         var external = getExternalSchema(externalJson);
 
         applicationTypeSchemaMerger.merge(target, external);
-        var expected = OBJECT_MAPPER.readValue(ResourceUtils.readResource("/merger_expected_not_empty_collections.json"),
-                new TypeReference<ApplicationTypeSchema>() {
-                });
-
-        assertEquals(target, expected);
+        assertEquals(getApplicationTypeSchema(expected), target);
     }
 
     @Test
@@ -118,25 +139,28 @@ class ApplicationTypeSchemaMergerTest {
                 }
                 """;
 
+        String expected = """
+                {
+                  "properties": {},
+                  "$defs": {},
+                  "required": []
+                }
+                """;
+
         var target = getApplicationTypeSchema(targetJson);
         var external = getExternalSchema(externalJson);
 
         applicationTypeSchemaMerger.merge(target, external);
-        var expected = OBJECT_MAPPER.readValue(ResourceUtils.readResource("/merger_expected_empty_collections.json"),
-                new TypeReference<ApplicationTypeSchema>() {
-                });
-
-        assertEquals(target, expected);
+        assertEquals(getApplicationTypeSchema(expected), target);
     }
 
     private ApplicationTypeSchema getApplicationTypeSchema(String schema) throws JsonProcessingException {
-        JsonNode tree = OBJECT_MAPPER.readTree(schema);
-        return OBJECT_MAPPER.treeToValue(tree, ApplicationTypeSchema.class);
+        return OBJECT_MAPPER.readValue(schema, ApplicationTypeSchema.class);
+
     }
 
     private ExternalSchema getExternalSchema(String schema) throws JsonProcessingException {
-        JsonNode tree = OBJECT_MAPPER.readTree(schema);
-        return OBJECT_MAPPER.treeToValue(tree, ExternalSchema.class);
+        return OBJECT_MAPPER.readValue(schema, ExternalSchema.class);
     }
 
 }

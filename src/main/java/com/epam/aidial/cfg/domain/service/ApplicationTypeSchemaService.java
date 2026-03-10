@@ -18,7 +18,6 @@ import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +54,6 @@ public class ApplicationTypeSchemaService {
     private final HashCalculator calculator;
     private final ExternalSchemaLoader externalSchemaLoader;
     private final ApplicationTypeSchemaMerger applicationTypeSchemaMerger;
-    private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
     public Collection<ApplicationTypeSchema> getAll() {

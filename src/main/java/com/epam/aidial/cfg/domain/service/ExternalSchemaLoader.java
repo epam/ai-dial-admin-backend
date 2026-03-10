@@ -23,10 +23,6 @@ public class ExternalSchemaLoader {
             log.warn("Failed to download external schema from " + url);
             throw new RuntimeException(
                     "Failed to download external schema from " + url, ex);
-        } catch (Exception ex) {
-            log.warn("Failed to deserialize external schema into ExternalSchema class");
-            throw new RuntimeException(
-                    "Failed to deserialize external schema into ExternalSchema class", ex);
         }
     }
 }

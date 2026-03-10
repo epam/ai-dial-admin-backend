@@ -43,9 +43,9 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createIn
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public abstract class ApplicationTypeSchemaFunctionalTest {
@@ -505,7 +505,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         var externalSchema = new ExternalSchema();
         externalSchema.setRequired(List.of("externalField"));
 
-        when(externalSchemaLoader.fetchExternalSchema(eq(endpointUrl))).thenReturn(externalSchema);
+        when(externalSchemaLoader.fetchExternalSchema(endpointUrl)).thenReturn(externalSchema);
 
         var result = typeSchemaFacade.getResolvedTypeSchema(dto.getId());
 
@@ -521,14 +521,16 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setApplications(List.of());
         dto.setApplicationTypeRoutes(List.of());
         dto.setInterceptors(List.of());
+        dto.setRequired(null);
         typeSchemaFacade.create(dto);
 
         var result = typeSchemaFacade.getResolvedTypeSchema(dto.getId());
 
         assertThat(result.schema().getId()).isEqualTo(dto.getId());
-        assertThat(result.schema().getTitle()).isEqualTo(dto.getTitle());
         assertThat(result.isReadOnly()).isFalse();
         assertThat(result.message()).isNull();
+        assertThat(result.schema().getRequired()).isNull();
+        verifyNoInteractions(externalSchemaLoader);
     }
 
     @Test
