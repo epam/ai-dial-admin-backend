@@ -10,6 +10,13 @@
 	"dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
 	"dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
 	"dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+	"dial:applicationTypeMcp": {
+            "dial:endpoint": "http://localhost:9876/mcp",
+            "dial:transport": "HTTP",
+            "dial:allowedTools": ["classify_text"],
+            "dial:mcpConfigDelivery": "META",
+            "dial:forwardPerRequestKey": true
+          },
 	"dial:appendApplicationPropertiesHeader": true,
 	"dial:applicationTypeBucketCopy": "ENABLED",
 	"$defs": {

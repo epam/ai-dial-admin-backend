@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
 import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -32,6 +33,8 @@ public class CoreApplication extends Deployment {
     private String viewerUrl; // 0.29.0
     @JsonAlias({"editorUrl", "editor_url"})
     private String editorUrl; // 0.29.0
+
+    private Mcp mcp;  // 0.42.0
 
     // maintain the order of routes defined in the app config
     private LinkedHashMap<String, CoreRoute> routes = new LinkedHashMap<>(); // 0.32.0
@@ -106,6 +109,18 @@ public class CoreApplication extends Deployment {
     public static class Log {
         private String instance;
         private String content;
+    }
+
+    @Data
+    public static class Mcp {
+        private String endpoint;
+        private final Transport transport = Transport.HTTP;
+        @JsonAlias({"allowedTools", "allowed_tools"})
+        private List<String> allowedTools;
+
+        public enum Transport {
+            HTTP
+        }
     }
 
     public CoreApplication() {

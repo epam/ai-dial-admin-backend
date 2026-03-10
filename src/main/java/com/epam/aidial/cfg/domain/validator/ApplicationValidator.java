@@ -77,6 +77,7 @@ public class ApplicationValidator {
         String endpoint = application.getEndpoint();
         URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
         List<DependentRoute> routes = application.getRoutes();
+        var mcp = application.getMcp();
 
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint: '%s'. Application: %s".formatted(endpoint, appName));
@@ -95,6 +96,10 @@ public class ApplicationValidator {
         if (CollectionUtils.isNotEmpty(routes) && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
             throw new IllegalArgumentException("Both routes and application type schema id are specified. Only one of them should be specified."
                     + " Application: %s".formatted(appName));
+        }
+
+        if (mcp != null && StringUtils.isBlank(mcp.getEndpoint())) {
+            throw new IllegalArgumentException("MCP endpoint must be provided");
         }
     }
 

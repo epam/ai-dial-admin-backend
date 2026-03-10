@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.service.core.CoreApplicationService;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
 import com.epam.aidial.core.config.CoreApplication;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -84,5 +85,13 @@ public class ApplicationFacade {
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public McpSchema.ListToolsResult getDiscoveredTools(String applicationName, String nextCursor) {
+        return applicationService.getDiscoveredTools(applicationName, nextCursor);
+    }
+
+    public McpSchema.CallToolResult callTool(String applicationName, McpSchema.CallToolRequest callToolRequest) {
+        return applicationService.callTool(applicationName, callToolRequest);
     }
 }

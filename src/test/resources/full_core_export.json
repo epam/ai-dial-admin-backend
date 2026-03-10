@@ -201,7 +201,12 @@
       ],
       "application_properties": {},
       "application_type_schema_id": "https://test-schema-id.example",
-      "routes": {}
+      "routes": {},
+      "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "http",
+          "allowedTools": ["classify_text"]
+        }
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -411,6 +416,13 @@
       "dial:applicationTypeInterceptors":["testInterceptor1"],
       "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+      "dial:applicationTypeMcp": {
+              "dial:endpoint": "http://localhost:9876/mcp",
+              "dial:transport": "HTTP",
+              "dial:allowedTools": ["classify_text"],
+              "dial:mcpConfigDelivery": "META",
+              "dial:forwardPerRequestKey": true
+            },
       "$defs": {}
     }
   ]

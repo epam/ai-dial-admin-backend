@@ -323,6 +323,13 @@
         "appendApplicationPropertiesHeader": true,
         "applicationTypeAssistantAttachmentsInRequestSupported": false,
         "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+        "dial:applicationTypeMcp": {
+                "dial:endpoint": "http://localhost:9876/mcp",
+                "dial:transport": "http",
+                "dial:allowedTools": ["classify_text"],
+                "dial:mcpConfigDelivery": "meta",
+                "dial:forwardPerRequestKey": true
+              },
         "interceptors":[],
         "properties": {},
         "required": [],
@@ -659,7 +666,12 @@
         "routes": [],
         "validityState": {
           "valid": true
-        }
+        },
+        "mcp": {
+            "endpoint": "http://localhost:9876/mcp",
+            "transport": "http",
+            "allowedTools": ["classify_text"]
+          }
       }
     },
     {

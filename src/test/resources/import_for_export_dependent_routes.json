@@ -99,7 +99,12 @@
             "responseBody": []
           }
         }
-      }
+      },
+      "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "http",
+          "allowedTools": ["classify_text"]
+        }
     }
   },
   "assistant": {
@@ -121,6 +126,13 @@
       "dial:applicationTypeCompletionEndpoint": "http://ai-dial-test/openai/deployments/gpt-4o/chat/completions",
       "dial:applicationTypeIconUrl": "http://ai-dial-test/openai/deployments/gpt-4o/chat/icon",
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+      "dial:applicationTypeMcp": {
+              "dial:endpoint": "http://localhost:9876/mcp",
+              "dial:transport": "HTTP",
+              "dial:allowedTools": ["classify_text"],
+              "dial:mcpConfigDelivery": "META",
+              "dial:forwardPerRequestKey": true
+            },
       "dial:applicationTypeRoutes": {
         "route1": {
           "dial:response": {

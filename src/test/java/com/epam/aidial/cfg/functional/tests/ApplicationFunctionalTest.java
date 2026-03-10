@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
@@ -19,8 +21,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.modelcontextprotocol.client.McpSyncClient;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
@@ -38,6 +43,8 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createIn
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +62,8 @@ public abstract class ApplicationFunctionalTest {
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
+    @Autowired
+    private McpClientFactory mcpClientFactory;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -412,6 +421,10 @@ public abstract class ApplicationFunctionalTest {
         expected.setUserRoles(applicationDto.getRoleLimits().keySet());
         expected.setRoutes(null);
         expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
+        var mcp = new CoreApplication.Mcp();
+        mcp.setEndpoint("http://localhost:9876/mcp");
+        mcp.setAllowedTools(List.of("classify_text"));
+        expected.setMcp(mcp);
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
@@ -460,6 +473,56 @@ public abstract class ApplicationFunctionalTest {
         assertThat(actualSyncState.getConfigState()).isEqualTo(configApplicationState);
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
     }
+
+    @Test
+    public void shouldSuccessfullyCreateApplicationAndGetDiscoveredTools() {
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setDescription("description OLD");
+        var mcp = new ApplicationDto.McpDto();
+        mcp.setEndpoint("https://endpoint.test.com/application1");
+        applicationDto.setMcp(mcp);
+        applicationFacade.createApplication(applicationDto);
+
+        var expectedTools = Mockito.mock(McpSchema.ListToolsResult.class);
+        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
+
+        Mockito.when(mcpSyncClient.initialize())
+                .thenReturn(null);
+        Mockito.when(mcpSyncClient.listTools(null))
+                .thenReturn(expectedTools);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8080/v1/toolset/applications/application1/mcp"),
+                eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+        var actualTools = applicationFacade.getDiscoveredTools(applicationDto.getName(), null);
+
+        Assertions.assertEquals(expectedTools, actualTools);
+
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateApplicationAndCallTool() {
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setDescription("description OLD");
+        var mcp = new ApplicationDto.McpDto();
+        mcp.setEndpoint("https://endpoint.test.com/application1");
+        applicationDto.setMcp(mcp);
+        applicationDto.setMcp(mcp);
+        applicationFacade.createApplication(applicationDto);
+
+        var callToolRequest = Mockito.mock(McpSchema.CallToolRequest.class);
+        var expectedCallToolResult = Mockito.mock(McpSchema.CallToolResult.class);
+        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
+        Mockito.when(mcpSyncClient.initialize())
+                .thenReturn(null);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8080/v1/toolset/applications/application1/mcp"),
+                eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+        Mockito.when(mcpSyncClient.callTool(callToolRequest))
+                .thenReturn(expectedCallToolResult);
+
+        var actualCallToolResult = applicationFacade.callTool(applicationDto.getName(), callToolRequest);
+
+        Assertions.assertEquals(expectedCallToolResult, actualCallToolResult);
+    }
+
 
     private ApplicationDto createDtoWithDefaults(String suffix) {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits(suffix);
@@ -529,7 +592,12 @@ public abstract class ApplicationFunctionalTest {
                       "updated_at": 1000,
                       "dependencies": [],
                       "application_properties": {},
-                      "routes": {}
+                      "routes": {},
+                      "mcp": {
+                        "endpoint" :"http://localhost:9876/mcp",
+                        "allowedTools": ["classify_text"],
+                        "transport": "HTTP"
+                        }
                     }
                   }
                 }

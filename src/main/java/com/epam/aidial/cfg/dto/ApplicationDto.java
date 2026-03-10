@@ -56,6 +56,7 @@ public class ApplicationDto extends RoleBasedDto {
 
     private URI customAppSchemaId;
     private ValidityStateDto validityState;
+    private McpDto mcp;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {
@@ -100,4 +101,14 @@ public class ApplicationDto extends RoleBasedDto {
         }
     }
 
+    @Data
+    public static class McpDto {
+        private String endpoint;
+        private final TransportDto transport = TransportDto.HTTP;
+        private List<String> allowedTools = List.of();
+    }
+
+    public enum TransportDto {
+        HTTP
+    }
 }

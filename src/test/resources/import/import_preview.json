@@ -394,6 +394,13 @@
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
         "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+        "applicationTypeMcp": {
+                "endpoint": "http://localhost:9876/mcp",
+                "transport": "HTTP",
+                "allowedTools": ["classify_text"],
+                "mcpConfigDelivery": "META",
+                "forwardPerRequestKey": true
+              },
         "applicationTypeAssistantAttachmentsInRequestSupported": true,
         "applicationTypeRoutes": [
           {
@@ -846,7 +853,12 @@
         ],
         "validityState": {
           "valid": true
-        }
+        },
+        "mcp": {
+            "endpoint": "http://localhost:9876/mcp",
+            "transport": "http",
+            "allowedTools": ["classify_text"]
+          }
       }
     },
     {

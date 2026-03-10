@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.client.dto;
 
+import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -43,5 +44,16 @@ public class ApplicationResourceDto {
     private Map<String, RouteDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
-}
+    private McpDto mcp;
 
+    @Data
+    public static class McpDto {
+        private String endpoint;
+        private final ToolSetDto.TransportDto transport = ToolSetDto.TransportDto.HTTP;
+        private List<String> allowedTools;
+    }
+
+    public enum TransportDto {
+        HTTP
+    }
+}

@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.ApplicationResourceNodeInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.CallToolResourceRequestDto;
 import com.epam.aidial.cfg.dto.CreateApplicationResourceDto;
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
@@ -18,9 +19,11 @@ import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.service.ApplicationEximService;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.service.ZipApplicationEximService;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.annotation.Validated;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -166,6 +170,20 @@ public class ApplicationResourceController {
         var importApplications = resourceMapper.toImportResources(importApplicationsDto);
         var importResults = applicationEximService.importApplications(importApplications, applicationsEximDto);
         return resourceMapper.toImportResourcesFileResultDto(importResults);
+    }
+
+    @PostMapping(path = "/discovered-tools", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.ListToolsResult getDiscoveredTools(@RequestBody ResourcePathDto toolSetPath,
+                                                        @RequestParam(required = false) String nextCursor) {
+        return applicationService.getDiscoveredTools(toolSetPath.getPath(), nextCursor);
+    }
+
+    @PostMapping(path = "/call-tool", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.CallToolResult callTool(@RequestBody CallToolResourceRequestDto callToolResourceRequestDto) {
+        return applicationService.callTool(
+                callToolResourceRequestDto.getToolSetPath().getPath(),
+                callToolResourceRequestDto.getCallToolRequest()
+        );
     }
 
 }

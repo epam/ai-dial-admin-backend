@@ -27,5 +27,10 @@
     "web_api_toolset": [],
     "mcp_toolset": []
   },
-  "routes": []
+  "routes": [],
+  "mcp":{
+    "endpoint":"http://localhost:9876/mcp",
+    "transport":"http",
+    "allowedTools":["classify_text"]
+    }
 }

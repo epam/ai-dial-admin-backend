@@ -69,7 +69,12 @@
       "dependencies": [
         "dep1",
         "dep2"
-      ]
+      ],
+      "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "http",
+          "allowedTools": ["classify_text"]
+        }
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -229,6 +234,13 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+      "dial:applicationTypeMcp": {
+              "dial:endpoint": "http://localhost:9876/mcp",
+              "dial:transport": "HTTP",
+              "dial:allowedTools": ["classify_text"],
+              "dial:mcpConfigDelivery": "META",
+              "dial:forwardPerRequestKey": true
+            },
       "dial:applicationTypeAssistantAttachmentsInRequestSupported": true,
       "$defs": {},
       "properties": {},

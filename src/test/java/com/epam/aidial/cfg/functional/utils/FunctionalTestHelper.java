@@ -184,6 +184,10 @@ public class FunctionalTestHelper {
         applicationDto.setName("application" + suffix);
         applicationDto.setDisplayName("application" + suffix);
         applicationDto.setDescription("description" + suffix);
+        var mcp = new ApplicationDto.McpDto();
+        mcp.setEndpoint("http://localhost:9876/mcp");
+        mcp.setAllowedTools(List.of("classify_text"));
+        applicationDto.setMcp(mcp);
         return applicationDto;
     }
 

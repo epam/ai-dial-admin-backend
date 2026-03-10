@@ -39,4 +39,16 @@ public class ApplicationEximDto {
     private List<RouteResourceDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpEximDto mcp;
+
+    @Data
+    public static class McpEximDto {
+        private String endpoint;
+        private final TransportDto transport = TransportDto.HTTP;
+        private List<String> allowedTools;
+    }
+
+    public enum TransportDto {
+        HTTP
+    }
 }

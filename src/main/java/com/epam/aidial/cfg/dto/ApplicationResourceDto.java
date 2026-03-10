@@ -38,4 +38,16 @@ public class ApplicationResourceDto {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
+    private McpResourceDto mcp;
+
+    @Data
+    public static class McpResourceDto {
+        private String endpoint;
+        private final TransportDto transport = TransportDto.HTTP;
+        private List<String> allowedTools;
+    }
+
+    public enum TransportDto {
+        HTTP
+    }
 }

@@ -7,6 +7,11 @@ import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
+import com.epam.aidial.cfg.domain.service.ToolCallService;
+import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
+import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -20,10 +25,13 @@ import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.validitystate.ApplicationResourceValidityStateOnGetResolver;
+import com.epam.aidial.cfg.utils.AuthHeaderUtils;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +55,10 @@ public class ApplicationResourceService implements ResourceService {
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ApplicationResourceValidityStateOnGetResolver applicationResourceValidityStateOnGetResolver;
+    private final CoreClientUrlUtils coreClientUrlUtils;
+    private final ToolDiscoveryService toolDiscoveryService;
+    private final ToolCallService toolCallService;
+    private final ApplicationTypeSchemaService applicationTypeSchemaService;
 
     @Value("${core.applications.metadata.default.limit}")
     private int applicationsMetadataDefaultLimit;
@@ -155,6 +167,64 @@ public class ApplicationResourceService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         applicationClient.deleteApplicationResource(path, headers);
+    }
+
+    @Transactional(readOnly = true)
+    public McpSchema.CallToolResult callTool(String path, McpSchema.CallToolRequest callToolRequest) {
+        var application = getApplicationResource(path);
+
+        var transport = ToolSet.Transport.HTTP;
+
+        var url = String.format(
+                "%s/v1/toolset/applications/%s/mcp",
+                coreClientUrlUtils.getNormalizedCoreClientUrl(),
+                application.getName()
+        );
+        return toolCallService.callTool(
+                url,
+                transport,
+                AuthHeaderUtils.getAuthHeaders(),
+                callToolRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
+        var application = getApplicationResource(path);
+
+        var transport = resolveTransport(application, application.getName());
+
+        var url = String.format(
+                "%s/v1/toolset/applications/%s/mcp",
+                coreClientUrlUtils.getNormalizedCoreClientUrl(),
+                application.getName()
+        );
+
+        return toolDiscoveryService.discoverTools(
+                url,
+                transport,
+                nextCursor,
+                AuthHeaderUtils.getAuthHeaders()
+        );
+    }
+
+    private ToolSet.Transport resolveTransport(ApplicationResource application, String applicationName) {
+        if (application.getMcp() != null) {
+            return ToolSet.Transport.valueOf(application.getMcp().getTransport().name());
+        }
+
+        if (application.getApplicationTypeSchemaId() != null) {
+            var schema = applicationTypeSchemaService.get(application.getApplicationTypeSchemaId());
+
+            if (schema != null && schema.getApplicationTypeMcp() != null) {
+                return ToolSet.Transport.valueOf(
+                        schema.getApplicationTypeMcp().getTransport().name()
+                );
+            }
+        }
+
+        throw new UnsupportedOperationException(
+                "Application '%s' does not support MCP tool discovery".formatted(applicationName)
+        );
     }
 
     public boolean applicationResourceExists(String path) {

@@ -38,7 +38,11 @@
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
-      "dependencies": ["dep1", "dep2"]
+      "dependencies": ["dep1", "dep2"],
+      "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "allowedTools": ["classify_text"]
+        }
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -158,6 +162,13 @@
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeInterceptors": ["testInterceptor1"],
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+      "dial:applicationTypeMcp": {
+              "dial:endpoint": "http://localhost:9876/mcp",
+              "dial:transport": "HTTP",
+              "dial:allowedTools": ["classify_text"],
+              "dial:mcpConfigDelivery": "META",
+              "dial:forwardPerRequestKey": true
+      },
       "$defs": {},
       "properties": {},
       "required": []

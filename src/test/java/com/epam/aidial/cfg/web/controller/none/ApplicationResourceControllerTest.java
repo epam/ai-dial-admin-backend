@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dto.CallToolResourceRequestDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -23,6 +24,7 @@ import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.ApplicationResourceController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -66,6 +68,10 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
     private static final String DELETE_BULK_API_PATH = APP_RESOURCE_BASE_API_PATH + "/delete/bulk";
     private static final String LIST_API_PATH = APP_RESOURCE_BASE_API_PATH + "/list";
     private static final String MOVE_API_PATH = APP_RESOURCE_BASE_API_PATH + "/move";
+    private static final String DISCOVERY_API_PATH = APP_RESOURCE_BASE_API_PATH + "/discovered-tools";
+    private static final String CALL_TOOL_API_PATH = APP_RESOURCE_BASE_API_PATH + "/call-tool";
+    private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";
+    private static final String CALL_TOOL_RESULT_DTO_JSON_PATH = "/call_tool_result_dto.json";
     private static final String TEST_ETAG = "etag123";
     private static final String RETURNED_TEST_ETAG = "\"etag123\"";
 
@@ -392,6 +398,50 @@ class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest
                 .andExpect(status().isOk());
 
         verify(applicationResourceService).move(moveApplication);
+    }
+
+    @Test
+    void testDiscoverTools() throws Exception {
+        var dtoJson = ResourceUtils.readResource(TOOLS_DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<McpSchema.ListToolsResult>() {
+        });
+
+        when(applicationResourceService.getDiscoveredTools(any(), any())).thenReturn(dto);
+
+        var body = new ResourcePathDto();
+        body.setPath(APP_PATH);
+        mockMvc.perform(post(DISCOVERY_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testCallTool() throws Exception {
+        var resourcePathDto = new ResourcePathDto();
+        resourcePathDto.setPath(APP_PATH);
+
+        var callToolRequest = new McpSchema.CallToolRequest(
+                "get_simple_price",
+                Map.of("vs_currencies", "usd", "ids", "bitcoin")
+        );
+
+        var callToolResourceRequestDto = new CallToolResourceRequestDto();
+        callToolResourceRequestDto.setToolSetPath(resourcePathDto);
+        callToolResourceRequestDto.setCallToolRequest(callToolRequest);
+
+        var resultDtoJson = ResourceUtils.readResource(CALL_TOOL_RESULT_DTO_JSON_PATH);
+        var resultDto = objectMapper.readValue(resultDtoJson, new TypeReference<McpSchema.CallToolResult>() {
+        });
+
+        when(applicationResourceService.callTool(APP_PATH, callToolRequest)).thenReturn(resultDto);
+
+        mockMvc.perform(post(CALL_TOOL_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(callToolResourceRequestDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(resultDtoJson, JsonCompareMode.LENIENT));
     }
 
 }

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,7 @@ public class ApplicationTypeSchema {
     private List<String> interceptors;
     private boolean applicationTypeAssistantAttachmentsInRequestSupported;
     private String applicationTypeSchemaEndpoint;
+    private ApplicationTypeMcp applicationTypeMcp;
 
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
@@ -60,5 +62,22 @@ public class ApplicationTypeSchema {
     public enum CopyAppBucketOptions {
         ENABLED,
         DISABLED,
+    }
+
+    @Data
+    public static class ApplicationTypeMcp {
+        private String endpoint;
+        private final Transport transport = Transport.HTTP;
+        private List<String> allowedTools = new ArrayList<>();
+        private McpConfigDelivery configDelivery = McpConfigDelivery.META;
+        private boolean forwardPerRequestKey = true;
+    }
+
+    public enum McpConfigDelivery {
+        HEADER, META
+    }
+
+    public enum Transport {
+        HTTP
     }
 }

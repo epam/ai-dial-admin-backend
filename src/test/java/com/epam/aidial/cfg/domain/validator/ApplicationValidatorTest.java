@@ -196,6 +196,24 @@ class ApplicationValidatorTest {
                         + "Only one of them should be specified. Application: deploymentName");
     }
 
+    @Test
+    void validateUpdate_shouldThrowExceptionWhenMcpNotNullAndMcpEndpointIsNull() {
+        // given
+        Application application = new Application();
+        application.setDisplayName("text");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setMcp(new Application.Mcp());
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        // then
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deployment.getName(), application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("MCP endpoint must be provided");
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"valid-name", "valid_name", "ValidName123", "name-123_456", "name.with.dots"})
     void validateCreation_shouldNotThrowExceptionForValidName(String name) {

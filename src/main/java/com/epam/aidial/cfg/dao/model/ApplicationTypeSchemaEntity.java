@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -50,6 +51,8 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private CopyAppBucketOptionsEntity applicationTypeBucketCopy;
     private boolean applicationTypeAssistantAttachmentsInRequestSupported;
     private String applicationTypeSchemaEndpoint;
+    @Embedded
+    private ApplicationTypeMcpEntity applicationTypeMcp;
 
     @ToString.Exclude
     @ManyToMany
