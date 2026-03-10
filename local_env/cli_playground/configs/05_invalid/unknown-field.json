@@ -1,0 +1,9 @@
+{
+  "models": {
+    "gpt-4": {
+      "displayName": "GPT-4",
+      "endpoint": "https://api.openai.com/v1/chat/completions"
+    }
+  },
+  "unknownTopLevelField": "this field is not part of the Core config schema"
+}

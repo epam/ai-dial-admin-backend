@@ -20,12 +20,15 @@ public class H2Configuration {
                                  @Value("${h2.datasource.masterKey}") String masterKey,
                                  @Value("${h2.datasource.encryptedFileKey}") String encryptedFileKey,
                                  @Value("${h2.datasource.password}") String dbPassword) {
-        String filePassword = DataEncryptor.decryptedKeyBase64(masterKey, encryptedFileKey);
+        // When masterKey is empty (e.g. in-memory CLI H2 with no CIPHER=AES), skip decryption.
+        String password = (masterKey == null || masterKey.isBlank())
+                ? dbPassword
+                : DataEncryptor.decryptedKeyBase64(masterKey, encryptedFileKey) + " " + dbPassword;
         return DataSourceBuilder.create()
                 .driverClassName(driverClassName)
                 .url(url)
                 .username(username)
-                .password(filePassword + " " + dbPassword)
+                .password(password)
                 .build();
     }
 }
