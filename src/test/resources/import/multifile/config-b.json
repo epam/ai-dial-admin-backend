@@ -1,0 +1,12 @@
+{
+  "models": {
+    "model-b": {
+      "displayName": "Model B",
+      "endpoint": "https://endpoint-b/chat/completions"
+    },
+    "model-shared": {
+      "displayName": "Shared from B (wins)",
+      "endpoint": "https://endpoint-shared-b/chat/completions"
+    }
+  }
+}

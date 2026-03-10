@@ -1,0 +1,13 @@
+{
+  "models": {
+    "gpt-4": {
+      "displayName": "GPT-4 (Production)",
+      "endpoint": "https://prod-gateway.example.com/v1/chat/completions"
+    }
+  },
+  "keys": {
+    "prod-key": {
+      "project": "PROD"
+    }
+  }
+}

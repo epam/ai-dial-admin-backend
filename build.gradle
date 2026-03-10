@@ -111,6 +111,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1'
 
     implementation 'org.mapstruct:mapstruct:1.6.0'
+    implementation 'info.picocli:picocli-spring-boot-starter:4.7.6'
 
     implementation 'com.h2database:h2'
     implementation 'org.postgresql:postgresql:42.7.7'

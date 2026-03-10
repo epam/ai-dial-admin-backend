@@ -45,6 +45,9 @@ bin/
 ### App output ###
 data/
 
+### local plans ###
+/docs/plans
+
 !local_env/data/dial_conf/manual_config/config.json
 !local_env/data/dial_conf/settings/gflog.xml
 !local_env/data/dial_conf/settings/settings.json
