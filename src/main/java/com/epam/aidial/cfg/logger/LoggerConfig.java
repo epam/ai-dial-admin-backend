@@ -12,7 +12,7 @@ public class LoggerConfig {
     }
 
     @Bean
-    public ConfigUpdaterLoggerLevel configApplierLoggerLevel(LoggerConfigSourceJsonFile configSource) {
+    public ConfigUpdaterLoggerLevel configApplierLoggerLevel(LoggerConfigSource configSource) {
         return new ConfigUpdaterLoggerLevel(configSource);
     }
 
