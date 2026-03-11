@@ -289,6 +289,47 @@ public abstract class ModelHistoryFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyRollbackModelAfterRoleLimitUpdate() {
+        // create role
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create model
+        ModelDto modelDto = createModelDto("1");
+        modelFacade.createModel(modelDto);
+
+        // add model role limit
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        ModelDto updatedModel = createModelDto("1");
+        updatedModel.setRoleLimits(Map.of(roleDto.getName(), limitDto));
+        modelFacade.updateModel(updatedModel.getName(), updatedModel, "*");
+
+        // remember rev number and expected models state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<ModelDto> actualAtRevision = modelFacade.getAll();
+
+        // update model role limit
+        limitDto = new LimitDto();
+        limitDto.setDay(10L);
+        limitDto.setWeek(20L);
+
+        updatedModel = createModelDto("1");
+        updatedModel.setRoleLimits(Map.of(roleDto.getName(), limitDto));
+        modelFacade.updateModel(updatedModel.getName(), updatedModel, "*");
+
+        List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        List<ConfigRevisionDto> revisionsListAfterRollback = historyFacade.getRevisionsList();
+
+        Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
+
+        Collection<ModelDto> modelsAfterRollbackToRevision = modelFacade.getAll();
+        Assertions.assertEquals(actualAtRevision, modelsAfterRollbackToRevision);
+    }
+
+    @Test
     public void shouldSuccessfullyRollbackDeletedModelWithAdapter() {
         // create adapter
         AdapterDto adapterDto = createAdapterDto("1");
