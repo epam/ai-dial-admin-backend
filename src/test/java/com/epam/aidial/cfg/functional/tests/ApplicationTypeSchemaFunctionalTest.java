@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.model.ExternalSchema;
+import com.epam.aidial.cfg.domain.service.ExternalSchemaLoader;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
@@ -41,7 +43,10 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createIn
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.invalidState;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.validState;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public abstract class ApplicationTypeSchemaFunctionalTest {
@@ -56,12 +61,16 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
+    @Autowired
+    private ExternalSchemaLoader externalSchemaLoader;
+
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
     private ApplicationTypeSchemaDto dto;
     private ApplicationTypeSchemaDto dto2;
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
+        clearInvocations(externalSchemaLoader);
         var dtosJson = ResourceUtils.readResource("/application_type_schema_dto.json");
         dto = objectMapper.readValue(dtosJson, new TypeReference<>() {
         });
@@ -486,6 +495,53 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         assertThat(actualSyncState.getCurrentState()).isEqualTo(currentSchemaState);
         assertThat(actualSyncState.getConfigState()).isEqualTo(configSchemaState);
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
+    }
+
+    @Test
+    public void shouldReturnResolvedTypeSchemaWhenApplicationTypeSchemaEndpointIsSet() {
+        String endpointUrl = "https://test.com/external-schema";
+        dto.setRequired(null);
+        dto.setApplicationTypeSchemaEndpoint(endpointUrl);
+        typeSchemaFacade.create(dto);
+
+        var externalSchema = new ExternalSchema();
+        externalSchema.setRequired(List.of("externalField"));
+
+        when(externalSchemaLoader.fetchExternalSchema(endpointUrl)).thenReturn(externalSchema);
+
+        var result = typeSchemaFacade.getResolvedTypeSchema(dto.getId());
+
+        verify(externalSchemaLoader).fetchExternalSchema(endpointUrl);
+        assertThat(result.schema().getId()).isEqualTo(dto.getId());
+        assertThat(result.schema().getRequired()).isEqualTo(List.of("externalField"));
+        assertThat(result.isReadOnly()).isTrue();
+    }
+
+    @Test
+    public void shouldReturnResolvedTypeSchemaWithoutFetchingWhenApplicationTypeSchemaEndpointIsNull() {
+        dto.setApplicationTypeSchemaEndpoint(null);
+        dto.setApplications(List.of());
+        dto.setApplicationTypeRoutes(List.of());
+        dto.setInterceptors(List.of());
+        dto.setRequired(null);
+        typeSchemaFacade.create(dto);
+
+        var result = typeSchemaFacade.getResolvedTypeSchema(dto.getId());
+
+        assertThat(result.schema().getId()).isEqualTo(dto.getId());
+        assertThat(result.isReadOnly()).isFalse();
+        assertThat(result.message()).isNull();
+        assertThat(result.schema().getRequired()).isNull();
+        verifyNoInteractions(externalSchemaLoader);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenGetResolvedTypeSchemaForAbsentSchema() {
+        String absentId = "https://absent-schema.example";
+
+        Assertions.assertThatThrownBy(() -> typeSchemaFacade.getResolvedTypeSchema(absentId))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Application type schema with schema id " + absentId + " does not exist");
     }
 
     private JsonNode coreConfig() throws JsonProcessingException {
