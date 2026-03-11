@@ -490,7 +490,7 @@ public abstract class ApplicationFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq("http://localhost:8080/v1/toolset/applications/application1/mcp"),
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/applications/application1/mcp"),
                 eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         var actualTools = applicationFacade.getDiscoveredTools(applicationDto.getName(), null);
 
@@ -513,7 +513,7 @@ public abstract class ApplicationFunctionalTest {
         var mcpSyncClient = Mockito.mock(McpSyncClient.class);
         Mockito.when(mcpSyncClient.initialize())
                 .thenReturn(null);
-        Mockito.when(mcpClientFactory.create(eq("http://localhost:8080/v1/toolset/applications/application1/mcp"),
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/applications/application1/mcp"),
                 eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.callTool(callToolRequest))
                 .thenReturn(expectedCallToolResult);
