@@ -25,7 +25,7 @@ public class McpClientFactory {
     public McpSyncClient create(String mcpEndpoint, Transport transport, Map<String, String> customHeaders) {
         var uri = new URI(mcpEndpoint);
         var baseUrl = uri.getScheme() + "://" + uri.getAuthority();
-        var relativePath = uri.getPath();
+        var relativePath = uri.getRawPath();
 
         HttpRequest.Builder requestBuilder = null;
 
