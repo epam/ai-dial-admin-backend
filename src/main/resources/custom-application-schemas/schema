@@ -13,6 +13,11 @@
   "definitions": {
     "dialRootSchema": {
       "properties": {
+        "dial:applicationTypeSchemaEndpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the application JSON schema endpoint of the custom application of given type"
+        },
         "dial:applicationTypeEditorUrl": {
           "type": "string",
           "format": "uri",
@@ -58,7 +63,8 @@
         },
         "dial:appendApplicationPropertiesHeader": {
           "type": "boolean",
-          "description": "If this flag is set to true, the header with properties will augment the request while proxying"
+          "description": "If this flag is set to true, the header with properties will augment the request while proxying",
+          "default": true
         },
         "dial:applicationTypePlaybackSupport": {
           "type": "boolean",
@@ -78,15 +84,10 @@
           "description": "List of application type interceptors"
         },
         "dial:applicationTypeAssistantAttachmentsInRequestSupported": {
-            "type": "boolean",
-            "default": false,
-            "description": "A boolean parameter that indicates whether the deployment supports DIAL attachments in the assistant messages. Default is `false`. When set to `true`, DIAL Chat must preserve attachments in the assistant messages, instead of removing them. The feature is especially useful for models that can generate attachments as well as take attachments in its input. A typical example of such a model is an image-editing model."
+          "type": "boolean",
+          "default": false,
+          "description": "A boolean parameter that indicates whether the deployment supports DIAL attachments in the assistant messages. Default is `false`. When set to `true`, DIAL Chat must preserve attachments in the assistant messages, instead of removing them. The feature is especially useful for models that can generate attachments as well as take attachments in its input. A typical example of such a model is an image-editing model."
         },
-         "dial:applicationTypeSchemaEndpoint": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL to the application JSON schema endpoint of the custom application of given type"
-            },
         "dial:applicationTypeRoutes": {
           "type": "object",
           "patternProperties": {
@@ -106,7 +107,7 @@
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+                    "enum": ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"]
                   }
                 },
                 "dial:userRoles": {

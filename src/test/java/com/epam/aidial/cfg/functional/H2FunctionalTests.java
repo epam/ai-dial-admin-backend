@@ -76,6 +76,14 @@ public class H2FunctionalTests extends FunctionalTestSuite {
     }
 
     @Nested
+    class CoreConfigAutoImportMergeJsonTests extends CoreConfigAutoImportOnBootstrapFunctionalTest.MergeJsonTests {
+    }
+
+    @Nested
+    class CoreConfigAutoImportSequentialTests extends CoreConfigAutoImportOnBootstrapFunctionalTest.SequentialTests {
+    }
+
+    @Nested
     class InterceptorTests extends InterceptorFunctionalTest {
     }
 

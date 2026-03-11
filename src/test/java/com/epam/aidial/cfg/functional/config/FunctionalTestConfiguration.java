@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.ResourceCredentialClient;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
+import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
@@ -24,6 +25,7 @@ import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.ExternalSchemaLoader;
 import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -102,6 +104,11 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
+    public AutoImportOnBootstrapProperties autoImportOnBootstrapProperties() {
+        return new AutoImportOnBootstrapProperties();
+    }
+
+    @Bean
     public ConfigExportProperties configExportProperties() {
         ConfigExportProperties configExportProperties = new ConfigExportProperties();
         configExportProperties.setExportConfigFileName("aidial.config.json");
@@ -173,6 +180,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public ResourceCredentialService resourceCredentialService(ResourceCredentialClient client, ResourceCredentialClientMapper resourceCredentialMapper) {
         return new ResourceCredentialService(client, resourceCredentialMapper);
+    }
+
+    @Bean
+    public ExternalSchemaLoader externalSchemaLoader() {
+        return Mockito.mock(ExternalSchemaLoader.class);
     }
 
 }

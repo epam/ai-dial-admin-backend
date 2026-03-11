@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDtoWithValidation;
 import com.epam.aidial.cfg.dto.CoreWithDomainHash;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
@@ -39,6 +40,12 @@ public class ApplicationTypeSchemaFacade {
     public ApplicationTypeSchemaDto get(String id) {
         ApplicationTypeSchema applicationTypeSchema = schemaService.get(id);
         return mapper.toDto(applicationTypeSchema);
+    }
+
+    public ApplicationTypeSchemaDtoWithValidation getResolvedTypeSchema(String id) {
+        var schemaWithValidation = schemaService.getResolvedTypeSchema(id);
+        var dtoSchema = mapper.toDto(schemaWithValidation.schema());
+        return new ApplicationTypeSchemaDtoWithValidation(dtoSchema, schemaWithValidation.message(), schemaWithValidation.isReadOnly());
     }
 
     public DtoWithDomainHash<ApplicationTypeSchemaDto> getSchemaWithHash(String id) {
