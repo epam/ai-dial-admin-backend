@@ -141,7 +141,8 @@ public class AdapterService {
 
         if (CollectionUtils.isNotEmpty(models)) {
             if (removeModel) {
-                modelJpaRepository.deleteAll(models);
+                // list copy is needed due to {@link ModelEntity#preRemove()} where list of adapter models is modified
+                modelJpaRepository.deleteAll(new ArrayList<>(models));
             } else {
                 String baseEndpoint = adapterEntity.getBaseEndpoint();
                 models.forEach(model -> {

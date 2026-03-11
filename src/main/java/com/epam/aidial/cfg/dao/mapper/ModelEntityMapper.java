@@ -126,6 +126,7 @@ public abstract class ModelEntityMapper {
         }
 
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.MODEL);
+        updatedEntity.getDeployment().setOwner(updatedEntity);
         return updatedEntity;
     }
 

@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.RoleDto;
-import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
@@ -11,13 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createKeyDtoWithRole;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
-import static org.mockito.Mockito.doReturn;
 
 public abstract class KeyHistoryFunctionalTest {
 
@@ -27,8 +24,6 @@ public abstract class KeyHistoryFunctionalTest {
     private KeyFacade keyFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
-    @Autowired
-    private TransactionTimestampContext transactionTimestampContext;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -91,24 +86,6 @@ public abstract class KeyHistoryFunctionalTest {
 
         Collection<KeyDto> keysAfterRollbackToRevision = keyFacade.getAllKeys();
         assertKeysWithoutKey(List.of(actualAtRevision), keysAfterRollbackToRevision.stream().toList());
-    }
-
-    @Test
-    public void shouldCorrectlyTrackRoleUpdatedAtInLatestAndAuditStatesWhenKeyIsCreatedWithRole() {
-        // create role
-        doReturn(111L).when(transactionTimestampContext).getTimestamp();
-        RoleDto roleDto = createRoleDto("1");
-        roleFacade.createRole(roleDto);
-
-        // create key
-        doReturn(222L).when(transactionTimestampContext).getTimestamp();
-        keyFacade.createKey(createKeyDtoWithRole("1"));
-
-        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
-
-        // verify
-        Assertions.assertEquals(Instant.ofEpochMilli(222L), roleFacade.getRole(roleDto.getName()).getUpdatedAt());
-        Assertions.assertEquals(Instant.ofEpochMilli(222L), roleFacade.getSnapshot(roleDto.getName(), latestRevision).getUpdatedAt());
     }
 
     private void assertKeysWithoutKey(List<KeyDto> actual, List<KeyDto> expected) {

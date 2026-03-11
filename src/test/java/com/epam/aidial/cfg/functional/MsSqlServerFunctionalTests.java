@@ -24,6 +24,9 @@ import com.epam.aidial.cfg.functional.tests.history.ApplicationHistoryFunctional
 import com.epam.aidial.cfg.functional.tests.history.ApplicationTypeSchemaHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AssistantHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.AssistantsPropertyHistoryFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.history.AssociationsManyToManyHistoryFunctionalTests;
+import com.epam.aidial.cfg.functional.tests.history.AssociationsOneToManyHistoryFunctionalTests;
+import com.epam.aidial.cfg.functional.tests.history.AssociationsOneToOneHistoryFunctionalTests;
 import com.epam.aidial.cfg.functional.tests.history.GeneralHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.InterceptorHistoryFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.history.InterceptorRunnerHistoryFunctionalTest;
@@ -210,5 +213,17 @@ public class MsSqlServerFunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class GeneralHistoryTests extends GeneralHistoryFunctionalTest {
+    }
+
+    @Nested
+    class AssociationsManyToManyHistoryTests extends AssociationsManyToManyHistoryFunctionalTests {
+    }
+
+    @Nested
+    class AssociationsOneToManyHistoryTests extends AssociationsOneToManyHistoryFunctionalTests {
+    }
+
+    @Nested
+    class AssociationsOneToOneHistoryTests extends AssociationsOneToOneHistoryFunctionalTests {
     }
 }

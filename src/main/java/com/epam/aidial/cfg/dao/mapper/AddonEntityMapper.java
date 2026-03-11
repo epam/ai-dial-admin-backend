@@ -28,6 +28,7 @@ public abstract class AddonEntityMapper {
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ADDON);
+        updatedEntity.getDeployment().setOwner(updatedEntity);
         return updatedEntity;
     }
 

@@ -23,6 +23,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -185,7 +186,8 @@ public class ApplicationTypeSchemaService {
     }
 
     private void removeApplicationsFromSchema(ApplicationTypeSchemaEntity schemaEntity, List<ApplicationEntity> applications) {
-        applicationJpaRepository.deleteAll(applications);
+        // list copy is needed due to {@link ApplicationEntity#preRemove()} where list of schema applications is modified
+        applicationJpaRepository.deleteAll(new ArrayList<>(applications));
         jpaRepository.delete(schemaEntity);
     }
 

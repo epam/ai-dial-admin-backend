@@ -7,7 +7,6 @@ import jakarta.persistence.OneToMany;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.hibernate.envers.AuditJoinTable;
 import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ public class AdapterEntity extends TimeTrackableEntity<String> {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "adapter")
-    @AuditJoinTable
     private List<ModelEntity> models = new ArrayList<>();
 
     @Override

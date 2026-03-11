@@ -10,7 +10,6 @@ import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
-import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -43,8 +42,6 @@ public abstract class ModelHistoryFunctionalTest {
     private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
-    @Autowired
-    private AuditActivityFacade auditActivityFacade;
     @Autowired
     private AdapterFacade adapterFacade;
 

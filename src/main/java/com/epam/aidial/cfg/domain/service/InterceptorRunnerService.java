@@ -22,6 +22,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -187,7 +188,8 @@ public class InterceptorRunnerService {
     }
 
     private void removeInterceptorsFromRunner(InterceptorRunnerEntity interceptorRunnerEntity, List<InterceptorEntity> interceptors) {
-        interceptorJpaRepository.deleteAll(interceptors);
+        // list copy is needed due to {@link InterceptorEntity#preRemove()} where list of runner interceptors is modified
+        interceptorJpaRepository.deleteAll(new ArrayList<>(interceptors));
         interceptorRunnerJpaRepository.delete(interceptorRunnerEntity);
     }
 
