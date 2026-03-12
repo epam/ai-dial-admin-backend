@@ -4,18 +4,18 @@
   "displayedName": "DIAL analytics-realtime dataset",
   "description": "DIAL analytics-realtime dataset",
   "source": {
-    "url": "<empty>",
-    "database": "analytics_db",
+    "url": "${METRICS_STORAGE_HOST}",
+    "database": "${METRICS_STORAGE_DATABASE:analytics-realtime}",
     "auth": {
       "$type": "token",
-      "token": "<empty>"
+      "token": "${METRICS_STORAGE_TOKEN}"
     }
   },
   "tables": [
     {
       "name": "analytics",
       "source": {
-        "table": "analytics"
+        "table": "${METRICS_STORAGE_ANALYTICS_TABLE:analytics}"
       },
       "schema": {
         "$type": "static",
@@ -186,6 +186,25 @@
             "source": {
               "$type": "influx3",
               "column": "completion_tokens"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "rate_analytics",
+      "source": {
+        "table": "${METRICS_STORAGE_RATE_ANALYTICS_TABLE:rate_analytics}"
+      },
+      "schema": {
+        "$type": "static",
+        "columns": [
+          {
+            "name": "_time",
+            "type": "timestamp",
+            "source": {
+              "$type": "influx3",
+              "column": "time"
             }
           }
         ]

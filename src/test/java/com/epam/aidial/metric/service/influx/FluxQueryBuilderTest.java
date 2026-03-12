@@ -12,7 +12,7 @@ import com.epam.aidial.expressions.impl.GroupFunctionCallImpl;
 import com.epam.aidial.expressions.impl.NumberConstantImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
 import com.epam.aidial.metric.config.InfluxDatasetConfiguration;
-import com.epam.aidial.metric.model.configuration.DatasetsConfiguration;
+import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
@@ -40,9 +40,8 @@ class FluxQueryBuilderTest {
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
-        var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.json");
-        var datasetsConfiguration = OBJECT_MAPPER.readValue(testMetricConfig, DatasetsConfiguration.class);
-        var datasetDeclaration = (InfluxDatasetDeclaration) datasetsConfiguration.getDatasets().get(0);
+        var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.influx2.json");
+        var datasetDeclaration = (InfluxDatasetDeclaration) OBJECT_MAPPER.readValue(testMetricConfig, DatasetDeclaration.class);
 
         var datasetConfiguration = new InfluxDatasetConfiguration();
         datasetConfiguration.setDefaultPageSize(50);

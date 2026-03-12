@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "metrics.datasource.influx")
+@ConfigurationProperties(prefix = "metrics.influx2")
 public class InfluxDatasetConfiguration {
 
     private long defaultPageSize;

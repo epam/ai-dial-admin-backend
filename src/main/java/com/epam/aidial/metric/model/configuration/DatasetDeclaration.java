@@ -10,7 +10,7 @@ import java.util.List;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "$type")
 @JsonSubTypes({
-        @Type(value = InfluxDatasetDeclaration.class, name = "influx"),
+        @Type(value = InfluxDatasetDeclaration.class, name = "influx2"),
         @Type(value = Influx3DatasetDeclaration.class, name = "influx3"),
 })
 public interface DatasetDeclaration {
