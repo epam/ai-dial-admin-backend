@@ -173,7 +173,7 @@ public class ApplicationResourceService implements ResourceService {
     public McpSchema.CallToolResult callTool(String path, McpSchema.CallToolRequest callToolRequest) {
         var application = getApplicationResource(path);
 
-        var transport = ToolSet.Transport.HTTP;
+        var transport = resolveTransport(application, application.getName());
 
         var url = String.format(
                 "%s/v1/toolset/applications/%s/mcp",
