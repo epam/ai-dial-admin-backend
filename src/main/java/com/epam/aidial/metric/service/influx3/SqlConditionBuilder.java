@@ -29,8 +29,7 @@ import java.util.stream.Collectors;
 public class SqlConditionBuilder {
 
     private static final String TIME_COLUMN = "time";
-    private static final String LIKE_NOT_IMPLEMENTED_MESSAGE
-            = "LIKE functionality currently supports only: equals, starts, ends, contains. Given value: %s";
+    private static final String RANGE_FILTER_COLUMN = "_time";
 
     public static SqlConditionResult createWherePart(Filter filter, AtomicInteger paramCounter) {
         var nonRangeFilter = extractNonRangeFilter(filter);
@@ -129,10 +128,10 @@ public class SqlConditionBuilder {
             case GREATER -> createSimpleComparisonFilter(columnName, value, ">", paramCounter);
             case LESS_OR_EQUALS -> createSimpleComparisonFilter(columnName, value, "<=", paramCounter);
             case GREATER_OR_EQUALS -> createSimpleComparisonFilter(columnName, value, ">=", paramCounter);
-            case CONTAINS -> createLikePatternFilter(columnName, "%" + value + "%", paramCounter);
-            case NOT_CONTAINS -> createNotLikePatternFilter(columnName, "%" + value + "%", paramCounter);
-            case STARTS_WITH -> createLikePatternFilter(columnName, value + "%", paramCounter);
-            case ENDS_WITH -> createLikePatternFilter(columnName, "%" + value, paramCounter);
+            case CONTAINS -> createLikePatternFilter(columnName, "%" + escapeLikeWildcards(value) + "%", paramCounter);
+            case NOT_CONTAINS -> createNotLikePatternFilter(columnName, "%" + escapeLikeWildcards(value) + "%", paramCounter);
+            case STARTS_WITH -> createLikePatternFilter(columnName, escapeLikeWildcards(value) + "%", paramCounter);
+            case ENDS_WITH -> createLikePatternFilter(columnName, "%" + escapeLikeWildcards(value), paramCounter);
             case LIKE -> createLikeFilter(columnName, value, paramCounter);
             case NOT_LIKE -> throw new NotImplementedException("NOT LIKE operator is not supported yet");
             case IN -> throw new NotImplementedException("IN operator is not supported yet");
@@ -149,13 +148,13 @@ public class SqlConditionBuilder {
 
     private static SqlConditionResult createLikePatternFilter(String columnName, String pattern, AtomicInteger paramCounter) {
         var paramName = "p" + paramCounter.getAndIncrement();
-        var query = "\"%s\" LIKE $%s".formatted(columnName, paramName);
+        var query = "\"%s\" LIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
         return new SqlConditionResult(query, Map.of(paramName, pattern));
     }
 
     private static SqlConditionResult createNotLikePatternFilter(String columnName, String pattern, AtomicInteger paramCounter) {
         var paramName = "p" + paramCounter.getAndIncrement();
-        var query = "\"%s\" NOT LIKE $%s".formatted(columnName, paramName);
+        var query = "\"%s\" NOT LIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
         return new SqlConditionResult(query, Map.of(paramName, pattern));
     }
 
@@ -163,15 +162,20 @@ public class SqlConditionBuilder {
         var likeValue = value.toString();
 
         var firstIndex = likeValue.indexOf("%");
-        var secondIndex = likeValue.indexOf("%", firstIndex + 1);
-
         if (firstIndex == -1) {
             return createSimpleComparisonFilter(columnName, likeValue, "=", paramCounter);
         }
 
         var paramName = "p" + paramCounter.getAndIncrement();
-        var query = "\"%s\" LIKE $%s".formatted(columnName, paramName);
+        var query = "\"%s\" LIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
         return new SqlConditionResult(query, Map.of(paramName, likeValue));
+    }
+
+    private static String escapeLikeWildcards(Comparable<?> value) {
+        return value.toString()
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 
     private static SqlConditionResult createUnaryComparisonFilter(UnaryComparisonFilter unaryComparisonFilter) {
@@ -235,10 +239,10 @@ public class SqlConditionBuilder {
 
     private static boolean isRangeFilter(Filter filter) {
         if (filter instanceof BinaryComparisonFilter binaryComparisonFilter) {
-            if (binaryComparisonFilter.getLeftExpression() instanceof Column leftColumn && leftColumn.getName().equals("_time")) {
+            if (binaryComparisonFilter.getLeftExpression() instanceof Column leftColumn && leftColumn.getName().equals(RANGE_FILTER_COLUMN)) {
                 return true;
             }
-            if (binaryComparisonFilter.getRightExpression() instanceof Column rightColumn && rightColumn.getName().equals("_time")) {
+            if (binaryComparisonFilter.getRightExpression() instanceof Column rightColumn && rightColumn.getName().equals(RANGE_FILTER_COLUMN)) {
                 return true;
             }
         }

@@ -106,7 +106,7 @@ class SqlQueryBuilderTest {
 
         assertThat(actual.getQuery()).isEqualTo(
                 "SELECT \"deployment\", \"price\", \"prompt_tokens\" FROM \"analytics\""
-                        + " WHERE \"time\" >= $p0 AND \"time\" < $p1 AND \"deployment\" LIKE $p2"
+                        + " WHERE \"time\" >= $p0 AND \"time\" < $p1 AND \"deployment\" LIKE $p2 ESCAPE '\\'"
                         + " ORDER BY \"prompt_tokens\" DESC");
         assertThat(actual.getParameters()).containsEntry("p2", "value%");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("deployment", "price", "prompt_tokens"));
@@ -303,7 +303,7 @@ class SqlQueryBuilderTest {
         var completable = QueryImpl.builder()
                 .distinct(false)
                 .expressions(List.of(
-                        new ColumnImpl(Type.TIMESTAMP, "deployment"),
+                        new ColumnImpl(Type.STRING, "deployment"),
                         new AggregationFunctionCallImpl(
                                 new FunctionImpl("count", Type.INT_64, true),
                                 List.of(),
@@ -323,10 +323,10 @@ class SqlQueryBuilderTest {
                                 BinaryComparisonOperator.LESS, new ConstantImpl(Type.TIMESTAMP, 1739290800000L))
                 )))
                 .groupBy(List.of(
-                        new ColumnImpl(Type.TIMESTAMP, "deployment")
+                        new ColumnImpl(Type.STRING, "deployment")
                 ))
                 .orderBy(List.of(
-                        SortImpl.of(new ColumnImpl(Type.TIMESTAMP, "deployment"), SortDirection.ASC)
+                        SortImpl.of(new ColumnImpl(Type.STRING, "deployment"), SortDirection.ASC)
                 ))
                 .build();
 

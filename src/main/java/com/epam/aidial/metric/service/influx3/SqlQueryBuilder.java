@@ -130,7 +130,7 @@ public class SqlQueryBuilder {
         var outerColumnNames = getOuterColumnNames(query.getExpressions());
 
         // Build WHERE clause
-        var whereClause = buildWhereClause(query.getWhere(), paramCounter, allParams);
+        var whereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
 
         // Build ORDER BY
         var orderByClause = buildOrderByClause(query.getOrderBy());
@@ -170,7 +170,7 @@ public class SqlQueryBuilder {
         var allParams = new HashMap<String, Object>();
 
         // Build WHERE clause
-        var whereClause = buildWhereClause(query.getWhere(), paramCounter, allParams);
+        var whereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
 
         // Build ORDER BY
         var orderByClause = buildOrderByClause(query.getOrderBy());
@@ -220,12 +220,12 @@ public class SqlQueryBuilder {
             var innerContext = buildQueryContext(innerQuery);
             allParams.putAll(innerContext.getParameters());
             tableName = "(" + innerContext.getQuery() + ")";
-            innerWhereClause = buildFilterWhereClause(query.getWhere(), paramCounter, allParams);
+            innerWhereClause = buildWhereClause(query.getWhere(), false, paramCounter, allParams);
         } else {
             var table = getTable(query);
             var tableDeclaration = getTableDeclaration(table.getName());
             tableName = "\"" + tableDeclaration.getSource().getTable() + "\"";
-            innerWhereClause = buildWhereClause(query.getWhere(), paramCounter, allParams);
+            innerWhereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
         }
 
         // Build SELECT with aggregations
@@ -296,7 +296,7 @@ public class SqlQueryBuilder {
         var allParams = new HashMap<String, Object>();
 
         // Build WHERE clause
-        var whereClause = buildWhereClause(query.getWhere(), paramCounter, allParams);
+        var whereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
 
         // Build window function: DATE_BIN(INTERVAL '...', time, TIMESTAMP '1970-01-01T00:00:00Z')
         var windowInterval = buildWindowInterval(groupFunctionCall);
@@ -385,27 +385,8 @@ public class SqlQueryBuilder {
         return String.join(", ", parts);
     }
 
-    private String buildWhereClause(Filter filter, AtomicInteger paramCounter, Map<String, Object> allParams) {
-        var rangePart = SqlConditionBuilder.createRangePart(filter, true, paramCounter);
-        var filterPart = SqlConditionBuilder.createWherePart(filter, paramCounter);
-
-        allParams.putAll(rangePart.parameters());
-        allParams.putAll(filterPart.parameters());
-
-        if (rangePart.isEmpty() && filterPart.isEmpty()) {
-            return "";
-        }
-        if (rangePart.isEmpty()) {
-            return filterPart.query();
-        }
-        if (filterPart.isEmpty()) {
-            return rangePart.query();
-        }
-        return rangePart.query() + " AND " + filterPart.query();
-    }
-
-    private String buildFilterWhereClause(Filter filter, AtomicInteger paramCounter, Map<String, Object> allParams) {
-        var rangePart = SqlConditionBuilder.createRangePart(filter, false, paramCounter);
+    private String buildWhereClause(Filter filter, boolean isRangeRequired, AtomicInteger paramCounter, Map<String, Object> allParams) {
+        var rangePart = SqlConditionBuilder.createRangePart(filter, isRangeRequired, paramCounter);
         var filterPart = SqlConditionBuilder.createWherePart(filter, paramCounter);
 
         allParams.putAll(rangePart.parameters());
