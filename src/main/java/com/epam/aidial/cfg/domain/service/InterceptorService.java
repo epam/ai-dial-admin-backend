@@ -186,7 +186,11 @@ public class InterceptorService {
             interceptorJpaRepository.deleteAll(interceptorsToDelete);
         }
 
+        Set<String> allRunnerNames = interceptorRunnerJpaRepository.findAllNames();
         for (Interceptor interceptor : interceptors) {
+            if (interceptor.getSource() instanceof InterceptorRunnerSource interceptorRunnerSource && !allRunnerNames.contains(interceptorRunnerSource.getRunnerName())) {
+                interceptor.setSource(null);
+            }
             InterceptorEntity entity = interceptorJpaRepository.findById(interceptor.getName()).orElseGet(InterceptorEntity::new);
             InterceptorEntity interceptorEntity = toEntity(interceptor, entity);
             interceptorJpaRepository.save(interceptorEntity);

@@ -657,7 +657,6 @@ public abstract class ModelFunctionalTest {
                 "role2", new LimitDto()
         ));
         modelDto2.setDefaultRoleLimit(new LimitDto());
-        modelDto2.setDefaults(Map.of());
         modelDto2.setEndpoint("https://endpoint1/chat/completions");
         modelDto2.setSource(new ModelEndpointsSourceDto());
         modelDto2.setMaxRetryAttempts(1);

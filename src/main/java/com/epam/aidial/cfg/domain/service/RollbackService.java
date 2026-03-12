@@ -30,17 +30,17 @@ public class RollbackService {
     public void rollbackToRevision(Number revision) {
         roleService.rollbackRoles(revision);
         keyService.rollbackKeys(revision);
-        adapterService.rollbackAdapters(revision);
         modelService.rollbackModels(revision);
+        adapterService.rollbackAdapters(revision);
         addonService.rollbackAddons(revision);
         toolSetService.rollbackToolSets(revision);
-        applicationTypeSchemaService.rollbackApplicationTypeSchemas(revision);
         applicationService.rollbackApplications(revision);
+        applicationTypeSchemaService.rollbackApplicationTypeSchemas(revision);
         assistantService.rollbackAssistants(revision);
         assistantsPropertyService.rollbackAssistantsProperties(revision);
         routeService.rollbackRoutes(revision);
-        interceptorRunnerService.rollbackInterceptorRunners(revision);
         interceptorService.rollbackInterceptors(revision);
+        interceptorRunnerService.rollbackInterceptorRunners(revision);
         globalSettingsService.rollbackGlobalSettings(revision);
         adminSettingsService.rollbackAdminSettings(revision);
     }

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller.oidc;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.configuration.RestTemplateConfig;
 import com.epam.aidial.cfg.utils.JwtUtils;
 import com.epam.aidial.cfg.utils.TestAuthenticationConverterFactory;
 import com.epam.aidial.cfg.utils.TestIdentityProviderConfig;
@@ -35,7 +36,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         JsonMapperConfiguration.class,
         TestTokenDecoderFactory.class,
         TestAuthenticationConverterFactory.class,
-        TestIdentityProviderConfig.class
+        TestIdentityProviderConfig.class,
+        RestTemplateConfig.class
 })
 public abstract class AbstractControllerSecurityTest {
 

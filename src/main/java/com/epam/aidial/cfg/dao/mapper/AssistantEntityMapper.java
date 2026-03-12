@@ -29,6 +29,7 @@ public abstract class AssistantEntityMapper {
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ASSISTANT);
+        updatedEntity.getDeployment().setOwner(updatedEntity);
         return updatedEntity;
     }
 

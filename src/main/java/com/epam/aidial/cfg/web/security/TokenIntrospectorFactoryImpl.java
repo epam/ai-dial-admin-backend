@@ -12,6 +12,7 @@ public class TokenIntrospectorFactoryImpl implements TokenIntrospectorFactory {
 
     private final IdentityProviderUtils identityProviderUtils;
     private final List<OpaqueTokenProviderConfig> providerConfigs;
+    private final RestTemplate restTemplate;
 
     @Override
     public OpaqueTokenIntrospector createOpaqueTokenIntrospector() {
@@ -26,7 +27,7 @@ public class TokenIntrospectorFactoryImpl implements TokenIntrospectorFactory {
             grantedAuthoritiesConverter.setAuthorityPrefix("");
 
             var opaqueTokenIntrospector = new DefaultOpaqueTokenIntrospector(
-                    new RestTemplate(),
+                    restTemplate,
                     config,
                     grantedAuthoritiesConverter,
                     identityProviderUtils.getPrincipalClaim(config.getPrincipalClaim()),

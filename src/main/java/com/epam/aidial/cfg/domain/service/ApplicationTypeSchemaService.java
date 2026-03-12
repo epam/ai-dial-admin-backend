@@ -8,13 +8,16 @@ import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
+import com.epam.aidial.cfg.domain.model.ApplicationTypeSchemaWithValidation;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.validator.ApplicationTypeSchemaValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
 import com.google.api.client.util.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -43,11 +47,14 @@ public class ApplicationTypeSchemaService {
 
     private final ApplicationTypeSchemaJpaRepository jpaRepository;
     private final ApplicationTypeSchemaEntityMapper mapper;
+    private final ApplicationTypeSchemaCoreMapper coreMapper;
     private final ApplicationJpaRepository applicationJpaRepository;
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final ApplicationTypeSchemaValidator applicationTypeSchemaValidator;
     private final HistoryService historyService;
     private final HashCalculator calculator;
+    private final ExternalSchemaLoader externalSchemaLoader;
+    private final ApplicationTypeSchemaMerger applicationTypeSchemaMerger;
 
     @Transactional(readOnly = true)
     public Collection<ApplicationTypeSchema> getAll() {
@@ -67,6 +74,18 @@ public class ApplicationTypeSchemaService {
     public ApplicationTypeSchema get(String id) {
         return tryGet(id)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(id)));
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationTypeSchemaWithValidation getResolvedTypeSchema(String id) {
+        var applicationTypeSchema = get(id);
+        if (applicationTypeSchema.getApplicationTypeSchemaEndpoint() != null) {
+            var externalSchema = externalSchemaLoader.fetchExternalSchema(applicationTypeSchema.getApplicationTypeSchemaEndpoint());
+            applicationTypeSchemaMerger.merge(applicationTypeSchema, externalSchema);
+            var validationMessage = SchemaConformToMetaSchemaValidator.getValidationErrors(coreMapper.mapToCoreString(applicationTypeSchema));
+            return new ApplicationTypeSchemaWithValidation(applicationTypeSchema, validationMessage, true);
+        }
+        return new ApplicationTypeSchemaWithValidation(applicationTypeSchema, null, false);
     }
 
     @Transactional(readOnly = true)
@@ -161,13 +180,6 @@ public class ApplicationTypeSchemaService {
 
     @Transactional
     public void rollbackApplicationTypeSchemas(Number revision) {
-        Iterable<ApplicationEntity> applications = applicationJpaRepository.findAll();
-        applications.forEach(applicationEntity -> {
-            applicationEntity.setApplicationTypeSchema(null);
-            applicationEntity.setEndpoint("endpoint");
-        });
-        applicationJpaRepository.saveAllAndFlush(applications);
-
         Collection<ApplicationTypeSchema> applicationTypeSchemas = getAllAtRevision(revision);
         List<String> ids = applicationTypeSchemas.stream().map(ApplicationTypeSchema::getSchemaId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(ids)) {
@@ -177,8 +189,9 @@ public class ApplicationTypeSchemaService {
             jpaRepository.deleteAll(applicationTypeSchemasToDelete);
         }
 
+        Set<String> allInterceptorNames = interceptorJpaRepository.findAllNames();
         for (ApplicationTypeSchema domain : applicationTypeSchemas) {
-            domain.setApplications(List.of());
+            domain.getInterceptors().removeIf(interceptor -> !allInterceptorNames.contains(interceptor));
             ApplicationTypeSchemaEntity entity = jpaRepository.findById(domain.getSchemaId()).orElseGet(ApplicationTypeSchemaEntity::new);
             ApplicationTypeSchemaEntity applicationTypeSchemaEntity = toEntity(domain, entity);
             jpaRepository.save(applicationTypeSchemaEntity);
@@ -191,7 +204,8 @@ public class ApplicationTypeSchemaService {
     }
 
     private void removeApplicationsFromSchema(ApplicationTypeSchemaEntity schemaEntity, List<ApplicationEntity> applications) {
-        applicationJpaRepository.deleteAll(applications);
+        // list copy is needed due to {@link ApplicationEntity#preRemove()} where list of schema applications is modified
+        applicationJpaRepository.deleteAll(new ArrayList<>(applications));
         jpaRepository.delete(schemaEntity);
     }
 
@@ -254,4 +268,5 @@ public class ApplicationTypeSchemaService {
 
         return existingInterceptors;
     }
+
 }

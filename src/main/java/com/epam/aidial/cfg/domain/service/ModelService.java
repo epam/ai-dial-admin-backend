@@ -187,8 +187,16 @@ public class ModelService {
             modelJpaRepository.deleteAll(modelsToDelete);
         }
 
+        Set<String> allInterceptorNames = interceptorJpaRepository.findAllNames();
+        Set<String> allAdapterNames = adapterJpaRepository.findAllNames();
         for (Model model : models) {
-            model.setInterceptors(List.of());
+            if (model.getInterceptors() != null) {
+                List<String> interceptors = model.getInterceptors().stream().filter(allInterceptorNames::contains).toList();
+                model.setInterceptors(interceptors);
+            }
+            if (model.getSource() instanceof ModelAdapterSource modelAdapterSource && !allAdapterNames.contains(modelAdapterSource.getAdapterName())) {
+                model.setSource(null);
+            }
             ModelEntity entity = modelJpaRepository.findById(model.getDeployment().getName()).orElseGet(ModelEntity::new);
             ModelEntity modelEntity = toEntity(model, entity);
             modelJpaRepository.save(modelEntity);
