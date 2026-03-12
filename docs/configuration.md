@@ -110,7 +110,7 @@ Additional Kubernetes client configuration options are available from the [Fabri
 | Setting                                            | Environment Variable          | Default           | Required                                          | Applied when                   | Description                                                                                       |
 |----------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------|
 | config.rest.security.mode                          | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)                                                        |
-| config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions                                             |
+| config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of IdP roles that are allowed access, with optional backend role mapping (see [Role Mapping](#role-mapping)) |
 | config.rest.security.default.email-claim           | CLAIMS_EMAIL_KEY              | unique_name       | No                                                | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) used to extract user email |
 | config.rest.security.default.principal-claim       | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) for user identification    |
 | config.rest.security.require-email                 | SECURITY_REQUIRE_EMAIL        | false             | No                                                | config.rest.security.mode=oidc | Controls whether an email claim is required in JWT (in /userinfo response for opaque tokens)      |
@@ -134,9 +134,54 @@ Applied when: config.rest.security.mode=oidc
 | providers.*.aliases            | providers.azure.aliases            | No                                          | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers for the provider(only for Azure provider)                                                |
 | providers.*.audiences          | providers.azure.audiences          | Yes, if jwk-set-uri is specified            | config.rest.security.mode=oidc | List of accepted JWT token audiences. Specifies the intended recipients of the authorization token as defined in its aud claim. |
 | providers.*.role-claims        | providers.azure.role-claims        | Yes                                         | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user roles for the provider.                                            |
-| providers.*.allowed-roles      | providers.azure.allowed-roles      | No                                          | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                                                          |
+| providers.*.allowed-roles      | providers.azure.allowed-roles      | No                                          | config.rest.security.mode=oidc | Comma-separated list of IdP roles that are allowed access for the provider, with optional backend role mapping (see [Role Mapping](#role-mapping)). Overrides the default `allowedRoles` for matched IdP roles. |
 | providers.*.email-claims       | providers.azure.email-claims       | No                                          | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user email                                                              |
 | providers.*.principal-claim    | providers.azure.principal-claim    | No                                          | config.rest.security.mode=oidc | Specifies which claim is used as the application’s principal                                                                    |
+
+### Role Mapping
+
+The `allowedRoles` setting controls both which IdP roles are permitted access and what level of access they receive. Each entry can optionally map an IdP role to one or more backend roles using bracket syntax:
+
+```
+IdpRole:[BACKEND_ROLE1,BACKEND_ROLE2]
+```
+
+**Backend roles:**
+
+| Backend Role      | Description                                                                       |
+|-------------------|-----------------------------------------------------------------------------------|
+| `FULL_ADMIN`      | Full read-write access to all endpoints                                           |
+| `READ_ONLY_ADMIN` | Read-only access; mutating endpoints (create, update, delete) return 401          |
+
+**Syntax examples:**
+
+```yaml
+# New format — explicit backend role mapping:
+config.rest.security.default.allowedRoles: "ConfigAdmin:[FULL_ADMIN],Viewer:[READ_ONLY_ADMIN]"
+
+# Per-provider override (overrides default for matched IdP roles):
+providers.azure.allowed-roles: "AzureAdmin:[FULL_ADMIN],AzureViewer:[READ_ONLY_ADMIN]"
+
+# Multiple backend roles for a single IdP role:
+config.rest.security.default.allowedRoles: "SuperAdmin:[FULL_ADMIN,READ_ONLY_ADMIN]"
+
+# Backward compatible — no brackets defaults to FULL_ADMIN (existing deployments unchanged):
+config.rest.security.default.allowedRoles: "ConfigAdmin,admin"
+```
+
+**Backward compatibility:** Entries without brackets (e.g. `ConfigAdmin`) are treated as `FULL_ADMIN`. Existing deployments require no configuration changes.
+
+**Security info endpoint:** `GET /api/v1/security-info` returns the resolved backend roles for the authenticated user in the `roles` field:
+
+```json
+{ "roles": ["FULL_ADMIN"] }
+```
+
+or for read-only users:
+
+```json
+{ "roles": ["READ_ONLY_ADMIN"] }
+```
 
 ### Auth Token Provider Configuration to interact with the DIAL Core
 
