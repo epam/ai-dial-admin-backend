@@ -141,7 +141,9 @@ public class ConfigRevisionListener implements EntityTrackingRevisionListener, A
             return;
         }
 
-        if (!issuedUpdateActivitiesHolder.get().contains(source.getActivityId())) {
+        if (!issuedUpdateActivitiesHolder.get().contains(source.getActivityId())
+                && target.getActivityType() == ActivityType.Update
+                && (source.getActivityType() == ActivityType.Create || source.getActivityType() == ActivityType.Delete)) {
             revEntity.getActivities().remove(target);
             revEntity.getActivities().add(source);
             changeList.put(auditActivityId, source);

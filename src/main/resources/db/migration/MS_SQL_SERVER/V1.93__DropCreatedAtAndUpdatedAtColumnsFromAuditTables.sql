@@ -1,0 +1,14 @@
+alter table adapter_entity_aud drop column created_at_ms, updated_at_ms;
+alter table addon_entity_aud drop column created_at_ms, updated_at_ms;
+alter table admin_settings_entity_aud drop column created_at_ms, updated_at_ms;
+alter table application_entity_aud drop column created_at_ms, updated_at_ms;
+alter table application_type_schema_entity_aud drop column created_at_ms, updated_at_ms;
+alter table assistant_entity_aud drop column created_at_ms, updated_at_ms;
+alter table global_settings_entity_aud drop column created_at_ms, updated_at_ms;
+alter table interceptor_entity_aud drop column created_at_ms, updated_at_ms;
+alter table interceptor_runner_entity_aud drop column created_at_ms, updated_at_ms;
+alter table key_entity_aud drop column created_at_ms, updated_at_ms;
+alter table model_entity_aud drop column created_at_ms, updated_at_ms;
+alter table role_entity_aud drop column created_at_ms, updated_at_ms;
+alter table route_entity_aud drop column created_at_ms, updated_at_ms;
+alter table tool_set_entity_aud drop column created_at_ms, updated_at_ms;

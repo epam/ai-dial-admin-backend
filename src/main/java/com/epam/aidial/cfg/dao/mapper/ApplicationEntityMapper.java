@@ -79,6 +79,7 @@ public abstract class ApplicationEntityMapper {
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.APPLICATION);
+        updatedEntity.getDeployment().setOwner(updatedEntity);
 
         return updatedEntity;
     }

@@ -196,8 +196,14 @@ public class ApplicationService {
             applicationJpaRepository.deleteAll(applicationsToDelete);
         }
 
+        Set<String> allInterceptorNames = interceptorJpaRepository.findAllNames();
+        Set<String> allSchemaIds = applicationTypeSchemaJpaRepository.findAllIds();
         for (Application application : applications) {
-            application.setInterceptors(List.of());
+            application.getInterceptors().removeIf(interceptor -> !allInterceptorNames.contains(interceptor));
+            if (application.getApplicationTypeSchemaId() != null && !allSchemaIds.contains(application.getApplicationTypeSchemaId().toString())) {
+                application.setApplicationTypeSchemaId(null);
+                application.setEndpoint("endpoint");
+            }
             ApplicationEntity entity = applicationJpaRepository.findById(application.getDeployment().getName()).orElseGet(ApplicationEntity::new);
             ApplicationEntity applicationEntity = toEntity(application, entity);
             applicationJpaRepository.save(applicationEntity);

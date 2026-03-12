@@ -843,9 +843,7 @@
           "temperatureSupported": true,
           "parallelToolCallsSupported": true
         },
-        "applicationProperties": {},
         "applicationTypeSchemaId": "https://test-schema-id.example",
-        "routes": [],
         "author": "test-author",
         "dependencies": [
           "dep1",
@@ -945,8 +943,6 @@
           "temperatureSupported": true,
           "parallelToolCallsSupported": true
         },
-        "applicationProperties": {},
-        "routes": [],
         "dependencies": [],
         "validityState": {
           "valid": true

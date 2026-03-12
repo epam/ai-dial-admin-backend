@@ -90,7 +90,7 @@ class KeyValidatorTest {
         key.setExpiresAt(expiresAt);
 
         KeyEntity keyEntity = new KeyEntity();
-        keyEntity.setCreatedAt(2);
+        keyEntity.setCreatedAt(2L);
 
         assertThatThrownBy(() -> keyValidator.validateUpdate("key_name", key, keyEntity))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -106,7 +106,7 @@ class KeyValidatorTest {
         key.setExpiresAt(expiresAt);
 
         KeyEntity keyEntity = new KeyEntity();
-        keyEntity.setCreatedAt(2);
+        keyEntity.setCreatedAt(2L);
 
         assertThatNoException().isThrownBy(() -> keyValidator.validateUpdate("key_name", key, keyEntity));
     }
@@ -227,6 +227,7 @@ class KeyValidatorTest {
         key.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
 
         KeyEntity keyEntity = new KeyEntity();
+        keyEntity.setCreatedAt(1L);
         // when/then
         assertThatNoException().isThrownBy(() -> keyValidator.validateUpdate(key.getName(), key, keyEntity));
     }

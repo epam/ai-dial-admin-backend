@@ -22,6 +22,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -159,10 +160,6 @@ public class InterceptorRunnerService {
 
     @Transactional
     public void rollbackInterceptorRunners(Number revision) {
-        Iterable<InterceptorEntity> interceptors = interceptorJpaRepository.findAll();
-        interceptors.forEach(entity -> entity.setInterceptorRunner(null));
-        interceptorJpaRepository.saveAllAndFlush(interceptors);
-
         Collection<InterceptorRunner> interceptorRunners = getAllAtRevision(revision);
         List<String> ids = interceptorRunners.stream().map(InterceptorRunner::getName).toList();
         if (CollectionUtils.isEmpty(ids)) {
@@ -173,7 +170,6 @@ public class InterceptorRunnerService {
         }
 
         for (InterceptorRunner interceptorRunner : interceptorRunners) {
-            interceptorRunner.setInterceptors(List.of());
             InterceptorRunnerEntity entity = interceptorRunnerJpaRepository.findById(interceptorRunner.getName()).orElseGet(InterceptorRunnerEntity::new);
             InterceptorRunnerEntity interceptorRunnerEntity = toEntity(interceptorRunner, entity);
             interceptorRunnerJpaRepository.save(interceptorRunnerEntity);
@@ -192,7 +188,8 @@ public class InterceptorRunnerService {
     }
 
     private void removeInterceptorsFromRunner(InterceptorRunnerEntity interceptorRunnerEntity, List<InterceptorEntity> interceptors) {
-        interceptorJpaRepository.deleteAll(interceptors);
+        // list copy is needed due to {@link InterceptorEntity#preRemove()} where list of runner interceptors is modified
+        interceptorJpaRepository.deleteAll(new ArrayList<>(interceptors));
         interceptorRunnerJpaRepository.delete(interceptorRunnerEntity);
     }
 

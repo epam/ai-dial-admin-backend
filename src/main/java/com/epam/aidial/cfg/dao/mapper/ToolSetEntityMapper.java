@@ -47,6 +47,7 @@ public abstract class ToolSetEntityMapper {
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.TOOL_SET);
+        updatedEntity.getDeployment().setOwner(updatedEntity);
 
         updatedEntity.setToolSetContainer(toolSetContainer);
 

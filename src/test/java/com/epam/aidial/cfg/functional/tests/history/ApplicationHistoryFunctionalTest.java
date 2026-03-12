@@ -71,10 +71,8 @@ public abstract class ApplicationHistoryFunctionalTest {
         defaultShareResourceLimitDto.setMaxAcceptedUsers(10);
         expected.setDescription("new application description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaults(Map.of());
         expected.setInterceptors(List.of());
         expected.setEndpoint("endpoint2");
-        expected.setRoutes(List.of());
         expected.setMaxRetryAttempts(1);
         expected.setValidityState(validState());
         assertApplication(actual, expected);

@@ -164,7 +164,6 @@ public abstract class AdapterFunctionalTest {
 
         ModelDto expectedModel1 = createModelDto("1");
         expectedModel1.setSource(source2);
-        expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
@@ -192,7 +191,6 @@ public abstract class AdapterFunctionalTest {
 
         ModelDto expectedModel1 = createModelDto("1");
         expectedModel1.setSource(new ModelAdapterSourceDto("adapter1", "/chat/completions"));
-        expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
@@ -216,7 +214,6 @@ public abstract class AdapterFunctionalTest {
 
         ModelDto expectedDetachedModel = createModelDto("3");
         expectedDetachedModel.setSource(new ModelAdapterSourceDto("adapter1", "model3/chat/completions"));
-        expectedDetachedModel.setDefaults(Map.of());
         expectedDetachedModel.setRoleLimits(Map.of());
         expectedDetachedModel.setDefaultRoleLimit(new LimitDto());
         Assertions.assertEquals(expectedDetachedModel, actualDetachedModel);
@@ -234,7 +231,6 @@ public abstract class AdapterFunctionalTest {
         Assertions.assertEquals(expectedAdapter2, actualAdapter2);
 
         ModelDto expectedModel2 = createModelDto("1");
-        expectedModel2.setDefaults(Map.of());
         expectedModel2.setRoleLimits(Map.of());
         expectedModel2.setDefaultRoleLimit(new LimitDto());
         expectedModel2.setSource(new ModelEndpointsSourceDto());

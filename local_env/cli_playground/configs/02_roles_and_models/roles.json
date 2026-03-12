@@ -1,0 +1,10 @@
+{
+  "roles": {
+    "data-scientist": {
+      "limits": {}
+    },
+    "admin": {
+      "limits": {}
+    }
+  }
+}
