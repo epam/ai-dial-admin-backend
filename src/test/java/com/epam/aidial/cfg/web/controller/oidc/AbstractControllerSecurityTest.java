@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import com.epam.aidial.cfg.web.security.AdminRole;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -120,7 +121,7 @@ public abstract class AbstractControllerSecurityTest {
                         ),
                         "user_test",
                         "test@email.com",
-                        List.of(new SimpleGrantedAuthority("testRole"))
+                        List.of(new SimpleGrantedAuthority(AdminRole.FULL_ADMIN.name()))
                 ),
                 Arguments.of(
                         JwtUtils.generateTestToken(
@@ -133,7 +134,7 @@ public abstract class AbstractControllerSecurityTest {
                         ),
                         "user_test",
                         null,
-                        List.of(new SimpleGrantedAuthority("testRole"))
+                        List.of(new SimpleGrantedAuthority(AdminRole.FULL_ADMIN.name()))
                 ),
                 Arguments.of(
                         JwtUtils.generateTestToken(
@@ -147,7 +148,7 @@ public abstract class AbstractControllerSecurityTest {
                         ),
                         "user_test",
                         null,
-                        List.of(new SimpleGrantedAuthority("testRole"))
+                        List.of(new SimpleGrantedAuthority(AdminRole.FULL_ADMIN.name()))
                 )
         );
     }

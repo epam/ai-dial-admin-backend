@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.core.config.CoreInterceptor;
 import jakarta.validation.Valid;
@@ -63,12 +64,14 @@ public class InterceptorController extends AbstractController {
         return interceptorFacade.getSyncState(interceptorName, StringUtils.unwrap(previousHash, '"'));
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createInterceptor(@RequestBody @Valid InterceptorDto interceptorDto) {
         interceptorFacade.createInterceptor(interceptorDto);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{interceptorName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateInterceptor(@PathVariable("interceptorName") String interceptorName,
@@ -78,6 +81,7 @@ public class InterceptorController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core/{interceptorName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateInterceptor(@PathVariable String interceptorName,
                                                   @RequestBody @Valid CoreInterceptor coreInterceptor,
@@ -86,6 +90,7 @@ public class InterceptorController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{interceptorName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInterceptor(@PathVariable("interceptorName") String interceptorName) {

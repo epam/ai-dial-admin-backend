@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
 import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
@@ -64,12 +65,14 @@ public class ToolSetController extends AbstractController {
         return toolSetFacade.getSyncState(toolSetName, StringUtils.unwrap(previousHash, '"'));
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createToolSet(@RequestBody @Valid ToolSetDto toolSetName) {
         toolSetFacade.createToolSet(toolSetName);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{toolSetName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateToolSet(@PathVariable("toolSetName") String toolSetName,
@@ -79,6 +82,7 @@ public class ToolSetController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core/{toolSetName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateToolSet(@PathVariable String toolSetName,
                                               @RequestBody @Valid CoreToolSet coreToolSet,
@@ -87,6 +91,7 @@ public class ToolSetController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{toolSetName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteToolSet(@PathVariable("toolSetName") String toolSetName) {

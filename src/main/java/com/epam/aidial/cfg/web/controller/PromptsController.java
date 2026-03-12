@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.CreatePromptDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
 import com.epam.aidial.cfg.dto.ImportResourcesFileResultDto;
@@ -77,6 +78,7 @@ public class PromptsController {
         return promptMapper.toPromptVersionsDto(promptInfos);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -86,6 +88,7 @@ public class PromptsController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 
+    @FullAdminOnly
     @PostMapping(
             path = "/update",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE
@@ -99,6 +102,7 @@ public class PromptsController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deletePrompt(@RequestBody ResourcePathDto promptPath,
@@ -106,6 +110,7 @@ public class PromptsController {
         promptService.delete(promptPath.getPath(), etag);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/delete/bulk",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deletePrompts(@RequestBody ResourcePathsDto promptPaths) {
@@ -113,6 +118,7 @@ public class PromptsController {
         promptService.deletePrompts(paths);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/move",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void movePrompt(@RequestBody MoveResourceDto movePromptDto) {
@@ -141,6 +147,7 @@ public class PromptsController {
         return promptMapper.toPromptsEximDto(promptsExim);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import/zip",
             consumes = "multipart/form-data",
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -165,6 +172,7 @@ public class PromptsController {
         return resourceMapper.toImportResourcesPreviewDto(importResourcesPreview);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import/json",
             consumes = "multipart/form-data",
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)

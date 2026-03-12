@@ -12,14 +12,16 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
     private final Set<String> emailClaims;
-    private final Set<String> allowedRoles;
+    private final Map<String, Set<AdminRole>> effectiveRoleMappings;
     private final boolean requireEmail;
 
     @Override
@@ -39,14 +41,17 @@ public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationC
                 .orElseGet(() -> new UserSecurityDetails(null));
 
         var authorities = authenticatedPrincipal.getAuthorities();
-        var filtered = authorities.stream()
+        var matchedIdpRoles = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
-                .filter(allowedRoles::contains)
-                .map(SimpleGrantedAuthority::new)
+                .filter(effectiveRoleMappings::containsKey)
+                .collect(Collectors.toSet());
+        var adminRoles = IdentityProviderUtils.resolveAdminRoles(effectiveRoleMappings, matchedIdpRoles);
+        var filtered = adminRoles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
                 .toList();
 
         log.trace("Authorization state - token: {}, idp: {}, allowedRoles: {}, authorities: {}",
-                introspectedToken, providerName, allowedRoles, authenticatedPrincipal.getAuthorities());
+                introspectedToken, providerName, effectiveRoleMappings.keySet(), authenticatedPrincipal.getAuthorities());
 
         BearerTokenAuthentication authentication = new BearerTokenAuthentication(authenticatedPrincipal, accessToken, filtered);
 

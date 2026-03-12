@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.FolderInfoDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.dto.MoveFolderRequestDto;
 import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
 import com.epam.aidial.cfg.dto.RuleDto;
@@ -51,17 +52,20 @@ public class FolderController {
         return mapper.toRuleDtos(rules);
     }
 
+    @FullAdminOnly
     @PostMapping("/updateRules")
     public void updatesRules(@RequestBody @Valid UpdateRulesRequestDto updateRulesRequestDto) {
         UpdateRulesRequest updateRulesRequest = mapper.toUpdateRulesRequest(updateRulesRequestDto);
         folderService.updatesRules(updateRulesRequest);
     }
 
+    @FullAdminOnly
     @DeleteMapping
     public void deleteFolder(@RequestParam("path") @MetadataPath String path) {
         folderService.unpublishFolder(path);
     }
 
+    @FullAdminOnly
     @PostMapping("/move")
     public void moveFolder(@RequestBody @Valid MoveFolderRequestDto moveFolderRequestDto) {
         MoveFolderRequest moveFolderRequest = mapper.toMoveFolderRequest(moveFolderRequestDto);

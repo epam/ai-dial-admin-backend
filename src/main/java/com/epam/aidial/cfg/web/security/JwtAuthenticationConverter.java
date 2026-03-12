@@ -13,7 +13,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
     private final Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter;
     private final String principalClaim;
     private final Set<String> emailClaims;
-    private final Set<String> allowedRoles;
+    private final Map<String, Set<AdminRole>> effectiveRoleMappings;
     private final boolean requireEmail;
 
     @NotNull
@@ -40,10 +42,14 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
         var issuer = jwt.getIssuer().toString();
         var authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
         var principalClaimValue = jwt.getClaimAsString(principalClaim);
-        var filtered = authorities.stream()
+
+        var matchedIdpRoles = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
-                .filter(allowedRoles::contains)
-                .map(SimpleGrantedAuthority::new)
+                .filter(effectiveRoleMappings::containsKey)
+                .collect(Collectors.toSet());
+        var adminRoles = IdentityProviderUtils.resolveAdminRoles(effectiveRoleMappings, matchedIdpRoles);
+        var filtered = adminRoles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
                 .toList();
 
         JwtAuthenticationToken authToken =
@@ -53,12 +59,12 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
 
         if (filtered.isEmpty()) {
             log.warn("Authorization failed - issuer: {}, allowedRolesForIssuer: {}, authorities: {}",
-                    issuer, allowedRoles, authorities);
+                    issuer, effectiveRoleMappings.keySet(), authorities);
         }
 
         authToken.setDetails(details);
-        log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {},allowedRolesForIssuer: {}, authorities: {}",
-                jwt, issuer, authToken, allowedRoles, authorities);
+        log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {}, allowedRolesForIssuer: {}, authorities: {}",
+                jwt, issuer, authToken, effectiveRoleMappings.keySet(), authorities);
 
         return authToken;
     }

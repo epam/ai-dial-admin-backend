@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.KeyDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.core.config.CoreKey;
 import jakarta.validation.Valid;
@@ -55,12 +56,14 @@ public class KeyController extends AbstractController {
         return responseEntityForGet(coreWithHash.core(), coreWithHash.hash(), previousHash);
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createKey(@RequestBody @Valid KeyDto keyDto) {
         keyFacade.createKey(keyDto);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateKey(@PathVariable String name,
                                           @RequestBody @Valid KeyDto keyDto,
@@ -69,6 +72,7 @@ public class KeyController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateKey(@PathVariable String name,
                                           @RequestBody @Valid CoreKey coreKey,
@@ -77,6 +81,7 @@ public class KeyController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{name}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteKey(@PathVariable String name) {

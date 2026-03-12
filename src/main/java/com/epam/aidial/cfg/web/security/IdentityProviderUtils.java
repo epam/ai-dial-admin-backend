@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -68,12 +70,44 @@ public class IdentityProviderUtils {
         }
     }
 
-    public Set<String> getAllowedRoles(Set<String> allowedRoles) {
-        Set<String> acceptedRoles = new HashSet<>(defaultAllowedRoles);
-        if (allowedRoles != null) {
-            acceptedRoles.addAll(allowedRoles);
+    /**
+     * Returns effective IdP role → backend role mappings by merging default and provider-specific entries.
+     * Provider-specific entries override default entries for the same IdP role name.
+     */
+    public Map<String, Set<AdminRole>> getEffectiveRoleMappings(Set<String> providerAllowedRoles) {
+        Map<String, Set<AdminRole>> result = new HashMap<>();
+        for (String entry : defaultAllowedRoles) {
+            AllowedRoleEntry parsed = AllowedRoleEntry.parse(entry);
+            result.put(parsed.idpRole(), parsed.adminRoles());
         }
-        return Set.copyOf(acceptedRoles);
+        if (providerAllowedRoles != null) {
+            for (String entry : providerAllowedRoles) {
+                AllowedRoleEntry parsed = AllowedRoleEntry.parse(entry);
+                result.put(parsed.idpRole(), parsed.adminRoles());
+            }
+        }
+        return Map.copyOf(result);
+    }
+
+    /**
+     * Returns the set of IdP role names that are allowed (keys of the effective role mappings).
+     */
+    public Set<String> getAllowedRoles(Set<String> allowedRoles) {
+        return getEffectiveRoleMappings(allowedRoles).keySet();
+    }
+
+    /**
+     * Resolves the set of backend {@link AdminRole} values for the given matched IdP roles.
+     */
+    public static Set<AdminRole> resolveAdminRoles(Map<String, Set<AdminRole>> effectiveMapping, Set<String> matchedIdpRoles) {
+        Set<AdminRole> result = new HashSet<>();
+        for (String idpRole : matchedIdpRoles) {
+            Set<AdminRole> roles = effectiveMapping.get(idpRole);
+            if (roles != null) {
+                result.addAll(roles);
+            }
+        }
+        return Set.copyOf(result);
     }
 
     public Set<String> getEmailClaims(List<String> emailClaims) {

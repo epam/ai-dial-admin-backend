@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,12 +48,14 @@ public class InterceptorRunnerController extends AbstractController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createInterceptorRunner(@RequestBody @Valid InterceptorRunnerDto interceptorRunnerDto) {
         interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{interceptorRunnerName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateInterceptorRunner(@PathVariable("interceptorRunnerName") String interceptorRunnerName,
@@ -62,6 +65,7 @@ public class InterceptorRunnerController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{interceptorRunnerName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInterceptorRunner(@PathVariable("interceptorRunnerName") String interceptorRunnerName,

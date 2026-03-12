@@ -34,11 +34,13 @@ public class JwtAuthenticationConverterFactory {
         grantedAuthoritiesConverter.setAuthoritiesPaths(authoritiesPaths);
         grantedAuthoritiesConverter.setAuthorityPrefix("");
 
+        var effectiveRoleMappings = identityProviderUtils.getEffectiveRoleMappings(config.getAllowedRoles());
+
         return new JwtAuthenticationConverter(
                 grantedAuthoritiesConverter,
                 identityProviderUtils.getPrincipalClaim(config.getPrincipalClaim()),
                 identityProviderUtils.getEmailClaims(config.getEmailClaims()),
-                identityProviderUtils.getAllowedRoles(config.getAllowedRoles()),
+                effectiveRoleMappings,
                 identityProviderUtils.isEmailRequired()
         );
     }

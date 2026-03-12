@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.web.controller;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.CallToolResourceRequestDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
@@ -77,6 +78,7 @@ public class ToolSetResourceController {
         return ResponseEntity.status(HttpStatus.OK).eTag(toolSetResource.etag()).body(toolSetResourceDto);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createToolSetResource(@RequestBody CreateToolSetResourceDto createToolSetResourceDto) {
@@ -85,6 +87,7 @@ public class ToolSetResourceController {
         return ResponseEntity.noContent().eTag(currentEtag).build();
     }
 
+    @FullAdminOnly
     @PostMapping(
             path = "/update",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -99,6 +102,7 @@ public class ToolSetResourceController {
     }
 
 
+    @FullAdminOnly
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteToolSetResource(@RequestBody ResourcePathDto resourcePath,
@@ -106,6 +110,7 @@ public class ToolSetResourceController {
         toolSetResourceService.delete(resourcePath.getPath(), etag);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/delete/bulk",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteToolSetResources(@RequestBody ResourcePathsDto toolSetPaths) {
@@ -113,6 +118,7 @@ public class ToolSetResourceController {
         toolSetResourceService.deleteToolSetResources(paths);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/move",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void moveToolSetResource(@RequestBody MoveResourceDto movePromptDto) {
@@ -164,6 +170,7 @@ public class ToolSetResourceController {
         return toolSetResourceMapper.toToolSetsEximDto(toolSetsExim);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import/zip",
             consumes = "multipart/form-data",
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -188,6 +195,7 @@ public class ToolSetResourceController {
         return resourceMapper.toImportResourcesPreviewDto(importResourcesPreview);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import/json",
             consumes = "multipart/form-data",
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)

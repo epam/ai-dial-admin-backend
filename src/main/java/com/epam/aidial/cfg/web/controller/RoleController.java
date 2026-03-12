@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.core.config.CoreRole;
 import jakarta.validation.Valid;
@@ -62,18 +63,21 @@ public class RoleController extends AbstractController {
         return roleFacade.getSyncState(roleName, StringUtils.unwrap(previousHash, '"'));
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createRole(@RequestBody @Valid RoleDto roleDto) {
         roleFacade.createRole(roleDto);
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{roleName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRole(@PathVariable("roleName") String roleName) {
         roleFacade.deleteRole(roleName);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateRole(@PathVariable("roleName") String roleName,
                                            @RequestBody @Valid RoleDto roleDto,
@@ -82,6 +86,7 @@ public class RoleController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core/{roleName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateRole(@PathVariable String roleName,
                                            @RequestBody @Valid CoreRole coreRole,
