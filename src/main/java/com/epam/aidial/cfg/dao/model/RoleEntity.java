@@ -11,7 +11,6 @@ import jakarta.persistence.PreRemove;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.hibernate.envers.AuditJoinTable;
 import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
@@ -32,11 +31,9 @@ public class RoleEntity extends TimeTrackableEntity<String> {
     private Set<String> topics;
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "role", orphanRemoval = true)
-    @AuditJoinTable
     private List<RoleLimitEntity> limits = new ArrayList<>();
     @ToString.Exclude
     @ManyToMany(mappedBy = "roles")
-    @AuditJoinTable
     private List<KeyEntity> keys = new ArrayList<>();
     @Column(columnDefinition = "CLOB")
     private String share;

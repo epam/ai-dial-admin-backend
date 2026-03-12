@@ -1,0 +1,14 @@
+alter table if exists adapter_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists addon_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists admin_settings_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists application_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists application_type_schema_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists assistant_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists global_settings_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists interceptor_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists interceptor_runner_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists key_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists model_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists role_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists route_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;
+alter table if exists tool_set_entity_aud drop column if exists created_at_ms, drop column if exists updated_at_ms;

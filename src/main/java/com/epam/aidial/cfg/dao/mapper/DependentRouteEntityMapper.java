@@ -18,7 +18,7 @@ public abstract class DependentRouteEntityMapper {
     @SneakyThrows
     public List<DependentRoute> map(String value) {
         if (value == null) {
-            return List.of();
+            return null;
         }
         return objectMapper.readValue(value, new TypeReference<>() {
         });

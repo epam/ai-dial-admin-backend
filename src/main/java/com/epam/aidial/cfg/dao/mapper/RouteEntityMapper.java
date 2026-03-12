@@ -28,6 +28,7 @@ public abstract class RouteEntityMapper {
 
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.ROUTE);
+        updatedEntity.getDeployment().setOwner(updatedEntity);
 
         return updatedEntity;
     }

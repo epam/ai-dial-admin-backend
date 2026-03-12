@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.AdminSettingsDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
+import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
@@ -258,5 +259,26 @@ public class FunctionalTestHelper {
         interceptorRunnerDto.setConfigurationEndpoint("https://endpoint.test.com/configuration" + suffix);
         interceptorRunnerDto.setInterceptors(new ArrayList<>());
         return interceptorRunnerDto;
+    }
+
+    public static AuditActivityDto createAuditActivityDto(String activityType, String resourceType, String resourceId, Long epochTimestampMs) {
+        AuditActivityDto auditActivityDto = new AuditActivityDto();
+
+        auditActivityDto.setActivityType(activityType);
+        auditActivityDto.setResourceType(resourceType);
+        auditActivityDto.setResourceId(resourceId);
+        auditActivityDto.setEpochTimestampMs(epochTimestampMs);
+
+        return auditActivityDto;
+    }
+
+    public static AuditActivityDto createAuditActivityDto(String activityType, String resourceType, String resourceId) {
+        AuditActivityDto auditActivityDto = new AuditActivityDto();
+
+        auditActivityDto.setActivityType(activityType);
+        auditActivityDto.setResourceType(resourceType);
+        auditActivityDto.setResourceId(resourceId);
+
+        return auditActivityDto;
     }
 }

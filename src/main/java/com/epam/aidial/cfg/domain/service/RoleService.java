@@ -8,6 +8,8 @@ import com.epam.aidial.cfg.dao.mapper.RoleEntityMapper;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
+import com.epam.aidial.cfg.dao.model.RoleLimitEntity;
+import com.epam.aidial.cfg.dao.model.RoleLimitId;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.Role;
@@ -187,11 +189,15 @@ public class RoleService {
             roleJpaRepository.deleteAll(rolesToDelete);
         }
 
-        Set<String> allDeploymentNames = deploymentJpaRepository.findAllNames();
         Set<String> allKeys = keyJpaRepository.findAllKeys();
         for (Role role : roles) {
             RoleEntity entity = roleJpaRepository.findById(role.getName()).orElseGet(RoleEntity::new);
-            role.getLimits().removeIf(roleLimit -> !allDeploymentNames.contains(roleLimit.getDeploymentName()));
+            Set<RoleLimitId> roleLimitIds = entity.getLimits().stream().map(RoleLimitEntity::getId).collect(Collectors.toSet());
+            List<RoleLimit> roleLimitsToSave = role.getLimits().stream()
+                    .filter(roleLimit -> roleLimitIds.contains(new RoleLimitId(roleLimit.getDeploymentName(), roleLimit.getRole())))
+                    .toList();
+
+            role.setLimits(roleLimitsToSave);
             role.getKeys().removeIf(key -> !allKeys.contains(key));
             RoleEntity roleEntity = toEntity(role, entity);
             roleJpaRepository.save(roleEntity);

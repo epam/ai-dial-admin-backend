@@ -56,7 +56,6 @@ public abstract class AssistantHistoryFunctionalTest {
         var expected = createAssistantDto("1");
         expected.setDescription("new assistant description");
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setDefaults(Map.of());
         assertAssistant(actual, expected);
 
         // 3 add roles to assistant1

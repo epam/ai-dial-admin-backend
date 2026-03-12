@@ -67,6 +67,9 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
         applications.forEach(application -> application.getInterceptors().remove(this));
         models.forEach(model -> model.getInterceptors().remove(this));
         applicationTypeSchemas.forEach(applicationTypeSchema -> applicationTypeSchema.getInterceptors().remove(this));
+        if (interceptorRunner != null) {
+            interceptorRunner.getInterceptors().remove(this);
+        }
     }
 
     @Override

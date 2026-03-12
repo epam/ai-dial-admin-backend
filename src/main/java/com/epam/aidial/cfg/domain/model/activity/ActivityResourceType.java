@@ -16,7 +16,6 @@ public enum ActivityResourceType {
     RoleLimit,
     Route,
     SecuredResource,
-    Tokenizer,
     ToolSet,
     GlobalSettings,
     AdminSettings,

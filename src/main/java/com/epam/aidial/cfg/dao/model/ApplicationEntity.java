@@ -80,6 +80,9 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
         for (InterceptorEntity interceptor : interceptors) {
             interceptor.getApplications().remove(this);
         }
+        if (applicationTypeSchema != null) {
+            applicationTypeSchema.getApplications().remove(this);
+        }
     }
 
     @Override

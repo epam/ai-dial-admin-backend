@@ -26,6 +26,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -179,13 +180,6 @@ public class ApplicationTypeSchemaService {
 
     @Transactional
     public void rollbackApplicationTypeSchemas(Number revision) {
-        Iterable<ApplicationEntity> applications = applicationJpaRepository.findAll();
-        applications.forEach(applicationEntity -> {
-            applicationEntity.setApplicationTypeSchema(null);
-            applicationEntity.setEndpoint("endpoint");
-        });
-        applicationJpaRepository.saveAllAndFlush(applications);
-
         Collection<ApplicationTypeSchema> applicationTypeSchemas = getAllAtRevision(revision);
         List<String> ids = applicationTypeSchemas.stream().map(ApplicationTypeSchema::getSchemaId).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(ids)) {
@@ -195,8 +189,9 @@ public class ApplicationTypeSchemaService {
             jpaRepository.deleteAll(applicationTypeSchemasToDelete);
         }
 
+        Set<String> allInterceptorNames = interceptorJpaRepository.findAllNames();
         for (ApplicationTypeSchema domain : applicationTypeSchemas) {
-            domain.setApplications(List.of());
+            domain.getInterceptors().removeIf(interceptor -> !allInterceptorNames.contains(interceptor));
             ApplicationTypeSchemaEntity entity = jpaRepository.findById(domain.getSchemaId()).orElseGet(ApplicationTypeSchemaEntity::new);
             ApplicationTypeSchemaEntity applicationTypeSchemaEntity = toEntity(domain, entity);
             jpaRepository.save(applicationTypeSchemaEntity);
@@ -209,7 +204,8 @@ public class ApplicationTypeSchemaService {
     }
 
     private void removeApplicationsFromSchema(ApplicationTypeSchemaEntity schemaEntity, List<ApplicationEntity> applications) {
-        applicationJpaRepository.deleteAll(applications);
+        // list copy is needed due to {@link ApplicationEntity#preRemove()} where list of schema applications is modified
+        applicationJpaRepository.deleteAll(new ArrayList<>(applications));
         jpaRepository.delete(schemaEntity);
     }
 

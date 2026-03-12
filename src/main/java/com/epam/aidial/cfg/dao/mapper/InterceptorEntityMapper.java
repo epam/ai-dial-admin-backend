@@ -129,11 +129,34 @@ public abstract class InterceptorEntityMapper {
         if (currentInterceptorRunner != null && !currentInterceptorRunner.equals(interceptorRunner)) {
             currentInterceptorRunner.getInterceptors().remove(updatedEntity);
         }
-        if (interceptorRunner != null && !interceptorRunner.equals(currentInterceptorRunner)) {
-            interceptorRunner.getInterceptors().add(updatedEntity);
+
+        // Validate that both runner and container are not set simultaneously
+        if (interceptorRunner != null && interceptorContainer != null) {
+            throw new IllegalArgumentException(
+                    "Interceptor cannot have both runner and container set. Interceptor: " + domain.getName()
+            );
         }
-        updatedEntity.setInterceptorRunner(interceptorRunner);
-        updatedEntity.setInterceptorContainer(interceptorContainer);
+
+        // Explicitly clear and set runner/container fields to ensure mutual exclusivity
+        if (interceptorRunner != null) {
+            // Setting runner: clear container and set runner
+            updatedEntity.setInterceptorContainer(null);
+            updatedEntity.setEndpoint(interceptorRunner.getCompletionEndpoint());
+            updatedEntity.getFeatures().setConfigurationEndpoint(interceptorRunner.getConfigurationEndpoint());
+            if (!interceptorRunner.equals(currentInterceptorRunner)) {
+                interceptorRunner.getInterceptors().add(updatedEntity);
+            }
+            updatedEntity.setInterceptorRunner(interceptorRunner);
+        } else if (interceptorContainer != null) {
+            // Setting container: clear runner and set container
+            updatedEntity.setInterceptorRunner(null);
+            updatedEntity.setInterceptorContainer(interceptorContainer);
+        } else {
+            // Neither runner nor container: clear both
+            updatedEntity.setInterceptorRunner(null);
+            updatedEntity.getFeatures().setConfigurationEndpoint(null);
+            updatedEntity.setInterceptorContainer(null);
+        }
 
         return updatedEntity;
     }
