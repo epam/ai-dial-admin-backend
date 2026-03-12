@@ -1,0 +1,199 @@
+{
+  "datasets": [
+    {
+      "$type": "influx3",
+      "name": "dial_analytics_realtime",
+      "displayedName": "DIAL analytics-realtime dataset",
+      "description": "DIAL analytics-realtime dataset",
+      "source": {
+        "url": "<empty>",
+        "database": "analytics_db",
+        "auth": {
+          "$type": "token",
+          "token": "<empty>"
+        }
+      },
+      "tables": [
+        {
+          "name": "analytics",
+          "source": {
+            "table": "analytics"
+          },
+          "schema": {
+            "$type": "static",
+            "columns": [
+              {
+                "name": "_time",
+                "type": "timestamp",
+                "source": {
+                  "$type": "influx3",
+                  "column": "time"
+                }
+              },
+              {
+                "name": "model",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "model"
+                }
+              },
+              {
+                "name": "deployment",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "deployment"
+                }
+              },
+              {
+                "name": "parent_deployment",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "parent_deployment"
+                }
+              },
+              {
+                "name": "execution_path",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "execution_path"
+                }
+              },
+              {
+                "name": "trace_id",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "trace_id"
+                }
+              },
+              {
+                "name": "core_span_id",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "core_span_id"
+                }
+              },
+              {
+                "name": "core_parent_span_id",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "core_parent_span_id"
+                }
+              },
+              {
+                "name": "project_id",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "project_id"
+                }
+              },
+              {
+                "name": "language",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "language"
+                }
+              },
+              {
+                "name": "upstream",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "upstream"
+                }
+              },
+              {
+                "name": "topic",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "topic"
+                }
+              },
+              {
+                "name": "title",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "title"
+                }
+              },
+              {
+                "name": "response_id",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "response_id"
+                }
+              },
+              {
+                "name": "user_hash",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "user_hash"
+                }
+              },
+              {
+                "name": "deployment_price",
+                "type": "double",
+                "source": {
+                  "$type": "influx3",
+                  "column": "deployment_price"
+                }
+              },
+              {
+                "name": "price",
+                "type": "double",
+                "source": {
+                  "$type": "influx3",
+                  "column": "price"
+                }
+              },
+              {
+                "name": "number_request_messages",
+                "type": "int64",
+                "source": {
+                  "$type": "influx3",
+                  "column": "number_request_messages"
+                }
+              },
+              {
+                "name": "chat_id",
+                "type": "string",
+                "source": {
+                  "$type": "influx3",
+                  "column": "chat_id"
+                }
+              },
+              {
+                "name": "prompt_tokens",
+                "type": "int64",
+                "source": {
+                  "$type": "influx3",
+                  "column": "prompt_tokens"
+                }
+              },
+              {
+                "name": "completion_tokens",
+                "type": "int64",
+                "source": {
+                  "$type": "influx3",
+                  "column": "completion_tokens"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
