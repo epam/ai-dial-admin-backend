@@ -75,11 +75,37 @@ public class VersionAwareSchemaChecker {
 
             JsonNode fieldSchema = allowedFields.get(fieldName);
             if (fieldSchema == null) {
+                String camelCaseName = snakeToCamelCase(fieldName);
+                if (!camelCaseName.equals(fieldName)) {
+                    fieldSchema = allowedFields.get(camelCaseName);
+                }
+            }
+            if (fieldSchema == null) {
                 violations.add("Field '" + fieldPath + "' is not supported by Core version " + version);
             } else {
                 collectViolations(fieldValue, fieldSchema, fieldPath, root, version, violations);
             }
         }
+    }
+
+    static String snakeToCamelCase(String name) {
+        if (!name.contains("_")) {
+            return name;
+        }
+        StringBuilder sb = new StringBuilder();
+        boolean nextUpper = false;
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (c == '_') {
+                nextUpper = true;
+            } else if (nextUpper) {
+                sb.append(Character.toUpperCase(c));
+                nextUpper = false;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     private Map<String, JsonNode> resolveProperties(JsonNode schema, JsonNode root) {

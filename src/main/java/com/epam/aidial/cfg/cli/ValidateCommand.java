@@ -12,6 +12,8 @@ import com.epam.aidial.cfg.service.config.transfer.VersionAwareSchemaChecker;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.cfg.utils.CoreConfigVersionNormalizer;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -100,7 +102,9 @@ public class ValidateCommand implements Callable<Integer> {
                     .strategy(strategy.name())
                     .files(results)
                     .build();
-            System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(output));
+            DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
+            printer.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
+            System.out.println(objectMapper.writer(printer).writeValueAsString(output));
             return anyInvalid ? 1 : 0;
 
         } catch (Exception e) {
