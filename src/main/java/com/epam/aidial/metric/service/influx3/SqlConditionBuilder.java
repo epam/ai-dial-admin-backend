@@ -3,7 +3,7 @@ package com.epam.aidial.metric.service.influx3;
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
-import com.epam.aidial.expressions.impl.ConstantImpl;
+import com.epam.aidial.metric.service.RangeFilterUtils;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.model.Filter;
@@ -12,12 +12,9 @@ import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
 import com.epam.aidial.ql.model.filters.Not;
 import com.epam.aidial.ql.model.filters.Or;
 import com.epam.aidial.ql.model.filters.UnaryComparisonFilter;
-import com.epam.aidial.ql.model.filters.impl.AndImpl;
-import com.epam.aidial.ql.model.filters.impl.OrImpl;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.NotImplementedException;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +24,6 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class SqlConditionBuilder {
-
-    private static final String RANGE_FILTER_COLUMN = "_time";
 
     public static SqlConditionResult createWherePart(Filter filter, AtomicInteger paramCounter) {
         var nonRangeFilter = extractNonRangeFilter(filter);
@@ -190,74 +185,23 @@ public class SqlConditionBuilder {
     }
 
     private static List<BinaryComparisonFilter> extractRangeFilter(Filter filter) {
-        if (filter instanceof And and) {
-            return and.getFilters().stream()
-                    .filter(SqlConditionBuilder::isRangeFilter)
-                    .map(BinaryComparisonFilter.class::cast)
-                    .toList();
-        }
-
-        if (isRangeFilter(filter)) {
-            return List.of((BinaryComparisonFilter) filter);
-        }
-
-        return List.of();
+        return RangeFilterUtils.extractRangeFilter(filter);
     }
 
     private static Optional<Filter> extractNonRangeFilter(Filter filter) {
-        if (filter == null) {
-            return Optional.empty();
-        }
-
-        if (filter instanceof And and) {
-            var nonRangeFilters = and.getFilters().stream().filter(f -> !isRangeFilter(f)).toList();
-            if (nonRangeFilters.isEmpty()) {
-                return Optional.empty();
-            }
-            if (nonRangeFilters.size() == 1) {
-                return Optional.of(nonRangeFilters.get(0));
-            }
-            return Optional.of(AndImpl.of(nonRangeFilters));
-        } else if (filter instanceof Or or) {
-            var nonRangeFilters = or.getFilters().stream().filter(f -> !isRangeFilter(f)).toList();
-            if (nonRangeFilters.isEmpty()) {
-                return Optional.empty();
-            }
-            if (nonRangeFilters.size() == 1) {
-                return Optional.of(nonRangeFilters.get(0));
-            }
-            return Optional.of(OrImpl.of(nonRangeFilters));
-        }
-
-        if (!isRangeFilter(filter)) {
-            return Optional.of(filter);
-        } else {
-            return Optional.empty();
-        }
+        return RangeFilterUtils.extractNonRangeFilter(filter);
     }
 
     private static boolean isRangeFilter(Filter filter) {
-        if (filter instanceof BinaryComparisonFilter binaryComparisonFilter) {
-            if (binaryComparisonFilter.getLeftExpression() instanceof Column leftColumn && leftColumn.getName().equals(RANGE_FILTER_COLUMN)) {
-                return true;
-            }
-            if (binaryComparisonFilter.getRightExpression() instanceof Column rightColumn && rightColumn.getName().equals(RANGE_FILTER_COLUMN)) {
-                return true;
-            }
-        }
-        return false;
+        return RangeFilterUtils.isRangeFilter(filter);
     }
 
     private static long getInstant(Expression expression) {
-        if (!(expression instanceof ConstantImpl constant)) {
-            throw new IllegalArgumentException("Only constant expressions are supported");
-        }
-        return (long) constant.getValue();
+        return RangeFilterUtils.getInstant(expression);
     }
 
     private static String convertInstantToString(long rawInstant) {
-        var instant = Instant.ofEpochMilli(rawInstant);
-        return instant.toString();
+        return RangeFilterUtils.convertInstantToString(rawInstant);
     }
 
     public record SqlConditionResult(String query, Map<String, Object> parameters) {

@@ -1,15 +1,10 @@
 package com.epam.aidial.metric.model.configuration.influx3;
 
-import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
+import com.epam.aidial.metric.model.configuration.AbstractDatasetDeclaration;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class Influx3DatasetDeclaration implements DatasetDeclaration {
-    private String name;
-    private String displayedName;
-    private String description;
-    private Influx3DataSourceDeclaration source;
-    private List<Influx3TableDeclaration> tables;
+@EqualsAndHashCode(callSuper = true)
+public class Influx3DatasetDeclaration extends AbstractDatasetDeclaration<Influx3DataSourceDeclaration, Influx3TableDeclaration> {
 }
