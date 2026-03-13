@@ -249,6 +249,38 @@ class SqlQueryBuilderTest {
     }
 
     @Test
+    void buildQuery_AggregateFromSubquery_ParameterNamesDoNotCollide() {
+        var innerQuery = baseQuery()
+                .expressions(List.of(col(Type.STRING, "deployment"), col(Type.DOUBLE, "price")))
+                .where(timeRange())
+                .build();
+
+        var outerQuery = QueryImpl.builder()
+                .distinct(false)
+                .from(innerQuery)
+                .expressions(List.of(col(Type.STRING, "deployment"), count()))
+                .where(AndImpl.of(List.of(
+                        filter(col(Type.STRING, "deployment"), BinaryComparisonOperator.EQUALS, val(Type.STRING, "dep_value"))
+                )))
+                .groupBy(List.of(col(Type.STRING, "deployment")))
+                .build();
+
+        var actual = sqlQueryBuilder.buildQueryContext(outerQuery);
+
+        // Inner query uses p0, p1 for time range; outer WHERE must use p2 (not p0)
+        assertThat(actual.getQuery()).isEqualTo("""
+                SELECT "deployment", COUNT(*) AS "temp_column_0" \
+                FROM (SELECT "deployment", "price" FROM "analytics" \
+                WHERE "time" >= $p0 AND "time" < $p1) \
+                WHERE "deployment" = $p2 \
+                GROUP BY "deployment\"""");
+        assertThat(actual.getParameters()).containsEntry("p0", "2025-02-11T15:12:00Z");
+        assertThat(actual.getParameters()).containsEntry("p1", "2025-02-11T16:20:00Z");
+        assertThat(actual.getParameters()).containsEntry("p2", "dep_value");
+        assertThat(actual.getParameters()).hasSize(3);
+    }
+
+    @Test
     void buildQuery_SimpleSelect_WithLimit() {
         var query = baseQuery()
                 .expressions(List.of(col(Type.STRING, "deployment")))

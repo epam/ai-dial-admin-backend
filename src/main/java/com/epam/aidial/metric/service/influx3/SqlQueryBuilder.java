@@ -219,6 +219,7 @@ public class SqlQueryBuilder {
             // Subquery — build inner query context and use as subquery
             var innerContext = buildQueryContext(innerQuery);
             allParams.putAll(innerContext.getParameters());
+            paramCounter.set(innerContext.getParameters().size());
             tableName = "(" + innerContext.getQuery() + ")";
             innerWhereClause = buildWhereClause(query.getWhere(), false, paramCounter, allParams);
         } else {
