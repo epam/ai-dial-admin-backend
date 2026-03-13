@@ -154,7 +154,6 @@ public abstract class InterceptorEntityMapper {
         } else {
             // Neither runner nor container: clear both
             updatedEntity.setInterceptorRunner(null);
-            updatedEntity.getFeatures().setConfigurationEndpoint(null);
             updatedEntity.setInterceptorContainer(null);
         }
 
