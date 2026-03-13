@@ -169,6 +169,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:mssqlserver'
+    testImplementation 'org.testcontainers:influxdb'
 
     constraints {
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.15') {
@@ -218,6 +219,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
 }
 
 tasks.withType(JavaCompile) {
