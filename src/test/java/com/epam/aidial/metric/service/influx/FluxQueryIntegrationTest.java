@@ -86,7 +86,10 @@ class FluxQueryIntegrationTest {
 
     @Test
     void simpleSelect_fromSql() {
-        var result = buildFromSql("SELECT deployment, price, prompt_tokens FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' ORDER BY prompt_tokens DESC");
+        var result = buildFromSql("""
+                SELECT deployment, price, prompt_tokens FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                ORDER BY prompt_tokens DESC""");
 
         assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
         assertThat(result.getQuery()).isEqualTo("""
@@ -127,7 +130,10 @@ class FluxQueryIntegrationTest {
 
     @Test
     void selectWithAliases_fromSql() {
-        var result = buildFromSql("SELECT deployment AS a, price AS b, prompt_tokens AS c FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' ORDER BY prompt_tokens DESC");
+        var result = buildFromSql("""
+                SELECT deployment AS a, price AS b, prompt_tokens AS c FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                ORDER BY prompt_tokens DESC""");
 
         assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
         assertThat(result.getQuery()).isEqualTo("""
@@ -170,7 +176,9 @@ class FluxQueryIntegrationTest {
 
     @Test
     void distinctValueSelect_fromSql() {
-        var result = buildFromSql("SELECT DISTINCT user_hash FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var result = buildFromSql("""
+                SELECT DISTINCT user_hash FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -212,7 +220,9 @@ class FluxQueryIntegrationTest {
 
     @Test
     void distinctValueSelectWithAlias_fromSql() {
-        var result = buildFromSql("SELECT DISTINCT user_hash AS a FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var result = buildFromSql("""
+                SELECT DISTINCT user_hash AS a FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -254,7 +264,10 @@ class FluxQueryIntegrationTest {
 
     @Test
     void distinctValueSelectWithFiltering_fromSql() {
-        var result = buildFromSql("SELECT DISTINCT user_hash FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' AND deployment = 'dep_value'");
+        var result = buildFromSql("""
+                SELECT DISTINCT user_hash FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                AND deployment = 'dep_value'""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -300,7 +313,9 @@ class FluxQueryIntegrationTest {
 
     @Test
     void distinctTagSelect_fromSql() {
-        var result = buildFromSql("SELECT DISTINCT deployment FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var result = buildFromSql("""
+                SELECT DISTINCT deployment FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -340,7 +355,10 @@ class FluxQueryIntegrationTest {
 
     @Test
     void distinctTagSelectWithFiltering_fromSql() {
-        var result = buildFromSql("SELECT DISTINCT deployment FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' AND deployment = 'dep_value'");
+        var result = buildFromSql("""
+                SELECT DISTINCT deployment FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                AND deployment = 'dep_value'""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -384,7 +402,9 @@ class FluxQueryIntegrationTest {
 
     @Test
     void simpleAggregate_fromSql() {
-        var result = buildFromSql("SELECT count(), sum(price), sum(prompt_tokens) FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var result = buildFromSql("""
+                SELECT count(), sum(price), sum(prompt_tokens) FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -472,7 +492,9 @@ class FluxQueryIntegrationTest {
 
     @Test
     void aggregateWithAliases_fromSql() {
-        var result = buildFromSql("SELECT count() AS a, sum(price) AS b, sum(prompt_tokens) AS c FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var result = buildFromSql("""
+                SELECT count() AS a, sum(price) AS b, sum(prompt_tokens) AS c FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -560,7 +582,10 @@ class FluxQueryIntegrationTest {
 
     @Test
     void groupAggregate_fromSql() {
-        var result = buildFromSql("SELECT deployment, count(), sum(price) FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' GROUP BY deployment ORDER BY deployment ASC");
+        var result = buildFromSql("""
+                SELECT deployment, count(), sum(price) FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                GROUP BY deployment ORDER BY deployment ASC""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""
@@ -628,7 +653,10 @@ class FluxQueryIntegrationTest {
 
     @Test
     void windowAggregation_fromSql() {
-        var result = buildFromSql("SELECT window(_time, 1, 'h') AS time_window, count() AS total FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' GROUP BY time_window");
+        var result = buildFromSql("""
+                SELECT window(_time, 1, 'h') AS time_window, count() AS total FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                GROUP BY time_window""");
 
         assertThat(result.getImports()).isEqualTo(Collections.emptySet());
         assertThat(result.getQuery()).isEqualTo("""

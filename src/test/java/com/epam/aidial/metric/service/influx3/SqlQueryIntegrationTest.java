@@ -55,8 +55,10 @@ class SqlQueryIntegrationTest {
 
     @Test
     void simpleSelect_fromSql() {
-        var actual = buildFromSql(
-                "SELECT deployment, price, prompt_tokens FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' ORDER BY prompt_tokens DESC");
+        var actual = buildFromSql("""
+                SELECT deployment, price, prompt_tokens FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                ORDER BY prompt_tokens DESC""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment", "price", "prompt_tokens" FROM "analytics" \
@@ -87,8 +89,10 @@ class SqlQueryIntegrationTest {
 
     @Test
     void stringComparison_fromSql() {
-        var actual = buildFromSql(
-                "SELECT deployment, price, prompt_tokens FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' AND deployment LIKE 'value%' ORDER BY prompt_tokens DESC");
+        var actual = buildFromSql("""
+                SELECT deployment, price, prompt_tokens FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                AND deployment LIKE 'value%' ORDER BY prompt_tokens DESC""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment", "price", "prompt_tokens" FROM "analytics" \
@@ -115,8 +119,10 @@ class SqlQueryIntegrationTest {
 
     @Test
     void selectWithAliases_fromSql() {
-        var actual = buildFromSql(
-                "SELECT deployment AS a, price AS b, prompt_tokens AS c FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' ORDER BY prompt_tokens DESC");
+        var actual = buildFromSql("""
+                SELECT deployment AS a, price AS b, prompt_tokens AS c FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                ORDER BY prompt_tokens DESC""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment" AS "a", "price" AS "b", "prompt_tokens" AS "c" FROM "analytics" \
@@ -143,8 +149,9 @@ class SqlQueryIntegrationTest {
 
     @Test
     void distinctValueSelect_fromSql() {
-        var actual = buildFromSql(
-                "SELECT DISTINCT user_hash FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var actual = buildFromSql("""
+                SELECT DISTINCT user_hash FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT DISTINCT "user_hash" FROM "analytics" \
@@ -169,8 +176,9 @@ class SqlQueryIntegrationTest {
 
     @Test
     void distinctWithAlias_fromSql() {
-        var actual = buildFromSql(
-                "SELECT DISTINCT user_hash AS a FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var actual = buildFromSql("""
+                SELECT DISTINCT user_hash AS a FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT DISTINCT "user_hash" AS "a" FROM "analytics" \
@@ -195,8 +203,10 @@ class SqlQueryIntegrationTest {
 
     @Test
     void distinctWithFiltering_fromSql() {
-        var actual = buildFromSql(
-                "SELECT DISTINCT user_hash FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' AND deployment = 'dep_value'");
+        var actual = buildFromSql("""
+                SELECT DISTINCT user_hash FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                AND deployment = 'dep_value'""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT DISTINCT "user_hash" FROM "analytics" \
@@ -221,8 +231,9 @@ class SqlQueryIntegrationTest {
 
     @Test
     void simpleAggregate_fromSql() {
-        var actual = buildFromSql(
-                "SELECT count(), sum(price), sum(prompt_tokens) FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var actual = buildFromSql("""
+                SELECT count(), sum(price), sum(prompt_tokens) FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT COUNT(*) AS "temp_column_0", SUM("price") AS "temp_column_1", SUM("prompt_tokens") AS "temp_column_2" \
@@ -249,8 +260,9 @@ class SqlQueryIntegrationTest {
 
     @Test
     void aggregateWithAliases_fromSql() {
-        var actual = buildFromSql(
-                "SELECT count() AS a, sum(price) AS b, sum(prompt_tokens) AS c FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'");
+        var actual = buildFromSql("""
+                SELECT count() AS a, sum(price) AS b, sum(prompt_tokens) AS c FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT COUNT(*) AS "a", SUM("price") AS "b", SUM("prompt_tokens") AS "c" \
@@ -277,8 +289,10 @@ class SqlQueryIntegrationTest {
 
     @Test
     void groupAggregate_fromSql() {
-        var actual = buildFromSql(
-                "SELECT deployment, count(), sum(price) FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' GROUP BY deployment ORDER BY deployment ASC");
+        var actual = buildFromSql("""
+                SELECT deployment, count(), sum(price) FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                GROUP BY deployment ORDER BY deployment ASC""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment", COUNT(*) AS "temp_column_0", SUM("price") AS "temp_column_1" \
@@ -310,8 +324,10 @@ class SqlQueryIntegrationTest {
 
     @Test
     void windowAggregation_fromSql() {
-        var actual = buildFromSql(
-                "SELECT window(_time, 1, 'h') AS time_window, count() AS total FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' GROUP BY time_window ORDER BY time_window ASC");
+        var actual = buildFromSql("""
+                SELECT window(_time, 1, 'h') AS time_window, count() AS total FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                GROUP BY time_window ORDER BY time_window ASC""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "time_window"\
@@ -345,8 +361,10 @@ class SqlQueryIntegrationTest {
 
     @Test
     void selectWithLimit_fromSql() {
-        var actual = buildFromSql(
-                "SELECT deployment FROM analytics WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' LIMIT 5, 10");
+        var actual = buildFromSql("""
+                SELECT deployment FROM analytics \
+                WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
+                LIMIT 5, 10""");
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment" FROM "analytics" \
