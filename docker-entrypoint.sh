@@ -15,6 +15,9 @@ DEBUG_OPTS=${DEBUG_OPTS:-}
 # Check if JAVA_OPTS is set, if not, set it to an empty string
 JAVA_OPTS=${JAVA_OPTS:-}
 
+# Required by Apache Arrow (used by InfluxDB 3 client) to access internal java.nio classes
+APACHE_ARROW_OPTS="--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED"
+
 # Execute the Java application with the provided options.
 # If arguments are passed, treat this as a CLI invocation: activate the cli profile via env var
 # (not via --spring.profiles.active=cli arg, which would be forwarded to picocli and rejected),
@@ -24,7 +27,7 @@ if [ $# -gt 0 ]; then
     # Apply CLI-optimised JVM defaults when the caller has not set JAVA_OPTS.
     # -XX:TieredStopAtLevel=1  : C1-only JIT — faster startup, lower peak throughput (fine for CLI).
     CLI_JVM_OPTS=${JAVA_OPTS:--XX:TieredStopAtLevel=1}
-    exec java $DEBUG_OPTS $CLI_JVM_OPTS -jar app.jar "$@"
+    exec java $DEBUG_OPTS $APACHE_ARROW_OPTS $CLI_JVM_OPTS -jar app.jar "$@"
 else
-    exec java $DEBUG_OPTS $JAVA_OPTS -jar app.jar
+    exec java $DEBUG_OPTS $APACHE_ARROW_OPTS $JAVA_OPTS -jar app.jar
 fi

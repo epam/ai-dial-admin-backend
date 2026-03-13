@@ -23,6 +23,8 @@ import com.epam.aidial.ql.model.Table;
 import com.epam.aidial.ql.model.impl.DataImpl;
 import com.epam.aidial.ql.model.impl.TableImpl;
 import com.influxdb.v3.client.InfluxDBClient;
+import com.influxdb.v3.client.query.QueryOptions;
+import com.influxdb.v3.client.query.QueryType;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
@@ -203,7 +205,8 @@ public class Influx3Engine implements Engine {
                 .buildQueryContext(completable);
 
         var rows = new ArrayList<List<Object>>();
-        try (Stream<Object[]> stream = client.query(queryContext.getQuery(), queryContext.getParameters(), null)) {
+        var options = new QueryOptions(declaration.getSource().getDatabase(), QueryType.SQL);
+        try (Stream<Object[]> stream = client.query(queryContext.getQuery(), queryContext.getParameters(), options)) {
             stream.forEach(record -> {
                 var row = new ArrayList<>(queryContext.getColumnNames().size());
                 for (int i = 0; i < queryContext.getColumnNames().size(); i++) {

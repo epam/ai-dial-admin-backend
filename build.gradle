@@ -125,7 +125,7 @@ dependencies {
     implementation 'io.fabric8:kubernetes-client:7.5.2'
 
     implementation 'com.influxdb:influxdb-client-java:7.2.0'
-    implementation 'com.influxdb:influxdb3-java:1.0.0'
+    implementation 'com.influxdb:influxdb3-java:1.8.0'
 
     implementation 'org.apache.commons:commons-csv:1.13.0'
 

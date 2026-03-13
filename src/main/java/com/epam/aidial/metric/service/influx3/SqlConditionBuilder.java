@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class SqlConditionBuilder {
 
-    private static final String TIME_COLUMN = "time";
     private static final String RANGE_FILTER_COLUMN = "_time";
 
     public static SqlConditionResult createWherePart(Filter filter, AtomicInteger paramCounter) {
