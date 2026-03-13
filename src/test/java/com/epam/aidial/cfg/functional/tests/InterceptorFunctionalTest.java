@@ -535,7 +535,7 @@ public abstract class InterceptorFunctionalTest {
     }
 
     @Test
-    public void shouldResetRunnerToNullWhenChangingInterceptorSourceFromAdapterToContainer() {
+    public void shouldResetRunnerToNullWhenChangingInterceptorSourceFromRunnerToContainer() {
         // Create runner
         InterceptorRunnerDto interceptorRunnerDto = createInterceptorRunnerDto("1");
         interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
@@ -573,7 +573,7 @@ public abstract class InterceptorFunctionalTest {
         InterceptorContainerSourceDto containerSource = (InterceptorContainerSourceDto) actualInterceptor.getSource();
         Assertions.assertEquals(containerId, containerSource.containerId());
 
-        // Verify runner no longer has the model in its models list
+        // Verify runner no longer has the interceptor in its interceptors list
         actualInterceptorRunner = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
         Assertions.assertFalse(actualInterceptorRunner.getInterceptors().contains(updatedInterceptorDto.getName()),
                 "Runner should not contain the interceptor after switching to container source");
@@ -590,7 +590,7 @@ public abstract class InterceptorFunctionalTest {
         InterceptorRunnerSourceDto runnerSourceAgain = (InterceptorRunnerSourceDto) actualInterceptor.getSource();
         Assertions.assertEquals(interceptorRunnerDto.getName(), runnerSourceAgain.runnerName());
 
-        // Verify the runner has the interceptor again in its models list
+        // Verify the runner has the interceptor again in its interceptors list
         actualInterceptorRunner = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
         Assertions.assertTrue(actualInterceptorRunner.getInterceptors().contains(updatedInterceptorDto.getName()),
                 "Runner should contain the interceptor after switching back to runner source");
