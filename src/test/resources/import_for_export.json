@@ -38,11 +38,7 @@
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
-      "dependencies": ["dep1", "dep2"],
-      "mcp": {
-          "endpoint": "http://localhost:9876/mcp",
-          "allowedTools": ["classify_text"]
-        }
+      "dependencies": ["dep1", "dep2"]
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -51,7 +47,11 @@
       "userRoles": [
         "testRole1"
       ],
-      "endpoint": "endpoint"
+      "endpoint": "endpoint",
+      "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "allowedTools": ["classify_text"]
+        }
     }
   },
   "roles": {

@@ -851,12 +851,7 @@
         ],
         "validityState": {
           "valid": true
-        },
-        "mcp": {
-            "endpoint": "http://localhost:9876/mcp",
-            "transport": "http",
-            "allowedTools": ["classify_text"]
-          }
+        }
       }
     },
     {
@@ -946,7 +941,12 @@
         "dependencies": [],
         "validityState": {
           "valid": true
-        }
+        },
+        "mcp": {
+            "endpoint": "http://localhost:9876/mcp",
+            "transport": "http",
+            "allowedTools": ["classify_text"]
+          }
       }
     }
   ],

@@ -69,12 +69,7 @@
       "dependencies": [
         "dep1",
         "dep2"
-      ],
-      "mcp": {
-          "endpoint": "http://localhost:9876/mcp",
-          "transport": "http",
-          "allowedTools": ["classify_text"]
-        }
+      ]
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -84,6 +79,11 @@
         "testRole1"
       ],
       "endpoint": "endpoint",
+      "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "http",
+          "allowedTools": ["classify_text"]
+        },
       "defaults": {
         "defaults_key": "defaults_value"
       }

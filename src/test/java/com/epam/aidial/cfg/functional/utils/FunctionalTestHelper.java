@@ -185,10 +185,18 @@ public class FunctionalTestHelper {
         applicationDto.setName("application" + suffix);
         applicationDto.setDisplayName("application" + suffix);
         applicationDto.setDescription("description" + suffix);
+        return applicationDto;
+    }
+
+    public static ApplicationDto createApplicationDtoWithMcp(String suffix) {
+        ApplicationDto applicationDto = createBaseApplicationDto(suffix);
         var mcp = new ApplicationDto.McpDto();
         mcp.setEndpoint("http://localhost:9876/mcp");
         mcp.setAllowedTools(List.of("classify_text"));
         applicationDto.setMcp(mcp);
+        applicationDto.setRoleLimits(Map.of(
+                "role" + suffix, new LimitDto()
+        ));
         return applicationDto;
     }
 

@@ -112,6 +112,9 @@ public class CoreApplication extends Deployment {
     }
 
     @Data
+    @Accessors(chain = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Mcp {
         private String endpoint;
         private final Transport transport = Transport.HTTP;

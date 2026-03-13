@@ -200,12 +200,7 @@
         "dep2"
       ],
       "application_type_schema_id": "https://test-schema-id.example",
-      "routes": {},
-      "mcp": {
-          "endpoint": "http://localhost:9876/mcp",
-          "transport": "http",
-          "allowedTools": ["classify_text"]
-        }
+      "routes": {}
     },
     "testApplication2": {
       "name": "testApplication2",
@@ -236,7 +231,12 @@
       "created_at": 123,
       "updated_at": 123,
       "dependencies": [],
-      "routes": {}
+      "routes": {},
+      "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "http",
+          "allowedTools": ["classify_text"]
+        }
     }
   },
   "toolsets": {

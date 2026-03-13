@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpointAndLimits;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithMcp;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
@@ -421,16 +422,42 @@ public abstract class ApplicationFunctionalTest {
         expected.setUserRoles(applicationDto.getRoleLimits().keySet());
         expected.setRoutes(null);
         expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
-        var mcp = new CoreApplication.Mcp();
-        mcp.setEndpoint("http://localhost:9876/mcp");
-        mcp.setAllowedTools(List.of("classify_text"));
-        expected.setMcp(mcp);
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
         actual.setUpdatedAt(null);
 
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyGetCoreApplicationWithMcp() {
+        initRoles();
+
+        ApplicationDto applicationDto = createApplicationDtoWithMcp("1");
+        applicationFacade.createApplication(applicationDto);
+
+        CoreApplication expected = new CoreApplication();
+        expected.setName(applicationDto.getName());
+        expected.setDisplayName(applicationDto.getDisplayName());
+        expected.setDescription(applicationDto.getDescription());
+        expected.setEndpoint(applicationDto.getEndpoint());
+        expected.setApplicationProperties(applicationDto.getApplicationProperties());
+        expected.setFeatures(defaultCoreFeatures());
+        expected.setRoutes(null);
+        expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
+        var mcp = new CoreApplication.Mcp();
+        mcp.setEndpoint("http://localhost:9876/mcp");
+        mcp.setAllowedTools(List.of("classify_text"));
+        expected.setMcp(mcp);
+        expected.setUserRoles(Set.of("role1"));
+
+        CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
+        actual.setCreatedAt(null);
+        actual.setUpdatedAt(null);
+        actual.setRoutes(null);
+
+        assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
     }
 
     @Test
@@ -592,12 +619,7 @@ public abstract class ApplicationFunctionalTest {
                       "updated_at": 1000,
                       "dependencies": [],
                       "application_properties": {},
-                      "routes": {},
-                      "mcp": {
-                        "endpoint" :"http://localhost:9876/mcp",
-                        "allowedTools": ["classify_text"],
-                        "transport": "HTTP"
-                        }
+                      "routes": {}
                     }
                   }
                 }
