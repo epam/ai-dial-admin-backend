@@ -1,8 +1,10 @@
 package com.epam.aidial.cfg.dao.model;
 
+import com.epam.aidial.cfg.dao.listener.RoleLimitEntityListener;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -16,6 +18,7 @@ import org.hibernate.envers.Audited;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Audited
+@EntityListeners(RoleLimitEntityListener.class)
 public class RoleLimitEntity {
 
     @EqualsAndHashCode.Include

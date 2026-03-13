@@ -87,6 +87,9 @@ public class ModelEntity extends TimeTrackableEntity<String> {
         for (InterceptorEntity interceptor : interceptors) {
             interceptor.getModels().remove(this);
         }
+        if (adapter != null) {
+            adapter.getModels().remove(this);
+        }
     }
 
     @Override

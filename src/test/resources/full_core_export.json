@@ -199,7 +199,6 @@
         "dep1",
         "dep2"
       ],
-      "application_properties": {},
       "application_type_schema_id": "https://test-schema-id.example",
       "routes": {}
     },
@@ -232,7 +231,6 @@
       "created_at": 123,
       "updated_at": 123,
       "dependencies": [],
-      "application_properties": {},
       "routes": {}
     }
   },

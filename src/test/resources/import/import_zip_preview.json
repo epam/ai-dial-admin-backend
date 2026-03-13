@@ -238,7 +238,6 @@
           "consentRequired": false,
           "parallelToolCallsSupported": true
         },
-        "defaults": {},
         "entities": [
           "testApplication1",
           "testModel1"
@@ -275,7 +274,6 @@
           "parallelToolCallsSupported": true,
           "configurationEndpoint": "https://template.test.com/conf"
         },
-        "defaults": {},
         "entities": [],
         "applicationTypeSchemas": [],
         "source": {
@@ -656,7 +654,6 @@
         "applicationTypeSchemaId": "https://test-schema-id.example",
         "author": "test-author",
         "dependencies": ["dep1", "dep2"],
-        "routes": [],
         "validityState": {
           "valid": true
         }

@@ -108,7 +108,9 @@ public abstract class ModelEntityMapper {
             // Setting adapter: clear container and endpoint and set adapter
             updatedEntity.setModelContainer(null);
             updatedEntity.setEndpoint(null);
-            adapterEntity.getModels().add(updatedEntity);
+            if (!adapterEntity.equals(currentAdapter)) {
+                adapterEntity.getModels().add(updatedEntity);
+            }
             updatedEntity.setAdapter(adapterEntity);
             updatedEntity.setAdapterCompletionEndpointPath(completionEndpointPath);
         } else if (modelContainer != null) {
@@ -124,6 +126,7 @@ public abstract class ModelEntityMapper {
         }
 
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.MODEL);
+        updatedEntity.getDeployment().setOwner(updatedEntity);
         return updatedEntity;
     }
 

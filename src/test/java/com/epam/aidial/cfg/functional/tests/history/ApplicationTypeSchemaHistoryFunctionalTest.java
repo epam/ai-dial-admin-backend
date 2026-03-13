@@ -52,7 +52,6 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
         var expected = createDto("1");
         expected.setDescription("new application description");
         expected.setApplications(List.of());
-        expected.setApplicationTypeRoutes(List.of());
         expected.setAppendApplicationPropertiesHeader(true);
         expected.setInterceptors(List.of("interceptor1"));
         expected.setApplicationTypeAssistantAttachmentsInRequestSupported(false);

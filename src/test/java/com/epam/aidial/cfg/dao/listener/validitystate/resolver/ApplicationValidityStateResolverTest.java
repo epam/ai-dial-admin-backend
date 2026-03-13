@@ -125,6 +125,7 @@ class ApplicationValidityStateResolverTest {
         deploymentEntity.setIsPublic(true);
 
         ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setApplicationProperties("{}");
         applicationEntity.setApplicationTypeSchema(applicationTypeSchemaEntity);
         applicationEntity.setDeployment(deploymentEntity);
 
