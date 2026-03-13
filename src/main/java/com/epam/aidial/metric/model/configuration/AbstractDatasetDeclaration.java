@@ -8,7 +8,7 @@ import java.util.List;
 public abstract class AbstractDatasetDeclaration<
         S extends BaseDataSourceDeclaration,
         T extends TableDeclaration
-> implements DatasetDeclaration {
+        > implements DatasetDeclaration {
     private String name;
     private String displayedName;
     private String description;

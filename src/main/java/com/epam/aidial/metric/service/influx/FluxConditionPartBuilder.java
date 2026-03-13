@@ -18,7 +18,6 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,7 +28,7 @@ public class FluxConditionPartBuilder {
             = "LIKE functionality currently supports only: equals, starts, ends, contains. Given value: %s";
 
     public static FluxQueryPart createFilterPart(Filter filter) {
-        var nonRangeFilters = extractNonRangeFilter(filter);
+        var nonRangeFilters = RangeFilterUtils.extractNonRangeFilter(filter);
         if (nonRangeFilters.isEmpty()) {
             return FluxQueryPart.of();
         }
@@ -46,7 +45,7 @@ public class FluxConditionPartBuilder {
     }
 
     public static String createRangePart(Filter filter, boolean isRequired) {
-        var rangeFilters = extractRangeFilter(filter);
+        var rangeFilters = RangeFilterUtils.extractRangeFilter(filter);
 
         var startFilterOptional = rangeFilters.stream()
                 .filter(f -> f.getOperator() == BinaryComparisonOperator.GREATER_OR_EQUALS)
@@ -79,18 +78,6 @@ public class FluxConditionPartBuilder {
                     convertInstantToString(end)
             );
         }
-    }
-
-    private static List<BinaryComparisonFilter> extractRangeFilter(Filter filter) {
-        return RangeFilterUtils.extractRangeFilter(filter);
-    }
-
-    private static Optional<Filter> extractNonRangeFilter(Filter filter) {
-        return RangeFilterUtils.extractNonRangeFilter(filter);
-    }
-
-    private static boolean isRangeFilter(Filter filter) {
-        return RangeFilterUtils.isRangeFilter(filter);
     }
 
     private static FluxQueryPart createFilterExpression(Filter filter) {
