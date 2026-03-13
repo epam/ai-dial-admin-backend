@@ -91,7 +91,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Missing endpoint and application type schema id. Only one of them should be specified. Application: deploymentName");
+                .hasMessage("At least application endpoint or MCP endpoint must be provided. Application: deploymentName");
 
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
     }
@@ -110,8 +110,26 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. "
-                        + "Only one of them should be specified. Application: deploymentName");
+                .hasMessage("Neither application endpoint or MCP must be set for schema based application. Application: deploymentName");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenApplicationTypeSchemaIdAndMcpProvided() {
+        Application application = new Application();
+        application.setDisplayName("text");
+        application.setDisplayVersion("1.0");
+        application.setApplicationTypeSchemaId(URI.create("https://test.com"));
+
+        Application.Mcp mcp = new Application.Mcp();
+        mcp.setEndpoint("http://mcp");
+        application.setMcp(mcp);
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Neither application endpoint or MCP must be set for schema based application. Application: deploymentName");
     }
 
     @Test
@@ -174,7 +192,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Missing endpoint and application type schema id. Only one of them should be specified. Application: deploymentName");
+                .hasMessage("At least application endpoint or MCP endpoint must be provided. Application: deploymentName");
     }
 
     @Test
@@ -192,26 +210,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deployment.getName(), application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Both endpoint: 'test' and application type schema id: 'https://test.com' are specified. "
-                        + "Only one of them should be specified. Application: deploymentName");
-    }
-
-    @Test
-    void validateUpdate_shouldThrowExceptionWhenMcpNotNullAndMcpEndpointIsNull() {
-        // given
-        Application application = new Application();
-        application.setDisplayName("text");
-        application.setDisplayVersion("1.0");
-        application.setEndpoint("test");
-        application.setMcp(new Application.Mcp());
-
-        Deployment deployment = new Deployment("deploymentName");
-        application.setDeployment(deployment);
-
-        // then
-        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deployment.getName(), application))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("MCP endpoint must be provided");
+                .hasMessage("Neither application endpoint or MCP must be set for schema based application. Application: deploymentName");
     }
 
     @ParameterizedTest
