@@ -596,7 +596,6 @@ public abstract class InterceptorFunctionalTest {
                 "Runner should contain the interceptor after switching back to runner source");
     }
 
-
     @Test
     public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenInterceptorIsEqualToConfigInterceptor() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
