@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.dao.model;
 
-import com.epam.aidial.cfg.dao.listener.validitystate.ApplicationTypeSchemaEntityListener;
+import com.epam.aidial.cfg.dao.listener.ApplicationTypeSchemaEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;

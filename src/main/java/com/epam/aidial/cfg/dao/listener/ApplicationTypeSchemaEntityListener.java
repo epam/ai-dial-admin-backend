@@ -1,4 +1,4 @@
-package com.epam.aidial.cfg.dao.listener.validitystate;
+package com.epam.aidial.cfg.dao.listener;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
