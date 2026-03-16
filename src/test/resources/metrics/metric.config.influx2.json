@@ -19,7 +19,6 @@
         "measurement": "analytics"
       },
       "schema": {
-        "$type": "static",
         "columns": [
           {
             "name": "_time",

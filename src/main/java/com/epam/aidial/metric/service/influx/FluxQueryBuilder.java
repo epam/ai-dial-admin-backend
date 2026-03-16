@@ -9,9 +9,7 @@ import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
 import com.epam.aidial.metric.config.InfluxDatasetConfiguration;
-import com.epam.aidial.metric.model.configuration.ColumnDeclaration;
-import com.epam.aidial.metric.model.configuration.StaticTableSchema;
-import com.epam.aidial.metric.model.configuration.TableDeclaration;
+import com.epam.aidial.metric.model.configuration.influx.InfluxColumnDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxColumnSource;
 import com.epam.aidial.metric.model.configuration.influx.InfluxColumnSourceType;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
@@ -369,12 +367,10 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
                 .build();
     }
 
-    private FluxQueryPart createAggregationFilterPart(TableDeclaration tableDeclaration, FunctionImpl function, List<Expression> args) {
+    private FluxQueryPart createAggregationFilterPart(InfluxTableDeclaration tableDeclaration, FunctionImpl function, List<Expression> args) {
         if ("count".equals(function.getName()) && args.isEmpty()) {
-            var tableSchema = (StaticTableSchema) tableDeclaration.getSchema();
-            var tableFieldName = tableSchema.getColumns().stream()
-                    .map(ColumnDeclaration::getSource)
-                    .map(InfluxColumnSource.class::cast)
+            var tableFieldName = tableDeclaration.getSchema().getColumns().stream()
+                    .map(InfluxColumnDeclaration::getSource)
                     .filter(columnSource -> columnSource.getType() == InfluxColumnSourceType.FIELD)
                     .map(InfluxColumnSource::getColumn)
                     .findFirst()
@@ -427,11 +423,10 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         return SimpleFluxBuilder.createRenamePart(mapping);
     }
 
-    private ColumnDeclaration getColumnDeclaration(String tableName, String columnName) {
+    private InfluxColumnDeclaration getColumnDeclaration(String tableName, String columnName) {
         InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
 
-        var tableSchema = (StaticTableSchema) tableDeclaration.getSchema();
-        return tableSchema.getColumns().stream()
+        return tableDeclaration.getSchema().getColumns().stream()
                 .filter(columnDeclaration -> columnDeclaration.getName().equals(columnName))
                 .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Multiple columns found for name: %s".formatted(columnName))))
                 .orElseThrow(() -> new IllegalArgumentException("No column is find for name: %s".formatted(columnName)));
@@ -453,10 +448,10 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         if (from instanceof Table table) {
             if (expression instanceof Alias alias && alias.getExpression() instanceof Column column) {
                 var columnDeclaration = getColumnDeclaration(table.getName(), column.getName());
-                return (InfluxColumnSource) columnDeclaration.getSource();
+                return columnDeclaration.getSource();
             } else if (expression instanceof ColumnImpl column) {
                 var columnDeclaration = getColumnDeclaration(table.getName(), column.getName());
-                return (InfluxColumnSource) columnDeclaration.getSource();
+                return columnDeclaration.getSource();
             } else {
                 var columnName = expressionToOuterColumnNames.get(expression);
                 if (columnName == null) {

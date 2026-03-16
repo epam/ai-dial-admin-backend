@@ -18,7 +18,6 @@
         "table": "${METRICS_STORAGE_ANALYTICS_TABLE:analytics}"
       },
       "schema": {
-        "$type": "static",
         "columns": [
           {
             "name": "_time",
@@ -176,7 +175,6 @@
         "table": "${METRICS_STORAGE_RATE_ANALYTICS_TABLE:rate_analytics}"
       },
       "schema": {
-        "$type": "static",
         "columns": [
           {
             "name": "_time",

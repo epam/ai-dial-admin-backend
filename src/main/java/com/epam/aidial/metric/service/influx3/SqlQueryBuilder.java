@@ -9,7 +9,6 @@ import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
 import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
-import com.epam.aidial.metric.model.configuration.influx3.Influx3ColumnSource;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3TableDeclaration;
 import com.epam.aidial.metric.model.influx3.SqlQueryContext;
@@ -409,10 +408,9 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
 
     private String getSourceColumnNameFromDeclaration(String tableName, String columnName) {
         Influx3TableDeclaration tableDeclaration = getTableDeclaration(tableName);
-        var tableSchema = (com.epam.aidial.metric.model.configuration.StaticTableSchema) tableDeclaration.getSchema();
-        return tableSchema.getColumns().stream()
+        return tableDeclaration.getSchema().getColumns().stream()
                 .filter(col -> col.getName().equals(columnName))
-                .map(col -> ((Influx3ColumnSource) col.getSource()).getColumn())
+                .map(col -> col.getSource().getColumn())
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Column %s not found in table %s".formatted(columnName, tableName)));
     }

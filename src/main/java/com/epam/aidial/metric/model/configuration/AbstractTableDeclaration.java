@@ -6,5 +6,4 @@ import lombok.Data;
 public abstract class AbstractTableDeclaration<S extends TableSource> implements TableDeclaration {
     private String name;
     private S source;
-    private TableSchema schema;
 }

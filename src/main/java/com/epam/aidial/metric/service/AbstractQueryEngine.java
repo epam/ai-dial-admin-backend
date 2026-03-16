@@ -13,7 +13,6 @@ import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.metric.model.configuration.ColumnType;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
-import com.epam.aidial.metric.model.configuration.StaticTableSchema;
 import com.epam.aidial.metric.model.configuration.TableDeclaration;
 import com.epam.aidial.metric.model.configuration.TableSchema;
 import com.epam.aidial.ql.Engine;
@@ -52,11 +51,7 @@ public abstract class AbstractQueryEngine implements Engine {
     }
 
     private Map<String, Column> getColumns(TableSchema tableSchema) {
-        if (!(tableSchema instanceof StaticTableSchema staticTableSchema)) {
-            throw new IllegalArgumentException("Table schema must be static");
-        }
-
-        return staticTableSchema.getColumns().stream()
+        return tableSchema.getColumns().stream()
                 .map(column -> new ColumnImpl(getType(column.getType()), column.getName()))
                 .collect(Collectors.toMap(Column::getName, column -> column));
     }

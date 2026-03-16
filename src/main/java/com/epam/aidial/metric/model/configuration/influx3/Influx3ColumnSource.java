@@ -1,6 +1,5 @@
 package com.epam.aidial.metric.model.configuration.influx3;
 
-import com.epam.aidial.metric.model.configuration.ColumnSource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Influx3ColumnSource implements ColumnSource {
+public class Influx3ColumnSource {
     private String column;
 }

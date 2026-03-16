@@ -7,4 +7,5 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class InfluxTableDeclaration extends AbstractTableDeclaration<InfluxTableSource> {
+    private InfluxTableSchema schema;
 }
