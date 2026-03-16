@@ -5,10 +5,10 @@ import com.epam.aidial.metric.model.configuration.influx3.Influx3ColumnSource;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "$type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION, defaultImpl = Influx3ColumnSource.class)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = InfluxColumnSource.class, names = {"influx", "influx2"}),
-        @JsonSubTypes.Type(value = Influx3ColumnSource.class, name = "influx3"),
+        @JsonSubTypes.Type(value = InfluxColumnSource.class),
+        @JsonSubTypes.Type(value = Influx3ColumnSource.class),
 })
 public interface ColumnSource {
 }
