@@ -148,6 +148,8 @@ instead to specify allowed roles along with their mapping to application roles.
 `config.rest.security.default.roles-mapping={"defaultIdpRole1":["FULL_ADMIN"],"defaultIdpRole2":["READ_ONLY_ADMIN"]}`
 `providers.azure.roles-mapping={"azureRole1":["FULL_ADMIN"],"azureRole2":["READ_ONLY_ADMIN"]}`
 
+**Available application roles:** `FULL_ADMIN`, `READ_ONLY_ADMIN`
+
 **Currently, it works the following way:**
 
 - If `providers.*.allowed-roles` are specified - all those roles along with `config.rest.security.default.allowedRoles` 
