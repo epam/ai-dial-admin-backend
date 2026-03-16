@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SecurityInfoDto {
 
-    private UserInfoDto userInfoDto;
+    private UserInfoDto userInfo;
 }

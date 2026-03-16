@@ -22,7 +22,7 @@ public class SecurityInfoController {
                 .roles(SecurityClaimsExtractor.getRoles())
                 .build();
         return SecurityInfoDto.builder()
-                .userInfoDto(userInfoDto)
+                .userInfo(userInfoDto)
                 .build();
     }
 }
