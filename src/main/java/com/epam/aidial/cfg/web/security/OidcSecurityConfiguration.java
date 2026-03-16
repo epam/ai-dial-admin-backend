@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
@@ -56,8 +57,13 @@ public class OidcSecurityConfiguration {
     }
 
     @Bean
-    public IssuerToDecoderMapFactory issuerToDecoderMapFactory() {
-        return new IssuerToDecoderMapFactory(identityProviderUtils);
+    public NimbusJwtDecoderResolver nimbusJwtDecoderResolver() {
+        return config -> NimbusJwtDecoder.withJwkSetUri(config.getJwkSetUri()).build();
+    }
+
+    @Bean
+    public IssuerToDecoderMapFactory issuerToDecoderMapFactory(NimbusJwtDecoderResolver nimbusJwtDecoderResolver) {
+        return new IssuerToDecoderMapFactory(identityProviderUtils, nimbusJwtDecoderResolver);
     }
 
     @Bean
