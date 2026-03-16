@@ -3,9 +3,7 @@ package com.epam.aidial.cfg.dao.listener.validitystate;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import jakarta.persistence.PreUpdate;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @LogExecution
 public class ApplicationTypeSchemaEntityListener {
 
