@@ -198,7 +198,6 @@
             "name": "_time",
             "type": "timestamp",
             "source": {
-              "$type": "influx3",
               "column": "time"
             }
           },
@@ -206,7 +205,6 @@
             "name": "project_id",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "project_id"
             }
           },
@@ -214,7 +212,6 @@
             "name": "title",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "title"
             }
           },
@@ -222,7 +219,6 @@
             "name": "deployment",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "deployment"
             }
           },
@@ -230,7 +226,6 @@
             "name": "parent_deployment",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "parent_deployment"
             }
           },
@@ -238,7 +233,6 @@
             "name": "mcp_method",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "mcp_method"
             }
           },
@@ -246,7 +240,6 @@
             "name": "execution_path",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "execution_path"
             }
           },
@@ -254,7 +247,6 @@
             "name": "chat_id",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "chat_id"
             }
           },
@@ -262,7 +254,6 @@
             "name": "user_hash",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "user_hash"
             }
           },
@@ -270,7 +261,6 @@
             "name": "upstream",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "upstream"
             }
           },
@@ -278,7 +268,6 @@
             "name": "trace_id",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "trace_id"
             }
           },
@@ -286,7 +275,6 @@
             "name": "core_span_id",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "core_span_id"
             }
           },
@@ -294,7 +282,6 @@
             "name": "core_parent_span_id",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "core_parent_span_id"
             }
           },
@@ -302,7 +289,6 @@
             "name": "mcp_tool_call_name",
             "type": "string",
             "source": {
-              "$type": "influx3",
               "column": "mcp_tool_call_name"
             }
           }
