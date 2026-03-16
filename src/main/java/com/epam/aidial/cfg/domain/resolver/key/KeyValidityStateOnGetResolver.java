@@ -24,10 +24,10 @@ public class KeyValidityStateOnGetResolver {
 
         ValidityStateEntity validityStateEntity = keyEntity.getValidityState();
         ValidityStateEntity newValidityStateEntity = new ValidityStateEntity();
-        newValidityStateEntity.setValid(false);
 
         if (validityStateEntity.isValid()) {
             newValidityStateEntity.setMessage("Key is expired");
+            newValidityStateEntity.setValid(false);
         } else {
             newValidityStateEntity.setMessage(validityStateEntity.getMessage() + ", Key is expired");
         }
