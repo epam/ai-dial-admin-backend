@@ -192,7 +192,6 @@
         "table": "${METRICS_STORAGE_MCP_ANALYTICS_TABLE:mcp_analytics}"
       },
       "schema": {
-        "$type": "static",
         "columns": [
           {
             "name": "_time",

@@ -217,7 +217,6 @@
         "measurement": "${METRICS_STORAGE_MCP_ANALYTICS_MEASUREMENT:mcp_analytics}"
       },
       "schema": {
-        "$type": "static",
         "columns": [
           {
             "name": "_time",
