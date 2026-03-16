@@ -5,7 +5,6 @@ import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,9 +26,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Stream;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
@@ -37,13 +33,11 @@ import java.util.stream.Stream;
 @ConditionalOnProperty(value = "config.rest.security.mode", havingValue = "oidc", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
-public class SecurityConfiguration {
+public class OidcSecurityConfiguration {
 
     private final IdentityProvidersProperties identityProvidersProperties;
     private final IdentityProviderUtils identityProviderUtils;
-
-    @Value("${config.rest.security.disable-swagger-authorization}")
-    protected boolean disableSwaggerAuthorization;
+    private final PublicPathsResolver publicPathsResolver;
 
     @Bean
     public JwtAuthenticationConverterFactory jwtAuthenticationConverterFactory() {
@@ -81,7 +75,7 @@ public class SecurityConfiguration {
                                                    AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(publicPathPatterns()).permitAll()
+                        .requestMatchers(publicPathsResolver.resolvePublicPathPatterns()).permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().denyAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -142,19 +136,5 @@ public class SecurityConfiguration {
             return converter.convert(introspectedToken, authenticatedPrincipal);
         });
         return opaqueTokenAuthenticationProvider;
-    }
-
-    protected String[] publicPathPatterns() {
-        var swaggerPaths = disableSwaggerAuthorization
-                ? List.of("/swagger-ui/**", "/v3/api-docs/**")
-                : List.<String>of();
-        var appHealthPaths = List.of("/api/v1/health/**");
-
-        return Stream.of(
-                        swaggerPaths,
-                        appHealthPaths
-                )
-                .flatMap(Collection::stream)
-                .toArray(String[]::new);
     }
 }

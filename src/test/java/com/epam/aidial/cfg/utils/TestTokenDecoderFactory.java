@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import javax.crypto.spec.SecretKeySpec;
 
 import static com.epam.aidial.cfg.utils.JwtUtils.SECRET_KEY;
@@ -36,7 +37,7 @@ public class TestTokenDecoderFactory implements TokenDecoderFactory {
                 .build();
 
         final var createIssuerToDecoderMap = issuerToDecoderMapFactory.createIssuerToDecoderMap(jwtDecoder,
-                JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig()));
+                JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig(), Map.of()));
         return new MultiIssuerJwtDecoder(createIssuerToDecoderMap);
     }
 }

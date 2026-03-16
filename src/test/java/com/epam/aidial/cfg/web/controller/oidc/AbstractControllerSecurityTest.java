@@ -3,10 +3,10 @@ package com.epam.aidial.cfg.web.controller.oidc;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.configuration.RestTemplateConfig;
 import com.epam.aidial.cfg.utils.JwtUtils;
-import com.epam.aidial.cfg.utils.TestAuthenticationConverterFactory;
 import com.epam.aidial.cfg.utils.TestIdentityProviderConfig;
 import com.epam.aidial.cfg.utils.TestTokenDecoderFactory;
 import com.epam.aidial.cfg.web.security.SecurityPackage;
+import com.epam.aidial.cfg.web.security.UserRole;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,7 +35,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import({
         JsonMapperConfiguration.class,
         TestTokenDecoderFactory.class,
-        TestAuthenticationConverterFactory.class,
         TestIdentityProviderConfig.class,
         RestTemplateConfig.class
 })
@@ -120,7 +119,7 @@ public abstract class AbstractControllerSecurityTest {
                         ),
                         "user_test",
                         "test@email.com",
-                        List.of(new SimpleGrantedAuthority("testRole"))
+                        List.of(new SimpleGrantedAuthority(UserRole.FULL_ADMIN.name()))
                 ),
                 Arguments.of(
                         JwtUtils.generateTestToken(
@@ -133,7 +132,7 @@ public abstract class AbstractControllerSecurityTest {
                         ),
                         "user_test",
                         null,
-                        List.of(new SimpleGrantedAuthority("testRole"))
+                        List.of(new SimpleGrantedAuthority(UserRole.FULL_ADMIN.name()))
                 ),
                 Arguments.of(
                         JwtUtils.generateTestToken(
@@ -147,7 +146,7 @@ public abstract class AbstractControllerSecurityTest {
                         ),
                         "user_test",
                         null,
-                        List.of(new SimpleGrantedAuthority("testRole"))
+                        List.of(new SimpleGrantedAuthority(UserRole.FULL_ADMIN.name()))
                 )
         );
     }
