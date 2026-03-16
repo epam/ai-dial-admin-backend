@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.MoveResource;
+import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
@@ -76,7 +77,7 @@ public class FileService implements ResourceService {
 
     @Override
     public FileMetadataDto getMetadata(ResourceMetadataRequest request) {
-        return fileClient.getFilesMetadata(request.getPath(), request.isRecursive(), request.getNextToken());
+        return fileClient.getFilesMetadata(request.getPath(), request.isRecursive(), request.getNextToken(), request.isPermissions());
     }
 
     public Response get(String path) {
@@ -305,5 +306,15 @@ public class FileService implements ResourceService {
                 throw e;
             }
         };
+    }
+
+    public boolean fileExists(String path) {
+        try {
+            var request = ResourceMetadataRequest.builder().path(path).build();
+            var filesNode = getAll(request);
+            return filesNode.getNodeType() == NodeType.ITEM;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
     }
 }

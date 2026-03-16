@@ -5,11 +5,13 @@ import com.epam.aidial.cfg.client.ResourceCredentialClient;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
+import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
 import com.epam.aidial.cfg.configuration.CoreConfigVersionProperties;
 import com.epam.aidial.cfg.configuration.HibernateConfiguration;
 import com.epam.aidial.cfg.configuration.JpaConfiguration;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.configuration.SyncStateConfiguration;
 import com.epam.aidial.cfg.domain.mapper.ApplicationCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.mapper.InterceptorCoreMapper;
@@ -23,6 +25,7 @@ import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.service.DeploymentService;
+import com.epam.aidial.cfg.domain.service.ExternalSchemaLoader;
 import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
 import com.epam.aidial.cfg.domain.service.KeyService;
@@ -64,7 +67,7 @@ import java.util.Map;
         "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
-@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, HashCalculator.class})
+@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, HashCalculator.class, SyncStateConfiguration.class})
 @EnableAspectJAutoProxy
 public class FunctionalTestConfiguration {
 
@@ -98,6 +101,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public TestHistoryFacade testHistoryFacade(HistoryFacade historyFacade, AuditActivityFacade activityFacade) {
         return new TestHistoryFacade(historyFacade, activityFacade);
+    }
+
+    @Bean
+    public AutoImportOnBootstrapProperties autoImportOnBootstrapProperties() {
+        return new AutoImportOnBootstrapProperties();
     }
 
     @Bean
@@ -172,6 +180,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public ResourceCredentialService resourceCredentialService(ResourceCredentialClient client, ResourceCredentialClientMapper resourceCredentialMapper) {
         return new ResourceCredentialService(client, resourceCredentialMapper);
+    }
+
+    @Bean
+    public ExternalSchemaLoader externalSchemaLoader() {
+        return Mockito.mock(ExternalSchemaLoader.class);
     }
 
 }

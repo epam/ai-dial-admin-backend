@@ -429,6 +429,7 @@
 			"applicationTypeRateEndpoint": "https://test.io/openai/rate",
 			"applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
 			"applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
+			"applicationTypeSchemaEndpoint": "https://test.com/endpoint",
 			"appendApplicationPropertiesHeader": true,
 			"defs": {},
 			"properties": {},

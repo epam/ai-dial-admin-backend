@@ -17,9 +17,11 @@ public abstract class Publication {
     private String requestName;
     private String folderId;
     private String author;
+    private String displayAuthor;
     private long createdAt;
     private PublicationStatus status;
     private List<Rule> rules;
+    private List<PublicationResourceIssue> resourceIssues;
 
     public abstract List<? extends PublicationResource> getResources();
 

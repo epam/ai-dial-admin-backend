@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
 import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
+import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -53,12 +54,10 @@ public class ToolSetResourceService implements ResourceService {
     private final FolderMapper folderMapper;
     private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
+    private final CoreClientUrlUtils coreClientUrlUtils;
 
     @Value("${core.toolsets.metadata.default.limit}")
     private int toolSetsMetadataDefaultLimit;
-
-    @Value("${core.client.url}")
-    private String coreClientUrl;
 
     public ToolSetResourceNodeInfo getToolSetResources(ResourceMetadataRequest request) {
         var toolSetMetadataDto = getMetadata(request);
@@ -82,7 +81,8 @@ public class ToolSetResourceService implements ResourceService {
         var nextToken = request.getNextToken();
         var path = request.getPath() != null ? request.getPath() : BASE_PATH;
         var limit = request.getLimit() != null ? request.getLimit() : toolSetsMetadataDefaultLimit;
-        return toolSetClient.getToolSetMetadata(path, recursive, nextToken, limit);
+        var permissions = request.isPermissions();
+        return toolSetClient.getToolSetMetadata(path, recursive, nextToken, limit, permissions);
     }
 
     @Override
@@ -111,7 +111,9 @@ public class ToolSetResourceService implements ResourceService {
                 path,
                 false,
                 null,
-                toolSetsMetadataDefaultLimit);
+                toolSetsMetadataDefaultLimit,
+                false
+        );
 
         var toolSetResource = toolSetClientMapper.toToolSetResource(response.getBody(), metadata);
         var currentEtag = response.getHeaders().getETag();
@@ -164,7 +166,7 @@ public class ToolSetResourceService implements ResourceService {
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
         var toolSet = getToolSetResource(path);
         var authHeaders = getAuthHeaders();
-        var normalizedCoreClientUrl = getNormalizedCoreClientUrl();
+        var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
         return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getUrl()),
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), nextCursor, authHeaders);
     }
@@ -172,7 +174,7 @@ public class ToolSetResourceService implements ResourceService {
     public McpSchema.CallToolResult callTool(String path, McpSchema.CallToolRequest callToolRequest) {
         var toolSet = getToolSetResource(path);
         var authHeaders = getAuthHeaders();
-        var normalizedCoreClientUrl = getNormalizedCoreClientUrl();
+        var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
         return toolCallService.callTool(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getUrl()),
                 ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())), authHeaders, callToolRequest);
     }
@@ -185,9 +187,12 @@ public class ToolSetResourceService implements ResourceService {
         return Map.of("Authorization", "Bearer " + token);
     }
 
-    private String getNormalizedCoreClientUrl() {
-        return coreClientUrl.endsWith("/")
-                ? coreClientUrl.substring(0, coreClientUrl.length() - 1)
-                : coreClientUrl;
+    public boolean toolSetResourceExists(String path) {
+        try {
+            getToolSetResource(path);
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
     }
 }

@@ -4,10 +4,10 @@ import com.epam.aidial.cfg.client.FileClient;
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.dto.FileMetadataDto;
 import com.epam.aidial.cfg.client.dto.MoveResourceDto;
+import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.FolderMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapperImpl;
-import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -76,13 +76,13 @@ class FileServiceTest {
         expected.setPath("public/testFile.txt");
         expected.setFolderId("public");
         expected.setNodeType(NodeType.ITEM);
-        when(fileClient.getFilesMetadata(any(), anyBoolean(), any())).thenReturn(fileMetadataDto);
+        when(fileClient.getFilesMetadata(any(), anyBoolean(), any(), anyBoolean())).thenReturn(fileMetadataDto);
         // when
         FileNodeInfo result = fileService.getAll(filesRequest);
         // then
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result).isEqualTo(expected);
-        verify(fileClient).getFilesMetadata(any(), anyBoolean(), any());
+        verify(fileClient).getFilesMetadata(any(), anyBoolean(), any(), anyBoolean());
     }
 
     @Test
@@ -166,7 +166,7 @@ class FileServiceTest {
                 .bucket("public")
                 .items(List.of(item, folder))
                 .build();
-        when(fileClient.getFilesMetadata(any(), anyBoolean(), any())).thenReturn(response);
+        when(fileClient.getFilesMetadata(any(), anyBoolean(), any(), anyBoolean())).thenReturn(response);
         // when
         FolderInfo folderInfo = fileService.getFolders(request);
         // then
@@ -200,7 +200,7 @@ class FileServiceTest {
                 .bucket("public")
                 .items(List.of(item2, folder))
                 .build();
-        when(fileClient.getFilesMetadata(any(), anyBoolean(), any())).thenReturn(response);
+        when(fileClient.getFilesMetadata(any(), anyBoolean(), any(), anyBoolean())).thenReturn(response);
         // when
         Set<String> resourceUrls = fileService.getResourceUrls(path);
         // then

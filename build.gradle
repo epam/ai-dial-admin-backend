@@ -7,6 +7,9 @@ buildscript {
             classpath ('org.springframework:spring-core:6.2.11') {
                 because("previous versions have vulnerabilities")
             }
+            classpath ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
@@ -15,11 +18,11 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '3.5.3'
+    id 'org.springframework.boot' version '3.5.10'
 }
 
 group = 'com.epam.aidial'
-version = "0.13.0-rc"
+version = "0.15.0-rc"
 
 java {
     toolchain {
@@ -78,10 +81,12 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-sts:1.12.663'
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
     implementation 'com.azure:azure-identity:1.15.3'
+    implementation 'com.azure:azure-identity-extensions:1.2.7'
     implementation 'com.azure:azure-security-keyvault-secrets:4.8.3'
     implementation 'org.springframework.vault:spring-vault-core:3.1.2'
     implementation 'software.amazon.awssdk:secretsmanager:2.30.27'
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
+    implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
     implementation("org.jsoup:jsoup:1.21.1")
     implementation 'io.modelcontextprotocol.sdk:mcp:0.11.3'
@@ -106,6 +111,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1'
 
     implementation 'org.mapstruct:mapstruct:1.6.0'
+    implementation 'info.picocli:picocli-spring-boot-starter:4.7.6'
 
     implementation 'com.h2database:h2'
     implementation 'org.postgresql:postgresql:42.7.7'
@@ -116,7 +122,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql:11.4.1'
     implementation 'org.flywaydb:flyway-sqlserver:11.4.1'
 
-    implementation 'io.fabric8:kubernetes-client:7.4.0'
+    implementation 'io.fabric8:kubernetes-client:7.5.2'
 
     implementation 'com.influxdb:influxdb-client-java:7.2.0'
 
@@ -142,6 +148,8 @@ dependencies {
 
     implementation project(':query-language')
 
+    implementation("com.nimbusds:oauth2-oidc-sdk:11.33")
+
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
     annotationProcessor "org.mapstruct:mapstruct-processor:1.6.0"
@@ -152,7 +160,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core:5.3.1'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
-    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.assertj:assertj-core:3.27.7'
     testImplementation 'org.apache.commons:commons-lang3:3.18.0'
     testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.0'
@@ -162,7 +170,7 @@ dependencies {
     testImplementation 'org.testcontainers:mssqlserver'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.13') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.15') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
@@ -193,6 +201,9 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.springframework:spring-core:6.2.11') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
             because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {

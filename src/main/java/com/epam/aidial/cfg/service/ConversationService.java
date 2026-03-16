@@ -41,7 +41,7 @@ public class ConversationService implements ResourceService {
 
     @Override
     public ConversationMetadataDto getMetadata(ResourceMetadataRequest request) {
-        return conversationClient.getConversationMetadata(request.getPath(), request.isRecursive(), request.getNextToken());
+        return conversationClient.getConversationMetadata(request.getPath(), request.isRecursive(), request.getNextToken(), request.isPermissions());
     }
 
     @Override
@@ -57,12 +57,21 @@ public class ConversationService implements ResourceService {
 
     public Conversation getConversation(String path) {
         var conversationDto = conversationClient.getConversation(path);
-        var conversationMetadataDto = conversationClient.getConversationMetadata(path, false, null);
+        var conversationMetadataDto = conversationClient.getConversationMetadata(path, false, null, false);
         return conversationClientMapper.toConversation(conversationDto, conversationMetadataDto);
     }
 
     @Override
     public void delete(String path, String etag) {
         conversationClient.deleteConversation(path);
+    }
+
+    public boolean conversationExists(String path) {
+        try {
+            getConversation(path);
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
     }
 }

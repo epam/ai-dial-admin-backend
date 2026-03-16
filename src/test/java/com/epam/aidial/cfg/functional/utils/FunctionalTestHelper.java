@@ -5,7 +5,9 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.AdminSettingsDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
+import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -13,11 +15,14 @@ import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.AdapterEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.core.config.CoreFeatures;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +44,12 @@ public class FunctionalTestHelper {
         modelDto.setDisplayName("model" + suffix);
         modelDto.setDescription("description" + suffix);
         modelDto.setMaxRetryAttempts(1);
+        return modelDto;
+    }
+
+    public static ModelDto createModelDtoWithAdapter(String suffix) {
+        ModelDto modelDto = createModelDto(suffix);
+        modelDto.setSource(new ModelAdapterSourceDto("adapter" + suffix, "https://endpoint1/chat/completions"));
         return modelDto;
     }
 
@@ -65,6 +76,7 @@ public class FunctionalTestHelper {
         adapterDto.setDescription("description" + suffix);
         adapterDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
         adapterDto.setModels(List.of());
+        adapterDto.setSource(new AdapterEndpointsSourceDto());
         return adapterDto;
     }
 
@@ -140,6 +152,7 @@ public class FunctionalTestHelper {
         keyDto.setProjectContactPoint("test@mail.com");
         keyDto.setExpiresAt(Instant.ofEpochMilli(253402300799999L));
         keyDto.setTopics(new TreeSet<>(Set.of("topic" + suffix)));
+        keyDto.setAllowedIpAddressRanges(List.of("198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"));
         return keyDto;
     }
 
@@ -235,5 +248,37 @@ public class FunctionalTestHelper {
         AdminSettingsDto adminSettingsDto = new AdminSettingsDto();
         adminSettingsDto.setCoreConfigVersion(coreConfigVersion);
         return adminSettingsDto;
+    }
+
+    public static InterceptorRunnerDto createInterceptorRunnerDto(String suffix) {
+        InterceptorRunnerDto interceptorRunnerDto = new InterceptorRunnerDto();
+        interceptorRunnerDto.setName("interceptorRunner" + suffix);
+        interceptorRunnerDto.setDisplayName("Interceptor Runner " + suffix);
+        interceptorRunnerDto.setDescription("description" + suffix);
+        interceptorRunnerDto.setCompletionEndpoint("https://endpoint.test.com/completion" + suffix);
+        interceptorRunnerDto.setConfigurationEndpoint("https://endpoint.test.com/configuration" + suffix);
+        interceptorRunnerDto.setInterceptors(new ArrayList<>());
+        return interceptorRunnerDto;
+    }
+
+    public static AuditActivityDto createAuditActivityDto(String activityType, String resourceType, String resourceId, Long epochTimestampMs) {
+        AuditActivityDto auditActivityDto = new AuditActivityDto();
+
+        auditActivityDto.setActivityType(activityType);
+        auditActivityDto.setResourceType(resourceType);
+        auditActivityDto.setResourceId(resourceId);
+        auditActivityDto.setEpochTimestampMs(epochTimestampMs);
+
+        return auditActivityDto;
+    }
+
+    public static AuditActivityDto createAuditActivityDto(String activityType, String resourceType, String resourceId) {
+        AuditActivityDto auditActivityDto = new AuditActivityDto();
+
+        auditActivityDto.setActivityType(activityType);
+        auditActivityDto.setResourceType(resourceType);
+        auditActivityDto.setResourceId(resourceId);
+
+        return auditActivityDto;
     }
 }

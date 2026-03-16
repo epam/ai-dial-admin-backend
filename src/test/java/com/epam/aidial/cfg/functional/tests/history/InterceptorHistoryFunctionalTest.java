@@ -4,11 +4,14 @@ import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
+import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.GlobalSettingsFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
+import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
@@ -22,6 +25,7 @@ import java.util.Map;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorRunnerDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 
@@ -38,6 +42,8 @@ public abstract class InterceptorHistoryFunctionalTest {
     @Autowired
     private RoleFacade roleFacade;
     @Autowired
+    private InterceptorRunnerFacade interceptorRunnerFacade;
+    @Autowired
     private TestHistoryFacade historyFacade;
 
     @Test
@@ -48,7 +54,7 @@ public abstract class InterceptorHistoryFunctionalTest {
         interceptorFacade.createInterceptor(interceptorDto);
 
         // update interceptor1 description
-        InterceptorDto updatedInterceptor =  createInterceptorDto("1");
+        InterceptorDto updatedInterceptor = createInterceptorDto("1");
         updatedInterceptor.setDescription("new interceptor description");
         interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, "*");
 
@@ -57,7 +63,6 @@ public abstract class InterceptorHistoryFunctionalTest {
         var expected = createInterceptorDto("1");
         expected.setDescription("new interceptor description");
         expected.setSource(new InterceptorEndpointsSourceDto());
-        expected.setDefaults(Map.of());
         expected.setApplicationTypeSchemas(List.of());
         assertInterceptor(actual, expected);
 
@@ -157,6 +162,70 @@ public abstract class InterceptorHistoryFunctionalTest {
         Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
 
         var interceptorsAfterRollbackToRevision = interceptorFacade.getAllInterceptors();
+        Assertions.assertEquals(actualAtRevision, interceptorsAfterRollbackToRevision);
+    }
+
+    @Test
+    public void shouldSuccessfullyRollbackDeletedInterceptorWithInterceptorRunner() {
+        // create interceptor runner
+        InterceptorRunnerDto interceptorRunnerDto = createInterceptorRunnerDto("1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
+
+        // create interceptor
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setSource(new InterceptorRunnerSourceDto(interceptorRunnerDto.getName()));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        // remember rev number and expected interceptors state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<InterceptorDto> actualAtRevision = interceptorFacade.getAllInterceptors();
+
+        // delete interceptor
+        interceptorFacade.deleteInterceptor(interceptorDto.getName());
+
+        // rollback and verify
+        int revisionsListSizeBeforeRollback = historyFacade.getRevisionsListSize();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        int revisionsListSizeAfterRollback = historyFacade.getRevisionsListSize();
+
+        Assertions.assertEquals(revisionsListSizeBeforeRollback + 1, revisionsListSizeAfterRollback);
+
+        Collection<InterceptorDto> interceptorsAfterRollbackToRevision = interceptorFacade.getAllInterceptors();
+        Assertions.assertEquals(actualAtRevision, interceptorsAfterRollbackToRevision);
+    }
+
+    @Test
+    public void shouldSuccessfullyRollbackInterceptorsWithInterceptorRunner() {
+        initRoles();
+
+        // create interceptor runner 1
+        InterceptorRunnerDto interceptorRunnerDto = createInterceptorRunnerDto("1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
+
+        // create interceptor
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setSource(new InterceptorRunnerSourceDto(interceptorRunnerDto.getName()));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        // remember rev number and expected interceptors state
+        final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        var actualAtRevision = interceptorFacade.getAllInterceptors();
+
+        // create interceptor runner 2
+        InterceptorRunnerDto interceptorRunnerDto2 = createInterceptorRunnerDto("2");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto2);
+
+        // update interceptor
+        interceptorDto.setSource(new InterceptorRunnerSourceDto(interceptorRunnerDto2.getName()));
+        interceptorFacade.updateInterceptor(interceptorDto.getName(), interceptorDto, "*");
+
+        int revisionsListSizeBeforeRollback = historyFacade.getRevisionsListSize();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        int revisionsListSizeAfterRollback = historyFacade.getRevisionsListSize();
+
+        Assertions.assertEquals(revisionsListSizeBeforeRollback + 1, revisionsListSizeAfterRollback);
+
+        Collection<InterceptorDto> interceptorsAfterRollbackToRevision = interceptorFacade.getAllInterceptors();
         Assertions.assertEquals(actualAtRevision, interceptorsAfterRollbackToRevision);
     }
 

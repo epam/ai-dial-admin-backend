@@ -5,8 +5,10 @@ import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
+import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
@@ -39,10 +41,12 @@ import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDtoWithoutRoleLimits;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public abstract class ToolSetFunctionalTest {
@@ -98,12 +102,12 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP), any()))
-                .thenReturn(mcpSyncClient);
-
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/ToolSet1/mcp"),
+                eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
+
     }
 
     @Test
@@ -115,11 +119,10 @@ public abstract class ToolSetFunctionalTest {
         var callToolRequest = Mockito.mock(McpSchema.CallToolRequest.class);
         var expectedCallToolResult = Mockito.mock(McpSchema.CallToolResult.class);
         var mcpSyncClient = Mockito.mock(McpSyncClient.class);
-
-        Mockito.when(mcpClientFactory.create(eq(toolSetDto.getEndpoint()), eq(Transport.HTTP), any()))
-                .thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.initialize())
                 .thenReturn(null);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/ToolSet1/mcp"),
+                eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.callTool(callToolRequest))
                 .thenReturn(expectedCallToolResult);
 
@@ -139,6 +142,26 @@ public abstract class ToolSetFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyCreateToolSetWithPkceData() {
+        ResourceAuthSettingsDto resourceAuthSettingsDto = new ResourceAuthSettingsDto();
+        resourceAuthSettingsDto.setAuthenticationType(AuthenticationTypeDto.OAUTH);
+        resourceAuthSettingsDto.setClientId("clientId");
+        resourceAuthSettingsDto.setClientSecret("clientSecret");
+        resourceAuthSettingsDto.setAuthorizationEndpoint("/authorize");
+        resourceAuthSettingsDto.setTokenEndpoint("/token");
+        resourceAuthSettingsDto.setCodeChallengeMethod("S256");
+
+        ToolSetDto toolSetDto = createToolSetDtoWithoutRoleLimits("1");
+        toolSetDto.setAuthSettings(resourceAuthSettingsDto);
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        Assertions.assertNotNull(actual.getAuthSettings().getCodeChallenge());
+        Assertions.assertNotNull(actual.getAuthSettings().getCodeVerifier());
+    }
+
+    @Test
     public void shouldSuccessfullyCreateAndUpdateToolSet() {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
@@ -154,6 +177,29 @@ public abstract class ToolSetFunctionalTest {
         expected.setDescription("New ToolSet description");
 
         assertToolSet(actual, expected);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateToolSetWithPkceData() {
+        ToolSetDto toolSetDto = createToolSetDtoWithoutRoleLimits("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        ResourceAuthSettingsDto resourceAuthSettingsDto = new ResourceAuthSettingsDto();
+        resourceAuthSettingsDto.setAuthenticationType(AuthenticationTypeDto.OAUTH);
+        resourceAuthSettingsDto.setClientId("clientId");
+        resourceAuthSettingsDto.setClientSecret("clientSecret");
+        resourceAuthSettingsDto.setAuthorizationEndpoint("/authorize");
+        resourceAuthSettingsDto.setTokenEndpoint("/token");
+        resourceAuthSettingsDto.setCodeChallengeMethod("S256");
+
+        ToolSetDto updatedToolSet = createToolSetDtoWithoutRoleLimits("1");
+        updatedToolSet.setAuthSettings(resourceAuthSettingsDto);
+        toolSetFacade.updateToolSet(updatedToolSet.getName(), updatedToolSet, "*");
+
+        ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
+
+        Assertions.assertNotNull(actual.getAuthSettings().getCodeChallenge());
+        Assertions.assertNotNull(actual.getAuthSettings().getCodeVerifier());
     }
 
     @Test
@@ -264,7 +310,7 @@ public abstract class ToolSetFunctionalTest {
 
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     @Test
@@ -320,7 +366,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto refreshedResult = toolSetFacade.getToolSet(refreshedToolSetName);
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
     }
 
     @Test

@@ -21,4 +21,5 @@ public class Key {
     private Long keyGeneratedAt;
     private ValidityState validityState;
     private Set<String> topics;
+    private List<String> allowedIpAddressRanges;
 }

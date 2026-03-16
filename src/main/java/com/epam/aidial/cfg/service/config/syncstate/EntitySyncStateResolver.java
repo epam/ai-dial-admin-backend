@@ -108,6 +108,7 @@ public class EntitySyncStateResolver {
         EntitySyncStateStatus syncStateStatus = syncStateStatusResolver.resolve(
                 normalizedCurrentStateJsonNode,
                 configStateJsonNode,
+                currentState.getClass(),
                 isCurrentStateValid,
                 currentStateUpdatedAt,
                 cacheEntry.reloadTimestamp()
@@ -119,6 +120,10 @@ public class EntitySyncStateResolver {
     }
 
     private <T> JsonNode getNormalizedCurrentStateJsonNode(T currentState) throws JsonProcessingException {
+        if (currentState instanceof String currentStateAsString) {
+            return objectMapper.readTree(currentStateAsString);
+        }
+
         String serializedCurrentStateOnOurSide = objectMapper.writeValueAsString(currentState);
         Object deserializedCurrentStateOnCoreSide = coreObjectMapper.readValue(serializedCurrentStateOnOurSide, currentState.getClass());
         String serializedCurrentStateOnCoreSide = coreObjectMapper.writeValueAsString(deserializedCurrentStateOnCoreSide);

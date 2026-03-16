@@ -30,6 +30,13 @@ public class PathUtils {
         return path;
     }
 
+    public static String ensureTrailingSlash(String path) {
+        if (path == null || path.isEmpty()) {
+            return "/";
+        }
+        return path.endsWith("/") ? path : path + "/";
+    }
+
     public static PathParts parsePath(String path) {
         path = trimTrailingSlash(path);
         int lastSlashIndex = path.lastIndexOf('/');
@@ -89,6 +96,11 @@ public class PathUtils {
     public static String buildPath(String folderId, String name, String version) {
         var cleanFolderId = StringUtils.stripEnd(folderId, "/");
         return cleanFolderId + "/" + name + "__" + version;
+    }
+
+    public static String buildEncodedPath(String folderId, String name, String version) {
+        var cleanFolderId = StringUtils.stripEnd(folderId, "/");
+        return UrlUtil.encodePath(cleanFolderId + "/" + name + "__" + version);
     }
 
     /**

@@ -10,11 +10,16 @@ import com.epam.aidial.cfg.client.dto.RulesDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.model.ApplicationPublication;
+import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.CreatePublication;
+import com.epam.aidial.cfg.model.FilePublication;
+import com.epam.aidial.cfg.model.PromptPublication;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationInfos;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.model.Rule;
+import com.epam.aidial.cfg.model.ToolSetPublication;
 import com.epam.aidial.cfg.service.publication.resolver.PublicationResolver;
 import com.epam.aidial.cfg.service.publication.resolver.type.PublicationResourceTypeResolver;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +29,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +77,15 @@ public class PublicationService {
         return resolvePublication(publicationDto);
     }
 
+    public void updatePublication(Publication publication, List<MultipartFile> files) {
+        var resourceType = getPublicationType(publication);
+        var publicationResolver = getPublicationResolver(List.of(resourceType));
+        publicationResolver.attachUploadedFiles(publication, files);
+        var publicationDto = publicationResolver.updatePublicationResourceTargets(publication);
+        publicationClient.updatePublication(publicationDto);
+        publicationResolver.updatePublicationResources(publication);
+    }
+
     public void approvePublication(String path) {
         var pathDto = mapper.toPublicationPathDto(path);
         publicationClient.approvePublication(pathDto);
@@ -87,6 +103,11 @@ public class PublicationService {
         return publication.getUrl();
     }
 
+    public void deletePublication(String path) {
+        var pathDto = mapper.toPublicationPathDto(path);
+        publicationClient.deletePublication(pathDto);
+    }
+
     public Map<String, List<Rule>> getRules(String path) {
         RuleRequest ruleRequest = new RuleRequest(encodeFolderPath(path));
         RulesDto rules = publicationClient.getRules(ruleRequest);
@@ -98,19 +119,22 @@ public class PublicationService {
 
     private Publication resolvePublication(PublicationDto publicationDto) {
         var resourceTypes = CollectionUtils.emptyIfNull(publicationDto.getResourceTypes());
-        var resourceType = publicationResourceTypeResolver.resolveResourceType(resourceTypes);
+        var publicationResolver = getPublicationResolver(resourceTypes);
+        return publicationResolver.resolvePublication(publicationDto);
+    }
 
+    private PublicationResolver getPublicationResolver(Collection<ResourceTypeDto> resourceTypes) {
+        var resourceType = publicationResourceTypeResolver.resolveResourceType(resourceTypes);
         if (resourceType == null) {
             throw new IllegalStateException("Unable to resolve publication resource type. Resource types: " + resourceTypes);
         }
 
-        var publicationResolver = publicationResolversByResourceType.get(resourceType);
-
-        if (publicationResolver == null) {
+        var resolver = publicationResolversByResourceType.get(resourceType);
+        if (resolver == null) {
             throw new IllegalStateException("Unable to find publication resolver. Resource type: " + resourceType);
         }
 
-        return publicationResolver.resolvePublication(publicationDto);
+        return resolver;
     }
 
     private boolean hasCorrectResourceType(List<ResourceTypeDto> resourceTypes, ResourceType resourceType) {
@@ -121,6 +145,22 @@ public class PublicationService {
             return false;
         }
         return resourceType == publicationResourceTypeResolver.resolveResourceType(resourceTypes);
+    }
+
+    private ResourceTypeDto getPublicationType(Publication publication) {
+        if (publication instanceof PromptPublication) {
+            return ResourceTypeDto.PROMPT;
+        } else if (publication instanceof FilePublication) {
+            return ResourceTypeDto.FILE;
+        } else if (publication instanceof ApplicationPublication) {
+            return ResourceTypeDto.APPLICATION;
+        } else if (publication instanceof ConversationPublication) {
+            return ResourceTypeDto.CONVERSATION;
+        } else if (publication instanceof ToolSetPublication) {
+            return ResourceTypeDto.TOOL_SET;
+        }
+        throw new IllegalArgumentException("Unsupported publication type: %s. Publication: %s"
+                .formatted(publication.getClass(), publication));
     }
 
 }

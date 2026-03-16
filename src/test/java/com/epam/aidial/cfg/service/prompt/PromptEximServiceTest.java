@@ -29,8 +29,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -219,7 +217,7 @@ class PromptEximServiceTest {
         assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(CreatePrompt.class);
-        verify(promptService).createPrompt(captor.capture(), eq(true), isNull());
+        verify(promptService).createPrompt(captor.capture());
         verify(folderService).updatesRules(updateRulesRequest);
 
         var prompt = captor.getValue();
@@ -273,7 +271,7 @@ class PromptEximServiceTest {
         assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(CreatePrompt.class);
-        verify(promptService).createPrompt(captor.capture(), eq(true), isNull());
+        verify(promptService).createPrompt(captor.capture());
         verify(folderService).updatesRules(updateRulesRequest);
 
         var prompt = captor.getValue();

@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.dto.PromptsEximDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.exception.NotModifiedException;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.mapper.PromptMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
@@ -50,7 +51,6 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -199,27 +199,73 @@ class PromptControllerTest extends AbstractControllerNoneSecureTest {
     @Test
     void testCreatePrompt() throws Exception {
         var createPromptDtoJson = ResourceUtils.readResource("/prompts/create_prompt_dto.json");
-
         var createPromptJson = ResourceUtils.readResource("/prompts/create_prompt.json");
         var createPrompt = objectMapper.readValue(createPromptJson, new TypeReference<CreatePrompt>() {
         });
 
-        var createdPromptJson = ResourceUtils.readResource("/prompts/created_prompt.json");
-        var createdPrompt = objectMapper.readValue(createdPromptJson, new TypeReference<Prompt>() {
-        });
-
-        var createdPromptDtoJson = ResourceUtils.readResource("/prompts/created_prompt_dto.json");
-
-        when(promptService.createPrompt(any(), anyBoolean(), any())).thenReturn(new DomainModelWithEtag<>(createdPrompt, TEST_ETAG));
+        when(promptService.createPrompt(any())).thenReturn(TEST_ETAG);
 
         mockMvc.perform(post("/api/v1/prompts/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createPromptDtoJson))
-                .andExpect(status().isOk())
-                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG))
-                .andExpect(content().json(createdPromptDtoJson, JsonCompareMode.LENIENT));
+                .andExpect(status().isNoContent())
+                .andExpect(header().string(HEADER_ETAG, RETURNED_TEST_ETAG));
 
-        verify(promptService).createPrompt(eq(createPrompt), eq(true), isNull());
+        verify(promptService).createPrompt(eq(createPrompt));
+    }
+
+    @Test
+    void testUpdatePrompt_whenResourceNotExist() throws Exception {
+        var updatedPromptDtoJson = ResourceUtils.readResource("/prompts/create_prompt_dto.json");
+        var updatePromptJson = ResourceUtils.readResource("/prompts/create_prompt.json");
+        var updatePrompt = objectMapper.readValue(updatePromptJson, new TypeReference<CreatePrompt>() {
+        });
+
+        doThrow(new ResourceNotFoundException("Not Found"))
+                .when(promptService).putPrompt(any(), anyBoolean(), any());
+
+        mockMvc.perform(post("/api/v1/prompts/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatedPromptDtoJson)
+                        .header(HEADER_IF_MATCH, TEST_ETAG))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message")
+                        .value("Not Found"));
+
+        verify(promptService).putPrompt(eq(updatePrompt), eq(true), eq(TEST_ETAG));
+    }
+
+    @Test
+    void testUpdatePrompt_whenWrongIfMatchEtag() throws Exception {
+        var updatePromptDtoJson = ResourceUtils.readResource("/prompts/create_prompt_dto.json");
+        var updatePromptJson = ResourceUtils.readResource("/prompts/create_prompt.json");
+        var updatePrompt = objectMapper.readValue(updatePromptJson, new TypeReference<CreatePrompt>() {
+        });
+
+        doThrow(new ResourcePreconditionFailedException("Precondition failed"))
+                .when(promptService).putPrompt(any(), anyBoolean(), any());
+
+        mockMvc.perform(post("/api/v1/prompts/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePromptDtoJson)
+                        .header(HEADER_IF_MATCH, TEST_ETAG))
+                .andExpect(status().isPreconditionFailed())
+                .andExpect(jsonPath("$.message")
+                        .value("Precondition failed"));
+
+        verify(promptService).putPrompt(eq(updatePrompt), eq(true), eq(TEST_ETAG));
+    }
+
+    @Test
+    void testUpdatePrompt_whenIfMatchHeaderNotPresent() throws Exception {
+        var updatePromptDtoJson = ResourceUtils.readResource("/prompts/create_prompt_dto.json");
+
+        mockMvc.perform(post("/api/v1/prompts/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatePromptDtoJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Required request header 'If-Match' for method parameter type String is not present"));
     }
 
     @Test

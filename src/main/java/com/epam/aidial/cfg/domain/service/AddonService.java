@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -157,7 +158,12 @@ public class AddonService {
     public void rollbackAddons(Number revision) {
         Collection<Addon> addons = getAllAtRevision(revision);
         List<String> ids = addons.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
-        addonJpaRepository.deleteAllExcept(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            addonJpaRepository.deleteAll();
+        } else {
+            Iterable<AddonEntity> addonsToDelete = addonJpaRepository.findByIdNotIn(ids);
+            addonJpaRepository.deleteAll(addonsToDelete);
+        }
 
         for (Addon addon : addons) {
             AddonEntity entity = addonJpaRepository.findById(addon.getDeployment().getName()).orElseGet(AddonEntity::new);

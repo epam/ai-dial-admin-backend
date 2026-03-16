@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.client.mapper;
 
+import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.dto.PromptDto;
 import com.epam.aidial.cfg.client.dto.PromptMetadataDto;
-import com.epam.aidial.cfg.dto.NodeTypeDto;
 import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Prompt;
@@ -121,5 +121,7 @@ public abstract class PromptClientMapper {
                 .content(createPrompt.getContent())
                 .build();
     }
+
+    public abstract CreatePrompt toCreatePrompt(Prompt prompt);
 
 }

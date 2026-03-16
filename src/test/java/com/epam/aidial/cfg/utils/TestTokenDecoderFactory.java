@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.utils;
 
 import com.epam.aidial.cfg.web.security.IssuerToDecoderMapFactory;
+import com.epam.aidial.cfg.web.security.JwtProviderConfig;
 import com.epam.aidial.cfg.web.security.MultiIssuerJwtDecoder;
 import com.epam.aidial.cfg.web.security.TokenDecoderFactory;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -35,7 +36,7 @@ public class TestTokenDecoderFactory implements TokenDecoderFactory {
                 .build();
 
         final var createIssuerToDecoderMap = issuerToDecoderMapFactory.createIssuerToDecoderMap(jwtDecoder,
-                JwtProviderTestHelper.createProviderConfig());
+                JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig()));
         return new MultiIssuerJwtDecoder(createIssuerToDecoderMap);
     }
 }

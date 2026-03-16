@@ -19,10 +19,6 @@ public class ToolCallService {
 
     private final McpClientFactory mcpClientFactory;
 
-    public McpSchema.CallToolResult callTool(String endpoint, Transport transport, McpSchema.CallToolRequest callToolRequest) {
-        return callTool(endpoint, transport, null, callToolRequest);
-    }
-
     public McpSchema.CallToolResult callTool(String endpoint,
                                              Transport transport,
                                              Map<String, String> customHeaders,

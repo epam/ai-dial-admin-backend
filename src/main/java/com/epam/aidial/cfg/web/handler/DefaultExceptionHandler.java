@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.handler;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.CoreConfigReloadException;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
@@ -9,6 +10,7 @@ import com.epam.aidial.cfg.exception.GlobalInterceptorDeletionException;
 import com.epam.aidial.cfg.exception.ImportPreviewException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.exception.PublicationFileUploadException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.exception.VersionMismatchException;
@@ -122,6 +124,14 @@ public class DefaultExceptionHandler {
     }
 
     @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PublicationFileUploadException.class)
+    public ErrorView handlePublicationUpload(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
+        return new ErrorView(req, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ResponseBody
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorView handleGeneralError(HttpServletRequest req, Exception ex) {
@@ -160,12 +170,13 @@ public class DefaultExceptionHandler {
 
     @ResponseBody
     @ExceptionHandler(FeignException.FeignClientException.class)
-    public ErrorView handleFeignClientError(FeignException.FeignClientException clientException,
-                                            HttpServletRequest req) {
+    public ResponseEntity<ErrorView> handleFeignClientError(FeignException.FeignClientException clientException,
+                                                            HttpServletRequest req) {
         logUncaught(clientException);
-        final HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
+        HttpStatus httpStatus = HttpStatus.resolve(clientException.status());
         String message = clientException.contentUTF8();
-        return new ErrorView(req, httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus, message);
+        HttpStatus notNullHttpStatus = httpStatus == null ? HttpStatus.INTERNAL_SERVER_ERROR : httpStatus;
+        return ResponseEntity.status(notNullHttpStatus).body(new ErrorView(req, notNullHttpStatus, message));
     }
 
     @ResponseBody
@@ -199,6 +210,14 @@ public class DefaultExceptionHandler {
                                                            HttpServletRequest req) {
         logUncaught(ex);
         return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(ex.getEtag()).build();
+    }
+
+    @ResponseBody
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler({CoreConfigReloadException.class})
+    public ErrorView handleCoreConfigReloadException(HttpServletRequest req, Exception ex) {
+        logUncaught(ex);
+        return new ErrorView(req, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     protected void logUncaught(final Exception e) {

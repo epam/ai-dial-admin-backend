@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
@@ -163,7 +163,7 @@ class ModelValidatorTest {
         if (source instanceof ModelEndpointsSource) {
             model.setSource(source);
             model.setEndpoint(endpoint);
-        } else if (source instanceof AdapterSource adapterSource) {
+        } else if (source instanceof ModelAdapterSource adapterSource) {
             adapterSource.setCompletionEndpointPath(endpoint);
             adapterSource.setAdapterName("adapterName");
             model.setSource(adapterSource);
@@ -191,16 +191,16 @@ class ModelValidatorTest {
                         createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, INVALID_START_MODEL_ENDPOINT),
                         INVALID_COMPLETION_MESSAGE),
                 Arguments.of(
-                        createModel(new AdapterSource(), ModelType.EMBEDDING, INVALID_END_MODEL_ENDPOINT),
+                        createModel(new ModelAdapterSource(), ModelType.EMBEDDING, INVALID_END_MODEL_ENDPOINT),
                         INVALID_COMPLETION_END_MESSAGE),
                 Arguments.of(
-                        createModel(new AdapterSource(), ModelType.EMBEDDING, " "),
+                        createModel(new ModelAdapterSource(), ModelType.EMBEDDING, " "),
                         INVALID_COMPLETION_END_MESSAGE),
                 Arguments.of(
-                        createModel(new AdapterSource(), ModelType.EMBEDDING, null),
+                        createModel(new ModelAdapterSource(), ModelType.EMBEDDING, null),
                         INVALID_COMPLETION_END_MESSAGE),
                 Arguments.of(
-                        createModel(new AdapterSource(), ModelType.EMBEDDING, INVALID_PATH_WITH_WHITESPACE),
+                        createModel(new ModelAdapterSource(), ModelType.EMBEDDING, INVALID_PATH_WITH_WHITESPACE),
                         INVALID_COMPLETION_PATH_MESSAGE),
                 Arguments.of(
                         createModel(new ModelContainerSource(), ModelType.EMBEDDING, INVALID_END_MODEL_ENDPOINT),

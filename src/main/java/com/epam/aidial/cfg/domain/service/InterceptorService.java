@@ -178,9 +178,19 @@ public class InterceptorService {
     @Transactional
     public void rollbackInterceptors(Number revision) {
         Collection<Interceptor> interceptors = getAllAtRevision(revision);
-        interceptorJpaRepository.deleteAllExcept(interceptors.stream().map(Interceptor::getName).toList());
+        List<String> ids = interceptors.stream().map(Interceptor::getName).toList();
+        if (CollectionUtils.isEmpty(ids)) {
+            interceptorJpaRepository.deleteAll();
+        } else {
+            Iterable<InterceptorEntity> interceptorsToDelete = interceptorJpaRepository.findByIdNotIn(ids);
+            interceptorJpaRepository.deleteAll(interceptorsToDelete);
+        }
 
+        Set<String> allRunnerNames = interceptorRunnerJpaRepository.findAllNames();
         for (Interceptor interceptor : interceptors) {
+            if (interceptor.getSource() instanceof InterceptorRunnerSource interceptorRunnerSource && !allRunnerNames.contains(interceptorRunnerSource.getRunnerName())) {
+                interceptor.setSource(null);
+            }
             InterceptorEntity entity = interceptorJpaRepository.findById(interceptor.getName()).orElseGet(InterceptorEntity::new);
             InterceptorEntity interceptorEntity = toEntity(interceptor, entity);
             interceptorJpaRepository.save(interceptorEntity);
@@ -199,13 +209,13 @@ public class InterceptorService {
                 interceptorRefreshService.refreshEndpoints(interceptorEntity);
                 successfulInterceptors.add(interceptorName);
             } catch (Exception e) {
-                log.error("Failed to refresh endpoints for interceptor '{}'", interceptorName, e);
+                log.debug("Failed to refresh endpoints for interceptor '{}'", interceptorName, e);
                 failedInterceptors.add(interceptorName);
             }
         }
 
         if (!failedInterceptors.isEmpty()) {
-            log.warn("Failed to refresh endpoints for {} interceptors: {}",
+            log.warn("Failed to refresh endpoints for {} interceptors: {}. Use DEBUG log level for details",
                     failedInterceptors.size(), String.join(", ", failedInterceptors));
         }
 

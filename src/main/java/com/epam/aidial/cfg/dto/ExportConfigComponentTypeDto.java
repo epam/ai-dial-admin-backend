@@ -11,5 +11,6 @@ public enum ExportConfigComponentTypeDto {
     INTERCEPTOR,
     INTERCEPTOR_RUNNER,
     APPLICATION_TYPE_SCHEMA,
-    ADAPTER
+    ADAPTER,
+    GLOBAL_INTERCEPTOR
 }

@@ -34,7 +34,7 @@ public class CoreApplication extends Deployment {
     private String editorUrl; // 0.29.0
 
     // maintain the order of routes defined in the app config
-    private LinkedHashMap<String, CoreRoute> routes; // 0.32.0
+    private LinkedHashMap<String, CoreRoute> routes = new LinkedHashMap<>(); // 0.32.0
 
     @Data
     @Accessors(chain = true)

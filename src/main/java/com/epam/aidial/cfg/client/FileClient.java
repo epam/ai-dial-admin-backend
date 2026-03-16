@@ -27,7 +27,8 @@ public interface FileClient {
     @GetMapping("/v1/metadata/files/{path}")
     FileMetadataDto getFilesMetadata(@PathVariable String path,
                                      @RequestParam boolean recursive,
-                                     @RequestParam String token);
+                                     @RequestParam String token,
+                                     @RequestParam boolean permissions);
 
     @GetMapping("/v1/files/{path}")
     Response getFile(@PathVariable String path);

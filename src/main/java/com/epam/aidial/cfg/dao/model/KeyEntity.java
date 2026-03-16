@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.dao.model;
 
+import com.epam.aidial.cfg.dao.converter.StringNullableListJsonConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -45,6 +47,8 @@ public class KeyEntity extends ValidityStateAwareEntity<String> {
     private Long expiresAt;
     @Column(name = "key_value_generated_at_ms")
     private long keyGeneratedAt;
+    @Convert(converter = StringNullableListJsonConverter.class)
+    private List<String> allowedIpAddressRanges;
 
     @PreRemove
     public void preRemove() {

@@ -131,7 +131,8 @@
       "secured": true,
       "description": "key description",
       "projectContactPoint": "test@mail.com",
-      "expiresAt": 253402300799999
+      "expiresAt": 253402300799999,
+      "allowedIpAddressRanges": ["198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"]
     },
     "testKey2": {
       "key": "key2",
@@ -156,6 +157,7 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeInterceptors": ["testInterceptor1"],
+      "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
       "$defs": {},
       "properties": {},
       "required": []

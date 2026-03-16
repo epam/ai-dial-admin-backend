@@ -13,7 +13,6 @@ import jakarta.persistence.OrderColumn;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.hibernate.envers.AuditJoinTable;
 import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
@@ -49,6 +48,7 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     @Enumerated(EnumType.STRING)
     private CopyAppBucketOptionsEntity applicationTypeBucketCopy;
     private boolean applicationTypeAssistantAttachmentsInRequestSupported;
+    private String applicationTypeSchemaEndpoint;
 
     @ToString.Exclude
     @ManyToMany
@@ -69,7 +69,6 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "applicationTypeSchema")
-    @AuditJoinTable
     private List<ApplicationEntity> applications = new ArrayList<>();
 
     private Set<String> topics;

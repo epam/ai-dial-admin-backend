@@ -67,22 +67,23 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .filter(upstream -> upstream.getKey() != null)
                 .collect(Collectors.toList());
 
-        CoreModel model = new CoreModel();
+        CoreModel model = CoreModel.empty();
         model.setUpstreams(upstreams);
         return model;
     }
 
     private CoreToolSet mapToolSet(CoreToolSet value) {
-        CoreResourceAuthSettings authSettings = new CoreResourceAuthSettings();
+        CoreResourceAuthSettings authSettings = CoreResourceAuthSettings.empty();
         authSettings.setClientSecret(StringUtils.EMPTY);
 
         if (value != null
                 && value.getAuthSettings() != null
                 && StringUtils.isNotEmpty(value.getAuthSettings().getClientSecret())) {
             authSettings.setClientSecret(value.getAuthSettings().getClientSecret());
+            authSettings.setAuthenticationType(value.getAuthSettings().getAuthenticationType());
         }
 
-        CoreToolSet toolSet = new CoreToolSet();
+        CoreToolSet toolSet = CoreToolSet.empty();
         toolSet.setAuthSettings(authSettings);
 
         return toolSet;

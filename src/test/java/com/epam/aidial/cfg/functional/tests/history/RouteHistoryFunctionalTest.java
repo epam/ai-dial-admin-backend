@@ -5,6 +5,8 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.web.facade.DeploymentFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
@@ -28,6 +30,8 @@ public abstract class RouteHistoryFunctionalTest {
     private InterceptorFacade interceptorFacade;
     @Autowired
     private RouteFacade routeFacade;
+    @Autowired
+    private DeploymentFacade deploymentFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
 
@@ -108,6 +112,9 @@ public abstract class RouteHistoryFunctionalTest {
 
         Collection<RouteDto> routesAfterRollbackToRevision = routeFacade.getAllRoutes();
         Assertions.assertEquals(List.of(actualAtRevision), routesAfterRollbackToRevision);
+
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("route2"));
+        Assertions.assertThrows(EntityNotFoundException.class, () -> deploymentFacade.ensureExists("route3"));
     }
 
     private void assertRoute(RouteDto actual, RouteDto expected) {

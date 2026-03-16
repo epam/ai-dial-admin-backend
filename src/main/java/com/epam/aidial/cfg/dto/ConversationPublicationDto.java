@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ConversationPublicationDto extends PublicationDto {
 
-    private List<ConversationDto> conversations;
-    private List<String> files;
+    private List<ConversationPublicationResourceDto> conversations;
+    private List<FilePublicationResourceDto> files;
 
 }

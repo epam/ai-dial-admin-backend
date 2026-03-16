@@ -5,15 +5,22 @@ import com.epam.aidial.cfg.client.dto.PublicationResourceDto;
 import com.epam.aidial.cfg.client.dto.PublicationStatusDto;
 import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapper;
+import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
+import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.Publication;
+import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
 import com.epam.aidial.cfg.utils.PathUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public abstract class PublicationResolver {
 
@@ -24,6 +31,10 @@ public abstract class PublicationResolver {
     }
 
     public abstract Publication resolvePublication(PublicationDto publicationDto);
+
+    public abstract void updatePublicationResources(Publication publication);
+
+    public abstract PublicationDto updatePublicationResourceTargets(Publication publication);
 
     public abstract ResourceType getResourceType();
 
@@ -52,7 +63,31 @@ public abstract class PublicationResolver {
         return PathUtils.parseEncodedVersionedPath(resourceInfo.resourceUrl(), prefix).getPath();
     }
 
+    public String extractTargetPath(ResourceInfo resourceInfo, String prefix) {
+        return PathUtils.parseEncodedVersionedPath(resourceInfo.resource().getTargetUrl(), prefix).getPath();
+    }
+
     public String extractFilePath(ResourceInfo resourceInfo) {
         return extractPath(resourceInfo, FileClientMapper.FILES_PREFIX);
+    }
+
+    public void attachUploadedFiles(Publication publication, List<MultipartFile> files) {
+    }
+
+    public <T> Optional<T> resolveResourceAndCollectIssues(
+            Supplier<T> resolver,
+            List<PublicationResourceIssue> resourceIssues,
+            PublicationResourceIssue notFound,
+            PublicationResourceIssue alreadyExists
+    ) {
+        try {
+            return Optional.ofNullable(resolver.get());
+        } catch (ResourceNotFoundException e) {
+            resourceIssues.add(notFound);
+            return Optional.empty();
+        } catch (ResourceAlreadyExistsException e) {
+            resourceIssues.add(alreadyExists);
+            return Optional.empty();
+        }
     }
 }

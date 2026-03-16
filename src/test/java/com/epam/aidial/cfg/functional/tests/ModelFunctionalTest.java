@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -11,7 +12,7 @@ import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
-import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelContainerSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -27,6 +28,7 @@ import com.epam.aidial.core.config.CoreModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -114,11 +116,11 @@ public abstract class ModelFunctionalTest {
         adapterFacade.createAdapter(createAdapterDto("2"));
 
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
-        modelDto.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
+        modelDto.setSource(new ModelAdapterSourceDto("adapter1", "/chat/completions"));
         modelFacade.createModel(modelDto);
 
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
-        updatedModel.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
+        updatedModel.setSource(new ModelAdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
         updatedModel.setDescription("new model description");
         updatedModel.setDefaults(Map.of());
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
@@ -129,7 +131,7 @@ public abstract class ModelFunctionalTest {
         expected.setDefaults(Map.of());
         expected.setMaxRetryAttempts(1);
         expected.setDefaultRoleLimit(new LimitDto());
-        expected.setSource(new AdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
+        expected.setSource(new ModelAdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
         expected.setEndpoint(null);
         updatedModel.setDefaults(Map.of());
         updatedModel.setDefaultRoleLimit(new LimitDto());
@@ -146,11 +148,11 @@ public abstract class ModelFunctionalTest {
         ShareResourceLimitDto shareResourceLimitDto = new ShareResourceLimitDto();
         shareResourceLimitDto.setInvitationTtl(20L);
         updatedModel.setRoleLimits(Map.of("role3", limitDto));
-        updatedModel.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
+        updatedModel.setSource(new ModelAdapterSourceDto("adapter2", "/chat/completions"));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
         actual = modelFacade.getModel(modelDto.getName());
         expected.setRoleLimits(Map.of("role3", limitDto));
-        expected.setSource(new AdapterSourceDto("adapter2", "/chat/completions"));
+        expected.setSource(new ModelAdapterSourceDto("adapter2", "/chat/completions"));
         assertModel(actual, expected);
 
         roleFacade.deleteRole("role3");
@@ -421,12 +423,39 @@ public abstract class ModelFunctionalTest {
         expected.setFeatures(defaultCoreFeatures());
         expected.setMaxRetryAttempts(modelDto.getMaxRetryAttempts());
         expected.setUserRoles(modelDto.getRoleLimits().keySet());
+        expected.setForwardAuthToken(modelDto.getForwardAuthToken());
 
         CoreModel actual = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
         actual.setCreatedAt(null);
         actual.setUpdatedAt(null);
 
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldSuccessfullyUpdateCoreModel() {
+        AdapterDto adapterDto1 = createAdapterDto("1");
+        adapterDto1.setBaseEndpoint("https://endpoint.test.com/adapter/v1/");
+        AdapterDto adapterDto2 = createAdapterDto("2");
+        adapterDto2.setBaseEndpoint("https://endpoint.test.com/adapter/v1/");
+        adapterFacade.createAdapter(adapterDto1);
+        adapterFacade.createAdapter(adapterDto2);
+
+        ModelAdapterSourceDto adapterSourceDto = new ModelAdapterSourceDto("adapter2", "chat/completions");
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(adapterSourceDto);
+        modelFacade.createModel(modelDto);
+
+        CoreModel coreModel = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
+        coreModel.setDescription("New description");
+        modelFacade.updateModel(modelDto.getName(), coreModel, "*");
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+
+        Assertions.assertEquals("model1", actual.getName());
+        Assertions.assertEquals(adapterSourceDto, actual.getSource());
+        Assertions.assertEquals("New description", actual.getDescription());
     }
 
     @Test
@@ -438,14 +467,14 @@ public abstract class ModelFunctionalTest {
 
         // Create a model with adapter source
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
-        modelDto.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
+        modelDto.setSource(new ModelAdapterSourceDto("adapter1", "/chat/completions"));
         modelFacade.createModel(modelDto);
 
         // Verify the model has adapter source
         ModelDto actualModel = modelFacade.getModel(modelDto.getName());
         Assertions.assertNotNull(actualModel.getSource());
-        Assertions.assertInstanceOf(AdapterSourceDto.class, actualModel.getSource());
-        AdapterSourceDto adapterSource = (AdapterSourceDto) actualModel.getSource();
+        Assertions.assertInstanceOf(ModelAdapterSourceDto.class, actualModel.getSource());
+        ModelAdapterSourceDto adapterSource = (ModelAdapterSourceDto) actualModel.getSource();
         Assertions.assertEquals("adapter1", adapterSource.adapterName());
 
         // Verify the adapter has the model in its models list
@@ -482,8 +511,8 @@ public abstract class ModelFunctionalTest {
         // Verify the model now has adapter source again
         actualModel = modelFacade.getModel(modelDto.getName());
         Assertions.assertNotNull(actualModel.getSource());
-        Assertions.assertInstanceOf(AdapterSourceDto.class, actualModel.getSource());
-        AdapterSourceDto adapterSourceAgain = (AdapterSourceDto) actualModel.getSource();
+        Assertions.assertInstanceOf(ModelAdapterSourceDto.class, actualModel.getSource());
+        ModelAdapterSourceDto adapterSourceAgain = (ModelAdapterSourceDto) actualModel.getSource();
         Assertions.assertEquals("adapter1", adapterSourceAgain.adapterName());
         // Verify the adapter has the model again in its models list
         adapter = adapterFacade.getAdapter("adapter1");
@@ -494,36 +523,57 @@ public abstract class ModelFunctionalTest {
     @Test
     public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenModelIsEqualToConfigModel() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
-        UpstreamDto upstreamDto = new UpstreamDto();
-        upstreamDto.setEndpoint("http://localhost");
-        upstreamDto.setKey("secretKey");
-        upstreamDto.setExtraData("{\"temp\":951}");
+
+        UpstreamDto secretUpstreamDto = new UpstreamDto();
+        secretUpstreamDto.setEndpoint("http://localhost");
+        secretUpstreamDto.setKey("secretKey");
+        secretUpstreamDto.setExtraData("{\"temp\":951}");
+
+        UpstreamDto publicUpstreamDto = new UpstreamDto();
+        publicUpstreamDto.setEndpoint("http://localhost");
+        publicUpstreamDto.setExtraData("{\"temp\":800}");
+
         ModelDto modelDto = createModelDto("1");
-        modelDto.setUpstreams(List.of(upstreamDto));
+        modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
         CoreConfigReloadCache.Entry cacheEntry = new CoreConfigReloadCache.Entry(config, 1000);
         when(coreConfigReloadCache.get()).thenReturn(cacheEntry);
 
-        JsonNode modelState = config.get("models").get("model1");
+        JsonNode configModelState = config.get("models").get("model1");
+        JsonNode currentModelState = configModelState.deepCopy();
+        // changing upstreams order for current state.
+        // in config state upstreams order can differ from current state.
+        // verifying that upstreams order doesn't matter for sync state comparison
+        JsonNode upstreams = currentModelState.get("upstreams");
+        JsonNode upstream0 = upstreams.get(0);
+        JsonNode upstream1 = upstreams.get(1);
+        ((ArrayNode) currentModelState.get("upstreams")).removeAll();
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream1);
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream0);
 
         EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
 
-        assertThat(actualSyncState.getCurrentState()).isEqualTo(modelState);
-        assertThat(actualSyncState.getConfigState()).isEqualTo(modelState);
+        assertThat(actualSyncState.getCurrentState()).isEqualTo(currentModelState);
+        assertThat(actualSyncState.getConfigState()).isEqualTo(configModelState);
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.FULLY_SYNCED);
     }
 
     @Test
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenModelIsNotEqualToConfigModelAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
-        UpstreamDto upstreamDto = new UpstreamDto();
-        upstreamDto.setEndpoint("http://localhost");
-        upstreamDto.setKey("secretKey");
-        upstreamDto.setExtraData("{\"temp\":951}");
+        UpstreamDto secretUpstreamDto = new UpstreamDto();
+        secretUpstreamDto.setEndpoint("http://localhost");
+        secretUpstreamDto.setKey("secretKey");
+        secretUpstreamDto.setExtraData("{\"temp\":951}");
+
+        UpstreamDto publicUpstreamDto = new UpstreamDto();
+        publicUpstreamDto.setEndpoint("http://localhost");
+        publicUpstreamDto.setExtraData("{\"temp\":800}");
+
         ModelDto modelDto = createModelDto("1");
-        modelDto.setUpstreams(List.of(upstreamDto));
+        modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelDto.setDescription("description OLD");
         modelFacade.createModel(modelDto);
 
@@ -533,6 +583,15 @@ public abstract class ModelFunctionalTest {
 
         JsonNode configModelState = config.get("models").get("model1");
         JsonNode currentModelState = configModelState.deepCopy();
+        // changing upstreams order for current state.
+        // in config state upstreams order can differ from current state.
+        // verifying that upstreams order doesn't matter for sync state comparison
+        JsonNode upstreams = currentModelState.get("upstreams");
+        JsonNode upstream0 = upstreams.get(0);
+        JsonNode upstream1 = upstreams.get(1);
+        ((ArrayNode) currentModelState.get("upstreams")).removeAll();
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream1);
+        ((ArrayNode) currentModelState.get("upstreams")).add(upstream0);
         ((ObjectNode) currentModelState).put("description", "description OLD");
 
         EntitySyncStateDto actualSyncState = modelFacade.getSyncState(modelDto.getName(), "*");
@@ -598,7 +657,6 @@ public abstract class ModelFunctionalTest {
                 "role2", new LimitDto()
         ));
         modelDto2.setDefaultRoleLimit(new LimitDto());
-        modelDto2.setDefaults(Map.of());
         modelDto2.setEndpoint("https://endpoint1/chat/completions");
         modelDto2.setSource(new ModelEndpointsSourceDto());
         modelDto2.setMaxRetryAttempts(1);
@@ -654,6 +712,12 @@ public abstract class ModelFunctionalTest {
                       "limits": null,
                       "pricing": null,
                       "upstreams": [
+                        {
+                          "endpoint": "http://localhost",
+                          "extraData": "{\\"temp\\":800}",
+                          "weight": 1,
+                          "tier":0
+                        },
                         {
                           "endpoint": "http://localhost",
                           "extraData": "{\\"temp\\":951}",

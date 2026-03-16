@@ -40,6 +40,7 @@ public abstract class DeploymentEntityMapper {
 
     @Mapping(target = "roleLimits", ignore = true)
     @Mapping(target = "type", ignore = true)
+    @Mapping(target = "owner", ignore = true)
     public @interface ToEntity {
     }
 

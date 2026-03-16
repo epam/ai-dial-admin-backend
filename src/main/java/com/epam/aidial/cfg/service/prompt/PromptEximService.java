@@ -181,8 +181,7 @@ public class PromptEximService {
                                                       String targetPath,
                                                       ImportConflictResolutionStrategy conflictResolutionStrategy) {
         try {
-            var allowOverride = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
-            promptService.createPrompt(createPrompt, allowOverride, null);
+            promptService.createPrompt(createPrompt);
             return ImportResourcesResult.createSuccess(sourcePath, targetPath);
         } catch (Exception ex) {
             if (ex instanceof FeignException feignException) {

@@ -16,7 +16,7 @@ import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
@@ -180,10 +180,23 @@ public class ModelService {
     public void rollbackModels(Number revision) {
         Collection<Model> models = getAllAtRevision(revision);
         List<String> ids = models.stream().map(RoleBased::getDeployment).map(Deployment::getName).toList();
-        modelJpaRepository.deleteAllExcept(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            modelJpaRepository.deleteAll();
+        } else {
+            List<ModelEntity> modelsToDelete = modelJpaRepository.findByIdNotIn(ids);
+            modelJpaRepository.deleteAll(modelsToDelete);
+        }
 
+        Set<String> allInterceptorNames = interceptorJpaRepository.findAllNames();
+        Set<String> allAdapterNames = adapterJpaRepository.findAllNames();
         for (Model model : models) {
-            model.setInterceptors(List.of());
+            if (model.getInterceptors() != null) {
+                List<String> interceptors = model.getInterceptors().stream().filter(allInterceptorNames::contains).toList();
+                model.setInterceptors(interceptors);
+            }
+            if (model.getSource() instanceof ModelAdapterSource modelAdapterSource && !allAdapterNames.contains(modelAdapterSource.getAdapterName())) {
+                model.setSource(null);
+            }
             ModelEntity entity = modelJpaRepository.findById(model.getDeployment().getName()).orElseGet(ModelEntity::new);
             ModelEntity modelEntity = toEntity(model, entity);
             modelJpaRepository.save(modelEntity);
@@ -203,13 +216,13 @@ public class ModelService {
                 refreshService.refreshEndpoints(entity);
                 successfulModels.add(modelName);
             } catch (Exception e) {
-                log.error("Failed to refresh endpoints for model '{}'", modelName, e);
+                log.debug("Failed to refresh endpoints for model '{}'", modelName, e);
                 failedModels.add(modelName);
             }
         }
 
         if (!failedModels.isEmpty()) {
-            log.warn("Failed to refresh endpoints for {} models: {}",
+            log.warn("Failed to refresh endpoints for {} models: {}. Use DEBUG log level for details",
                     failedModels.size(), String.join(", ", failedModels));
         }
 
@@ -270,7 +283,7 @@ public class ModelService {
 
         ModelSource source = domain.getSource();
         if (source != null) {
-            if (source instanceof AdapterSource adapterSource) {
+            if (source instanceof ModelAdapterSource adapterSource) {
                 adapterEntity = findAdapter(adapterSource.getAdapterName());
                 completionEndpointPath = adapterSource.getCompletionEndpointPath();
             } else if (source instanceof ModelContainerSource containerSource) {

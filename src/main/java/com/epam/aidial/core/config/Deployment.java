@@ -26,7 +26,7 @@ public abstract class Deployment extends RoleBasedEntity {
      * Authorization token is NOT forwarded by default.
      */
     @JsonAlias({"forwardAuthToken", "forward_auth_token"})
-    private boolean forwardAuthToken = false;
+    private Boolean forwardAuthToken = false;
     private CoreFeatures features;
     @JsonAlias({"inputAttachmentTypes", "input_attachment_types"})
     private List<String> inputAttachmentTypes;
@@ -50,7 +50,7 @@ public abstract class Deployment extends RoleBasedEntity {
      * Indicated max retry attempts to route a single user request.
      */
     @JsonAlias({"maxRetryAttempts", "max_retry_attempts"})
-    private int maxRetryAttempts = 1;
+    private Integer maxRetryAttempts = 1;
 
     /**
      * The author who has developed that deployment(application/assistant/model)

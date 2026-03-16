@@ -3,11 +3,17 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.AdapterContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.AdapterEntityMapper;
+import com.epam.aidial.cfg.dao.model.AdapterContainerEntity;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.EntityRevision;
+import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
+import com.epam.aidial.cfg.domain.model.source.AdapterSource;
+import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.validator.AdapterValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -23,6 +29,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -43,8 +50,11 @@ public class AdapterService {
 
     private final ModelJpaRepository modelJpaRepository;
     private final AdapterJpaRepository adapterJpaRepository;
+    private final ContainerEndpointResolver endpointResolver;
     private final AdapterEntityMapper mapper;
+    private final AdapterContainerEntityMapper adapterContainerEntityMapper;
     private final AdapterValidator adapterValidator;
+    private final AdapterRefreshService adapterRefreshService;
     private final HistoryService historyService;
     private final HashCalculator calculator;
 
@@ -94,6 +104,7 @@ public class AdapterService {
     public void create(Adapter adapter) {
         adapterValidator.validateCreation(adapter);
         assertNotExists(adapter.getName());
+        resolveEndpointsIfContainerSource(adapter);
         Optional.of(adapter)
                 .map(domainModel -> toEntity(domainModel, new AdapterEntity()))
                 .map(adapterJpaRepository::save)
@@ -117,6 +128,7 @@ public class AdapterService {
 
     private AdapterEntity performUpdate(String adapterName, Adapter adapter, String hash) {
         adapterValidator.validateUpdate(adapterName, adapter);
+        resolveEndpointsIfContainerSource(adapter);
         AdapterEntity adapterEntity = findByAdapterName(adapterName);
         assertNotConcurrencyOverwrite(adapterEntity, hash);
         return adapterJpaRepository.save(toEntity(adapter, adapterEntity));
@@ -129,7 +141,8 @@ public class AdapterService {
 
         if (CollectionUtils.isNotEmpty(models)) {
             if (removeModel) {
-                modelJpaRepository.deleteAll(models);
+                // list copy is needed due to {@link ModelEntity#preRemove()} where list of adapter models is modified
+                modelJpaRepository.deleteAll(new ArrayList<>(models));
             } else {
                 String baseEndpoint = adapterEntity.getBaseEndpoint();
                 models.forEach(model -> {
@@ -161,18 +174,54 @@ public class AdapterService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public void refreshEndpoints() {
+        var adapterEntities = adapterJpaRepository.findByAdapterContainerIsNotNull();
+        List<String> successfulAdapters = new ArrayList<>();
+        List<String> failedAdapters = new ArrayList<>();
+
+        for (var adapterEntity : adapterEntities) {
+            String adapterName = adapterEntity.getName();
+            try {
+                adapterRefreshService.refreshEndpoints(adapterEntity);
+                successfulAdapters.add(adapterName);
+            } catch (Exception e) {
+                log.debug("Failed to refresh endpoints for adapter '{}'", adapterName, e);
+                failedAdapters.add(adapterName);
+            }
+        }
+
+        if (!failedAdapters.isEmpty()) {
+            log.warn("Failed to refresh endpoints for {} adapters: {}. Use DEBUG log level for details",
+                    failedAdapters.size(), String.join(", ", failedAdapters));
+        }
+
+        if (!successfulAdapters.isEmpty()) {
+            log.debug("Successfully refreshed endpoints for {} adapters: {}",
+                    successfulAdapters.size(), String.join(", ", successfulAdapters));
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Collection<EntityRevision<Adapter>> getEntityRevisionsAt(Number revision) {
+        return historyService.getEntityRevisionsAt(revision, AdapterEntity.class, mapper::toDomain);
+    }
+
     @Transactional
     public void rollbackAdapters(Number revision) {
-        Iterable<ModelEntity> models = modelJpaRepository.findAll();
-        models.forEach(entity -> entity.setAdapter(null));
-        modelJpaRepository.saveAllAndFlush(models);
-
         Collection<Adapter> adapters = getAllAtRevision(revision);
-        adapterJpaRepository.deleteAllExcept(adapters.stream().map(Adapter::getName).collect(Collectors.toList()));
+        List<String> ids = adapters.stream().map(Adapter::getName).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(ids)) {
+            adapterJpaRepository.deleteAll();
+        } else {
+            Iterable<AdapterEntity> adaptersToDelete = adapterJpaRepository.findByIdNotIn(ids);
+            adapterJpaRepository.deleteAll(adaptersToDelete);
+        }
+
         for (Adapter adapter : adapters) {
             AdapterEntity entity = adapterJpaRepository.findById(adapter.getName()).orElseGet(AdapterEntity::new);
-            AdapterEntity keyEntity = toEntity(adapter, entity);
-            adapterJpaRepository.save(keyEntity);
+            AdapterEntity adapterEntity = toEntity(adapter, entity);
+            adapterJpaRepository.save(adapterEntity);
         }
     }
 
@@ -212,9 +261,23 @@ public class AdapterService {
         return IterableUtils.first(adapters);
     }
 
+    private void resolveEndpointsIfContainerSource(Adapter adapter) {
+        if (adapter.getSource() instanceof AdapterContainerSource) {
+            endpointResolver.processContainerEndpoints(adapter);
+        }
+    }
+
     private AdapterEntity toEntity(Adapter domain, AdapterEntity entity) {
         List<ModelEntity> models = findModelsByNames(domain.getModels());
-        return mapper.toEntity(domain, entity, models);
+
+        AdapterContainerEntity adapterContainer = null;
+        AdapterSource source = domain.getSource();
+
+        if (source instanceof AdapterContainerSource containerSource) {
+            adapterContainer = adapterContainerEntityMapper.toEntity(containerSource);
+        }
+
+        return mapper.toEntity(domain, entity, models, adapterContainer);
     }
 
     private List<ModelEntity> findModelsByNames(List<String> names) {

@@ -320,7 +320,8 @@
         ],
         "validityState": {
           "valid": true
-        }
+        },
+        "allowedIpAddressRanges": ["198.51.100.14/24", "2002::1234:abcd:ffff:c0a8:101/64"]
       }
     },
     {
@@ -392,6 +393,7 @@
         "applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
+        "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
         "applicationTypeAssistantAttachmentsInRequestSupported": true,
         "applicationTypeRoutes": [
           {
@@ -523,7 +525,10 @@
         "baseEndpoint": "https://endpoint2/",
         "models": [
           "testModel2"
-        ]
+        ],
+        "source": {
+          "$type": "endpoints"
+        }
       }
     },
     {
@@ -534,7 +539,10 @@
         "baseEndpoint": "https://endpoint1/",
         "models": [
           "testModel1"
-        ]
+        ],
+        "source": {
+          "$type": "endpoints"
+        }
       }
     }
   ],
@@ -828,9 +836,7 @@
           "temperatureSupported": true,
           "parallelToolCallsSupported": true
         },
-        "applicationProperties": {},
         "applicationTypeSchemaId": "https://test-schema-id.example",
-        "routes": [],
         "author": "test-author",
         "dependencies": [
           "dep1",
@@ -925,8 +931,6 @@
           "temperatureSupported": true,
           "parallelToolCallsSupported": true
         },
-        "applicationProperties": {},
-        "routes": [],
         "dependencies": [],
         "validityState": {
           "valid": true
@@ -978,9 +982,9 @@
             "authorizationEndpoint": "https://some-auth-endpoint",
             "tokenEndpoint": "https://some-token-endpoint",
             "redirectUri": "https://some-redirect-uri",
-            "codeChallenge": "someCodeChallenge",
-            "codeChallengeMethod": "someCodeChallengeMethod",
-            "codeVerifier": "someCodeVerifier",
+            "codeChallenge": "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+            "codeChallengeMethod": "S256",
+            "codeVerifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
             "apiKeyHeader": "someApiKeyHeader",
             "scopesSupported": [
               "first",

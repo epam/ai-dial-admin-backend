@@ -109,7 +109,7 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
-        when(syncStateStatusResolver.resolve(currentStateJsonNode, null, true, currentStateUpdatedAt, configReloadTimestamp))
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, null, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
 
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, null, EntitySyncStateStatus.IN_PROGRESS);
@@ -159,7 +159,7 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
-        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, true, currentStateUpdatedAt, configReloadTimestamp))
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.FULLY_SYNCED);
 
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, requestedEntity, EntitySyncStateStatus.FULLY_SYNCED);
@@ -210,7 +210,7 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
-        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, false, currentStateUpdatedAt, configReloadTimestamp))
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, false, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
 
         EntitySyncState expectedResult = new EntitySyncState(null, requestedEntity, EntitySyncStateStatus.IN_PROGRESS);
@@ -293,7 +293,7 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
-        when(syncStateStatusResolver.resolve(currentStateJsonNode, null, true, currentStateUpdatedAt, configReloadTimestamp))
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, null, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
 
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, null, EntitySyncStateStatus.IN_PROGRESS);
@@ -345,7 +345,7 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
-        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, true, currentStateUpdatedAt, configReloadTimestamp))
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.FULLY_SYNCED);
 
         EntitySyncState expectedResult = new EntitySyncState(currentStateJsonNode, requestedEntity, EntitySyncStateStatus.FULLY_SYNCED);
@@ -398,7 +398,7 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
-        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, false, currentStateUpdatedAt, configReloadTimestamp))
+        when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, false, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
 
         EntitySyncState expectedResult = new EntitySyncState(null, requestedEntity, EntitySyncStateStatus.IN_PROGRESS);

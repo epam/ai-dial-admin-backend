@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.security;
 
 import com.epam.aidial.cfg.client.CoreAuthTokenProviderClient;
 import com.epam.aidial.cfg.utils.SecretUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
@@ -12,19 +13,13 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
+@RequiredArgsConstructor
 public class CoreAuthTokenProvider implements AuthTokenProvider {
 
     private final CoreAuthTokenProviderClient client;
     private final String clientId;
     private final String clientSecret;
     private final String scope;
-
-    public CoreAuthTokenProvider(CoreAuthTokenProviderClient client, String clientId, String clientSecret, String scope) {
-        this.client = client;
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.scope = scope;
-    }
 
     @Override
     public AuthToken getAuthToken() {

@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ToolSetResourcePublicationDto extends PublicationDto {
 
-    private List<ToolSetResourceDto> toolSetResources;
-    private List<String> files;
+    private List<ToolSetPublicationResourceDto> toolSetResources;
+    private List<FilePublicationResourceDto> files;
 
 }

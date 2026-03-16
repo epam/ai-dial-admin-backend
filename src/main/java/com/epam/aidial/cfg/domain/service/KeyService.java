@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dao.mapper.KeyEntityMapper;
 import com.epam.aidial.cfg.dao.model.KeyEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.resolver.key.KeyGeneratedAtResolver;
 import com.epam.aidial.cfg.domain.resolver.key.KeyValidityStateOnGetResolver;
@@ -172,10 +173,21 @@ public class KeyService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Collection<EntityRevision<Key>> getEntityRevisionsAt(Number revision) {
+        return historyService.getEntityRevisionsAt(revision, KeyEntity.class, this::toDomainWithValidityStateAdjustment);
+    }
+
     @Transactional
     public void rollbackKeys(Number revision) {
         Collection<Key> keys = getAllAtRevision(revision);
-        keyJpaRepository.deleteAllExcept(keys.stream().map(Key::getName).collect(Collectors.toList()));
+        List<String> ids = keys.stream().map(Key::getName).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(ids)) {
+            keyJpaRepository.deleteAll();
+        } else {
+            Iterable<KeyEntity> keyToDelete = keyJpaRepository.findByIdNotIn(ids);
+            keyJpaRepository.deleteAll(keyToDelete);
+        }
 
         for (Key key : keys) {
             KeyEntity entity = keyJpaRepository.findById(key.getName()).orElseGet(KeyEntity::new);

@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dao.audit.model.ConfigRevisionEntity;
 import com.epam.aidial.cfg.dao.mapper.ConfigRevisionEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.PageEntityMapper;
 import com.epam.aidial.cfg.domain.model.ConfigRevision;
+import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.page.PageRequestModel;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import jakarta.persistence.EntityManager;
@@ -12,6 +13,8 @@ import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.RevisionType;
+import org.hibernate.envers.query.AuditEntity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -66,6 +70,20 @@ public class HistoryService {
     }
 
     @Transactional(readOnly = true)
+    public <T, I> List<EntityRevision<I>> getEntityRevisionsAt(Number revision,
+                                                               Class<T> entityClass,
+                                                               Function<T, I> entityToModelMapper) {
+        AuditReader auditReader = AuditReaderFactory.get(entityManager);
+        return auditReader.createQuery()
+                .forRevisionsOfEntity(entityClass, false, true)
+                .add(AuditEntity.revisionNumber().eq(revision))
+                .getResultList()
+                .stream()
+                .map(row -> mapToEntityRevision(row, entityClass, entityToModelMapper))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public ConfigRevision getRevision(Integer id) {
         return configRevisionJpaRepository.findById(id)
                 .map(configRevisionEntityMapper::map)
@@ -77,5 +95,21 @@ public class HistoryService {
         return Optional.ofNullable(configRevisionJpaRepository.findFirstByTimestampLessThanEqualOrderByTimestampDesc(timestamp))
                 .map(configRevisionEntityMapper::map)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find config revision at timestamp " + timestamp));
+    }
+
+    private <T, I> EntityRevision<I> mapToEntityRevision(Object row,
+                                                         Class<T> entityClass,
+                                                         Function<T, I> entityToModelMapper) {
+        Object[] items = (Object[]) row;
+
+        T entity = entityClass.cast(items[0]);
+        ConfigRevisionEntity configRevisionEntity = (ConfigRevisionEntity) items[1];
+        RevisionType revisionType = (RevisionType) items[2];
+
+        return EntityRevision.<I>builder()
+                .state(entityToModelMapper.apply(entity))
+                .configRevisionId(configRevisionEntity.getId())
+                .revisionType(EntityRevision.RevisionType.valueOf(revisionType.name()))
+                .build();
     }
 }

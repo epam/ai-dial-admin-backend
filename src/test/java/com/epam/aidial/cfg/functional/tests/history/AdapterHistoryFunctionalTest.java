@@ -8,6 +8,8 @@ import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
@@ -16,6 +18,7 @@ import java.util.List;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 
 public abstract class AdapterHistoryFunctionalTest {
@@ -101,6 +104,35 @@ public abstract class AdapterHistoryFunctionalTest {
         Assertions.assertEquals(revisionsListBeforeRollback.size() + 1, revisionsListAfterRollback.size());
 
         var adaptersAfterRollbackToRevision = adapterFacade.getAllAdapters();
+        Assertions.assertEquals(actualAtRevision, adaptersAfterRollbackToRevision);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    public void shouldSuccessfullyRollbackDeletedAdapterWithModel(boolean removeModel) {
+        // create adapter
+        AdapterDto adapterDto = createAdapterDto("1");
+        adapterFacade.createAdapter(adapterDto);
+
+        // create model
+        ModelDto modelDto = createModelDtoWithAdapter("1");
+        modelFacade.createModel(modelDto);
+
+        // remember rev number and expected adapters state
+        Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+        Collection<AdapterDto> actualAtRevision = adapterFacade.getAllAdapters();
+
+        // delete adapter
+        adapterFacade.deleteAdapter(adapterDto.getName(), removeModel);
+
+        // rollback and verify
+        int revisionsListSizeBeforeRollback = historyFacade.getRevisionsListSize();
+        historyFacade.rollbackToRevision(revNumberToRollback);
+        int revisionsListSizeAfterRollback = historyFacade.getRevisionsListSize();
+
+        Assertions.assertEquals(revisionsListSizeBeforeRollback + 1, revisionsListSizeAfterRollback);
+
+        Collection<AdapterDto> adaptersAfterRollbackToRevision = adapterFacade.getAllAdapters();
         Assertions.assertEquals(actualAtRevision, adaptersAfterRollbackToRevision);
     }
 

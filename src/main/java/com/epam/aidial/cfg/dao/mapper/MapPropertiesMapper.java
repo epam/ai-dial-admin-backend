@@ -17,7 +17,7 @@ public class MapPropertiesMapper {
     @SneakyThrows
     public Map<String, Object> mapToObjectMap(String value) {
         if (value == null) {
-            return Map.of();
+            return null;
         }
         return objectMapper.readValue(value, new TypeReference<>() {
         });

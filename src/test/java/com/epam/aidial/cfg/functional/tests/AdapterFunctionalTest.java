@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
-import com.epam.aidial.cfg.dto.source.AdapterSourceDto;
+import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -118,7 +118,7 @@ public abstract class AdapterFunctionalTest {
 
         adapterFacade.createAdapter(adapterDto);
 
-        AdapterSourceDto sourceDto = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
+        ModelAdapterSourceDto sourceDto = new ModelAdapterSourceDto("adapter1", "/some-path/chat/completions");
 
         ModelDto model1 = createModelDto("1");
         model1.setSource(sourceDto);
@@ -143,10 +143,10 @@ public abstract class AdapterFunctionalTest {
         adapterFacade.createAdapter(adapterDto2);
 
         ModelDto model1 = createModelDto("1");
-        AdapterSourceDto source1 = new AdapterSourceDto("adapter1", "/some-path/chat/completions");
+        ModelAdapterSourceDto source1 = new ModelAdapterSourceDto("adapter1", "/some-path/chat/completions");
         model1.setSource(source1);
         modelFacade.createModel(model1);
-        AdapterSourceDto source2 = new AdapterSourceDto("adapter2", "/model1/chat/completions");
+        ModelAdapterSourceDto source2 = new ModelAdapterSourceDto("adapter2", "/model1/chat/completions");
         model1.setSource(source2);
         modelFacade.updateModel(model1.getName(), model1, "*");
 
@@ -164,7 +164,6 @@ public abstract class AdapterFunctionalTest {
 
         ModelDto expectedModel1 = createModelDto("1");
         expectedModel1.setSource(source2);
-        expectedModel1.setDefaults(Map.of());
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
@@ -172,33 +171,57 @@ public abstract class AdapterFunctionalTest {
 
     @Test
     public void shouldChangeModelsInAdapter() {
+        // Verify model is assigned to adapter after model source update
+
         AdapterDto adapterDto1 = createAdapterDto("1");
         adapterFacade.createAdapter(adapterDto1);
 
         ModelDto model1 = createModelDto("1");
         modelFacade.createModel(model1);
 
-        model1.setSource(new AdapterSourceDto(adapterDto1.getName(), "/chat/completions"));
+        model1.setSource(new ModelAdapterSourceDto(adapterDto1.getName(), "/chat/completions"));
         modelFacade.updateModel(model1.getName(), model1, "*");
 
         AdapterDto actualAdapter1 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel1 = modelFacade.getModel(model1.getName());
 
-        // verify adapter and model
         AdapterDto expectedAdapter1 = createAdapterDto("1");
         expectedAdapter1.setModels(List.of("model1"));
         Assertions.assertEquals(expectedAdapter1, actualAdapter1);
 
         ModelDto expectedModel1 = createModelDto("1");
-        expectedModel1.setSource(new AdapterSourceDto("adapter1", "/chat/completions"));
-        expectedModel1.setDefaults(Map.of());
+        expectedModel1.setSource(new ModelAdapterSourceDto("adapter1", "/chat/completions"));
         expectedModel1.setRoleLimits(Map.of());
         expectedModel1.setDefaultRoleLimit(new LimitDto());
         Assertions.assertEquals(expectedModel1, actualModel1);
 
-        // remove model from adapter
+        // Cleanup by removing model from adapter
         adapterDto1.setModels(List.of());
 
+        // Verify model is assigned to adapter and model source is updated after adapter update
+        ModelDto detachedModel = createModelDto("3");
+        modelFacade.createModel(detachedModel);
+
+        adapterDto1.setModels(List.of(detachedModel.getName()));
+        adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
+
+        AdapterDto actualAdapterWithDetachedModel = adapterFacade.getAdapter(adapterDto1.getName());
+        ModelDto actualDetachedModel = modelFacade.getModel(detachedModel.getName());
+
+        AdapterDto expectedAdapter1WithDetachedModel = createAdapterDto("1");
+        expectedAdapter1WithDetachedModel.setModels(List.of("model3"));
+        Assertions.assertEquals(expectedAdapter1WithDetachedModel, actualAdapterWithDetachedModel);
+
+        ModelDto expectedDetachedModel = createModelDto("3");
+        expectedDetachedModel.setSource(new ModelAdapterSourceDto("adapter1", "model3/chat/completions"));
+        expectedDetachedModel.setRoleLimits(Map.of());
+        expectedDetachedModel.setDefaultRoleLimit(new LimitDto());
+        Assertions.assertEquals(expectedDetachedModel, actualDetachedModel);
+
+        // Cleanup by removing model from adapter
+        adapterDto1.setModels(List.of());
+
+        // Verify model is de-attached from adapter after adapter update
         adapterFacade.updateAdapter(adapterDto1.getName(), adapterDto1, "*");
         AdapterDto actualAdapter2 = adapterFacade.getAdapter(adapterDto1.getName());
         ModelDto actualModel2 = modelFacade.getModel(model1.getName());
@@ -208,7 +231,6 @@ public abstract class AdapterFunctionalTest {
         Assertions.assertEquals(expectedAdapter2, actualAdapter2);
 
         ModelDto expectedModel2 = createModelDto("1");
-        expectedModel2.setDefaults(Map.of());
         expectedModel2.setRoleLimits(Map.of());
         expectedModel2.setDefaultRoleLimit(new LimitDto());
         expectedModel2.setSource(new ModelEndpointsSourceDto());
