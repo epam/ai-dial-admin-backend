@@ -185,6 +185,114 @@
           }
         ]
       }
+    },
+    {
+      "name": "mcp_analytics",
+      "source": {
+        "table": "${METRICS_STORAGE_MCP_ANALYTICS_TABLE:mcp_analytics}"
+      },
+      "schema": {
+        "columns": [
+          {
+            "name": "_time",
+            "type": "timestamp",
+            "source": {
+              "column": "time"
+            }
+          },
+          {
+            "name": "project_id",
+            "type": "string",
+            "source": {
+              "column": "project_id"
+            }
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "source": {
+              "column": "title"
+            }
+          },
+          {
+            "name": "deployment",
+            "type": "string",
+            "source": {
+              "column": "deployment"
+            }
+          },
+          {
+            "name": "parent_deployment",
+            "type": "string",
+            "source": {
+              "column": "parent_deployment"
+            }
+          },
+          {
+            "name": "mcp_method",
+            "type": "string",
+            "source": {
+              "column": "mcp_method"
+            }
+          },
+          {
+            "name": "execution_path",
+            "type": "string",
+            "source": {
+              "column": "execution_path"
+            }
+          },
+          {
+            "name": "chat_id",
+            "type": "string",
+            "source": {
+              "column": "chat_id"
+            }
+          },
+          {
+            "name": "user_hash",
+            "type": "string",
+            "source": {
+              "column": "user_hash"
+            }
+          },
+          {
+            "name": "upstream",
+            "type": "string",
+            "source": {
+              "column": "upstream"
+            }
+          },
+          {
+            "name": "trace_id",
+            "type": "string",
+            "source": {
+              "column": "trace_id"
+            }
+          },
+          {
+            "name": "core_span_id",
+            "type": "string",
+            "source": {
+              "column": "core_span_id"
+            }
+          },
+          {
+            "name": "core_parent_span_id",
+            "type": "string",
+            "source": {
+              "column": "core_parent_span_id"
+            }
+          },
+          {
+            "name": "mcp_tool_call_name",
+            "type": "string",
+            "source": {
+              "column": "mcp_tool_call_name"
+            }
+          }
+        ]
+      }
     }
   ]
 }
