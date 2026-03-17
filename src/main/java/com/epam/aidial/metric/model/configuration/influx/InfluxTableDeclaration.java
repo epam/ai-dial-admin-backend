@@ -1,12 +1,11 @@
 package com.epam.aidial.metric.model.configuration.influx;
 
-import com.epam.aidial.metric.model.configuration.TableDeclaration;
-import com.epam.aidial.metric.model.configuration.TableSchema;
+import com.epam.aidial.metric.model.configuration.AbstractTableDeclaration;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class InfluxTableDeclaration implements TableDeclaration {
-    private String name;
-    private InfluxTableSource source;
-    private TableSchema schema;
+@EqualsAndHashCode(callSuper = true)
+public class InfluxTableDeclaration extends AbstractTableDeclaration<InfluxTableSource> {
+    private InfluxTableSchema schema;
 }

@@ -21,9 +21,13 @@ public class OpaqueAuthenticationConverterFactory {
     }
 
     private OpaqueAuthenticationConverter create(OpaqueTokenProviderConfig config) {
+        var grantedAuthoritiesTransformer = new UserRolesResolver(
+                identityProviderUtils.getRolesMapping(config.getAllowedRoles(), config.getRolesMapping())
+        );
+
         return new OpaqueAuthenticationConverter(
+                grantedAuthoritiesTransformer,
                 identityProviderUtils.getEmailClaims(config.getEmailClaims()),
-                identityProviderUtils.getAllowedRoles(config.getAllowedRoles()),
                 identityProviderUtils.isEmailRequired()
         );
     }

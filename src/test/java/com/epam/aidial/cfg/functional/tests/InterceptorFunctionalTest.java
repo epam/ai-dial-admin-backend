@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
@@ -10,8 +11,10 @@ import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
+import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -21,6 +24,7 @@ import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
+import com.epam.aidial.cfg.web.facade.InterceptorRunnerFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.core.config.CoreInterceptor;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +46,7 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDtoWithEntities;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorRunnerDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,6 +66,8 @@ public abstract class InterceptorFunctionalTest {
     @Autowired
     private ApplicationTypeSchemaFacade typeSchemaFacade;
     @Autowired
+    private InterceptorRunnerFacade interceptorRunnerFacade;
+    @Autowired
     private DeploymentManagerService deploymentManagerService;
     @Autowired
     private TransactionTimestampContext transactionTimestampContext;
@@ -76,12 +83,14 @@ public abstract class InterceptorFunctionalTest {
 
         // create interceptor1 with application1
         InterceptorDto interceptorDto = createDtoWithDefaults(firstSuffix);
+        interceptorDto.getFeatures().setConfigurationEndpoint("https://endpoint.test.com/interceptor/configuration");
         interceptorFacade.createInterceptor(interceptorDto);
 
         InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
         InterceptorDto expected1 = createDtoWithDefaults(firstSuffix);
 
         assertInterceptorWithDefaults(actual, expected1);
+        assertThat(actual.getFeatures().getConfigurationEndpoint()).isEqualTo("https://endpoint.test.com/interceptor/configuration");
 
         // create application1
         applicationFacade.createApplication(createApplicationDtoWithEndpoint(secondSuffix));
@@ -523,6 +532,68 @@ public abstract class InterceptorFunctionalTest {
         actual.setUpdatedAt(null);
 
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldResetRunnerToNullWhenChangingInterceptorSourceFromRunnerToContainer() {
+        // Create runner
+        InterceptorRunnerDto interceptorRunnerDto = createInterceptorRunnerDto("1");
+        interceptorRunnerFacade.createInterceptorRunner(interceptorRunnerDto);
+
+        // Create interceptor with runner source
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setSource(new InterceptorRunnerSourceDto(interceptorRunnerDto.getName()));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        // Verify interceptor has runner source
+        InterceptorDto actualInterceptor = interceptorFacade.getInterceptor(interceptorDto.getName());
+        Assertions.assertNotNull(actualInterceptor.getSource());
+        Assertions.assertInstanceOf(InterceptorRunnerSourceDto.class, actualInterceptor.getSource());
+        InterceptorRunnerSourceDto interceptorRunnerSource = (InterceptorRunnerSourceDto) actualInterceptor.getSource();
+        Assertions.assertEquals(interceptorRunnerDto.getName(), interceptorRunnerSource.runnerName());
+
+        // Verify runner has the interceptor in its interceptors list
+        InterceptorRunnerDto actualInterceptorRunner = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
+        Assertions.assertTrue(actualInterceptorRunner.getInterceptors().contains(interceptorDto.getName()));
+
+        // Update interceptor to container source
+        String containerId = "container-123";
+        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl("http://dial-test-host-name.ooops/yes/no/true/false");
+        when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfo);
+
+        InterceptorDto updatedInterceptorDto = createInterceptorDto("1");
+        updatedInterceptorDto.setSource(new InterceptorContainerSourceDto(containerId, "test-container", "/chat/completions", "/configuration"));
+        interceptorFacade.updateInterceptor(updatedInterceptorDto.getName(), updatedInterceptorDto, "*");
+
+        // Verify interceptor now has container source (not runner source)
+        actualInterceptor = interceptorFacade.getInterceptor(interceptorDto.getName());
+        Assertions.assertNotNull(actualInterceptor.getSource());
+        Assertions.assertInstanceOf(InterceptorContainerSourceDto.class, actualInterceptor.getSource());
+        InterceptorContainerSourceDto containerSource = (InterceptorContainerSourceDto) actualInterceptor.getSource();
+        Assertions.assertEquals(containerId, containerSource.containerId());
+
+        // Verify runner no longer has the interceptor in its interceptors list
+        actualInterceptorRunner = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
+        Assertions.assertFalse(actualInterceptorRunner.getInterceptors().contains(updatedInterceptorDto.getName()),
+                "Runner should not contain the interceptor after switching to container source");
+
+        // Add updated interceptor (with container) to runner and save runner. Interceptor source should be switched to runner back
+        // Simulate adding the interceptor (now container source) back to the runner
+        interceptorRunnerDto.setInterceptors(List.of(updatedInterceptorDto.getName()));
+        interceptorRunnerFacade.updateInterceptorRunner(interceptorRunnerDto.getName(), interceptorRunnerDto, "*");
+
+        // Verify the interceptor now has runner source again
+        actualInterceptor = interceptorFacade.getInterceptor(interceptorDto.getName());
+        Assertions.assertNotNull(actualInterceptor.getSource());
+        Assertions.assertInstanceOf(InterceptorRunnerSourceDto.class, actualInterceptor.getSource());
+        InterceptorRunnerSourceDto runnerSourceAgain = (InterceptorRunnerSourceDto) actualInterceptor.getSource();
+        Assertions.assertEquals(interceptorRunnerDto.getName(), runnerSourceAgain.runnerName());
+
+        // Verify the runner has the interceptor again in its interceptors list
+        actualInterceptorRunner = interceptorRunnerFacade.getInterceptorRunner(interceptorRunnerDto.getName());
+        Assertions.assertTrue(actualInterceptorRunner.getInterceptors().contains(updatedInterceptorDto.getName()),
+                "Runner should contain the interceptor after switching back to runner source");
     }
 
     @Test
