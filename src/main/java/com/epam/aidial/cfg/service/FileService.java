@@ -7,8 +7,8 @@ import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -278,8 +278,8 @@ public class FileService implements ResourceService {
         return ResourceType.FILE;
     }
 
-    public StreamingResponseBody export(ExportDto exportDto) {
-        var paths = resolveExportPaths(exportDto);
+    public StreamingResponseBody export(ExportResource exportResource) {
+        var paths = resolveExportPaths(exportResource);
         var sortedPaths = paths.stream()
                 .sorted()
                 .toList();
@@ -322,9 +322,9 @@ public class FileService implements ResourceService {
         }
     }
 
-    private Set<String> resolveExportPaths(ExportDto exportDto) {
+    private Set<String> resolveExportPaths(ExportResource exportResource) {
         Set<String> paths = new HashSet<>();
-        for (String path : exportDto.getPaths()) {
+        for (String path : exportResource.getPaths()) {
             paths.addAll(collectFilePathsByPath(path));
         }
         return paths;

@@ -119,7 +119,8 @@ public class FileController {
     @PostMapping(path = "/export",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> exportPromptsToZip(@RequestBody ExportDto exportDto) {
-        var stream = fileService.export(exportDto);
+        var exportResource = resourceMapper.toExportResource(exportDto);
+        var stream = fileService.export(exportResource);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE);

@@ -8,7 +8,7 @@ import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.FolderMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapperImpl;
-import com.epam.aidial.cfg.dto.ExportDto;
+import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -219,8 +219,8 @@ class FileServiceTest {
     @Test
     void testExport_whenPathsAreFiles() throws Exception {
         // given
-        ExportDto exportDto = new ExportDto();
-        exportDto.setPaths(List.of("public/test/test1.txt", "public/test2.txt"));
+        ExportResource exportResource = new ExportResource();
+        exportResource.setPaths(List.of("public/test/test1.txt", "public/test2.txt"));
         Response mockResponse = mock(Response.class);
         Response.Body body = mock(Response.Body.class);
 
@@ -229,7 +229,7 @@ class FileServiceTest {
         when(body.asInputStream()).thenReturn(new ByteArrayInputStream("content".getBytes()));
 
         // when
-        StreamingResponseBody stream = fileService.export(exportDto);
+        StreamingResponseBody stream = fileService.export(exportResource);
         stream.writeTo(new ByteArrayOutputStream());
 
         // then
@@ -241,8 +241,8 @@ class FileServiceTest {
     @Test
     void testExport_whenPathIsFolder() throws Exception {
         // given
-        ExportDto exportDto = new ExportDto();
-        exportDto.setPaths(List.of("public/test/"));
+        ExportResource exportResource = new ExportResource();
+        exportResource.setPaths(List.of("public/test/"));
         FileMetadataDto item1 = FileMetadataDto.builder()
                 .nodeType(NodeTypeDto.ITEM)
                 .url("files/public/test/test1.txt")
@@ -266,7 +266,7 @@ class FileServiceTest {
         when(body.asInputStream()).thenReturn(new ByteArrayInputStream("content".getBytes()));
 
         // when
-        StreamingResponseBody stream = fileService.export(exportDto);
+        StreamingResponseBody stream = fileService.export(exportResource);
         stream.writeTo(new ByteArrayOutputStream());
 
         // then
