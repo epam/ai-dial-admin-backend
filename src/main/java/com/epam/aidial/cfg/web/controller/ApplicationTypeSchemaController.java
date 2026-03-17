@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDtoWithValidation;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -71,12 +72,14 @@ public class ApplicationTypeSchemaController extends AbstractController {
         return applicationTypeSchemaFacade.getSnapshot(id, revision);
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createApplicationTypeSchema(@RequestBody @Valid ApplicationTypeSchemaDto schemaDto) {
         applicationTypeSchemaFacade.create(schemaDto);
     }
 
+    @FullAdminOnly
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> update(@RequestParam(name = "id") String id,
                                        @RequestBody @Valid ApplicationTypeSchemaDto dto,
@@ -85,6 +88,7 @@ public class ApplicationTypeSchemaController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> update(@RequestParam(name = "id") String id,
                                        @RequestBody @Valid CoreApplicationTypeSchema coreApplicationTypeSchema,
@@ -93,6 +97,7 @@ public class ApplicationTypeSchemaController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@RequestParam(name = "id") String id,

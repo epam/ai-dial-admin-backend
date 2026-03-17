@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -22,8 +23,11 @@ public class OpaqueTokenProviderConfig {
     private List<String> roleClaims;
     private Set<String> allowedRoles;
     private List<String> emailClaims;
+    private Map<String, Set<UserRole>> rolesMapping;
 
-    public static OpaqueTokenProviderConfig from(String name, IdentityProvidersProperties.ProviderConfig config) {
+    public static OpaqueTokenProviderConfig from(String name,
+                                                 IdentityProvidersProperties.ProviderConfig config,
+                                                 Map<String, Set<UserRole>> rolesMapping) {
         return OpaqueTokenProviderConfig.builder()
                 .name(name)
                 .userInfoEndpoint(config.getUserInfoEndpoint())
@@ -31,6 +35,7 @@ public class OpaqueTokenProviderConfig {
                 .roleClaims(config.getRoleClaims())
                 .emailClaims(config.getEmailClaims())
                 .allowedRoles(config.getAllowedRoles())
+                .rolesMapping(rolesMapping)
                 .build();
     }
 }
