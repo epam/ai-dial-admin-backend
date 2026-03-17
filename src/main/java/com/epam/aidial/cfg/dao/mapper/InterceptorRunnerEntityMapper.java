@@ -30,6 +30,7 @@ public abstract class InterceptorRunnerEntityMapper {
                     .filter(interceptor -> !interceptors.contains(interceptor))
                     .forEach(interceptor -> {
                         interceptor.setInterceptorRunner(null);
+                        interceptor.setInterceptorContainer(null);
                         interceptor.setEndpoint(updatedEntity.getCompletionEndpoint());
                         if (interceptor.getFeatures() == null) {
                             interceptor.setFeatures(new FeaturesEntity());
@@ -40,6 +41,7 @@ public abstract class InterceptorRunnerEntityMapper {
                     .filter(interceptor -> !updatedEntity.getInterceptors().contains(interceptor))
                     .forEach(interceptor -> {
                         interceptor.setInterceptorRunner(updatedEntity);
+                        interceptor.setInterceptorContainer(null);
                         interceptor.setEndpoint(null);
                         if (interceptor.getFeatures() != null) {
                             interceptor.getFeatures().setConfigurationEndpoint(null);

@@ -1,43 +1,63 @@
 name: 🐞 Bug report
-description: Create a report to help us improve
+description: Problems and issues with code in EPAM AI DIAL Admin
 labels: ["bug"]
 projects: ["epam/68"]
 type: "Bug"
 body:
   - type: markdown
     attributes:
-      value: |
-        Thank you for reporting an issue to improve DIAL.
-        Please fill in as much of the following form as you're able.
+     value: "
+        <img src='https://www.gravatar.com/avatar/2937817a82464ae07b138d8b57a7ccd4?s=40' align='left' width='40' height='40' style='margin-right:10px'>
+        Thank you for finding the time to report the problem!
+
+        We really appreciate the community's efforts to improve EPAM AI DIAL Admin.
+        <br clear='left'/>"
   - type: input
+    validations:
+      required: true
     attributes:
-      label: Name and Version
-      description: Application name and version
-      placeholder: ai-dial-admin 1.2.3
+      label: EPAM AI DIAL Admin version
+      description: >
+        On what version of EPAM AI DIAL Admin are you currently experiencing the issue? You can try to find the version in the footer of page (e.g. "FE 0.5.3") or ask your administrator.
+      placeholder: 0.5.3
+  - type: textarea
+    attributes:
+      label: How to reproduce
+      description: >
+        What should we do to reproduce the problem? If you are not able to provide a reproducible case,
+        please open a [discussion](https://github.com/epam/ai-dial-admin-backend/discussions) instead.
+      placeholder: >
+        Please make sure you provide a reproducible step-by-step case of how to reproduce the problem as minimally and precisely as possible.
+        Remember that non-reproducible issues will be closed! Opening a discussion is recommended as a first step.
     validations:
       required: true
   - type: textarea
     attributes:
-      label: What steps will reproduce the bug?
-      description: Enter details about your bug.
-      placeholder: |
-        1. In this environment...
-        2. With this config...
-        3. Run '...'
-        4. See error...
+      label: Actual result
+      description: What do you think went wrong?
+      placeholder: >
+        Please explain why you think the behaviour is erroneous. It is extremely helpful if you copy&paste the fragment of logs showing the exact error messages or wrong behaviour and screenshots for UI problems. You can include files by dragging and dropping them here.
     validations:
       required: true
   - type: textarea
     attributes:
-      label: What is the expected behavior?
-      description: If possible please provide textual output instead of screenshots.
-  - type: textarea
-    attributes:
-      label: What do you see instead?
-      description: If possible please provide textual output instead of screenshots.
+      label: Expected result
+      description: What you think should happen instead?
+      placeholder: >
+        Please provide any suggestions or ideas what should happen instead.
     validations:
       required: true
   - type: textarea
     attributes:
       label: Additional information
       description: Tell us anything else you think we should know.
+  - type: checkboxes
+    attributes:
+      label: Confidential information
+      options:
+        - label: >
+            I confirm that do not share any confidential information
+          required: true
+  - type: markdown
+    attributes:
+      value: "Thanks for completing our form!"

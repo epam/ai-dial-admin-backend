@@ -27,7 +27,7 @@ if [ $# -gt 0 ]; then
     # Apply CLI-optimised JVM defaults when the caller has not set JAVA_OPTS.
     # -XX:TieredStopAtLevel=1  : C1-only JIT — faster startup, lower peak throughput (fine for CLI).
     CLI_JVM_OPTS=${JAVA_OPTS:--XX:TieredStopAtLevel=1}
-    exec java $DEBUG_OPTS $APACHE_ARROW_OPTS $CLI_JVM_OPTS -jar app.jar "$@"
+    exec java $DEBUG_OPTS $CLI_JVM_OPTS -jar app.jar "$@"
 else
     exec java $DEBUG_OPTS $APACHE_ARROW_OPTS $JAVA_OPTS -jar app.jar
 fi
