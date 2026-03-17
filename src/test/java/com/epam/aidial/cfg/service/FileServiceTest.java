@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.FolderMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapperImpl;
+import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -27,14 +28,20 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -207,6 +214,65 @@ class FileServiceTest {
         Assertions.assertThat(resourceUrls)
                 .containsExactlyInAnyOrder("files/public/test/testFile.txt",
                         "files/public/test/test2/testFile2.txt");
+    }
+
+    @Test
+    void testExport_whenPathsAreFiles() throws Exception {
+        // given
+        ExportDto exportDto = new ExportDto();
+        exportDto.setPaths(List.of("public/test/test1.txt", "public/test2.txt"));
+        Response mockResponse = mock(Response.class);
+        Response.Body body = mock(Response.Body.class);
+
+        when(fileClient.getFile(anyString())).thenReturn(mockResponse);
+        when(mockResponse.body()).thenReturn(body);
+        when(body.asInputStream()).thenReturn(new ByteArrayInputStream("content".getBytes()));
+
+        // when
+        StreamingResponseBody stream = fileService.export(exportDto);
+        stream.writeTo(new ByteArrayOutputStream());
+
+        // then
+        verify(fileClient, never()).getFilesMetadata(any(), anyBoolean(), any(), anyBoolean());
+        verify(fileClient).getFile("public/test/test1.txt");
+        verify(fileClient).getFile("public/test2.txt");
+    }
+
+    @Test
+    void testExport_whenPathIsFolder() throws Exception {
+        // given
+        ExportDto exportDto = new ExportDto();
+        exportDto.setPaths(List.of("public/test/"));
+        FileMetadataDto item1 = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.ITEM)
+                .url("files/public/test/test1.txt")
+                .name("test1.txt")
+                .build();
+        FileMetadataDto item2 = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.ITEM)
+                .url("files/public/test/test2.txt")
+                .name("test2.txt")
+                .build();
+        FileMetadataDto folderResponse = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.FOLDER)
+                .url("files/public/test/")
+                .items(List.of(item1, item2))
+                .build();
+        when(fileClient.getFilesMetadata(eq("public/test/"), eq(true), any(), anyBoolean())).thenReturn(folderResponse);
+        Response mockResponse = mock(Response.class);
+        Response.Body body = mock(Response.Body.class);
+        when(fileClient.getFile(anyString())).thenReturn(mockResponse);
+        when(mockResponse.body()).thenReturn(body);
+        when(body.asInputStream()).thenReturn(new ByteArrayInputStream("content".getBytes()));
+
+        // when
+        StreamingResponseBody stream = fileService.export(exportDto);
+        stream.writeTo(new ByteArrayOutputStream());
+
+        // then
+        verify(fileClient).getFilesMetadata(eq("public/test/"), eq(true), any(), anyBoolean());
+        verify(fileClient).getFile("public/test/test1.txt");
+        verify(fileClient).getFile("public/test/test2.txt");
     }
 
 }
