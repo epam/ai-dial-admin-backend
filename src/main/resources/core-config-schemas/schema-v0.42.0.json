@@ -551,9 +551,9 @@
           "items": {
             "type": "string"
           }
-        },
+        }
+      },
       "required": ["endpoint"]
-      }
     }
   }
 }
