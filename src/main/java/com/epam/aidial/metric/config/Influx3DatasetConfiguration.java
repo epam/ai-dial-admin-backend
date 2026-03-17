@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Component
-@ConfigurationProperties(prefix = "metrics.influx2")
-public class InfluxDatasetConfiguration extends AbstractDatasetConfiguration {
+@ConfigurationProperties(prefix = "metrics.influx3")
+public class Influx3DatasetConfiguration extends AbstractDatasetConfiguration {
 }
