@@ -340,16 +340,19 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 | Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | metrics.enabled | METRICS_ENABLED | false | No | - | Enable or disable metrics collection |
-| metrics.configFile.contentEnvVar | METRICS_CONFIGFILE_CONTENTENVVAR | METRICS_CONFIG_CONTENT | No | metrics.enabled=true | Environment variable containing metrics configuration |
-| metrics.configFile.location | METRICS_CONFIGFILE_LOCATION | data/admin/metric.config.json | No | metrics.enabled and env[metrics.configFile.contentEnvVar] does not defined | Path to metrics configuration file |
-| metrics.datasource.influx.defaultPageSize | METRICS_DATASOURCE_INFLUX_DEFAULTPAGESIZE | 100 | No | - | Default page size for InfluxDB queries |
+| metrics.config.content | METRICS_CONFIG_CONTENT | - | No | metrics.enabled=true | Dataset configuration JSON content (first non-empty wins) |
+| metrics.config.file | METRICS_CONFIG_FILE | - | No | metrics.enabled=true and content is empty | Path to dataset configuration JSON file |
+| metrics.config.type | METRICS_DATASOURCE_TYPE | influx2 | No | metrics.enabled=true and content/file are empty | Datasource type, selects default config: influx2 or influx3 |
+| metrics.influx2.defaultPageSize | METRICS_INFLUX2_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 2 queries |
+| metrics.influx3.defaultPageSize | METRICS_INFLUX3_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 3 queries |
 |  | METRICS_STORAGE_HOST | - | Yes | metrics.enabled=true and default metrics config used | URL for InfluxDB database connection |
-|  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default metrics config used | Inlux organization with metrics |
-|  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection  |
+|  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
+|  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
+|  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection |
 
 metrics/telemetry functionality in admin panel reads data produced by https://github.com/epam/ai-dial-analytics-realtime.
 
-example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CONFIGFILE_LOCATION can be found at "ai-dial-admin-backend/src/main/resources/metric.config.json"
+example of dataset configuration JSON can be found at "ai-dial-admin-backend/src/main/resources/metric.config.influx2.json" and "ai-dial-admin-backend/src/main/resources/metric.config.influx3.json"
 
 ## Logging Configuration
 

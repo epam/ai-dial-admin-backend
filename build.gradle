@@ -125,6 +125,7 @@ dependencies {
     implementation 'io.fabric8:kubernetes-client:7.5.2'
 
     implementation 'com.influxdb:influxdb-client-java:7.2.0'
+    implementation 'com.influxdb:influxdb3-java:1.8.0'
 
     implementation 'org.apache.commons:commons-csv:1.13.0'
 
@@ -168,6 +169,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:mssqlserver'
+    testImplementation 'org.testcontainers:influxdb'
 
     constraints {
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.15') {
@@ -217,6 +219,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
 }
 
 tasks.withType(JavaCompile) {
