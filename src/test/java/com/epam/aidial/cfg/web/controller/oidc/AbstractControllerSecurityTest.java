@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         "config.rest.security.default.email-claim=unique_name",
         "config.rest.security.default.principal-claim=" + PRINCIPAL_CLAIM,
         "config.rest.security.default.allowedRoles=ConfigAdmin,admin",
-        "config.rest.security.default.roles-mapping={\"ConfigAdmin\":[\"FULL_ADMIN\"],\"admin\":[\"FULL_ADMIN\"]}",
+        "config.rest.security.default.roles-mapping={}",
 
         "providers.test.issuer=" + TEST_ISSUER,
         "providers.test.jwk-set-uri=https://test/keys",

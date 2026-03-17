@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,26 +25,26 @@ public class RolesMappingResolver {
                                               Map<String, Set<UserRole>> defaultRolesMapping,
                                               Set<String> providerAllowedRoles,
                                               Map<String, Set<UserRole>> providerRolesMapping) {
-        if (CollectionUtils.isNotEmpty(providerAllowedRoles)) {
-            Set<String> result = new HashSet<>(providerAllowedRoles);
-            result.addAll(CollectionUtils.emptyIfNull(defaultAllowedRoles));
-            return mapToFullAdmin(result);
-        }
-
         if (MapUtils.isNotEmpty(providerRolesMapping)) {
             Map<String, Set<UserRole>> result = new HashMap<>(MapUtils.emptyIfNull(defaultRolesMapping));
             result.putAll(providerRolesMapping);
             return result;
         }
 
-        if (CollectionUtils.isNotEmpty(defaultAllowedRoles)) {
-            return mapToFullAdmin(defaultAllowedRoles);
+        if (CollectionUtils.isNotEmpty(providerAllowedRoles)) {
+            Set<String> result = new HashSet<>(providerAllowedRoles);
+            result.addAll(CollectionUtils.emptyIfNull(defaultAllowedRoles));
+            return mapToFullAdmin(result);
         }
 
-        return MapUtils.emptyIfNull(defaultRolesMapping);
+        if (MapUtils.isNotEmpty(defaultRolesMapping)) {
+            return defaultRolesMapping;
+        }
+
+        return mapToFullAdmin(CollectionUtils.emptyIfNull(defaultAllowedRoles));
     }
 
-    private Map<String, Set<UserRole>> mapToFullAdmin(Set<String> roles) {
+    private Map<String, Set<UserRole>> mapToFullAdmin(Collection<String> roles) {
         return roles.stream()
                 .collect(Collectors.toMap(
                         Function.identity(),
