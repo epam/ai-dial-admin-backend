@@ -5,11 +5,13 @@ import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.McpResourceDto;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.McpResource;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
@@ -277,6 +279,9 @@ class ApplicationEximServiceTest {
     }
 
     private ApplicationResource getApplicationResource(String suffix) {
+        var mcp = new McpResource();
+        mcp.setEndpoint("http://localhost:9876/" + suffix + "/mcp");
+        mcp.setAllowedTools(List.of("classify_text"));
         var application = new ApplicationResource();
         application.setApplicationTypeSchemaId(String.format("https://test%s.epam.com", suffix));
         application.setName("application" + suffix);
@@ -285,15 +290,12 @@ class ApplicationEximServiceTest {
         application.setFolderId(String.format("public/folder%s/", suffix));
         application.setPath(String.format("%s%s__%s", application.getFolderId(), application.getName(), application.getVersion()));
         application.setDescription(String.format("application description %s", suffix));
-        var mcp = new ApplicationResource.Mcp();
-        mcp.setEndpoint("http://localhost:9876/" + suffix + "/mcp");
-        mcp.setAllowedTools(List.of("classify_text"));
         application.setMcp(mcp);
         return application;
     }
 
     private ApplicationEximDto getApplicationEximDto(String suffix) {
-        var mcp = new ApplicationEximDto.McpEximDto();
+        var mcp = new McpResourceDto();
         mcp.setEndpoint("http://localhost:9876/" + suffix + "/mcp");
         mcp.setAllowedTools(List.of("classify_text"));
         return ApplicationEximDto.builder()

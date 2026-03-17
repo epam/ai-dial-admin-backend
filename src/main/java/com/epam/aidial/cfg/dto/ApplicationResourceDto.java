@@ -39,15 +39,4 @@ public class ApplicationResourceDto {
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
     private McpResourceDto mcp;
-
-    @Data
-    public static class McpResourceDto {
-        private String endpoint;
-        private TransportDto transport = TransportDto.HTTP;
-        private List<String> allowedTools;
-    }
-
-    public enum TransportDto {
-        HTTP
-    }
 }

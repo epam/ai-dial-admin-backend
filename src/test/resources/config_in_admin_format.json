@@ -159,10 +159,10 @@
 				}
 			],
 			"mcp": {
-                "endpoint": "http://localhost:9876/mcp",
-                "transport": "http",
-                "allowedTools": ["classify_text"]
-              }
+				"endpoint": "http://localhost:9876/mcp",
+				"transport": "http",
+				"allowedTools": ["classify_text"]
+			}
 		}
 	},
 	"models": {
@@ -436,12 +436,12 @@
 			"applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
 			"applicationTypeSchemaEndpoint": "https://test.com/endpoint",
 			"dial:applicationTypeMcp": {
-                    "dial:endpoint": "http://localhost:9876/mcp",
-                    "dial:transport": "http",
-                    "dial:allowedTools": ["classify_text"],
-                    "dial:mcpConfigDelivery": "meta",
-                    "dial:forwardPerRequestKey": true
-                  },
+				"dial:endpoint": "http://localhost:9876/mcp",
+				"dial:transport": "http",
+				"dial:allowedTools": ["classify_text"],
+				"dial:mcpConfigDelivery": "meta",
+				"dial:forwardPerRequestKey": true
+			},
 			"appendApplicationPropertiesHeader": true,
 			"defs": {},
 			"properties": {},

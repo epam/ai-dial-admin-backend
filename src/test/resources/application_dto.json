@@ -51,8 +51,8 @@
   "updatedAt": "2025-06-01T15:30:00Z",
   "dependencies": ["dep1", "dep2"],
   "mcp": {
-      "endpoint": "http://localhost:9876/mcp",
-      "transport": "http",
-      "allowedTools": ["classify_text"]
-    }
+    "endpoint": "http://localhost:9876/mcp",
+    "transport": "http",
+    "allowedTools": ["classify_text"]
+  }
 }

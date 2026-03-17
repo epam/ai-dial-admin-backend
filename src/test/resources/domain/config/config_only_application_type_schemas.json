@@ -33,15 +33,15 @@
       "dial:applicationTypeTokenizeEndpoint": "https://example.com/tokenize",
       "dial:applicationTypeTruncatePromptEndpoint": "https://example.com/truncate",
       "dial:appendApplicationPropertiesHeader": true,
-      "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
+      "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
       "dial:applicationTypeMcp": {
-              "dial:endpoint": "http://localhost:9876/mcp",
-              "dial:transport": "HTTP",
-              "dial:allowedTools": ["classify_text"],
-              "dial:mcpConfigDelivery": "META",
-              "dial:forwardPerRequestKey": true
-            },
+        "dial:endpoint": "http://localhost:9876/mcp",
+        "dial:transport": "HTTP",
+        "dial:allowedTools": ["classify_text"],
+        "dial:mcpConfigDelivery": "META",
+        "dial:forwardPerRequestKey": true
+      },
       "$defs": {
         "maxLength": 255
       }

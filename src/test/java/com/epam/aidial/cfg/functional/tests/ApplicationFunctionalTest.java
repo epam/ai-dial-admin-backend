@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.McpDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -505,7 +506,7 @@ public abstract class ApplicationFunctionalTest {
     public void shouldSuccessfullyCreateApplicationAndGetDiscoveredTools() {
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationDto.setDescription("description OLD");
-        var mcp = new ApplicationDto.McpDto();
+        var mcp = new McpDto();
         mcp.setEndpoint("https://endpoint.test.com/application1");
         applicationDto.setMcp(mcp);
         applicationFacade.createApplication(applicationDto);
@@ -529,7 +530,7 @@ public abstract class ApplicationFunctionalTest {
     public void shouldSuccessfullyCreateApplicationAndCallTool() {
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationDto.setDescription("description OLD");
-        var mcp = new ApplicationDto.McpDto();
+        var mcp = new McpDto();
         mcp.setEndpoint("https://endpoint.test.com/application1");
         applicationDto.setMcp(mcp);
         applicationDto.setMcp(mcp);

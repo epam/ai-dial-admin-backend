@@ -141,7 +141,6 @@
         "temperature_supported": true,
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false
-
       },
       "defaults": {},
       "interceptors": [
@@ -233,10 +232,10 @@
       "dependencies": [],
       "routes": {},
       "mcp": {
-          "endpoint": "http://localhost:9876/mcp",
-          "transport": "http",
-          "allowed_tools": ["classify_text"]
-        }
+        "endpoint": "http://localhost:9876/mcp",
+        "transport": "http",
+        "allowed_tools": ["classify_text"]
+      }
     }
   },
   "toolsets": {
@@ -411,16 +410,16 @@
       "dial:applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
-      "dial:applicationTypeInterceptors":["testInterceptor1"],
-      "dial:applicationTypeAssistantAttachmentsInRequestSupported":false,
+      "dial:applicationTypeInterceptors": ["testInterceptor1"],
+      "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
       "dial:applicationTypeMcp": {
-              "dial:endpoint": "http://localhost:9876/mcp",
-              "dial:transport": "HTTP",
-              "dial:allowedTools": ["classify_text"],
-              "dial:mcpConfigDelivery": "META",
-              "dial:forwardPerRequestKey": true
-            },
+        "dial:endpoint": "http://localhost:9876/mcp",
+        "dial:transport": "HTTP",
+        "dial:allowedTools": ["classify_text"],
+        "dial:mcpConfigDelivery": "META",
+        "dial:forwardPerRequestKey": true
+      },
       "$defs": {}
     }
   ]

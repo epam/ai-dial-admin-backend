@@ -38,16 +38,5 @@ public class CreateApplicationResource {
     private List<RouteResource> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
-    private Mcp mcp;
-
-    @Data
-    public static class Mcp {
-        private String endpoint;
-        private Transport transport = Transport.HTTP;
-        private List<String> allowedTools;
-
-        public enum Transport {
-            HTTP
-        }
-    }
+    private McpResource mcp;
 }

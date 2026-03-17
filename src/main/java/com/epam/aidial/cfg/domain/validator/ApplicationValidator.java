@@ -85,7 +85,7 @@ public class ApplicationValidator {
 
         if (!isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
             if (endpoint != null || mcp != null) {
-                throw new IllegalArgumentException("Neither application endpoint or MCP must be set for schema based application."
+                throw new IllegalArgumentException("Neither application endpoint nor MCP must be set for schema based application."
                         + " Application: %s".formatted(appName));
             }
         } else if (endpoint == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))) {

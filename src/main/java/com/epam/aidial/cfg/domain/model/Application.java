@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,16 +40,4 @@ public class Application extends RoleBased {
     private List<DependentRoute> routes;
     private ValidityState validityState;
     private Mcp mcp;
-
-    @Data
-    public static class Mcp {
-        private String endpoint;
-        private Transport transport = Transport.HTTP;
-        private List<String> allowedTools = new ArrayList<>();
-    }
-
-    public enum Transport {
-        HTTP
-    }
-
 }

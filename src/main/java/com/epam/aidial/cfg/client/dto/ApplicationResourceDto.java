@@ -43,16 +43,5 @@ public class ApplicationResourceDto {
     private Map<String, RouteDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
-    private McpDto mcp;
-
-    @Data
-    public static class McpDto {
-        private String endpoint;
-        private TransportDto transport = TransportDto.HTTP;
-        private List<String> allowedTools;
-    }
-
-    public enum TransportDto {
-        HTTP
-    }
+    private McpResourceDto mcp;
 }

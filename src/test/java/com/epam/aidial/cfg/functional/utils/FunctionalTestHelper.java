@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.McpDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
@@ -190,7 +191,7 @@ public class FunctionalTestHelper {
 
     public static ApplicationDto createApplicationDtoWithMcp(String suffix) {
         ApplicationDto applicationDto = createBaseApplicationDto(suffix);
-        var mcp = new ApplicationDto.McpDto();
+        var mcp = new McpDto();
         mcp.setEndpoint("http://localhost:9876/mcp");
         mcp.setAllowedTools(List.of("classify_text"));
         applicationDto.setMcp(mcp);

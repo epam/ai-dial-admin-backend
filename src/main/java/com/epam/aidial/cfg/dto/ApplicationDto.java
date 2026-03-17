@@ -100,15 +100,4 @@ public class ApplicationDto extends RoleBasedDto {
             private String configuration;
         }
     }
-
-    @Data
-    public static class McpDto {
-        private String endpoint;
-        private TransportDto transport = TransportDto.HTTP;
-        private List<String> allowedTools = List.of();
-    }
-
-    public enum TransportDto {
-        HTTP
-    }
 }

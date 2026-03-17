@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.Mcp;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,7 +111,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Neither application endpoint or MCP must be set for schema based application. Application: deploymentName");
+                .hasMessage("Neither application endpoint nor MCP must be set for schema based application. Application: deploymentName");
     }
 
     @Test
@@ -120,7 +121,7 @@ class ApplicationValidatorTest {
         application.setDisplayVersion("1.0");
         application.setApplicationTypeSchemaId(URI.create("https://test.com"));
 
-        Application.Mcp mcp = new Application.Mcp();
+        Mcp mcp = new Mcp();
         mcp.setEndpoint("http://mcp");
         application.setMcp(mcp);
 
@@ -129,7 +130,7 @@ class ApplicationValidatorTest {
 
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Neither application endpoint or MCP must be set for schema based application. Application: deploymentName");
+                .hasMessage("Neither application endpoint nor MCP must be set for schema based application. Application: deploymentName");
     }
 
     @Test
@@ -210,7 +211,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deployment.getName(), application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Neither application endpoint or MCP must be set for schema based application. Application: deploymentName");
+                .hasMessage("Neither application endpoint nor MCP must be set for schema based application. Application: deploymentName");
     }
 
     @ParameterizedTest
