@@ -64,9 +64,9 @@ public class MetricDatasetConfiguration {
     @Scope(SCOPE_PROTOTYPE)
     @SneakyThrows
     public DatasetDeclaration getDatasetDeclaration(
-            @Value("${metrics.config.content:}") String content,
-            @Value("${metrics.config.file:}") String fileName,
-            @Value("${metrics.config.type:influx2}") String configType,
+            @Value("${metrics.config.content}") String content,
+            @Value("${metrics.config.file}") String fileName,
+            @Value("${metrics.config.type}") String configType,
             PlaceholderResolver placeholderResolver,
             ObjectMapper objectMapper
     ) {
