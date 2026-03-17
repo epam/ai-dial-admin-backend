@@ -3,9 +3,9 @@ package com.epam.aidial.metric.service.influx;
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
-import com.epam.aidial.expressions.impl.ConstantImpl;
 import com.epam.aidial.metric.model.influx.FluxQueryPart;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
+import com.epam.aidial.metric.service.RangeFilterUtils;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.model.Filter;
@@ -14,18 +14,12 @@ import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
 import com.epam.aidial.ql.model.filters.Not;
 import com.epam.aidial.ql.model.filters.Or;
 import com.epam.aidial.ql.model.filters.UnaryComparisonFilter;
-import com.epam.aidial.ql.model.filters.impl.AndImpl;
-import com.epam.aidial.ql.model.filters.impl.OrImpl;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.NotImplementedException;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.epam.aidial.metric.model.influx.FluxStandardColumns.TIME_COLUMN;
 
 @UtilityClass
 public class FluxConditionPartBuilder {
@@ -34,7 +28,7 @@ public class FluxConditionPartBuilder {
             = "LIKE functionality currently supports only: equals, starts, ends, contains. Given value: %s";
 
     public static FluxQueryPart createFilterPart(Filter filter) {
-        var nonRangeFilters = extractNonRangeFilter(filter);
+        var nonRangeFilters = RangeFilterUtils.extractNonRangeFilter(filter);
         if (nonRangeFilters.isEmpty()) {
             return FluxQueryPart.of();
         }
@@ -51,7 +45,7 @@ public class FluxConditionPartBuilder {
     }
 
     public static String createRangePart(Filter filter, boolean isRequired) {
-        var rangeFilters = extractRangeFilter(filter);
+        var rangeFilters = RangeFilterUtils.extractRangeFilter(filter);
 
         var startFilterOptional = rangeFilters.stream()
                 .filter(f -> f.getOperator() == BinaryComparisonOperator.GREATER_OR_EQUALS)
@@ -84,67 +78,6 @@ public class FluxConditionPartBuilder {
                     convertInstantToString(end)
             );
         }
-    }
-
-    private static List<BinaryComparisonFilter> extractRangeFilter(Filter filter) {
-        if (filter instanceof And and) {
-            return and.getFilters().stream()
-                    .filter(FluxConditionPartBuilder::isRangeFilter)
-                    .map(BinaryComparisonFilter.class::cast)
-                    .toList();
-        }
-
-        if (isRangeFilter(filter)) {
-            return List.of((BinaryComparisonFilter) filter);
-        }
-
-        return List.of();
-    }
-
-    private static Optional<Filter> extractNonRangeFilter(Filter filter) {
-        if (filter == null) {
-            return Optional.empty();
-        }
-
-        if (filter instanceof And and) {
-            var nonRangeFilters = and.getFilters().stream().filter(f -> !isRangeFilter(f)).toList();
-
-            if (nonRangeFilters.isEmpty()) {
-                return Optional.empty();
-            }
-            if (nonRangeFilters.size() == 1) {
-                return Optional.of(nonRangeFilters.get(0));
-            }
-            return Optional.of(AndImpl.of(nonRangeFilters));
-        } else if (filter instanceof Or or) {
-            var nonRangeFilters = or.getFilters().stream().filter(f -> !isRangeFilter(f)).toList();
-
-            if (nonRangeFilters.isEmpty()) {
-                return Optional.empty();
-            }
-            if (nonRangeFilters.size() == 1) {
-                return Optional.of(nonRangeFilters.get(0));
-            }
-            return Optional.of(OrImpl.of(nonRangeFilters));
-        }
-
-        if (!isRangeFilter(filter)) {
-            return Optional.of(filter);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private static boolean isRangeFilter(Filter filter) {
-        if (filter instanceof BinaryComparisonFilter binaryComparisonFilter) {
-            if (binaryComparisonFilter.getLeftExpression() instanceof Column leftColumn && leftColumn.getName().equals(TIME_COLUMN)) {
-                return true;
-            }
-            if (binaryComparisonFilter.getRightExpression() instanceof Column rightColumn && rightColumn.getName().equals(TIME_COLUMN)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static FluxQueryPart createFilterExpression(Filter filter) {
@@ -302,15 +235,11 @@ public class FluxConditionPartBuilder {
     }
 
     private static long getInstant(Expression expression) {
-        if (!(expression instanceof ConstantImpl constant)) {
-            throw new IllegalArgumentException("Only constant expressions are supported");
-        }
-        return (long) constant.getValue();
+        return RangeFilterUtils.getInstant(expression);
     }
 
     private String convertInstantToString(long rawInstant) {
-        var instant = Instant.ofEpochMilli(rawInstant);
-        return instant.toString();
+        return RangeFilterUtils.convertInstantToString(rawInstant);
     }
 
 }
