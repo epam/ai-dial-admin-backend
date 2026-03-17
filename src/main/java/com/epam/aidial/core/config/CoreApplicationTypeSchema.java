@@ -112,7 +112,7 @@ public class CoreApplicationTypeSchema {
         private String endpoint;
         @JsonAlias({"transport", "dial:transport"})
         @JsonProperty("dial:transport")
-        private final Transport transport = Transport.HTTP;
+        private Transport transport = Transport.HTTP;
         @JsonAlias({"allowedTools", "allowed_tools", "dial:allowedTools"})
         @JsonProperty("dial:allowedTools")
         private List<String> allowedTools;

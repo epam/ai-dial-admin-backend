@@ -117,7 +117,7 @@ public class CoreApplication extends Deployment {
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Mcp {
         private String endpoint;
-        private final Transport transport = Transport.HTTP;
+        private Transport transport = Transport.HTTP;
         @JsonAlias({"allowedTools", "allowed_tools"})
         private List<String> allowedTools;
 

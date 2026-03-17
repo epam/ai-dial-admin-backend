@@ -48,7 +48,7 @@ public class ApplicationResourceDto {
     @Data
     public static class McpDto {
         private String endpoint;
-        private final TransportDto transport = TransportDto.HTTP;
+        private TransportDto transport = TransportDto.HTTP;
         private List<String> allowedTools;
     }
 

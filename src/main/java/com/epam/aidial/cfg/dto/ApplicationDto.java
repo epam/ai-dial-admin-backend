@@ -104,7 +104,7 @@ public class ApplicationDto extends RoleBasedDto {
     @Data
     public static class McpDto {
         private String endpoint;
-        private final TransportDto transport = TransportDto.HTTP;
+        private TransportDto transport = TransportDto.HTTP;
         private List<String> allowedTools = List.of();
     }
 

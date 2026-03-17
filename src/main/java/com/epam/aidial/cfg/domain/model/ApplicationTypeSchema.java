@@ -67,7 +67,7 @@ public class ApplicationTypeSchema {
     @Data
     public static class ApplicationTypeMcp {
         private String endpoint;
-        private final Transport transport = Transport.HTTP;
+        private Transport transport = Transport.HTTP;
         private List<String> allowedTools = new ArrayList<>();
         private McpConfigDelivery configDelivery = McpConfigDelivery.META;
         private boolean forwardPerRequestKey = true;

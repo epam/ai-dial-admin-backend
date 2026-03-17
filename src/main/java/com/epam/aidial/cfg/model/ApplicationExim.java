@@ -44,7 +44,7 @@ public class ApplicationExim {
     @Data
     public static class Mcp {
         private String endpoint;
-        private final Transport transport = Transport.HTTP;
+        private Transport transport = Transport.HTTP;
         private List<String> allowedTools;
     }
 

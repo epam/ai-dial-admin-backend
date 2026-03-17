@@ -44,7 +44,7 @@ public class ApplicationEximDto {
     @Data
     public static class McpEximDto {
         private String endpoint;
-        private final TransportDto transport = TransportDto.HTTP;
+        private TransportDto transport = TransportDto.HTTP;
         private List<String> allowedTools;
     }
 
