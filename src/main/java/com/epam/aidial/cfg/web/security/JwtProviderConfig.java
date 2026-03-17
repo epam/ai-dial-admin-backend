@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -23,8 +24,11 @@ public class JwtProviderConfig {
     private List<String> roleClaims;
     private List<String> emailClaims;
     private Set<String> allowedRoles;
+    private Map<String, Set<UserRole>> rolesMapping;
 
-    public static JwtProviderConfig from(String name, IdentityProvidersProperties.ProviderConfig config) {
+    public static JwtProviderConfig from(String name,
+                                         IdentityProvidersProperties.ProviderConfig config,
+                                         Map<String, Set<UserRole>> rolesMapping) {
         return JwtProviderConfig.builder()
                 .name(name)
                 .issuer(config.getIssuer())
@@ -35,6 +39,7 @@ public class JwtProviderConfig {
                 .roleClaims(config.getRoleClaims())
                 .emailClaims(config.getEmailClaims())
                 .allowedRoles(config.getAllowedRoles())
+                .rolesMapping(rolesMapping)
                 .build();
     }
 }

@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FolderService;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -51,17 +52,20 @@ public class FolderController {
         return mapper.toRuleDtos(rules);
     }
 
+    @FullAdminOnly
     @PostMapping("/updateRules")
     public void updatesRules(@RequestBody @Valid UpdateRulesRequestDto updateRulesRequestDto) {
         UpdateRulesRequest updateRulesRequest = mapper.toUpdateRulesRequest(updateRulesRequestDto);
         folderService.updatesRules(updateRulesRequest);
     }
 
+    @FullAdminOnly
     @DeleteMapping
     public void deleteFolder(@RequestParam("path") @MetadataPath String path) {
         folderService.unpublishFolder(path);
     }
 
+    @FullAdminOnly
     @PostMapping("/move")
     public void moveFolder(@RequestBody @Valid MoveFolderRequestDto moveFolderRequestDto) {
         MoveFolderRequest moveFolderRequest = mapper.toMoveFolderRequest(moveFolderRequestDto);

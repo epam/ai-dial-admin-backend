@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.web.facade.RouteFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.core.config.CoreRoute;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -62,12 +63,14 @@ public class RouteController extends AbstractController {
         return routeFacade.getSyncState(routeName, StringUtils.unwrap(previousHash, '"'));
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createRoute(@RequestBody @Valid RouteDto routeDto) {
         routeFacade.createRoute(routeDto);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{routeName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateRoute(@PathVariable("routeName") String routeName,
@@ -77,6 +80,7 @@ public class RouteController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core/{routeName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateRoute(@PathVariable String routeName,
                                             @RequestBody @Valid CoreRoute coreRoute,
@@ -85,6 +89,7 @@ public class RouteController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{routeName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRoute(@PathVariable("routeName") String routeName) {

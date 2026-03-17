@@ -19,6 +19,7 @@ import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.service.ApplicationEximService;
 import com.epam.aidial.cfg.service.ApplicationResourceService;
 import com.epam.aidial.cfg.service.ZipApplicationEximService;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -71,6 +72,7 @@ public class ApplicationResourceController {
         return ResponseEntity.status(HttpStatus.OK).eTag(applicationResource.etag()).body(applicationResourceDto);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/create",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -80,6 +82,7 @@ public class ApplicationResourceController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 
+    @FullAdminOnly
     @PostMapping(
             path = "/update",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
@@ -95,6 +98,7 @@ public class ApplicationResourceController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(currentEtag).build();
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteApplicationResource(@RequestBody ResourcePathDto applicationPath,
@@ -102,6 +106,7 @@ public class ApplicationResourceController {
         applicationService.delete(applicationPath.getPath(), etag);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/delete/bulk",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deleteApplicationResources(@RequestBody ResourcePathsDto applicationPaths) {
@@ -109,6 +114,7 @@ public class ApplicationResourceController {
         applicationService.deleteApplicationResources(paths);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/move",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void moveApplicationResource(@RequestBody MoveResourceDto moveApplicationDto) {
@@ -136,6 +142,7 @@ public class ApplicationResourceController {
         return applicationResourceMapper.toApplicationsEximDto(applicationsExim);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import/zip",
             consumes = "multipart/form-data",
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -160,6 +167,7 @@ public class ApplicationResourceController {
         return resourceMapper.toImportResourcesPreviewDto(importResourcesPreview);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import/json",
             consumes = "multipart/form-data",
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
