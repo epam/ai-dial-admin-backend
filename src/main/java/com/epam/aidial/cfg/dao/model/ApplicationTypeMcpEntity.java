@@ -26,6 +26,6 @@ public class ApplicationTypeMcpEntity {
     }
 
     public enum TransportEntity {
-        HTTP, SSE
+        HTTP
     }
 }
