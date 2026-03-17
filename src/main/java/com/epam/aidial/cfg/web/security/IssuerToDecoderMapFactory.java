@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.security;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
@@ -12,17 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@RequiredArgsConstructor
 public class IssuerToDecoderMapFactory {
     private static final String AUDIENCE_PREFIX = "api://";
     private final IdentityProviderUtils identityProviderUtils;
-
-    public IssuerToDecoderMapFactory(IdentityProviderUtils identityProviderUtils) {
-        this.identityProviderUtils = identityProviderUtils;
-    }
+    private final NimbusJwtDecoderResolver nimbusJwtDecoderResolver;
 
     @NotNull
-    public Map<String, JwtDecoder> createIssuerToDecoderMap(final NimbusJwtDecoder jwtDecoder,
-                                                            final JwtProviderConfig config) {
+    public Map<String, JwtDecoder> createIssuerToDecoderMap(final JwtProviderConfig config) {
+        final var jwtDecoder = nimbusJwtDecoderResolver.resolve(config);
         final var issuerToDecoderMap = new HashMap<String, JwtDecoder>();
         final var acceptedIssuers = identityProviderUtils.getAcceptedIssuers(config);
         for (final String issuer : acceptedIssuers) {

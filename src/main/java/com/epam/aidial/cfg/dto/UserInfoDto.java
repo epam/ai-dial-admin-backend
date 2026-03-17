@@ -5,11 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SecurityInfoDto {
+public class UserInfoDto {
 
-    private UserInfoDto userInfo;
+    private String id;
+    private String email;
+    private Set<String> roles;
 }
