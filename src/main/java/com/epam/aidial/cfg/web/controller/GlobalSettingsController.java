@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.web.facade.GlobalSettingsFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ public class GlobalSettingsController extends AbstractController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @FullAdminOnly
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> updateGlobalSettings(@RequestBody @Valid GlobalSettingsDto globalSettingsDto,

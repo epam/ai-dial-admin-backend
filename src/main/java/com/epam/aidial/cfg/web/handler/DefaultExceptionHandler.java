@@ -84,11 +84,11 @@ public class DefaultExceptionHandler {
     }
 
     @ResponseBody
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(AccessDeniedException.class)
-    public ErrorView handleAuthorizationException(HttpServletRequest req, Exception ex) {
+    public ErrorView handleAccessDeniedException(HttpServletRequest req, Exception ex) {
         logUncaught(ex);
-        return new ErrorView(req, HttpStatus.UNAUTHORIZED, ex.getMessage());
+        return new ErrorView(req, HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ResponseBody

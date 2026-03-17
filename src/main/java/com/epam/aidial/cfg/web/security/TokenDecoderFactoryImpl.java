@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.web.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,9 +15,7 @@ public class TokenDecoderFactoryImpl implements TokenDecoderFactory {
     public JwtDecoder createJwtDecoder() {
         final var issuerToDecoderMap = new HashMap<String, JwtDecoder>();
         for (final JwtProviderConfig config : providers) {
-            var jwkSetUri = config.getJwkSetUri();
-            final var jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-            issuerToDecoderMap.putAll(issuerToDecoderMapFactory.createIssuerToDecoderMap(jwtDecoder, config));
+            issuerToDecoderMap.putAll(issuerToDecoderMapFactory.createIssuerToDecoderMap(config));
         }
         return new MultiIssuerJwtDecoder(issuerToDecoderMap);
     }

@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -48,18 +49,21 @@ public class AddonController extends AbstractController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createAddon(@RequestBody @Valid AddonDto addonDto) {
         addonFacade.createAddon(addonDto);
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{addonName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAddon(@PathVariable("addonName") String addonName) {
         addonFacade.deleteAddon(addonName);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{addonName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateAddon(@PathVariable("addonName") String addonName,
