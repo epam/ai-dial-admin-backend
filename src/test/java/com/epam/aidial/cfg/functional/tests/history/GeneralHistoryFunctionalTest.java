@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class GeneralHistoryFunctionalTest {
 
     @Autowired
-    ConfigTransfer configTransfer;
+    private ConfigTransfer configTransfer;
     @Autowired
     private KeyFacade keyFacade;
     @Autowired
