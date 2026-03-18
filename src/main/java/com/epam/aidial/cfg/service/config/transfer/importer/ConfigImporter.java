@@ -1,9 +1,11 @@
 package com.epam.aidial.cfg.service.config.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.transfer.importer.compatibility.backward.AdminConfigImportBackwardCompatibilityHandler;
@@ -38,6 +40,8 @@ public class ConfigImporter {
     private final GlobalSettingsImporter globalSettingsImporter;
 
     private final AdminConfigImportBackwardCompatibilityHandler adminConfigImportBackwardCompatibilityHandler;
+    private final AuditActivityLogService auditActivityLogService;
+    private final AuditParentActivityHolder auditParentActivityHolder;
 
     @Transactional
     public ImportConfigPreview importPreview(Config config, ConfigImportOptions importOptions) {
@@ -145,47 +149,68 @@ public class ConfigImporter {
                 .build();
     }
 
-    @Transactional
     public void importConfigWithOverride(Config config) {
-        importConfig(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
+        var parentId = auditActivityLogService.logImportOperation("core", new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
+        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+            importConfigTransactional(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
+        }
     }
 
-    @Transactional
     public void importConfig(Config config, ConfigImportOptions importOptions) {
-        var resolutionPolicy = importOptions.conflictResolutionPolicy();
-        var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
-
-        interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
-        applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
-        adapterImporter.importAdapters(config.getModels(), importOptions, false);
-        modelImporter.importModels(config.getModels(), importOptions);
-        addonImporter.importAddons(config.getAddons(), importOptions);
-        applicationImporter.importApplications(config.getApplications(), config.getApplicationTypeSchemas(), importOptions);
-        routeImporter.importRoutes(config.getRoutes(), importOptions);
-        assistantImporter.importAssistants(config.getAssistant(), importOptions);
-        toolSetImporter.importToolSets(config.getToolsets(), importOptions);
-        roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
-        keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
-        globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
-
+        var parentId = auditActivityLogService.logImportOperation("core", importOptions);
+        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+            importConfigTransactional(config, importOptions);
+        }
     }
 
     @Transactional
+    public void importConfigTransactional(Config config, ConfigImportOptions importOptions) {
+        var parentId = auditActivityLogService.logImportOperation("core", importOptions);
+        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+            var resolutionPolicy = importOptions.conflictResolutionPolicy();
+            var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
+
+            interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
+            applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
+            adapterImporter.importAdapters(config.getModels(), importOptions, false);
+            modelImporter.importModels(config.getModels(), importOptions);
+            addonImporter.importAddons(config.getAddons(), importOptions);
+            applicationImporter.importApplications(config.getApplications(), config.getApplicationTypeSchemas(), importOptions);
+            routeImporter.importRoutes(config.getRoutes(), importOptions);
+            assistantImporter.importAssistants(config.getAssistant(), importOptions);
+            toolSetImporter.importToolSets(config.getToolsets(), importOptions);
+            roleImporter.importRoles(config.getRoles(), rolesPreImportInfo, resolutionPolicy);
+            keyImporter.importKeys(config.getKeys(), resolutionPolicy, false);
+            globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+        }
+    }
+
     public void importAdminConfig(ExportConfig config, ConfigImportOptions importOptions) {
         adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
+        var parentId = auditActivityLogService.logImportOperation("admin", importOptions);
+        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+            importAdminConfigTransactional(config, importOptions);
+        }
+    }
 
-        var resolutionPolicy = importOptions.conflictResolutionPolicy();
+    @Transactional
+    public void importAdminConfigTransactional(ExportConfig config, ConfigImportOptions importOptions) {
+        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
+        var parentId = auditActivityLogService.logImportOperation("admin", importOptions);
+        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+            var resolutionPolicy = importOptions.conflictResolutionPolicy();
 
-        interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
-        interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
-        applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
-        routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
-        adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
-        modelImporter.importAdminModels(config.getModels(), importOptions);
-        applicationImporter.importAdminApplications(config.getApplications(), importOptions);
-        toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
-        roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
-        keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
-        globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+            interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
+            interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
+            applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
+            routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
+            adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
+            modelImporter.importAdminModels(config.getModels(), importOptions);
+            applicationImporter.importAdminApplications(config.getApplications(), importOptions);
+            toolSetImporter.importAdminToolSets(config.getToolsets(), importOptions);
+            roleImporter.importAdminRoles(config.getRoles(), resolutionPolicy);
+            keyImporter.importAdminKeys(config.getKeys(), resolutionPolicy);
+            globalSettingsImporter.importGlobalSettings(config.getGlobalInterceptors(), resolutionPolicy);
+        }
     }
 }

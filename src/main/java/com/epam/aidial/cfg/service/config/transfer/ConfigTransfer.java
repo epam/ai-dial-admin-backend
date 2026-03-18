@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigMetadata;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
@@ -59,11 +60,13 @@ public class ConfigTransfer {
     private final List<CoreConfigNormalizer> normalizers;
     private final ConfigImporter configImporter;
     private final ExportConfigMetadataProvider exportConfigMetadataProvider;
+    private final AuditActivityLogService auditActivityLogService;
 
     @Transactional(readOnly = true)
     public StreamingResponseBody exportConfig(ExportRequest request) {
         ExportFormat exportFormat = request.getExportFormat();
         ExportConfig config = configExporter.getConfig(request);
+        auditActivityLogService.logConfigExport(request);
         return switch (exportFormat) {
             case CORE -> exportCoreConfig(config);
             case ADMIN -> exportAdminConfig(config);
@@ -83,6 +86,7 @@ public class ConfigTransfer {
                     zos.write(config.getValue().getBytes());
                 }
                 zos.closeEntry();
+                auditActivityLogService.logExportRawConfig(addSecrets);
             } catch (Exception e) {
                 log.error("Config file export failed. AddSecrets: {}.", addSecrets, e);
                 throw new RuntimeException(e);

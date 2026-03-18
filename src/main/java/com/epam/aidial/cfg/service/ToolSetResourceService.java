@@ -8,6 +8,9 @@ import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
+import com.epam.aidial.cfg.domain.model.activity.ActivityType;
+import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
 import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
@@ -55,6 +58,7 @@ public class ToolSetResourceService implements ResourceService {
     private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final CoreClientUrlUtils coreClientUrlUtils;
+    private final AuditActivityLogService auditActivityLogService;
 
     @Value("${core.toolsets.metadata.default.limit}")
     private int toolSetsMetadataDefaultLimit;
@@ -129,6 +133,8 @@ public class ToolSetResourceService implements ResourceService {
         var headers = createHeadersForCreate(allowOverride, etag);
         try {
             var toolSetMetadata = toolSetClient.putToolSetResource(path, toolSetResourceDto, headers);
+            var auditType = !allowOverride && etag == null ? ActivityType.Create : ActivityType.Update;
+            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.ToolResource, path);
             return toolSetMetadata.getHeaders().getETag();
         } catch (ResourcePreconditionFailedException ex) {
             throw OptimisticLockConflictException.onUpdate("ToolSet Resource", createToolSetResource.getName());
@@ -161,6 +167,7 @@ public class ToolSetResourceService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         toolSetClient.deleteToolSetResource(path, headers);
+        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.ToolResource, path);
     }
 
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.FolderMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapperImpl;
+import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -56,6 +57,9 @@ class FileServiceTest {
 
     @MockitoBean
     private ResourceClient resourceClient;
+
+    @MockitoBean
+    private AuditActivityLogService auditActivityLogService;
 
     @Autowired
     private FileService fileService;

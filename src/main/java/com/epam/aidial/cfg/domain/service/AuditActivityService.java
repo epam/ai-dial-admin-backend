@@ -27,7 +27,8 @@ public class AuditActivityService {
             "resourceType",
             "resourceId",
             "initiatedAuthor",
-            "initiatedEmail"
+            "initiatedEmail",
+            "parentActivityId"
     );
 
     private final AuditActivityEntityMapper auditActivityEntityMapper;

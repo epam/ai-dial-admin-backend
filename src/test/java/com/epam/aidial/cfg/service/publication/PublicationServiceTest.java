@@ -13,6 +13,8 @@ import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.dto.RulesDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
+import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.PromptPublication;
@@ -70,13 +72,24 @@ class PublicationServiceTest {
     private PublicationResourceTypeResolver publicationResourceTypeResolver;
     @Mock
     private PublicationResolver promptPublicationResolver;
+    @Mock
+    private AuditActivityLogService auditActivityLogService;
+    @Mock
+    private AuditParentActivityHolder auditParentActivityHolder;
 
     private PublicationService publicationService;
 
     @BeforeEach
     void setUp() {
         var publicationResolversByResourceType = Map.of(ResourceType.PROMPT, promptPublicationResolver);
-        publicationService = new PublicationService(publicationClient, publicationClientMapper, publicationResourceTypeResolver, publicationResolversByResourceType);
+        publicationService = new PublicationService(
+                publicationClient,
+                publicationClientMapper,
+                publicationResourceTypeResolver,
+                publicationResolversByResourceType,
+                auditActivityLogService,
+                auditParentActivityHolder
+        );
     }
 
     @ParameterizedTest
