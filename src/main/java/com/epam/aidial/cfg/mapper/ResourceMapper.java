@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.mapper;
 
+import com.epam.aidial.cfg.dto.ExportDto;
 import com.epam.aidial.cfg.dto.FolderInfoDto;
 import com.epam.aidial.cfg.dto.ImportResourcesDto;
 import com.epam.aidial.cfg.dto.ImportResourcesFileResultDto;
@@ -9,6 +10,7 @@ import com.epam.aidial.cfg.dto.MoveResourceDto;
 import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
 import com.epam.aidial.cfg.dto.RuleDto;
 import com.epam.aidial.cfg.dto.UpdateRulesRequestDto;
+import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
@@ -61,4 +63,6 @@ public interface ResourceMapper {
     ImportResourcesPreviewDto toImportResourcesPreviewDto(ImportResourcesPreview importResourcesPreview);
 
     MoveFolderRequest toMoveFolderRequest(MoveFolderRequestDto moveFolderRequestDto);
+
+    ExportResource toExportResource(ExportDto exportDto);
 }

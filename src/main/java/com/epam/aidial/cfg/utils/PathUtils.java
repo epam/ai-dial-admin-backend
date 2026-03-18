@@ -30,6 +30,10 @@ public class PathUtils {
         return path;
     }
 
+    public static boolean isFolderPath(String path) {
+        return path != null && path.endsWith("/");
+    }
+
     public static String ensureTrailingSlash(String path) {
         if (path == null || path.isEmpty()) {
             return "/";
