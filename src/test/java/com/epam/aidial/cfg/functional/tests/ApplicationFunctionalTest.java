@@ -432,33 +432,13 @@ public abstract class ApplicationFunctionalTest {
     }
 
     @Test
-    public void shouldSuccessfullyGetCoreApplicationWithMcp() {
+    public void shouldSuccessfullyGetApplicationWithMcp() {
         initRoles();
-
         ApplicationDto applicationDto = createApplicationDtoWithMcp("1");
         applicationFacade.createApplication(applicationDto);
-
-        CoreApplication expected = new CoreApplication();
-        expected.setName(applicationDto.getName());
-        expected.setDisplayName(applicationDto.getDisplayName());
-        expected.setDescription(applicationDto.getDescription());
-        expected.setEndpoint(applicationDto.getEndpoint());
-        expected.setApplicationProperties(applicationDto.getApplicationProperties());
-        expected.setFeatures(defaultCoreFeatures());
-        expected.setRoutes(null);
-        expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
-        var mcp = new CoreApplication.Mcp();
-        mcp.setEndpoint("http://localhost:9876/mcp");
-        mcp.setAllowedTools(List.of("classify_text"));
-        expected.setMcp(mcp);
-        expected.setUserRoles(Set.of("role1"));
-
-        CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
-        actual.setCreatedAt(null);
-        actual.setUpdatedAt(null);
-        actual.setRoutes(null);
-
-        assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+        var actual = applicationFacade.getApplication(applicationDto.getName());
+        var expected = createApplicationDtoWithMcp("1");
+        assertApplicationWithMcp(actual, expected);
     }
 
     @Test
@@ -551,7 +531,6 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(expectedCallToolResult, actualCallToolResult);
     }
 
-
     private ApplicationDto createDtoWithDefaults(String suffix) {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits(suffix);
         applicationDto.setDefaults(Map.of("max_tokens", 8000));
@@ -567,6 +546,11 @@ public abstract class ApplicationFunctionalTest {
     private void assertApplicationWithDefaults(ApplicationDto actual, ApplicationDto expected) {
         assertApplication(actual, expected);
         Assertions.assertEquals(expected.getDefaults(), actual.getDefaults());
+    }
+
+    private void assertApplicationWithMcp(ApplicationDto actual, ApplicationDto expected) {
+        assertApplication(actual, expected);
+        Assertions.assertEquals(expected.getMcp(), actual.getMcp());
     }
 
     private void assertApp(Collection<ApplicationInfoDto> actual, Collection<ApplicationDto> expected) {
