@@ -1,8 +1,10 @@
 package com.epam.aidial.cfg.dao.model;
 
+import com.epam.aidial.cfg.dao.listener.ApplicationTypeSchemaEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -24,6 +26,7 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Entity
 @Audited
+@EntityListeners(ApplicationTypeSchemaEntityListener.class)
 public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
 
     @Id

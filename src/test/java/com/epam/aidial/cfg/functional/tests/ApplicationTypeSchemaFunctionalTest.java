@@ -122,6 +122,38 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyCreateAndUpdateApplicationTypeSchemaWithApplication() {
+        // given
+        doReturn(120L).when(transactionTimestampContext).getTimestamp();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationFacade.createApplication(applicationDto);
+
+        dto.setApplications(List.of(applicationDto.getName()));
+        dto.setApplicationTypeRoutes(List.of());
+        dto.setInterceptors(List.of());
+        dto.setApplicationTypeAssistantAttachmentsInRequestSupported(true);
+
+        doReturn(220L).when(transactionTimestampContext).getTimestamp();
+        typeSchemaFacade.create(dto);
+
+        // when
+        doReturn(320L).when(transactionTimestampContext).getTimestamp();
+        dto.setApplications(List.of(applicationDto.getName()));
+        dto.setRequired(List.of("instructions"));
+        typeSchemaFacade.update(dto.getId(), dto, "*");
+
+        // then
+        ApplicationTypeSchemaDto actual = typeSchemaFacade.get(dto.getId());
+        Assertions.assertThat(actual).isEqualTo(dto);
+
+        ApplicationDto updatedApplication = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertThat(updatedApplication.getEndpoint()).isNull();
+        Assertions.assertThat(updatedApplication.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(320));
+        Assertions.assertThat(updatedApplication.getValidityState())
+                .isEqualTo(invalidState("$: required property 'instructions' not found"));
+    }
+
+    @Test
     public void shouldSuccessfullyCreateAndUpdateApplicationTypeSchemaWithInterceptors() {
         InterceptorDto interceptorDto1 = createInterceptorDto("1");
         interceptorFacade.createInterceptor(interceptorDto1);
