@@ -338,7 +338,7 @@ class ToolSetPublicationResolverTest {
         var publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
                 "dtoJson".getBytes(StandardCharsets.UTF_8));
 
-        when(filePublicationResolver.uploadNewFileResources(any(), any()))
+        when(filePublicationResolver.uploadNewFileResources(any(), any(), any()))
                 .thenReturn(List.of(newFileResource));
         when(filePublicationResolver.merge(anyList(), anyList()))
                 .thenAnswer(invocation -> {
@@ -353,7 +353,7 @@ class ToolSetPublicationResolverTest {
         // then
         assertThat(publication.getFiles()).hasSize(2);
         assertThat(publication.getFiles()).containsExactly(existingFileResource, newFileResource);
-        verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder));
+        verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder), any());
         verify(filePublicationResolver).merge(eq(List.of(existingFileResource)), eq(List.of(newFileResource)));
     }
 
@@ -370,7 +370,7 @@ class ToolSetPublicationResolverTest {
         var publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
                 "dtoJson".getBytes(StandardCharsets.UTF_8));
 
-        when(filePublicationResolver.uploadNewFileResources(any(), any()))
+        when(filePublicationResolver.uploadNewFileResources(any(), any(), any()))
                 .thenReturn(List.of(newFileResource));
         when(filePublicationResolver.merge(anyList(), anyList()))
                 .thenAnswer(invocation -> {
@@ -384,7 +384,7 @@ class ToolSetPublicationResolverTest {
         // then
         assertThat(publication.getFiles()).hasSize(1);
         assertThat(publication.getFiles()).containsExactly(newFileResource);
-        verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder));
+        verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder), any());
         verify(filePublicationResolver).merge(eq(List.of()), eq(List.of(newFileResource)));
     }
 

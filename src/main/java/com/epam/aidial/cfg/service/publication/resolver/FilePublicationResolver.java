@@ -19,6 +19,7 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Publication;
+import com.epam.aidial.cfg.model.PublicationResource;
 import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
@@ -164,18 +165,21 @@ public class FilePublicationResolver extends PublicationResolver {
             return;
         }
         var filePublication = (FilePublication) publication;
+        var fileResourceAction = getFileResourceAction(publication);
         filePublication.setResources(
-                merge(filePublication.getResources(), uploadNewFileResources(files, publication.getFolderId())));
+                merge(filePublication.getResources(), uploadNewFileResources(files, publication.getFolderId(), fileResourceAction)));
     }
 
-    protected List<FilePublicationResource> uploadNewFileResources(List<MultipartFile> files, String folderId) {
+    protected List<FilePublicationResource> uploadNewFileResources(List<MultipartFile> files,
+                                                                   String folderId,
+                                                                   PublicationResourceAction action) {
         var sourceFolder = PathUtils.ensureTrailingSlash(bucketService.getBucket().getBucket());
         var updatesFolderPath = sourceFolder + PUBLICATIONS_UPDATES_FOLDER;
         var uploadedSourceFiles = upload(files, updatesFolderPath);
         validateUploadResult(uploadedSourceFiles);
 
         return uploadedSourceFiles.getImportResults().stream()
-                .map(importResult -> getPublicationResource(importResult, folderId, updatesFolderPath))
+                .map(importResult -> getPublicationResource(importResult, folderId, updatesFolderPath, action))
                 .toList();
     }
 
@@ -191,6 +195,11 @@ public class FilePublicationResolver extends PublicationResolver {
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
         return fileService.uploadFile(files, importResources);
+    }
+
+    protected PublicationResourceAction getFileResourceAction(Publication publication) {
+        return publication.getResources().stream().filter(s -> s instanceof FilePublicationResource)
+                .map(PublicationResource::getAction).findFirst().orElse(PublicationResourceAction.ADD);
     }
 
     private void validateUploadResult(ImportResourcesFileResult result) {
@@ -217,14 +226,15 @@ public class FilePublicationResolver extends PublicationResolver {
     private FilePublicationResource getPublicationResource(
             ImportResourcesResult importResult,
             String folderId,
-            String sourceFolder
+            String sourceFolder,
+            PublicationResourceAction action
     ) {
         var fileName = PathUtils.parsePath(importResult.getTargetPath()).getName();
         var targetPath = FileClientMapper.FILES_PREFIX + PathUtils.ensureTrailingSlash(folderId) + fileName;
         var sourcePath = FileClientMapper.FILES_PREFIX + sourceFolder + fileName;
 
         return FilePublicationResource.builder()
-                .action(PublicationResourceAction.ADD_IF_ABSENT)
+                .action(action)
                 .targetUrl(targetPath)
                 .sourceUrl(sourcePath)
                 .file(FileNodeInfo.builder().name(fileName).build())

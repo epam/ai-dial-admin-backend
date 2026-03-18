@@ -128,10 +128,11 @@ public class ApplicationPublicationResolver extends PublicationResolver {
             return;
         }
         var applicationPublication = (ApplicationPublication) publication;
+        var fileResourceAction = filePublicationResolver.getFileResourceAction(publication);
         applicationPublication.setFiles(
                 filePublicationResolver.merge(
                         applicationPublication.getFiles(),
-                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId())));
+                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId(), fileResourceAction)));
     }
 
     private ApplicationPublicationResource getApplicationPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {

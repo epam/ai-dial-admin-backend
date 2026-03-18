@@ -339,7 +339,7 @@ class FilePublicationResolverTest {
         assertThat(capturedImport.getConflictResolutionStrategy()).isEqualTo(ImportConflictResolutionStrategy.OVERRIDE);
         assertThat(publication.getResources()).hasSize(2);
         var appendedResource = publication.getResources().get(1);
-        assertThat(appendedResource.getAction()).isEqualTo(PublicationResourceAction.ADD_IF_ABSENT);
+        assertThat(appendedResource.getAction()).isEqualTo(PublicationResourceAction.ADD);
         assertThat(appendedResource.getTargetUrl()).isEqualTo("files/targetFolder/1.txt");
         assertThat(appendedResource.getSourceUrl()).isEqualTo("files/userFolder/publications_updates/1.txt");
         assertThat(appendedResource.getReviewUrl()).isNull();

@@ -130,10 +130,11 @@ public class ToolSetPublicationResolver extends PublicationResolver {
             return;
         }
         var toolSetPublication = (ToolSetPublication) publication;
+        var fileResourceAction = filePublicationResolver.getFileResourceAction(publication);
         toolSetPublication.setFiles(
                 filePublicationResolver.merge(
                         toolSetPublication.getFiles(),
-                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId())));
+                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId(), fileResourceAction)));
     }
 
     private ToolSetPublicationResource getToolSetPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {
