@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FileService;
 import com.epam.aidial.cfg.service.FolderService;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import feign.Response;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -80,6 +81,7 @@ public class FileController {
         return ResponseEntity.status(HttpStatusCode.valueOf(status)).build();
     }
 
+    @FullAdminOnly
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ImportResourcesFileResultDto uploadFiles(@RequestPart("files") @Valid @Size(min = 1, max = 30) List<MultipartFile> files,
                                                     @RequestPart("config") @Validated ImportResourcesDto importFilesDto) {
@@ -89,6 +91,7 @@ public class FileController {
         return resourceMapper.toImportResourcesFileResultDto(importResults);
     }
 
+    @FullAdminOnly
     @PostMapping(value = "/import/zip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ImportResourcesFileResultDto uploadFilesZip(@RequestPart("file") MultipartFile files,
                                                        @RequestPart("config") @Validated ImportResourcesDto importFilesDto) {
@@ -98,17 +101,20 @@ public class FileController {
         return resourceMapper.toImportResourcesFileResultDto(importResult);
     }
 
+    @FullAdminOnly
     @DeleteMapping()
     public void deleteFile(@RequestParam("path") @MetadataPath String path) {
         fileService.deleteFile(path);
     }
 
+    @FullAdminOnly
     @PostMapping(value = "/delete/bulk")
     public void deleteFiles(@RequestBody FilePathsDto filePaths) {
         var paths = filePaths.getPaths().stream().map(FilePathDto::getPath).toList();
         fileService.deleteFiles(paths);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/move",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void moveFile(@RequestBody MoveResourceDto moveResourceDto) {

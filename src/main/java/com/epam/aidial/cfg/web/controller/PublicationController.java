@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.RejectPublicationDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.mapper.PublicationMapper;
 import com.epam.aidial.cfg.service.publication.PublicationService;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.util.MimeTypeUtils;
@@ -51,6 +52,7 @@ public class PublicationController {
         return publicationMapper.toPublicationDto(publication);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/update",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void updatePublication(@RequestPart(value = "files", required = false) List<MultipartFile> files,
@@ -58,6 +60,7 @@ public class PublicationController {
         publicationService.updatePublication(publicationMapper.toPublication(publicationDto), files);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/approve",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -65,6 +68,7 @@ public class PublicationController {
         publicationService.approvePublication(publicationPathDto.getPath());
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/reject",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE,
             produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
@@ -72,6 +76,7 @@ public class PublicationController {
         publicationService.rejectPublication(rejectPublicationDto.getPath(), rejectPublicationDto.getComment());
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/delete",
             consumes = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public void deletePublication(@RequestBody PublicationPathDto publicationPathDto) {

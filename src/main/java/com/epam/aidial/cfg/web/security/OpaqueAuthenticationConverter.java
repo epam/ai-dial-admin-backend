@@ -5,8 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
@@ -18,8 +16,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationConverter {
 
+    private final UserRolesResolver userRolesResolver;
     private final Set<String> emailClaims;
-    private final Set<String> allowedRoles;
     private final boolean requireEmail;
 
     @Override
@@ -39,20 +37,15 @@ public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationC
                 .orElseGet(() -> new UserSecurityDetails(null));
 
         var authorities = authenticatedPrincipal.getAuthorities();
-        var filtered = authorities.stream()
-                .map(GrantedAuthority::getAuthority)
-                .filter(allowedRoles::contains)
-                .map(SimpleGrantedAuthority::new)
-                .toList();
+        var userRoles = userRolesResolver.resolve(authorities);
 
-        log.trace("Authorization state - token: {}, idp: {}, allowedRoles: {}, authorities: {}",
-                introspectedToken, providerName, allowedRoles, authenticatedPrincipal.getAuthorities());
+        log.trace("Authorization state - token: {}, idp: {}, authorities: {}, user roles: {}",
+                introspectedToken, providerName, authorities, userRoles);
 
-        BearerTokenAuthentication authentication = new BearerTokenAuthentication(authenticatedPrincipal, accessToken, filtered);
-
+        var authentication = new BearerTokenAuthentication(authenticatedPrincipal, accessToken, userRoles);
         authentication.setDetails(details);
 
-        if (filtered.isEmpty()) {
+        if (userRoles.isEmpty()) {
             log.warn("Access denied for idp: {}. No allowed roles for user {}", providerName, authenticatedPrincipal.getName());
             authentication.setAuthenticated(false);
         }

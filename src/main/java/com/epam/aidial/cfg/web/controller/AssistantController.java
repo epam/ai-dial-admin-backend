@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,7 @@ public class AssistantController {
         return assistantFacade.getAssistant(assistantName);
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createAssistant(HttpServletResponse response,
@@ -52,12 +54,14 @@ public class AssistantController {
         assistantFacade.createAssistant(assistantDto);
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{assistantName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAssistant(HttpServletResponse response, @PathVariable("assistantName") String assistantName) throws Exception {
         assistantFacade.deleteAssistant(assistantName);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{assistantName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
