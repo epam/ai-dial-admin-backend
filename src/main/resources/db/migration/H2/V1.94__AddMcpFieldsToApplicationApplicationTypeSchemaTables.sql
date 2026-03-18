@@ -26,9 +26,6 @@ alter table if exists application_type_schema_entity_aud add column if not exist
 alter table application_entity
 drop constraint if exists CHK_APPLICATION_ENTITY_ENDPOINT_APPLICATION_TYPE_SCHEMA_ID;
 
-update application_entity set endpoint = '' where application_type_schema_id is not null;
-update application_entity set mcp_endpoint = '' where application_type_schema_id is not null;
-
 -- Add new constraint
 alter table application_entity add constraint CHK_APPLICATION_ENTITY_ENDPOINT_APPLICATION_TYPE_SCHEMA_ID_MCP_ENDPOINT
 check (

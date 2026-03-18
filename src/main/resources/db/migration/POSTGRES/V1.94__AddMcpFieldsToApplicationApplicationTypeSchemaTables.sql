@@ -39,16 +39,6 @@ begin
     end if;
 end $$;
 
-update application_entity
-set endpoint = ''
-where application_type_schema_id is not null
-and nullif(endpoint,'') is not null;
-
-update application_entity
-set mcp_endpoint = ''
-where application_type_schema_id is not null
-and nullif(mcp_endpoint,'') is not null;
-
 --Add new constraint
 alter table application_entity
 add constraint chk_application_entity_endpoint_schema_mcp
