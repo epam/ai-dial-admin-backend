@@ -3,7 +3,7 @@ package com.epam.aidial.metric.config;
 import com.epam.aidial.cfg.features.IsMetricsEnabledCondition;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.metric.component.EngineFactoryManager;
-import com.epam.aidial.metric.model.configuration.DatasetsConfiguration;
+import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.util.PlaceholderResolver;
 import com.epam.aidial.ql.Engine;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +22,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -32,14 +33,17 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @Conditional(IsMetricsEnabledCondition.class)
 public class MetricDatasetConfiguration {
 
-    private static final String DEFAULT_CONFIG_FILE_NAME = "/metric.config.json";
+    private static final Map<String, String> DEFAULT_CONFIGS = Map.of(
+            "influx2", "/metric.config.influx2.json",
+            "influx3", "/metric.config.influx3.json"
+    );
 
     @Bean
     public List<Engine> engines(
-            DatasetsConfiguration datasetsConfiguration,
+            DatasetDeclaration datasetDeclaration,
             EngineFactoryManager engineFactoryManager
     ) {
-        return datasetsConfiguration.getDatasets().stream().map(engineFactoryManager::build).toList();
+        return List.of(engineFactoryManager.build(datasetDeclaration));
     }
 
     @Bean("influxOkHttpClientBuilder")
@@ -59,29 +63,28 @@ public class MetricDatasetConfiguration {
     @Bean
     @Scope(SCOPE_PROTOTYPE)
     @SneakyThrows
-    public DatasetsConfiguration getDatasetConfiguration(
-            @Value("${metrics.configFile.contentEnvVar}") String envVar,
-            @Value("${metrics.configFile.location}") String fileName,
+    public DatasetDeclaration getDatasetDeclaration(
+            @Value("${metrics.config.content}") String content,
+            @Value("${metrics.config.file}") String fileName,
+            @Value("${metrics.config.type}") String configType,
             PlaceholderResolver placeholderResolver,
             ObjectMapper objectMapper
     ) {
-        var rawConfiguration = getConfigurationFromEnvVar(envVar)
+        var rawConfiguration = getConfigurationFromContent(content)
                 .or(() -> getConfigurationFromFile(fileName))
-                .orElseGet(this::getDefaultConfiguration);
+                .orElseGet(() -> getDefaultConfiguration(configType));
 
         var resolvedConfiguration = placeholderResolver.resolvePlaceholders(rawConfiguration);
 
-        return objectMapper.readValue(resolvedConfiguration, DatasetsConfiguration.class);
+        return objectMapper.readValue(resolvedConfiguration, DatasetDeclaration.class);
     }
 
-    @SneakyThrows
-    private Optional<String> getConfigurationFromEnvVar(String envVar) {
-        var content = System.getenv(envVar);
-        if (content == null) {
+    private Optional<String> getConfigurationFromContent(String content) {
+        if (StringUtils.isEmpty(content)) {
             return Optional.empty();
         }
 
-        log.info("Dataset configuration is provided via environment variable: {}", envVar);
+        log.info("Dataset configuration is provided via content");
         return Optional.of(content);
     }
 
@@ -103,9 +106,14 @@ public class MetricDatasetConfiguration {
     }
 
     @SneakyThrows
-    private String getDefaultConfiguration() {
-        var content = ResourceUtils.readResource(DEFAULT_CONFIG_FILE_NAME);
-        log.info("Dataset configuration is provided via default configuration: {}", DEFAULT_CONFIG_FILE_NAME);
+    private String getDefaultConfiguration(String configType) {
+        var configPath = DEFAULT_CONFIGS.get(configType);
+        if (configPath == null) {
+            throw new IllegalArgumentException("Unsupported metrics config type: %s. Supported types: %s"
+                    .formatted(configType, DEFAULT_CONFIGS.keySet()));
+        }
+        var content = ResourceUtils.readResource(configPath);
+        log.info("Dataset configuration is provided via default configuration: {}", configPath);
         return content;
     }
 

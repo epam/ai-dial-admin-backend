@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.core.config.CoreModel;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -61,12 +62,14 @@ public class ModelController extends AbstractController {
         return modelFacade.getSyncState(modelName, StringUtils.unwrap(previousHash, '"'));
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createModel(@RequestBody @Valid ModelDto modelDto) {
         modelFacade.createModel(modelDto);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{modelName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateModel(@PathVariable("modelName") String modelName,
@@ -76,6 +79,7 @@ public class ModelController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core/{modelName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateModel(@PathVariable String modelName,
                                             @RequestBody @Valid CoreModel coreModel,
@@ -84,6 +88,7 @@ public class ModelController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{modelName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteModel(@PathVariable("modelName") String modelName) {

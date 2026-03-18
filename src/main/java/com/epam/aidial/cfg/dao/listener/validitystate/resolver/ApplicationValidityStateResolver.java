@@ -58,7 +58,7 @@ public class ApplicationValidityStateResolver {
     }
 
     private Application mapToApplication(ApplicationEntity applicationEntity) {
-        return applicationEntityMapper.toDomain(applicationEntity);
+        return applicationEntityMapper.toDomainWithoutRoleLimits(applicationEntity);
     }
 
     private String mapToCoreApplicationTypeSchema(ApplicationTypeSchemaEntity entity) {
