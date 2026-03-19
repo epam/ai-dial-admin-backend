@@ -11,6 +11,7 @@ class CoreAuthTokenProviderConfigurationTest {
     private static final String clientId = "id";
     private static final String clientSecret = "secret";
     private static final String scope = "scope";
+    private static final String audience = "";
     private static final long refreshBeforeExpirationSeconds = 600;
 
     @Test
@@ -20,7 +21,7 @@ class CoreAuthTokenProviderConfigurationTest {
 
         CoreAuthTokenProviderConfiguration config = new CoreAuthTokenProviderConfiguration();
         AuthTokenProvider provider = config.coreAuthTokenProvider(
-                client, clientId, clientSecret, scope, useCache, refreshBeforeExpirationSeconds
+                client, clientId, clientSecret, scope, audience, useCache, refreshBeforeExpirationSeconds
         );
 
         assertThat(provider).isInstanceOf(CachedAuthTokenProvider.class);
@@ -32,7 +33,7 @@ class CoreAuthTokenProviderConfigurationTest {
 
         CoreAuthTokenProviderConfiguration config = new CoreAuthTokenProviderConfiguration();
         AuthTokenProvider provider = config.coreAuthTokenProvider(
-                client, clientId, clientSecret, scope, false, refreshBeforeExpirationSeconds
+                client, clientId, clientSecret, scope, audience, false, refreshBeforeExpirationSeconds
         );
 
         assertThat(provider).isInstanceOf(CoreAuthTokenProvider.class);
