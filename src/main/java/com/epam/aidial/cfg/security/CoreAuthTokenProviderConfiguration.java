@@ -16,10 +16,11 @@ public class CoreAuthTokenProviderConfiguration {
             @Value("${core.auth.token.provider.clientId}") String clientId,
             @Value("${core.auth.token.provider.clientSecret}") String clientSecret,
             @Value("${core.auth.token.provider.scope:}") String scope,
+            @Value("${core.auth.token.provider.audience:}") String audience,
             @Value("${core.auth.token.provider.cache.enabled}") boolean useCache,
             @Value("${core.auth.token.provider.cache.refreshBeforeExpirationSeconds}") long refreshBeforeExpirationSeconds
     ) {
-        var provider = new CoreAuthTokenProvider(client, clientId, clientSecret, scope);
+        var provider = new CoreAuthTokenProvider(client, clientId, clientSecret, scope, audience);
         if (useCache) {
             return new CachedAuthTokenProvider(provider, refreshBeforeExpirationSeconds);
         }
