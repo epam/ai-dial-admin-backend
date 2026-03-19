@@ -24,12 +24,13 @@ class CoreAuthTokenProviderTest {
     private final String clientId = "test-client";
     private final String clientSecret = "test-secret";
     private final String scope = "test-scope";
+    private final String audience = "";
     private CoreAuthTokenProvider provider;
 
     @BeforeEach
     void setUp() {
         client = mock(CoreAuthTokenProviderClient.class);
-        provider = new CoreAuthTokenProvider(client, clientId, clientSecret, scope);
+        provider = new CoreAuthTokenProvider(client, clientId, clientSecret, scope, audience);
     }
 
     @Test
@@ -94,6 +95,52 @@ class CoreAuthTokenProviderTest {
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessageContaining("Failed to obtain access token")
                     .hasCauseInstanceOf(RuntimeException.class);
+        }
+    }
+
+    @Test
+    void getAuthToken_audienceIsSet_includesAudienceInRequest() {
+        String audienceValue = "https://api.example.com";
+        CoreAuthTokenProvider providerWithAudience = new CoreAuthTokenProvider(client, clientId, clientSecret, scope, audienceValue);
+
+        TokenResponseDto dto = mock(TokenResponseDto.class);
+        String expectedBody = "grant_type=client_credentials"
+                + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                + "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8)
+                + "&audience=" + URLEncoder.encode(audienceValue, StandardCharsets.UTF_8);
+
+        when(client.getToken(MediaType.APPLICATION_FORM_URLENCODED_VALUE, expectedBody)).thenReturn(dto);
+
+        AuthToken expectedToken = new AuthToken("access-token", 3600);
+
+        try (MockedStatic<AuthToken> authTokenStatic = mockStatic(AuthToken.class)) {
+            authTokenStatic.when(() -> AuthToken.from(dto)).thenReturn(expectedToken);
+
+            AuthToken token = providerWithAudience.getAuthToken();
+
+            assertThat(token).isEqualTo(expectedToken);
+        }
+    }
+
+    @Test
+    void getAuthToken_audienceIsBlank_omitsAudienceFromRequest() {
+        TokenResponseDto dto = mock(TokenResponseDto.class);
+        String expectedBody = "grant_type=client_credentials"
+                + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                + "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8)
+                + "&scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8);
+
+        when(client.getToken(MediaType.APPLICATION_FORM_URLENCODED_VALUE, expectedBody)).thenReturn(dto);
+
+        AuthToken expectedToken = new AuthToken("access-token", 3600);
+
+        try (MockedStatic<AuthToken> authTokenStatic = mockStatic(AuthToken.class)) {
+            authTokenStatic.when(() -> AuthToken.from(dto)).thenReturn(expectedToken);
+
+            AuthToken token = provider.getAuthToken();
+
+            assertThat(token).isEqualTo(expectedToken);
         }
     }
 }
