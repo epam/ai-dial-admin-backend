@@ -15,6 +15,8 @@ import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.KeyFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,9 @@ public abstract class GeneralHistoryFunctionalTest {
     private ModelFacade modelFacade;
     @Autowired
     private TestHistoryFacade historyFacade;
+
+    @PersistenceContext
+    EntityManager em;
 
     @Test
     public void shouldTrackOnlyKeyDeletionDuringSystemRollback() {

@@ -16,4 +16,7 @@ public interface ModelJpaRepository extends JpaRepository<ModelEntity, String> {
     @Query("SELECT m FROM ModelEntity m WHERE m.modelContainer IS NOT NULL")
     List<ModelEntity> findByContainerIdIsNotNull();
 
+    List<ModelEntity> findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc();
+
+    List<ModelEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> ids);
 }

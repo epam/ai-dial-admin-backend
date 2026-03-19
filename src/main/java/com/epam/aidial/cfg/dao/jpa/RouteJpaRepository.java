@@ -9,4 +9,8 @@ import java.util.List;
 public interface RouteJpaRepository extends CrudRepository<RouteEntity, String> {
 
     List<RouteEntity> findByIdNotIn(Collection<String> ids);
+
+    List<RouteEntity> findAllByOrderByDisplayNameAscIdAsc();
+
+    List<RouteEntity> findByIdInOrderByDisplayNameAscIdAsc(Collection<String> ids);
 }

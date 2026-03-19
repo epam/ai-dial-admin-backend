@@ -17,8 +17,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -31,31 +33,23 @@ public class ApplicationTypeSchemaExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
                     ? getApplicationTypeSchemasWithRemovedDependencies(fullExportRequest).stream()
-                    .collect(Collectors.toMap(ApplicationTypeSchema::getSchemaId, Function.identity()))
+                    .collect(toLinkedHashMap(ApplicationTypeSchema::getSchemaId))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             List<ApplicationTypeSchema> applicationRunners = getApplicationTypeSchemas(selectedItemsExportRequest.getComponents());
             return applicationRunners.stream()
-                    .collect(Collectors.toMap(ApplicationTypeSchema::getSchemaId, Function.identity()));
+                    .collect(toLinkedHashMap(ApplicationTypeSchema::getSchemaId));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     private List<ApplicationTypeSchema> getApplicationTypeSchemas(List<ExportConfigComponent> components) {
-        return components.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, component -> component,
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> {
-                    var applicationTypeSchema = getApplicationTypeSchema(component.getName());
-                    return removeDependency(applicationTypeSchema, component.getDependencies());
-                })
+        var componentsById = filterComponentsByTypeAndCollectToMap(components, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA);
+        if (componentsById.isEmpty()) {
+            return List.of();
+        }
+        return service.getAllByIdsOrderedByDisplayNameAscIdAsc(componentsById.keySet()).stream()
+                .map(schema -> removeDependency(schema, componentsById.get(schema.getSchemaId()).getDependencies()))
                 .toList();
     }
 
@@ -64,7 +58,7 @@ public class ApplicationTypeSchemaExporter {
     }
 
     private Collection<ApplicationTypeSchema> getApplicationTypeSchemasWithRemovedDependencies(FullExportRequest fullExportRequest) {
-        return service.getAll().stream()
+        return service.getAllOrderedByDisplayNameAscIdAsc().stream()
                 .map(schema -> removeDependency(schema, fullExportRequest.getComponentTypes()))
                 .toList();
     }

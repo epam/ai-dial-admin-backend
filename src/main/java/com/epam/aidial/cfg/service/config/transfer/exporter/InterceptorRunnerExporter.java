@@ -16,8 +16,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -30,35 +32,29 @@ public class InterceptorRunnerExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.INTERCEPTOR_RUNNER)
                     ? getInterceptorRunnersWithRemovedDependencies().stream()
-                    .collect(Collectors.toMap(InterceptorRunner::getName, Function.identity()))
+                    .collect(toLinkedHashMap(InterceptorRunner::getName))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getInterceptorRunners(selectedItemsExportRequest.getComponents()).stream()
-                    .collect(Collectors.toMap(InterceptorRunner::getName, Function.identity()));
+                    .collect(toLinkedHashMap(InterceptorRunner::getName));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     private List<InterceptorRunner> getInterceptorRunners(List<ExportConfigComponent> components) {
-        return components.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.INTERCEPTOR_RUNNER)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> interceptorRunnerService.get(component.getName()))
+        var componentsByName = filterComponentsByTypeAndCollectToMap(components, ExportConfigComponentType.INTERCEPTOR_RUNNER);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return interceptorRunnerService.getAllByNamesOrderedByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
                 .map(this::removeDependency)
                 .toList();
     }
 
     private Collection<InterceptorRunner> getInterceptorRunnersWithRemovedDependencies() {
-        return interceptorRunnerService.getAll().stream()
-            .map(this::removeDependency)
-            .toList();
+        return interceptorRunnerService.getAllOrderedByDisplayNameAscNameAsc().stream()
+                .map(this::removeDependency)
+                .toList();
     }
 
     private InterceptorRunner removeDependency(InterceptorRunner interceptorRunner) {
