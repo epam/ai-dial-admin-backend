@@ -15,8 +15,8 @@ public class CoreAuthTokenProviderConfiguration {
             CoreAuthTokenProviderClient client,
             @Value("${core.auth.token.provider.clientId}") String clientId,
             @Value("${core.auth.token.provider.clientSecret}") String clientSecret,
-            @Value("${core.auth.token.provider.scope:}") String scope,
-            @Value("${core.auth.token.provider.audience:}") String audience,
+            @Value("${core.auth.token.provider.scope}") String scope,
+            @Value("${core.auth.token.provider.audience}") String audience,
             @Value("${core.auth.token.provider.cache.enabled}") boolean useCache,
             @Value("${core.auth.token.provider.cache.refreshBeforeExpirationSeconds}") long refreshBeforeExpirationSeconds
     ) {

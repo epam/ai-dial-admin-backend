@@ -99,7 +99,7 @@ class CoreAuthTokenProviderTest {
     }
 
     @Test
-    void getAuthToken_includesAudienceInRequest_whenAudienceIsSet() {
+    void getAuthToken_audienceIsSet_includesAudienceInRequest() {
         String audienceValue = "https://api.example.com";
         CoreAuthTokenProvider providerWithAudience = new CoreAuthTokenProvider(client, clientId, clientSecret, scope, audienceValue);
 
@@ -124,7 +124,7 @@ class CoreAuthTokenProviderTest {
     }
 
     @Test
-    void getAuthToken_omitsAudienceFromRequest_whenAudienceIsBlank() {
+    void getAuthToken_audienceIsBlank_omitsAudienceFromRequest() {
         TokenResponseDto dto = mock(TokenResponseDto.class);
         String expectedBody = "grant_type=client_credentials"
                 + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
