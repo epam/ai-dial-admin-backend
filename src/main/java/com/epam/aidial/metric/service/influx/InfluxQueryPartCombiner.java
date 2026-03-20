@@ -21,9 +21,10 @@ public class InfluxQueryPartCombiner {
         return this;
     }
 
-    public InfluxQueryPartCombiner add(String queryPart, Set<String> imports) {
+    public InfluxQueryPartCombiner add(String queryPart, Set<String> imports, List<String> preamble) {
         add(queryPart);
         add(imports);
+        addPreamble(preamble);
         return this;
     }
 

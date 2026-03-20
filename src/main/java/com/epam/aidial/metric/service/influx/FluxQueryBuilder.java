@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static com.epam.aidial.metric.model.influx.FluxStandardColumns.FIELD_COLUMN;
@@ -182,22 +183,23 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
                 .toList();
 
         var combiner = new InfluxQueryPartCombiner();
+        var regexCounter = new AtomicInteger();
         List<FluxQueryPart> aggregations;
         if (query.getFrom() instanceof Query innerQuery) {
             var innerQueryContext = buildQueryContext(innerQuery);
             String tempTableName = getNewTemporaryName(TEMPORAL_TABLE_NAME);
             String columnName = innerQueryContext.getColumnNames().get(0);
-            combiner.add(tempTableName + " = " + innerQueryContext.getQuery(), innerQueryContext.getImports());
+            combiner.add(tempTableName + " = " + innerQueryContext.getQuery(), innerQueryContext.getImports(), innerQueryContext.getPreamble());
 
             var finalGroupByColumnNames = groupByColumnNames;
             aggregations = aggregationFunctionCalls.stream()
-                    .map(f -> buildSimpleAggregationQueryForTempTable(tempTableName, columnName, expressionToOuterColumnNames.get(f), query.getWhere(), finalGroupByColumnNames, f))
+                    .map(f -> buildSimpleAggregationQueryForTempTable(tempTableName, columnName, expressionToOuterColumnNames.get(f), query.getWhere(), finalGroupByColumnNames, f, regexCounter))
                     .toList();
         } else {
             var table = getTable(query);
             var finalGroupByColumnNames1 = groupByColumnNames;
             aggregations = aggregationFunctionCalls.stream()
-                    .map(f -> buildSimpleAggregationQuery(table.getName(), expressionToOuterColumnNames.get(f), query.getWhere(), finalGroupByColumnNames1, f))
+                    .map(f -> buildSimpleAggregationQuery(table.getName(), expressionToOuterColumnNames.get(f), query.getWhere(), finalGroupByColumnNames1, f, regexCounter))
                     .toList();
         }
 
@@ -224,7 +226,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
 
             for (int i = 0; i < aggregations.size(); i++) {
                 var aggregation = aggregations.get(i);
-                combiner.add(tempTables.get(i) + " = " + aggregation.getQuery(), aggregation.getImports());
+                combiner.add(tempTables.get(i) + " = " + aggregation.getQuery(), aggregation.getImports(), aggregation.getPreamble());
             }
 
             combiner.add("%s = join(tables: {t1: %s, t2: %s}, on: %s)".formatted(
@@ -312,14 +314,15 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
             String fieldName,
             Filter filter,
             List<String> groupByColumnNames,
-            AggregationFunctionCall aggregationFunctionCall
+            AggregationFunctionCall aggregationFunctionCall,
+            AtomicInteger regexCounter
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var keepColumns = new ArrayList<>(groupByColumnNames);
         keepColumns.add(columnName);
 
         var rangePart = FluxConditionPartBuilder.createRangePart(filter, false);
-        var filterPart = FluxConditionPartBuilder.createFilterPart(filter);
+        var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
         var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);
         var aggregationPart = createAggregationPart(function, columnName);
         var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
@@ -341,7 +344,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
             String columnName,
             Filter filter,
             List<String> groupByColumnNames,
-            AggregationFunctionCall aggregationFunctionCall
+            AggregationFunctionCall aggregationFunctionCall,
+            AtomicInteger regexCounter
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
@@ -351,7 +355,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(filter, true);
-        var filterPart = FluxConditionPartBuilder.createFilterPart(filter);
+        var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
         var aggregationFilterPart = createAggregationFilterPart(tableDeclaration, function, args);
         var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);

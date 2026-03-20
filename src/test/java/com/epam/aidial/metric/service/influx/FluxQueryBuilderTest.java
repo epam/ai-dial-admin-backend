@@ -756,6 +756,68 @@ class FluxQueryBuilderTest {
     }
 
     @Test
+    void buildQuery_SimpleAggregate_StartsWithFiltering() {
+        var completable = QueryImpl.builder()
+                .distinct(false)
+                .expressions(List.of(
+                        new AggregationFunctionCallImpl(
+                                new FunctionImpl("sum", Type.INT_64, true),
+                                List.of(),
+                                List.of(new ColumnImpl(Type.INT_64, "prompt_tokens"))
+                        ),
+                        new AggregationFunctionCallImpl(
+                                new FunctionImpl("sum", Type.INT_64, true),
+                                List.of(),
+                                List.of(new ColumnImpl(Type.INT_64, "completion_tokens"))
+                        )
+                ))
+                .from(TableImpl.builder().name("analytics").build())
+                .where(AndImpl.of(List.of(
+                        BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                BinaryComparisonOperator.GREATER_OR_EQUALS, new ConstantImpl(Type.TIMESTAMP, 1739286720000L)),
+                        BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                BinaryComparisonOperator.LESS, new ConstantImpl(Type.TIMESTAMP, 1739290800000L)),
+                        BinaryComparisonFilterImpl.of(new ColumnImpl(Type.STRING, "deployment"),
+                                BinaryComparisonOperator.STARTS_WITH, new ConstantImpl(Type.STRING, "ge"))
+                )))
+                .build();
+
+
+        var actual = fluxQueryBuilder.buildQueryContext(completable);
+
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.REGEXP);
+        assertThat(actual.getPreamble()).containsExactly(
+                "_re0 = regexp.compile(v: \"(?i)^ge\")",
+                "_re1 = regexp.compile(v: \"(?i)^ge\")"
+        );
+        assertThat(actual.getQuery()).isEqualTo("""
+                temp_table_0 = from(bucket: "analytics-realtime")
+                |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
+                |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> filter(fn: (r) => r["deployment"] =~ _re0)
+                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> group(columns: [""])
+                |> sum()
+                |> keep(columns: ["_value"])
+                |> rename(columns: {_value: "temp_column_0"})
+                |> set(key: "temp_column_2", value: "any")
+                temp_table_1 = from(bucket: "analytics-realtime")
+                |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
+                |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> filter(fn: (r) => r["deployment"] =~ _re1)
+                |> filter(fn: (r) => r["_field"] == "completion_tokens")
+                |> group(columns: [""])
+                |> sum()
+                |> keep(columns: ["_value"])
+                |> rename(columns: {_value: "temp_column_1"})
+                |> set(key: "temp_column_2", value: "any")
+                temp_table_2 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_2"])
+                temp_table_2
+                |> group()""");
+        assertThat(actual.getColumnNames()).isEqualTo(List.of("temp_column_0", "temp_column_1"));
+    }
+
+    @Test
     void buildQuery_AggregateOverDistinct() {
         var completable =
                 QueryImpl.builder()

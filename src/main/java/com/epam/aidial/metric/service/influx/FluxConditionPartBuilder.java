@@ -29,12 +29,15 @@ public class FluxConditionPartBuilder {
             = "LIKE functionality currently supports only: equals, starts, ends, contains. Given value: %s";
 
     public static FluxQueryPart createFilterPart(Filter filter) {
+        return createFilterPart(filter, new AtomicInteger());
+    }
+
+    public static FluxQueryPart createFilterPart(Filter filter, AtomicInteger regexCounter) {
         var nonRangeFilters = RangeFilterUtils.extractNonRangeFilter(filter);
         if (nonRangeFilters.isEmpty()) {
             return FluxQueryPart.of();
         }
 
-        var regexCounter = new AtomicInteger();
         var filterExpression = createFilterExpression(nonRangeFilters.get(), regexCounter);
         var queryPart = "|> filter(fn: (r) => %s)".formatted(filterExpression.getQuery());
         return FluxQueryPart.of(filterExpression.getImports(), filterExpression.getPreamble(), queryPart);
