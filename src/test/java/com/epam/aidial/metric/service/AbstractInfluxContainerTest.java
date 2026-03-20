@@ -413,6 +413,105 @@ public abstract class AbstractInfluxContainerTest {
         assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-3.5");
     }
 
+    // ===== Case-insensitive partial search tests =====
+
+    @Test
+    void containsFilterCaseInsensitive() throws Exception {
+        // "GPT" (uppercase) should match "gpt-4" and "gpt-3.5"
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$contains": {"left": "deployment", "right": "'GPT'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+    }
+
+    @Test
+    void notContainsFilterCaseInsensitive() throws Exception {
+        // NOT_CONTAINS "GPT" (uppercase) should exclude all deployments
+        var data = queryFromJson("""
+                {
+                  "distinct": true,
+                  "expressions": ["deployment"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$not_contains": {"left": "deployment", "right": "'GPT'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).isEmpty();
+    }
+
+    @Test
+    void startsWithFilterCaseInsensitive() throws Exception {
+        // "GPT-4" (uppercase) should match "gpt-4"
+        var data = queryFromJson("""
+                {
+                  "distinct": true,
+                  "expressions": ["deployment"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$starts_with": {"left": "deployment", "right": "'GPT-4'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-4");
+    }
+
+    @Test
+    void endsWithFilterCaseInsensitive() throws Exception {
+        // "PROJ1" (uppercase) should match "proj1"
+        var data = queryFromJson("""
+                {
+                  "distinct": true,
+                  "expressions": ["project_id"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$ends_with": {"left": "project_id", "right": "'PROJ1'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo("proj1");
+    }
+
+    @Test
+    void likeFilterCaseInsensitive() throws Exception {
+        // LIKE '%OJ1%' (uppercase) should match "proj1"
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$like": {"left": "project_id", "right": "'%%OJ1%%'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
     @Test
     void containsFilterNoMatch() throws Exception {
         var data = queryFromJson("""

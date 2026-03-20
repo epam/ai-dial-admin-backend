@@ -1,8 +1,13 @@
 package com.epam.aidial.metric.service.influx3;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
-import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.metric.service.RangeFilterUtils;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
@@ -12,21 +17,15 @@ import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
 import com.epam.aidial.ql.model.filters.Not;
 import com.epam.aidial.ql.model.filters.Or;
 import com.epam.aidial.ql.model.filters.UnaryComparisonFilter;
+
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.NotImplementedException;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class SqlConditionBuilder {
 
     public static SqlConditionResult createWherePart(Filter filter, AtomicInteger paramCounter) {
-        var nonRangeFilter = extractNonRangeFilter(filter);
+        var nonRangeFilter = RangeFilterUtils.extractNonRangeFilter(filter);
         if (nonRangeFilter.isEmpty()) {
             return SqlConditionResult.empty();
         }
@@ -34,12 +33,12 @@ public class SqlConditionBuilder {
     }
 
     public static SqlConditionResult createRangePart(Filter filter, boolean isRequired, AtomicInteger paramCounter) {
-        var rangeFilters = extractRangeFilter(filter);
+        var rangeFilters = RangeFilterUtils.extractRangeFilter(filter);
 
         var startFilterOptional = rangeFilters.stream()
-                .filter(f -> f.getOperator() == BinaryComparisonOperator.GREATER_OR_EQUALS)
-                .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one start time filter must be provided")))
-                .map(f -> getInstant(f.getRightExpression()));
+            .filter(f -> f.getOperator() == BinaryComparisonOperator.GREATER_OR_EQUALS)
+            .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one start time filter must be provided")))
+            .map(f -> RangeFilterUtils.getInstant(f.getRightExpression()));
         if (startFilterOptional.isEmpty()) {
             if (isRequired) {
                 throw new IllegalArgumentException("No start time filter provided");
@@ -50,17 +49,17 @@ public class SqlConditionBuilder {
         var start = startFilterOptional.get();
 
         var endOptional = rangeFilters.stream()
-                .filter(f -> f.getOperator() == BinaryComparisonOperator.LESS)
-                .map(f -> getInstant(f.getRightExpression()))
-                .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one end time filter must be provided")));
+            .filter(f -> f.getOperator() == BinaryComparisonOperator.LESS)
+            .map(f -> RangeFilterUtils.getInstant(f.getRightExpression()))
+            .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one end time filter must be provided")));
 
         var params = new HashMap<String, Object>();
         var startParamName = "p" + paramCounter.getAndIncrement();
-        params.put(startParamName, convertInstantToString(start));
+        params.put(startParamName, RangeFilterUtils.convertInstantToString(start));
 
         if (endOptional.isPresent()) {
             var endParamName = "p" + paramCounter.getAndIncrement();
-            params.put(endParamName, convertInstantToString(endOptional.get()));
+            params.put(endParamName, RangeFilterUtils.convertInstantToString(endOptional.get()));
             var query = "\"time\" >= $%s AND \"time\" < $%s".formatted(startParamName, endParamName);
             return new SqlConditionResult(query, params);
         } else {
@@ -72,13 +71,13 @@ public class SqlConditionBuilder {
     private static SqlConditionResult createFilterExpression(Filter filter, AtomicInteger paramCounter) {
         if (filter instanceof And and) {
             var results = and.getFilters().stream()
-                    .map(f -> createFilterExpression(f, paramCounter))
-                    .toList();
+                .map(f -> createFilterExpression(f, paramCounter))
+                .toList();
             return combineResults(results, "AND");
         } else if (filter instanceof Or or) {
             var results = or.getFilters().stream()
-                    .map(f -> createFilterExpression(f, paramCounter))
-                    .toList();
+                .map(f -> createFilterExpression(f, paramCounter))
+                .toList();
             return combineResults(results, "OR");
         } else if (filter instanceof Not) {
             throw new NotImplementedException("NOT keyword is not supported yet");
@@ -93,8 +92,8 @@ public class SqlConditionBuilder {
 
     private static SqlConditionResult combineResults(List<SqlConditionResult> results, String operator) {
         var query = results.stream()
-                .map(SqlConditionResult::query)
-                .collect(Collectors.joining(" " + operator + " ", "(", ")"));
+            .map(SqlConditionResult::query)
+            .collect(Collectors.joining(" " + operator + " ", "(", ")"));
         var params = new HashMap<String, Object>();
         results.forEach(r -> params.putAll(r.parameters()));
         return new SqlConditionResult(query, params);
@@ -114,7 +113,7 @@ public class SqlConditionBuilder {
     }
 
     private static SqlConditionResult createBinaryComparisonFilter(String columnName, Comparable<?> value,
-                                                                    BinaryComparisonOperator operator, AtomicInteger paramCounter) {
+                                                                   BinaryComparisonOperator operator, AtomicInteger paramCounter) {
         return switch (operator) {
             case EQUALS -> createSimpleComparisonFilter(columnName, value, "=", paramCounter);
             case NOT_EQUALS -> createSimpleComparisonFilter(columnName, value, "!=", paramCounter);
@@ -134,7 +133,7 @@ public class SqlConditionBuilder {
     }
 
     private static SqlConditionResult createSimpleComparisonFilter(String columnName, Comparable<?> value,
-                                                                    String operator, AtomicInteger paramCounter) {
+                                                                   String operator, AtomicInteger paramCounter) {
         var paramName = "p" + paramCounter.getAndIncrement();
         var query = "\"%s\" %s $%s".formatted(columnName, operator, paramName);
         return new SqlConditionResult(query, Map.of(paramName, value));
@@ -142,13 +141,13 @@ public class SqlConditionBuilder {
 
     private static SqlConditionResult createLikePatternFilter(String columnName, String pattern, AtomicInteger paramCounter) {
         var paramName = "p" + paramCounter.getAndIncrement();
-        var query = "\"%s\" LIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
+        var query = "\"%s\" ILIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
         return new SqlConditionResult(query, Map.of(paramName, pattern));
     }
 
     private static SqlConditionResult createNotLikePatternFilter(String columnName, String pattern, AtomicInteger paramCounter) {
         var paramName = "p" + paramCounter.getAndIncrement();
-        var query = "\"%s\" NOT LIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
+        var query = "\"%s\" NOT ILIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
         return new SqlConditionResult(query, Map.of(paramName, pattern));
     }
 
@@ -161,15 +160,15 @@ public class SqlConditionBuilder {
         }
 
         var paramName = "p" + paramCounter.getAndIncrement();
-        var query = "\"%s\" LIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
+        var query = "\"%s\" ILIKE $%s ESCAPE '\\'".formatted(columnName, paramName);
         return new SqlConditionResult(query, Map.of(paramName, likeValue));
     }
 
     private static String escapeLikeWildcards(Comparable<?> value) {
         return value.toString()
-                .replace("\\", "\\\\")
-                .replace("%", "\\%")
-                .replace("_", "\\_");
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_");
     }
 
     private static SqlConditionResult createUnaryComparisonFilter(UnaryComparisonFilter unaryComparisonFilter) {
@@ -182,26 +181,6 @@ public class SqlConditionBuilder {
             case IS_NOT_NULL -> "\"%s\" IS NOT NULL".formatted(column.getName());
         };
         return new SqlConditionResult(query, Map.of());
-    }
-
-    private static List<BinaryComparisonFilter> extractRangeFilter(Filter filter) {
-        return RangeFilterUtils.extractRangeFilter(filter);
-    }
-
-    private static Optional<Filter> extractNonRangeFilter(Filter filter) {
-        return RangeFilterUtils.extractNonRangeFilter(filter);
-    }
-
-    private static boolean isRangeFilter(Filter filter) {
-        return RangeFilterUtils.isRangeFilter(filter);
-    }
-
-    private static long getInstant(Expression expression) {
-        return RangeFilterUtils.getInstant(expression);
-    }
-
-    private static String convertInstantToString(long rawInstant) {
-        return RangeFilterUtils.convertInstantToString(rawInstant);
     }
 
     public record SqlConditionResult(String query, Map<String, Object> parameters) {

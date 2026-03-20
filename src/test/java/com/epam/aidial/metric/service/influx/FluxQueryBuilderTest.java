@@ -116,7 +116,7 @@ class FluxQueryBuilderTest {
                 FluxStandardImports.REGEXP
         );
         assertThat(actual.getPreamble()).containsExactly(
-                "_re0 = regexp.compile(v: \"^value\")"
+                "_re0 = regexp.compile(v: \"(?i)^value\")"
         );
         assertThat(actual.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")

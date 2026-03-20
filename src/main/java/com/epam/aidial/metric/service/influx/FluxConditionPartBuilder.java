@@ -210,9 +210,9 @@ public class FluxConditionPartBuilder {
         var value = escapeRegex(comparable.toString());
 
         var regexPattern = switch (operator) {
-            case CONTAINS, NOT_CONTAINS -> value;
-            case STARTS_WITH -> "^" + value;
-            case ENDS_WITH -> value + "$";
+            case CONTAINS, NOT_CONTAINS -> "(?i)" + value;
+            case STARTS_WITH -> "(?i)^" + value;
+            case ENDS_WITH -> "(?i)" + value + "$";
             default -> throw new IllegalStateException("Unexpected operator: " + operator);
         };
 

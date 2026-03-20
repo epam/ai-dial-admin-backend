@@ -60,31 +60,31 @@ class FluxConditionPartBuilderTest {
                         "|> filter(fn: (r) => r[\"x\"] == \"value\")"
                 ), Arguments.of("like => starts with",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "value%")),
-                        List.of("_re0 = regexp.compile(v: \"^value\")"),
+                        List.of("_re0 = regexp.compile(v: \"(?i)^value\")"),
                         "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("like => ends with",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "%value")),
-                        List.of("_re0 = regexp.compile(v: \"value$\")"),
+                        List.of("_re0 = regexp.compile(v: \"(?i)value$\")"),
                         "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("like => contains",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "%value%")),
-                        List.of("_re0 = regexp.compile(v: \"value\")"),
+                        List.of("_re0 = regexp.compile(v: \"(?i)value\")"),
                         "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("contains",
                         BinaryComparisonFilterImpl.of(stringColumn, CONTAINS, stringConst),
-                        List.of("_re0 = regexp.compile(v: \"value\")"),
+                        List.of("_re0 = regexp.compile(v: \"(?i)value\")"),
                         "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("not contains",
                         BinaryComparisonFilterImpl.of(stringColumn, NOT_CONTAINS, stringConst),
-                        List.of("_re0 = regexp.compile(v: \"value\")"),
+                        List.of("_re0 = regexp.compile(v: \"(?i)value\")"),
                         "|> filter(fn: (r) => r[\"x\"] !~ _re0)"
                 ), Arguments.of("starts with",
                         BinaryComparisonFilterImpl.of(stringColumn, STARTS_WITH, stringConst),
-                        List.of("_re0 = regexp.compile(v: \"^value\")"),
+                        List.of("_re0 = regexp.compile(v: \"(?i)^value\")"),
                         "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("ends with",
                         BinaryComparisonFilterImpl.of(stringColumn, ENDS_WITH, stringConst),
-                        List.of("_re0 = regexp.compile(v: \"value$\")"),
+                        List.of("_re0 = regexp.compile(v: \"(?i)value$\")"),
                         "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("greater than",
                         BinaryComparisonFilterImpl.of(numericColumn, GREATER, numericConst),
