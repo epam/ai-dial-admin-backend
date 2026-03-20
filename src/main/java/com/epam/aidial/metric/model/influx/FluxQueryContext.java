@@ -10,8 +10,7 @@ import java.util.Set;
 @Builder
 public class FluxQueryContext {
     private final Set<String> imports;
-    @Builder.Default
-    private final List<String> preamble = List.of();
+    private final List<String> preamble;
     private final String query;
     private final List<String> columnNames;
 
