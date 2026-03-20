@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.utils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
@@ -60,6 +61,18 @@ class PathUtilsTest {
         assertThatThrownBy(() -> PathUtils.validateZipEntryPath(zipEntryPath))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cannot be blank");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"public/", "public/docs/", "/"})
+    void testIsFolderPath_WithTrailingSlash_ReturnsTrue(String path) {
+        assertThat(PathUtils.isFolderPath(path)).isTrue();
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"public/file.txt", "public", "''", "null"}, nullValues = "null")
+    void testIsFolderPath_WithoutTrailingSlash_ReturnsFalse(String path) {
+        assertThat(PathUtils.isFolderPath(path)).isFalse();
     }
 
     @Test
@@ -139,4 +152,3 @@ class PathUtilsTest {
         );
     }
 }
-

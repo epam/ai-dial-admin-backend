@@ -32,6 +32,10 @@ public abstract class ApplicationEntityMapper {
     @Mapping(target = "applicationTypeSchemaId", source = "applicationTypeSchema.schemaId")
     public abstract Application toDomain(ApplicationEntity entity);
 
+    @Mapping(target = "applicationTypeSchemaId", source = "applicationTypeSchema.schemaId")
+    @Mapping(target = "deployment.roleLimits", ignore = true)
+    public abstract Application toDomainWithoutRoleLimits(ApplicationEntity entity);
+
     protected String mapInterceptorToString(InterceptorEntity interceptorEntity) {
         return interceptorEntity.getName();
     }
