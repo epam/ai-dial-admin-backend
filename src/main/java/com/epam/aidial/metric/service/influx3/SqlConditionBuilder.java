@@ -1,11 +1,5 @@
 package com.epam.aidial.metric.service.influx3;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.metric.service.RangeFilterUtils;
@@ -17,9 +11,14 @@ import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
 import com.epam.aidial.ql.model.filters.Not;
 import com.epam.aidial.ql.model.filters.Or;
 import com.epam.aidial.ql.model.filters.UnaryComparisonFilter;
-
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.NotImplementedException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class SqlConditionBuilder {
@@ -36,9 +35,9 @@ public class SqlConditionBuilder {
         var rangeFilters = RangeFilterUtils.extractRangeFilter(filter);
 
         var startFilterOptional = rangeFilters.stream()
-            .filter(f -> f.getOperator() == BinaryComparisonOperator.GREATER_OR_EQUALS)
-            .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one start time filter must be provided")))
-            .map(f -> RangeFilterUtils.getInstant(f.getRightExpression()));
+                .filter(f -> f.getOperator() == BinaryComparisonOperator.GREATER_OR_EQUALS)
+                .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one start time filter must be provided")))
+                .map(f -> RangeFilterUtils.getInstant(f.getRightExpression()));
         if (startFilterOptional.isEmpty()) {
             if (isRequired) {
                 throw new IllegalArgumentException("No start time filter provided");
@@ -49,9 +48,9 @@ public class SqlConditionBuilder {
         var start = startFilterOptional.get();
 
         var endOptional = rangeFilters.stream()
-            .filter(f -> f.getOperator() == BinaryComparisonOperator.LESS)
-            .map(f -> RangeFilterUtils.getInstant(f.getRightExpression()))
-            .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one end time filter must be provided")));
+                .filter(f -> f.getOperator() == BinaryComparisonOperator.LESS)
+                .map(f -> RangeFilterUtils.getInstant(f.getRightExpression()))
+                .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one end time filter must be provided")));
 
         var params = new HashMap<String, Object>();
         var startParamName = "p" + paramCounter.getAndIncrement();
@@ -71,13 +70,13 @@ public class SqlConditionBuilder {
     private static SqlConditionResult createFilterExpression(Filter filter, AtomicInteger paramCounter) {
         if (filter instanceof And and) {
             var results = and.getFilters().stream()
-                .map(f -> createFilterExpression(f, paramCounter))
-                .toList();
+                    .map(f -> createFilterExpression(f, paramCounter))
+                    .toList();
             return combineResults(results, "AND");
         } else if (filter instanceof Or or) {
             var results = or.getFilters().stream()
-                .map(f -> createFilterExpression(f, paramCounter))
-                .toList();
+                    .map(f -> createFilterExpression(f, paramCounter))
+                    .toList();
             return combineResults(results, "OR");
         } else if (filter instanceof Not) {
             throw new NotImplementedException("NOT keyword is not supported yet");
@@ -92,8 +91,8 @@ public class SqlConditionBuilder {
 
     private static SqlConditionResult combineResults(List<SqlConditionResult> results, String operator) {
         var query = results.stream()
-            .map(SqlConditionResult::query)
-            .collect(Collectors.joining(" " + operator + " ", "(", ")"));
+                .map(SqlConditionResult::query)
+                .collect(Collectors.joining(" " + operator + " ", "(", ")"));
         var params = new HashMap<String, Object>();
         results.forEach(r -> params.putAll(r.parameters()));
         return new SqlConditionResult(query, params);
@@ -122,7 +121,8 @@ public class SqlConditionBuilder {
             case LESS_OR_EQUALS -> createSimpleComparisonFilter(columnName, value, "<=", paramCounter);
             case GREATER_OR_EQUALS -> createSimpleComparisonFilter(columnName, value, ">=", paramCounter);
             case CONTAINS -> createLikePatternFilter(columnName, "%" + escapeLikeWildcards(value) + "%", paramCounter);
-            case NOT_CONTAINS -> createNotLikePatternFilter(columnName, "%" + escapeLikeWildcards(value) + "%", paramCounter);
+            case NOT_CONTAINS ->
+                    createNotLikePatternFilter(columnName, "%" + escapeLikeWildcards(value) + "%", paramCounter);
             case STARTS_WITH -> createLikePatternFilter(columnName, escapeLikeWildcards(value) + "%", paramCounter);
             case ENDS_WITH -> createLikePatternFilter(columnName, "%" + escapeLikeWildcards(value), paramCounter);
             case LIKE -> createLikeFilter(columnName, value, paramCounter);
@@ -166,9 +166,9 @@ public class SqlConditionBuilder {
 
     private static String escapeLikeWildcards(Comparable<?> value) {
         return value.toString()
-            .replace("\\", "\\\\")
-            .replace("%", "\\%")
-            .replace("_", "\\_");
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 
     private static SqlConditionResult createUnaryComparisonFilter(UnaryComparisonFilter unaryComparisonFilter) {
