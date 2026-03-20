@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -183,7 +182,31 @@ public abstract class AbstractInfluxContainerTest {
         assertThat(proj2.get(4)).isEqualTo(110L);
     }
 
-    private Data queryFromJson(String json) throws Exception {
+    @Test
+    void aggregateWithFieldFilterAndGroupByTagAndField() throws Exception {
+        // Filter on field (user_hash), group by tag (deployment) + field (user_hash).
+        // user_hash is in groupBy but NOT in expressions — verifies extra
+        // group-by columns don't shift result positions.
+        var data = queryFromJson("""
+                {"expressions":["deployment","count()"],\
+                "from":"analytics",\
+                "where":{"$and":[{"$gte":{"left":"_time","right":"'2026-03-11T13:33:38.680Z'"}},\
+                {"$lt":{"left":"_time","right":"'2026-03-13T13:33:38.680Z'"}},\
+                {"$ne":{"left":"user_hash","right":"'user2'"}}]},\
+                "groupBy":["deployment","user_hash"],\
+                "orderBy":[{"$desc":"count()"}]}""");
+
+        // After filtering out user_hash=user2: records #1 (gpt-4,user1) and #3 (gpt-3.5,user1)
+        // Both map to distinct (deployment, user_hash) groups with count=1
+        assertThat(data.getData()).hasSize(2);
+
+        var counts = data.getData().stream()
+                .map(row -> row.get(1))
+                .toList();
+        assertThat(counts).containsExactly(1L, 1L);
+    }
+
+    protected Data queryFromJson(String json) throws Exception {
         var engine = getEngine();
         var languageConverter = new LanguageConverter(engine);
         var dto = QUERY_MAPPER.readValue(json, CompletableDto.class);

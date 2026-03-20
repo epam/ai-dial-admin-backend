@@ -154,12 +154,17 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
             innerWhereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
         }
 
-        // Build SELECT with aggregations
+        // Build SELECT with aggregations — preserve expression order
+        var expressionColumnNames = query.getExpressions().stream()
+                .map(expressionToOuterColumnNames::get)
+                .collect(Collectors.toSet());
         var selectParts = new ArrayList<String>();
 
-        // Add group by columns to select
+        // Add group by columns to select only if they appear in expressions
         for (var groupByCol : groupByColumns) {
-            selectParts.add("\"" + groupByCol + "\"");
+            if (expressionColumnNames.contains(groupByCol)) {
+                selectParts.add("\"" + groupByCol + "\"");
+            }
         }
 
         // Add aggregation expressions

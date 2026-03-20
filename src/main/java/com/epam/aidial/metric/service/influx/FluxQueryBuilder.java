@@ -340,26 +340,29 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
-        var keepColumns = new ArrayList<>(groupByColumnNames);
-        keepColumns.add(VALUE_COLUMN);
 
         InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var aggregationColumnName = resolveAggregationColumnName(tableDeclaration, function, args, groupByColumnNames);
+
+        var keepColumns = new ArrayList<>(groupByColumnNames);
+        keepColumns.add(aggregationColumnName);
+
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(filter, true);
-        var filterPart = FluxConditionPartBuilder.createFilterPart(filter);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
-        var aggregationFilterPart = createAggregationFilterPart(tableDeclaration, function, args);
+        var fieldsAsColsPart = SimpleFluxBuilder.createFieldsAsColsPart();
+        var filterPart = FluxConditionPartBuilder.createFilterPart(filter);
         var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);
-        var aggregationPart = createAggregationPart(function);
+        var aggregationPart = createAggregationPart(function, aggregationColumnName);
         var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
-        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(VALUE_COLUMN, columnName));
+        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(aggregationColumnName, columnName));
 
         return new InfluxQueryPartCombiner()
                 .add(fromPart)
                 .add(rangePart)
                 .add(measurementPart)
+                .add(fieldsAsColsPart)
                 .add(filterPart)
-                .add(aggregationFilterPart)
                 .add(groupPart)
                 .add(aggregationPart)
                 .add(keepPart)
@@ -386,12 +389,25 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         throw new NotImplementedException("Unsupported aggregation function");
     }
 
-    private String createAggregationPart(FunctionImpl function) {
-        return switch (function.getName()) {
-            case "count" -> "|> count()";
-            case "sum" -> "|> sum()";
-            default -> throw new NotImplementedException("Unsupported aggregation function");
-        };
+    private String resolveAggregationColumnName(
+            InfluxTableDeclaration tableDeclaration, FunctionImpl function, List<Expression> args,
+            List<String> groupByColumnNames) {
+        if ("count".equals(function.getName()) && args.isEmpty()) {
+            // Pick a field column that is NOT in the group key,
+            // because Flux cannot aggregate columns that are part of the group key
+            return tableDeclaration.getSchema().getColumns().stream()
+                    .filter(col -> col.getSource().getType() == InfluxColumnSourceType.FIELD)
+                    .map(col -> col.getSource().getColumn())
+                    .filter(col -> !groupByColumnNames.contains(col))
+                    .findFirst()
+                    .orElseThrow();
+        }
+
+        if ("sum".equals(function.getName()) && args.size() == 1) {
+            return ((ColumnImpl) args.get(0)).getName();
+        }
+
+        throw new NotImplementedException("Unsupported aggregation function");
     }
 
     private String createAggregationPart(FunctionImpl function, String columnName) {
