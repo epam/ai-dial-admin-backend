@@ -193,13 +193,26 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
 
             var finalGroupByColumnNames = groupByColumnNames;
             aggregations = aggregationFunctionCalls.stream()
-                    .map(f -> buildSimpleAggregationQueryForTempTable(tempTableName, columnName, expressionToOuterColumnNames.get(f), query.getWhere(), finalGroupByColumnNames, f, regexCounter))
+                    .map(f -> buildSimpleAggregationQueryForTempTable(
+                            tempTableName,
+                            columnName,
+                            expressionToOuterColumnNames.get(f),
+                            query.getWhere(),
+                            finalGroupByColumnNames,
+                            f,
+                            regexCounter))
                     .toList();
         } else {
             var table = getTable(query);
             var finalGroupByColumnNames1 = groupByColumnNames;
             aggregations = aggregationFunctionCalls.stream()
-                    .map(f -> buildSimpleAggregationQuery(table.getName(), expressionToOuterColumnNames.get(f), query.getWhere(), finalGroupByColumnNames1, f, regexCounter))
+                    .map(f -> buildSimpleAggregationQuery(
+                            table.getName(),
+                            expressionToOuterColumnNames.get(f),
+                            query.getWhere(),
+                            finalGroupByColumnNames1,
+                            f,
+                            regexCounter))
                     .toList();
         }
 
