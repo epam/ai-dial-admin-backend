@@ -63,19 +63,26 @@ public abstract class AbstractInfluxContainerTest {
                     + "1773410400000000000"
     );
 
+    private static final String TIME_GTE = """
+            {"$gte": {"left": "_time", "right": "'2026-03-11T13:33:38.680Z'"}}""";
+
+    private static final String TIME_LT = """
+            {"$lt": {"left": "_time", "right": "'2026-03-13T13:33:38.680Z'"}}""";
+
     private static final String TIME_FILTER = """
-            "$and":[{"$gte":{"left":"_time","right":"'2026-03-11T13:33:38.680Z'"}},\
-            {"$lt":{"left":"_time","right":"'2026-03-13T13:33:38.680Z'"}}]""";
+            "$and": [%s, %s]""".formatted(TIME_GTE, TIME_LT);
 
     protected abstract Engine getEngine();
 
     @Test
     void windowAggregation() throws Exception {
         var data = queryFromJson("""
-                {"expressions":["window(_time, 1, 'm') as time","count() as requests"],\
-                "from":"analytics",\
-                "groupBy":["window(_time, 1, 'm')"],\
-                "where":{%s}}""".formatted(TIME_FILTER));
+                {
+                  "expressions": ["window(_time, 1, 'm') as time", "count() as requests"],
+                  "from": "analytics",
+                  "groupBy": ["window(_time, 1, 'm')"],
+                  "where": {%s}
+                }""".formatted(TIME_FILTER));
 
         assertThat(data.getData()).hasSize(4);
         for (var row : data.getData()) {
@@ -86,10 +93,15 @@ public abstract class AbstractInfluxContainerTest {
     @Test
     void countDistinctUsers() throws Exception {
         var data = queryFromJson("""
-                {"expressions":["count()"],\
-                "from":{"distinct":"true","expressions":["user_hash"],\
-                "from":"analytics",\
-                "where":{%s}}}""".formatted(TIME_FILTER));
+                {
+                  "expressions": ["count()"],
+                  "from": {
+                    "distinct": "true",
+                    "expressions": ["user_hash"],
+                    "from": "analytics",
+                    "where": {%s}
+                  }
+                }""".formatted(TIME_FILTER));
 
         assertThat(data.getData()).hasSize(1);
         assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
@@ -98,9 +110,11 @@ public abstract class AbstractInfluxContainerTest {
     @Test
     void totalCount() throws Exception {
         var data = queryFromJson("""
-                {"expressions":["count()"],\
-                "from":"analytics",\
-                "where":{%s}}""".formatted(TIME_FILTER));
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {%s}
+                }""".formatted(TIME_FILTER));
 
         assertThat(data.getData()).hasSize(1);
         assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
@@ -109,9 +123,11 @@ public abstract class AbstractInfluxContainerTest {
     @Test
     void sumTokens() throws Exception {
         var data = queryFromJson("""
-                {"expressions":["sum(prompt_tokens)","sum(completion_tokens)"],\
-                "from":"analytics",\
-                "where":{%s}}""".formatted(TIME_FILTER));
+                {
+                  "expressions": ["sum(prompt_tokens)", "sum(completion_tokens)"],
+                  "from": "analytics",
+                  "where": {%s}
+                }""".formatted(TIME_FILTER));
 
         assertThat(data.getData()).hasSize(1);
         var row = data.getData().get(0);
@@ -122,9 +138,11 @@ public abstract class AbstractInfluxContainerTest {
     @Test
     void sumDeploymentPrice() throws Exception {
         var data = queryFromJson("""
-                {"expressions":["sum(deployment_price)"],\
-                "from":"analytics",\
-                "where":{%s}}""".formatted(TIME_FILTER));
+                {
+                  "expressions": ["sum(deployment_price)"],
+                  "from": "analytics",
+                  "where": {%s}
+                }""".formatted(TIME_FILTER));
 
         assertThat(data.getData()).hasSize(1);
         assertThat((Double) data.getData().get(0).get(0)).isCloseTo(0.19, offset(0.001));
@@ -133,10 +151,15 @@ public abstract class AbstractInfluxContainerTest {
     @Test
     void groupByDeployment() throws Exception {
         var data = queryFromJson("""
-                {"expressions":["deployment","count()","sum(price) as money","sum(prompt_tokens) as tokens_p","sum(completion_tokens) as tokens_c"],\
-                "from":"analytics",\
-                "groupBy":["deployment"],\
-                "where":{%s}}""".formatted(TIME_FILTER));
+                {
+                  "expressions": [
+                    "deployment", "count()", "sum(price) as money",
+                    "sum(prompt_tokens) as tokens_p", "sum(completion_tokens) as tokens_c"
+                  ],
+                  "from": "analytics",
+                  "groupBy": ["deployment"],
+                  "where": {%s}
+                }""".formatted(TIME_FILTER));
 
         assertThat(data.getData()).hasSize(2);
 
@@ -159,11 +182,15 @@ public abstract class AbstractInfluxContainerTest {
     @Test
     void groupByProjectId() throws Exception {
         var data = queryFromJson("""
-                {"expressions":["project_id","count()","sum(price) as money",\
-                "sum(prompt_tokens) as tokens_p","sum(completion_tokens) as tokens_c"],\
-                "from":"analytics",\
-                "groupBy":["project_id"],\
-                "where":{%s}}""".formatted(TIME_FILTER));
+                {
+                  "expressions": [
+                    "project_id", "count()", "sum(price) as money",
+                    "sum(prompt_tokens) as tokens_p", "sum(completion_tokens) as tokens_c"
+                  ],
+                  "from": "analytics",
+                  "groupBy": ["project_id"],
+                  "where": {%s}
+                }""".formatted(TIME_FILTER));
 
         assertThat(data.getData()).hasSize(2);
 
@@ -181,6 +208,227 @@ public abstract class AbstractInfluxContainerTest {
         assertThat((Double) proj2.get(2)).isCloseTo(0.13, offset(0.001));
         assertThat(proj2.get(3)).isEqualTo(250L);
         assertThat(proj2.get(4)).isEqualTo(110L);
+    }
+
+    // ===== Partial string search tests =====
+
+    @Test
+    void containsFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$contains": {"left": "project_id", "right": "'oj'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+    }
+
+    @Test
+    void containsFilterNarrow() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$contains": {"left": "project_id", "right": "'1'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
+    @Test
+    void notContainsFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$not_contains": {"left": "deployment", "right": "'4'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
+    @Test
+    void startsWithFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$starts_with": {"left": "deployment", "right": "'gpt-4'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
+    @Test
+    void endsWithFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$ends_with": {"left": "deployment", "right": "'3.5'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
+    @Test
+    void likeContainsFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$like": {"left": "project_id", "right": "'%%oj1%%'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
+    @Test
+    void likeStartsWithFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$like": {"left": "deployment", "right": "'gpt-4%%'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
+    @Test
+    void likeEndsWithFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "expressions": ["count()"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$like": {"left": "deployment", "right": "'%%3.5'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+    }
+
+    @Test
+    void distinctWithContainsFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "distinct": true,
+                  "expressions": ["project_id"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$contains": {"left": "project_id", "right": "'1'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo("proj1");
+    }
+
+    @Test
+    void distinctWithStartsWithFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "distinct": true,
+                  "expressions": ["deployment"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$starts_with": {"left": "deployment", "right": "'gpt-3'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-3.5");
+    }
+
+    @Test
+    void distinctWithEndsWithFilter() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "distinct": true,
+                  "expressions": ["deployment"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$ends_with": {"left": "deployment", "right": "'3.5'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).hasSize(1);
+        assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-3.5");
+    }
+
+    @Test
+    void containsFilterNoMatch() throws Exception {
+        var data = queryFromJson("""
+                {
+                  "distinct": true,
+                  "expressions": ["project_id"],
+                  "from": "analytics",
+                  "where": {
+                    "$and": [
+                      %s, %s,
+                      {"$contains": {"left": "project_id", "right": "'xyz'"}}
+                    ]
+                  }
+                }""".formatted(TIME_GTE, TIME_LT));
+
+        assertThat(data.getData()).isEmpty();
     }
 
     private Data queryFromJson(String json) throws Exception {

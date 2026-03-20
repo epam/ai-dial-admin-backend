@@ -19,6 +19,7 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @UtilityClass
@@ -33,13 +34,14 @@ public class FluxConditionPartBuilder {
             return FluxQueryPart.of();
         }
 
-        var filterExpression = createFilterExpression(nonRangeFilters.get());
+        var regexCounter = new AtomicInteger();
+        var filterExpression = createFilterExpression(nonRangeFilters.get(), regexCounter);
         var queryPart = "|> filter(fn: (r) => %s)".formatted(filterExpression.getQuery());
-        return FluxQueryPart.of(filterExpression.getImports(), queryPart);
+        return FluxQueryPart.of(filterExpression.getImports(), filterExpression.getPreamble(), queryPart);
     }
 
     public static FluxQueryPart createFilterPart(String field, Comparable<?> value) {
-        var condition = createBinaryComparisonFilter(field, value, BinaryComparisonOperator.EQUALS);
+        var condition = createBinaryComparisonFilter(field, value, BinaryComparisonOperator.EQUALS, new AtomicInteger());
         var queryPart = "|> filter(fn: (r) => %s)".formatted(condition.getQuery());
         return FluxQueryPart.of(condition.getImports(), queryPart);
     }
@@ -80,21 +82,21 @@ public class FluxConditionPartBuilder {
         }
     }
 
-    private static FluxQueryPart createFilterExpression(Filter filter) {
+    private static FluxQueryPart createFilterExpression(Filter filter, AtomicInteger regexCounter) {
         if (filter instanceof And and) {
             var filterExpressions = and.getFilters().stream()
-                    .map(FluxConditionPartBuilder::createFilterExpression)
+                    .map(f -> createFilterExpression(f, regexCounter))
                     .toList();
             return combineFilterExpressions(filterExpressions, "and");
         } else if (filter instanceof Or or) {
             var filterExpressions = or.getFilters().stream()
-                    .map(FluxConditionPartBuilder::createFilterExpression)
+                    .map(f -> createFilterExpression(f, regexCounter))
                     .toList();
             return combineFilterExpressions(filterExpressions, "or");
         } else if (filter instanceof Not) {
             throw new NotImplementedException("NOT keyword is not supported yet");
         } else if (filter instanceof BinaryComparisonFilter binaryComparisonFilter) {
-            return createBinaryComparisonFilter(binaryComparisonFilter);
+            return createBinaryComparisonFilter(binaryComparisonFilter, regexCounter);
         } else if (filter instanceof UnaryComparisonFilter unaryComparisonFilter) {
             return createUnaryComparisonFilter(unaryComparisonFilter);
         } else {
@@ -111,10 +113,14 @@ public class FluxConditionPartBuilder {
                 .map(FluxQueryPart::getImports)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
-        return FluxQueryPart.of(imports, query);
+        var preamble = filterExpressions.stream()
+                .map(FluxQueryPart::getPreamble)
+                .flatMap(List::stream)
+                .toList();
+        return FluxQueryPart.of(imports, preamble, query);
     }
 
-    private FluxQueryPart createBinaryComparisonFilter(BinaryComparisonFilter binaryComparisonFilter) {
+    private FluxQueryPart createBinaryComparisonFilter(BinaryComparisonFilter binaryComparisonFilter, AtomicInteger regexCounter) {
         if (!(binaryComparisonFilter.getLeftExpression() instanceof Column column)) {
             throw new NotImplementedException("Left part of expression must be a column");
         }
@@ -124,10 +130,11 @@ public class FluxConditionPartBuilder {
 
         var columnName = column.getName();
         var value = constant.getValue();
-        return createBinaryComparisonFilter(columnName, value, binaryComparisonFilter.getOperator());
+        return createBinaryComparisonFilter(columnName, value, binaryComparisonFilter.getOperator(), regexCounter);
     }
 
-    private FluxQueryPart createBinaryComparisonFilter(String columnName, Comparable<?> value, BinaryComparisonOperator operator) {
+    private FluxQueryPart createBinaryComparisonFilter(String columnName, Comparable<?> value,
+                                                        BinaryComparisonOperator operator, AtomicInteger regexCounter) {
         return switch (operator) {
             case EQUALS -> createEqualsFilter(columnName, value);
             case NOT_EQUALS -> createNotEqualsFilter(columnName, value);
@@ -135,8 +142,8 @@ public class FluxConditionPartBuilder {
             case LESS, GREATER, LESS_OR_EQUALS, GREATER_OR_EQUALS ->
                     createComparisonFilter(columnName, value, operator);
 
-            case CONTAINS, NOT_CONTAINS, STARTS_WITH, ENDS_WITH -> createContainsFilter(columnName, value, operator);
-            case LIKE -> createLikeFilter(columnName, value);
+            case CONTAINS, NOT_CONTAINS, STARTS_WITH, ENDS_WITH -> createContainsFilter(columnName, value, operator, regexCounter);
+            case LIKE -> createLikeFilter(columnName, value, regexCounter);
             case NOT_LIKE -> throw new NotImplementedException("NOT LIKE operator is not supported yet");
 
             case IN -> throw new NotImplementedException("IN operator is not supported yet");
@@ -170,7 +177,7 @@ public class FluxConditionPartBuilder {
         return FluxQueryPart.of(query);
     }
 
-    private FluxQueryPart createLikeFilter(String columnName, Comparable<?> comparable) {
+    private FluxQueryPart createLikeFilter(String columnName, Comparable<?> comparable, AtomicInteger regexCounter) {
         var likeValue = comparable.toString();
 
         var firstIndex = likeValue.indexOf("%");
@@ -182,37 +189,46 @@ public class FluxConditionPartBuilder {
         if (firstIndex == 0) {
             if (secondIndex == -1) {
                 var value = likeValue.substring(1);
-                return createContainsFilter(columnName, value, BinaryComparisonOperator.ENDS_WITH);
+                return createContainsFilter(columnName, value, BinaryComparisonOperator.ENDS_WITH, regexCounter);
             } else if (secondIndex == likeValue.length() - 1) {
                 var value = likeValue.substring(1, likeValue.length() - 1);
-                return createContainsFilter(columnName, value, BinaryComparisonOperator.CONTAINS);
+                return createContainsFilter(columnName, value, BinaryComparisonOperator.CONTAINS, regexCounter);
             } else {
                 throw new NotImplementedException(LIKE_NOT_IMPLEMENTED_MESSAGE.formatted(likeValue));
             }
         } else if (firstIndex == likeValue.length() - 1) {
             var value = likeValue.substring(0, likeValue.length() - 1);
-            return createContainsFilter(columnName, value, BinaryComparisonOperator.STARTS_WITH);
+            return createContainsFilter(columnName, value, BinaryComparisonOperator.STARTS_WITH, regexCounter);
         } else {
             throw new NotImplementedException(LIKE_NOT_IMPLEMENTED_MESSAGE.formatted(likeValue));
         }
     }
 
-    private FluxQueryPart createContainsFilter(String columnName, Comparable<?> comparable, BinaryComparisonOperator operator) {
+    private FluxQueryPart createContainsFilter(String columnName, Comparable<?> comparable,
+                                                BinaryComparisonOperator operator, AtomicInteger regexCounter) {
         var columnNameQuoted = SimpleFluxBuilder.quote(columnName);
-        var value = comparable.toString();
-        var valueQuoted = SimpleFluxBuilder.quote(value);
-        var query = switch (operator) {
-            case CONTAINS -> "strings.containsStr(v: r[%s], substr: %s)".formatted(columnNameQuoted, valueQuoted);
-            case NOT_CONTAINS ->
-                    "not strings.containsStr(v: r[%s], substr: %s)".formatted(columnNameQuoted, valueQuoted);
-            case STARTS_WITH -> "strings.hasPrefix(v: r[%s], prefix: %s)".formatted(columnNameQuoted, valueQuoted);
-            case ENDS_WITH -> "strings.hasSuffix(v: r[%s], suffix: %s)".formatted(columnNameQuoted, valueQuoted);
+        var value = escapeRegex(comparable.toString());
+
+        var regexPattern = switch (operator) {
+            case CONTAINS, NOT_CONTAINS -> value;
+            case STARTS_WITH -> "^" + value;
+            case ENDS_WITH -> value + "$";
             default -> throw new IllegalStateException("Unexpected operator: " + operator);
         };
 
-        query = "exists r[%s] and %s".formatted(columnNameQuoted, query);
+        var varName = "_re" + regexCounter.getAndIncrement();
+        // Double backslashes for Flux string literal (Flux uses \ as escape char in strings)
+        var fluxEscapedPattern = regexPattern.replace("\\", "\\\\");
+        var declaration = "%s = regexp.compile(v: %s)".formatted(varName, SimpleFluxBuilder.quote(fluxEscapedPattern));
 
-        return FluxQueryPart.of(Set.of(FluxStandardImports.STRINGS), query);
+        var regexOperator = operator == BinaryComparisonOperator.NOT_CONTAINS ? "!~" : "=~";
+        var query = "r[%s] %s %s".formatted(columnNameQuoted, regexOperator, varName);
+
+        return FluxQueryPart.of(Set.of(FluxStandardImports.REGEXP), List.of(declaration), query);
+    }
+
+    private static String escapeRegex(String value) {
+        return value.replaceAll("([.+*?^${}()|\\[\\]\\\\])", "\\\\$1");
     }
 
     private FluxQueryPart createUnaryComparisonFilter(UnaryComparisonFilter unaryComparisonFilter) {

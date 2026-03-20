@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator.CONTAINS;
@@ -29,9 +30,11 @@ class FluxConditionPartBuilderTest {
 
     @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("createFilterPart_CreatesCorrectFilterQuery_Cases")
-    void createFilterPart_CreatesCorrectFilterQuery(String caseName, Filter filter, String expected) {
-        var actual = FluxConditionPartBuilder.createFilterPart(filter).getQuery();
-        assertThat(actual).isEqualTo(expected);
+    void createFilterPart_CreatesCorrectFilterQuery(String caseName, Filter filter,
+                                                     List<String> expectedPreamble, String expectedQuery) {
+        var actual = FluxConditionPartBuilder.createFilterPart(filter);
+        assertThat(actual.getPreamble()).isEqualTo(expectedPreamble);
+        assertThat(actual.getQuery()).isEqualTo(expectedQuery);
     }
 
 
@@ -45,45 +48,59 @@ class FluxConditionPartBuilderTest {
         return Stream.of(
                 Arguments.of("equals",
                         BinaryComparisonFilterImpl.of(stringColumn, EQUALS, stringConst),
+                        List.of(),
                         "|> filter(fn: (r) => r[\"x\"] == \"value\")"
                 ), Arguments.of("not equals",
                         BinaryComparisonFilterImpl.of(stringColumn, NOT_EQUALS, stringConst),
+                        List.of(),
                         "|> filter(fn: (r) => r[\"x\"] != \"value\")"
                 ), Arguments.of("like => equals",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "value")),
+                        List.of(),
                         "|> filter(fn: (r) => r[\"x\"] == \"value\")"
                 ), Arguments.of("like => starts with",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "value%")),
-                        "|> filter(fn: (r) => exists r[\"x\"] and strings.hasPrefix(v: r[\"x\"], prefix: \"value\"))"
+                        List.of("_re0 = regexp.compile(v: \"^value\")"),
+                        "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("like => ends with",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "%value")),
-                        "|> filter(fn: (r) => exists r[\"x\"] and strings.hasSuffix(v: r[\"x\"], suffix: \"value\"))"
+                        List.of("_re0 = regexp.compile(v: \"value$\")"),
+                        "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("like => contains",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "%value%")),
-                        "|> filter(fn: (r) => exists r[\"x\"] and strings.containsStr(v: r[\"x\"], substr: \"value\"))"
+                        List.of("_re0 = regexp.compile(v: \"value\")"),
+                        "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("contains",
                         BinaryComparisonFilterImpl.of(stringColumn, CONTAINS, stringConst),
-                        "|> filter(fn: (r) => exists r[\"x\"] and strings.containsStr(v: r[\"x\"], substr: \"value\"))"
+                        List.of("_re0 = regexp.compile(v: \"value\")"),
+                        "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("not contains",
                         BinaryComparisonFilterImpl.of(stringColumn, NOT_CONTAINS, stringConst),
-                        "|> filter(fn: (r) => exists r[\"x\"] and not strings.containsStr(v: r[\"x\"], substr: \"value\"))"
+                        List.of("_re0 = regexp.compile(v: \"value\")"),
+                        "|> filter(fn: (r) => r[\"x\"] !~ _re0)"
                 ), Arguments.of("starts with",
                         BinaryComparisonFilterImpl.of(stringColumn, STARTS_WITH, stringConst),
-                        "|> filter(fn: (r) => exists r[\"x\"] and strings.hasPrefix(v: r[\"x\"], prefix: \"value\"))"
+                        List.of("_re0 = regexp.compile(v: \"^value\")"),
+                        "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("ends with",
                         BinaryComparisonFilterImpl.of(stringColumn, ENDS_WITH, stringConst),
-                        "|> filter(fn: (r) => exists r[\"x\"] and strings.hasSuffix(v: r[\"x\"], suffix: \"value\"))"
+                        List.of("_re0 = regexp.compile(v: \"value$\")"),
+                        "|> filter(fn: (r) => r[\"x\"] =~ _re0)"
                 ), Arguments.of("greater than",
                         BinaryComparisonFilterImpl.of(numericColumn, GREATER, numericConst),
+                        List.of(),
                         "|> filter(fn: (r) => r[\"x\"] > 123.0)"
                 ), Arguments.of("greater than or equals",
                         BinaryComparisonFilterImpl.of(numericColumn, GREATER_OR_EQUALS, numericConst),
+                        List.of(),
                         "|> filter(fn: (r) => r[\"x\"] >= 123.0)"
                 ), Arguments.of("less than",
                         BinaryComparisonFilterImpl.of(numericColumn, LESS, numericConst),
+                        List.of(),
                         "|> filter(fn: (r) => r[\"x\"] < 123.0)"
                 ), Arguments.of("less than or equals",
                         BinaryComparisonFilterImpl.of(numericColumn, LESS_OR_EQUALS, numericConst),
+                        List.of(),
                         "|> filter(fn: (r) => r[\"x\"] <= 123.0)"
                 )
         );

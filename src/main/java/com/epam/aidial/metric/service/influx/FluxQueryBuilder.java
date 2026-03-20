@@ -83,6 +83,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
 
         return FluxQueryContext.builder()
                 .imports(queryPartsCombined.getImports())
+                .preamble(queryPartsCombined.getPreamble())
                 .query(queryPartsCombined.getQuery())
                 .columnNames(columnNames)
                 .build();
@@ -129,6 +130,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
 
         return FluxQueryContext.builder()
                 .imports(queryPartsCombined.getImports())
+                .preamble(queryPartsCombined.getPreamble())
                 .query(queryPartsCombined.getQuery())
                 .columnNames(List.of(outerColumnName))
                 .build();
@@ -164,6 +166,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
 
         return FluxQueryContext.builder()
                 .imports(queryPartsCombined.getImports())
+                .preamble(queryPartsCombined.getPreamble())
                 .query(queryPartsCombined.getQuery())
                 .columnNames(List.of(outerColumnName))
                 .build();
@@ -248,6 +251,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
                 .toList();
         return FluxQueryContext.builder()
                 .imports(combined.getImports())
+                .preamble(combined.getPreamble())
                 .query(combined.getQuery())
                 .columnNames(columnNames)
                 .build();
@@ -296,6 +300,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
                 .toList();
         return FluxQueryContext.builder()
                 .imports(queryPartsCombined.getImports())
+                .preamble(queryPartsCombined.getPreamble())
                 .query(queryPartsCombined.getQuery())
                 .columnNames(columnNames)
                 .build();

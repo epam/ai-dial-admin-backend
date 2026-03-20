@@ -28,7 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Set;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -73,9 +73,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(
-                FluxStandardImports.SCHEMA
-        ));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -113,16 +111,19 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(
                 FluxStandardImports.SCHEMA,
-                FluxStandardImports.STRINGS
-        ));
+                FluxStandardImports.REGEXP
+        );
+        assertThat(actual.getPreamble()).containsExactly(
+                "_re0 = regexp.compile(v: \"^value\")"
+        );
         assertThat(actual.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> schema.fieldsAsCols()
-                |> filter(fn: (r) => exists r["deployment"] and strings.hasPrefix(v: r["deployment"], prefix: "value"))
+                |> filter(fn: (r) => r["deployment"] =~ _re0)
                 |> keep(columns: ["deployment", "price", "prompt_tokens"])
                 |> group()
                 |> sort(columns: ["prompt_tokens"], desc: true)""");
@@ -159,9 +160,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(
-                FluxStandardImports.SCHEMA
-        ));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)

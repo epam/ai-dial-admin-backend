@@ -10,6 +10,8 @@ import java.util.Set;
 @Builder
 public class FluxQueryContext {
     private final Set<String> imports;
+    @Builder.Default
+    private final List<String> preamble = List.of();
     private final String query;
     private final List<String> columnNames;
 
@@ -17,6 +19,9 @@ public class FluxQueryContext {
         var builder = new StringBuilder();
         for (var imp : imports) {
             builder.append(imp).append("\n");
+        }
+        for (var line : preamble) {
+            builder.append(line).append("\n");
         }
         builder.append(query);
         return builder.toString();
