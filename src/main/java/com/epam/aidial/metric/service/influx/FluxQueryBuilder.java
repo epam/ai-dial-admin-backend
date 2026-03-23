@@ -370,7 +370,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
                 .build();
     }
 
-    private FluxQueryPart createAggregationFilterPart(InfluxTableDeclaration tableDeclaration, FunctionImpl function, List<Expression> args) {
+    private FluxQueryPart createAggregationFilterPart(InfluxTableDeclaration tableDeclaration,
+                                                      FunctionImpl function,
+                                                      List<Expression> args) {
         if ("count".equals(function.getName()) && args.isEmpty()) {
             var tableFieldName = tableDeclaration.getSchema().getColumns().stream()
                     .map(InfluxColumnDeclaration::getSource)
@@ -389,15 +391,17 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         throw new NotImplementedException("Unsupported aggregation function");
     }
 
-    private String resolveAggregationColumnName(
-            InfluxTableDeclaration tableDeclaration, FunctionImpl function, List<Expression> args,
-            List<String> groupByColumnNames) {
+    private String resolveAggregationColumnName(InfluxTableDeclaration tableDeclaration,
+                                                FunctionImpl function,
+                                                List<Expression> args,
+                                                List<String> groupByColumnNames) {
         if ("count".equals(function.getName()) && args.isEmpty()) {
-            // Pick a field column that is NOT in the group key,
-            // because Flux cannot aggregate columns that are part of the group key
+            // After fieldsAsCols() pivot, both tags and fields are regular columns,
+            // so any of them can be used for count(). Exclude _time (time-type) and group-key columns
+            // as Flux cannot aggregate those.
             return tableDeclaration.getSchema().getColumns().stream()
-                    .filter(col -> col.getSource().getType() == InfluxColumnSourceType.FIELD)
                     .map(col -> col.getSource().getColumn())
+                    .filter(col -> !TIME_COLUMN.equals(col))
                     .filter(col -> !groupByColumnNames.contains(col))
                     .findFirst()
                     .orElseThrow();
