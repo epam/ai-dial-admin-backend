@@ -438,7 +438,7 @@ public abstract class ApplicationFunctionalTest {
         applicationFacade.createApplication(applicationDto);
         var actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createApplicationDtoWithMcp("1");
-        assertApplicationWithMcp(actual, expected);
+        assertApplication(actual, expected);
     }
 
     @Test
@@ -484,10 +484,9 @@ public abstract class ApplicationFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateApplicationAndGetDiscoveredTools() {
-        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
-        applicationDto.setDescription("description OLD");
         var mcp = new McpDto();
         mcp.setEndpoint("https://endpoint.test.com/application1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationDto.setMcp(mcp);
         applicationFacade.createApplication(applicationDto);
 
@@ -508,11 +507,9 @@ public abstract class ApplicationFunctionalTest {
 
     @Test
     public void shouldSuccessfullyCreateApplicationAndCallTool() {
-        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
-        applicationDto.setDescription("description OLD");
         var mcp = new McpDto();
         mcp.setEndpoint("https://endpoint.test.com/application1");
-        applicationDto.setMcp(mcp);
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
         applicationDto.setMcp(mcp);
         applicationFacade.createApplication(applicationDto);
 
@@ -541,16 +538,12 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
+        Assertions.assertEquals(expected.getMcp(), actual.getMcp());
     }
 
     private void assertApplicationWithDefaults(ApplicationDto actual, ApplicationDto expected) {
         assertApplication(actual, expected);
         Assertions.assertEquals(expected.getDefaults(), actual.getDefaults());
-    }
-
-    private void assertApplicationWithMcp(ApplicationDto actual, ApplicationDto expected) {
-        assertApplication(actual, expected);
-        Assertions.assertEquals(expected.getMcp(), actual.getMcp());
     }
 
     private void assertApp(Collection<ApplicationInfoDto> actual, Collection<ApplicationDto> expected) {

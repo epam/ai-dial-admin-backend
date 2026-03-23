@@ -8,7 +8,7 @@ import java.util.List;
 public class McpResourceDto {
     private String endpoint;
     private TransportDto transport = TransportDto.HTTP;
-    private List<String> allowedTools;
+    private List<String> allowedTools = List.of();
 
     public enum TransportDto {
         HTTP
