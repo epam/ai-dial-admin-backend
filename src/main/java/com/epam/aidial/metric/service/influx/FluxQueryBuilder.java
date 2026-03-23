@@ -364,7 +364,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         var args = aggregationFunctionCall.getArgs();
 
         InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
-        var aggregationColumnName = resolveAggregationColumnName(tableDeclaration, function, args, groupByColumnNames);
+        var aggregationColumnName = resolveAggregationColumnName(function, args);
 
         var keepColumns = new ArrayList<>(groupByColumnNames);
         keepColumns.add(aggregationColumnName);
@@ -413,20 +413,14 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         throw new NotImplementedException("Unsupported aggregation function");
     }
 
-    private String resolveAggregationColumnName(InfluxTableDeclaration tableDeclaration,
-                                                FunctionImpl function,
-                                                List<Expression> args,
-                                                List<String> groupByColumnNames) {
+    private String resolveAggregationColumnName(FunctionImpl function,
+                                                List<Expression> args) {
         if ("count".equals(function.getName()) && args.isEmpty()) {
-            // After fieldsAsCols() pivot, both tags and fields are regular columns,
-            // so any of them can be used for count(). Exclude _time (time-type) and group-key columns
-            // as Flux cannot aggregate those.
-            return tableDeclaration.getSchema().getColumns().stream()
-                    .map(col -> col.getSource().getColumn())
-                    .filter(col -> !TIME_COLUMN.equals(col))
-                    .filter(col -> !groupByColumnNames.contains(col))
-                    .findFirst()
-                    .orElseThrow();
+            // Use _measurement for count() because it is guaranteed to exist on every record
+            // after fieldsAsCols(), is a string type (Flux cannot aggregate time-type columns),
+            // and is never null. Other columns (tags or fields) may be absent
+            // if no data in the queried time range contains them.
+            return MEASUREMENT_COLUMN;
         }
 
         if ("sum".equals(function.getName()) && args.size() == 1) {

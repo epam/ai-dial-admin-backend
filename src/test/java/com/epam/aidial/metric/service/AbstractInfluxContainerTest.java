@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,9 +29,27 @@ public abstract class AbstractInfluxContainerTest {
         QUERY_MAPPER.registerModule(new QueryLanguageModule());
     }
 
+    // mcp_analytics records WITHOUT project_id tag — reproduces the scenario
+    // where a schema-defined column is absent from actual data.
+    // 3 records inside the time range.
+    private static final List<String> MCP_RECORDS = List.of(
+            // INSIDE #1: 2026-03-11T14:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call "
+                    + "execution_path=\"path1\",chat_id=\"chat1\",user_hash=\"user1\" "
+                    + "1773237600000000000",
+            // INSIDE #2: 2026-03-12T10:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/list "
+                    + "execution_path=\"path2\",chat_id=\"chat2\",user_hash=\"user2\" "
+                    + "1773309600000000000",
+            // INSIDE #3: 2026-03-12T18:00:00Z
+            "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/call "
+                    + "execution_path=\"path3\",chat_id=\"chat3\",user_hash=\"user1\" "
+                    + "1773338400000000000"
+    );
+
     // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
     // 6 records total: 4 inside the range, 2 outside
-    protected static final List<String> TEST_RECORDS = List.of(
+    private static final List<String> ANALYTICS_RECORDS = List.of(
             // OUTSIDE (before range): 2026-03-10T12:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
                     + "user_hash=\"user1\",price=0.08,deployment_price=0.07,"
@@ -62,6 +81,14 @@ public abstract class AbstractInfluxContainerTest {
                     + "prompt_tokens=400i,completion_tokens=200i "
                     + "1773410400000000000"
     );
+
+    protected static final List<String> TEST_RECORDS;
+
+    static {
+        var all = new ArrayList<>(ANALYTICS_RECORDS);
+        all.addAll(MCP_RECORDS);
+        TEST_RECORDS = List.copyOf(all);
+    }
 
     private static final String TIME_GTE = """
             {"$gte": {"left": "_time", "right": "'2026-03-11T13:33:38.680Z'"}}""";
@@ -157,6 +184,47 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(data.getData()).hasSize(1);
             assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+        }
+
+    }
+
+    @Nested
+    class MissingColumnTests {
+
+        @Test
+        void countWithGroupBy_whenSchemaColumnAbsentFromData() throws Exception {
+            // mcp_analytics records have NO project_id tag, but the schema declares it.
+            // count() must work regardless — it should not depend on project_id existing.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["deployment", "count()"],
+                      "from": "mcp_analytics",
+                      "groupBy": ["deployment"],
+                      "where": {%s},
+                      "orderBy": [{"$desc": "count()"}]
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(data.getData()).hasSize(2);
+
+            var byDeployment = data.getData().stream()
+                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
+
+            assertThat(byDeployment.get("gpt-4").get(1)).isEqualTo(2L);
+            assertThat(byDeployment.get("gpt-3.5").get(1)).isEqualTo(1L);
+        }
+
+        @Test
+        void totalCount_whenSchemaColumnAbsentFromData() throws Exception {
+            // count() without group-by on a table where project_id is absent.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count()"],
+                      "from": "mcp_analytics",
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(data.getData()).hasSize(1);
+            assertThat(data.getData().get(0).get(0)).isEqualTo(3L);
         }
 
     }
