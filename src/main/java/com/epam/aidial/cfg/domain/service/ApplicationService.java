@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -74,8 +75,25 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Application> getAllValidApplications() {
-        return applicationJpaRepository.findAllByValidityStateIsValidTrue().stream()
+    public List<Application> getAllApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
+        return applicationJpaRepository.findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Application> getAllValidApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
+        return applicationJpaRepository.findByValidityStateIsValidTrueOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Application> getAllByNamesOrderedByDisplayNameAscDisplayVersionAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return applicationJpaRepository.findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

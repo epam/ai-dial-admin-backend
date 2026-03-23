@@ -83,6 +83,6 @@ public interface PageEntityMapper {
 
     Sort.Direction mapDirection(SortDirection direction);
 
-    record SpecificationContext(Set<String> caseInSensitiveColumns){
+    record SpecificationContext(Set<String> caseInSensitiveColumns) {
     }
 }

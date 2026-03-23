@@ -9,4 +9,8 @@ import java.util.List;
 public interface RoleJpaRepository extends CrudRepository<RoleEntity, String> {
 
     List<RoleEntity> findByIdNotIn(Collection<String> ids);
+
+    List<RoleEntity> findAllByOrderByDisplayNameAscIdAsc();
+
+    List<RoleEntity> findByIdInOrderByDisplayNameAscIdAsc(Collection<String> ids);
 }

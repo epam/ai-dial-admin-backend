@@ -19,4 +19,8 @@ public interface AdapterJpaRepository extends CrudRepository<AdapterEntity, Stri
 
     @Query("SELECT a.name FROM AdapterEntity a")
     Set<String> findAllNames();
+
+    List<AdapterEntity> findAllByOrderByDisplayNameAscIdAsc();
+
+    List<AdapterEntity> findByIdInOrderByDisplayNameAscIdAsc(Collection<String> ids);
 }

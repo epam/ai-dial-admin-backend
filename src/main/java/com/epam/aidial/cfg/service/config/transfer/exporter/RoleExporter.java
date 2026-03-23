@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -33,17 +35,17 @@ public class RoleExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.ROLE)
                     ? getRoles(allEntities).stream()
-                    .collect(Collectors.toMap(Role::getName, Function.identity()))
+                    .collect(toLinkedHashMap(Role::getName))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getRoles(selectedItemsExportRequest.getComponents(), allEntities).stream()
-                    .collect(Collectors.toMap(Role::getName, Function.identity()));
+                    .collect(toLinkedHashMap(Role::getName));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     private Collection<Role> getRoles(Set<String> allEntities) {
-        return getRoles().stream()
+        return roleService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(role -> removeDependency(role, allEntities))
                 .toList();
     }
@@ -53,20 +55,12 @@ public class RoleExporter {
     }
 
     private List<Role> getRoles(List<ExportConfigComponent> elements, Set<String> allEntities) {
-        return elements.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.ROLE)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> {
-                    Role role = roleService.getRole(component.getName());
-                    return removeDependency(role, allEntities);
-                })
+        var componentsByName = ExportUtils.filterComponentsByTypeAndCollectToMap(elements, ExportConfigComponentType.ROLE);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return roleService.getAllByNamesOrderedByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
+                .map(role -> removeDependency(role, allEntities))
                 .toList();
     }
 

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dao.audit.jpa;
 
-import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
 import com.epam.aidial.cfg.dao.audit.model.ConfigRevisionEntity;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;

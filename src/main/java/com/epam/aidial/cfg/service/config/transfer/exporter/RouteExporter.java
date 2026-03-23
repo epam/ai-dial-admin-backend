@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
-import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
@@ -19,8 +18,10 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -33,18 +34,11 @@ public class RouteExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.ROUTE)
                     ? getRoutes(fullExportRequest).stream()
-                    .collect(Collectors.toMap(route -> route.getDeployment().getName(), Function.identity(),
-                            (existing, newRoute) -> newRoute, LinkedHashMap::new))
+                    .collect(toLinkedHashMap(route -> route.getDeployment().getName()))
                     : new LinkedHashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getRoutes(selectedItemsExportRequest, request.isAddSecrets()).stream()
-                    .collect(Collectors.toMap(
-                            route -> route.getDeployment().getName(), Function.identity(),
-                            (existing, replacement) -> {
-                                throw new IllegalStateException("Duplicate routes found: %s".formatted(existing));
-                            },
-                            LinkedHashMap::new
-                    ));
+                    .collect(toLinkedHashMap(route -> route.getDeployment().getName()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
@@ -54,27 +48,19 @@ public class RouteExporter {
     }
 
     private List<Route> getRoutes(SelectedItemsExportRequest selectedItemsExportRequest, boolean addSecrets) {
-        List<ExportConfigComponent> elements = selectedItemsExportRequest.getComponents();
-        return elements.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.ROUTE)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> {
-                    Route route = routeService.get(component.getName());
-                    return removeDependency(route, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
-                })
+        var componentsByName = filterComponentsByTypeAndCollectToMap(selectedItemsExportRequest.getComponents(), ExportConfigComponentType.ROUTE);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return routeService.getAllByDeploymentNamesOrderByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
+                .map(route -> removeDependency(route, componentsByName.get(route.getDeployment().getName()).getDependencies(),
+                        selectedItemsExportRequest.getExportFormat()))
                 .map(route -> removeUpstreamKey(route, addSecrets))
                 .toList();
     }
 
     private Collection<Route> getRoutes(FullExportRequest fullExportRequest) {
-        return getRoutes().stream()
+        return routeService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(route -> removeUpstreamKey(route, fullExportRequest.isAddSecrets()))
                 .map(route -> removeDependency(route, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
