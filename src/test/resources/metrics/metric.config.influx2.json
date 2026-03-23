@@ -1,0 +1,195 @@
+{
+  "$type": "influx2",
+  "name": "dial_analytics_realtime",
+  "displayedName": "DIAL analytics-realtime dataset",
+  "description": "DIAL analytics-realtime dataset",
+  "source": {
+    "url": "<empty>",
+    "org": "<empty>",
+    "auth": {
+      "$type": "token",
+      "token": "<empty>"
+    }
+  },
+  "tables": [
+    {
+      "name": "analytics",
+      "source": {
+        "bucket": "analytics-realtime",
+        "measurement": "analytics"
+      },
+      "schema": {
+        "columns": [
+          {
+            "name": "_time",
+            "type": "timestamp",
+            "source": {
+              "type": "tag",
+              "column": "_time"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "model"
+            }
+          },
+          {
+            "name": "deployment",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "deployment"
+            }
+          },
+          {
+            "name": "parent_deployment",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "parent_deployment"
+            }
+          },
+          {
+            "name": "execution_path",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "execution_path"
+            }
+          },
+          {
+            "name": "trace_id",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "trace_id"
+            }
+          },
+          {
+            "name": "core_span_id",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "core_span_id"
+            }
+          },
+          {
+            "name": "core_parent_span_id",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "core_parent_span_id"
+            }
+          },
+          {
+            "name": "project_id",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "project_id"
+            }
+          },
+          {
+            "name": "language",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "language"
+            }
+          },
+          {
+            "name": "upstream",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "upstream"
+            }
+          },
+          {
+            "name": "topic",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "topic"
+            }
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "title"
+            }
+          },
+          {
+            "name": "response_id",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "response_id"
+            }
+          },
+          {
+            "name": "user_hash",
+            "type": "string",
+            "source": {
+              "type": "field",
+              "column": "user_hash"
+            }
+          },
+          {
+            "name": "deployment_price",
+            "type": "double",
+            "source": {
+              "type": "field",
+              "column": "deployment_price"
+            }
+          },
+          {
+            "name": "price",
+            "type": "double",
+            "source": {
+              "type": "field",
+              "column": "price"
+            }
+          },
+          {
+            "name": "number_request_messages",
+            "type": "int64",
+            "source": {
+              "type": "field",
+              "column": "number_request_messages"
+            }
+          },
+          {
+            "name": "chat_id",
+            "type": "string",
+            "source": {
+              "type": "field",
+              "column": "chat_id"
+            }
+          },
+          {
+            "name": "prompt_tokens",
+            "type": "int64",
+            "source": {
+              "type": "field",
+              "column": "prompt_tokens"
+            }
+          },
+          {
+            "name": "completion_tokens",
+            "type": "int64",
+            "source": {
+              "type": "field",
+              "column": "completion_tokens"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

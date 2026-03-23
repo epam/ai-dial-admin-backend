@@ -21,10 +21,10 @@ class SecurityInfoControllerTest extends AbstractControllerNoneSecureTest {
 
     @Test
     void testGetSecurityInfo() throws Exception {
-        var responseJson = "{}";
+        var responseJson = "{\"userInfo\":{\"id\":\"anonymousUser\",\"roles\":[\"ROLE_ANONYMOUS\"]}}";
 
         mockMvc.perform(get(SECURITY_INFO_BASE_API_PATH))
                 .andExpect(status().isOk())
-                .andExpect(content().json(responseJson, JsonCompareMode.LENIENT));
+                .andExpect(content().json(responseJson, JsonCompareMode.STRICT));
     }
 }

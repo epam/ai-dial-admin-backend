@@ -1,14 +1,23 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.AdapterDto;
+import com.epam.aidial.cfg.dto.ApplicationDto;
+import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
+import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
+import com.epam.aidial.cfg.web.facade.ApplicationFacade;
+import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,6 +25,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +33,7 @@ import java.util.Map;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAuditActivityDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithAdapter;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
@@ -31,10 +42,16 @@ import static org.mockito.Mockito.doReturn;
 
 public abstract class AssociationsOneToManyHistoryFunctionalTests {
 
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
+
     @Autowired
     private AdapterFacade adapterFacade;
     @Autowired
     private ModelFacade modelFacade;
+    @Autowired
+    private ApplicationFacade applicationFacade;
+    @Autowired
+    private ApplicationTypeSchemaFacade applicationTypeSchemaFacade;
     @Autowired
     private RoleFacade roleFacade;
     @Autowired
@@ -63,10 +80,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedAdapterActivity = createAuditActivityDto("Update", "Adapter", adapterDto.getName(), 222L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Create", "Model", modelDto.getName(), 222L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedAdapterActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedAdapterActivity, expectedModelActivity);
     }
 
     @Test
@@ -97,10 +111,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedModel1Activity = createAuditActivityDto("Update", "Model", modelDto1.getName(), 333L);
         AuditActivityDto expectedModel2Activity = createAuditActivityDto("Update", "Model", modelDto2.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedAdapterActivity, expectedModel1Activity, expectedModel2Activity);
+        assertAuditActivities(latestRevision, expectedAdapterActivity, expectedModel1Activity, expectedModel2Activity);
     }
 
     @Test
@@ -127,10 +138,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedAdapterActivity = createAuditActivityDto("Update", "Adapter", adapterDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Delete", "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedAdapterActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedAdapterActivity, expectedModelActivity);
     }
 
     @ParameterizedTest
@@ -161,10 +169,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedAdapterActivity = createAuditActivityDto("Delete", "Adapter", adapterDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto(expectedModelActivityType, "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedAdapterActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedAdapterActivity, expectedModelActivity);
     }
 
     @Test
@@ -178,7 +183,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         ModelDto modelDto2 = createModelDto("2");
         modelFacade.createModel(modelDto2);
 
-        // create role
+        // create role with model limit
         doReturn(333L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -198,10 +203,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedModel1Activity = createAuditActivityDto("Update", "Model", modelDto1.getName(), 333L);
         AuditActivityDto expectedModel2Activity = createAuditActivityDto("Update", "Model", modelDto2.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRoleActivity, expectedModel1Activity, expectedModel2Activity);
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedModel1Activity, expectedModel2Activity);
     }
 
     @Test
@@ -215,7 +217,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         RoleDto roleDto2 = createRoleDto("2");
         roleFacade.createRole(roleDto2);
 
-        // create model
+        // create model with role limit
         doReturn(333L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -235,10 +237,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedRole2Activity = createAuditActivityDto("Update", "Role", roleDto2.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Create", "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRole1Activity, expectedRole2Activity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedRole1Activity, expectedRole2Activity, expectedModelActivity);
     }
 
     @Test
@@ -248,7 +247,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
-        // create model
+        // create model with role limit
         doReturn(222L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -275,10 +274,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Update", "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRoleActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedModelActivity);
     }
 
     @Test
@@ -288,7 +284,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
-        // create model
+        // create model with role limit
         doReturn(222L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -315,20 +311,17 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Update", "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRoleActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedModelActivity);
     }
 
     @Test
-    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenRoleLimitIsRemovedViaModel() {
+    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenModelRoleLimitIsRemovedViaModel() {
         // create role
         doReturn(111L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
-        // create model
+        // create model with role limit
         doReturn(222L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -346,26 +339,27 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
         // verify
-        Assertions.assertThat(roleFacade.getRole(roleDto.getName()).getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
-        Assertions.assertThat(modelFacade.getModel(modelDto.getName()).getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        RoleDto role = roleFacade.getRole(roleDto.getName());
+        Assertions.assertThat(role.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        Assertions.assertThat(role.getLimits()).isEmpty();
+        ModelDto model = modelFacade.getModel(modelDto.getName());
+        Assertions.assertThat(model.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        Assertions.assertThat(model.getRoleLimits()).isEmpty();
 
         AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Update", "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRoleActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedModelActivity);
     }
 
     @Test
-    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenRoleLimitIsRemovedViaRole() {
+    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenModelRoleLimitIsRemovedViaRole() {
         // create role
         doReturn(111L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
-        // create model
+        // create model with role limit
         doReturn(222L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -383,26 +377,27 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
         // verify
-        Assertions.assertThat(roleFacade.getRole(roleDto.getName()).getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
-        Assertions.assertThat(modelFacade.getModel(modelDto.getName()).getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        RoleDto role = roleFacade.getRole(roleDto.getName());
+        Assertions.assertThat(role.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        Assertions.assertThat(role.getLimits()).isEmpty();
+        ModelDto model = modelFacade.getModel(modelDto.getName());
+        Assertions.assertThat(model.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        Assertions.assertThat(model.getRoleLimits()).isEmpty();
 
         AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Update", "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRoleActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedModelActivity);
     }
 
     @Test
-    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenRoleIsRemoved() {
+    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenRoleWithModelRoleLimitIsRemoved() {
         // create role
         doReturn(111L).when(transactionTimestampContext).getTimestamp();
         RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
-        // create model
+        // create model with role limit
         doReturn(222L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -418,15 +413,16 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
         // verify
-        Assertions.assertThat(modelFacade.getModel(modelDto.getName()).getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        Assertions.assertThatThrownBy(() -> roleFacade.getRole(roleDto.getName())).isInstanceOf(EntityNotFoundException.class);
+        ModelDto model = modelFacade.getModel(modelDto.getName());
+        Assertions.assertThat(model.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        Assertions.assertThat(model.getRoleLimits()).isEmpty();
 
         AuditActivityDto expectedRoleActivity = createAuditActivityDto("Delete", "Role", roleDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Update", "Model", modelDto.getName(), 333L);
 
         Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
-        assertThat(auditActivities)
-                .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRoleActivity, expectedModelActivity);
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedModelActivity);
     }
 
     @Test
@@ -436,7 +432,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         RoleDto roleDto = createRoleDto("1");
         roleFacade.createRole(roleDto);
 
-        // create model
+        // create model with role limit
         doReturn(222L).when(transactionTimestampContext).getTimestamp();
         LimitDto limitDto = new LimitDto();
         limitDto.setDay(10L);
@@ -445,21 +441,206 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         modelDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
         modelFacade.createModel(modelDto);
 
-        // remove role
+        // remove model
         doReturn(333L).when(transactionTimestampContext).getTimestamp();
         modelFacade.deleteModel(modelDto.getName());
 
         Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
         // verify
-        Assertions.assertThat(roleFacade.getRole(roleDto.getName()).getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        RoleDto role = roleFacade.getRole(roleDto.getName());
+        Assertions.assertThat(role.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(333L));
+        Assertions.assertThat(role.getLimits()).isEmpty();
+        Assertions.assertThatThrownBy(() -> modelFacade.getModel(modelDto.getName())).isInstanceOf(EntityNotFoundException.class);
 
         AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 333L);
         AuditActivityDto expectedModelActivity = createAuditActivityDto("Delete", "Model", modelDto.getName(), 333L);
 
-        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(latestRevision).getData();
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedModelActivity);
+    }
+
+    @Test
+    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenAppRoleLimitIsRemovedViaAppWithSchema() throws Exception {
+        // create role
+        doReturn(111L).when(transactionTimestampContext).getTimestamp();
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create app schema
+        doReturn(222L).when(transactionTimestampContext).getTimestamp();
+        String appSchemaJson = ResourceUtils.readResource("/application_type_schema_dto.json");
+        ApplicationTypeSchemaDto appSchemaDto = OBJECT_MAPPER.readValue(appSchemaJson, new TypeReference<>() {
+        });
+        applicationTypeSchemaFacade.create(appSchemaDto);
+
+        // create app with schema and with role limit
+        doReturn(333L).when(transactionTimestampContext).getTimestamp();
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
+        applicationFacade.createApplication(applicationDto);
+
+        // remove role limit
+        doReturn(444L).when(transactionTimestampContext).getTimestamp();
+        applicationDto = createBaseApplicationDto("1");
+        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setRoleLimits(null);
+        applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
+
+        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        // verify
+        RoleDto role = roleFacade.getRole(roleDto.getName());
+        Assertions.assertThat(role.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(444L));
+        Assertions.assertThat(role.getLimits()).isEmpty();
+        ApplicationDto application = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertThat(application.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(444L));
+        Assertions.assertThat(application.getRoleLimits()).isEmpty();
+
+        AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 444L);
+        AuditActivityDto expectedApplicationActivity = createAuditActivityDto("Update", "Application", applicationDto.getName(), 444L);
+
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedApplicationActivity);
+    }
+
+    @Test
+    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenAppRoleLimitIsRemovedViaRole() throws Exception {
+        // create role
+        doReturn(111L).when(transactionTimestampContext).getTimestamp();
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create app schema
+        doReturn(222L).when(transactionTimestampContext).getTimestamp();
+        String appSchemaJson = ResourceUtils.readResource("/application_type_schema_dto.json");
+        ApplicationTypeSchemaDto appSchemaDto = OBJECT_MAPPER.readValue(appSchemaJson, new TypeReference<>() {
+        });
+        applicationTypeSchemaFacade.create(appSchemaDto);
+
+        // create app with schema and with role limit
+        doReturn(333L).when(transactionTimestampContext).getTimestamp();
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
+        applicationFacade.createApplication(applicationDto);
+
+        // remove role limit
+        doReturn(444L).when(transactionTimestampContext).getTimestamp();
+        roleDto = createRoleDto("1");
+        roleDto.setLimits(null);
+        roleFacade.updateRole(roleDto.getName(), roleDto, "*");
+
+        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        // verify
+        RoleDto role = roleFacade.getRole(roleDto.getName());
+        Assertions.assertThat(role.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(444L));
+        Assertions.assertThat(role.getLimits()).isEmpty();
+        ApplicationDto application = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertThat(application.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(444L));
+        Assertions.assertThat(application.getRoleLimits()).isEmpty();
+
+        AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 444L);
+        AuditActivityDto expectedApplicationActivity = createAuditActivityDto("Update", "Application", applicationDto.getName(), 444L);
+
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedApplicationActivity);
+    }
+
+    @Test
+    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenRoleWithAppRoleLimitIsRemoved() throws Exception {
+        // create role
+        doReturn(111L).when(transactionTimestampContext).getTimestamp();
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create app schema
+        doReturn(222L).when(transactionTimestampContext).getTimestamp();
+        String appSchemaJson = ResourceUtils.readResource("/application_type_schema_dto.json");
+        ApplicationTypeSchemaDto appSchemaDto = OBJECT_MAPPER.readValue(appSchemaJson, new TypeReference<>() {
+        });
+        applicationTypeSchemaFacade.create(appSchemaDto);
+
+        // create app with schema and with role limit
+        doReturn(333L).when(transactionTimestampContext).getTimestamp();
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
+        applicationFacade.createApplication(applicationDto);
+
+        // remove role
+        doReturn(444L).when(transactionTimestampContext).getTimestamp();
+        roleFacade.deleteRole(roleDto.getName());
+
+        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        // verify
+        Assertions.assertThatThrownBy(() -> roleFacade.getRole(roleDto.getName())).isInstanceOf(EntityNotFoundException.class);
+        ApplicationDto application = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertThat(application.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(444L));
+        Assertions.assertThat(application.getRoleLimits()).isEmpty();
+
+        AuditActivityDto expectedRoleActivity = createAuditActivityDto("Delete", "Role", roleDto.getName(), 444L);
+        AuditActivityDto expectedApplicationActivity = createAuditActivityDto("Update", "Application", applicationDto.getName(), 444L);
+
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedApplicationActivity);
+    }
+
+    @Test
+    public void shouldCorrectlyTrackUpdatedAtAndAuditActivitiesWhenAppWithRoleLimitIsRemoved() throws Exception {
+        // create role
+        doReturn(111L).when(transactionTimestampContext).getTimestamp();
+        RoleDto roleDto = createRoleDto("1");
+        roleFacade.createRole(roleDto);
+
+        // create app schema
+        doReturn(222L).when(transactionTimestampContext).getTimestamp();
+        String appSchemaJson = ResourceUtils.readResource("/application_type_schema_dto.json");
+        ApplicationTypeSchemaDto appSchemaDto = OBJECT_MAPPER.readValue(appSchemaJson, new TypeReference<>() {
+        });
+        applicationTypeSchemaFacade.create(appSchemaDto);
+
+        // create app with schema and with role limit
+        doReturn(333L).when(transactionTimestampContext).getTimestamp();
+        LimitDto limitDto = new LimitDto();
+        limitDto.setDay(10L);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
+        applicationFacade.createApplication(applicationDto);
+
+        // remove model
+        doReturn(444L).when(transactionTimestampContext).getTimestamp();
+        applicationFacade.deleteApplication(applicationDto.getName());
+
+        Integer latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
+
+        // verify
+        RoleDto role = roleFacade.getRole(roleDto.getName());
+        Assertions.assertThat(role.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(444L));
+        Assertions.assertThat(role.getLimits()).isEmpty();
+        Assertions.assertThatThrownBy(() -> applicationFacade.getApplication(applicationDto.getName())).isInstanceOf(EntityNotFoundException.class);
+
+        AuditActivityDto expectedRoleActivity = createAuditActivityDto("Update", "Role", roleDto.getName(), 444L);
+        AuditActivityDto expectedApplicationActivity = createAuditActivityDto("Delete", "Application", applicationDto.getName(), 444L);
+        AuditActivityDto expectedAppSchemaActivity = createAuditActivityDto("Update", "ApplicationTypeSchema", appSchemaDto.getId(), 444L);
+
+        assertAuditActivities(latestRevision, expectedRoleActivity, expectedApplicationActivity, expectedAppSchemaActivity);
+    }
+
+    private void assertAuditActivities(Integer revision, AuditActivityDto... expectedActivities) {
+        Collection<AuditActivityDto> auditActivities = historyFacade.getActivitiesAtRevision(revision).getData();
         assertThat(auditActivities)
                 .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId", "epochTimestampMs")
-                .containsExactlyInAnyOrder(expectedRoleActivity, expectedModelActivity);
+                .containsExactlyInAnyOrder(expectedActivities);
     }
 }

@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.AdminSettingsDto;
 import com.epam.aidial.cfg.web.facade.AdminSettingsFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,7 @@ public class AdminSettingsController extends AbstractController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core-config-version", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> updateCoreConfigVersion(@RequestBody @Valid AdminSettingsDto adminSettingsDto,

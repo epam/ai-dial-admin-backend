@@ -1,5 +1,8 @@
 package com.epam.aidial.cfg.web.security;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -22,18 +25,21 @@ import javax.annotation.PostConstruct;
 public class IdentityProvidersProperties {
 
     private final Map<String, ProviderConfig> providers = new HashMap<>();
+    private final Map<String, Map<String, Set<UserRole>>> providersRolesMapping = new HashMap<>();
+
+    private final ObjectMapper objectMapper;
 
     public List<JwtProviderConfig> getJwtProviders() {
         return providers.entrySet().stream()
                 .filter(entry -> entry.getValue().hasJwkSetUri())
-                .map(entry -> JwtProviderConfig.from(entry.getKey(), entry.getValue()))
+                .map(entry -> JwtProviderConfig.from(entry.getKey(), entry.getValue(), providersRolesMapping.get(entry.getKey())))
                 .toList();
     }
 
     public List<OpaqueTokenProviderConfig> getOpaqueTokenProviders() {
         return providers.entrySet().stream()
                 .filter(entry -> entry.getValue().hasUserInfoEndpoint())
-                .map(entry -> OpaqueTokenProviderConfig.from(entry.getKey(), entry.getValue()))
+                .map(entry -> OpaqueTokenProviderConfig.from(entry.getKey(), entry.getValue(), providersRolesMapping.get(entry.getKey())))
                 .toList();
     }
 
@@ -48,6 +54,7 @@ public class IdentityProvidersProperties {
         private List<String> roleClaims;
         private List<String> emailClaims;
         private Set<String> allowedRoles;
+        private String rolesMapping;
 
         public boolean hasIssuer() {
             return StringUtils.isNotBlank(issuer);
@@ -94,6 +101,17 @@ public class IdentityProvidersProperties {
         if (CollectionUtils.isEmpty(provider.getRoleClaims())) {
             log.warn("Skipping provider '{}' — missing role claims", name);
             return true;
+        }
+
+        if (provider.getRolesMapping() != null) {
+            try {
+                Map<String, Set<UserRole>> rolesMappingMap = objectMapper.readValue(provider.getRolesMapping(), new TypeReference<>() {
+                });
+                providersRolesMapping.put(name, rolesMappingMap);
+            } catch (JsonProcessingException ex) {
+                log.warn("Skipping provider '{}' — invalid roles mapping", name, ex);
+                return true;
+            }
         }
 
         return false;

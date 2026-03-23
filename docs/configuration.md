@@ -107,14 +107,17 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 ### General Settings
 
-| Setting                                            | Environment Variable          | Default           | Required                                          | Applied when                   | Description                                                                                       |
-|----------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------|
-| config.rest.security.mode                          | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)                                                        |
-| config.rest.security.default.allowedRoles          | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions                                             |
-| config.rest.security.default.email-claim           | CLAIMS_EMAIL_KEY              | unique_name       | No                                                | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) used to extract user email |
-| config.rest.security.default.principal-claim       | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) for user identification    |
-| config.rest.security.require-email                 | SECURITY_REQUIRE_EMAIL        | false             | No                                                | config.rest.security.mode=oidc | Controls whether an email claim is required in JWT (in /userinfo response for opaque tokens)      |
-| config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                                                              |
+| Setting                                                    | Environment Variable          | Default           | Required                                          | Applied when                   | Description                                                                                       |
+|------------------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------|
+| config.rest.security.mode                                  | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)                                                        |
+| config.rest.security.default.allowedRoles **(deprecated)** | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions                                             |
+| config.rest.security.default.roles-mapping                 | -                             | {}                | No                                                | config.rest.security.mode=oidc | Json object with mapping of provider roles to application roles                                   |
+| config.rest.security.default.email-claim                   | CLAIMS_EMAIL_KEY              | unique_name       | No                                                | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) used to extract user email |
+| config.rest.security.default.principal-claim               | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) for user identification    |
+| config.rest.security.require-email                         | SECURITY_REQUIRE_EMAIL        | false             | No                                                | config.rest.security.mode=oidc | Controls whether an email claim is required in JWT (in /userinfo response for opaque tokens)      |
+| config.rest.security.disable-swagger-authorization         | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                                                              |
+
+**Important**: see [deprecated properties](#important-note-about-deprecated-security-props)
 
 ### Identity Providers Configuration
 
@@ -126,17 +129,40 @@ Applied when: config.rest.security.mode=oidc
 - `providers.auth0.issuer`
 - `providers.keycloak.client-id`
 
-| Setting                        | Environment Variable (as example)  | Required                                    | Applied when                   | Description                                                                                                                     |
-|--------------------------------|------------------------------------|---------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| providers.*.issuer             | providers.azure.issuer             | Yes, if jwk-set-uri is specified            | config.rest.security.mode=oidc | List of accepted JWT token issuers for the provider                                                                             |
-| providers.*.jwk-set-uri        | providers.azure.jwk-set-uri        | Yes, if user-info-endpoint is not specified | config.rest.security.mode=oidc | URI for JSON Web Key Set for the provider                                                                                       |
-| providers.*.user-info-endpoint | providers.azure.user-info-endpoint | Yes, if jwk-set-uri is not specified        | config.rest.security.mode=oidc | URI for user info for the provider                                                                                              |
-| providers.*.aliases            | providers.azure.aliases            | No                                          | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers for the provider(only for Azure provider)                                                |
-| providers.*.audiences          | providers.azure.audiences          | Yes, if jwk-set-uri is specified            | config.rest.security.mode=oidc | List of accepted JWT token audiences. Specifies the intended recipients of the authorization token as defined in its aud claim. |
-| providers.*.role-claims        | providers.azure.role-claims        | Yes                                         | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user roles for the provider.                                            |
-| providers.*.allowed-roles      | providers.azure.allowed-roles      | No                                          | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                                                          |
-| providers.*.email-claims       | providers.azure.email-claims       | No                                          | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user email                                                              |
-| providers.*.principal-claim    | providers.azure.principal-claim    | No                                          | config.rest.security.mode=oidc | Specifies which claim is used as the application’s principal                                                                    |
+| Setting                                    | Environment Variable (as example)  | Required                                    | Applied when                   | Description                                                                                                                     |
+|--------------------------------------------|------------------------------------|---------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| providers.*.issuer                         | providers.azure.issuer             | Yes, if jwk-set-uri is specified            | config.rest.security.mode=oidc | List of accepted JWT token issuers for the provider                                                                             |
+| providers.*.jwk-set-uri                    | providers.azure.jwk-set-uri        | Yes, if user-info-endpoint is not specified | config.rest.security.mode=oidc | URI for JSON Web Key Set for the provider                                                                                       |
+| providers.*.user-info-endpoint             | providers.azure.user-info-endpoint | Yes, if jwk-set-uri is not specified        | config.rest.security.mode=oidc | URI for user info for the provider                                                                                              |
+| providers.*.aliases                        | providers.azure.aliases            | No                                          | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers for the provider(only for Azure provider)                                                |
+| providers.*.audiences                      | providers.azure.audiences          | Yes, if jwk-set-uri is specified            | config.rest.security.mode=oidc | List of accepted JWT token audiences. Specifies the intended recipients of the authorization token as defined in its aud claim. |
+| providers.*.role-claims                    | providers.azure.role-claims        | Yes                                         | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user roles for the provider.                                            |
+| providers.*.allowed-roles **(deprecated)** | providers.azure.allowed-roles      | No                                          | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                                                          |
+| providers.*.roles-mapping                  | providers.azure.roles-mapping      | No                                          | config.rest.security.mode=oidc | Json object with mapping of provider roles to application roles                                                                 |
+| providers.*.email-claims                   | providers.azure.email-claims       | No                                          | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user email                                                              |
+| providers.*.principal-claim                | providers.azure.principal-claim    | No                                          | config.rest.security.mode=oidc | Specifies which claim is used as the application’s principal                                                                    |
+
+<a id="important-note-about-deprecated-security-props"></a>
+⚠️ **Warning**: `config.rest.security.default.allowedRoles` and `providers.*.allowed-roles` **environment variables are marked 
+as deprecated and will soon be removed.** Use `config.rest.security.default.roles-mapping` and `providers.*.roles-mapping`
+instead to specify allowed roles along with their mapping to application roles.
+
+**Example:**
+`config.rest.security.default.roles-mapping={"defaultIdpRole1":["FULL_ADMIN"],"defaultIdpRole2":["READ_ONLY_ADMIN"]}`
+`providers.azure.roles-mapping={"azureRole1":["FULL_ADMIN"],"azureRole2":["READ_ONLY_ADMIN"]}`
+
+**Available application roles:** `FULL_ADMIN`, `READ_ONLY_ADMIN`
+
+**Currently, it works the following way:**
+
+- If `providers.*.roles-mapping` is specified and not empty - this roles mapping is merged with `config.rest.security.default.roles-mapping`
+  (if any). Provider roles mapping has higher priority, e.g. if `providers.azure.roles-mapping={"role1":["FULL_ADMIN"]}` and `config.rest.security.default.roles-mapping={"role1":["READ_ONLY_ADMIN"]}`,
+  the result is `{"role1":["FULL_ADMIN"]}`
+- Else if `providers.*.allowed-roles` are specified and not empty - all those roles along with `config.rest.security.default.allowedRoles` 
+(if any) mapped to `FULL_ADMIN`
+- Else if `config.rest.security.default.roles-mapping` is specified and not empty - this role mapping is used
+- Else if `config.rest.security.default.allowedRoles` is specified and not empty - all those roles mapped to `FULL_ADMIN`
+- Else - empty role mapping is used which will lead to 403 Forbidden response
 
 ### Auth Token Provider Configuration to interact with the DIAL Core
 
@@ -148,6 +174,7 @@ Applied when: config.rest.security.mode=oidc
 | core.auth.token.provider.clientId                             | CORE_AUTH_TOKEN_PROVIDER_CLIENT_ID                               | -                         | Yes      | core.auth.method=token and config.autoReload.enabled=true | Represents the client ID used to authenticate with the authentication token provider. This ID is assigned to the admin backend by the auth token provider.                                                                                                    |
 | core.auth.token.provider.clientSecret                         | CORE_AUTH_TOKEN_PROVIDER_CLIENT_SECRET                           | -                         | Yes      | core.auth.method=token and config.autoReload.enabled=true | The client secret associated with the client ID, used to authenticate and authorize the admin backend with the authentication token provider. This secret should be kept secure.                                                                              |
 | core.auth.token.provider.scope                                | CORE_AUTH_TOKEN_PROVIDER_SCOPE                                   | -                         | Yes      | core.auth.method=token and config.autoReload.enabled=true | Specifies the scope of access requested by the admin backend. This can define the level of access or specific permissions the token should grant. If not specified, it defaults to an empty value.                                                            |
+| core.auth.token.provider.audience                             | CORE_AUTH_TOKEN_PROVIDER_AUDIENCE                                | -                         | No       | core.auth.method=token and config.autoReload.enabled=true | Specifies the audience (resource identifier) for the requested token. Some OAuth2/OIDC providers require this to issue tokens for a specific API or resource. If not specified, it defaults to an empty value and no audience parameter is sent.                  |
 | core.auth.token.provider.cache.enabled                        | CORE_AUTH_TOKEN_PROVIDER_CACHE_ENABLED                           | true                      | No       | core.auth.method=token and config.autoReload.enabled=true | Enables or disables caching of auth tokens. If set to `true`, the token will be cached and reused until it is close to expiration. If set to `false`, a new token will be requested for each authentication attempt.                                          |
 | core.auth.token.provider.cache.refreshBeforeExpirationSeconds | CORE_AUTH_TOKEN_PROVIDER_CACHE_REFRESH_BEFORE_EXPIRATION_SECONDS | 600                       | No       | core.auth.token.provider.cache.enabled=true               | Specifies the number of seconds before a token’s expiration when the cached token should be refreshed. If the remaining lifetime of the cached token is less than this value, the token provider will request a new token instead of using the cached one.    |
 
@@ -314,16 +341,19 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 | Setting | Environment Variable | Default | Required | Applied when | Description |
 |---------|---------------------|---------|----------|-----------|-------------|
 | metrics.enabled | METRICS_ENABLED | false | No | - | Enable or disable metrics collection |
-| metrics.configFile.contentEnvVar | METRICS_CONFIGFILE_CONTENTENVVAR | METRICS_CONFIG_CONTENT | No | metrics.enabled=true | Environment variable containing metrics configuration |
-| metrics.configFile.location | METRICS_CONFIGFILE_LOCATION | data/admin/metric.config.json | No | metrics.enabled and env[metrics.configFile.contentEnvVar] does not defined | Path to metrics configuration file |
-| metrics.datasource.influx.defaultPageSize | METRICS_DATASOURCE_INFLUX_DEFAULTPAGESIZE | 100 | No | - | Default page size for InfluxDB queries |
+| metrics.config.content | METRICS_CONFIG_CONTENT | - | No | metrics.enabled=true | Dataset configuration JSON content (first non-empty wins) |
+| metrics.config.file | METRICS_CONFIG_FILE | - | No | metrics.enabled=true and content is empty | Path to dataset configuration JSON file |
+| metrics.config.type | METRICS_DATASOURCE_TYPE | influx2 | No | metrics.enabled=true and content/file are empty | Datasource type, selects default config: influx2 or influx3 |
+| metrics.influx2.defaultPageSize | METRICS_INFLUX2_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 2 queries |
+| metrics.influx3.defaultPageSize | METRICS_INFLUX3_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 3 queries |
 |  | METRICS_STORAGE_HOST | - | Yes | metrics.enabled=true and default metrics config used | URL for InfluxDB database connection |
-|  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default metrics config used | Inlux organization with metrics |
-|  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection  |
+|  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
+|  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
+|  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection |
 
 metrics/telemetry functionality in admin panel reads data produced by https://github.com/epam/ai-dial-analytics-realtime.
 
-example of json file provided via METRICS_CONFIGFILE_CONTENTENVVAR or METRICS_CONFIGFILE_LOCATION can be found at "ai-dial-admin-backend/src/main/resources/metric.config.json"
+example of dataset configuration JSON can be found at "ai-dial-admin-backend/src/main/resources/metric.config.influx2.json" and "ai-dial-admin-backend/src/main/resources/metric.config.influx3.json"
 
 ## Logging Configuration
 

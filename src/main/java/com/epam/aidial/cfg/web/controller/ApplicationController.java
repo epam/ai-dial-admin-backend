@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.core.config.CoreApplication;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -65,12 +66,14 @@ public class ApplicationController extends AbstractController {
         return applicationFacade.getSyncState(applicationName, StringUtils.unwrap(previousHash, '"'));
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createApplication(@RequestBody @Valid ApplicationDto applicationDto) {
         applicationFacade.createApplication(applicationDto);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{applicationName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateApplication(@PathVariable("applicationName") String applicationName,
@@ -80,6 +83,7 @@ public class ApplicationController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/core/{applicationName}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateApplication(@PathVariable String applicationName,
                                                   @RequestBody @Valid CoreApplication coreApplication,
@@ -88,6 +92,7 @@ public class ApplicationController extends AbstractController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).eTag(newHash).build();
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{applicationName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteApplication(@PathVariable("applicationName") String applicationName) {

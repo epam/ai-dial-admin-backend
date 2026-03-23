@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.web.facade.AdapterFacade;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -47,12 +48,14 @@ public class AdaptersController extends AbstractController {
         return responseEntityForGet(dtoWithHash.dto(), dtoWithHash.hash(), previousHash);
     }
 
+    @FullAdminOnly
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void createAdapter(@RequestBody @Valid AdapterDto adapterDto) {
         adapterFacade.createAdapter(adapterDto);
     }
 
+    @FullAdminOnly
     @DeleteMapping(path = "/{adapterName}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAdapter(@PathVariable String adapterName,
@@ -60,6 +63,7 @@ public class AdaptersController extends AbstractController {
         adapterFacade.deleteAdapter(adapterName, removeModel);
     }
 
+    @FullAdminOnly
     @PutMapping(path = "/{adapterName}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateAdapter(@PathVariable String adapterName,
