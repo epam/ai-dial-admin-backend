@@ -9,7 +9,7 @@
       },
       "rewritePath" : true,
       "paths" : [ "/api/v1/resource", "/api/v1/data" ],
-      "methods" : [ "POST", "GET" ],
+      "methods" : [ "GET", "POST" ],
       "upstreams" : [ {
         "endpoint" : "https://upstream1.example.com",
         "key" : "upstream-key-1",
