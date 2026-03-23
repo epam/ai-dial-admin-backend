@@ -74,144 +74,6 @@ public abstract class AbstractInfluxContainerTest {
 
     protected abstract Engine getEngine();
 
-    @Test
-    void windowAggregation() throws Exception {
-        var data = queryFromJson("""
-                {"expressions":["window(_time, 1, 'm') as time","count() as requests"],\
-                "from":"analytics",\
-                "groupBy":["window(_time, 1, 'm')"],\
-                "where":{%s}}""".formatted(TIME_FILTER));
-
-        assertThat(data.getData()).hasSize(4);
-        for (var row : data.getData()) {
-            assertThat(row.get(1)).isEqualTo(1L);
-        }
-    }
-
-    @Test
-    void countDistinctUsers() throws Exception {
-        var data = queryFromJson("""
-                {"expressions":["count()"],\
-                "from":{"distinct":"true","expressions":["user_hash"],\
-                "from":"analytics",\
-                "where":{%s}}}""".formatted(TIME_FILTER));
-
-        assertThat(data.getData()).hasSize(1);
-        assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
-    }
-
-    @Test
-    void totalCount() throws Exception {
-        var data = queryFromJson("""
-                {"expressions":["count()"],\
-                "from":"analytics",\
-                "where":{%s}}""".formatted(TIME_FILTER));
-
-        assertThat(data.getData()).hasSize(1);
-        assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
-    }
-
-    @Test
-    void sumTokens() throws Exception {
-        var data = queryFromJson("""
-                {"expressions":["sum(prompt_tokens)","sum(completion_tokens)"],\
-                "from":"analytics",\
-                "where":{%s}}""".formatted(TIME_FILTER));
-
-        assertThat(data.getData()).hasSize(1);
-        var row = data.getData().get(0);
-        assertThat(row.get(0)).isEqualTo(500L);
-        assertThat(row.get(1)).isEqualTo(220L);
-    }
-
-    @Test
-    void sumDeploymentPrice() throws Exception {
-        var data = queryFromJson("""
-                {"expressions":["sum(deployment_price)"],\
-                "from":"analytics",\
-                "where":{%s}}""".formatted(TIME_FILTER));
-
-        assertThat(data.getData()).hasSize(1);
-        assertThat((Double) data.getData().get(0).get(0)).isCloseTo(0.19, offset(0.001));
-    }
-
-    @Test
-    void groupByDeployment() throws Exception {
-        var data = queryFromJson("""
-                {"expressions":["deployment","count()","sum(price) as money","sum(prompt_tokens) as tokens_p","sum(completion_tokens) as tokens_c"],\
-                "from":"analytics",\
-                "groupBy":["deployment"],\
-                "where":{%s}}""".formatted(TIME_FILTER));
-
-        assertThat(data.getData()).hasSize(2);
-
-        var byDeployment = data.getData().stream()
-                .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
-
-        var gpt4 = byDeployment.get("gpt-4");
-        assertThat(gpt4.get(1)).isEqualTo(2L);
-        assertThat((Double) gpt4.get(2)).isCloseTo(0.15, offset(0.001));
-        assertThat(gpt4.get(3)).isEqualTo(300L);
-        assertThat(gpt4.get(4)).isEqualTo(130L);
-
-        var gpt35 = byDeployment.get("gpt-3.5");
-        assertThat(gpt35.get(1)).isEqualTo(2L);
-        assertThat((Double) gpt35.get(2)).isCloseTo(0.05, offset(0.001));
-        assertThat(gpt35.get(3)).isEqualTo(200L);
-        assertThat(gpt35.get(4)).isEqualTo(90L);
-    }
-
-    @Test
-    void groupByProjectId() throws Exception {
-        var data = queryFromJson("""
-                {"expressions":["project_id","count()","sum(price) as money",\
-                "sum(prompt_tokens) as tokens_p","sum(completion_tokens) as tokens_c"],\
-                "from":"analytics",\
-                "groupBy":["project_id"],\
-                "where":{%s}}""".formatted(TIME_FILTER));
-
-        assertThat(data.getData()).hasSize(2);
-
-        var byProject = data.getData().stream()
-                .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
-
-        var proj1 = byProject.get("proj1");
-        assertThat(proj1.get(1)).isEqualTo(2L);
-        assertThat((Double) proj1.get(2)).isCloseTo(0.07, offset(0.001));
-        assertThat(proj1.get(3)).isEqualTo(250L);
-        assertThat(proj1.get(4)).isEqualTo(110L);
-
-        var proj2 = byProject.get("proj2");
-        assertThat(proj2.get(1)).isEqualTo(2L);
-        assertThat((Double) proj2.get(2)).isCloseTo(0.13, offset(0.001));
-        assertThat(proj2.get(3)).isEqualTo(250L);
-        assertThat(proj2.get(4)).isEqualTo(110L);
-    }
-
-    @Test
-    void aggregateWithFieldFilterAndGroupByTagAndField() throws Exception {
-        // Filter on field (user_hash), group by tag (deployment) + field (user_hash).
-        // user_hash is in groupBy but NOT in expressions — verifies extra
-        // group-by columns don't shift result positions.
-        var data = queryFromJson("""
-                {"expressions":["deployment","count()"],\
-                "from":"analytics",\
-                "where":{"$and":[{"$gte":{"left":"_time","right":"'2026-03-11T13:33:38.680Z'"}},\
-                {"$lt":{"left":"_time","right":"'2026-03-13T13:33:38.680Z'"}},\
-                {"$ne":{"left":"user_hash","right":"'user2'"}}]},\
-                "groupBy":["deployment","user_hash"],\
-                "orderBy":[{"$desc":"count()"}]}""");
-
-        // After filtering out user_hash=user2: records #1 (gpt-4,user1) and #3 (gpt-3.5,user1)
-        // Both map to distinct (deployment, user_hash) groups with count=1
-        assertThat(data.getData()).hasSize(2);
-
-        var counts = data.getData().stream()
-                .map(row -> row.get(1))
-                .toList();
-        assertThat(counts).containsExactly(1L, 1L);
-    }
-
     protected Data queryFromJson(String json) throws Exception {
         var engine = getEngine();
         var languageConverter = new LanguageConverter(engine);
@@ -362,6 +224,35 @@ public abstract class AbstractInfluxContainerTest {
             assertThat((Double) proj2.get(2)).isCloseTo(0.13, offset(0.001));
             assertThat(proj2.get(3)).isEqualTo(250L);
             assertThat(proj2.get(4)).isEqualTo(110L);
+        }
+
+        @Test
+        void aggregateWithFieldFilterAndGroupByTagAndField() throws Exception {
+            // Filter on field (user_hash), group by tag (deployment) + field (user_hash).
+            // user_hash is in groupBy but NOT in expressions — verifies extra
+            // group-by columns don't shift result positions.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["deployment", "count()"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$ne": {"left": "user_hash", "right": "'user2'"}}
+                        ]
+                      },
+                      "groupBy": ["deployment", "user_hash"],
+                      "orderBy": [{"$desc": "count()"}]
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            // After filtering out user_hash=user2: records #1 (gpt-4,user1) and #3 (gpt-3.5,user1)
+            // Both map to distinct (deployment, user_hash) groups with count=1
+            assertThat(data.getData()).hasSize(2);
+
+            var counts = data.getData().stream()
+                    .map(row -> row.get(1))
+                    .toList();
+            assertThat(counts).containsExactly(1L, 1L);
         }
 
     }
