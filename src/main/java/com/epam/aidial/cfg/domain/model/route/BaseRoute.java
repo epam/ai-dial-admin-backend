@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
 
 @Data
 @ToString(callSuper = true)
@@ -25,7 +25,7 @@ public abstract class BaseRoute extends RoleBased {
     private boolean rewritePath;
     @NotEmpty
     private List<@NotNull String> paths;
-    private Set<@HttpMethod String> methods;
+    private SortedSet<@HttpMethod String> methods;
     @Valid
     private List<Upstream> upstreams;
     private Integer maxRetryAttempts;
