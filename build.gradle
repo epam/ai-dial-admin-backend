@@ -172,7 +172,7 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.15') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.18') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
@@ -196,7 +196,7 @@ dependencies {
         implementation ('io.netty:netty-codec-http:4.2.8.Final') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('org.springframework:spring-webmvc:6.2.10') {
+        implementation ('org.springframework:spring-webmvc:6.2.17') {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.springframework.security:spring-security-core:6.5.4') {
