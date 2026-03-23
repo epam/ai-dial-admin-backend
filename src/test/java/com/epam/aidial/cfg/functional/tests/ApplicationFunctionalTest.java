@@ -433,11 +433,11 @@ public abstract class ApplicationFunctionalTest {
 
     @Test
     public void shouldSuccessfullyGetApplicationWithMcp() {
-        initRoles();
         ApplicationDto applicationDto = createApplicationDtoWithMcp("1");
         applicationFacade.createApplication(applicationDto);
         var actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createApplicationDtoWithMcp("1");
+        expected.setRoleLimits(Map.of());
         assertApplication(actual, expected);
     }
 
