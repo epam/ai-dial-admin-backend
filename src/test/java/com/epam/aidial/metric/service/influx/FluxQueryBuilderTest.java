@@ -404,7 +404,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -475,7 +475,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -550,7 +550,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -633,7 +633,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -717,7 +717,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)

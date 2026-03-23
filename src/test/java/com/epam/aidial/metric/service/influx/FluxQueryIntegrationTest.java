@@ -404,7 +404,7 @@ class FluxQueryIntegrationTest {
                 SELECT count(), sum(price), sum(prompt_tokens) FROM analytics \
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -450,7 +450,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -494,7 +494,7 @@ class FluxQueryIntegrationTest {
                 SELECT count() AS a, sum(price) AS b, sum(prompt_tokens) AS c FROM analytics \
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -540,7 +540,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -585,7 +585,7 @@ class FluxQueryIntegrationTest {
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
                 GROUP BY deployment ORDER BY deployment ASC""");
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -622,7 +622,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
