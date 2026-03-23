@@ -85,7 +85,7 @@ class SqlQueryBuilderTest {
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment", "price", "prompt_tokens" FROM "analytics" \
-                WHERE "time" >= $p0 AND "time" < $p1 AND "deployment" LIKE $p2 ESCAPE '\\' \
+                WHERE "time" >= $p0 AND "time" < $p1 AND "deployment" ILIKE $p2 ESCAPE '\\' \
                 ORDER BY "prompt_tokens" DESC""");
         assertThat(actual.getParameters()).containsEntry("p2", "value%");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("deployment", "price", "prompt_tokens"));
