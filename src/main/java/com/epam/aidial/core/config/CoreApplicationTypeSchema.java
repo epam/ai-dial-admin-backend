@@ -75,6 +75,9 @@ public class CoreApplicationTypeSchema {
     @JsonProperty("dial:applicationTypeSchemaEndpoint")
     private String applicationTypeSchemaEndpoint; //0.41.0
 
+    @JsonProperty("dial:applicationTypeMcp")
+    private ApplicationTypeMcp applicationTypeMcp; //0.42.0
+
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
     @JsonDeserialize(using = JsonMapDeserializer.class)
@@ -101,4 +104,39 @@ public class CoreApplicationTypeSchema {
         @JsonProperty("DISABLED")
         DISABLED,
     }
+
+    @Data
+    public static class ApplicationTypeMcp {
+        @JsonAlias({"endpoint", "dial:endpoint"})
+        @JsonProperty("dial:endpoint")
+        private String endpoint;
+        @JsonAlias({"transport", "dial:transport"})
+        @JsonProperty("dial:transport")
+        private Transport transport = Transport.HTTP;
+        @JsonAlias({"allowedTools", "allowed_tools", "dial:allowedTools"})
+        @JsonProperty("dial:allowedTools")
+        private List<String> allowedTools;
+        @JsonAlias({"configDelivery", "config_delivery", "dial:mcpConfigDelivery"})
+        @JsonProperty("dial:mcpConfigDelivery")
+        private McpConfigDelivery configDelivery = McpConfigDelivery.META;
+        @JsonAlias({"forwardAuthToken", "forward_auth_token", "dial:forwardPerRequestKey"})
+        @JsonProperty("dial:forwardPerRequestKey")
+        private boolean forwardPerRequestKey = true;
+    }
+
+    public enum McpConfigDelivery {
+        @JsonAlias("HEADER")
+        @JsonProperty("HEADER")
+        HEADER,
+        @JsonAlias("META")
+        @JsonProperty("META")
+        META
+    }
+
+    public enum Transport {
+        @JsonAlias("HTTP")
+        @JsonProperty("HTTP")
+        HTTP
+    }
+
 }

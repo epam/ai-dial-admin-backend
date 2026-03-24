@@ -39,4 +39,5 @@ public class ApplicationEximDto {
     private List<RouteResourceDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResourceDto mcp;
 }

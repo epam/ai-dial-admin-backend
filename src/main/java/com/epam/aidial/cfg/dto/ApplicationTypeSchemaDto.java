@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.databind.JsonMapDeserializer;
 import com.epam.aidial.cfg.dto.databind.JsonMapSerializer;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -82,6 +83,9 @@ public class ApplicationTypeSchemaDto {
 
     @JsonProperty("dial:applicationTypeSchemaEndpoint")
     private String applicationTypeSchemaEndpoint;
+
+    @JsonProperty("dial:applicationTypeMcp")
+    private ApplicationTypeMcpDto applicationTypeMcp;
     
     @JsonProperty("$defs")
     @JsonSerialize(using = JsonMapSerializer.class)
@@ -112,6 +116,37 @@ public class ApplicationTypeSchemaDto {
         DISABLED,
     }
 
+    @Data
+    public static class ApplicationTypeMcpDto {
+        @JsonAlias({"endpoint", "dial:endpoint"})
+        @JsonProperty("dial:endpoint")
+        private String endpoint;
+        @JsonAlias({"transport", "dial:transport"})
+        @JsonProperty("dial:transport")
+        private TransportDto transport = TransportDto.HTTP;
+        @JsonAlias({"allowedTools", "allowed_tools", "dial:allowedTools"})
+        @JsonProperty("dial:allowedTools")
+        private List<String> allowedTools = List.of();
+        @JsonAlias({"configDelivery", "config_delivery", "dial:mcpConfigDelivery"})
+        @JsonProperty("dial:mcpConfigDelivery")
+        private McpConfigDeliveryDto configDelivery = McpConfigDeliveryDto.META;
+        @JsonAlias({"forwardAuthToken", "forward_auth_token", "dial:forwardPerRequestKey"})
+        @JsonProperty("dial:forwardPerRequestKey")
+        private boolean forwardPerRequestKey = true;
+    }
+
+    public enum McpConfigDeliveryDto {
+        @JsonProperty("HEADER")
+        HEADER,
+        @JsonProperty("META")
+        META
+    }
+
+    public enum TransportDto {
+        @JsonProperty("HTTP")
+        HTTP
+    }
+
     public ApplicationTypeSchemaDto(ApplicationTypeSchemaDto other) {
         this.schema = other.schema;
         this.id = other.id;
@@ -138,6 +173,7 @@ public class ApplicationTypeSchemaDto {
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;
         this.applications = other.applications != null ? new ArrayList<>(other.applications) : null;
+        this.applicationTypeMcp = other.applicationTypeMcp;
         this.topics = other.topics != null ? new TreeSet<>(other.topics) : null;
         this.createdAt = other.createdAt;
         this.updatedAt = other.updatedAt;

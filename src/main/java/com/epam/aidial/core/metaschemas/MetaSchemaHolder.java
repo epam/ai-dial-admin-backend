@@ -39,6 +39,7 @@ public class MetaSchemaHolder {
                 .keyword(new NonValidationKeyword("dial:applicationTypeBucketCopy"))
                 .keyword(new NonValidationKeyword("dial:applicationTypeInterceptors"))
                 .keyword(new NonValidationKeyword("dial:applicationTypeSchemaEndpoint"))
+                .keyword(new NonValidationKeyword("dial:applicationTypeMcp"))
                 .keyword(new NonValidationKeyword("dial:propertyKind"))
                 .keyword(new NonValidationKeyword("dial:propertyOrder"))
                 .keyword(new NonValidationKeyword("$defs"))

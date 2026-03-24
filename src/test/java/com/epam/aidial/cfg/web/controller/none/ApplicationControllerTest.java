@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.web.controller.ApplicationController;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -48,6 +49,11 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
     private static final String TEST_APPLICATION_NAME = "test_application";
     private static final String APPLICATION_BASE_API_PATH = "/api/v1/applications";
     private static final String APPLICATION_API_PATH = APPLICATION_BASE_API_PATH + "/{applicationName}";
+    private static final String DISCOVERY_API_PATH = APPLICATION_API_PATH + "/discovered-tools";
+    private static final String CALL_TOOL_API_PATH = APPLICATION_API_PATH + "/call-tool";
+    private static final String TOOLS_DTO_JSON_PATH = "/tools_dto.json";
+    private static final String CALL_TOOL_RESULT_DTO_JSON_PATH = "/call_tool_result_dto.json";
+    private static final String CALL_TOOL_REQUEST_DTO_JSON_PATH = "/call_tool_request_dto.json";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -199,6 +205,38 @@ class ApplicationControllerTest extends AbstractControllerNoneSecureTest {
 
         mockMvc.perform(delete("/api/v1/applications/{applicationName}", "test_application"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testDiscoverTools() throws Exception {
+        var dtoJson = ResourceUtils.readResource(TOOLS_DTO_JSON_PATH);
+        var dto = objectMapper.readValue(dtoJson, new TypeReference<McpSchema.ListToolsResult>() {
+        });
+
+        when(applicationFacade.getDiscoveredTools(eq(TEST_APPLICATION_NAME), eq(null))).thenReturn(dto);
+
+        mockMvc.perform(get(DISCOVERY_API_PATH, TEST_APPLICATION_NAME))
+                .andExpect(status().isOk())
+                .andExpect(content().json(dtoJson, JsonCompareMode.LENIENT));
+    }
+
+    @Test
+    void testCallTool() throws Exception {
+        var callToolRequestDtoJson = ResourceUtils.readResource(CALL_TOOL_REQUEST_DTO_JSON_PATH);
+        var callToolRequestDto = objectMapper.readValue(callToolRequestDtoJson, new TypeReference<McpSchema.CallToolRequest>() {
+        });
+
+        var callToolResultDtoJson = ResourceUtils.readResource(CALL_TOOL_RESULT_DTO_JSON_PATH);
+        var callToolResultDto = objectMapper.readValue(callToolResultDtoJson, new TypeReference<McpSchema.CallToolResult>() {
+        });
+
+        when(applicationFacade.callTool(TEST_APPLICATION_NAME, callToolRequestDto)).thenReturn(callToolResultDto);
+
+        mockMvc.perform(post(CALL_TOOL_API_PATH, TEST_APPLICATION_NAME)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content(callToolRequestDtoJson))
+                .andExpect(status().isOk())
+                .andExpect(content().json(callToolResultDtoJson, JsonCompareMode.LENIENT));
     }
 
 }
