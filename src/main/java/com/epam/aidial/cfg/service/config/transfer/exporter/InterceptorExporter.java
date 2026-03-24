@@ -20,8 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -35,35 +37,28 @@ public class InterceptorExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.INTERCEPTOR)
                     ? getInterceptorsWithRemovedDependencies(fullExportRequest.getComponentTypes(), request.getExportFormat()).stream()
-                    .collect(Collectors.toMap(Interceptor::getName, Function.identity()))
+                    .collect(toLinkedHashMap(Interceptor::getName))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getInterceptorsWithRemovedDependencies(selectedItemsExportRequest.getComponents(), request.getExportFormat()).stream()
-                    .collect(Collectors.toMap(Interceptor::getName, Function.identity()));
+                    .collect(toLinkedHashMap(Interceptor::getName));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     private Collection<Interceptor> getInterceptorsWithRemovedDependencies(Set<ExportConfigComponentType> componentTypes, ExportFormat exportFormat) {
-        return interceptorService.getAll().stream()
-            .map(interceptor -> removeDependencies(interceptor, componentTypes, exportFormat))
-            .toList();
+        return interceptorService.getAllOrderedByDisplayNameAscNameAsc().stream()
+                .map(interceptor -> removeDependencies(interceptor, componentTypes, exportFormat))
+                .toList();
     }
 
     private List<Interceptor> getInterceptorsWithRemovedDependencies(List<ExportConfigComponent> components, ExportFormat exportFormat) {
-        return components.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.INTERCEPTOR)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }))
-                .values()
-                .stream()
-                .map(component -> {
-                    Interceptor interceptor = getInterceptor(component.getName());
-                    return removeDependencies(interceptor, component.getDependencies(), exportFormat);
-                })
+        var componentsByName = filterComponentsByTypeAndCollectToMap(components, ExportConfigComponentType.INTERCEPTOR);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return interceptorService.getAllByNamesOrderedByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
+                .map(interceptor -> removeDependencies(interceptor, componentsByName.get(interceptor.getName()).getDependencies(), exportFormat))
                 .toList();
     }
 

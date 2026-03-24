@@ -13,4 +13,10 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationEntit
     List<ApplicationEntity> findByIdNotIn(Collection<String> ids);
 
     List<ApplicationEntity> findAllByValidityStateIsValidTrue();
+
+    List<ApplicationEntity> findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc();
+
+    List<ApplicationEntity> findByValidityStateIsValidTrueOrderByDisplayNameAscDisplayVersionAscIdAsc();
+
+    List<ApplicationEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> ids);
 }

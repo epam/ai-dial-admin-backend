@@ -16,7 +16,7 @@ import lombok.ToString;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
 
 @Data
 @ToString(callSuper = true)
@@ -31,7 +31,7 @@ public abstract class BaseRouteDto extends RoleBasedDto {
     private boolean rewritePath;
     @NotEmpty
     private List<@RoutePath String> paths;
-    private Set<@HttpMethod String> methods;
+    private SortedSet<@HttpMethod String> methods;
     @Valid
     private List<UpstreamDto> upstreams;
     @Positive(message = "Max retry attempts should be greater than 0")

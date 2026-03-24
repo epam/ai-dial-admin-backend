@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +59,23 @@ public class InterceptorRunnerService {
     @Transactional(readOnly = true)
     public Collection<InterceptorRunner> getAllByNames(List<String> names) {
         return StreamSupport.stream(interceptorRunnerJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InterceptorRunner> getAllOrderedByDisplayNameAscNameAsc() {
+        return interceptorRunnerJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InterceptorRunner> getAllByNamesOrderedByDisplayNameAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return interceptorRunnerJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

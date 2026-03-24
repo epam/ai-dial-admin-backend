@@ -5,14 +5,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Set;
+import java.util.SortedSet;
 
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class DependentRoute extends BaseRoute {
 
-    private Set<ResourceAccessType> permissions;
+    private SortedSet<ResourceAccessType> permissions;
     private AttachmentPath attachmentPaths;
 
     public enum ResourceAccessType {
