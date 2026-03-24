@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.security.SystemSecurityContextExecutor;
+import com.epam.aidial.cfg.security.aspect.RunAsSystemUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,20 +15,18 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(value = "plugins.deployment.manager.endpoint.refresh.enabled", havingValue = "true")
 public class EndpointsRefresherScheduledService {
 
-    private final SystemSecurityContextExecutor systemSecurityContextExecutor;
     private final InterceptorService interceptorService;
     private final ToolSetService toolSetService;
     private final AdapterService adapterService;
     private final ModelService modelService;
 
     @Scheduled(fixedDelayString = "${plugins.deployment.manager.endpoint.refresh.interval}")
+    @RunAsSystemUser
     public void refreshEndpoints() {
-        systemSecurityContextExecutor.runAsSystemUser(() -> {
-            refreshEndpoints(interceptorService::refreshEndpoints, "interceptor");
-            refreshEndpoints(adapterService::refreshEndpoints, "adapter");
-            refreshEndpoints(toolSetService::refreshEndpoints, "toolset");
-            refreshEndpoints(modelService::refreshEndpoints, "model");
-        });
+        refreshEndpoints(interceptorService::refreshEndpoints, "interceptor");
+        refreshEndpoints(adapterService::refreshEndpoints, "adapter");
+        refreshEndpoints(toolSetService::refreshEndpoints, "toolset");
+        refreshEndpoints(modelService::refreshEndpoints, "model");
     }
 
     private void refreshEndpoints(Runnable refreshAction, String logEntity) {

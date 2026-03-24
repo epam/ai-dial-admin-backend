@@ -11,10 +11,6 @@ public class SystemAuthenticationToken extends AbstractAuthenticationToken {
 
     private final String principal;
 
-    public SystemAuthenticationToken(Collection<? extends GrantedAuthority> authorities) {
-        this(SYSTEM_PRINCIPAL, authorities);
-    }
-
     public SystemAuthenticationToken(String principal, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;

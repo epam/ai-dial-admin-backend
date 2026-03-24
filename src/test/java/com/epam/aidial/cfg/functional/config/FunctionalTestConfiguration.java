@@ -37,7 +37,7 @@ import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapperImpl;
-import com.epam.aidial.cfg.security.SystemSecurityContextExecutor;
+import com.epam.aidial.cfg.security.aspect.RunAsSystemUserAspect;
 import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
@@ -189,8 +189,8 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
-    public SystemSecurityContextExecutor systemSecurityContextExecutor() {
-        return new SystemSecurityContextExecutor();
+    public RunAsSystemUserAspect runAsSystemUserAspect() {
+        return new RunAsSystemUserAspect();
     }
 
 }
