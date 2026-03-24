@@ -13,4 +13,8 @@ public interface ToolSetJpaRepository extends JpaRepository<ToolSetEntity, Strin
 
     @Query("SELECT i FROM ToolSetEntity i WHERE i.toolSetContainer IS NOT NULL")
     List<ToolSetEntity> findByContainerIdIsNotNull();
+
+    List<ToolSetEntity> findAllByOrderByDisplayNameAscIdAsc();
+
+    List<ToolSetEntity> findByIdInOrderByDisplayNameAscIdAsc(Collection<String> ids);
 }

@@ -44,7 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,25 +91,18 @@ public class CoreConfigAggregatorService {
     }
 
     private LinkedHashMap<String, CoreRoute> getRoutes() {
-        return routeService.getAll().stream()
+        return routeService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(routeMapper::mapRoute)
-                .collect(Collectors.toMap(
-                        RoleBasedEntity::getName,
-                        route -> route,
-                        (existing, replacement) -> {
-                            throw new IllegalStateException("Duplicate routes found: %s".formatted(existing));
-                        },
-                        LinkedHashMap<String, CoreRoute>::new
-                ));
+                .collect(toLinkedHashMap(RoleBasedEntity::getName));
     }
 
-    private Map<String, CoreModel> getModels() {
-        return modelService.getAll().stream()
+    private LinkedHashMap<String, CoreModel> getModels() {
+        return modelService.getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc().stream()
                 .map(model -> {
                     String endpoint = getModelEndpoint(model);
                     return modelMapper.mapModel(model, endpoint);
                 })
-                .collect(Collectors.toMap(RoleBasedEntity::getName, model -> model));
+                .collect(toLinkedHashMap(RoleBasedEntity::getName));
     }
 
     private String getModelEndpoint(Model model) {
@@ -119,14 +113,14 @@ public class CoreConfigAggregatorService {
         return model.getEndpoint();
     }
 
-    private Map<String, CoreApplication> getApplications() {
-        return applicationService.getAllValidApplications().stream()
+    private LinkedHashMap<String, CoreApplication> getApplications() {
+        return applicationService.getAllValidApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc().stream()
                 .map(applicationMapper::mapApplication)
-                .collect(Collectors.toMap(RoleBasedEntity::getName, model -> model));
+                .collect(toLinkedHashMap(RoleBasedEntity::getName));
     }
 
-    private Map<String, CoreKey> getKeys() {
-        return keyService.getAllValidKeys().stream()
+    private LinkedHashMap<String, CoreKey> getKeys() {
+        return keyService.getAllValidKeysOrderedByDisplayNameAscNameAsc().stream()
                 .filter(key -> {
                     if (StringUtils.isNotBlank(key.getKey())) {
                         return true;
@@ -135,35 +129,51 @@ public class CoreConfigAggregatorService {
                         return false;
                     }
                 })
-                .collect(Collectors.toMap(Key::getKey, keyMapper::mapKey));
+                .collect(toLinkedHashMap(Key::getKey, keyMapper::mapKey));
     }
 
-    private Map<String, CoreRole> getRoles() {
+    private LinkedHashMap<String, CoreRole> getRoles() {
         Collection<Deployment> deployments = deploymentService.getAll();
-        return roleService.getAllRoles().stream()
+        return roleService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(role -> roleMapper.mapRole(role, deployments))
-                .collect(Collectors.toMap(CoreRole::getName, model -> model));
+                .collect(toLinkedHashMap(CoreRole::getName));
     }
 
-    private Map<String, CoreInterceptor> getInterceptors() {
-        return interceptorService.getAll().stream()
+    private LinkedHashMap<String, CoreInterceptor> getInterceptors() {
+        return interceptorService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(interceptorMapper::mapInterceptor)
-                .collect(Collectors.toMap(CoreInterceptor::getName, model -> model));
+                .collect(toLinkedHashMap(CoreInterceptor::getName));
     }
 
     private GlobalSettings getGlobalSettings() {
         return globalSettingsService.getGlobalSettings();
     }
 
-    private Map<String, String> getApplicationTypeSchemas() {
-        return applicationTypeSchemaService.getAll().stream()
-                .collect(Collectors.toMap(ApplicationTypeSchema::getSchemaId, schemaMapper::mapToCoreString));
+    private LinkedHashMap<String, String> getApplicationTypeSchemas() {
+        return applicationTypeSchemaService.getAllOrderedByDisplayNameAscIdAsc().stream()
+                .collect(toLinkedHashMap(ApplicationTypeSchema::getSchemaId, schemaMapper::mapToCoreString));
     }
 
-    private Map<String, CoreToolSet> getToolSets() {
-        return toolSetService.getAll().stream()
+    private LinkedHashMap<String, CoreToolSet> getToolSets() {
+        return toolSetService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(toolSetMapper::mapToolSet)
-                .collect(Collectors.toMap(RoleBasedEntity::getName, toolSet -> toolSet));
+                .collect(toLinkedHashMap(RoleBasedEntity::getName));
+    }
+
+    private <T> Collector<T, ?, LinkedHashMap<String, T>> toLinkedHashMap(Function<T, String> keyMapper) {
+        return toLinkedHashMap(keyMapper, Function.identity());
+    }
+
+    private <T, R> Collector<T, ?, LinkedHashMap<String, R>> toLinkedHashMap(Function<T, String> keyMapper,
+                                                                             Function<T, R> valueMapper) {
+        return Collectors.toMap(
+                keyMapper,
+                valueMapper,
+                (a, b) -> {
+                    throw new IllegalStateException("Duplicated objects found: %s".formatted(a));
+                },
+                LinkedHashMap::new
+        );
     }
 
 }

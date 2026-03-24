@@ -17,4 +17,8 @@ public interface InterceptorJpaRepository extends JpaRepository<InterceptorEntit
 
     @Query("SELECT i.name FROM InterceptorEntity i")
     Set<String> findAllNames();
+
+    List<InterceptorEntity> findAllByOrderByDisplayNameAscIdAsc();
+
+    List<InterceptorEntity> findByIdInOrderByDisplayNameAscIdAsc(Collection<String> ids);
 }

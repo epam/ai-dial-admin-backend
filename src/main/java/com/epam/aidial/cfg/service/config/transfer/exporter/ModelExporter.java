@@ -23,8 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -38,11 +40,11 @@ public class ModelExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.MODEL)
                     ? getModels(fullExportRequest).stream()
-                    .collect(Collectors.toMap(model -> model.getDeployment().getName(), Function.identity()))
+                    .collect(toLinkedHashMap(model -> model.getDeployment().getName()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getModels(selectedItemsExportRequest, request.isAddSecrets()).stream()
-                    .collect(Collectors.toMap(model -> model.getDeployment().getName(), Function.identity()));
+                    .collect(toLinkedHashMap(model -> model.getDeployment().getName()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
@@ -52,19 +54,13 @@ public class ModelExporter {
     }
 
     private List<Model> getModels(SelectedItemsExportRequest selectedItemsExportRequest, boolean addSecrets) {
-        List<ExportConfigComponent> components = selectedItemsExportRequest.getComponents();
-        return components.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.MODEL)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> {
-                    Model model = getModel(component.getName());
+        var componentsByName = filterComponentsByTypeAndCollectToMap(selectedItemsExportRequest.getComponents(), ExportConfigComponentType.MODEL);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return modelService.getAllByNamesOrderedByDisplayNameAscDisplayVersionAscNameAsc(componentsByName.keySet()).stream()
+                .map(model -> {
+                    ExportConfigComponent component = componentsByName.get(model.getDeployment().getName());
                     return removeDependency(model, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
                 .map(model -> removeUpstreamKey(model, addSecrets))
@@ -72,7 +68,7 @@ public class ModelExporter {
     }
 
     private Collection<Model> getModels(FullExportRequest fullExportRequest) {
-        return getModels().stream()
+        return modelService.getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc().stream()
                 .map(model -> removeUpstreamKey(model, fullExportRequest.isAddSecrets()))
                 .map(model -> removeDependency(model, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();

@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -70,6 +71,23 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAllByNames(List<String> names) {
         return toolSetJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ToolSet> getAllOrderedByDisplayNameAscNameAsc() {
+        return toolSetJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ToolSet> getAllByNamesOrderedByDisplayNameAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return toolSetJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

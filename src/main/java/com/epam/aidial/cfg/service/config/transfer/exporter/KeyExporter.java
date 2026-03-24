@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Key;
 import com.epam.aidial.cfg.domain.service.KeyService;
-import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
@@ -24,6 +23,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ExportFormat.CORE;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -41,19 +42,19 @@ public class KeyExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.KEY)
                     ? getKeys(fullExportRequest).stream()
-                    .collect(Collectors.toMap(keyMapper, Function.identity()))
+                    .collect(toLinkedHashMap(keyMapper))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getKeys(selectedItemsExportRequest).stream()
-                    .collect(Collectors.toMap(keyMapper, Function.identity()));
+                    .collect(toLinkedHashMap(keyMapper));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     private Collection<Key> getKeys(FullExportRequest fullExportRequest) {
         var keys = fullExportRequest.getExportFormat() == CORE
-                ? keyService.getAllValidKeys()
-                : keyService.getAllKeys();
+                ? keyService.getAllValidKeysOrderedByDisplayNameAscNameAsc()
+                : keyService.getAllKeysOrderedByDisplayNameAscNameAsc();
         return keys.stream()
                 .map(key -> removeKey(key, fullExportRequest))
                 .filter(Objects::nonNull)
@@ -62,18 +63,11 @@ public class KeyExporter {
     }
 
     private List<Key> getKeys(SelectedItemsExportRequest selectedItemsExportRequest) {
-        List<ExportConfigComponent> elements = selectedItemsExportRequest.getComponents();
-        return elements.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.KEY)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> keyService.getKey(component.getName()))
+        var componentsByName = filterComponentsByTypeAndCollectToMap(selectedItemsExportRequest.getComponents(), ExportConfigComponentType.KEY);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return keyService.getAllByNamesOrderedByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
                 .filter(key -> isValidKey(key, selectedItemsExportRequest))
                 .map(key -> removeKey(key, selectedItemsExportRequest))
                 .filter(Objects::nonNull)

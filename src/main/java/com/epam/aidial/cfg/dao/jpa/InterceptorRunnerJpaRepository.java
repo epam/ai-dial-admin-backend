@@ -14,4 +14,8 @@ public interface InterceptorRunnerJpaRepository extends CrudRepository<Intercept
 
     @Query("SELECT i.name FROM InterceptorRunnerEntity i")
     Set<String> findAllNames();
+
+    List<InterceptorRunnerEntity> findAllByOrderByDisplayNameAscIdAsc();
+
+    List<InterceptorRunnerEntity> findByIdInOrderByDisplayNameAscIdAsc(Collection<String> ids);
 }

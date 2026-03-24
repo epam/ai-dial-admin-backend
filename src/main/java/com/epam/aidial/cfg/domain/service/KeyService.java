@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -60,16 +61,33 @@ public class KeyService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Key> getAllValidKeys() {
-        return keyJpaRepository.findAllByValidityStateIsValidTrue().stream()
+    public Collection<Key> getAllByNames(List<String> names) {
+        return StreamSupport.stream(keyJpaRepository.findAllById(names).spliterator(), false)
+                .map(this::toDomainWithValidityStateAdjustment)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Key> getAllKeysOrderedByDisplayNameAscNameAsc() {
+        return keyJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
+                .map(this::toDomainWithValidityStateAdjustment)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Key> getAllValidKeysOrderedByDisplayNameAscNameAsc() {
+        return keyJpaRepository.findAllByValidityStateIsValidTrueOrderByDisplayNameAscIdAsc().stream()
                 .map(this::toDomainWithValidityStateAdjustment)
                 .filter(key -> key.getValidityState().isValid())
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public Collection<Key> getAllByNames(List<String> names) {
-        return StreamSupport.stream(keyJpaRepository.findAllById(names).spliterator(), false)
+    public List<Key> getAllByNamesOrderedByDisplayNameAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return keyJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(this::toDomainWithValidityStateAdjustment)
                 .collect(Collectors.toList());
     }

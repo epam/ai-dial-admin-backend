@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
-import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
@@ -18,8 +17,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -32,18 +33,11 @@ public class ToolSetExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.TOOL_SET)
                     ? getToolSets(fullExportRequest).stream()
-                    .collect(Collectors.toMap(toolSet -> toolSet.getDeployment().getName(), Function.identity(),
-                            (existing, newToolSet) -> newToolSet, LinkedHashMap::new))
+                    .collect(toLinkedHashMap(toolSet -> toolSet.getDeployment().getName()))
                     : new LinkedHashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getToolSets(selectedItemsExportRequest, request.isAddSecrets()).stream()
-                    .collect(Collectors.toMap(
-                            toolSet -> toolSet.getDeployment().getName(), Function.identity(),
-                            (existing, replacement) -> {
-                                throw new IllegalStateException("Duplicate ToolSets found: %s".formatted(existing));
-                            },
-                            LinkedHashMap::new
-                    ));
+                    .collect(toLinkedHashMap(toolSet -> toolSet.getDeployment().getName()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
@@ -53,27 +47,19 @@ public class ToolSetExporter {
     }
 
     private List<ToolSet> getToolSets(SelectedItemsExportRequest selectedItemsExportRequest, boolean addSecrets) {
-        List<ExportConfigComponent> elements = selectedItemsExportRequest.getComponents();
-        return elements.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.TOOL_SET)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> {
-                    ToolSet toolSet = toolSetService.get(component.getName());
-                    return removeDependency(toolSet, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
-                })
+        var componentsByName = filterComponentsByTypeAndCollectToMap(selectedItemsExportRequest.getComponents(), ExportConfigComponentType.TOOL_SET);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return toolSetService.getAllByNamesOrderedByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
+                .map(toolSet -> removeDependency(toolSet, componentsByName.get(toolSet.getDeployment().getName()).getDependencies(),
+                        selectedItemsExportRequest.getExportFormat()))
                 .map(toolSet -> removeClientSecret(toolSet, addSecrets))
                 .toList();
     }
 
     private Collection<ToolSet> getToolSets(FullExportRequest fullExportRequest) {
-        return getToolSets().stream()
+        return toolSetService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(toolSet -> removeClientSecret(toolSet, fullExportRequest.isAddSecrets()))
                 .map(toolSet -> removeDependency(toolSet, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
@@ -82,11 +68,11 @@ public class ToolSetExporter {
     protected Collection<ExportComponentInfo> preview(ExportRequest request) {
         return getToolSets(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
-                    .name(component.getDeployment().getName())
-                    .displayName(component.getDisplayName())
-                    .type(ExportConfigComponentType.TOOL_SET)
-                    .description(component.getDescription())
-                    .build())
+                        .name(component.getDeployment().getName())
+                        .displayName(component.getDisplayName())
+                        .type(ExportConfigComponentType.TOOL_SET)
+                        .description(component.getDescription())
+                        .build())
                 .collect(Collectors.toList());
     }
 

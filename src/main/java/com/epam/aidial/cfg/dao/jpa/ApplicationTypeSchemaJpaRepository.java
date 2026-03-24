@@ -14,4 +14,8 @@ public interface ApplicationTypeSchemaJpaRepository extends CrudRepository<Appli
 
     @Query("SELECT a.schemaId FROM ApplicationTypeSchemaEntity a")
     Set<String> findAllIds();
+
+    List<ApplicationTypeSchemaEntity> findAllByOrderByApplicationTypeDisplayNameAscIdAsc();
+
+    List<ApplicationTypeSchemaEntity> findByIdInOrderByApplicationTypeDisplayNameAscIdAsc(Collection<String> ids);
 }

@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -78,6 +79,23 @@ public class ModelService {
     @Transactional(readOnly = true)
     public Collection<Model> getAllByNames(List<String> names) {
         return modelJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Model> getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
+        return modelJpaRepository.findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Model> getAllByNamesOrderedByDisplayNameAscDisplayVersionAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return modelJpaRepository.findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

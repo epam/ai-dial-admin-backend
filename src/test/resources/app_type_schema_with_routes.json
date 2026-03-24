@@ -19,8 +19,8 @@
         "/some-path"
       ],
       "dial:methods": [
-        "POST",
-        "GET"
+        "GET",
+        "POST"
       ],
       "dial:upstreams": [],
       "dial:maxRetryAttempts": 0,

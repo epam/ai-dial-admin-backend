@@ -126,7 +126,8 @@ class ConfigServiceTest {
         var rawApplications = ResourceUtils.readResource("/domain/model/applications.json");
         var applications = objectMapper.readValue(rawApplications, new TypeReference<List<Application>>() {
         });
-        when(applicationService.getAllValidApplications()).thenReturn(applications);
+        when(applicationService.getAllValidApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc())
+                .thenReturn(applications);
 
         var actualConfig = configService.getConfig();
 
@@ -140,7 +141,7 @@ class ConfigServiceTest {
         var rawSchemas = ResourceUtils.readResource("/domain/model/applicationTypeSchemas.json");
         var schemas = objectMapper.readValue(rawSchemas, new TypeReference<List<ApplicationTypeSchema>>() {
         });
-        when(applicationTypeSchemaService.getAll()).thenReturn(schemas);
+        when(applicationTypeSchemaService.getAllOrderedByDisplayNameAscIdAsc()).thenReturn(schemas);
 
         var actualConfig = configService.getConfig();
 
@@ -154,7 +155,7 @@ class ConfigServiceTest {
         var rawToolSets = ResourceUtils.readResource("/domain/model/toolsets.json");
         var toolSets = objectMapper.readValue(rawToolSets, new TypeReference<List<ToolSet>>() {
         });
-        when(toolSetService.getAll()).thenReturn(toolSets);
+        when(toolSetService.getAllOrderedByDisplayNameAscNameAsc()).thenReturn(toolSets);
 
         var actualConfig = configService.getConfig();
 
@@ -168,7 +169,7 @@ class ConfigServiceTest {
         var rawInterceptors = ResourceUtils.readResource("/domain/model/interceptors.json");
         var interceptors = objectMapper.readValue(rawInterceptors, new TypeReference<List<Interceptor>>() {
         });
-        when(interceptorService.getAll()).thenReturn(interceptors);
+        when(interceptorService.getAllOrderedByDisplayNameAscNameAsc()).thenReturn(interceptors);
 
         var actualConfig = configService.getConfig();
 
@@ -182,7 +183,7 @@ class ConfigServiceTest {
         var rawKeys = ResourceUtils.readResource("/domain/model/keys.json");
         var keys = objectMapper.readValue(rawKeys, new TypeReference<List<Key>>() {
         });
-        when(keyService.getAllValidKeys()).thenReturn(keys);
+        when(keyService.getAllValidKeysOrderedByDisplayNameAscNameAsc()).thenReturn(keys);
 
         var actualConfig = configService.getConfig();
 
@@ -196,7 +197,7 @@ class ConfigServiceTest {
         var rawModels = ResourceUtils.readResource("/domain/model/models.json");
         var models = objectMapper.readValue(rawModels, new TypeReference<List<Model>>() {
         });
-        when(modelService.getAll()).thenReturn(models);
+        when(modelService.getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc()).thenReturn(models);
 
         var actualConfig = configService.getConfig();
 
@@ -210,7 +211,7 @@ class ConfigServiceTest {
         var rawModels = ResourceUtils.readResource("/domain/model/models_public.json");
         var models = objectMapper.readValue(rawModels, new TypeReference<List<Model>>() {
         });
-        when(modelService.getAll()).thenReturn(models);
+        when(modelService.getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc()).thenReturn(models);
 
         var actualConfig = configService.getConfig();
 
@@ -227,7 +228,7 @@ class ConfigServiceTest {
         var rawDeployments = ResourceUtils.readResource("/domain/model/deployments_for_roles.json");
         var deployments = objectMapper.readValue(rawDeployments, new TypeReference<List<Deployment>>() {
         });
-        when(roleService.getAllRoles()).thenReturn(roles);
+        when(roleService.getAllOrderedByDisplayNameAscNameAsc()).thenReturn(roles);
         when(deploymentService.getAll()).thenReturn(deployments);
 
         var actualConfig = configService.getConfig();
@@ -242,7 +243,7 @@ class ConfigServiceTest {
         var rawRoutes = ResourceUtils.readResource("/domain/model/routes.json");
         var routes = objectMapper.readValue(rawRoutes, new TypeReference<List<Route>>() {
         });
-        when(routeService.getAll()).thenReturn(routes);
+        when(routeService.getAllOrderedByDisplayNameAscNameAsc()).thenReturn(routes);
 
         var actualConfig = configService.getConfig();
 
