@@ -56,6 +56,7 @@ public class ApplicationDto extends RoleBasedDto {
 
     private URI customAppSchemaId;
     private ValidityStateDto validityState;
+    private McpDto mcp;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {
@@ -99,5 +100,4 @@ public class ApplicationDto extends RoleBasedDto {
             private String configuration;
         }
     }
-
 }

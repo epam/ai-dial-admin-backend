@@ -20,21 +20,20 @@ import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
-import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.epam.aidial.cfg.utils.AuthHeaderUtils;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -72,6 +71,23 @@ public class ToolSetService {
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAllByNames(List<String> names) {
         return toolSetJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ToolSet> getAllOrderedByDisplayNameAscNameAsc() {
+        return toolSetJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ToolSet> getAllByNamesOrderedByDisplayNameAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return toolSetJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -208,7 +224,7 @@ public class ToolSetService {
         var toolSet = get(toolSetName);
         var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
         return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getDeployment().getName()),
-                toolSet.getTransport(), nextCursor, getAuthHeaders());
+                toolSet.getTransport(), nextCursor, AuthHeaderUtils.getAuthHeaders());
     }
 
     @Transactional(readOnly = true)
@@ -216,7 +232,7 @@ public class ToolSetService {
         var toolSet = get(toolSetName);
         var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
         return toolCallService.callTool(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getDeployment().getName()),
-                toolSet.getTransport(), getAuthHeaders(), callToolRequest);
+                toolSet.getTransport(), AuthHeaderUtils.getAuthHeaders(), callToolRequest);
     }
 
     @Transactional(readOnly = true)
@@ -274,13 +290,5 @@ public class ToolSetService {
         }
 
         return mapper.toEntity(domain, entity, toolSetContainer, roleLimits, rolesForLimits);
-    }
-
-    private Map<String, String> getAuthHeaders() {
-        var token = AuthorizationTokenHolder.getToken();
-        if (StringUtils.isBlank(token)) {
-            return null;
-        }
-        return Map.of("Authorization", "Bearer " + token);
     }
 }

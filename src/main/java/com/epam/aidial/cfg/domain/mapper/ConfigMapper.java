@@ -12,7 +12,7 @@ import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Mapper(
@@ -46,7 +46,7 @@ public abstract class ConfigMapper {
             return;
         }
 
-        Map<String, CoreRole> coreRoles = new HashMap<>();
+        Map<String, CoreRole> coreRoles = new LinkedHashMap<>();
         Collection<Deployment> deployments = exportConfig.collectDeployment();
         for (Map.Entry<String, Role> entry : roles.entrySet()) {
             String key = entry.getKey();

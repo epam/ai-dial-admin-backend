@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,7 +33,7 @@ class DependentRouteValidatorTest {
         route = new DependentRouteDto();
         route.setName("someRoute");
         route.setPaths(List.of("/api/test"));
-        route.setMethods(new HashSet<>(Arrays.asList("GET", "POST")));
+        route.setMethods(new TreeSet<>(Arrays.asList("GET", "POST")));
 
         UpstreamDto upstream = new UpstreamDto();
         upstream.setEndpoint("http://example.com/api");

@@ -38,4 +38,5 @@ public class ApplicationResourceDto {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
+    private McpResourceDto mcp;
 }

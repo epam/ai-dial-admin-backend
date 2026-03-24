@@ -39,5 +39,5 @@ public class Application extends RoleBased {
     private String editorUrl;
     private List<DependentRoute> routes;
     private ValidityState validityState;
-
+    private Mcp mcp;
 }

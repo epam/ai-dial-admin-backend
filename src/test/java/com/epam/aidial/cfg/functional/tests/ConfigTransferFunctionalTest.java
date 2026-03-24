@@ -175,6 +175,7 @@ public abstract class ConfigTransferFunctionalTest {
     private GlobalSettingsFacade globalSettingsFacade;
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
+    private final ObjectMapper prettyJsonMapper = JsonMapperConfiguration.createPrettyJsonMapper();
 
     @BeforeEach
     void setUp() {
@@ -1904,7 +1905,8 @@ public abstract class ConfigTransferFunctionalTest {
                 importConfig.getBytes()
         );
 
-        String expectedConfig = ResourceUtils.readResource("/full_core_export.json");
+        Config expectedConfigObj = jsonMapper.readValue(ResourceUtils.readResource("/full_core_export.json"), Config.class);
+        String expectedConfig = prettyJsonMapper.writeValueAsString(expectedConfigObj);
 
         doReturn(123L).when(transactionTimestampContext).getTimestamp();
 
@@ -1921,7 +1923,8 @@ public abstract class ConfigTransferFunctionalTest {
         streamingResponseBody.writeTo(outputStream);
 
         // then
-        JSONAssert.assertEquals(expectedConfig, outputStream.toString(), true);
+        // compare as strings to ensure that all entities in resulting json are sorted
+        Assertions.assertThat(outputStream.toString()).isEqualTo(expectedConfig);
     }
 
     @ParameterizedTest
@@ -3076,10 +3079,10 @@ public abstract class ConfigTransferFunctionalTest {
         routeDto.setName(routeName);
         routeDto.setDescription("some desc");
         routeDto.setPaths(List.of("/first", "/second"));
-        routeDto.setMethods(Set.of("GET", "POST"));
+        routeDto.setMethods(new TreeSet<>(Set.of("GET", "POST")));
         routeDto.setMaxRetryAttempts(5);
         routeDto.setOrder(1);
-        routeDto.setPermissions(Set.of(ResourceAccessType.WRITE, ResourceAccessType.READ));
+        routeDto.setPermissions(new TreeSet<>(Set.of(ResourceAccessType.WRITE, ResourceAccessType.READ)));
 
         var response = new ResponseDto();
         response.setStatus(200);

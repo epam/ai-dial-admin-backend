@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +79,23 @@ public class InterceptorService {
     @Transactional(readOnly = true)
     public Collection<Interceptor> getAllByNames(List<String> names) {
         return interceptorJpaRepository.findAllById(names).stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Interceptor> getAllOrderedByDisplayNameAscNameAsc() {
+        return interceptorJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Interceptor> getAllByNamesOrderedByDisplayNameAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return interceptorJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

@@ -44,4 +44,5 @@ public class ApplicationResource {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private ValidityStateResource validityState;
+    private McpResource mcp;
 }
