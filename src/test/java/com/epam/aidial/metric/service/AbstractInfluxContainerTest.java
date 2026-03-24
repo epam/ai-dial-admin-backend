@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,6 +131,12 @@ public abstract class AbstractInfluxContainerTest {
         var dto = QUERY_MAPPER.readValue(json, CompletableDto.class);
         var completable = languageConverter.convert(dto, engine.getTables());
         return engine.getData(completable);
+    }
+
+    protected static List<String> columnNames(Data data) {
+        return data.getExpressions().stream()
+                .map(expr -> (expr instanceof com.epam.aidial.expressions.Column col) ? col.getName() : expr.toString())
+                .toList();
     }
 
     @Nested
@@ -270,25 +278,23 @@ public abstract class AbstractInfluxContainerTest {
                       ],
                       "from": "mcp_analytics",
                       "groupBy": ["project_id"],
-                      "where": {%s},
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$or": [
+                            {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                            {"$eq": {"left": "project_id", "right": "'proj2'"}}
+                          ]}
+                        ]
+                      },
                       "orderBy": [{"$desc": "count()"}]
-                    }""".formatted(TIME_FILTER));
+                    }""".formatted(TIME_GTE, TIME_LT));
 
-            // At least proj1 and proj2 groups; the null/empty project_id group
-            // may or may not appear depending on the engine.
-            assertThat(data.getData().size()).isGreaterThanOrEqualTo(2);
-
-            var byProject = data.getData().stream()
-                    .filter(row -> row.get(0) != null && !row.get(0).toString().isEmpty())
-                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
-
-            // proj1: tool_calls=1, mcp_calls=2
-            assertThat(byProject.get("proj1").get(1)).isEqualTo(1L);
-            assertThat(byProject.get("proj1").get(2)).isEqualTo(2L);
-
-            // proj2: tool_calls=2, mcp_calls=2
-            assertThat(byProject.get("proj2").get(1)).isEqualTo(2L);
-            assertThat(byProject.get("proj2").get(2)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("project_id", "tool_calls", "mcp_calls");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("proj1", 1L, 2L),
+                    List.of("proj2", 2L, 2L)
+            );
         }
 
     }
