@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.security.aspect;
 
 import com.epam.aidial.cfg.security.InternalSecurityAuthenticationToken;
 import com.epam.aidial.cfg.web.security.UserRole;
-import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,7 +12,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RunAsInternalUser {
 
-    @AliasFor("value")
     String principal() default InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL;
 
     UserRole[] roles() default {UserRole.FULL_ADMIN};
