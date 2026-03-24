@@ -139,9 +139,9 @@ public interface PublicationMapper {
             return null;
         }
 
-        if (model instanceof FilePublication &&
-                actions.stream()
-                        .allMatch(a -> a == PublicationResourceAction.ADD || a == PublicationResourceAction.ADD_IF_ABSENT)) {
+        if (model instanceof FilePublication
+                && actions.stream()
+                .allMatch(a -> a == PublicationResourceAction.ADD || a == PublicationResourceAction.ADD_IF_ABSENT)) {
             return PublicationResourceAction.ADD;
         }
 
