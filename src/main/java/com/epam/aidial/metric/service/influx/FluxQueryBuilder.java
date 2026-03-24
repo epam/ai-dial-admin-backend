@@ -3,8 +3,11 @@ package com.epam.aidial.metric.service.influx;
 
 import com.epam.aidial.expressions.AggregationFunctionCall;
 import com.epam.aidial.expressions.Alias;
+import com.epam.aidial.expressions.CaseWhenExpression;
 import com.epam.aidial.expressions.Column;
+import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
+import com.epam.aidial.expressions.FunctionCall;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
@@ -496,6 +499,13 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
         var aggregationColumnName = resolveAggregationColumnName(function, args);
 
+        // For sum(case when cond then 1 else 0 end), use count after filtering by condition
+        var isCaseWhenSum = "sum".equals(function.getName())
+                && args.size() == 1 && args.get(0) instanceof CaseWhenExpression;
+        var effectiveAggFunction = isCaseWhenSum
+                ? new FunctionImpl("count", function.getType(), function.isDeterministic())
+                : function;
+
         var keepColumns = new ArrayList<>(groupByColumnNames);
         keepColumns.add(aggregationColumnName);
 
@@ -504,22 +514,52 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
         var fieldsAsColsPart = SimpleFluxBuilder.createFieldsAsColsPart();
+        var caseWhenFilterPart = isCaseWhenSum
+                ? createCaseWhenFilterPart((CaseWhenExpression) args.get(0))
+                : "";
         var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);
-        var aggregationPart = createAggregationPart(function, aggregationColumnName);
+        var aggregationPart = createAggregationPart(effectiveAggFunction, aggregationColumnName);
         var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
         var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(aggregationColumnName, columnName));
 
-        return new InfluxQueryPartCombiner()
+        var combiner = new InfluxQueryPartCombiner()
                 .add(fromPart)
                 .add(rangePart)
                 .add(measurementPart)
                 .add(fieldsAsColsPart)
-                .add(filterPart)
+                .add(filterPart);
+        if (!caseWhenFilterPart.isEmpty()) {
+            combiner.add(caseWhenFilterPart);
+        }
+        return combiner
                 .add(groupPart)
                 .add(aggregationPart)
                 .add(keepPart)
                 .add(renamePart)
                 .build();
+    }
+
+    private String createCaseWhenFilterPart(CaseWhenExpression caseWhen) {
+        var condition = caseWhen.getCondition();
+        if (condition instanceof FunctionCall fc && fc.getArgs().size() == 2
+                && fc.getArgs().get(0) instanceof Column col
+                && fc.getArgs().get(1) instanceof Constant val) {
+            var funcName = fc.getFunction().getName();
+            var operator = switch (funcName) {
+                case "equals" -> "==";
+                case "notEquals" -> "!=";
+                case "less" -> "<";
+                case "greater" -> ">";
+                case "lessOrEquals" -> "<=";
+                case "greaterOrEquals" -> ">=";
+                default -> throw new NotImplementedException("Unsupported CASE WHEN operator in Flux: " + funcName);
+            };
+            return "|> filter(fn: (r) => r[%s] %s %s)".formatted(
+                    SimpleFluxBuilder.quote(col.getName()),
+                    operator,
+                    SimpleFluxBuilder.quote(String.valueOf(val.getValue())));
+        }
+        throw new NotImplementedException("Unsupported CASE WHEN condition for Flux: " + condition);
     }
 
     private FluxQueryPart createAggregationFilterPart(InfluxTableDeclaration tableDeclaration,
@@ -536,6 +576,16 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         }
 
         if ("sum".equals(function.getName()) && args.size() == 1) {
+            if (args.get(0) instanceof CaseWhenExpression) {
+                // sum(case when ... then 1 else 0 end) → use same field filter as count()
+                var tableFieldName = tableDeclaration.getSchema().getColumns().stream()
+                        .map(InfluxColumnDeclaration::getSource)
+                        .filter(columnSource -> columnSource.getType() == InfluxColumnSourceType.FIELD)
+                        .map(InfluxColumnSource::getColumn)
+                        .findFirst()
+                        .orElseThrow();
+                return FluxConditionPartBuilder.createFilterPart(FIELD_COLUMN, tableFieldName);
+            }
             var tableFieldName = ((ColumnImpl) args.get(0)).getName();
             return FluxConditionPartBuilder.createFilterPart(FIELD_COLUMN, tableFieldName);
         }
@@ -554,6 +604,10 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         }
 
         if ("sum".equals(function.getName()) && args.size() == 1) {
+            if (args.get(0) instanceof CaseWhenExpression) {
+                // sum(case when ... then 1 else 0 end) is conditional counting → use _measurement
+                return MEASUREMENT_COLUMN;
+            }
             return ((ColumnImpl) args.get(0)).getName();
         }
 

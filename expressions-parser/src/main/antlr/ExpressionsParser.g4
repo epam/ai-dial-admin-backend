@@ -20,6 +20,7 @@ expression_atom
    | aggregation_function_call                               #aggregationFunctionCall
    | group_function_call                                     #groupFunctionCall
    | function_call                                           #functionCall
+   | case_when_expression                                    #caseWhenExpr
    | column_name                                             #columnNameExpression
    | MINUS_OPERATOR '(' expression ')'                       #negateOperator
    | '(' expression ')'                                      #nestedExpression
@@ -95,6 +96,10 @@ function_args
 
 function_arg
     : expression;
+
+case_when_expression
+    : CASE WHEN logical_or_expression THEN expression ELSE expression END
+    ;
 
 //    Common Clauses
 

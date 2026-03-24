@@ -1,9 +1,11 @@
 package com.epam.aidial.metric.service.influx3;
 
 import com.epam.aidial.expressions.AggregationFunctionCall;
+import com.epam.aidial.expressions.CaseWhenExpression;
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
+import com.epam.aidial.expressions.FunctionCall;
 import com.epam.aidial.expressions.NumberConstant;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
@@ -171,7 +173,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
         for (var aggCall : aggregationFunctionCalls) {
             var function = (FunctionImpl) aggCall.getFunction();
             var outerName = expressionToOuterColumnNames.get(aggCall);
-            var aggSql = buildAggregationExpression(function, aggCall.getArgs());
+            var aggSql = buildAggregationExpression(function, aggCall.getArgs(), paramCounter, allParams);
             selectParts.add(aggSql + " AS \"" + outerName + "\"");
         }
 
@@ -235,7 +237,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
         var windowExpr = "DATE_BIN(%s, \"time\", TIMESTAMP '1970-01-01T00:00:00Z')".formatted(windowInterval);
 
         // Build aggregation expression
-        var aggSql = buildAggregationExpression(function, aggregationFunctionCall.getArgs());
+        var aggSql = buildAggregationExpression(function, aggregationFunctionCall.getArgs(), paramCounter, allParams);
 
         var sql = new StringBuilder();
         sql.append("SELECT ");
@@ -300,7 +302,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
                 selectParts.add(windowExpr + " AS \"" + outerName + "\"");
             } else if (resolved instanceof AggregationFunctionCall aggCall) {
                 var function = (FunctionImpl) aggCall.getFunction();
-                var aggSql = buildAggregationExpression(function, aggCall.getArgs());
+                var aggSql = buildAggregationExpression(function, aggCall.getArgs(), paramCounter, allParams);
                 selectParts.add(aggSql + " AS \"" + outerName + "\"");
             } else if (resolved instanceof Column) {
                 selectParts.add("\"" + outerName + "\"");
@@ -345,18 +347,62 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
                 .build();
     }
 
-    private String buildAggregationExpression(FunctionImpl function, List<Expression> args) {
+    private String buildAggregationExpression(FunctionImpl function, List<Expression> args,
+                                               AtomicInteger paramCounter, Map<String, Object> allParams) {
         return switch (function.getName()) {
             case "count" -> "COUNT(*)";
             case "sum" -> {
                 if (args.isEmpty()) {
                     throw new IllegalArgumentException("sum requires an argument");
                 }
+                if (args.get(0) instanceof CaseWhenExpression caseWhen) {
+                    yield buildSumCaseWhen(caseWhen, paramCounter, allParams);
+                }
                 var column = ((ColumnImpl) args.get(0)).getName();
                 yield "SUM(\"%s\")".formatted(column);
             }
             default -> throw new NotImplementedException("Unsupported aggregation function: " + function.getName());
         };
+    }
+
+    private String buildSumCaseWhen(CaseWhenExpression caseWhen, AtomicInteger paramCounter, Map<String, Object> allParams) {
+        var conditionSql = buildConditionSql(caseWhen.getCondition(), paramCounter, allParams);
+        var thenValue = renderConstantValue(caseWhen.getThenExpression());
+        var elseValue = renderConstantValue(caseWhen.getElseExpression());
+        return "SUM(CASE WHEN %s THEN %s ELSE %s END)".formatted(conditionSql, thenValue, elseValue);
+    }
+
+    private String buildConditionSql(Expression condition, AtomicInteger paramCounter, Map<String, Object> allParams) {
+        if (condition instanceof FunctionCall fc) {
+            var funcName = fc.getFunction().getName();
+            if (fc.getArgs().size() == 2
+                    && fc.getArgs().get(0) instanceof Column col
+                    && fc.getArgs().get(1) instanceof Constant val) {
+                var operator = switch (funcName) {
+                    case "equals" -> "=";
+                    case "notEquals" -> "!=";
+                    case "less" -> "<";
+                    case "greater" -> ">";
+                    case "lessOrEquals" -> "<=";
+                    case "greaterOrEquals" -> ">=";
+                    default -> throw new NotImplementedException("Unsupported CASE WHEN operator: " + funcName);
+                };
+                var paramName = "p" + paramCounter.getAndIncrement();
+                allParams.put(paramName, val.getValue());
+                return "\"%s\" %s $%s".formatted(col.getName(), operator, paramName);
+            }
+        }
+        throw new NotImplementedException("Unsupported CASE WHEN condition: " + condition);
+    }
+
+    private String renderConstantValue(Expression expression) {
+        if (expression instanceof NumberConstant nc) {
+            return String.valueOf(nc.getNumberValue());
+        }
+        if (expression instanceof Constant c) {
+            return "'" + c.getValue() + "'";
+        }
+        throw new NotImplementedException("Only constant values are supported in CASE WHEN THEN/ELSE");
     }
 
     private String buildWindowInterval(com.epam.aidial.expressions.GroupFunctionCall groupFunctionCall) {

@@ -6,6 +6,11 @@ channels { ERRORCHANNEL }
 // Common Keywords
 
 AS:                                  A S;
+CASE:                                C A S E;
+WHEN:                                W H E N;
+THEN:                                T H E N;
+ELSE:                                E L S E;
+END:                                 E N D;
 FALSE:                               F A L S E;
 TRUE:                                T R U E;
 NAN:                                 N A N;

@@ -32,7 +32,7 @@ public abstract class AbstractInfluxContainerTest {
     // mcp_analytics records WITHOUT project_id tag — reproduces the scenario
     // where a schema-defined column is absent from actual data.
     // 3 records inside the time range.
-    private static final List<String> MCP_RECORDS = List.of(
+    private static final List<String> MCP_RECORDS_NO_PROJECT = List.of(
             // INSIDE #1: 2026-03-11T14:00:00Z
             "mcp_analytics,deployment=gpt-4,mcp_method=tools/call "
                     + "execution_path=\"path1\",chat_id=\"chat1\",user_hash=\"user1\" "
@@ -45,6 +45,27 @@ public abstract class AbstractInfluxContainerTest {
             "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/call "
                     + "execution_path=\"path3\",chat_id=\"chat3\",user_hash=\"user1\" "
                     + "1773338400000000000"
+    );
+
+    // mcp_analytics records WITH project_id tag — enables per-project aggregation.
+    // 4 records inside the time range.
+    private static final List<String> MCP_RECORDS_WITH_PROJECT = List.of(
+            // INSIDE #4: 2026-03-11T15:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=proj1 "
+                    + "execution_path=\"path4\",chat_id=\"chat4\",user_hash=\"user1\" "
+                    + "1773241200000000000",
+            // INSIDE #5: 2026-03-12T11:00:00Z
+            "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/list,project_id=proj1 "
+                    + "execution_path=\"path5\",chat_id=\"chat5\",user_hash=\"user2\" "
+                    + "1773313200000000000",
+            // INSIDE #6: 2026-03-12T15:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=proj2 "
+                    + "execution_path=\"path6\",chat_id=\"chat6\",user_hash=\"user1\" "
+                    + "1773327600000000000",
+            // INSIDE #7: 2026-03-13T09:00:00Z
+            "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/call,project_id=proj2 "
+                    + "execution_path=\"path7\",chat_id=\"chat7\",user_hash=\"user2\" "
+                    + "1773392400000000000"
     );
 
     // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
@@ -86,7 +107,8 @@ public abstract class AbstractInfluxContainerTest {
 
     static {
         var all = new ArrayList<>(ANALYTICS_RECORDS);
-        all.addAll(MCP_RECORDS);
+        all.addAll(MCP_RECORDS_NO_PROJECT);
+        all.addAll(MCP_RECORDS_WITH_PROJECT);
         TEST_RECORDS = List.copyOf(all);
     }
 
@@ -192,9 +214,10 @@ public abstract class AbstractInfluxContainerTest {
     class MissingColumnTests {
 
         @Test
-        void countWithGroupBy_whenSchemaColumnAbsentFromData() throws Exception {
-            // mcp_analytics records have NO project_id tag, but the schema declares it.
-            // count() must work regardless — it should not depend on project_id existing.
+        void countWithGroupBy_whenSchemaColumnAbsentFromSomeData() throws Exception {
+            // Some mcp_analytics records have NO project_id tag, but the schema declares it.
+            // count() must work regardless — it should not depend on project_id existing
+            // in every record.
             var data = queryFromJson("""
                     {
                       "expressions": ["deployment", "count()"],
@@ -209,13 +232,13 @@ public abstract class AbstractInfluxContainerTest {
             var byDeployment = data.getData().stream()
                     .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
 
-            assertThat(byDeployment.get("gpt-4").get(1)).isEqualTo(2L);
-            assertThat(byDeployment.get("gpt-3.5").get(1)).isEqualTo(1L);
+            assertThat(byDeployment.get("gpt-4").get(1)).isEqualTo(4L);
+            assertThat(byDeployment.get("gpt-3.5").get(1)).isEqualTo(3L);
         }
 
         @Test
-        void totalCount_whenSchemaColumnAbsentFromData() throws Exception {
-            // count() without group-by on a table where project_id is absent.
+        void totalCount_whenSchemaColumnAbsentFromSomeData() throws Exception {
+            // count() without group-by on a table where project_id is absent from some records.
             var data = queryFromJson("""
                     {
                       "expressions": ["count()"],
@@ -224,7 +247,48 @@ public abstract class AbstractInfluxContainerTest {
                     }""".formatted(TIME_FILTER));
 
             assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(3L);
+            assertThat(data.getData().get(0).get(0)).isEqualTo(7L);
+        }
+
+    }
+
+    @Nested
+    class McpProjectAggregationTests {
+
+        @Test
+        void combinedToolCallsAndMcpCallsPerProject() throws Exception {
+            // Single query with both tool_calls (conditional) and mcp_calls (total) per project.
+            // Uses SUM(CASE WHEN mcp_method = 'tools/call' THEN 1 ELSE 0 END) for tool_calls.
+            // proj1: tool_calls=1 (#4), mcp_calls=2 (#4, #5)
+            // proj2: tool_calls=2 (#6, #7), mcp_calls=2 (#6, #7)
+            var data = queryFromJson("""
+                    {
+                      "expressions": [
+                        "project_id",
+                        "sum(case when mcp_method = 'tools/call' then 1 else 0 end) as tool_calls",
+                        "count() as mcp_calls"
+                      ],
+                      "from": "mcp_analytics",
+                      "groupBy": ["project_id"],
+                      "where": {%s},
+                      "orderBy": [{"$desc": "count()"}]
+                    }""".formatted(TIME_FILTER));
+
+            // At least proj1 and proj2 groups; the null/empty project_id group
+            // may or may not appear depending on the engine.
+            assertThat(data.getData().size()).isGreaterThanOrEqualTo(2);
+
+            var byProject = data.getData().stream()
+                    .filter(row -> row.get(0) != null && !row.get(0).toString().isEmpty())
+                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
+
+            // proj1: tool_calls=1, mcp_calls=2
+            assertThat(byProject.get("proj1").get(1)).isEqualTo(1L);
+            assertThat(byProject.get("proj1").get(2)).isEqualTo(2L);
+
+            // proj2: tool_calls=2, mcp_calls=2
+            assertThat(byProject.get("proj2").get(1)).isEqualTo(2L);
+            assertThat(byProject.get("proj2").get(2)).isEqualTo(2L);
         }
 
     }
