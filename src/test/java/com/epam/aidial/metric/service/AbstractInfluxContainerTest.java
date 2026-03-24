@@ -10,13 +10,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Offset.offset;
+
+import java.util.Comparator;
 
 /**
  * Shared test suite for InfluxDB 2 and InfluxDB 3 metrics extraction.
@@ -26,6 +24,8 @@ import static org.assertj.core.data.Offset.offset;
 public abstract class AbstractInfluxContainerTest {
 
     private static final ObjectMapper QUERY_MAPPER = new ObjectMapper();
+    private static final Comparator<Double> DOUBLE_COMPARATOR =
+            (a, b) -> Math.abs(a - b) < 0.001 ? 0 : Double.compare(a, b);
 
     static {
         QUERY_MAPPER.registerModule(new QueryLanguageModule());
@@ -152,21 +152,21 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(4);
-            for (var row : data.getData()) {
-                assertThat(row.get(1)).isEqualTo(1L);
-            }
+            assertThat(columnNames(data)).containsExactly("time", "requests");
+            assertThat(data.getData()).hasSize(4)
+                    .allSatisfy(row -> assertThat(row.get(1)).isEqualTo(1L));
         }
 
         @Test
         void totalCount() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
@@ -174,11 +174,12 @@ public abstract class AbstractInfluxContainerTest {
         void sumTokens() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["sum(prompt_tokens)", "sum(completion_tokens)"],
+                      "expressions": ["sum(prompt_tokens) as total_prompt_tokens", "sum(completion_tokens) as total_completion_tokens"],
                       "from": "analytics",
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("total_prompt_tokens", "total_completion_tokens");
             assertThat(data.getData()).containsExactly(List.of(500L, 220L));
         }
 
@@ -186,20 +187,23 @@ public abstract class AbstractInfluxContainerTest {
         void sumDeploymentPrice() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["sum(deployment_price)"],
+                      "expressions": ["sum(deployment_price) as total_deployment_price"],
                       "from": "analytics",
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat((Double) data.getData().get(0).get(0)).isCloseTo(0.19, offset(0.001));
+            assertThat(columnNames(data)).containsExactly("total_deployment_price");
+            assertThat(data.getData())
+                    .usingRecursiveComparison()
+                    .withComparatorForType(DOUBLE_COMPARATOR, Double.class)
+                    .isEqualTo(List.of(List.of(0.19)));
         }
 
         @Test
         void countDistinctUsers() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": {
                         "distinct": "true",
                         "expressions": ["user_hash"],
@@ -208,6 +212,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -223,7 +228,7 @@ public abstract class AbstractInfluxContainerTest {
             // in every record.
             var data = queryFromJson("""
                     {
-                      "expressions": ["deployment", "count()"],
+                      "expressions": ["deployment", "count() as cnt"],
                       "from": "mcp_analytics",
                       "groupBy": ["deployment"],
                       "where": {%s},
@@ -231,6 +236,7 @@ public abstract class AbstractInfluxContainerTest {
                     }""".formatted(TIME_FILTER));
 
             // orderBy desc count(): gpt-4(4) > gpt-3.5(3)
+            assertThat(columnNames(data)).containsExactly("deployment", "cnt");
             assertThat(data.getData()).containsExactly(
                     List.of("gpt-4", 4L),
                     List.of("gpt-3.5", 3L)
@@ -242,11 +248,12 @@ public abstract class AbstractInfluxContainerTest {
             // count() without group-by on a table where project_id is absent from some records.
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "mcp_analytics",
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(7L));
         }
 
@@ -299,7 +306,7 @@ public abstract class AbstractInfluxContainerTest {
             var data = queryFromJson("""
                     {
                       "expressions": [
-                        "deployment", "count()", "sum(price) as money",
+                        "deployment", "count() as cnt", "sum(price) as money",
                         "sum(prompt_tokens) as tokens_p", "sum(completion_tokens) as tokens_c"
                       ],
                       "from": "analytics",
@@ -307,22 +314,15 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(2);
-
-            var byDeployment = data.getData().stream()
-                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
-
-            var gpt4 = byDeployment.get("gpt-4");
-            assertThat(gpt4.get(1)).isEqualTo(2L);
-            assertThat((Double) gpt4.get(2)).isCloseTo(0.15, offset(0.001));
-            assertThat(gpt4.get(3)).isEqualTo(300L);
-            assertThat(gpt4.get(4)).isEqualTo(130L);
-
-            var gpt35 = byDeployment.get("gpt-3.5");
-            assertThat(gpt35.get(1)).isEqualTo(2L);
-            assertThat((Double) gpt35.get(2)).isCloseTo(0.05, offset(0.001));
-            assertThat(gpt35.get(3)).isEqualTo(200L);
-            assertThat(gpt35.get(4)).isEqualTo(90L);
+            assertThat(columnNames(data)).containsExactly("deployment", "cnt", "money", "tokens_p", "tokens_c");
+            assertThat(data.getData())
+                    .usingRecursiveComparison()
+                    .withComparatorForType(DOUBLE_COMPARATOR, Double.class)
+                    .ignoringCollectionOrder()
+                    .isEqualTo(List.of(
+                            List.of("gpt-4", 2L, 0.15, 300L, 130L),
+                            List.of("gpt-3.5", 2L, 0.05, 200L, 90L)
+                    ));
         }
 
         @Test
@@ -330,7 +330,7 @@ public abstract class AbstractInfluxContainerTest {
             var data = queryFromJson("""
                     {
                       "expressions": [
-                        "project_id", "count()", "sum(price) as money",
+                        "project_id", "count() as cnt", "sum(price) as money",
                         "sum(prompt_tokens) as tokens_p", "sum(completion_tokens) as tokens_c"
                       ],
                       "from": "analytics",
@@ -338,22 +338,15 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(2);
-
-            var byProject = data.getData().stream()
-                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
-
-            var proj1 = byProject.get("proj1");
-            assertThat(proj1.get(1)).isEqualTo(2L);
-            assertThat((Double) proj1.get(2)).isCloseTo(0.07, offset(0.001));
-            assertThat(proj1.get(3)).isEqualTo(250L);
-            assertThat(proj1.get(4)).isEqualTo(110L);
-
-            var proj2 = byProject.get("proj2");
-            assertThat(proj2.get(1)).isEqualTo(2L);
-            assertThat((Double) proj2.get(2)).isCloseTo(0.13, offset(0.001));
-            assertThat(proj2.get(3)).isEqualTo(250L);
-            assertThat(proj2.get(4)).isEqualTo(110L);
+            assertThat(columnNames(data)).containsExactly("project_id", "cnt", "money", "tokens_p", "tokens_c");
+            assertThat(data.getData())
+                    .usingRecursiveComparison()
+                    .withComparatorForType(DOUBLE_COMPARATOR, Double.class)
+                    .ignoringCollectionOrder()
+                    .isEqualTo(List.of(
+                            List.of("proj1", 2L, 0.07, 250L, 110L),
+                            List.of("proj2", 2L, 0.13, 250L, 110L)
+                    ));
         }
 
         @Test
@@ -363,7 +356,7 @@ public abstract class AbstractInfluxContainerTest {
             // group-by columns don't shift result positions.
             var data = queryFromJson("""
                     {
-                      "expressions": ["deployment", "count()"],
+                      "expressions": ["deployment", "count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -378,6 +371,7 @@ public abstract class AbstractInfluxContainerTest {
             // After filtering out user_hash=user2: records #1 (gpt-4,user1) and #3 (gpt-3.5,user1)
             // Both map to distinct (deployment, user_hash) groups with count=1.
             // Both have count=1 so orderBy desc count() doesn't disambiguate.
+            assertThat(columnNames(data)).containsExactly("deployment", "cnt");
             assertThat(data.getData()).containsExactlyInAnyOrder(
                     List.of("gpt-4", 1L),
                     List.of("gpt-3.5", 1L)
@@ -404,11 +398,9 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(4);
-
-            for (var row : data.getData()) {
-                assertThat(row.get(2)).isEqualTo(1L);
-            }
+            assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
+            assertThat(data.getData()).hasSize(4)
+                    .allSatisfy(row -> assertThat(row.get(2)).isEqualTo(1L));
         }
 
     }
@@ -420,7 +412,7 @@ public abstract class AbstractInfluxContainerTest {
         void equalityFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -430,6 +422,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -437,7 +430,7 @@ public abstract class AbstractInfluxContainerTest {
         void notEqualFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -447,6 +440,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -454,7 +448,7 @@ public abstract class AbstractInfluxContainerTest {
         void orFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -467,6 +461,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
@@ -479,7 +474,7 @@ public abstract class AbstractInfluxContainerTest {
         void containsFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -489,6 +484,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
@@ -496,7 +492,7 @@ public abstract class AbstractInfluxContainerTest {
         void containsFilterNarrow() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -506,6 +502,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -513,7 +510,7 @@ public abstract class AbstractInfluxContainerTest {
         void notContainsFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -523,6 +520,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -530,7 +528,7 @@ public abstract class AbstractInfluxContainerTest {
         void startsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -540,6 +538,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -547,7 +546,7 @@ public abstract class AbstractInfluxContainerTest {
         void endsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -557,6 +556,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -564,7 +564,7 @@ public abstract class AbstractInfluxContainerTest {
         void likeContainsFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -574,6 +574,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -581,7 +582,7 @@ public abstract class AbstractInfluxContainerTest {
         void likeStartsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -591,6 +592,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -598,7 +600,7 @@ public abstract class AbstractInfluxContainerTest {
         void likeEndsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -608,6 +610,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -626,6 +629,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("project_id");
             assertThat(data.getData()).containsExactly(List.of("proj1"));
         }
 
@@ -644,6 +648,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
         }
 
@@ -662,6 +667,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
         }
     }
@@ -674,7 +680,7 @@ public abstract class AbstractInfluxContainerTest {
             // "GPT" (uppercase) should match "gpt-4" and "gpt-3.5"
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -684,6 +690,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
@@ -703,6 +710,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).isEmpty();
         }
 
@@ -722,6 +730,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).containsExactly(List.of("gpt-4"));
         }
 
@@ -741,6 +750,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("project_id");
             assertThat(data.getData()).containsExactly(List.of("proj1"));
         }
 
@@ -749,7 +759,7 @@ public abstract class AbstractInfluxContainerTest {
             // LIKE '%OJ1%' (uppercase) should match "proj1"
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -759,6 +769,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
@@ -777,6 +788,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("project_id");
             assertThat(data.getData()).isEmpty();
         }
     }
@@ -794,6 +806,7 @@ public abstract class AbstractInfluxContainerTest {
                       "limit": 2
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("deployment", "price");
             assertThat(data.getData()).hasSize(2);
         }
 
@@ -809,6 +822,7 @@ public abstract class AbstractInfluxContainerTest {
                       "offset": 2
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("deployment", "price");
             assertThat(data.getData()).hasSize(2);
 
             // offset=3 with limit=2 on 4 in-range rows should return only 1 row
@@ -843,6 +857,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).isEmpty();
         }
 
@@ -850,7 +865,7 @@ public abstract class AbstractInfluxContainerTest {
         void countWithNoMatchingFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -860,6 +875,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(0L));
         }
 
@@ -873,6 +889,7 @@ public abstract class AbstractInfluxContainerTest {
                     }""".formatted(TIME_FILTER));
 
             assertThat(columnNames(data)).containsExactly("money", "requests");
+            assertThat(data.getData()).hasSize(1);
         }
     }
 
