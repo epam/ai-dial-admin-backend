@@ -1041,4 +1041,59 @@ class FluxQueryBuilderTest {
         assertThat(actual.getColumnNames()).isEqualTo(List.of("a", "b"));
     }
 
+    @Test
+    void buildQuery_WindowColumnAggregation() {
+        var completable =
+                QueryImpl.builder()
+                        .expressions(List.of(
+                                new AliasImpl("time",
+                                        new GroupFunctionCallImpl(
+                                                new FunctionImpl("window", null, true),
+                                                List.of(),
+                                                List.of(
+                                                        new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                                        NumberConstantImpl.valueOf(10L),
+                                                        new ConstantImpl(Type.STRING, "m")
+                                                )
+                                        )
+                                ),
+                                new ColumnImpl(Type.STRING, "deployment"),
+                                new AliasImpl("requests",
+                                        new AggregationFunctionCallImpl(
+                                                new FunctionImpl("count", Type.INT_64, true),
+                                                List.of(),
+                                                List.of()
+                                        )
+                                )
+                        ))
+                        .from(TableImpl.builder().name("analytics").build())
+                        .where(AndImpl.of(List.of(
+                                BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                        BinaryComparisonOperator.GREATER_OR_EQUALS, new ConstantImpl(Type.TIMESTAMP, 1739286720000L)),
+                                BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                        BinaryComparisonOperator.LESS, new ConstantImpl(Type.TIMESTAMP, 1739290800000L))
+                        )))
+                        .groupBy(List.of(
+                                new ColumnImpl(Type.TIMESTAMP, "time"),
+                                new ColumnImpl(Type.STRING, "deployment")
+                        ))
+                        .build();
+
+        var actual = fluxQueryBuilder.buildQueryContext(completable);
+
+        assertThat(actual.getQuery()).isEqualTo("""
+                from(bucket: "analytics-realtime")
+                |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
+                |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> group()
+                |> window(every: 10m)
+                |> group(columns: ["_start", "_stop", "deployment"])
+                |> count(column: "_value")
+                |> keep(columns: ["_start", "deployment", "_value"])
+                |> rename(columns: {_start: "time", _value: "requests"})
+                |> group()""");
+        assertThat(actual.getColumnNames()).isEqualTo(List.of("time", "deployment", "requests"));
+    }
+
 }

@@ -326,6 +326,33 @@ public abstract class AbstractInfluxContainerTest {
     }
 
     @Nested
+    class WindowColumnAggregationTests {
+
+        @Test
+        void windowAndColumnAggregation() throws Exception {
+            // 4 in-range records across 3 days and 2 deployments.
+            // GROUP BY 1-day window + deployment:
+            //   day1 (03-11): gpt-4=1
+            //   day2 (03-12): gpt-4=1, gpt-3.5=1
+            //   day3 (03-13): gpt-3.5=1
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 1, 'd') as time", "deployment", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 1, 'd')", "deployment"],
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(data.getData()).hasSize(4);
+
+            for (var row : data.getData()) {
+                assertThat(row.get(2)).isEqualTo(1L);
+            }
+        }
+
+    }
+
+    @Nested
     class FilterTests {
 
         @Test

@@ -46,7 +46,9 @@ public abstract class AbstractQueryBuilder<C> {
             resolveExpressionsToOuterColumnNames(query.getExpressions());
             resolveAliases(query.getExpressions());
 
-            if (isWindowAggregationQuery(query)) {
+            if (isWindowColumnAggregationQuery(query)) {
+                return buildWindowColumnAggregationQuery(query);
+            } else if (isWindowAggregationQuery(query)) {
                 return buildWindowAggregationQuery(query);
             } else if (isAggregationQuery(query)) {
                 return buildAggregationQuery(query);
@@ -66,6 +68,14 @@ public abstract class AbstractQueryBuilder<C> {
     protected abstract C buildAggregationQuery(Query query);
 
     protected abstract C buildWindowAggregationQuery(Query query);
+
+    protected abstract C buildWindowColumnAggregationQuery(Query query);
+
+    protected boolean isWindowColumnAggregationQuery(Query query) {
+        boolean hasWindow = query.getGroupBy().stream().anyMatch(this::isWindowFunctionCall);
+        boolean hasColumn = query.getGroupBy().stream().anyMatch(e -> !isWindowFunctionCall(e));
+        return hasWindow && hasColumn;
+    }
 
     protected boolean isWindowAggregationQuery(Query query) {
         return query.getGroupBy().stream().anyMatch(this::isWindowFunctionCall);
@@ -138,6 +148,32 @@ public abstract class AbstractQueryBuilder<C> {
             }
         }
         return expression;
+    }
+
+    protected GroupFunctionCall extractWindowFunction(List<Expression> groupBy) {
+        return groupBy.stream()
+                .map(this::resolveAlias)
+                .filter(GroupFunctionCall.class::isInstance)
+                .map(GroupFunctionCall.class::cast)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Window function required in group by"));
+    }
+
+    protected List<String> extractGroupByColumnNames(List<Expression> groupBy) {
+        return groupBy.stream()
+                .filter(e -> !isWindowFunctionCall(e))
+                .filter(Column.class::isInstance)
+                .map(Column.class::cast)
+                .map(Column::getName)
+                .toList();
+    }
+
+    protected List<AggregationFunctionCall> resolveAggregationFunctionCalls(List<Expression> expressions) {
+        return expressions.stream()
+                .map(this::resolveAlias)
+                .filter(AggregationFunctionCall.class::isInstance)
+                .map(AggregationFunctionCall.class::cast)
+                .toList();
     }
 
     protected List<Column> getGroupByColumns(List<Expression> groupBy) {

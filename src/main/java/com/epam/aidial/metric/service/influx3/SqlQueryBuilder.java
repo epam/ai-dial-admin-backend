@@ -270,6 +270,81 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
                 .build();
     }
 
+    @Override
+    protected SqlQueryContext buildWindowColumnAggregationQuery(Query query) {
+        var groupFunctionCall = extractWindowFunction(query.getGroupBy());
+        var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy());
+        var aggregationFunctionCalls = resolveAggregationFunctionCalls(query.getExpressions());
+
+        var table = getTable(query);
+        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableName = tableDeclaration.getSource().getTable();
+
+        var paramCounter = new AtomicInteger(0);
+        var allParams = new HashMap<String, Object>();
+
+        // Build WHERE clause
+        var whereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
+
+        // Build window expression
+        var windowInterval = buildWindowInterval(groupFunctionCall);
+        var windowExpr = "DATE_BIN(%s, \"time\", TIMESTAMP '1970-01-01T00:00:00Z')".formatted(windowInterval);
+        var windowOuterName = expressionToOuterColumnNames.get(groupFunctionCall);
+
+        // Build SELECT — preserve expression order
+        var selectParts = new ArrayList<String>();
+        for (var expression : query.getExpressions()) {
+            var resolved = resolveAlias(expression);
+            var outerName = expressionToOuterColumnNames.get(expression);
+            if (resolved instanceof com.epam.aidial.expressions.GroupFunctionCall) {
+                selectParts.add(windowExpr + " AS \"" + outerName + "\"");
+            } else if (resolved instanceof AggregationFunctionCall aggCall) {
+                var function = (FunctionImpl) aggCall.getFunction();
+                var aggSql = buildAggregationExpression(function, aggCall.getArgs());
+                selectParts.add(aggSql + " AS \"" + outerName + "\"");
+            } else if (resolved instanceof Column) {
+                selectParts.add("\"" + outerName + "\"");
+            }
+        }
+
+        // Build GROUP BY: window alias + column names
+        var groupByParts = new ArrayList<String>();
+        groupByParts.add("\"" + windowOuterName + "\"");
+        for (var colName : groupByColumnNames) {
+            groupByParts.add("\"" + colName + "\"");
+        }
+
+        var sql = new StringBuilder();
+        sql.append("SELECT ").append(String.join(", ", selectParts));
+        sql.append(" FROM \"").append(tableName).append("\"");
+        if (!whereClause.isEmpty()) {
+            sql.append(" WHERE ").append(whereClause);
+        }
+        sql.append(" GROUP BY ").append(String.join(", ", groupByParts));
+
+        // Build ORDER BY
+        var orderByClause = buildOrderByClause(query.getOrderBy());
+        if (!orderByClause.isEmpty()) {
+            sql.append(" ORDER BY ").append(orderByClause);
+        }
+
+        // Build LIMIT/OFFSET
+        var limitClause = buildLimitClause(query);
+        if (!limitClause.isEmpty()) {
+            sql.append(" ").append(limitClause);
+        }
+
+        var columnNames = query.getExpressions().stream()
+                .map(expressionToOuterColumnNames::get)
+                .toList();
+
+        return SqlQueryContext.builder()
+                .query(sql.toString())
+                .columnNames(columnNames)
+                .parameters(allParams)
+                .build();
+    }
+
     private String buildAggregationExpression(FunctionImpl function, List<Expression> args) {
         return switch (function.getName()) {
             case "count" -> "COUNT(*)";
