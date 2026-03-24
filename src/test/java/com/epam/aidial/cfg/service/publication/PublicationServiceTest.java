@@ -13,8 +13,7 @@ import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.client.dto.RulesDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
+import com.epam.aidial.cfg.dao.audit.event.AuditOperationScope;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.PromptPublication;
@@ -44,6 +43,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Map;
@@ -73,9 +73,9 @@ class PublicationServiceTest {
     @Mock
     private PublicationResolver promptPublicationResolver;
     @Mock
-    private AuditActivityLogService auditActivityLogService;
+    private AuditOperationScope auditOperationScope;
     @Mock
-    private AuditParentActivityHolder auditParentActivityHolder;
+    private ApplicationEventPublisher eventPublisher;
 
     private PublicationService publicationService;
 
@@ -87,8 +87,8 @@ class PublicationServiceTest {
                 publicationClientMapper,
                 publicationResourceTypeResolver,
                 publicationResolversByResourceType,
-                auditActivityLogService,
-                auditParentActivityHolder
+                auditOperationScope,
+                eventPublisher
         );
     }
 
@@ -322,6 +322,7 @@ class PublicationServiceTest {
         when(promptPublicationResolver.updatePublicationResourceTargets(any())).thenReturn(publicationDto);
         when(publicationClient.updatePublication(any()))
                 .thenReturn(publicationDto);
+        when(auditOperationScope.openScope(any())).thenReturn(() -> {});
 
         // when
         publicationService.updatePublication(updatePublication, null);

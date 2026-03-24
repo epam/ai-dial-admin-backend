@@ -7,9 +7,9 @@ import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.audit.event.AuditEvent;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.service.validitystate.ApplicationResourceValidityStat
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class ApplicationResourceService implements ResourceService {
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ApplicationResourceValidityStateOnGetResolver applicationResourceValidityStateOnGetResolver;
-    private final AuditActivityLogService auditActivityLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${core.applications.metadata.default.limit}")
     private int applicationsMetadataDefaultLimit;
@@ -128,7 +129,7 @@ public class ApplicationResourceService implements ResourceService {
         try {
             var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
             var auditType = !allowOverride && etag == null ? ActivityType.Create : ActivityType.Update;
-            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.ApplicationResource, path);
+            eventPublisher.publishEvent(new AuditEvent.AssetChanged(auditType, ActivityResourceType.ApplicationResource, path));
             return applicationMetadata.getHeaders().getETag();
         } catch (ResourcePreconditionFailedException ex) {
             throw OptimisticLockConflictException.onUpdate("Application Resource", applicationResourceDto.getName());
@@ -161,7 +162,7 @@ public class ApplicationResourceService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         applicationClient.deleteApplicationResource(path, headers);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.ApplicationResource, path);
+        eventPublisher.publishEvent(new AuditEvent.AssetChanged(ActivityType.Delete, ActivityResourceType.ApplicationResource, path));
     }
 
     public boolean applicationResourceExists(String path) {

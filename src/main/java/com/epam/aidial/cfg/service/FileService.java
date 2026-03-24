@@ -7,9 +7,9 @@ import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.audit.event.AuditEvent;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -63,7 +64,7 @@ public class FileService implements ResourceService {
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ResourceImportValidator uniquenessValidator;
-    private final AuditActivityLogService auditActivityLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${files.import.consecutiveErrorsThreshold}")
     private int importErrorsThreshold;
@@ -125,7 +126,7 @@ public class FileService implements ResourceService {
                     .build();
             return uploadResult;
         } finally {
-            auditActivityLogService.logFileUpload(ActivityType.FileUpload, importFile, null, fileNames, uploadResult);
+            eventPublisher.publishEvent(new AuditEvent.FileUploaded(ActivityType.FileUpload, importFile, null, fileNames, uploadResult));
         }
     }
 
@@ -182,7 +183,7 @@ public class FileService implements ResourceService {
                 return uploadResult;
             }
         } finally {
-            auditActivityLogService.logFileUpload(ActivityType.FileUploadZip, importFiles, fileName, null, uploadResult);
+            eventPublisher.publishEvent(new AuditEvent.FileUploaded(ActivityType.FileUploadZip, importFiles, fileName, null, uploadResult));
         }
     }
 
@@ -269,7 +270,7 @@ public class FileService implements ResourceService {
     @Override
     public void delete(String path, String etag) {
         fileClient.deleteFile(path);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.File, path);
+        eventPublisher.publishEvent(new AuditEvent.AssetChanged(ActivityType.Delete, ActivityResourceType.File, path));
     }
 
     public void deleteFiles(List<String> paths) {

@@ -1,11 +1,10 @@
 package com.epam.aidial.cfg.service.config.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
+import com.epam.aidial.cfg.dao.audit.event.AuditOperationScope;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.transfer.importer.compatibility.backward.AdminConfigImportBackwardCompatibilityHandler;
@@ -40,8 +39,7 @@ public class ConfigImporter {
     private final GlobalSettingsImporter globalSettingsImporter;
 
     private final AdminConfigImportBackwardCompatibilityHandler adminConfigImportBackwardCompatibilityHandler;
-    private final AuditActivityLogService auditActivityLogService;
-    private final AuditParentActivityHolder auditParentActivityHolder;
+    private final AuditOperationScope auditOperationScope;
 
     @Transactional
     public ImportConfigPreview importPreview(Config config, ConfigImportOptions importOptions) {
@@ -149,24 +147,15 @@ public class ConfigImporter {
                 .build();
     }
 
+    @Transactional
     public void importConfigWithOverride(Config config) {
-        var parentId = auditActivityLogService.logImportOperation("core", new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
-            importConfigTransactional(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
-        }
-    }
-
-    public void importConfig(Config config, ConfigImportOptions importOptions) {
-        var parentId = auditActivityLogService.logImportOperation("core", importOptions);
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
-            importConfigTransactional(config, importOptions);
-        }
+        importConfig(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
     }
 
     @Transactional
-    public void importConfigTransactional(Config config, ConfigImportOptions importOptions) {
-        var parentId = auditActivityLogService.logImportOperation("core", importOptions);
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+    public void importConfig(Config config, ConfigImportOptions importOptions) {
+        var parentId = auditOperationScope.startImportOperation("core", importOptions);
+        try (var scope = auditOperationScope.openScope(parentId)) {
             var resolutionPolicy = importOptions.conflictResolutionPolicy();
             var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
 
@@ -185,19 +174,11 @@ public class ConfigImporter {
         }
     }
 
+    @Transactional
     public void importAdminConfig(ExportConfig config, ConfigImportOptions importOptions) {
         adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
-        var parentId = auditActivityLogService.logImportOperation("admin", importOptions);
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
-            importAdminConfigTransactional(config, importOptions);
-        }
-    }
-
-    @Transactional
-    public void importAdminConfigTransactional(ExportConfig config, ConfigImportOptions importOptions) {
-        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
-        var parentId = auditActivityLogService.logImportOperation("admin", importOptions);
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+        var parentId = auditOperationScope.startImportOperation("admin", importOptions);
+        try (var scope = auditOperationScope.openScope(parentId)) {
             var resolutionPolicy = importOptions.conflictResolutionPolicy();
 
             interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);

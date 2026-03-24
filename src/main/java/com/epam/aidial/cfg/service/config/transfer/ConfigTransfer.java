@@ -9,7 +9,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigMetadata;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
+import com.epam.aidial.cfg.dao.audit.event.AuditEvent;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,13 +61,13 @@ public class ConfigTransfer {
     private final List<CoreConfigNormalizer> normalizers;
     private final ConfigImporter configImporter;
     private final ExportConfigMetadataProvider exportConfigMetadataProvider;
-    private final AuditActivityLogService auditActivityLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public StreamingResponseBody exportConfig(ExportRequest request) {
         ExportFormat exportFormat = request.getExportFormat();
         ExportConfig config = configExporter.getConfig(request);
-        auditActivityLogService.logConfigExport(request);
+        eventPublisher.publishEvent(new AuditEvent.ConfigExported(request));
         return switch (exportFormat) {
             case CORE -> exportCoreConfig(config);
             case ADMIN -> exportAdminConfig(config);
@@ -75,6 +76,7 @@ public class ConfigTransfer {
 
     public StreamingResponseBody exportRawConfig(boolean addSecrets) {
         var rawConfig = coreConfigRetriever.getRawConfig(addSecrets);
+        eventPublisher.publishEvent(new AuditEvent.RawConfigExported(addSecrets));
         return outputStream -> {
             try (var zos = new ZipOutputStream(outputStream)) {
                 for (var config : normalizeZipFileNames(rawConfig.configs()).entrySet()) {
@@ -86,7 +88,6 @@ public class ConfigTransfer {
                     zos.write(config.getValue().getBytes());
                 }
                 zos.closeEntry();
-                auditActivityLogService.logExportRawConfig(addSecrets);
             } catch (Exception e) {
                 log.error("Config file export failed. AddSecrets: {}.", addSecrets, e);
                 throw new RuntimeException(e);

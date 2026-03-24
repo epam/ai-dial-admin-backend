@@ -9,9 +9,9 @@ import com.epam.aidial.cfg.client.dto.RuleRequest;
 import com.epam.aidial.cfg.client.dto.RulesDto;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
+import com.epam.aidial.cfg.dao.audit.event.AuditEvent;
+import com.epam.aidial.cfg.dao.audit.event.AuditOperationScope;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ConversationPublication;
@@ -31,6 +31,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,8 +58,8 @@ public class PublicationService {
     private final PublicationClientMapper mapper;
     private final PublicationResourceTypeResolver publicationResourceTypeResolver;
     private final Map<ResourceType, PublicationResolver> publicationResolversByResourceType;
-    private final AuditActivityLogService auditActivityLogService;
-    private final AuditParentActivityHolder auditParentActivityHolder;
+    private final AuditOperationScope auditOperationScope;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PublicationInfos getAllPublications(@Nullable ResourceType resourceType) {
         var pathDto = mapper.toPublicationsPathDto("publications/public/");
@@ -88,44 +89,44 @@ public class PublicationService {
                 .map(MultipartFile::getOriginalFilename)
                 .collect(Collectors.joining(","))
                 : null;
-        var parentId = auditActivityLogService.logPublicationUpdate(
-                publication.getPath(),
-                fileNames);
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+        var parentId = auditOperationScope.startPublicationUpdateOperation(
+                publication.getPath(), fileNames);
+        try (var scope = auditOperationScope.openScope(parentId)) {
             var resourceType = getPublicationType(publication);
             var publicationResolver = getPublicationResolver(List.of(resourceType));
             publicationResolver.attachUploadedFiles(publication, files);
             var publicationDto = publicationResolver.updatePublicationResourceTargets(publication);
             publicationClient.updatePublication(publicationDto);
             publicationResolver.updatePublicationResources(publication);
-            auditActivityLogService.logPublication(publication.getPath(), ActivityType.PublicationUpdate, null);
+            eventPublisher.publishEvent(new AuditEvent.PublicationChanged(
+                    publication.getPath(), ActivityType.PublicationUpdate, null));
         }
     }
 
     public void approvePublication(String path) {
         var pathDto = mapper.toPublicationPathDto(path);
         publicationClient.approvePublication(pathDto);
-        auditActivityLogService.logPublication(path, ActivityType.PublicationApprove, null);
+        eventPublisher.publishEvent(new AuditEvent.PublicationChanged(path, ActivityType.PublicationApprove, null));
     }
 
     public void rejectPublication(String path, String comment) {
         var sanitizedComment = Jsoup.clean(comment, Safelist.none());
         var rejectPublicationDto = mapper.toRejectPublicationDto(path, sanitizedComment);
         publicationClient.rejectPublication(rejectPublicationDto);
-        auditActivityLogService.logPublication(path, ActivityType.PublicationReject, sanitizedComment);
+        eventPublisher.publishEvent(new AuditEvent.PublicationChanged(path, ActivityType.PublicationReject, sanitizedComment));
     }
 
     public String createPublication(CreatePublication createPublication) {
         CreatePublicationDto dto = mapper.toCreatePublicationDto(createPublication);
         PublicationDto publication = publicationClient.createPublication(dto);
-        auditActivityLogService.logPublication(publication.getUrl(), ActivityType.PublicationCreate, null);
+        eventPublisher.publishEvent(new AuditEvent.PublicationChanged(publication.getUrl(), ActivityType.PublicationCreate, null));
         return publication.getUrl();
     }
 
     public void deletePublication(String path) {
         var pathDto = mapper.toPublicationPathDto(path);
         publicationClient.deletePublication(pathDto);
-        auditActivityLogService.logPublication(path, ActivityType.PublicationDelete, null);
+        eventPublisher.publishEvent(new AuditEvent.PublicationChanged(path, ActivityType.PublicationDelete, null));
     }
 
     public Map<String, List<Rule>> getRules(String path) {

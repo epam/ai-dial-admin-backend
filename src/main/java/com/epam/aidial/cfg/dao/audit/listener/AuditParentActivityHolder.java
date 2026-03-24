@@ -1,13 +1,11 @@
 package com.epam.aidial.cfg.dao.audit.listener;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Component
-@Slf4j
 public class AuditParentActivityHolder {
     private final ThreadLocal<UUID> parentActivityId = new ThreadLocal<>();
 

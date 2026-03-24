@@ -8,7 +8,7 @@ import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.mapper.FileClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.FolderMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapperImpl;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
+import org.springframework.context.ApplicationEventPublisher;
 import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
@@ -66,7 +66,7 @@ class FileServiceTest {
     private ResourceClient resourceClient;
 
     @MockitoBean
-    private AuditActivityLogService auditActivityLogService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     private FileService fileService;

@@ -7,9 +7,9 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.audit.event.AuditEvent;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.service.ResourceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class PromptService implements ResourceService {
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
-    private final AuditActivityLogService auditActivityLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final int promptsMetadataDefaultLimit;
 
@@ -62,13 +63,14 @@ public class PromptService implements ResourceService {
                          ResourceClient resourceClient,
                          ResourceClientMapper resourceClientMapper,
                          FolderMapper folderMapper,
-                         AuditActivityLogService auditActivityLogService, @Value("${core.prompts.metadata.default.limit}") int promptsMetadataDefaultLimit) {
+                         ApplicationEventPublisher eventPublisher,
+                         @Value("${core.prompts.metadata.default.limit}") int promptsMetadataDefaultLimit) {
         this.promptClient = promptClient;
         this.promptClientMapper = promptClientMapper;
         this.resourceClient = resourceClient;
         this.resourceClientMapper = resourceClientMapper;
         this.folderMapper = folderMapper;
-        this.auditActivityLogService = auditActivityLogService;
+        this.eventPublisher = eventPublisher;
         this.promptsMetadataDefaultLimit = promptsMetadataDefaultLimit;
     }
 
@@ -140,7 +142,7 @@ public class PromptService implements ResourceService {
         try {
             var response = promptClient.createPrompt(path, promptDto, headers);
             var auditType = !allowOverride && etag == null ? ActivityType.Create : ActivityType.Update;
-            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.Prompt, path);
+            eventPublisher.publishEvent(new AuditEvent.AssetChanged(auditType, ActivityResourceType.Prompt, path));
             return response.getHeaders().getETag();
         } catch (ResourcePreconditionFailedException ex) {
             throw OptimisticLockConflictException.onUpdate("Prompt", promptDto.getName());
@@ -164,7 +166,7 @@ public class PromptService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         promptClient.deletePrompt(path, headers);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.Prompt, path);
+        eventPublisher.publishEvent(new AuditEvent.AssetChanged(ActivityType.Delete, ActivityResourceType.Prompt, path));
     }
 
     @Override

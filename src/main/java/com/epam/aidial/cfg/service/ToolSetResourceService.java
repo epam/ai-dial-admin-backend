@@ -8,9 +8,9 @@ import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.dao.audit.event.AuditEvent;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
 import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class ToolSetResourceService implements ResourceService {
     private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final CoreClientUrlUtils coreClientUrlUtils;
-    private final AuditActivityLogService auditActivityLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${core.toolsets.metadata.default.limit}")
     private int toolSetsMetadataDefaultLimit;
@@ -134,7 +135,7 @@ public class ToolSetResourceService implements ResourceService {
         try {
             var toolSetMetadata = toolSetClient.putToolSetResource(path, toolSetResourceDto, headers);
             var auditType = !allowOverride && etag == null ? ActivityType.Create : ActivityType.Update;
-            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.ToolResource, path);
+            eventPublisher.publishEvent(new AuditEvent.AssetChanged(auditType, ActivityResourceType.ToolResource, path));
             return toolSetMetadata.getHeaders().getETag();
         } catch (ResourcePreconditionFailedException ex) {
             throw OptimisticLockConflictException.onUpdate("ToolSet Resource", createToolSetResource.getName());
@@ -167,7 +168,7 @@ public class ToolSetResourceService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         toolSetClient.deleteToolSetResource(path, headers);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.ToolResource, path);
+        eventPublisher.publishEvent(new AuditEvent.AssetChanged(ActivityType.Delete, ActivityResourceType.ToolResource, path));
     }
 
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
