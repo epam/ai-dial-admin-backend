@@ -3,10 +3,12 @@ package com.epam.aidial.cfg.service.config.transfer;
 import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.domain.service.DatabaseService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
+import com.epam.aidial.cfg.security.SystemSecurityContextExecutor;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +19,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,8 +40,18 @@ class CoreConfigAutoImportOnBootstrapServiceTest {
     private JsonConfigMerger jsonConfigMerger;
     @Mock
     private AutoImportOnBootstrapProperties properties;
+    @Mock
+    private SystemSecurityContextExecutor systemSecurityContextExecutor;
     @InjectMocks
     private CoreConfigAutoImportOnBootstrapService service;
+
+    @BeforeEach
+    void setUp() {
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArgument(0)).run();
+            return null;
+        }).when(systemSecurityContextExecutor).runAsSystemUser(any(Runnable.class));
+    }
 
     @Test
     void whenFilePathsEmpty_usesRetriever() {

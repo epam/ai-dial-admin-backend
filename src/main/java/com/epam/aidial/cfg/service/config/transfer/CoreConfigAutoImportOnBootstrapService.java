@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.config.transfer;
 import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.domain.service.DatabaseService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
+import com.epam.aidial.cfg.security.SystemSecurityContextExecutor;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
@@ -21,6 +22,7 @@ import java.util.List;
 @ConditionalOnProperty(value = "config.import.autoImportOnBootstrap.enabled", havingValue = "true")
 public class CoreConfigAutoImportOnBootstrapService {
 
+    private final SystemSecurityContextExecutor systemSecurityContextExecutor;
     private final DatabaseService databaseService;
     private final CoreConfigRetriever coreConfigRetriever;
     private final ConfigImporter configImporter;
@@ -30,6 +32,10 @@ public class CoreConfigAutoImportOnBootstrapService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void autoImportCoreConfig() {
+        systemSecurityContextExecutor.runAsSystemUser(this::autoImport);
+    }
+
+    private void autoImport() {
         try {
             if (databaseService.isInitializedEmptyDatabase()) {
                 log.info("Auto import of core config started");
