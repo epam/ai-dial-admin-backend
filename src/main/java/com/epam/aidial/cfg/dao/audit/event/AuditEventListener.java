@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +62,10 @@ public class AuditEventListener {
         meta.put("conflictResolution", event.importResources().getConflictResolutionStrategy());
         meta.put("flatImport", event.importResources().isFlatImport());
         putIfNotBlank(meta, "zipArchiveName", event.zipArchiveName());
-        String filesMeta = buildFilesMeta(event.result());
-        putIfNotBlank(meta, "files", filesMeta);
+        List<Map<String, Object>> filesMeta = buildFilesMeta(event.result());
+        if (!filesMeta.isEmpty()) {
+            meta.put("files", filesMeta);
+        }
 
         String resourceId = StringUtils.firstNonBlank(event.zipArchiveName(), event.fileNames());
         saveAuditRecord(event.action(), ActivityResourceType.File, resourceId, serializeJson(meta));
@@ -126,9 +129,9 @@ public class AuditEventListener {
         }
     }
 
-    private String buildFilesMeta(ImportResourcesFileResult result) {
+    private List<Map<String, Object>> buildFilesMeta(ImportResourcesFileResult result) {
         if (result.getImportResults() == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<Map<String, Object>> files = new ArrayList<>();
         for (ImportResourcesResult r : result.getImportResults()) {
@@ -147,7 +150,7 @@ public class AuditEventListener {
             }
             files.add(entry);
         }
-        return serializeJson(files);
+        return files;
     }
 
     private String serializeJson(Object value) {

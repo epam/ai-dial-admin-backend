@@ -138,7 +138,7 @@ class AuditEventListenerTest {
     }
 
     @Test
-    void handle_FileUploaded_buildsFilesAsArray() {
+    void handle_FileUploaded_buildsFilesAsArray() throws Exception {
         when(timestampContext.getTimestamp()).thenReturn(5000L);
         when(parentHolder.getParentActivityId()).thenReturn(Optional.empty());
 
@@ -165,7 +165,12 @@ class AuditEventListenerTest {
         assertThat(entity.getResourceType()).isEqualTo(ActivityResourceType.File);
         assertThat(entity.getResourceId()).isEqualTo("source1.txt,source2.txt");
         assertThat(entity.getOperationMetadata()).contains("\"importPath\":\"public/\"");
-        // files metadata is a JSON array — each file is a separate entry
-        assertThat(entity.getOperationMetadata()).contains("\"files\":");
+        // files metadata must be an actual JSON array, not a double-encoded string
+        var metaNode = objectMapper.readTree(entity.getOperationMetadata());
+        assertThat(metaNode.get("files").isArray()).isTrue();
+        assertThat(metaNode.get("files")).hasSize(2);
+        assertThat(metaNode.get("files").get(0).get("result").asText()).isEqualTo("SUCCESS");
+        assertThat(metaNode.get("files").get(1).get("result").asText()).isEqualTo("FAILURE");
+        assertThat(metaNode.get("files").get(1).get("error").asText()).isEqualTo("error msg");
     }
 }
