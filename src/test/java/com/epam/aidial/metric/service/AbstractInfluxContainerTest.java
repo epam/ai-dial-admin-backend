@@ -167,8 +167,7 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
         @Test
@@ -180,10 +179,7 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            var row = data.getData().get(0);
-            assertThat(row.get(0)).isEqualTo(500L);
-            assertThat(row.get(1)).isEqualTo(220L);
+            assertThat(data.getData()).containsExactly(List.of(500L, 220L));
         }
 
         @Test
@@ -212,8 +208,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
     }
@@ -235,13 +230,11 @@ public abstract class AbstractInfluxContainerTest {
                       "orderBy": [{"$desc": "count()"}]
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(2);
-
-            var byDeployment = data.getData().stream()
-                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
-
-            assertThat(byDeployment.get("gpt-4").get(1)).isEqualTo(4L);
-            assertThat(byDeployment.get("gpt-3.5").get(1)).isEqualTo(3L);
+            // orderBy desc count(): gpt-4(4) > gpt-3.5(3)
+            assertThat(data.getData()).containsExactly(
+                    List.of("gpt-4", 4L),
+                    List.of("gpt-3.5", 3L)
+            );
         }
 
         @Test
@@ -254,8 +247,7 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(7L);
+            assertThat(data.getData()).containsExactly(List.of(7L));
         }
 
     }
@@ -384,13 +376,12 @@ public abstract class AbstractInfluxContainerTest {
                     }""".formatted(TIME_GTE, TIME_LT));
 
             // After filtering out user_hash=user2: records #1 (gpt-4,user1) and #3 (gpt-3.5,user1)
-            // Both map to distinct (deployment, user_hash) groups with count=1
-            assertThat(data.getData()).hasSize(2);
-
-            var counts = data.getData().stream()
-                    .map(row -> row.get(1))
-                    .toList();
-            assertThat(counts).containsExactly(1L, 1L);
+            // Both map to distinct (deployment, user_hash) groups with count=1.
+            // Both have count=1 so orderBy desc count() doesn't disambiguate.
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("gpt-4", 1L),
+                    List.of("gpt-3.5", 1L)
+            );
         }
 
     }
@@ -439,8 +430,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -457,8 +447,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -478,8 +467,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
     }
@@ -501,8 +489,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
         @Test
@@ -519,8 +506,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -537,8 +523,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -555,8 +540,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -573,8 +557,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -591,8 +574,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -609,8 +591,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -627,8 +608,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -646,8 +626,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("proj1");
+            assertThat(data.getData()).containsExactly(List.of("proj1"));
         }
 
         @Test
@@ -665,8 +644,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-3.5");
+            assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
         }
 
         @Test
@@ -684,8 +662,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-3.5");
+            assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
         }
     }
 
@@ -707,8 +684,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
         @Test
@@ -746,8 +722,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-4");
+            assertThat(data.getData()).containsExactly(List.of("gpt-4"));
         }
 
         @Test
@@ -766,8 +741,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("proj1");
+            assertThat(data.getData()).containsExactly(List.of("proj1"));
         }
 
         @Test
@@ -785,8 +759,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -887,8 +860,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(0L);
+            assertThat(data.getData()).containsExactly(List.of(0L));
         }
 
         @Test
@@ -900,12 +872,7 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getExpressions()).hasSize(2);
-            var aliasNames = data.getExpressions().stream()
-                    .map(Object::toString)
-                    .toList();
-            assertThat(aliasNames).anyMatch(name -> name.contains("money"));
-            assertThat(aliasNames).anyMatch(name -> name.contains("requests"));
+            assertThat(columnNames(data)).containsExactly("money", "requests");
         }
     }
 
