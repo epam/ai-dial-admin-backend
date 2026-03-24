@@ -785,7 +785,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.REGEXP);
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.REGEXP, FluxStandardImports.SCHEMA);
         assertThat(actual.getPreamble()).containsExactly(
                 "_re0 = regexp.compile(v: \"(?i)^ge\")",
                 "_re1 = regexp.compile(v: \"(?i)^ge\")"
@@ -794,22 +794,22 @@ class FluxQueryBuilderTest {
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] =~ _re0)
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_0"})
                 |> set(key: "temp_column_2", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] =~ _re1)
-                |> filter(fn: (r) => r["_field"] == "completion_tokens")
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "completion_tokens")
+                |> keep(columns: ["completion_tokens"])
+                |> rename(columns: {completion_tokens: "temp_column_1"})
                 |> set(key: "temp_column_2", value: "any")
                 temp_table_2 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_2"])
                 temp_table_2
