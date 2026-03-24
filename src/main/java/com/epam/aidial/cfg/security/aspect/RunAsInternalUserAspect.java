@@ -1,8 +1,7 @@
 package com.epam.aidial.cfg.security.aspect;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.security.SystemAuthenticationToken;
-import lombok.RequiredArgsConstructor;
+import com.epam.aidial.cfg.security.InternalSecurityAuthenticationToken;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -17,24 +16,32 @@ import java.util.List;
 
 @Aspect
 @Component
-@RequiredArgsConstructor
 @LogExecution
-public class RunAsSystemUserAspect {
+public class RunAsInternalUserAspect {
 
-    @Around("@annotation(runAsSystemUser)")
-    public Object evaluate(ProceedingJoinPoint joinPoint, RunAsSystemUser runAsSystemUser) throws Throwable {
+    @Around("@annotation(runAsInternalUser)")
+    public Object evaluate(ProceedingJoinPoint joinPoint, RunAsInternalUser runAsInternalUser) throws Throwable {
+        checkPrincipal(runAsInternalUser);
+
         SecurityContext previous = SecurityContextHolder.getContext();
 
         try {
-            setSystemContext(runAsSystemUser);
+            setSecurityContext(runAsInternalUser);
             return joinPoint.proceed();
         } finally {
             setPreviousContextOrClear(previous);
         }
     }
 
-    private void setSystemContext(RunAsSystemUser runAsSystemUser) {
-        Authentication auth = createAuth(runAsSystemUser);
+    private void checkPrincipal(RunAsInternalUser runAsInternalUser) {
+        String principal = runAsInternalUser.principal();
+        if (!InternalSecurityAuthenticationToken.isReservedInternalPrincipal(principal)) {
+            throw new IllegalArgumentException("Principal %s is not reserved internal principal".formatted(principal));
+        }
+    }
+
+    private void setSecurityContext(RunAsInternalUser runAsInternalUser) {
+        Authentication auth = createAuth(runAsInternalUser);
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
@@ -42,15 +49,15 @@ public class RunAsSystemUserAspect {
         SecurityContextHolder.setContext(context);
     }
 
-    private Authentication createAuth(RunAsSystemUser runAsSystemUser) {
-        String username = runAsSystemUser.username();
+    private Authentication createAuth(RunAsInternalUser runAsInternalUser) {
+        String principal = runAsInternalUser.principal();
 
-        List<SimpleGrantedAuthority> authorities = Arrays.stream(runAsSystemUser.roles())
+        List<SimpleGrantedAuthority> authorities = Arrays.stream(runAsInternalUser.roles())
                 .map(Enum::name)
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
-        return new SystemAuthenticationToken(username, authorities);
+        return new InternalSecurityAuthenticationToken(principal, authorities);
     }
 
     private void setPreviousContextOrClear(SecurityContext previous) {

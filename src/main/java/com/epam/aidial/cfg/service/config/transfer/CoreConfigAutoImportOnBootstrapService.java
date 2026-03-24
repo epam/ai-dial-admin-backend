@@ -3,7 +3,7 @@ package com.epam.aidial.cfg.service.config.transfer;
 import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.domain.service.DatabaseService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
-import com.epam.aidial.cfg.security.aspect.RunAsSystemUser;
+import com.epam.aidial.cfg.security.aspect.RunAsInternalUser;
 import com.epam.aidial.cfg.service.config.transfer.exporter.CoreConfigRetriever;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
@@ -30,7 +30,7 @@ public class CoreConfigAutoImportOnBootstrapService {
     private final AutoImportOnBootstrapProperties properties;
 
     @EventListener(ApplicationReadyEvent.class)
-    @RunAsSystemUser
+    @RunAsInternalUser
     public void autoImportCoreConfig() {
         try {
             if (databaseService.isInitializedEmptyDatabase()) {

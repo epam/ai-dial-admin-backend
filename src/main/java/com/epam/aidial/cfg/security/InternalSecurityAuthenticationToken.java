@@ -1,0 +1,53 @@
+package com.epam.aidial.cfg.security;
+
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+
+public class InternalSecurityAuthenticationToken extends AbstractAuthenticationToken {
+
+    public static final String SYSTEM_PRINCIPAL = "system";
+
+    private static final Set<String> RESERVED_PRINCIPALS = Set.of(SYSTEM_PRINCIPAL);
+
+    private final String principal;
+
+    public InternalSecurityAuthenticationToken(String principal, Collection<? extends GrantedAuthority> authorities) {
+        super(authorities);
+
+        Optional<String> reservedInternalPrincipal = getReservedInternalPrincipal(principal);
+        if (reservedInternalPrincipal.isEmpty()) {
+            throw new IllegalArgumentException("Principal is not a reserved internal principal: " + principal);
+        }
+
+        this.principal = reservedInternalPrincipal.get();
+        setAuthenticated(true);
+    }
+
+    @Override
+    public Object getCredentials() {
+        return null;
+    }
+
+    @Override
+    public Object getPrincipal() {
+        return principal;
+    }
+
+    public static boolean isReservedInternalPrincipal(String principal) {
+        return getReservedInternalPrincipal(principal).isPresent();
+    }
+
+    private static Optional<String> getReservedInternalPrincipal(String principal) {
+        if (principal == null) {
+            return Optional.empty();
+        }
+
+        return RESERVED_PRINCIPALS.stream()
+                .filter(r -> r.equalsIgnoreCase(principal))
+                .findFirst();
+    }
+}

@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
-import com.epam.aidial.cfg.security.SystemAuthenticationToken;
+import com.epam.aidial.cfg.security.InternalSecurityAuthenticationToken;
 import com.epam.aidial.cfg.utils.MapExtractionUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
         var userRoles = userRolesResolver.resolve(authorities);
         var principalClaimValue = jwt.getClaimAsString(principalClaim);
 
-        if (SystemAuthenticationToken.SYSTEM_PRINCIPAL.equalsIgnoreCase(principalClaimValue)) {
+        if (InternalSecurityAuthenticationToken.isReservedInternalPrincipal(principalClaimValue)) {
             log.warn("{} principal is forbidden - issuer: {}, authorities: {}, user roles: {}",
                     principalClaimValue, issuer, authorities, userRoles);
             return new JwtAuthenticationToken(jwt);

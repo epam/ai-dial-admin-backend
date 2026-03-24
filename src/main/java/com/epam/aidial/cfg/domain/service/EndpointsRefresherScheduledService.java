@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.security.aspect.RunAsSystemUser;
+import com.epam.aidial.cfg.security.aspect.RunAsInternalUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -21,7 +21,7 @@ public class EndpointsRefresherScheduledService {
     private final ModelService modelService;
 
     @Scheduled(fixedDelayString = "${plugins.deployment.manager.endpoint.refresh.interval}")
-    @RunAsSystemUser
+    @RunAsInternalUser
     public void refreshEndpoints() {
         refreshEndpoints(interceptorService::refreshEndpoints, "interceptor");
         refreshEndpoints(adapterService::refreshEndpoints, "adapter");
