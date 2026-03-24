@@ -43,7 +43,6 @@ class ApplicationTypeSchemaCoreConfigNormalizerTest {
                     "updatedAt": "2025-08-29T11:34:26.709Z",
                     "$schema": "https://dial.epam.com/application_type_schemas/schema#",
                     "$id": "https://runner-char",
-                    "dial:applicationTypeDisplayName": "char1",
                     "$defs": {}
                 }
                 """;

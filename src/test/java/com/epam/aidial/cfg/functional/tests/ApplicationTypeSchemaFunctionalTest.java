@@ -459,6 +459,11 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
     public void shouldSuccessfullyGetCoreApplicationTypeSchema() {
         typeSchemaFacade.create(dto);
 
+        var mcp = new CoreApplicationTypeSchema.ApplicationTypeMcp();
+        mcp.setEndpoint("http://localhost:9876/mcp");
+        mcp.setAllowedTools(List.of("classify_text"));
+        mcp.setConfigDelivery(CoreApplicationTypeSchema.McpConfigDelivery.META);
+
         CoreApplicationTypeSchema expected = new CoreApplicationTypeSchema();
         expected.setSchema(dto.getSchema());
         expected.setId(dto.getId());
@@ -481,6 +486,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         expected.setDefs(dto.getDefs());
         expected.setProperties(dto.getProperties());
         expected.setRequired(dto.getRequired());
+        expected.setApplicationTypeMcp(mcp);
         expected.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
         expected.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
 
@@ -594,6 +600,13 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
                       "dial:applicationTypeInterceptors": [],
                       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
                       "dial:applicationTypeBucketCopy": "ENABLED",
+                      "dial:applicationTypeMcp": {
+                        "dial:endpoint": "http://localhost:9876/mcp",
+                        "dial:transport": "HTTP",
+                        "dial:allowedTools": ["classify_text"],
+                        "dial:mcpConfigDelivery": "META",
+                        "dial:forwardPerRequestKey": true
+                      },
                       "$defs": {
                         "ToolEndpointInfo": {
                           "properties": {

@@ -43,5 +43,5 @@ public class ApplicationResourceDto {
     private Map<String, RouteDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResourceDto mcp;
 }
-

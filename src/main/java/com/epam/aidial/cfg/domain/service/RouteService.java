@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -54,6 +55,23 @@ public class RouteService {
     @Transactional(readOnly = true)
     public Collection<Route> getAllByNames(List<String> names) {
         return StreamSupport.stream(routeJpaRepository.findAllById(names).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Route> getAllOrderedByDisplayNameAscNameAsc() {
+        return routeJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Route> getAllByDeploymentNamesOrderByDisplayNameAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return routeJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

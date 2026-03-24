@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Set;
+import java.util.SortedSet;
 
 @Data
 @ToString(callSuper = true)
@@ -14,7 +14,7 @@ import java.util.Set;
 @DependentRoute
 public class DependentRouteDto extends BaseRouteDto {
 
-    private Set<ResourceAccessType> permissions;
+    private SortedSet<ResourceAccessType> permissions;
     private AttachmentPathDto attachmentPaths;
 
     public enum ResourceAccessType {

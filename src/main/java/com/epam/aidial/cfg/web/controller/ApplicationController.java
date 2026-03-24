@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import com.epam.aidial.core.config.CoreApplication;
+import io.modelcontextprotocol.spec.McpSchema;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -108,5 +110,17 @@ public class ApplicationController extends AbstractController {
     @GetMapping(path = "/revision/{revision}", produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
     public Collection<ApplicationDto> getAllAtRevision(@PathVariable Integer revision) {
         return applicationFacade.getAllAtRevision(revision);
+    }
+
+    @GetMapping(path = "/{applicationName}/discovered-tools", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.ListToolsResult getDiscoveredTools(@PathVariable("applicationName") String applicationName,
+                                                        @RequestParam(required = false) String nextCursor) {
+        return applicationFacade.getDiscoveredTools(applicationName, nextCursor);
+    }
+
+    @PostMapping(path = "/{applicationName}/call-tool", produces = MediaType.APPLICATION_JSON_VALUE)
+    public McpSchema.CallToolResult callTool(@PathVariable String applicationName,
+                                             @RequestBody McpSchema.CallToolRequest callToolRequest) {
+        return applicationFacade.callTool(applicationName, callToolRequest);
     }
 }

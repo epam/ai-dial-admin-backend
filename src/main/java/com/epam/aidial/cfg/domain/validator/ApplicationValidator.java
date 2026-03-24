@@ -77,19 +77,20 @@ public class ApplicationValidator {
         String endpoint = application.getEndpoint();
         URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
         List<DependentRoute> routes = application.getRoutes();
+        var mcp = application.getMcp();
 
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint: '%s'. Application: %s".formatted(endpoint, appName));
         }
 
-        if (endpoint == null && isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException("Missing endpoint and application type schema id. Only one of them should be specified. Application: %s"
-                    .formatted(appName));
-        }
-
-        if (endpoint != null && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException("Both endpoint: '%s' and application type schema id: '%s' are specified.".formatted(endpoint, applicationTypeSchemaId)
-                    + " Only one of them should be specified. Application: %s".formatted(appName));
+        if (!isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
+            if (endpoint != null || mcp != null) {
+                throw new IllegalArgumentException("Neither application endpoint nor MCP must be set for schema based application."
+                        + " Application: %s".formatted(appName));
+            }
+        } else if (endpoint == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))) {
+            throw new IllegalArgumentException("At least application endpoint or MCP endpoint must be provided."
+                    + " Application: %s".formatted(appName));
         }
 
         if (CollectionUtils.isNotEmpty(routes) && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {

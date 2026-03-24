@@ -5,11 +5,13 @@ import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.McpResourceDto;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.McpResource;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
@@ -80,6 +82,7 @@ class ApplicationEximServiceTest {
         assertThat(applicationExim.getDisplayName()).isEqualTo("application1");
         assertThat(applicationExim.getFolderId()).isEqualTo("public/folder1/");
         assertThat(applicationExim.getDescription()).isEqualTo("application description 1");
+        assertThat(applicationExim.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
     }
 
     @Test
@@ -108,6 +111,7 @@ class ApplicationEximServiceTest {
         assertThat(application1Exim1.getName()).isEqualTo("application1");
         assertThat(application1Exim1.getFolderId()).isEqualTo("public/folder1/");
         assertThat(application1Exim1.getDescription()).isEqualTo("application description 1");
+        assertThat(application1Exim1.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
 
         // Verify second application
         var application1Exim2 = result.getApplications().get(1);
@@ -115,6 +119,7 @@ class ApplicationEximServiceTest {
         assertThat(application1Exim2.getName()).isEqualTo("application2");
         assertThat(application1Exim2.getFolderId()).isEqualTo("public/folder2/");
         assertThat(application1Exim2.getDescription()).isEqualTo("application description 2");
+        assertThat(application1Exim2.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/2/mcp");
     }
 
     @Test
@@ -195,6 +200,7 @@ class ApplicationEximServiceTest {
         assertThat(applicationResource.getVersion()).isEqualTo("0.0.1");
         assertThat(applicationResource.getFolderId()).isEqualTo("public/to/folder1/");
         assertThat(applicationResource.getDescription()).isEqualTo("application description 1");
+        assertThat(applicationResource.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
     }
 
     @Test
@@ -245,6 +251,7 @@ class ApplicationEximServiceTest {
         assertThat(application.getVersion()).isEqualTo("0.0.1");
         assertThat(application.getFolderId()).isEqualTo("public/to/");
         assertThat(application.getDescription()).isEqualTo("application description 1");
+        assertThat(application.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
     }
 
     @Test
@@ -272,6 +279,9 @@ class ApplicationEximServiceTest {
     }
 
     private ApplicationResource getApplicationResource(String suffix) {
+        var mcp = new McpResource();
+        mcp.setEndpoint("http://localhost:9876/" + suffix + "/mcp");
+        mcp.setAllowedTools(List.of("classify_text"));
         var application = new ApplicationResource();
         application.setApplicationTypeSchemaId(String.format("https://test%s.epam.com", suffix));
         application.setName("application" + suffix);
@@ -280,10 +290,14 @@ class ApplicationEximServiceTest {
         application.setFolderId(String.format("public/folder%s/", suffix));
         application.setPath(String.format("%s%s__%s", application.getFolderId(), application.getName(), application.getVersion()));
         application.setDescription(String.format("application description %s", suffix));
+        application.setMcp(mcp);
         return application;
     }
 
     private ApplicationEximDto getApplicationEximDto(String suffix) {
+        var mcp = new McpResourceDto();
+        mcp.setEndpoint("http://localhost:9876/" + suffix + "/mcp");
+        mcp.setAllowedTools(List.of("classify_text"));
         return ApplicationEximDto.builder()
                 .applicationTypeSchemaId(String.format("https://test%s.epam.com", suffix))
                 .name("application" + suffix)
@@ -291,6 +305,7 @@ class ApplicationEximServiceTest {
                 .displayName("application" + suffix)
                 .folderId(String.format("public/folder%s/", suffix))
                 .description(String.format("application description %s", suffix))
+                .mcp(mcp)
                 .build();
     }
 }

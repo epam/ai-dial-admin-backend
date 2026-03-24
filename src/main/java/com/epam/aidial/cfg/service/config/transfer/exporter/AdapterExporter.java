@@ -16,8 +16,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -30,33 +32,27 @@ public class AdapterExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.ADAPTER)
                     ? getAdaptersWithRemovedDependencies().stream()
-                    .collect(Collectors.toMap(Adapter::getName, Function.identity()))
+                    .collect(toLinkedHashMap(Adapter::getName))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getAdaptersWithRemovedDependencies(selectedItemsExportRequest.getComponents()).stream()
-                    .collect(Collectors.toMap(Adapter::getName, Function.identity()));
+                    .collect(toLinkedHashMap(Adapter::getName));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     private Collection<Adapter> getAdaptersWithRemovedDependencies() {
-        return adapterService.getAll().stream()
+        return adapterService.getAllOrderedByDisplayNameAscNameAsc().stream()
                 .map(this::removeDependency)
                 .toList();
     }
 
     private List<Adapter> getAdaptersWithRemovedDependencies(List<ExportConfigComponent> elements) {
-        return elements.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.ADAPTER)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }
-                ))
-                .values()
-                .stream()
-                .map(component -> adapterService.get(component.getName()))
+        var componentsByName = filterComponentsByTypeAndCollectToMap(elements, ExportConfigComponentType.ADAPTER);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return adapterService.getAllByNamesOrderedByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
                 .map(this::removeDependency)
                 .toList();
     }

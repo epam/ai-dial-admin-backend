@@ -38,7 +38,5 @@ public class CreateApplicationResource {
     private List<RouteResource> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResource mcp;
 }
-
-
-
