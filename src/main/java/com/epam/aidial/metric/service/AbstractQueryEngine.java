@@ -2,6 +2,7 @@ package com.epam.aidial.metric.service;
 
 import com.epam.aidial.datasource.definition.FormalParameterDef;
 import com.epam.aidial.datasource.definition.InterfaceMethodDef;
+import com.epam.aidial.datasource.definition.TypeBoolean;
 import com.epam.aidial.datasource.definition.TypeFloat64;
 import com.epam.aidial.datasource.definition.TypeInt64;
 import com.epam.aidial.datasource.definition.TypeText;
@@ -156,12 +157,32 @@ public abstract class AbstractQueryEngine implements Engine {
 
             @Override
             public List<InterfaceMethodDef> getEqualsMethods() {
-                return List.of();
+                var equalsString = new InterfaceMethodDef("equals", TypeBoolean.INSTANCE, null);
+                equalsString.getFormalParameters().addAll(List.of(
+                        new FormalParameterDef(equalsString, "a", TypeText.INSTANCE, false, null),
+                        new FormalParameterDef(equalsString, "b", TypeText.INSTANCE, false, null)
+                ));
+                var equalsInt64 = new InterfaceMethodDef("equals", TypeBoolean.INSTANCE, null);
+                equalsInt64.getFormalParameters().addAll(List.of(
+                        new FormalParameterDef(equalsInt64, "a", TypeInt64.INSTANCE, false, null),
+                        new FormalParameterDef(equalsInt64, "b", TypeInt64.INSTANCE, false, null)
+                ));
+                return List.of(equalsString, equalsInt64);
             }
 
             @Override
             public List<InterfaceMethodDef> getNotEqualsMethods() {
-                return List.of();
+                var notEqualsString = new InterfaceMethodDef("notEquals", TypeBoolean.INSTANCE, null);
+                notEqualsString.getFormalParameters().addAll(List.of(
+                        new FormalParameterDef(notEqualsString, "a", TypeText.INSTANCE, false, null),
+                        new FormalParameterDef(notEqualsString, "b", TypeText.INSTANCE, false, null)
+                ));
+                var notEqualsInt64 = new InterfaceMethodDef("notEquals", TypeBoolean.INSTANCE, null);
+                notEqualsInt64.getFormalParameters().addAll(List.of(
+                        new FormalParameterDef(notEqualsInt64, "a", TypeInt64.INSTANCE, false, null),
+                        new FormalParameterDef(notEqualsInt64, "b", TypeInt64.INSTANCE, false, null)
+                ));
+                return List.of(notEqualsString, notEqualsInt64);
             }
 
             @Override

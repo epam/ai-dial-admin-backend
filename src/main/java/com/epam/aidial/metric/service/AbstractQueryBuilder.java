@@ -21,20 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractQueryBuilder<C> {
+public abstract class AbstractQueryBuilder<C, T extends TableDeclaration> {
 
     protected static final String TEMPORAL_COLUMN_NAME = "temp_column_";
 
-    protected final Map<String, ? extends TableDeclaration> tableDeclarations;
+    protected final Map<String, T> tableDeclarations;
     protected final AbstractDatasetConfiguration datasetConfiguration;
     protected final Map<Expression, String> expressionToOuterColumnNames = new HashMap<>();
     protected final Map<String, Expression> aliasToExpression = new HashMap<>();
     protected final TemporalNameGenerator temporalNameGenerator;
 
+    @SuppressWarnings("unchecked")
     protected AbstractQueryBuilder(DatasetDeclaration datasetDeclaration,
                                    AbstractDatasetConfiguration datasetConfiguration,
                                    TemporalNameGenerator temporalNameGenerator) {
-        this.tableDeclarations = datasetDeclaration.getTables().stream()
+        this.tableDeclarations = (Map<String, T>) datasetDeclaration.getTables().stream()
                 .collect(Collectors.toMap(TableDeclaration::getName, table -> table));
         this.datasetConfiguration = datasetConfiguration;
         this.temporalNameGenerator = temporalNameGenerator;
@@ -46,7 +47,9 @@ public abstract class AbstractQueryBuilder<C> {
             resolveExpressionsToOuterColumnNames(query.getExpressions());
             resolveAliases(query.getExpressions());
 
-            if (isWindowAggregationQuery(query)) {
+            if (isWindowColumnAggregationQuery(query)) {
+                return buildWindowColumnAggregationQuery(query);
+            } else if (isWindowAggregationQuery(query)) {
                 return buildWindowAggregationQuery(query);
             } else if (isAggregationQuery(query)) {
                 return buildAggregationQuery(query);
@@ -66,6 +69,14 @@ public abstract class AbstractQueryBuilder<C> {
     protected abstract C buildAggregationQuery(Query query);
 
     protected abstract C buildWindowAggregationQuery(Query query);
+
+    protected abstract C buildWindowColumnAggregationQuery(Query query);
+
+    protected boolean isWindowColumnAggregationQuery(Query query) {
+        boolean hasWindow = query.getGroupBy().stream().anyMatch(this::isWindowFunctionCall);
+        boolean hasColumn = query.getGroupBy().stream().anyMatch(e -> !isWindowFunctionCall(e));
+        return hasWindow && hasColumn;
+    }
 
     protected boolean isWindowAggregationQuery(Query query) {
         return query.getGroupBy().stream().anyMatch(this::isWindowFunctionCall);
@@ -140,6 +151,32 @@ public abstract class AbstractQueryBuilder<C> {
         return expression;
     }
 
+    protected GroupFunctionCall extractWindowFunction(List<Expression> groupBy) {
+        return groupBy.stream()
+                .map(this::resolveAlias)
+                .filter(GroupFunctionCall.class::isInstance)
+                .map(GroupFunctionCall.class::cast)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Window function required in group by"));
+    }
+
+    protected List<String> extractGroupByColumnNames(List<Expression> groupBy) {
+        return groupBy.stream()
+                .filter(e -> !isWindowFunctionCall(e))
+                .filter(Column.class::isInstance)
+                .map(Column.class::cast)
+                .map(Column::getName)
+                .toList();
+    }
+
+    protected List<AggregationFunctionCall> resolveAggregationFunctionCalls(List<Expression> expressions) {
+        return expressions.stream()
+                .map(this::resolveAlias)
+                .filter(AggregationFunctionCall.class::isInstance)
+                .map(AggregationFunctionCall.class::cast)
+                .toList();
+    }
+
     protected List<Column> getGroupByColumns(List<Expression> groupBy) {
         var groupColumns = groupBy.stream()
                 .filter(Column.class::isInstance)
@@ -170,13 +207,12 @@ public abstract class AbstractQueryBuilder<C> {
         return column;
     }
 
-    @SuppressWarnings("unchecked")
-    protected <T extends TableDeclaration> T getTableDeclaration(String tableName) {
+    protected T getTableDeclaration(String tableName) {
         var tableDeclaration = tableDeclarations.get(tableName);
         if (tableDeclaration == null) {
             throw new IllegalArgumentException("Table %s not found".formatted(tableName));
         }
-        return (T) tableDeclaration;
+        return tableDeclaration;
     }
 
     protected List<String> getOuterColumnNames(List<Expression> expressions) {
