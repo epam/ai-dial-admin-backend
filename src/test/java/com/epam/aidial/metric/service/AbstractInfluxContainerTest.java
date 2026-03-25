@@ -10,11 +10,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Comparator;
 
 /**
  * Shared test suite for InfluxDB 2 and InfluxDB 3 metrics extraction.

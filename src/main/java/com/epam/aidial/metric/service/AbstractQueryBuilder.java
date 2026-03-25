@@ -21,20 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractQueryBuilder<C> {
+public abstract class AbstractQueryBuilder<C, T extends TableDeclaration> {
 
     protected static final String TEMPORAL_COLUMN_NAME = "temp_column_";
 
-    protected final Map<String, ? extends TableDeclaration> tableDeclarations;
+    protected final Map<String, T> tableDeclarations;
     protected final AbstractDatasetConfiguration datasetConfiguration;
     protected final Map<Expression, String> expressionToOuterColumnNames = new HashMap<>();
     protected final Map<String, Expression> aliasToExpression = new HashMap<>();
     protected final TemporalNameGenerator temporalNameGenerator;
 
+    @SuppressWarnings("unchecked")
     protected AbstractQueryBuilder(DatasetDeclaration datasetDeclaration,
                                    AbstractDatasetConfiguration datasetConfiguration,
                                    TemporalNameGenerator temporalNameGenerator) {
-        this.tableDeclarations = datasetDeclaration.getTables().stream()
+        this.tableDeclarations = (Map<String, T>) datasetDeclaration.getTables().stream()
                 .collect(Collectors.toMap(TableDeclaration::getName, table -> table));
         this.datasetConfiguration = datasetConfiguration;
         this.temporalNameGenerator = temporalNameGenerator;
@@ -206,13 +207,12 @@ public abstract class AbstractQueryBuilder<C> {
         return column;
     }
 
-    @SuppressWarnings("unchecked")
-    protected <T extends TableDeclaration> T getTableDeclaration(String tableName) {
+    protected T getTableDeclaration(String tableName) {
         var tableDeclaration = tableDeclarations.get(tableName);
         if (tableDeclaration == null) {
             throw new IllegalArgumentException("Table %s not found".formatted(tableName));
         }
-        return (T) tableDeclaration;
+        return tableDeclaration;
     }
 
     protected List<String> getOuterColumnNames(List<Expression> expressions) {

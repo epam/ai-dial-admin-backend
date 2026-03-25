@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
+public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influx3TableDeclaration> {
 
     public SqlQueryBuilder(Influx3DatasetDeclaration datasetDeclaration,
                            Influx3DatasetConfiguration datasourceConfiguration,
@@ -44,7 +44,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
     @Override
     protected SqlQueryContext buildSimpleQuery(Query query) {
         var table = getTable(query);
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var tableName = tableDeclaration.getSource().getTable();
 
         var paramCounter = new AtomicInteger(0);
@@ -87,7 +87,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
     protected SqlQueryContext buildDistinctQuery(Query query) {
         var table = getTable(query);
         var column = getDistinctColumn(query);
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var tableName = tableDeclaration.getSource().getTable();
         var sourceColumnName = getSourceColumnName(table, column);
         var outerColumnName = getOuterColumnName(column);
@@ -151,7 +151,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
             innerWhereClause = buildWhereClause(query.getWhere(), false, paramCounter, allParams);
         } else {
             var table = getTable(query);
-            Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+            var tableDeclaration = getTableDeclaration(table.getName());
             tableName = "\"" + tableDeclaration.getSource().getTable() + "\"";
             innerWhereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
         }
@@ -219,7 +219,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
         var aggregationFunctionCall = resolveAggregationFunctionCall(query.getExpressions());
 
         var table = getTable(query);
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var tableName = tableDeclaration.getSource().getTable();
 
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
@@ -279,7 +279,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
         var aggregationFunctionCalls = resolveAggregationFunctionCalls(query.getExpressions());
 
         var table = getTable(query);
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var tableName = tableDeclaration.getSource().getTable();
 
         var paramCounter = new AtomicInteger(0);
@@ -533,7 +533,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
     }
 
     private String getSourceColumnNameFromDeclaration(String tableName, String columnName) {
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var tableDeclaration = getTableDeclaration(tableName);
         return tableDeclaration.getSchema().getColumns().stream()
                 .filter(col -> col.getName().equals(columnName))
                 .map(col -> col.getSource().getColumn())

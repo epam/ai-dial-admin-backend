@@ -41,7 +41,7 @@ import static com.epam.aidial.metric.model.influx.FluxStandardColumns.TIME_COLUM
 import static com.epam.aidial.metric.model.influx.FluxStandardColumns.VALUE_COLUMN;
 
 @Slf4j
-public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
+public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, InfluxTableDeclaration> {
 
     private static final String TEMPORAL_TABLE_NAME = "temp_table_";
 
@@ -54,7 +54,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     @Override
     protected FluxQueryContext buildSimpleQuery(Query query) {
         var table = getTable(query);
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -107,7 +107,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     }
 
     private FluxQueryContext buildDistinctQueryForTag(Query query, Table table, String tagName, String outerColumnName) {
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -141,7 +141,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     }
 
     private FluxQueryContext buildDistinctQueryForField(Query query, Table table, String fieldName, String outerColumnName) {
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -285,7 +285,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
 
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -406,7 +406,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
 
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var tableDeclaration = getTableDeclaration(tableName);
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(filter, true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -496,7 +496,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
 
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var tableDeclaration = getTableDeclaration(tableName);
         var aggregationColumnName = resolveAggregationColumnName(function, args);
 
         // For sum(case when cond then 1 else 0 end), use count after filtering by condition
@@ -644,7 +644,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     }
 
     private InfluxColumnDeclaration getColumnDeclaration(String tableName, String columnName) {
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var tableDeclaration = getTableDeclaration(tableName);
 
         return tableDeclaration.getSchema().getColumns().stream()
                 .filter(columnDeclaration -> columnDeclaration.getName().equals(columnName))
