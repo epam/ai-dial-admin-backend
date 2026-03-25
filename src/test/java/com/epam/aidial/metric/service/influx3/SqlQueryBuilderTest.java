@@ -298,6 +298,68 @@ class SqlQueryBuilderTest {
         assertThat(actual.getColumnNames()).isEqualTo(List.of("deployment"));
     }
 
+    @Test
+    void buildQuery_WindowColumnAggregation() {
+        var query = baseQuery()
+                .expressions(List.of(
+                        new AliasImpl("window",
+                                new GroupFunctionCallImpl(
+                                        new FunctionImpl("window", Type.TIMESTAMP, true),
+                                        List.of(),
+                                        List.of(col(Type.TIMESTAMP, "_time"), NumberConstantImpl.valueOf(1L), val(Type.STRING, "h"))
+                                )),
+                        col(Type.STRING, "deployment"),
+                        new AliasImpl("total", count())
+                ))
+                .where(timeRange())
+                .groupBy(List.of(col(Type.TIMESTAMP, "window"), col(Type.STRING, "deployment")))
+                .orderBy(List.of(SortImpl.of(col(Type.TIMESTAMP, "window"), SortDirection.ASC)))
+                .build();
+
+        var actual = sqlQueryBuilder.buildQueryContext(query);
+
+        assertThat(actual.getQuery()).isEqualTo("""
+                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "window"\
+                , "deployment"\
+                , COUNT(*) AS "total" \
+                FROM "analytics" \
+                WHERE "time" >= $p0 AND "time" < $p1 \
+                GROUP BY "window", "deployment" \
+                ORDER BY "window" ASC""");
+        assertThat(actual.getColumnNames()).isEqualTo(List.of("window", "deployment", "total"));
+    }
+
+    @Test
+    void buildQuery_WindowColumnAggregation_MultipleColumns() {
+        var query = baseQuery()
+                .expressions(List.of(
+                        new AliasImpl("window",
+                                new GroupFunctionCallImpl(
+                                        new FunctionImpl("window", Type.TIMESTAMP, true),
+                                        List.of(),
+                                        List.of(col(Type.TIMESTAMP, "_time"), NumberConstantImpl.valueOf(1L), val(Type.STRING, "d"))
+                                )),
+                        col(Type.STRING, "deployment"),
+                        col(Type.STRING, "project_id"),
+                        new AliasImpl("total", count())
+                ))
+                .where(timeRange())
+                .groupBy(List.of(col(Type.TIMESTAMP, "window"), col(Type.STRING, "deployment"), col(Type.STRING, "project_id")))
+                .build();
+
+        var actual = sqlQueryBuilder.buildQueryContext(query);
+
+        assertThat(actual.getQuery()).isEqualTo("""
+                SELECT DATE_BIN(INTERVAL '1 day', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "window"\
+                , "deployment"\
+                , "project_id"\
+                , COUNT(*) AS "total" \
+                FROM "analytics" \
+                WHERE "time" >= $p0 AND "time" < $p1 \
+                GROUP BY "window", "deployment", "project_id\"""");
+        assertThat(actual.getColumnNames()).isEqualTo(List.of("window", "deployment", "project_id", "total"));
+    }
+
     // -- helpers --
 
     private static QueryImpl.QueryImplBuilder baseQuery() {
