@@ -190,6 +190,73 @@
           }
         ]
       }
+    },
+    {
+      "name": "mcp_analytics",
+      "source": {
+        "bucket": "analytics-realtime",
+        "measurement": "mcp_analytics"
+      },
+      "schema": {
+        "columns": [
+          {
+            "name": "_time",
+            "type": "timestamp",
+            "source": {
+              "type": "tag",
+              "column": "_time"
+            }
+          },
+          {
+            "name": "project_id",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "project_id"
+            }
+          },
+          {
+            "name": "deployment",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "deployment"
+            }
+          },
+          {
+            "name": "mcp_method",
+            "type": "string",
+            "source": {
+              "type": "tag",
+              "column": "mcp_method"
+            }
+          },
+          {
+            "name": "execution_path",
+            "type": "string",
+            "source": {
+              "type": "field",
+              "column": "execution_path"
+            }
+          },
+          {
+            "name": "chat_id",
+            "type": "string",
+            "source": {
+              "type": "field",
+              "column": "chat_id"
+            }
+          },
+          {
+            "name": "user_hash",
+            "type": "string",
+            "source": {
+              "type": "field",
+              "column": "user_hash"
+            }
+          }
+        ]
+      }
     }
   ]
 }

@@ -24,6 +24,7 @@ import org.testcontainers.utility.DockerImageName;
 class InfluxContainerTest extends AbstractInfluxContainerTest {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
+
     private static final String BUCKET = "analytics-realtime";
     private static final String ORG = "test-org";
     private static final String TOKEN = "test-admin-token";

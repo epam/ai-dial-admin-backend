@@ -128,6 +128,13 @@ public class SimpleFluxBuilder {
         return "|> aggregateWindow(every: %s, fn: %s, createEmpty: false)".formatted(duration, functionName);
     }
 
+    public static String createWindowPart(GroupFunctionCall groupFunctionCall) {
+        var value = ((NumberConstant) groupFunctionCall.getArgs().get(1)).getNumberValue();
+        var unit = (String) ((Constant) groupFunctionCall.getArgs().get(2)).getValue();
+        var duration = createDuration(value, unit);
+        return "|> window(every: %s)".formatted(duration);
+    }
+
     public static String createSetPart(String columnName, String value) {
         var quotedColumnName = quote(columnName);
         var quotedValue = quote(value);

@@ -6,6 +6,7 @@ import com.epam.aidial.datasource.definition.FormalParameterDef;
 import com.epam.aidial.datasource.definition.InterfaceMethodDef;
 import com.epam.aidial.expressions.AggregationFunctionCall;
 import com.epam.aidial.expressions.Alias;
+import com.epam.aidial.expressions.CaseWhenExpression;
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
@@ -365,6 +366,14 @@ public class ExpressionsParserListenerImpl extends ExpressionsParserBaseListener
         }
 
         throw new ParseException(generateIncorrectFunctionCallMessage(args, methods, reasons));
+    }
+
+    @Override
+    public void exitCase_when_expression(ExpressionsParser.Case_when_expressionContext ctx) {
+        final Expression elseExpr = (Expression) stack.pop();
+        final Expression thenExpr = (Expression) stack.pop();
+        final Expression condition = (Expression) stack.pop();
+        stack.add(new CaseWhenExpressionImpl(condition, thenExpr, elseExpr));
     }
 
     @Override

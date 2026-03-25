@@ -3,8 +3,11 @@ package com.epam.aidial.metric.service.influx;
 
 import com.epam.aidial.expressions.AggregationFunctionCall;
 import com.epam.aidial.expressions.Alias;
+import com.epam.aidial.expressions.CaseWhenExpression;
 import com.epam.aidial.expressions.Column;
+import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
+import com.epam.aidial.expressions.FunctionCall;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
@@ -38,7 +41,7 @@ import static com.epam.aidial.metric.model.influx.FluxStandardColumns.TIME_COLUM
 import static com.epam.aidial.metric.model.influx.FluxStandardColumns.VALUE_COLUMN;
 
 @Slf4j
-public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
+public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, InfluxTableDeclaration> {
 
     private static final String TEMPORAL_TABLE_NAME = "temp_table_";
 
@@ -51,7 +54,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     @Override
     protected FluxQueryContext buildSimpleQuery(Query query) {
         var table = getTable(query);
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -104,7 +107,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     }
 
     private FluxQueryContext buildDistinctQueryForTag(Query query, Table table, String tagName, String outerColumnName) {
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -138,7 +141,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     }
 
     private FluxQueryContext buildDistinctQueryForField(Query query, Table table, String fieldName, String outerColumnName) {
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -282,7 +285,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
 
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
@@ -318,6 +321,138 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
                 .preamble(queryPartsCombined.getPreamble())
                 .query(queryPartsCombined.getQuery())
                 .columnNames(columnNames)
+                .build();
+    }
+
+    @Override
+    protected FluxQueryContext buildWindowColumnAggregationQuery(Query query) {
+        var groupFunctionCall = extractWindowFunction(query.getGroupBy());
+        var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy());
+        var aggregationFunctionCalls = resolveAggregationFunctionCalls(query.getExpressions());
+
+        var table = getTable(query);
+        var windowOuterName = expressionToOuterColumnNames.get(groupFunctionCall);
+
+        var combiner = new InfluxQueryPartCombiner();
+        var regexCounter = new AtomicInteger();
+
+        List<FluxQueryPart> aggregations = aggregationFunctionCalls.stream()
+                .map(aggCall -> buildWindowColumnAggregationPart(
+                        table.getName(),
+                        windowOuterName,
+                        expressionToOuterColumnNames.get(aggCall),
+                        query.getWhere(),
+                        groupByColumnNames,
+                        groupFunctionCall,
+                        aggCall,
+                        regexCounter))
+                .toList();
+
+        if (aggregations.isEmpty()) {
+            throw new IllegalArgumentException("At least one aggregation expression is required");
+        } else if (aggregations.size() == 1) {
+            combiner.add(aggregations.get(0));
+        } else {
+            var joinColumns = new ArrayList<String>();
+            joinColumns.add(windowOuterName);
+            joinColumns.addAll(groupByColumnNames);
+            var joinColumnsCombined = SimpleFluxBuilder.compactWithQuoting(joinColumns);
+
+            var tempTables = IntStream.range(0, aggregations.size())
+                    .mapToObj(i -> getNewTemporaryName(TEMPORAL_TABLE_NAME)).toList();
+            var tempJoinTables = IntStream.range(0, aggregations.size() - 1)
+                    .mapToObj(i -> getNewTemporaryName(TEMPORAL_TABLE_NAME)).toList();
+
+            for (int i = 0; i < aggregations.size(); i++) {
+                var aggregation = aggregations.get(i);
+                combiner.add(tempTables.get(i) + " = " + aggregation.getQuery(), aggregation.getImports(), aggregation.getPreamble());
+            }
+
+            combiner.add("%s = join(tables: {t1: %s, t2: %s}, on: %s)".formatted(
+                    tempJoinTables.get(0), tempTables.get(0), tempTables.get(1), joinColumnsCombined));
+
+            for (int i = 2; i < tempTables.size(); i++) {
+                combiner.add("%s = join(tables: {t1: %s, t2: %s}, on: %s)".formatted(
+                        tempJoinTables.get(i - 1), tempJoinTables.get(i - 2), tempTables.get(i), joinColumnsCombined));
+            }
+
+            combiner.add(tempJoinTables.get(tempJoinTables.size() - 1));
+        }
+
+        combiner.add(SimpleFluxBuilder.createUngroupPart());
+        combiner.add(SimpleFluxBuilder.createSortPart(query.getOrderBy(), expressionToOuterColumnNames));
+        combiner.add(SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize()));
+        var combined = combiner.build();
+
+        var columnNames = query.getExpressions().stream()
+                .map(expressionToOuterColumnNames::get)
+                .toList();
+        return FluxQueryContext.builder()
+                .imports(combined.getImports())
+                .preamble(combined.getPreamble())
+                .query(combined.getQuery())
+                .columnNames(columnNames)
+                .build();
+    }
+
+    private FluxQueryPart buildWindowColumnAggregationPart(
+            String tableName,
+            String windowOuterName,
+            String aggOuterName,
+            Filter filter,
+            List<String> groupByColumnNames,
+            com.epam.aidial.expressions.GroupFunctionCall groupFunctionCall,
+            AggregationFunctionCall aggregationFunctionCall,
+            AtomicInteger regexCounter
+    ) {
+        var function = (FunctionImpl) aggregationFunctionCall.getFunction();
+        var args = aggregationFunctionCall.getArgs();
+
+        var tableDeclaration = getTableDeclaration(tableName);
+        var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
+        var rangePart = FluxConditionPartBuilder.createRangePart(filter, true);
+        var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
+        var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
+        var aggregationFilterPart = createAggregationFilterPart(tableDeclaration, function, args);
+        var ungroupPart = SimpleFluxBuilder.createUngroupPart();
+        var windowPart = SimpleFluxBuilder.createWindowPart(groupFunctionCall);
+
+        // Group by window boundaries + column names
+        var windowGroupColumns = new ArrayList<String>();
+        windowGroupColumns.add("_start");
+        windowGroupColumns.add("_stop");
+        windowGroupColumns.addAll(groupByColumnNames);
+        var windowGroupPart = SimpleFluxBuilder.createGroupPart(windowGroupColumns);
+
+        // Aggregate on _value (the field value after field filter)
+        var aggColumnName = VALUE_COLUMN;
+        var aggregationPart = createAggregationPart(function, aggColumnName);
+
+        // Keep window start + groupBy columns + aggregated value
+        var keepColumns = new ArrayList<String>();
+        keepColumns.add("_start");
+        keepColumns.addAll(groupByColumnNames);
+        keepColumns.add(aggColumnName);
+        var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
+
+        // Rename _start → windowOuterName, _value → aggOuterName
+        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(
+                "_start", windowOuterName,
+                aggColumnName, aggOuterName
+        ));
+
+        return new InfluxQueryPartCombiner()
+                .add(fromPart)
+                .add(rangePart)
+                .add(measurementPart)
+                .add(filterPart)
+                .add(aggregationFilterPart)
+                .add(ungroupPart)
+                .add(windowPart)
+                .add(windowGroupPart)
+                .add(aggregationPart)
+                .add(keepPart)
+                .add(renamePart)
                 .build();
     }
 
@@ -362,26 +497,43 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
-        var keepColumns = new ArrayList<>(groupByColumnNames);
-        keepColumns.add(VALUE_COLUMN);
 
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var tableDeclaration = getTableDeclaration(tableName);
+        var aggregationColumnName = resolveAggregationColumnName(function, args);
+
+        // For sum(case when cond then 1 else 0 end), use count after filtering by condition
+        var isCaseWhenSum = "sum".equals(function.getName())
+                && args.size() == 1 && args.get(0) instanceof CaseWhenExpression;
+        var effectiveAggFunction = isCaseWhenSum
+                ? new FunctionImpl("count", function.getType(), function.isDeterministic())
+                : function;
+
+        var keepColumns = new ArrayList<>(groupByColumnNames);
+        keepColumns.add(aggregationColumnName);
+
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(filter, true);
         var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
-        var aggregationFilterPart = createAggregationFilterPart(tableDeclaration, function, args);
+        var fieldsAsColsPart = SimpleFluxBuilder.createFieldsAsColsPart();
+        var caseWhenFilterPart = isCaseWhenSum
+                ? createCaseWhenFilterPart((CaseWhenExpression) args.get(0))
+                : "";
         var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);
-        var aggregationPart = createAggregationPart(function);
+        var aggregationPart = createAggregationPart(effectiveAggFunction, aggregationColumnName);
         var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
-        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(VALUE_COLUMN, columnName));
+        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(aggregationColumnName, columnName));
 
-        return new InfluxQueryPartCombiner()
+        var combiner = new InfluxQueryPartCombiner()
                 .add(fromPart)
                 .add(rangePart)
                 .add(measurementPart)
-                .add(filterPart)
-                .add(aggregationFilterPart)
+                .add(fieldsAsColsPart)
+                .add(filterPart);
+        if (!caseWhenFilterPart.isEmpty()) {
+            combiner.add(caseWhenFilterPart);
+        }
+        return combiner
                 .add(groupPart)
                 .add(aggregationPart)
                 .add(keepPart)
@@ -389,7 +541,32 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
                 .build();
     }
 
-    private FluxQueryPart createAggregationFilterPart(InfluxTableDeclaration tableDeclaration, FunctionImpl function, List<Expression> args) {
+    private String createCaseWhenFilterPart(CaseWhenExpression caseWhen) {
+        var condition = caseWhen.getCondition();
+        if (condition instanceof FunctionCall fc && fc.getArgs().size() == 2
+                && fc.getArgs().get(0) instanceof Column col
+                && fc.getArgs().get(1) instanceof Constant val) {
+            var funcName = fc.getFunction().getName();
+            var operator = switch (funcName) {
+                case "equals" -> "==";
+                case "notEquals" -> "!=";
+                case "less" -> "<";
+                case "greater" -> ">";
+                case "lessOrEquals" -> "<=";
+                case "greaterOrEquals" -> ">=";
+                default -> throw new NotImplementedException("Unsupported CASE WHEN operator in Flux: " + funcName);
+            };
+            return "|> filter(fn: (r) => r[%s] %s %s)".formatted(
+                    SimpleFluxBuilder.quote(col.getName()),
+                    operator,
+                    SimpleFluxBuilder.quote(String.valueOf(val.getValue())));
+        }
+        throw new NotImplementedException("Unsupported CASE WHEN condition for Flux: " + condition);
+    }
+
+    private FluxQueryPart createAggregationFilterPart(InfluxTableDeclaration tableDeclaration,
+                                                      FunctionImpl function,
+                                                      List<Expression> args) {
         if ("count".equals(function.getName()) && args.isEmpty()) {
             var tableFieldName = tableDeclaration.getSchema().getColumns().stream()
                     .map(InfluxColumnDeclaration::getSource)
@@ -401,6 +578,16 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         }
 
         if ("sum".equals(function.getName()) && args.size() == 1) {
+            if (args.get(0) instanceof CaseWhenExpression) {
+                // sum(case when ... then 1 else 0 end) → use same field filter as count()
+                var tableFieldName = tableDeclaration.getSchema().getColumns().stream()
+                        .map(InfluxColumnDeclaration::getSource)
+                        .filter(columnSource -> columnSource.getType() == InfluxColumnSourceType.FIELD)
+                        .map(InfluxColumnSource::getColumn)
+                        .findFirst()
+                        .orElseThrow();
+                return FluxConditionPartBuilder.createFilterPart(FIELD_COLUMN, tableFieldName);
+            }
             var tableFieldName = ((ColumnImpl) args.get(0)).getName();
             return FluxConditionPartBuilder.createFilterPart(FIELD_COLUMN, tableFieldName);
         }
@@ -408,12 +595,25 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
         throw new NotImplementedException("Unsupported aggregation function");
     }
 
-    private String createAggregationPart(FunctionImpl function) {
-        return switch (function.getName()) {
-            case "count" -> "|> count()";
-            case "sum" -> "|> sum()";
-            default -> throw new NotImplementedException("Unsupported aggregation function");
-        };
+    private String resolveAggregationColumnName(FunctionImpl function,
+                                                List<Expression> args) {
+        if ("count".equals(function.getName()) && args.isEmpty()) {
+            // Use _measurement for count() because it is guaranteed to exist on every record
+            // after fieldsAsCols(), is a string type (Flux cannot aggregate time-type columns),
+            // and is never null. Other columns (tags or fields) may be absent
+            // if no data in the queried time range contains them.
+            return MEASUREMENT_COLUMN;
+        }
+
+        if ("sum".equals(function.getName()) && args.size() == 1) {
+            if (args.get(0) instanceof CaseWhenExpression) {
+                // sum(case when ... then 1 else 0 end) is conditional counting → use _measurement
+                return MEASUREMENT_COLUMN;
+            }
+            return ((ColumnImpl) args.get(0)).getName();
+        }
+
+        throw new NotImplementedException("Unsupported aggregation function");
     }
 
     private String createAggregationPart(FunctionImpl function, String columnName) {
@@ -446,7 +646,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext> {
     }
 
     private InfluxColumnDeclaration getColumnDeclaration(String tableName, String columnName) {
-        InfluxTableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var tableDeclaration = getTableDeclaration(tableName);
 
         return tableDeclaration.getSchema().getColumns().stream()
                 .filter(columnDeclaration -> columnDeclaration.getName().equals(columnName))
