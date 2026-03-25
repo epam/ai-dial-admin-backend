@@ -64,6 +64,16 @@ class PathUtilsTest {
     }
 
     @ParameterizedTest
+    @CsvSource({
+            "public/folder/, folder/",
+            "public/folder1/folder2/, folder2/",
+            "public/, public/"
+    })
+    void testFolderNameWithoutPath_FolderPaths_ReturnsFolders(String folderPath, String expected) {
+        assertThat(PathUtils.folderNameWithoutPath(folderPath)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
     @CsvSource({"public/", "public/docs/", "/"})
     void testIsFolderPath_WithTrailingSlash_ReturnsTrue(String path) {
         assertThat(PathUtils.isFolderPath(path)).isTrue();

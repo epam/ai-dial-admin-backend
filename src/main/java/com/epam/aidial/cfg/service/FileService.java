@@ -37,7 +37,7 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +53,7 @@ import static com.epam.aidial.cfg.client.mapper.FileClientMapper.FILES_PREFIX;
 @LogExecution
 @Slf4j
 public class FileService implements ResourceService {
+    public static final String DIAL_FOLDER_FILE = ".dial_folder";
 
     private final FileClient fileClient;
     private final FileClientMapper fileClientMapper;
@@ -279,8 +280,8 @@ public class FileService implements ResourceService {
     }
 
     public StreamingResponseBody export(ExportResource exportResource) {
-        var paths = resolveExportPaths(exportResource);
-        var sortedPaths = paths.stream()
+        var exportEntries = resolveExportFileEntries(exportResource);
+        var sortedPaths = exportEntries.keySet().stream()
                 .sorted()
                 .toList();
 
@@ -293,8 +294,7 @@ public class FileService implements ResourceService {
 
                 for (var path : sortedPaths) {
                     var fileResponse = get(path);
-
-                    zos.putNextEntry(new ZipEntry("files/" + path));
+                    zos.putNextEntry(new ZipEntry("files/" + exportEntries.get(path)));
                     try (InputStream responseBodyStream = fileResponse.body().asInputStream()) {
                         byte[] buffer = new byte[1024];
                         int bytesRead = responseBodyStream.read(buffer);
@@ -322,12 +322,32 @@ public class FileService implements ResourceService {
         }
     }
 
-    private Set<String> resolveExportPaths(ExportResource exportResource) {
-        Set<String> paths = new HashSet<>();
+    private Map<String, String> resolveExportFileEntries(ExportResource exportResource) {
+        Map<String, String> entries = new HashMap<>();
         for (String path : exportResource.getPaths()) {
-            paths.addAll(collectFilePathsByPath(path));
+            if (PathUtils.isFolderPath(path)) {
+                addFolderExportEntries(entries, path);
+            } else {
+                addSingleFileExportEntry(entries, path);
+            }
         }
-        return paths;
+        return entries;
+    }
+
+    private void addFolderExportEntries(Map<String, String> entries, String path) {
+        var folderName = PathUtils.folderNameWithoutPath(path);
+        var archiveFolderPath = "public/" + folderName;
+        for (String filePath : collectFilePathsByPath(path)) {
+            var fileName = PathUtils.parsePath(filePath).getName();
+            entries.putIfAbsent(filePath, archiveFolderPath + fileName);
+        }
+    }
+
+    private void addSingleFileExportEntry(Map<String, String> entries, String filePath) {
+        var fileName = PathUtils.parsePath(filePath).getName();
+        if (isNotTechFile(filePath)) {
+            entries.putIfAbsent(filePath, "public/" + fileName);
+        }
     }
 
     private Set<String> collectFilePathsByPath(String path) {
@@ -352,13 +372,19 @@ public class FileService implements ResourceService {
             return Collections.emptySet();
         }
         if (node.getNodeType() == NodeType.ITEM) {
-            return node.getPath() != null ? Set.of(node.getPath()) : Collections.emptySet();
+            return node.getPath() != null && isNotTechFile(node.getPath()) ? Set.of(node.getPath()) : Collections.emptySet();
         }
         if (node.getNodeType() == NodeType.FOLDER && node.getItems() != null) {
             return node.getItems().stream().filter(i -> i.getNodeType() == NodeType.ITEM)
                     .map(FileNodeInfo::getPath)
+                    .filter(this::isNotTechFile)
                     .collect(Collectors.toSet());
         }
         return Collections.emptySet();
+    }
+
+    private boolean isNotTechFile(String path) {
+        var fileName = PathUtils.parsePath(path).getName();
+        return !DIAL_FOLDER_FILE.equals(fileName);
     }
 }
