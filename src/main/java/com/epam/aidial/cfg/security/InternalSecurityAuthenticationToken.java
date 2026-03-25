@@ -20,7 +20,7 @@ public class InternalSecurityAuthenticationToken extends AbstractAuthenticationT
 
         Optional<String> reservedInternalPrincipal = getReservedInternalPrincipal(principal);
         if (reservedInternalPrincipal.isEmpty()) {
-            throw new IllegalArgumentException("Principal %s is not a reserved internal principal".formatted(principal));
+            throw new IllegalArgumentException("Principal '%s' is not a reserved internal principal".formatted(principal));
         }
 
         this.principal = reservedInternalPrincipal.get();

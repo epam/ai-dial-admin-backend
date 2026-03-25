@@ -42,19 +42,18 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
         var userRoles = userRolesResolver.resolve(authorities);
         var principalClaimValue = jwt.getClaimAsString(principalClaim);
 
-        if (InternalSecurityAuthenticationToken.isReservedInternalPrincipal(principalClaimValue)) {
-            log.warn("{} principal is forbidden - issuer: {}, authorities: {}, user roles: {}",
-                    principalClaimValue, issuer, authorities, userRoles);
-            return new JwtAuthenticationToken(jwt);
-        }
-
-        if (userRoles.isEmpty()) {
-            log.warn("Authorization failed - issuer: {}, authorities: {}, user roles: {}", issuer, authorities, userRoles);
-            return new JwtAuthenticationToken(jwt);
-        }
-
         JwtAuthenticationToken authToken = new JwtAuthenticationToken(jwt, userRoles, principalClaimValue);
         authToken.setDetails(details);
+
+        if (InternalSecurityAuthenticationToken.isReservedInternalPrincipal(principalClaimValue)) {
+            log.warn("'{}' principal is forbidden - issuer: {}, authorities: {}, user roles: {}",
+                    principalClaimValue, issuer, authorities, userRoles);
+            authToken.setAuthenticated(false);
+        } else if (userRoles.isEmpty()) {
+            log.warn("Authorization failed - issuer: {}, authorities: {}, user roles: {}",
+                    issuer, authorities, userRoles);
+            authToken.setAuthenticated(false);
+        }
 
         log.trace("Authorization state - token: {}, issuer: {}, authenticationToken: {}, authorities: {}",
                 jwt, issuer, authToken, authorities);

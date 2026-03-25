@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.web.security;
 
-import com.epam.aidial.cfg.security.InternalSecurityAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -44,16 +43,8 @@ public class DefaultOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
         Map<String, Object> newAttributes = new HashMap<>(attributes);
         newAttributes.put(OpaqueTokenProviderConfig.IDP_CLAIM, config.getName());
 
-        var principalClaimValue = (String) attributes.get(principalClaim);
-
-        if (InternalSecurityAuthenticationToken.isReservedInternalPrincipal(principalClaimValue)) {
-            String message = "%s principal is forbidden".formatted(principalClaimValue);
-            log.warn(message);
-            throw new OAuth2IntrospectionException(message);
-        }
-
         return new OAuth2IntrospectionAuthenticatedPrincipal(
-                principalClaimValue, newAttributes, grantedAuthorities);
+                (String) attributes.get(principalClaim), newAttributes, grantedAuthorities);
     }
 
     private Map<String, Object> introspectToken(String token) {
