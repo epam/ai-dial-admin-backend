@@ -98,7 +98,7 @@ public class PublicationService {
             var publicationDto = publicationResolver.updatePublicationResourceTargets(publication);
             publicationClient.updatePublication(publicationDto);
             publicationResolver.updatePublicationResources(publication);
-            auditActivityLogService.logPublication(publication.getPath(), ActivityType.PublicationUpdate, null);
+            auditActivityLogService.logPublication(publication.getPath(), ActivityType.Update, null);
         }
     }
 
@@ -118,14 +118,14 @@ public class PublicationService {
     public String createPublication(CreatePublication createPublication) {
         CreatePublicationDto dto = mapper.toCreatePublicationDto(createPublication);
         PublicationDto publication = publicationClient.createPublication(dto);
-        auditActivityLogService.logPublication(publication.getUrl(), ActivityType.PublicationCreate, null);
+        auditActivityLogService.logPublication(publication.getUrl(), ActivityType.Create, null);
         return publication.getUrl();
     }
 
     public void deletePublication(String path) {
         var pathDto = mapper.toPublicationPathDto(path);
         publicationClient.deletePublication(pathDto);
-        auditActivityLogService.logPublication(path, ActivityType.PublicationDelete, null);
+        auditActivityLogService.logPublication(path, ActivityType.Delete, null);
     }
 
     public Map<String, List<Rule>> getRules(String path) {

@@ -37,11 +37,37 @@ public class AuditActivityService {
 
     @Transactional(readOnly = true)
     public Page<AuditActivity> getActivitiesList(PageRequestModel pageRequest) {
+        return getActivitiesWithSpecification(pageRequest, null);
+    }
+
+    @Transactional(readOnly = true)
+    public AuditActivity getActivity(UUID activityId) {
+        return auditActivityJpaRepository.findById(activityId)
+                .map(auditActivityEntityMapper::map)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find activity with id " + activityId));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AuditActivity> getActivitiesByParentId(UUID parentActivityId, PageRequestModel pageRequest) {
+        Specification<AuditActivityEntity> byParent = (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("parentActivityId"), parentActivityId);
+        return getActivitiesWithSpecification(pageRequest, byParent);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AuditActivity> getActivitiesWithoutParentId(PageRequestModel pageRequest) {
+        Specification<AuditActivityEntity> parentIsNull = (root, query, criteriaBuilder) ->
+                criteriaBuilder.isNull(root.get("parentActivityId"));
+        return getActivitiesWithSpecification(pageRequest, parentIsNull);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AuditActivity> getActivitiesWithSpecification(PageRequestModel pageRequest, Specification<AuditActivityEntity> specification) {
         var page = pageEntityMapper.toPageRequest(pageRequest);
         var filters = pageEntityMapper.toSpecifications(pageRequest,
                 new PageEntityMapper.SpecificationContext(auditActivityCaseInSensitiveColumns), AuditActivityEntity.class);
-        var specification = Specification.allOf(Specification.allOf(filters), defaultFilters());
-        var resultPage = auditActivityJpaRepository.findAll(specification, page);
+        var combinedSpecification = Specification.allOf(Specification.allOf(filters), specification, defaultFilters());
+        var resultPage = auditActivityJpaRepository.findAll(combinedSpecification, page);
 
         var activities = resultPage
                 .stream()
@@ -53,13 +79,6 @@ public class AuditActivityService {
                 .total(resultPage.getTotalElements())
                 .totalPages(resultPage.getTotalPages())
                 .build();
-    }
-
-    @Transactional(readOnly = true)
-    public AuditActivity getActivity(UUID activityId) {
-        return auditActivityJpaRepository.findById(activityId)
-                .map(auditActivityEntityMapper::map)
-                .orElseThrow(() -> new EntityNotFoundException("Unable to find activity with id " + activityId));
     }
 
     private static Specification<AuditActivityEntity> defaultFilters() {

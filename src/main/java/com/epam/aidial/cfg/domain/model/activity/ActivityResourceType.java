@@ -21,10 +21,12 @@ public enum ActivityResourceType {
     AdminSettings,
     ImportConfig,
     ExportConfig,
-    ToolResource,
+    ToolSetResource,
     ApplicationResource,
     Prompt,
     File,
     Publication,
-    Conversation
+    Conversation,
+    Folder,
+    Rollback
 }

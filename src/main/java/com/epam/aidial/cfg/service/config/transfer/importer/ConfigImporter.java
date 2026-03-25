@@ -149,22 +149,13 @@ public class ConfigImporter {
                 .build();
     }
 
+    @Transactional
     public void importConfigWithOverride(Config config) {
-        var parentId = auditActivityLogService.logImportOperation("core", new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
-            importConfigTransactional(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
-        }
-    }
-
-    public void importConfig(Config config, ConfigImportOptions importOptions) {
-        var parentId = auditActivityLogService.logImportOperation("core", importOptions);
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
-            importConfigTransactional(config, importOptions);
-        }
+        importConfig(config, new ConfigImportOptions(ConflictResolutionPolicy.OVERRIDE));
     }
 
     @Transactional
-    public void importConfigTransactional(Config config, ConfigImportOptions importOptions) {
+    public void importConfig(Config config, ConfigImportOptions importOptions) {
         var parentId = auditActivityLogService.logImportOperation("core", importOptions);
         try (var scope = auditParentActivityHolder.openScope(parentId)) {
             var resolutionPolicy = importOptions.conflictResolutionPolicy();
@@ -185,21 +176,12 @@ public class ConfigImporter {
         }
     }
 
-    public void importAdminConfig(ExportConfig config, ConfigImportOptions importOptions) {
-        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
-        var parentId = auditActivityLogService.logImportOperation("admin", importOptions);
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
-            importAdminConfigTransactional(config, importOptions);
-        }
-    }
-
     @Transactional
-    public void importAdminConfigTransactional(ExportConfig config, ConfigImportOptions importOptions) {
-        adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
+    public void importAdminConfig(ExportConfig config, ConfigImportOptions importOptions) {
         var parentId = auditActivityLogService.logImportOperation("admin", importOptions);
         try (var scope = auditParentActivityHolder.openScope(parentId)) {
+            adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
             var resolutionPolicy = importOptions.conflictResolutionPolicy();
-
             interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
             interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
             applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);

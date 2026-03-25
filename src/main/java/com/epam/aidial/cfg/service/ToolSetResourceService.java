@@ -134,7 +134,7 @@ public class ToolSetResourceService implements ResourceService {
         try {
             var toolSetMetadata = toolSetClient.putToolSetResource(path, toolSetResourceDto, headers);
             var auditType = !allowOverride && etag == null ? ActivityType.Create : ActivityType.Update;
-            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.ToolResource, path);
+            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.ToolSetResource, path);
             return toolSetMetadata.getHeaders().getETag();
         } catch (ResourcePreconditionFailedException ex) {
             throw OptimisticLockConflictException.onUpdate("ToolSet Resource", createToolSetResource.getName());
@@ -167,7 +167,7 @@ public class ToolSetResourceService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         toolSetClient.deleteToolSetResource(path, headers);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.ToolResource, path);
+        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.ToolSetResource, path);
     }
 
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {

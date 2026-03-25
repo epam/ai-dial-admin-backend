@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.service;
 
+import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,6 +36,7 @@ class FolderServiceTest {
     private FileService fileService;
     private PromptService promptService;
     private PublicationService publicationService;
+    private AuditActivityLogService auditActivityLogService;
     private FolderService folderService;
 
     @BeforeEach
@@ -43,13 +46,15 @@ class FolderServiceTest {
         fileService = mock(FileService.class);
         promptService = mock(PromptService.class);
         publicationService = mock(PublicationService.class);
+        auditActivityLogService = mock(AuditActivityLogService.class);
+        doNothing().when(auditActivityLogService).logFolderAccessChange(any(), any());
         Map<ResourceType, ResourceService> resourceServicesByResourceType = Map.of(
                 ResourceType.APPLICATION, applicationService,
                 ResourceType.CONVERSATION, conversationService,
                 ResourceType.FILE, fileService,
                 ResourceType.PROMPT, promptService
         );
-        folderService = new FolderService(resourceServicesByResourceType, publicationService);
+        folderService = new FolderService(resourceServicesByResourceType, publicationService, auditActivityLogService);
     }
 
     @Test
@@ -211,6 +216,7 @@ class FolderServiceTest {
         verify(publicationService).getRules(oldPath);
         verify(publicationService).createPublication(createPublication);
         verify(publicationService).approvePublication("pub");
+        verify(auditActivityLogService).logFolderAccessChange(eq(newPath), eq(rules));
         verify(promptService).getResourceUrls(oldPath);
         verify(promptService).move(movePrompt1);
         verify(promptService).move(movePrompt2);

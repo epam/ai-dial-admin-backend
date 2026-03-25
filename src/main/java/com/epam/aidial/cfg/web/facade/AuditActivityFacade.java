@@ -28,9 +28,29 @@ public class AuditActivityFacade {
     public PageDto<AuditActivityDto> getAuditActivities(PageRequestDto pageRequestDto) {
         PageRequestModel pageRequest = pageDtoMapper.toPageRequestModel(pageRequestDto);
         Page<AuditActivity> page = auditActivityService.getActivitiesList(pageRequest);
+        return mapToPageDto(page);
+    }
 
-        List<AuditActivityDto> data = page
-                .getData()
+    public AuditActivityDto getAuditActivity(UUID activityId) {
+        AuditActivity activity = auditActivityService.getActivity(activityId);
+        return auditActivityDtoMapper.map(activity);
+    }
+
+    public PageDto<AuditActivityDto> getAuditActivitiesByParentId(UUID parentActivityId,
+                                                                  PageRequestDto pageRequestDto) {
+        PageRequestModel pageRequest = pageDtoMapper.toPageRequestModel(pageRequestDto);
+        Page<AuditActivity> page = auditActivityService.getActivitiesByParentId(parentActivityId, pageRequest);
+        return mapToPageDto(page);
+    }
+
+    public PageDto<AuditActivityDto> getActivitiesWithoutParentId(PageRequestDto pageRequestDto) {
+        PageRequestModel pageRequest = pageDtoMapper.toPageRequestModel(pageRequestDto);
+        Page<AuditActivity> page = auditActivityService.getActivitiesWithoutParentId(pageRequest);
+        return mapToPageDto(page);
+    }
+
+    private PageDto<AuditActivityDto> mapToPageDto(Page<AuditActivity> page) {
+        List<AuditActivityDto> data = page.getData()
                 .stream()
                 .map(auditActivityDtoMapper::map)
                 .collect(Collectors.toList());
@@ -40,10 +60,5 @@ public class AuditActivityFacade {
                 .total(page.getTotal())
                 .totalPages(page.getTotalPages())
                 .build();
-    }
-
-    public AuditActivityDto getAuditActivity(UUID activityId) {
-        AuditActivity activity = auditActivityService.getActivity(activityId);
-        return auditActivityDtoMapper.map(activity);
     }
 }
