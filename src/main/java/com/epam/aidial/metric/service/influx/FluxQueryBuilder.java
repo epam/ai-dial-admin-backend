@@ -348,7 +348,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                         regexCounter))
                 .toList();
 
-        if (aggregations.size() == 1) {
+        if (aggregations.isEmpty()) {
+            throw new IllegalArgumentException("At least one aggregation expression is required");
+        } else if (aggregations.size() == 1) {
             combiner.add(aggregations.get(0));
         } else {
             var joinColumns = new ArrayList<String>();
