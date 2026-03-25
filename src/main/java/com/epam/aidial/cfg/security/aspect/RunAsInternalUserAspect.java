@@ -36,7 +36,7 @@ public class RunAsInternalUserAspect {
     private void checkPrincipal(RunAsInternalUser runAsInternalUser) {
         String principal = runAsInternalUser.principal();
         if (!InternalSecurityAuthenticationToken.isReservedInternalPrincipal(principal)) {
-            throw new IllegalArgumentException("Principal %s is not reserved internal principal".formatted(principal));
+            throw new IllegalArgumentException("Principal %s is not a reserved internal principal".formatted(principal));
         }
     }
 
