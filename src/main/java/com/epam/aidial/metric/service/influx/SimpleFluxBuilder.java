@@ -2,6 +2,7 @@ package com.epam.aidial.metric.service.influx;
 
 
 import com.epam.aidial.expressions.AggregationFunctionCall;
+import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.GroupFunctionCall;
@@ -59,7 +60,7 @@ public class SimpleFluxBuilder {
                 .orElseThrow();
 
         var columnNames = orderBy.stream().map(Sort::getExpression)
-                .map(expression2ColumnNames::get)
+                .map(expression -> resolveColumnName(expression, expression2ColumnNames))
                 .toList();
 
         var noMapping = columnNames.stream().anyMatch(Objects::isNull);
@@ -125,7 +126,7 @@ public class SimpleFluxBuilder {
 
         var functionName = aggregationFunctionCall.getFunction().getName();
 
-        return "|> aggregateWindow(every: %s, fn: %s, createEmpty: false)".formatted(duration, functionName);
+        return "|> aggregateWindow(every: %s, fn: %s, createEmpty: false, timeSrc: \"_start\")".formatted(duration, functionName);
     }
 
     public static String createWindowPart(GroupFunctionCall groupFunctionCall) {
@@ -166,6 +167,20 @@ public class SimpleFluxBuilder {
 
     public static String quote(String value) {
         return "\"" + value + "\"";
+    }
+
+    private static String resolveColumnName(Expression expression, Map<Expression, String> expression2ColumnNames) {
+        var columnName = expression2ColumnNames.get(expression);
+        if (columnName != null) {
+            return columnName;
+        }
+        // Fallback: sort expressions referencing aliases by name
+        if (expression instanceof Column column) {
+            if (expression2ColumnNames.containsValue(column.getName())) {
+                return column.getName();
+            }
+        }
+        return null;
     }
 
 }
