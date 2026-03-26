@@ -226,6 +226,9 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
         var windowOuterName = expressionToOuterColumnNames.get(groupFunctionCall);
         var aggOuterName = expressionToOuterColumnNames.get(aggregationFunctionCall);
 
+        // Use a temp name in SQL to avoid colliding with InfluxDB's reserved "time" column
+        var windowSqlAlias = getNewTemporaryName(TEMPORAL_COLUMN_NAME);
+
         var paramCounter = new AtomicInteger(0);
         var allParams = new HashMap<String, Object>();
 
@@ -241,16 +244,16 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
 
         var sql = new StringBuilder();
         sql.append("SELECT ");
-        sql.append(windowExpr).append(" AS \"").append(windowOuterName).append("\"");
+        sql.append(windowExpr).append(" AS \"").append(windowSqlAlias).append("\"");
         sql.append(", ").append(aggSql).append(" AS \"").append(aggOuterName).append("\"");
         sql.append(" FROM \"").append(tableName).append("\"");
         if (!whereClause.isEmpty()) {
             sql.append(" WHERE ").append(whereClause);
         }
-        sql.append(" GROUP BY \"").append(windowOuterName).append("\"");
+        sql.append(" GROUP BY \"").append(windowSqlAlias).append("\"");
 
-        // Build ORDER BY
-        var orderByClause = buildOrderByClause(query.getOrderBy());
+        // Build ORDER BY — map user alias to SQL alias for the window column
+        var orderByClause = buildOrderByClause(query.getOrderBy(), Map.of(windowOuterName, windowSqlAlias));
         if (!orderByClause.isEmpty()) {
             sql.append(" ORDER BY ").append(orderByClause);
         }
@@ -276,7 +279,6 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
     protected SqlQueryContext buildWindowColumnAggregationQuery(Query query) {
         var groupFunctionCall = extractWindowFunction(query.getGroupBy());
         var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy());
-        var aggregationFunctionCalls = resolveAggregationFunctionCalls(query.getExpressions());
 
         var table = getTable(query);
         var tableDeclaration = getTableDeclaration(table.getName());
@@ -291,7 +293,10 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
         // Build window expression
         var windowInterval = buildWindowInterval(groupFunctionCall);
         var windowExpr = "DATE_BIN(%s, \"time\", TIMESTAMP '1970-01-01T00:00:00Z')".formatted(windowInterval);
+
+        // Use a temp name in SQL to avoid colliding with InfluxDB's reserved "time" column
         var windowOuterName = expressionToOuterColumnNames.get(groupFunctionCall);
+        var windowSqlAlias = getNewTemporaryName(TEMPORAL_COLUMN_NAME);
 
         // Build SELECT — preserve expression order
         var selectParts = new ArrayList<String>();
@@ -299,7 +304,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
             var resolved = resolveAlias(expression);
             var outerName = expressionToOuterColumnNames.get(expression);
             if (resolved instanceof com.epam.aidial.expressions.GroupFunctionCall) {
-                selectParts.add(windowExpr + " AS \"" + outerName + "\"");
+                selectParts.add(windowExpr + " AS \"" + windowSqlAlias + "\"");
             } else if (resolved instanceof AggregationFunctionCall aggCall) {
                 var function = (FunctionImpl) aggCall.getFunction();
                 var aggSql = buildAggregationExpression(function, aggCall.getArgs(), paramCounter, allParams);
@@ -311,7 +316,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
 
         // Build GROUP BY: window alias + column names
         var groupByParts = new ArrayList<String>();
-        groupByParts.add("\"" + windowOuterName + "\"");
+        groupByParts.add("\"" + windowSqlAlias + "\"");
         for (var colName : groupByColumnNames) {
             groupByParts.add("\"" + colName + "\"");
         }
@@ -324,8 +329,8 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
         }
         sql.append(" GROUP BY ").append(String.join(", ", groupByParts));
 
-        // Build ORDER BY
-        var orderByClause = buildOrderByClause(query.getOrderBy());
+        // Build ORDER BY — map user alias to SQL alias for the window column
+        var orderByClause = buildOrderByClause(query.getOrderBy(), Map.of(windowOuterName, windowSqlAlias));
         if (!orderByClause.isEmpty()) {
             sql.append(" ORDER BY ").append(orderByClause);
         }
@@ -458,6 +463,10 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
     }
 
     private String buildOrderByClause(List<Sort> orderBy) {
+        return buildOrderByClause(orderBy, Map.of());
+    }
+
+    private String buildOrderByClause(List<Sort> orderBy, Map<String, String> sqlAliasOverrides) {
         if (CollectionUtils.isEmpty(orderBy)) {
             return "";
         }
@@ -468,6 +477,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
                     if (columnName == null) {
                         throw new NotImplementedException("Only sort for specified columns is supported");
                     }
+                    columnName = sqlAliasOverrides.getOrDefault(columnName, columnName);
                     var direction = sort.getDirection() == SortDirection.DESC ? " DESC" : " ASC";
                     return "\"" + columnName + "\"" + direction;
                 })

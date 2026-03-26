@@ -9,7 +9,10 @@ import com.influxdb.v3.client.InfluxDBClient;
 import com.influxdb.v3.client.query.QueryOptions;
 import com.influxdb.v3.client.query.QueryType;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class Influx3Engine extends AbstractQueryEngine {
@@ -31,13 +34,13 @@ public class Influx3Engine extends AbstractQueryEngine {
         var queryContext = queryBuilderFactory.createQueryBuilder()
                 .buildQueryContext(completable);
 
-        var rows = new ArrayList<java.util.List<Object>>();
+        var rows = new ArrayList<List<Object>>();
         var options = new QueryOptions(influx3Declaration.getSource().getDatabase(), QueryType.SQL);
         try (Stream<Object[]> stream = client.query(queryContext.getQuery(), queryContext.getParameters(), options)) {
             stream.forEach(record -> {
                 var row = new ArrayList<>(queryContext.getColumnNames().size());
                 for (int i = 0; i < queryContext.getColumnNames().size(); i++) {
-                    row.add(i < record.length ? record[i] : null);
+                    row.add(i < record.length ? normalizeValue(record[i]) : null);
                 }
                 rows.add(row);
             });
@@ -47,5 +50,12 @@ public class Influx3Engine extends AbstractQueryEngine {
                 .expressions(completable.getExpressions())
                 .data(rows)
                 .build();
+    }
+
+    private Object normalizeValue(Object value) {
+        if (value instanceof LocalDateTime localDateTime) {
+            return localDateTime.toInstant(ZoneOffset.UTC);
+        }
+        return value;
     }
 }
