@@ -98,14 +98,21 @@ public class SimpleFluxBuilder {
 
         var functionName = aggregationFunctionCall.getFunction().getName();
 
-        return "|> aggregateWindow(every: %s, fn: %s, createEmpty: false, timeSrc: \"_start\")".formatted(duration, functionName);
+        return "|> aggregateWindow(every: %s, fn: %s, createEmpty: false, timeSrc: \"_start\")\n".formatted(duration, functionName)
+                + createTruncateMapPart("_time", duration);
     }
 
     public static String createWindowPart(GroupFunctionCall groupFunctionCall) {
         var value = ((NumberConstant) groupFunctionCall.getArgs().get(1)).getNumberValue();
         var unit = (String) ((Constant) groupFunctionCall.getArgs().get(2)).getValue();
         var duration = createDuration(value, unit);
-        return "|> window(every: %s)".formatted(duration);
+        return "|> window(every: %s)\n".formatted(duration)
+                + createTruncateMapPart("_start", duration);
+    }
+
+    private static String createTruncateMapPart(String column, String duration) {
+        return "|> map(fn: (r) => ({r with %s: time(v: int(v: r.%s) - int(v: r.%s) %% int(v: %s))}))".formatted(
+                column, column, column, duration);
     }
 
     public static String createSetPart(String columnName, String value) {
