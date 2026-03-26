@@ -162,7 +162,7 @@ public class MetricController {
     private DataDto toDataDto(Data data) {
         var headers = getHeaders(data.getExpressions());
         var stringifiedData = data.getData().stream()
-                .map(list -> list.stream().map(Objects::toString).toList())
+                .map(list -> list.stream().map(v -> v == null ? null : Objects.toString(v)).toList())
                 .toList();
         return DataDto.builder()
                 .headers(headers)
