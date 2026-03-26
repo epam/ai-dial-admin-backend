@@ -901,6 +901,42 @@ public abstract class AbstractInfluxContainerTest {
         }
 
         @Test
+        void sumWithNoMatchingFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["sum(deployment_price) as total"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'nonexistent'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("total");
+            assertThat(data.getData()).containsExactly(List.of(0.0));
+        }
+
+        @Test
+        void multipleAggregationsWithNoMatchingFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt", "sum(deployment_price) as money", "sum(prompt_tokens) as tokens"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'nonexistent'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt", "money", "tokens");
+            assertThat(data.getData()).containsExactly(List.of(0L, 0.0, 0L));
+        }
+
+        @Test
         void expressionAliasesPreserved() throws Exception {
             var data = queryFromJson("""
                     {

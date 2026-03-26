@@ -1,13 +1,17 @@
 package com.epam.aidial.metric.service.influx3;
 
+import com.epam.aidial.expressions.Expression;
+import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.service.AbstractQueryEngine;
 import com.epam.aidial.ql.model.Completable;
 import com.epam.aidial.ql.model.Data;
+import com.epam.aidial.ql.model.Query;
 import com.epam.aidial.ql.model.impl.DataImpl;
 import com.influxdb.v3.client.InfluxDBClient;
 import com.influxdb.v3.client.query.QueryOptions;
 import com.influxdb.v3.client.query.QueryType;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -46,10 +50,54 @@ public class Influx3Engine extends AbstractQueryEngine {
             });
         }
 
+        if (rows.isEmpty() && isUngroupedAggregation(completable)) {
+            rows.add(buildDefaultAggregationRow(completable.getExpressions()));
+        } else if (rows.size() == 1 && isUngroupedAggregation(completable)) {
+            rows.set(0, normalizeAggregationRow(rows.get(0), completable.getExpressions()));
+        }
+
         return DataImpl.builder()
                 .expressions(completable.getExpressions())
                 .data(rows)
                 .build();
+    }
+
+    private boolean isUngroupedAggregation(Completable completable) {
+        if (!(completable instanceof Query query)) {
+            return false;
+        }
+        if (!CollectionUtils.isEmpty(query.getGroupBy())) {
+            return false;
+        }
+        return query.getExpressions().stream().anyMatch(Expression::isAggregation);
+    }
+
+    private List<Object> normalizeAggregationRow(List<Object> row, List<Expression> expressions) {
+        var normalized = new ArrayList<>(row.size());
+        for (int i = 0; i < expressions.size(); i++) {
+            var value = i < row.size() ? row.get(i) : null;
+            if (value == null && expressions.get(i).isAggregation()) {
+                normalized.add(defaultForType(expressions.get(i).getType()));
+            } else {
+                normalized.add(value);
+            }
+        }
+        return normalized;
+    }
+
+    private List<Object> buildDefaultAggregationRow(List<Expression> expressions) {
+        var row = new ArrayList<>();
+        for (var expression : expressions) {
+            row.add(expression.isAggregation() ? defaultForType(expression.getType()) : null);
+        }
+        return row;
+    }
+
+    private Object defaultForType(Type type) {
+        return switch (type) {
+            case FLOAT, DOUBLE -> 0.0;
+            default -> 0L;
+        };
     }
 
     private Object normalizeValue(Object value) {
