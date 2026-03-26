@@ -2,21 +2,15 @@ package com.epam.aidial.metric.service.influx;
 
 
 import com.epam.aidial.expressions.AggregationFunctionCall;
-import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
-import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.GroupFunctionCall;
 import com.epam.aidial.expressions.NumberConstant;
 import com.epam.aidial.metric.model.influx.FluxQueryPart;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
-import com.epam.aidial.metric.util.CollectorsUtils;
-import com.epam.aidial.ql.common.model.enums.SortDirection;
 import com.epam.aidial.ql.model.Query;
-import com.epam.aidial.ql.model.Sort;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.List;
 import java.util.Map;
@@ -50,29 +44,7 @@ public class SimpleFluxBuilder {
         return "|> group(columns: %s)".formatted(compactWithQuoting(columnNames));
     }
 
-    public static String createSortPart(List<Sort> orderBy, Map<Expression, String> expression2ColumnNames) {
-        if (CollectionUtils.isEmpty(orderBy)) {
-            return "";
-        }
-
-        var direction = orderBy.stream().map(Sort::getDirection).distinct()
-                .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one sort direction is allowed")))
-                .orElseThrow();
-
-        var columnNames = orderBy.stream().map(Sort::getExpression)
-                .map(expression -> resolveColumnName(expression, expression2ColumnNames))
-                .toList();
-
-        var noMapping = columnNames.stream().anyMatch(Objects::isNull);
-        if (noMapping) {
-            throw new NotImplementedException("Only sort for specified columns is supported");
-        }
-
-        var desc = direction == SortDirection.DESC;
-        return SimpleFluxBuilder.createSortPart(columnNames, desc);
-    }
-
-    private static String createSortPart(List<String> columnNames, boolean desc) {
+    public static String createSortPart(List<String> columnNames, boolean desc) {
         if (CollectionUtils.isEmpty(columnNames)) {
             return "";
         }
@@ -167,20 +139,6 @@ public class SimpleFluxBuilder {
 
     public static String quote(String value) {
         return "\"" + value + "\"";
-    }
-
-    private static String resolveColumnName(Expression expression, Map<Expression, String> expression2ColumnNames) {
-        var columnName = expression2ColumnNames.get(expression);
-        if (columnName != null) {
-            return columnName;
-        }
-        // Fallback: sort expressions referencing aliases by name
-        if (expression instanceof Column column) {
-            if (expression2ColumnNames.containsValue(column.getName())) {
-                return column.getName();
-            }
-        }
-        return null;
     }
 
 }

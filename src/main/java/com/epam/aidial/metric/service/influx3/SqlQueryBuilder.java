@@ -484,24 +484,6 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
                 .collect(Collectors.joining(", "));
     }
 
-    private String resolveOrderByColumnName(Expression expression) {
-        // Direct lookup by object identity
-        var columnName = expressionToOuterColumnNames.get(expression);
-        if (columnName != null) {
-            return columnName;
-        }
-
-        // Fallback: lookup by column name (for sort expressions referencing aliases/columns)
-        if (expression instanceof Column column) {
-            // Check if it matches an outer column name directly
-            if (expressionToOuterColumnNames.containsValue(column.getName())) {
-                return column.getName();
-            }
-        }
-
-        return null;
-    }
-
     private String buildLimitClause(Query query) {
         var limit = query.getLimit();
         var offset = query.getOffset();
