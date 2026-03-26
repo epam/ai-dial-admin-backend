@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -405,22 +404,11 @@ public abstract class AbstractInfluxContainerTest {
                     }""".formatted(TIME_FILTER));
 
             assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
-            assertThat(data.getData()).hasSize(4)
-                    .allSatisfy(row -> {
-                        assertThat(row.get(0)).isInstanceOf(Instant.class);
-                        assertThat(row.get(2)).isEqualTo(1L);
-                    });
-
-            // Truncate to days: both engines agree at day granularity for 1-day windows
-            // (Flux clips first window to range start, SQL aligns to epoch)
-            var rows = data.getData().stream()
-                    .map(row -> List.of(((Instant) row.get(0)).truncatedTo(ChronoUnit.DAYS), row.get(1)))
-                    .toList();
-            assertThat(rows).containsExactlyInAnyOrder(
-                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4"),
-                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4"),
-                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5"),
-                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5")
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5", 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5", 1L)
             );
         }
 
