@@ -61,6 +61,63 @@ public class WindowGapFiller {
         return fillGaps(rows, buckets, query.getExpressions(), layout);
     }
 
+    /**
+     * Produces a complete time-series grid by filling missing time buckets with zero-valued rows.
+     *
+     * <p>For each distinct group key (e.g., {@code ["gpt-4"]}, {@code ["gpt-4.5"]}) discovered in the
+     * actual data, ensures every time bucket has a corresponding row. Missing combinations get a
+     * zero-filled row built by {@link #buildDefaultRow}.
+     *
+     * <p>For window-only queries (no group-by columns), a single implicit group key is used, so the
+     * result is one row per bucket. For window+column queries with no data at all, returns empty
+     * because the set of group key values (e.g., which deployments exist) is unknown.
+     *
+     * <p>Example: {@code SELECT window(1h), deployment, sum(tokens)} over 3 buckets with 2 deployments
+     * produces a 6-row grid (3 buckets x 2 deployments), even if the DB only returned 4 rows.
+     */
+    private static List<List<Object>> fillGaps(
+            List<List<Object>> rows,
+            List<Instant> buckets,
+            List<Expression> expressions,
+            ColumnLayout layout) {
+
+        if (rows.isEmpty() && !layout.groupColumnIndices().isEmpty()) {
+            return rows;
+        }
+
+        // Index existing rows by (groupKey, timestamp) for O(1) lookup
+        var groupKeys = new LinkedHashSet<List<Object>>();
+        var dataMap = new LinkedHashMap<List<Object>, Map<Instant, List<Object>>>();
+
+        for (var row : rows) {
+            var groupKey = extractGroupKey(row, layout.groupColumnIndices());
+            groupKeys.add(groupKey);
+
+            var time = (Instant) row.get(layout.timeIndex());
+            dataMap.computeIfAbsent(groupKey, k -> new LinkedHashMap<>()).put(time, row);
+        }
+
+        // Window-only queries have no group columns — use a single empty key
+        if (groupKeys.isEmpty()) {
+            groupKeys.add(List.of());
+        }
+
+        // Build the complete grid: for every (bucket, groupKey), use existing row or fill with zeros
+        var result = new ArrayList<List<Object>>();
+        for (var bucket : buckets) {
+            for (var groupKey : groupKeys) {
+                var timeMap = dataMap.get(groupKey);
+                var existing = timeMap != null ? timeMap.get(bucket) : null;
+                if (existing != null) {
+                    result.add(existing);
+                } else {
+                    result.add(buildDefaultRow(expressions, layout, bucket, groupKey));
+                }
+            }
+        }
+        return result;
+    }
+
     record TimeRange(Instant start, Instant end) {}
 
     record Interval(long value, String unit) {}
@@ -210,63 +267,6 @@ public class WindowGapFiller {
         return new ColumnLayout(timeIndex, groupColumnIndices, aggregationIndices);
     }
 
-    /**
-     * Produces a complete time-series grid by filling missing time buckets with zero-valued rows.
-     *
-     * <p>For each distinct group key (e.g., {@code ["gpt-4"]}, {@code ["gpt-4.5"]}) discovered in the
-     * actual data, ensures every time bucket has a corresponding row. Missing combinations get a
-     * zero-filled row built by {@link #buildDefaultRow}.
-     *
-     * <p>For window-only queries (no group-by columns), a single implicit group key is used, so the
-     * result is one row per bucket. For window+column queries with no data at all, returns empty
-     * because the set of group key values (e.g., which deployments exist) is unknown.
-     *
-     * <p>Example: {@code SELECT window(1h), deployment, sum(tokens)} over 3 buckets with 2 deployments
-     * produces a 6-row grid (3 buckets x 2 deployments), even if the DB only returned 4 rows.
-     */
-    private static List<List<Object>> fillGaps(
-            List<List<Object>> rows,
-            List<Instant> buckets,
-            List<Expression> expressions,
-            ColumnLayout layout) {
-
-        if (rows.isEmpty() && !layout.groupColumnIndices().isEmpty()) {
-            return rows;
-        }
-
-        // Index existing rows by (groupKey, timestamp) for O(1) lookup
-        var groupKeys = new LinkedHashSet<List<Object>>();
-        var dataMap = new LinkedHashMap<List<Object>, Map<Instant, List<Object>>>();
-
-        for (var row : rows) {
-            var groupKey = extractGroupKey(row, layout.groupColumnIndices());
-            groupKeys.add(groupKey);
-
-            var time = (Instant) row.get(layout.timeIndex());
-            dataMap.computeIfAbsent(groupKey, k -> new LinkedHashMap<>()).put(time, row);
-        }
-
-        // Window-only queries have no group columns — use a single empty key
-        if (groupKeys.isEmpty()) {
-            groupKeys.add(List.of());
-        }
-
-        // Build the complete grid: for every (bucket, groupKey), use existing row or fill with zeros
-        var result = new ArrayList<List<Object>>();
-        for (var bucket : buckets) {
-            for (var groupKey : groupKeys) {
-                var timeMap = dataMap.get(groupKey);
-                var existing = timeMap != null ? timeMap.get(bucket) : null;
-                if (existing != null) {
-                    result.add(existing);
-                } else {
-                    result.add(buildDefaultRow(expressions, layout, bucket, groupKey));
-                }
-            }
-        }
-        return result;
-    }
-
     private static List<Object> extractGroupKey(List<Object> row, List<Integer> groupColumnIndices) {
         var key = new ArrayList<>(groupColumnIndices.size());
         for (var idx : groupColumnIndices) {
@@ -290,7 +290,7 @@ public class WindowGapFiller {
             Instant bucketTime,
             List<Object> groupValues) {
 
-        var row = new ArrayList<>(Collections.nCopies(expressions.size(), (Object) null));
+        var row = new ArrayList<>(Collections.nCopies(expressions.size(), null));
 
         row.set(layout.timeIndex(), bucketTime);
 
