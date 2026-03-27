@@ -350,6 +350,8 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 |  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
 |  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
 |  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection |
+|  | METRICS_STORAGE_ANALYTICS_TABLE | analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for analytics data |
+|  | METRICS_STORAGE_MCP_ANALYTICS_TABLE | mcp_analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for MCP analytics data |
 
 metrics/telemetry functionality in admin panel reads data produced by https://github.com/epam/ai-dial-analytics-realtime.
 
