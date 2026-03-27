@@ -663,7 +663,8 @@ class FluxQueryIntegrationTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group()
-                |> aggregateWindow(every: 1h, fn: count, createEmpty: false)
+                |> aggregateWindow(every: 1h, fn: count, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 1h))}))
                 |> rename(columns: {_time: "time_window", _value: "total"})""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
@@ -686,7 +687,8 @@ class FluxQueryIntegrationTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group()
-                |> aggregateWindow(every: 1h, fn: count, createEmpty: false)
+                |> aggregateWindow(every: 1h, fn: count, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 1h))}))
                 |> rename(columns: {_time: "time_window", _value: "total"})""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
