@@ -29,7 +29,7 @@ public class InfluxEngine extends AbstractQueryEngine {
     }
 
     @Override
-    public Data getData(Completable completable) {
+    public Data getData(Completable completable, boolean fillGaps) {
         var queryContext = queryBuilderFactory.createQueryBuilder()
                 .buildQueryContext(completable);
         var tables = client.getQueryApi().query(queryContext.buildFullQuery());
@@ -39,7 +39,7 @@ public class InfluxEngine extends AbstractQueryEngine {
             rows.add(buildDefaultAggregationRow(completable.getExpressions()));
         }
 
-        if (completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
+        if (fillGaps && completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
             rows = new ArrayList<>(WindowGapFiller.fillGaps(rows, query));
         }
 

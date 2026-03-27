@@ -35,7 +35,7 @@ public class Influx3Engine extends AbstractQueryEngine {
     }
 
     @Override
-    public Data getData(Completable completable) {
+    public Data getData(Completable completable, boolean fillGaps) {
         var queryContext = queryBuilderFactory.createQueryBuilder()
                 .buildQueryContext(completable);
 
@@ -58,7 +58,7 @@ public class Influx3Engine extends AbstractQueryEngine {
         }
 
         List<List<Object>> resultRows = rows;
-        if (completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
+        if (fillGaps && completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
             resultRows = WindowGapFiller.fillGaps(rows, query);
         }
 

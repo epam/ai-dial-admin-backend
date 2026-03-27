@@ -13,5 +13,5 @@ public interface Engine {
     String getName();
     FunctionsDatasource getFunctions();
     Map<String, Table> getTables();
-    Data getData(Completable completable);
+    Data getData(Completable completable, boolean fillGaps);
 }

@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -122,13 +123,14 @@ public class WindowGapFiller {
         return switch (interval.unit().toLowerCase()) {
             case "y" -> startZoned.withMonth(1).withDayOfMonth(1).toLocalDate().atStartOfDay(ZoneOffset.UTC);
             case "mo" -> startZoned.withDayOfMonth(1).toLocalDate().atStartOfDay(ZoneOffset.UTC);
-            default -> {
-                // Fixed-duration units (s, m, h, d, w): align to epoch like DATE_BIN
+            case "s", "m", "h", "d", "w" -> {
+                // Fixed-duration units: align to epoch like DATE_BIN
                 var epochMillis = toDuration(interval).toMillis();
                 var startMillis = start.toEpochMilli();
                 var aligned = startMillis - Math.floorMod(startMillis, epochMillis);
                 yield Instant.ofEpochMilli(aligned).atZone(ZoneOffset.UTC);
             }
+            default -> throw new IllegalArgumentException("Unsupported interval unit: " + interval.unit());
         };
     }
 
@@ -157,6 +159,21 @@ public class WindowGapFiller {
         };
     }
 
+    /**
+     * Classifies each SELECT expression by its role in the result row:
+     * <ul>
+     *   <li>{@code timeIndex} — the window bucket timestamp (the {@link GroupFunctionCall}, currently always {@code window(...)})</li>
+     *   <li>{@code groupColumnIndices} — group-by key columns (e.g., {@code deployment})</li>
+     *   <li>{@code aggregationIndices} — aggregated value columns (e.g., {@code sum(tokens)})</li>
+     * </ul>
+     *
+     * <p>Group-by columns are identified by name because the parser creates separate {@link Expression}
+     * objects for the same column in SELECT and GROUP BY clauses, so reference equality cannot be used.
+     *
+     * <p>The returned {@link ColumnLayout} tells {@link #fillGaps} how to construct zero-filled rows
+     * for missing time buckets: where to place the timestamp, which positions to copy group key values
+     * into, and which positions get default zero values.
+     */
     private static ColumnLayout analyzeExpressions(List<Expression> expressions, List<Expression> groupBy) {
         // Collect non-window group-by column names so we can identify them among SELECT expressions
         var groupColumnNames = new LinkedHashSet<String>();
@@ -193,18 +210,31 @@ public class WindowGapFiller {
         return new ColumnLayout(timeIndex, groupColumnIndices, aggregationIndices);
     }
 
+    /**
+     * Produces a complete time-series grid by filling missing time buckets with zero-valued rows.
+     *
+     * <p>For each distinct group key (e.g., {@code ["gpt-4"]}, {@code ["gpt-4.5"]}) discovered in the
+     * actual data, ensures every time bucket has a corresponding row. Missing combinations get a
+     * zero-filled row built by {@link #buildDefaultRow}.
+     *
+     * <p>For window-only queries (no group-by columns), a single implicit group key is used, so the
+     * result is one row per bucket. For window+column queries with no data at all, returns empty
+     * because the set of group key values (e.g., which deployments exist) is unknown.
+     *
+     * <p>Example: {@code SELECT window(1h), deployment, sum(tokens)} over 3 buckets with 2 deployments
+     * produces a 6-row grid (3 buckets x 2 deployments), even if the DB only returned 4 rows.
+     */
     private static List<List<Object>> fillGaps(
             List<List<Object>> rows,
             List<Instant> buckets,
             List<Expression> expressions,
             ColumnLayout layout) {
 
-        // Window+column queries with no data: we can't fill gaps because the group key values
-        // (e.g., which deployments exist) are unknown — return empty
         if (rows.isEmpty() && !layout.groupColumnIndices().isEmpty()) {
             return rows;
         }
 
+        // Index existing rows by (groupKey, timestamp) for O(1) lookup
         var groupKeys = new LinkedHashSet<List<Object>>();
         var dataMap = new LinkedHashMap<List<Object>, Map<Instant, List<Object>>>();
 
@@ -216,10 +246,12 @@ public class WindowGapFiller {
             dataMap.computeIfAbsent(groupKey, k -> new LinkedHashMap<>()).put(time, row);
         }
 
+        // Window-only queries have no group columns — use a single empty key
         if (groupKeys.isEmpty()) {
             groupKeys.add(List.of());
         }
 
+        // Build the complete grid: for every (bucket, groupKey), use existing row or fill with zeros
         var result = new ArrayList<List<Object>>();
         for (var bucket : buckets) {
             for (var groupKey : groupKeys) {
@@ -243,16 +275,22 @@ public class WindowGapFiller {
         return key;
     }
 
+    /**
+     * Constructs a zero-filled row for a missing time bucket. Allocates a row of nulls matching
+     * the SELECT list size, then populates each position based on its role:
+     * <ol>
+     *   <li>Timestamp position → the bucket time</li>
+     *   <li>Group column positions → the group key values (e.g., {@code "gpt-4"})</li>
+     *   <li>Aggregation positions → type-appropriate zero ({@code 0L} for integers, {@code 0.0} for floats)</li>
+     * </ol>
+     */
     private static List<Object> buildDefaultRow(
             List<Expression> expressions,
             ColumnLayout layout,
             Instant bucketTime,
             List<Object> groupValues) {
 
-        var row = new ArrayList<>(expressions.size());
-        for (int i = 0; i < expressions.size(); i++) {
-            row.add(null);
-        }
+        var row = new ArrayList<>(Collections.nCopies(expressions.size(), (Object) null));
 
         row.set(layout.timeIndex(), bucketTime);
 
