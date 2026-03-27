@@ -4,6 +4,7 @@ import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.service.AbstractQueryEngine;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.model.Completable;
 import com.epam.aidial.ql.model.Data;
 import com.epam.aidial.ql.model.Query;
@@ -56,9 +57,14 @@ public class Influx3Engine extends AbstractQueryEngine {
             rows.set(0, normalizeAggregationRow(rows.get(0), completable.getExpressions()));
         }
 
+        List<List<Object>> resultRows = rows;
+        if (completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
+            resultRows = WindowGapFiller.fillGaps(rows, query);
+        }
+
         return DataImpl.builder()
                 .expressions(completable.getExpressions())
-                .data(rows)
+                .data(resultRows)
                 .build();
     }
 

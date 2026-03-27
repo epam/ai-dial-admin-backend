@@ -144,21 +144,59 @@ public abstract class AbstractInfluxContainerTest {
 
         @Test
         void windowAggregation() throws Exception {
+            // Use 1-day window over ~2 day range
+            // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
+            // DATE_BIN aligns to epoch, so 1-day buckets start at midnight UTC:
+            //   2026-03-11T00:00:00Z (record #1 at 14:00)
+            //   2026-03-12T00:00:00Z (records #2 at 10:00, #3 at 18:00)
+            //   2026-03-13T00:00:00Z (record #4 at 10:00)
             var data = queryFromJson("""
                     {
-                      "expressions": ["window(_time, 1, 'm') as time", "count() as requests"],
+                      "expressions": ["window(_time, 1, 'd') as time", "count() as requests"],
                       "from": "analytics",
-                      "groupBy": ["window(_time, 1, 'm')"],
+                      "groupBy": ["window(_time, 1, 'd')"],
                       "where": {%s},
                       "orderBy": [{"$asc": "time"}]
                     }""".formatted(TIME_FILTER));
 
             assertThat(columnNames(data)).containsExactly("time", "requests");
             assertThat(data.getData()).containsExactly(
-                    List.of(Instant.parse("2026-03-11T14:00:00Z"), 1L),
-                    List.of(Instant.parse("2026-03-12T10:00:00Z"), 1L),
-                    List.of(Instant.parse("2026-03-12T18:00:00Z"), 1L),
-                    List.of(Instant.parse("2026-03-13T10:00:00Z"), 1L)
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), 2L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), 1L)
+            );
+        }
+
+        @Test
+        void windowAggregationFillsGaps() throws Exception {
+            // Use 8-hour window over ~2 day range
+            // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
+            // 8-hour buckets aligned to epoch:
+            //   2026-03-11T08:00:00Z  -> record #1 at 14:00 -> count=1
+            //   2026-03-11T16:00:00Z  -> no data             -> count=0 (gap filled)
+            //   2026-03-12T00:00:00Z  -> no data             -> count=0 (gap filled)
+            //   2026-03-12T08:00:00Z  -> record #2 at 10:00 -> count=1
+            //   2026-03-12T16:00:00Z  -> record #3 at 18:00 -> count=1
+            //   2026-03-13T00:00:00Z  -> no data             -> count=0 (gap filled)
+            //   2026-03-13T08:00:00Z  -> record #4 at 10:00 -> count=1
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 8, 'h') as time", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 8, 'h')"],
+                      "where": {%s},
+                      "orderBy": [{"$asc": "time"}]
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("time", "requests");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-11T16:00:00Z"), 0L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), 0L),
+                    List.of(Instant.parse("2026-03-12T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T16:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), 0L),
+                    List.of(Instant.parse("2026-03-13T08:00:00Z"), 1L)
             );
         }
 
@@ -392,9 +430,9 @@ public abstract class AbstractInfluxContainerTest {
         void windowAndColumnAggregation() throws Exception {
             // 4 in-range records across 3 days and 2 deployments.
             // GROUP BY 1-day window + deployment:
-            //   day1 (03-11): gpt-4=1
+            //   day1 (03-11): gpt-4=1, gpt-3.5=0 (gap filled)
             //   day2 (03-12): gpt-4=1, gpt-3.5=1
-            //   day3 (03-13): gpt-3.5=1
+            //   day3 (03-13): gpt-4=0 (gap filled), gpt-3.5=1
             var data = queryFromJson("""
                     {
                       "expressions": ["window(_time, 1, 'd') as time", "deployment", "count() as requests"],
@@ -406,8 +444,10 @@ public abstract class AbstractInfluxContainerTest {
             assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
             assertThat(data.getData()).containsExactlyInAnyOrder(
                     List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-3.5", 0L),
                     List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4", 1L),
                     List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5", 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-4", 0L),
                     List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5", 1L)
             );
         }
