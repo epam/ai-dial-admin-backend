@@ -130,7 +130,7 @@ public abstract class AbstractInfluxContainerTest {
         var languageConverter = new LanguageConverter(engine);
         var dto = QUERY_MAPPER.readValue(json, CompletableDto.class);
         var completable = languageConverter.convert(dto, engine.getTables());
-        return engine.getData(completable, false);
+        return engine.getData(completable, true);
     }
 
     protected static List<String> columnNames(Data data) {
