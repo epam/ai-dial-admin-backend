@@ -1,6 +1,7 @@
 {
   "name": "test_toolset",
   "displayName": "test_toolset",
+  "responsesEndpoint": "http://responsesEndpoint",
   "folderId": "test_folder",
   "version": "1",
   "allowed_tools": ["tool1"],

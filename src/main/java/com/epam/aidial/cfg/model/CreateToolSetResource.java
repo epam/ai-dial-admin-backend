@@ -16,6 +16,7 @@ public class CreateToolSetResource {
     private String version;
     private String folderId;
     private String endpoint;
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;

@@ -84,6 +84,9 @@ public class ApplicationTypeSchemaDto {
     @JsonProperty("dial:applicationTypeSchemaEndpoint")
     private String applicationTypeSchemaEndpoint;
 
+    @JsonProperty("dial:applicationTypeResponsesEndpoint")
+    private String applicationTypeResponsesEndpoint;
+
     @JsonProperty("dial:applicationTypeMcp")
     private ApplicationTypeMcpDto applicationTypeMcp;
     
@@ -169,6 +172,7 @@ public class ApplicationTypeSchemaDto {
         this.interceptors = other.interceptors != null ? new ArrayList<>(other.interceptors) : null;
         this.applicationTypeAssistantAttachmentsInRequestSupported = other.applicationTypeAssistantAttachmentsInRequestSupported;
         this.applicationTypeSchemaEndpoint = other.applicationTypeSchemaEndpoint;
+        this.applicationTypeResponsesEndpoint = other.applicationTypeResponsesEndpoint;
         this.defs = other.defs != null ? new HashMap<>(other.defs) : null;
         this.properties = other.properties != null ? new HashMap<>(other.properties) : null;
         this.required = other.required != null ? new ArrayList<>(other.required) : null;

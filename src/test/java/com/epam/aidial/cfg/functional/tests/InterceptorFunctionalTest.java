@@ -521,6 +521,7 @@ public abstract class InterceptorFunctionalTest {
 
         CoreInterceptor expected = new CoreInterceptor();
         expected.setName(interceptorDto.getName());
+        expected.setResponsesEndpoint("https://endpoint.test.com/interceptor1/responses");
         expected.setDisplayName(interceptorDto.getDisplayName());
         expected.setDescription(interceptorDto.getDescription());
         expected.setEndpoint(interceptorDto.getEndpoint());
@@ -645,6 +646,7 @@ public abstract class InterceptorFunctionalTest {
                       "name": "interceptor1",
                       "userRoles": null,
                       "endpoint": "https://endpoint.test.com/interceptor1",
+                      "responsesEndpoint": "https://endpoint.test.com/interceptor1/responses",
                       "displayName": "displayName1",
                       "displayVersion": null,
                       "iconUrl": null,

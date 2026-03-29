@@ -3078,6 +3078,7 @@ public abstract class ConfigTransferFunctionalTest {
         var routeDto = new DependentRouteDto();
         routeDto.setName(routeName);
         routeDto.setDescription("some desc");
+        routeDto.setDescription("some desc");
         routeDto.setPaths(List.of("/first", "/second"));
         routeDto.setMethods(new TreeSet<>(Set.of("GET", "POST")));
         routeDto.setMaxRetryAttempts(5);
@@ -3097,6 +3098,7 @@ public abstract class ConfigTransferFunctionalTest {
         List<UpstreamDto> upstreams = new ArrayList<>();
         var upstream = new UpstreamDto();
         upstream.setEndpoint("http://sample.com");
+        upstream.setResponsesEndpoint("http://sample.com/responses");
         upstream.setKey("someKey");
         upstream.setExtraData("{\"key1\":\"val1\"}");
         upstreams.add(upstream);

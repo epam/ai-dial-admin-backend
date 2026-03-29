@@ -34,6 +34,7 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private SecuredResourceEntity deployment;
 
     private String endpoint;
+    private String responsesEndpoint;
     private String iconUrl;
     private String description;
     private String displayName;

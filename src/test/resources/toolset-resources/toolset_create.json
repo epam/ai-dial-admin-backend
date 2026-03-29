@@ -3,6 +3,7 @@
   "version": "1",
   "folderId": "test_folder",
   "endpoint": "https://test",
+  "responsesEndpoint": "http://responsesEndpoint",
   "displayName": "test_toolset",
   "displayVersion": null,
   "iconUrl": null,

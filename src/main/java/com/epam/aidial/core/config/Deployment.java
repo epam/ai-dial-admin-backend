@@ -13,6 +13,8 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public abstract class Deployment extends RoleBasedEntity {
     private String endpoint;
+    @JsonAlias({"responsesEndpoint", "responses-endpoint"})
+    private String responsesEndpoint;  //0.43.0
     @JsonAlias({"displayName", "display_name"})
     private String displayName;
     @JsonAlias({"displayVersion", "display_version"})
@@ -41,7 +43,7 @@ public abstract class Deployment extends RoleBasedEntity {
      */
     private List<String> interceptors = new ArrayList<>();
     /**
-     * The field contains a list of keywords aka tags which describe the deployment, e.g. code-gen, text2image.
+     * The field contains a list of keyords aka tags which describe the deployment, e.g. code-gen, text2image.
      */
     @JsonAlias({"descriptionKeywords", "description_keywords"})
     private List<String> descriptionKeywords = new ArrayList<>();

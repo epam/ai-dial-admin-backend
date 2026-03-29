@@ -20,6 +20,8 @@ public class ToolSetDto extends RoleBasedDto {
     private String name;
     @Endpoint
     private String endpoint;
+    @Endpoint
+    private String responsesEndpoint;
     private String iconUrl;
     private String description;
     @NotBlank(message = "DisplayName is required")

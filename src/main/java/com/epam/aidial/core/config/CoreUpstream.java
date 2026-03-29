@@ -3,7 +3,6 @@ package com.epam.aidial.core.config;
 import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
-
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -18,7 +17,8 @@ public class CoreUpstream {
 
     @JsonAlias({"endpoint", "dial:endpoint"})
     private String endpoint;
-
+    @JsonAlias({"responsesEndpoint", "responses-endpoint", "dial:responsesEndpoint"})
+    private String responsesEndpoint;  //0.43.0
     @JsonAlias({"key", "dial:key"})
     private String key;
 
@@ -34,7 +34,8 @@ public class CoreUpstream {
     private int tier = 0;
 
     public String toString() {
-        return "Upstream(endpoint=" + this.getEndpoint() + ", key=" + SecretUtils.mask(this.getKey())
+        return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
+                + ", key=" + SecretUtils.mask(this.getKey())
                 + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }

@@ -678,6 +678,7 @@ public abstract class ModelFunctionalTest {
                       "name": "model1",
                       "userRoles": [],
                       "endpoint": null,
+                      "responsesEndpoint":null,
                       "displayName": "model1",
                       "displayVersion": null,
                       "iconUrl": null,
@@ -714,12 +715,14 @@ public abstract class ModelFunctionalTest {
                       "upstreams": [
                         {
                           "endpoint": "http://localhost",
+                          "responsesEndpoint":null,
                           "extraData": "{\\"temp\\":800}",
                           "weight": 1,
                           "tier":0
                         },
                         {
                           "endpoint": "http://localhost",
+                          "responsesEndpoint":null,
                           "extraData": "{\\"temp\\":951}",
                           "weight": 1,
                           "tier":0

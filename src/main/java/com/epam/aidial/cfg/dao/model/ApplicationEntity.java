@@ -39,6 +39,7 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private DeploymentEntity deployment;
 
     private String endpoint;
+    private String responsesEndpoint;
     private String iconUrl;
     private String reference;
     private String description;
