@@ -1,7 +1,10 @@
 package com.epam.aidial.cfg.functional.config;
 
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
+import com.epam.aidial.cfg.client.OpenaiDeploymentsClient;
 import com.epam.aidial.cfg.client.ResourceCredentialClient;
+import com.epam.aidial.cfg.client.mapper.OpenaiDeploymentsClientMapper;
+import com.epam.aidial.cfg.client.mapper.OpenaiDeploymentsClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
@@ -37,6 +40,7 @@ import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapperImpl;
+import com.epam.aidial.cfg.service.OpenaiDeploymentsService;
 import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
@@ -180,6 +184,21 @@ public class FunctionalTestConfiguration {
     @Bean
     public ResourceCredentialService resourceCredentialService(ResourceCredentialClient client, ResourceCredentialClientMapper resourceCredentialMapper) {
         return new ResourceCredentialService(client, resourceCredentialMapper);
+    }
+
+    @Bean
+    public OpenaiDeploymentsClientMapper openaiDeploymentsClientMapper() {
+        return new OpenaiDeploymentsClientMapperImpl();
+    }
+
+    @Bean
+    public OpenaiDeploymentsClient openaiDeploymentsClient() {
+        return Mockito.mock(OpenaiDeploymentsClient.class);
+    }
+
+    @Bean
+    public OpenaiDeploymentsService openaiDeploymentsService(OpenaiDeploymentsClient client, OpenaiDeploymentsClientMapper mapper) {
+        return new OpenaiDeploymentsService(client, mapper);
     }
 
     @Bean

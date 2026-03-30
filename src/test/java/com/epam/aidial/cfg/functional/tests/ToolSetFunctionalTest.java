@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.OpenaiDeploymentsClient;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.ToolSetDataDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
@@ -62,6 +64,8 @@ public abstract class ToolSetFunctionalTest {
     @Autowired
     private DeploymentManagerService deploymentManagerService;
     @Autowired
+    private OpenaiDeploymentsClient openaiDeploymentsClient;
+    @Autowired
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
@@ -87,6 +91,45 @@ public abstract class ToolSetFunctionalTest {
         Collection<ToolSetDto> actualToolSets = toolSetFacade.getAllToolSets();
 
         assertToolSets(actualToolSets, List.of(createToolSetDto("1"), createToolSetDto("2")));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetToolSetWithAuthStatus() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        var resourceAuthSettingsDto = new com.epam.aidial.cfg.client.dto.ResourceAuthSettingsDto();
+        resourceAuthSettingsDto.setGlobalAuthStatus(com.epam.aidial.cfg.client.dto.ResourceAuthSettingsDto.ResourceAuthStatus.SIGNED_IN);
+        resourceAuthSettingsDto.setUserLevelAuthStatus(com.epam.aidial.cfg.client.dto.ResourceAuthSettingsDto.ResourceAuthStatus.FAILED);
+        resourceAuthSettingsDto.setAppLevelAuthStatus(com.epam.aidial.cfg.client.dto.ResourceAuthSettingsDto.ResourceAuthStatus.SIGNED_OUT);
+
+        ToolSetDataDto toolSetDataDto = ToolSetDataDto.builder()
+                .authSettings(resourceAuthSettingsDto)
+                .build();
+        Mockito.when(openaiDeploymentsClient.getOpenaiToolSet(toolSetDto.getName()))
+                .thenReturn(toolSetDataDto);
+
+        ToolSetDto actual = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).dto();
+
+        ResourceAuthSettingsDto expectedAuthSettings = new ResourceAuthSettingsDto();
+        expectedAuthSettings.setGlobalAuthStatus(ResourceAuthSettingsDto.ResourceAuthStatus.SIGNED_IN);
+        expectedAuthSettings.setUserLevelAuthStatus(ResourceAuthSettingsDto.ResourceAuthStatus.FAILED);
+        expectedAuthSettings.setAppLevelAuthStatus(ResourceAuthSettingsDto.ResourceAuthStatus.SIGNED_OUT);
+
+        Assertions.assertEquals(expectedAuthSettings, actual.getAuthSettings());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetToolSetWhenAuthStatusIsUnavailable() {
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetFacade.createToolSet(toolSetDto);
+
+        Mockito.when(openaiDeploymentsClient.getOpenaiToolSet(toolSetDto.getName()))
+                .thenThrow(new RuntimeException("ToolSet not found"));
+
+        ToolSetDto actual = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).dto();
+
+        Assertions.assertNull(actual.getAuthSettings());
     }
 
     @Test
@@ -206,6 +249,12 @@ public abstract class ToolSetFunctionalTest {
     public void shouldSuccessfullyUpdateToolSetWithCorrectHash() {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
+
+        ToolSetDataDto toolSetDataDto = ToolSetDataDto.builder()
+                .authSettings(new com.epam.aidial.cfg.client.dto.ResourceAuthSettingsDto())
+                .build();
+        Mockito.when(openaiDeploymentsClient.getOpenaiToolSet(toolSetDto.getName()))
+                .thenReturn(toolSetDataDto);
         var hash = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).hash();
 
         ToolSetDto updatedToolSet = createToolSetDto("1");

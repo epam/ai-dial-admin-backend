@@ -21,7 +21,9 @@ public class ResourceAuthSettingsDto {
     private String codeChallengeMethod;
     private String codeVerifier;
     private String apiKeyHeader;
-
+    private ResourceAuthStatus globalAuthStatus;
+    private ResourceAuthStatus userLevelAuthStatus;
+    private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
 
     @Override
@@ -36,7 +38,16 @@ public class ResourceAuthSettingsDto {
                 + ", codeChallengeMethod='" + getCodeChallengeMethod()
                 + ", codeVerifier='" + getCodeVerifier()
                 + ", apiKeyHeader='" + getApiKeyHeader()
+                + ", globalAuthStatus=" + getGlobalAuthStatus()
+                + ", userLevelAuthStatus=" + getUserLevelAuthStatus()
+                + ", appLevelAuthStatus=" + getAppLevelAuthStatus()
                 + ", scopesSupported=" + getScopesSupported()
                 + ')';
+    }
+
+    public enum ResourceAuthStatus {
+        SIGNED_IN,
+        SIGNED_OUT,
+        FAILED
     }
 }

@@ -10,6 +10,9 @@ import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
 import com.epam.aidial.cfg.dto.ResourceSignOutRequestDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
+import com.epam.aidial.cfg.model.ResourceAuthSettings;
+import com.epam.aidial.cfg.model.ToolSetData;
+import com.epam.aidial.cfg.service.OpenaiDeploymentsService;
 import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.core.CoreToolSetService;
 import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
@@ -37,6 +40,7 @@ public class ToolSetFacade {
     private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
     private final ResourceCredentialService resourceCredentialService;
     private final ResourceCredentialMapper resourceCredentialMapper;
+    private final OpenaiDeploymentsService openaiDeploymentsService;
 
     public Collection<ToolSetDto> getAllToolSets() {
         return toolSetService.getAll()
@@ -52,7 +56,9 @@ public class ToolSetFacade {
 
     public DtoWithDomainHash<ToolSetDto> getToolSetWithHash(String toolSetName) {
         var modelWithHash = toolSetService.getToolSetWithHash(toolSetName);
-        ToolSetDto dto = mapper.toDto(modelWithHash.model());
+        var toolSet = modelWithHash.model();
+        var resourceAuthSettings = getResourceAuthSettings(toolSetName);
+        var dto = mapper.toDto(toolSet, resourceAuthSettings);
         return new DtoWithDomainHash<>(dto, modelWithHash.hash());
     }
 
@@ -114,5 +120,11 @@ public class ToolSetFacade {
 
     public void signOut(@RequestBody ResourceSignOutRequestDto requestDto) {
         resourceCredentialService.signOutToolSet(resourceCredentialMapper.toResourceSignOutRequest(requestDto));
+    }
+
+    private ResourceAuthSettings getResourceAuthSettings(String toolSetName) {
+        return openaiDeploymentsService.tryGetToolSet(toolSetName)
+                .map(ToolSetData::getAuthSettings)
+                .orElse(null);
     }
 }
