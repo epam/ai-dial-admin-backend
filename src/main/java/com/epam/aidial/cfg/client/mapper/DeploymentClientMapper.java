@@ -5,7 +5,7 @@ import com.epam.aidial.cfg.model.ToolSetData;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface OpenaiDeploymentsClientMapper {
+public interface DeploymentClientMapper {
 
     ToolSetData toToolSetData(ToolSetDataDto dto);
 }

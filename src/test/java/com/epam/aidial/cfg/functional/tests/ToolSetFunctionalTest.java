@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
-import com.epam.aidial.cfg.client.OpenaiDeploymentsClient;
+import com.epam.aidial.cfg.client.DeploymentClient;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.ToolSetDataDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
@@ -64,7 +64,7 @@ public abstract class ToolSetFunctionalTest {
     @Autowired
     private DeploymentManagerService deploymentManagerService;
     @Autowired
-    private OpenaiDeploymentsClient openaiDeploymentsClient;
+    private DeploymentClient deploymentClient;
     @Autowired
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
@@ -106,7 +106,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDataDto toolSetDataDto = ToolSetDataDto.builder()
                 .authSettings(resourceAuthSettingsDto)
                 .build();
-        Mockito.when(openaiDeploymentsClient.getOpenaiToolSet(toolSetDto.getName()))
+        Mockito.when(deploymentClient.getToolSet(toolSetDto.getName()))
                 .thenReturn(toolSetDataDto);
 
         ToolSetDto actual = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).dto();
@@ -124,7 +124,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
 
-        Mockito.when(openaiDeploymentsClient.getOpenaiToolSet(toolSetDto.getName()))
+        Mockito.when(deploymentClient.getToolSet(toolSetDto.getName()))
                 .thenThrow(new RuntimeException("ToolSet not found"));
 
         ToolSetDto actual = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).dto();
@@ -253,7 +253,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDataDto toolSetDataDto = ToolSetDataDto.builder()
                 .authSettings(new com.epam.aidial.cfg.client.dto.ResourceAuthSettingsDto())
                 .build();
-        Mockito.when(openaiDeploymentsClient.getOpenaiToolSet(toolSetDto.getName()))
+        Mockito.when(deploymentClient.getToolSet(toolSetDto.getName()))
                 .thenReturn(toolSetDataDto);
         var hash = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).hash();
 

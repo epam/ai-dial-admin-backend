@@ -12,7 +12,7 @@ import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.model.ResourceAuthSettings;
 import com.epam.aidial.cfg.model.ToolSetData;
-import com.epam.aidial.cfg.service.OpenaiDeploymentsService;
+import com.epam.aidial.cfg.service.CoreDeploymentService;
 import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.core.CoreToolSetService;
 import com.epam.aidial.cfg.web.facade.mapper.EntitySyncStateDtoMapper;
@@ -40,7 +40,7 @@ public class ToolSetFacade {
     private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
     private final ResourceCredentialService resourceCredentialService;
     private final ResourceCredentialMapper resourceCredentialMapper;
-    private final OpenaiDeploymentsService openaiDeploymentsService;
+    private final CoreDeploymentService coreDeploymentService;
 
     public Collection<ToolSetDto> getAllToolSets() {
         return toolSetService.getAll()
@@ -123,7 +123,7 @@ public class ToolSetFacade {
     }
 
     private ResourceAuthSettings getResourceAuthSettings(String toolSetName) {
-        return openaiDeploymentsService.tryGetToolSet(toolSetName)
+        return coreDeploymentService.tryGetToolSet(toolSetName)
                 .map(ToolSetData::getAuthSettings)
                 .orElse(null);
     }

@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.functional;
 
-import com.epam.aidial.cfg.client.OpenaiDeploymentsClient;
+import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.config.persistence.TestPersistenceService;
@@ -29,7 +29,7 @@ abstract class FunctionalTestSuite {
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
     @Autowired
-    private OpenaiDeploymentsClient openaiDeploymentsClient;
+    private DeploymentClientMapper deploymentClientMapper;
 
     @BeforeAll
     void beforeAllTests() {
@@ -40,7 +40,7 @@ abstract class FunctionalTestSuite {
     void afterEachTest() {
         persistenceService.restoreDb();
         doNothing().when(featureFlagAspect).evaluate(any(), any());
-        reset(transactionTimestampContext, coreConfigReloadCache, mcpClientFactory, openaiDeploymentsClient);
+        reset(transactionTimestampContext, coreConfigReloadCache, mcpClientFactory, deploymentClientMapper);
     }
 
     @AfterAll
