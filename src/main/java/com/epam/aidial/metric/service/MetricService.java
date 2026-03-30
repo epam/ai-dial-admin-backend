@@ -4,7 +4,7 @@ import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.IsMetricsEnabledCondition;
 import com.epam.aidial.metric.model.FieldAvailability;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
-import com.epam.aidial.metric.web.dto.DatasetInfoDto;
+import com.epam.aidial.metric.model.DatasetInfo;
 import com.epam.aidial.ql.Engine;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.dto.CompletableDto;
@@ -36,10 +36,10 @@ public class MetricService {
         this.declarations = Map.of(datasetDeclaration.getName(), datasetDeclaration);
     }
 
-    public List<DatasetInfoDto> getDatasets() {
+    public List<DatasetInfo> getDatasets() {
         return declarations.values().stream()
                 .sorted(Comparator.comparing(DatasetDeclaration::getName))
-                .map(d -> DatasetInfoDto.builder()
+                .map(d -> DatasetInfo.builder()
                         .name(d.getName())
                         .maxTimeRangeMs(toMillis(d.getMaxTimeRange()))
                         .build())
