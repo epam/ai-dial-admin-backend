@@ -14,6 +14,7 @@ import com.epam.aidial.datasource.definition.TypeFloat64;
 import com.epam.aidial.datasource.definition.TypeInt16;
 import com.epam.aidial.datasource.definition.TypeInt32;
 import com.epam.aidial.datasource.definition.TypeInt64;
+import com.epam.aidial.datasource.definition.TypeText;
 import com.epam.aidial.datasource.definition.TypeUInt64;
 import com.epam.aidial.expressions.FunctionsDatasource;
 
@@ -76,7 +77,9 @@ public class DummyFunctionDatasourceImpl implements FunctionsDatasource {
         var notBoolean = createMethodDef("not", TypeBoolean.INSTANCE, TypeBoolean.INSTANCE);
 
         var equalsInt64 = createMethodDef("equals", TypeBoolean.INSTANCE, TypeInt64.INSTANCE, TypeInt64.INSTANCE);
+        var equalsString = createMethodDef("equals", TypeBoolean.INSTANCE, TypeText.INSTANCE, TypeText.INSTANCE);
         var notEqualsInt64 = createMethodDef("notEquals", TypeBoolean.INSTANCE, TypeInt64.INSTANCE, TypeInt64.INSTANCE);
+        var notEqualsString = createMethodDef("notEquals", TypeBoolean.INSTANCE, TypeText.INSTANCE, TypeText.INSTANCE);
 
         var lessInt32 = createMethodDef("less", TypeBoolean.INSTANCE, TypeInt32.INSTANCE, TypeInt32.INSTANCE);
         var lessInt64 = createMethodDef("less", TypeBoolean.INSTANCE, TypeInt64.INSTANCE, TypeInt64.INSTANCE);
@@ -131,8 +134,8 @@ public class DummyFunctionDatasourceImpl implements FunctionsDatasource {
                 Map.entry("and", List.of(andBoolean)),
                 Map.entry("or", List.of(orBoolean)),
                 Map.entry("not", List.of(notBoolean)),
-                Map.entry("equals", List.of(equalsInt64)),
-                Map.entry("notEquals", List.of(notEqualsInt64)),
+                Map.entry("equals", List.of(equalsInt64, equalsString)),
+                Map.entry("notEquals", List.of(notEqualsInt64, notEqualsString)),
                 Map.entry("less", List.of(lessInt32, lessInt64, lessFloat32, lessFloat64)),
                 Map.entry("greater", List.of(greaterInt32, greaterInt64, greaterFloat32, greaterFloat64)),
                 Map.entry("lessOrEquals", List.of(lessOrEqualsInt32, lessOrEqualsInt64, lessOrEqualsFloat32, lessOrEqualsFloat64)),

@@ -9,11 +9,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Offset.offset;
 
 /**
  * Shared test suite for InfluxDB 2 and InfluxDB 3 metrics extraction.
@@ -23,45 +24,95 @@ import static org.assertj.core.data.Offset.offset;
 public abstract class AbstractInfluxContainerTest {
 
     private static final ObjectMapper QUERY_MAPPER = new ObjectMapper();
+    private static final Comparator<Double> DOUBLE_COMPARATOR =
+            (a, b) -> Math.abs(a - b) < 0.001 ? 0 : Double.compare(a, b);
 
     static {
         QUERY_MAPPER.registerModule(new QueryLanguageModule());
     }
 
+    // mcp_analytics records WITHOUT project_id tag — reproduces the scenario
+    // where a schema-defined column is absent from actual data.
+    // 3 records inside the time range.
+    private static final List<String> MCP_RECORDS_NO_PROJECT = List.of(
+            // INSIDE #1: 2026-03-11T14:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call "
+            + "execution_path=\"path1\",chat_id=\"chat1\",user_hash=\"user1\" "
+            + "1773237600000000000",
+            // INSIDE #2: 2026-03-12T10:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/list "
+            + "execution_path=\"path2\",chat_id=\"chat2\",user_hash=\"user2\" "
+            + "1773309600000000000",
+            // INSIDE #3: 2026-03-12T18:00:00Z
+            "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/call "
+            + "execution_path=\"path3\",chat_id=\"chat3\",user_hash=\"user1\" "
+            + "1773338400000000000"
+    );
+
+    // mcp_analytics records WITH project_id tag — enables per-project aggregation.
+    // 4 records inside the time range.
+    private static final List<String> MCP_RECORDS_WITH_PROJECT = List.of(
+            // INSIDE #4: 2026-03-11T15:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=proj1 "
+            + "execution_path=\"path4\",chat_id=\"chat4\",user_hash=\"user1\" "
+            + "1773241200000000000",
+            // INSIDE #5: 2026-03-12T11:00:00Z
+            "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/list,project_id=proj1 "
+            + "execution_path=\"path5\",chat_id=\"chat5\",user_hash=\"user2\" "
+            + "1773313200000000000",
+            // INSIDE #6: 2026-03-12T15:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=proj2 "
+            + "execution_path=\"path6\",chat_id=\"chat6\",user_hash=\"user1\" "
+            + "1773327600000000000",
+            // INSIDE #7: 2026-03-13T09:00:00Z
+            "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/call,project_id=proj2 "
+            + "execution_path=\"path7\",chat_id=\"chat7\",user_hash=\"user2\" "
+            + "1773392400000000000"
+    );
+
     // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
     // 6 records total: 4 inside the range, 2 outside
-    protected static final List<String> TEST_RECORDS = List.of(
+    private static final List<String> ANALYTICS_RECORDS = List.of(
             // OUTSIDE (before range): 2026-03-10T12:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
-                    + "user_hash=\"user1\",price=0.08,deployment_price=0.07,"
-                    + "prompt_tokens=300i,completion_tokens=100i "
-                    + "1773144000000000000",
+            + "user_hash=\"user1\",price=0.08,deployment_price=0.07,"
+            + "prompt_tokens=300i,completion_tokens=100i "
+            + "1773144000000000000",
             // INSIDE #1: 2026-03-11T14:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
-                    + "user_hash=\"user1\",price=0.05,deployment_price=0.04,"
-                    + "prompt_tokens=200i,completion_tokens=80i "
-                    + "1773237600000000000",
+            + "user_hash=\"user1\",price=0.05,deployment_price=0.04,"
+            + "prompt_tokens=200i,completion_tokens=80i "
+            + "1773237600000000000",
             // INSIDE #2: 2026-03-12T10:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj2 "
-                    + "user_hash=\"user2\",price=0.10,deployment_price=0.09,"
-                    + "prompt_tokens=100i,completion_tokens=50i "
-                    + "1773309600000000000",
+            + "user_hash=\"user2\",price=0.10,deployment_price=0.09,"
+            + "prompt_tokens=100i,completion_tokens=50i "
+            + "1773309600000000000",
             // INSIDE #3: 2026-03-12T18:00:00Z
             "analytics,deployment=gpt-3.5,model=gpt-3.5,project_id=proj1 "
-                    + "user_hash=\"user1\",price=0.02,deployment_price=0.01,"
-                    + "prompt_tokens=50i,completion_tokens=30i "
-                    + "1773338400000000000",
+            + "user_hash=\"user1\",price=0.02,deployment_price=0.01,"
+            + "prompt_tokens=50i,completion_tokens=30i "
+            + "1773338400000000000",
             // INSIDE #4: 2026-03-13T10:00:00Z
             "analytics,deployment=gpt-3.5,model=gpt-3.5,project_id=proj2 "
-                    + "user_hash=\"user2\",price=0.03,deployment_price=0.05,"
-                    + "prompt_tokens=150i,completion_tokens=60i "
-                    + "1773396000000000000",
+            + "user_hash=\"user2\",price=0.03,deployment_price=0.05,"
+            + "prompt_tokens=150i,completion_tokens=60i "
+            + "1773396000000000000",
             // OUTSIDE (after range): 2026-03-13T14:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
-                    + "user_hash=\"user3\",price=0.15,deployment_price=0.12,"
-                    + "prompt_tokens=400i,completion_tokens=200i "
-                    + "1773410400000000000"
+            + "user_hash=\"user3\",price=0.15,deployment_price=0.12,"
+            + "prompt_tokens=400i,completion_tokens=200i "
+            + "1773410400000000000"
     );
+
+    protected static final List<String> TEST_RECORDS;
+
+    static {
+        var all = new ArrayList<>(ANALYTICS_RECORDS);
+        all.addAll(MCP_RECORDS_NO_PROJECT);
+        all.addAll(MCP_RECORDS_WITH_PROJECT);
+        TEST_RECORDS = List.copyOf(all);
+    }
 
     private static final String TIME_GTE = """
             {"$gte": {"left": "_time", "right": "'2026-03-11T13:33:38.680Z'"}}""";
@@ -74,12 +125,40 @@ public abstract class AbstractInfluxContainerTest {
 
     protected abstract Engine getEngine();
 
-    private Data queryFromJson(String json) throws Exception {
+    protected Data queryFromJson(String json) throws Exception {
         var engine = getEngine();
         var languageConverter = new LanguageConverter(engine);
         var dto = QUERY_MAPPER.readValue(json, CompletableDto.class);
         var completable = languageConverter.convert(dto, engine.getTables());
         return engine.getData(completable);
+    }
+
+    protected static List<String> columnNames(Data data) {
+        return data.getExpressions().stream()
+                .map(expr -> (expr instanceof com.epam.aidial.expressions.Column col) ? col.getName() : expr.toString())
+                .toList();
+    }
+
+    @Nested
+    class SimpleSelectTests {
+
+        @Test
+        void simpleSelectWithTimeAlias() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["_time as completion_time", "deployment"],
+                      "from": "analytics",
+                      "where": {%s},
+                      "orderBy": [{"$asc": "_time"}],
+                      "limit": 1
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("completion_time", "deployment");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T14:00:00Z"), "gpt-4")
+            );
+        }
+
     }
 
     @Nested
@@ -92,61 +171,66 @@ public abstract class AbstractInfluxContainerTest {
                       "expressions": ["window(_time, 1, 'm') as time", "count() as requests"],
                       "from": "analytics",
                       "groupBy": ["window(_time, 1, 'm')"],
-                      "where": {%s}
+                      "where": {%s},
+                      "orderBy": [{"$asc": "time"}]
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(4);
-            for (var row : data.getData()) {
-                assertThat(row.get(1)).isEqualTo(1L);
-            }
+            assertThat(columnNames(data)).containsExactly("time", "requests");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T14:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T10:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T18:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-13T10:00:00Z"), 1L)
+            );
         }
 
         @Test
         void totalCount() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
         @Test
         void sumTokens() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["sum(prompt_tokens)", "sum(completion_tokens)"],
+                      "expressions": ["sum(prompt_tokens) as total_prompt_tokens", "sum(completion_tokens) as total_completion_tokens"],
                       "from": "analytics",
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            var row = data.getData().get(0);
-            assertThat(row.get(0)).isEqualTo(500L);
-            assertThat(row.get(1)).isEqualTo(220L);
+            assertThat(columnNames(data)).containsExactly("total_prompt_tokens", "total_completion_tokens");
+            assertThat(data.getData()).containsExactly(List.of(500L, 220L));
         }
 
         @Test
         void sumDeploymentPrice() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["sum(deployment_price)"],
+                      "expressions": ["sum(deployment_price) as total_deployment_price"],
                       "from": "analytics",
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat((Double) data.getData().get(0).get(0)).isCloseTo(0.19, offset(0.001));
+            assertThat(columnNames(data)).containsExactly("total_deployment_price");
+            assertThat(data.getData())
+                    .usingRecursiveComparison()
+                    .withComparatorForType(DOUBLE_COMPARATOR, Double.class)
+                    .isEqualTo(List.of(List.of(0.19)));
         }
 
         @Test
         void countDistinctUsers() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": {
                         "distinct": "true",
                         "expressions": ["user_hash"],
@@ -155,8 +239,88 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
+        }
+
+    }
+
+    @Nested
+    class MissingColumnTests {
+
+        @Test
+        void countWithGroupBy_whenSchemaColumnAbsentFromSomeData() throws Exception {
+            // Some mcp_analytics records have NO project_id tag, but the schema declares it.
+            // count() must work regardless — it should not depend on project_id existing
+            // in every record.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["deployment", "count() as cnt"],
+                      "from": "mcp_analytics",
+                      "groupBy": ["deployment"],
+                      "where": {%s},
+                      "orderBy": [{"$desc": "count()"}]
+                    }""".formatted(TIME_FILTER));
+
+            // orderBy desc count(): gpt-4(4) > gpt-3.5(3)
+            assertThat(columnNames(data)).containsExactly("deployment", "cnt");
+            assertThat(data.getData()).containsExactly(
+                    List.of("gpt-4", 4L),
+                    List.of("gpt-3.5", 3L)
+            );
+        }
+
+        @Test
+        void totalCount_whenSchemaColumnAbsentFromSomeData() throws Exception {
+            // count() without group-by on a table where project_id is absent from some records.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "mcp_analytics",
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(7L));
+        }
+
+    }
+
+    @Nested
+    class McpProjectAggregationTests {
+
+        @Test
+        void combinedToolCallsAndMcpCallsPerProject() throws Exception {
+            // Single query with both tool_calls (conditional) and mcp_calls (total) per project.
+            // Uses SUM(CASE WHEN mcp_method = 'tools/call' THEN 1 ELSE 0 END) for tool_calls.
+            // proj1: tool_calls=1 (#4), mcp_calls=2 (#4, #5)
+            // proj2: tool_calls=2 (#6, #7), mcp_calls=2 (#6, #7)
+            var data = queryFromJson("""
+                    {
+                      "expressions": [
+                        "project_id",
+                        "sum(case when mcp_method = 'tools/call' then 1 else 0 end) as tool_calls",
+                        "count() as mcp_calls"
+                      ],
+                      "from": "mcp_analytics",
+                      "groupBy": ["project_id"],
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$or": [
+                            {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                            {"$eq": {"left": "project_id", "right": "'proj2'"}}
+                          ]}
+                        ]
+                      },
+                      "orderBy": [{"$desc": "count()"}]
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("project_id", "tool_calls", "mcp_calls");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("proj1", 1L, 2L),
+                    List.of("proj2", 2L, 2L)
+            );
         }
 
     }
@@ -169,7 +333,7 @@ public abstract class AbstractInfluxContainerTest {
             var data = queryFromJson("""
                     {
                       "expressions": [
-                        "deployment", "count()", "sum(price) as money",
+                        "deployment", "count() as cnt", "sum(price) as money",
                         "sum(prompt_tokens) as tokens_p", "sum(completion_tokens) as tokens_c"
                       ],
                       "from": "analytics",
@@ -177,22 +341,15 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(2);
-
-            var byDeployment = data.getData().stream()
-                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
-
-            var gpt4 = byDeployment.get("gpt-4");
-            assertThat(gpt4.get(1)).isEqualTo(2L);
-            assertThat((Double) gpt4.get(2)).isCloseTo(0.15, offset(0.001));
-            assertThat(gpt4.get(3)).isEqualTo(300L);
-            assertThat(gpt4.get(4)).isEqualTo(130L);
-
-            var gpt35 = byDeployment.get("gpt-3.5");
-            assertThat(gpt35.get(1)).isEqualTo(2L);
-            assertThat((Double) gpt35.get(2)).isCloseTo(0.05, offset(0.001));
-            assertThat(gpt35.get(3)).isEqualTo(200L);
-            assertThat(gpt35.get(4)).isEqualTo(90L);
+            assertThat(columnNames(data)).containsExactly("deployment", "cnt", "money", "tokens_p", "tokens_c");
+            assertThat(data.getData())
+                    .usingRecursiveComparison()
+                    .withComparatorForType(DOUBLE_COMPARATOR, Double.class)
+                    .ignoringCollectionOrder()
+                    .isEqualTo(List.of(
+                            List.of("gpt-4", 2L, 0.15, 300L, 130L),
+                            List.of("gpt-3.5", 2L, 0.05, 200L, 90L)
+                    ));
         }
 
         @Test
@@ -200,7 +357,7 @@ public abstract class AbstractInfluxContainerTest {
             var data = queryFromJson("""
                     {
                       "expressions": [
-                        "project_id", "count()", "sum(price) as money",
+                        "project_id", "count() as cnt", "sum(price) as money",
                         "sum(prompt_tokens) as tokens_p", "sum(completion_tokens) as tokens_c"
                       ],
                       "from": "analytics",
@@ -208,22 +365,73 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getData()).hasSize(2);
+            assertThat(columnNames(data)).containsExactly("project_id", "cnt", "money", "tokens_p", "tokens_c");
+            assertThat(data.getData())
+                    .usingRecursiveComparison()
+                    .withComparatorForType(DOUBLE_COMPARATOR, Double.class)
+                    .ignoringCollectionOrder()
+                    .isEqualTo(List.of(
+                            List.of("proj1", 2L, 0.07, 250L, 110L),
+                            List.of("proj2", 2L, 0.13, 250L, 110L)
+                    ));
+        }
 
-            var byProject = data.getData().stream()
-                    .collect(Collectors.toMap(row -> (String) row.get(0), row -> row));
+        @Test
+        void aggregateWithFieldFilterAndGroupByTagAndField() throws Exception {
+            // Filter on field (user_hash), group by tag (deployment) + field (user_hash).
+            // user_hash is in groupBy but NOT in expressions — verifies extra
+            // group-by columns don't shift result positions.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["deployment", "count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$ne": {"left": "user_hash", "right": "'user2'"}}
+                        ]
+                      },
+                      "groupBy": ["deployment", "user_hash"],
+                      "orderBy": [{"$desc": "count()"}]
+                    }""".formatted(TIME_GTE, TIME_LT));
 
-            var proj1 = byProject.get("proj1");
-            assertThat(proj1.get(1)).isEqualTo(2L);
-            assertThat((Double) proj1.get(2)).isCloseTo(0.07, offset(0.001));
-            assertThat(proj1.get(3)).isEqualTo(250L);
-            assertThat(proj1.get(4)).isEqualTo(110L);
+            // After filtering out user_hash=user2: records #1 (gpt-4,user1) and #3 (gpt-3.5,user1)
+            // Both map to distinct (deployment, user_hash) groups with count=1.
+            // Both have count=1 so orderBy desc count() doesn't disambiguate.
+            assertThat(columnNames(data)).containsExactly("deployment", "cnt");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("gpt-4", 1L),
+                    List.of("gpt-3.5", 1L)
+            );
+        }
 
-            var proj2 = byProject.get("proj2");
-            assertThat(proj2.get(1)).isEqualTo(2L);
-            assertThat((Double) proj2.get(2)).isCloseTo(0.13, offset(0.001));
-            assertThat(proj2.get(3)).isEqualTo(250L);
-            assertThat(proj2.get(4)).isEqualTo(110L);
+    }
+
+    @Nested
+    class WindowColumnAggregationTests {
+
+        @Test
+        void windowAndColumnAggregation() throws Exception {
+            // 4 in-range records across 3 days and 2 deployments.
+            // GROUP BY 1-day window + deployment:
+            //   day1 (03-11): gpt-4=1
+            //   day2 (03-12): gpt-4=1, gpt-3.5=1
+            //   day3 (03-13): gpt-3.5=1
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 1, 'd') as time", "deployment", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 1, 'd')", "deployment"],
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5", 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5", 1L)
+            );
         }
 
     }
@@ -235,7 +443,7 @@ public abstract class AbstractInfluxContainerTest {
         void equalityFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -245,15 +453,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void notEqualFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -263,15 +471,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void orFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -284,8 +492,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
     }
@@ -297,7 +505,7 @@ public abstract class AbstractInfluxContainerTest {
         void containsFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -307,15 +515,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
         @Test
         void containsFilterNarrow() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -325,15 +533,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void notContainsFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -343,15 +551,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void startsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -361,15 +569,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void endsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -379,15 +587,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void likeContainsFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -397,15 +605,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void likeStartsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -415,15 +623,15 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
         void likeEndsWithFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -433,8 +641,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -452,8 +660,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("proj1");
+            assertThat(columnNames(data)).containsExactly("project_id");
+            assertThat(data.getData()).containsExactly(List.of("proj1"));
         }
 
         @Test
@@ -471,8 +679,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-3.5");
+            assertThat(columnNames(data)).containsExactly("deployment");
+            assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
         }
 
         @Test
@@ -490,8 +698,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-3.5");
+            assertThat(columnNames(data)).containsExactly("deployment");
+            assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
         }
     }
 
@@ -503,7 +711,7 @@ public abstract class AbstractInfluxContainerTest {
             // "GPT" (uppercase) should match "gpt-4" and "gpt-3.5"
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -513,8 +721,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(4L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
         @Test
@@ -533,6 +741,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).isEmpty();
         }
 
@@ -552,8 +761,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("gpt-4");
+            assertThat(columnNames(data)).containsExactly("deployment");
+            assertThat(data.getData()).containsExactly(List.of("gpt-4"));
         }
 
         @Test
@@ -572,8 +781,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo("proj1");
+            assertThat(columnNames(data)).containsExactly("project_id");
+            assertThat(data.getData()).containsExactly(List.of("proj1"));
         }
 
         @Test
@@ -581,7 +790,7 @@ public abstract class AbstractInfluxContainerTest {
             // LIKE '%OJ1%' (uppercase) should match "proj1"
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -591,8 +800,8 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(2L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
         @Test
@@ -610,6 +819,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("project_id");
             assertThat(data.getData()).isEmpty();
         }
     }
@@ -627,6 +837,7 @@ public abstract class AbstractInfluxContainerTest {
                       "limit": 2
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("deployment", "price");
             assertThat(data.getData()).hasSize(2);
         }
 
@@ -642,6 +853,7 @@ public abstract class AbstractInfluxContainerTest {
                       "offset": 2
                     }""".formatted(TIME_FILTER));
 
+            assertThat(columnNames(data)).containsExactly("deployment", "price");
             assertThat(data.getData()).hasSize(2);
 
             // offset=3 with limit=2 on 4 in-range rows should return only 1 row
@@ -676,6 +888,7 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
+            assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).isEmpty();
         }
 
@@ -683,7 +896,7 @@ public abstract class AbstractInfluxContainerTest {
         void countWithNoMatchingFilter() throws Exception {
             var data = queryFromJson("""
                     {
-                      "expressions": ["count()"],
+                      "expressions": ["count() as cnt"],
                       "from": "analytics",
                       "where": {
                         "$and": [
@@ -693,8 +906,44 @@ public abstract class AbstractInfluxContainerTest {
                       }
                     }""".formatted(TIME_GTE, TIME_LT));
 
-            assertThat(data.getData()).hasSize(1);
-            assertThat(data.getData().get(0).get(0)).isEqualTo(0L);
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(0L));
+        }
+
+        @Test
+        void sumWithNoMatchingFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["sum(deployment_price) as total"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'nonexistent'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("total");
+            assertThat(data.getData()).containsExactly(List.of(0.0));
+        }
+
+        @Test
+        void multipleAggregationsWithNoMatchingFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt", "sum(deployment_price) as money", "sum(prompt_tokens) as tokens"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'nonexistent'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt", "money", "tokens");
+            assertThat(data.getData()).containsExactly(List.of(0L, 0.0, 0L));
         }
 
         @Test
@@ -706,12 +955,8 @@ public abstract class AbstractInfluxContainerTest {
                       "where": {%s}
                     }""".formatted(TIME_FILTER));
 
-            assertThat(data.getExpressions()).hasSize(2);
-            var aliasNames = data.getExpressions().stream()
-                    .map(Object::toString)
-                    .toList();
-            assertThat(aliasNames).anyMatch(name -> name.contains("money"));
-            assertThat(aliasNames).anyMatch(name -> name.contains("requests"));
+            assertThat(columnNames(data)).containsExactly("money", "requests");
+            assertThat(data.getData()).hasSize(1);
         }
     }
 

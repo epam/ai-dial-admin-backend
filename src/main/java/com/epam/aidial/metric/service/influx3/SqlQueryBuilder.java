@@ -1,9 +1,11 @@
 package com.epam.aidial.metric.service.influx3;
 
 import com.epam.aidial.expressions.AggregationFunctionCall;
+import com.epam.aidial.expressions.CaseWhenExpression;
 import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
+import com.epam.aidial.expressions.FunctionCall;
 import com.epam.aidial.expressions.NumberConstant;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
@@ -31,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
+public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influx3TableDeclaration> {
 
     public SqlQueryBuilder(Influx3DatasetDeclaration datasetDeclaration,
                            Influx3DatasetConfiguration datasourceConfiguration,
@@ -42,7 +44,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
     @Override
     protected SqlQueryContext buildSimpleQuery(Query query) {
         var table = getTable(query);
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var tableName = tableDeclaration.getSource().getTable();
 
         var paramCounter = new AtomicInteger(0);
@@ -85,7 +87,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
     protected SqlQueryContext buildDistinctQuery(Query query) {
         var table = getTable(query);
         var column = getDistinctColumn(query);
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var tableName = tableDeclaration.getSource().getTable();
         var sourceColumnName = getSourceColumnName(table, column);
         var outerColumnName = getOuterColumnName(column);
@@ -149,24 +151,29 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
             innerWhereClause = buildWhereClause(query.getWhere(), false, paramCounter, allParams);
         } else {
             var table = getTable(query);
-            Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+            var tableDeclaration = getTableDeclaration(table.getName());
             tableName = "\"" + tableDeclaration.getSource().getTable() + "\"";
             innerWhereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
         }
 
-        // Build SELECT with aggregations
+        // Build SELECT with aggregations — preserve expression order
+        var expressionColumnNames = query.getExpressions().stream()
+                .map(expressionToOuterColumnNames::get)
+                .collect(Collectors.toSet());
         var selectParts = new ArrayList<String>();
 
-        // Add group by columns to select
+        // Add group by columns to select only if they appear in expressions
         for (var groupByCol : groupByColumns) {
-            selectParts.add("\"" + groupByCol + "\"");
+            if (expressionColumnNames.contains(groupByCol)) {
+                selectParts.add("\"" + groupByCol + "\"");
+            }
         }
 
         // Add aggregation expressions
         for (var aggCall : aggregationFunctionCalls) {
             var function = (FunctionImpl) aggCall.getFunction();
             var outerName = expressionToOuterColumnNames.get(aggCall);
-            var aggSql = buildAggregationExpression(function, aggCall.getArgs());
+            var aggSql = buildAggregationExpression(function, aggCall.getArgs(), paramCounter, allParams);
             selectParts.add(aggSql + " AS \"" + outerName + "\"");
         }
 
@@ -212,12 +219,15 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
         var aggregationFunctionCall = resolveAggregationFunctionCall(query.getExpressions());
 
         var table = getTable(query);
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(table.getName());
+        var tableDeclaration = getTableDeclaration(table.getName());
         var tableName = tableDeclaration.getSource().getTable();
 
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var windowOuterName = expressionToOuterColumnNames.get(groupFunctionCall);
         var aggOuterName = expressionToOuterColumnNames.get(aggregationFunctionCall);
+
+        // Use a temp name in SQL to avoid colliding with InfluxDB's reserved "time" column
+        var windowSqlAlias = getNewTemporaryName(TEMPORAL_COLUMN_NAME);
 
         var paramCounter = new AtomicInteger(0);
         var allParams = new HashMap<String, Object>();
@@ -230,20 +240,20 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
         var windowExpr = "DATE_BIN(%s, \"time\", TIMESTAMP '1970-01-01T00:00:00Z')".formatted(windowInterval);
 
         // Build aggregation expression
-        var aggSql = buildAggregationExpression(function, aggregationFunctionCall.getArgs());
+        var aggSql = buildAggregationExpression(function, aggregationFunctionCall.getArgs(), paramCounter, allParams);
 
         var sql = new StringBuilder();
         sql.append("SELECT ");
-        sql.append(windowExpr).append(" AS \"").append(windowOuterName).append("\"");
+        sql.append(windowExpr).append(" AS \"").append(windowSqlAlias).append("\"");
         sql.append(", ").append(aggSql).append(" AS \"").append(aggOuterName).append("\"");
         sql.append(" FROM \"").append(tableName).append("\"");
         if (!whereClause.isEmpty()) {
             sql.append(" WHERE ").append(whereClause);
         }
-        sql.append(" GROUP BY \"").append(windowOuterName).append("\"");
+        sql.append(" GROUP BY \"").append(windowSqlAlias).append("\"");
 
-        // Build ORDER BY
-        var orderByClause = buildOrderByClause(query.getOrderBy());
+        // Build ORDER BY — map user alias to SQL alias for the window column
+        var orderByClause = buildOrderByClause(query.getOrderBy(), Map.of(windowOuterName, windowSqlAlias));
         if (!orderByClause.isEmpty()) {
             sql.append(" ORDER BY ").append(orderByClause);
         }
@@ -265,18 +275,139 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
                 .build();
     }
 
-    private String buildAggregationExpression(FunctionImpl function, List<Expression> args) {
+    @Override
+    protected SqlQueryContext buildWindowColumnAggregationQuery(Query query) {
+        var groupFunctionCall = extractWindowFunction(query.getGroupBy());
+        var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy());
+
+        var table = getTable(query);
+        var tableDeclaration = getTableDeclaration(table.getName());
+        var tableName = tableDeclaration.getSource().getTable();
+
+        var paramCounter = new AtomicInteger(0);
+        var allParams = new HashMap<String, Object>();
+
+        // Build WHERE clause
+        var whereClause = buildWhereClause(query.getWhere(), true, paramCounter, allParams);
+
+        // Build window expression
+        var windowInterval = buildWindowInterval(groupFunctionCall);
+        var windowExpr = "DATE_BIN(%s, \"time\", TIMESTAMP '1970-01-01T00:00:00Z')".formatted(windowInterval);
+
+        // Use a temp name in SQL to avoid colliding with InfluxDB's reserved "time" column
+        var windowOuterName = expressionToOuterColumnNames.get(groupFunctionCall);
+        var windowSqlAlias = getNewTemporaryName(TEMPORAL_COLUMN_NAME);
+
+        // Build SELECT — preserve expression order
+        var selectParts = new ArrayList<String>();
+        for (var expression : query.getExpressions()) {
+            var resolved = resolveAlias(expression);
+            var outerName = expressionToOuterColumnNames.get(expression);
+            if (resolved instanceof com.epam.aidial.expressions.GroupFunctionCall) {
+                selectParts.add(windowExpr + " AS \"" + windowSqlAlias + "\"");
+            } else if (resolved instanceof AggregationFunctionCall aggCall) {
+                var function = (FunctionImpl) aggCall.getFunction();
+                var aggSql = buildAggregationExpression(function, aggCall.getArgs(), paramCounter, allParams);
+                selectParts.add(aggSql + " AS \"" + outerName + "\"");
+            } else if (resolved instanceof Column) {
+                selectParts.add("\"" + outerName + "\"");
+            }
+        }
+
+        // Build GROUP BY: window alias + column names
+        var groupByParts = new ArrayList<String>();
+        groupByParts.add("\"" + windowSqlAlias + "\"");
+        for (var colName : groupByColumnNames) {
+            groupByParts.add("\"" + colName + "\"");
+        }
+
+        var sql = new StringBuilder();
+        sql.append("SELECT ").append(String.join(", ", selectParts));
+        sql.append(" FROM \"").append(tableName).append("\"");
+        if (!whereClause.isEmpty()) {
+            sql.append(" WHERE ").append(whereClause);
+        }
+        sql.append(" GROUP BY ").append(String.join(", ", groupByParts));
+
+        // Build ORDER BY — map user alias to SQL alias for the window column
+        var orderByClause = buildOrderByClause(query.getOrderBy(), Map.of(windowOuterName, windowSqlAlias));
+        if (!orderByClause.isEmpty()) {
+            sql.append(" ORDER BY ").append(orderByClause);
+        }
+
+        // Build LIMIT/OFFSET
+        var limitClause = buildLimitClause(query);
+        if (!limitClause.isEmpty()) {
+            sql.append(" ").append(limitClause);
+        }
+
+        var columnNames = query.getExpressions().stream()
+                .map(expressionToOuterColumnNames::get)
+                .toList();
+
+        return SqlQueryContext.builder()
+                .query(sql.toString())
+                .columnNames(columnNames)
+                .parameters(allParams)
+                .build();
+    }
+
+    private String buildAggregationExpression(FunctionImpl function, List<Expression> args,
+                                               AtomicInteger paramCounter, Map<String, Object> allParams) {
         return switch (function.getName()) {
             case "count" -> "COUNT(*)";
             case "sum" -> {
                 if (args.isEmpty()) {
                     throw new IllegalArgumentException("sum requires an argument");
                 }
+                if (args.get(0) instanceof CaseWhenExpression caseWhen) {
+                    yield buildSumCaseWhen(caseWhen, paramCounter, allParams);
+                }
                 var column = ((ColumnImpl) args.get(0)).getName();
                 yield "SUM(\"%s\")".formatted(column);
             }
             default -> throw new NotImplementedException("Unsupported aggregation function: " + function.getName());
         };
+    }
+
+    private String buildSumCaseWhen(CaseWhenExpression caseWhen, AtomicInteger paramCounter, Map<String, Object> allParams) {
+        var conditionSql = buildConditionSql(caseWhen.getCondition(), paramCounter, allParams);
+        var thenValue = renderConstantValue(caseWhen.getThenExpression());
+        var elseValue = renderConstantValue(caseWhen.getElseExpression());
+        return "SUM(CASE WHEN %s THEN %s ELSE %s END)".formatted(conditionSql, thenValue, elseValue);
+    }
+
+    private String buildConditionSql(Expression condition, AtomicInteger paramCounter, Map<String, Object> allParams) {
+        if (condition instanceof FunctionCall fc) {
+            var funcName = fc.getFunction().getName();
+            if (fc.getArgs().size() == 2
+                    && fc.getArgs().get(0) instanceof Column col
+                    && fc.getArgs().get(1) instanceof Constant val) {
+                var operator = switch (funcName) {
+                    case "equals" -> "=";
+                    case "notEquals" -> "!=";
+                    case "less" -> "<";
+                    case "greater" -> ">";
+                    case "lessOrEquals" -> "<=";
+                    case "greaterOrEquals" -> ">=";
+                    default -> throw new NotImplementedException("Unsupported CASE WHEN operator: " + funcName);
+                };
+                var paramName = "p" + paramCounter.getAndIncrement();
+                allParams.put(paramName, val.getValue());
+                return "\"%s\" %s $%s".formatted(col.getName(), operator, paramName);
+            }
+        }
+        throw new NotImplementedException("Unsupported CASE WHEN condition: " + condition);
+    }
+
+    private String renderConstantValue(Expression expression) {
+        if (expression instanceof NumberConstant nc) {
+            return String.valueOf(nc.getNumberValue());
+        }
+        if (expression instanceof Constant c) {
+            return "'" + c.getValue() + "'";
+        }
+        throw new NotImplementedException("Only constant values are supported in CASE WHEN THEN/ELSE");
     }
 
     private String buildWindowInterval(com.epam.aidial.expressions.GroupFunctionCall groupFunctionCall) {
@@ -332,6 +463,10 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
     }
 
     private String buildOrderByClause(List<Sort> orderBy) {
+        return buildOrderByClause(orderBy, Map.of());
+    }
+
+    private String buildOrderByClause(List<Sort> orderBy, Map<String, String> sqlAliasOverrides) {
         if (CollectionUtils.isEmpty(orderBy)) {
             return "";
         }
@@ -342,28 +477,11 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
                     if (columnName == null) {
                         throw new NotImplementedException("Only sort for specified columns is supported");
                     }
+                    columnName = sqlAliasOverrides.getOrDefault(columnName, columnName);
                     var direction = sort.getDirection() == SortDirection.DESC ? " DESC" : " ASC";
                     return "\"" + columnName + "\"" + direction;
                 })
                 .collect(Collectors.joining(", "));
-    }
-
-    private String resolveOrderByColumnName(Expression expression) {
-        // Direct lookup by object identity
-        var columnName = expressionToOuterColumnNames.get(expression);
-        if (columnName != null) {
-            return columnName;
-        }
-
-        // Fallback: lookup by column name (for sort expressions referencing aliases/columns)
-        if (expression instanceof Column column) {
-            // Check if it matches an outer column name directly
-            if (expressionToOuterColumnNames.containsValue(column.getName())) {
-                return column.getName();
-            }
-        }
-
-        return null;
     }
 
     private String buildLimitClause(Query query) {
@@ -407,7 +525,7 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext> {
     }
 
     private String getSourceColumnNameFromDeclaration(String tableName, String columnName) {
-        Influx3TableDeclaration tableDeclaration = getTableDeclaration(tableName);
+        var tableDeclaration = getTableDeclaration(tableName);
         return tableDeclaration.getSchema().getColumns().stream()
                 .filter(col -> col.getName().equals(columnName))
                 .map(col -> col.getSource().getColumn())

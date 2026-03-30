@@ -21,20 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractQueryBuilder<C> {
+public abstract class AbstractQueryBuilder<C, T extends TableDeclaration> {
 
     protected static final String TEMPORAL_COLUMN_NAME = "temp_column_";
 
-    protected final Map<String, ? extends TableDeclaration> tableDeclarations;
+    protected final Map<String, T> tableDeclarations;
     protected final AbstractDatasetConfiguration datasetConfiguration;
     protected final Map<Expression, String> expressionToOuterColumnNames = new HashMap<>();
-    protected final Map<String, Expression> aliasToExpression = new HashMap<>();
+    protected final Map<String, Expression> nameToExpression = new HashMap<>();
     protected final TemporalNameGenerator temporalNameGenerator;
 
+    @SuppressWarnings("unchecked")
     protected AbstractQueryBuilder(DatasetDeclaration datasetDeclaration,
                                    AbstractDatasetConfiguration datasetConfiguration,
                                    TemporalNameGenerator temporalNameGenerator) {
-        this.tableDeclarations = datasetDeclaration.getTables().stream()
+        this.tableDeclarations = (Map<String, T>) datasetDeclaration.getTables().stream()
                 .collect(Collectors.toMap(TableDeclaration::getName, table -> table));
         this.datasetConfiguration = datasetConfiguration;
         this.temporalNameGenerator = temporalNameGenerator;
@@ -44,9 +45,10 @@ public abstract class AbstractQueryBuilder<C> {
         if (completable instanceof Query query) {
 
             resolveExpressionsToOuterColumnNames(query.getExpressions());
-            resolveAliases(query.getExpressions());
 
-            if (isWindowAggregationQuery(query)) {
+            if (isWindowColumnAggregationQuery(query)) {
+                return buildWindowColumnAggregationQuery(query);
+            } else if (isWindowAggregationQuery(query)) {
                 return buildWindowAggregationQuery(query);
             } else if (isAggregationQuery(query)) {
                 return buildAggregationQuery(query);
@@ -66,6 +68,14 @@ public abstract class AbstractQueryBuilder<C> {
     protected abstract C buildAggregationQuery(Query query);
 
     protected abstract C buildWindowAggregationQuery(Query query);
+
+    protected abstract C buildWindowColumnAggregationQuery(Query query);
+
+    protected boolean isWindowColumnAggregationQuery(Query query) {
+        boolean hasWindow = query.getGroupBy().stream().anyMatch(this::isWindowFunctionCall);
+        boolean hasColumn = query.getGroupBy().stream().anyMatch(e -> !isWindowFunctionCall(e));
+        return hasWindow && hasColumn;
+    }
 
     protected boolean isWindowAggregationQuery(Query query) {
         return query.getGroupBy().stream().anyMatch(this::isWindowFunctionCall);
@@ -88,7 +98,7 @@ public abstract class AbstractQueryBuilder<C> {
             return true;
         }
         if (expression instanceof Column column) {
-            var originalExpression = aliasToExpression.get(column.getName());
+            var originalExpression = nameToExpression.get(column.getName());
             return originalExpression instanceof GroupFunctionCall;
         }
         return false;
@@ -132,12 +142,38 @@ public abstract class AbstractQueryBuilder<C> {
         if (expression instanceof Alias alias) {
             return alias.getExpression();
         } else if (expression instanceof Column column) {
-            var aliasedExpression = aliasToExpression.get(column.getName());
+            var aliasedExpression = nameToExpression.get(column.getName());
             if (aliasedExpression instanceof GroupFunctionCall groupFunctionCall) {
                 return groupFunctionCall;
             }
         }
         return expression;
+    }
+
+    protected GroupFunctionCall extractWindowFunction(List<Expression> groupBy) {
+        return groupBy.stream()
+                .map(this::resolveAlias)
+                .filter(GroupFunctionCall.class::isInstance)
+                .map(GroupFunctionCall.class::cast)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Window function required in group by"));
+    }
+
+    protected List<String> extractGroupByColumnNames(List<Expression> groupBy) {
+        return groupBy.stream()
+                .filter(e -> !isWindowFunctionCall(e))
+                .filter(Column.class::isInstance)
+                .map(Column.class::cast)
+                .map(Column::getName)
+                .toList();
+    }
+
+    protected List<AggregationFunctionCall> resolveAggregationFunctionCalls(List<Expression> expressions) {
+        return expressions.stream()
+                .map(this::resolveAlias)
+                .filter(AggregationFunctionCall.class::isInstance)
+                .map(AggregationFunctionCall.class::cast)
+                .toList();
     }
 
     protected List<Column> getGroupByColumns(List<Expression> groupBy) {
@@ -170,13 +206,12 @@ public abstract class AbstractQueryBuilder<C> {
         return column;
     }
 
-    @SuppressWarnings("unchecked")
-    protected <T extends TableDeclaration> T getTableDeclaration(String tableName) {
+    protected T getTableDeclaration(String tableName) {
         var tableDeclaration = tableDeclarations.get(tableName);
         if (tableDeclaration == null) {
             throw new IllegalArgumentException("Table %s not found".formatted(tableName));
         }
-        return (T) tableDeclaration;
+        return tableDeclaration;
     }
 
     protected List<String> getOuterColumnNames(List<Expression> expressions) {
@@ -194,13 +229,15 @@ public abstract class AbstractQueryBuilder<C> {
             if (expression instanceof Alias alias) {
                 expressionToOuterColumnNames.put(alias, alias.getName());
                 expressionToOuterColumnNames.put(alias.getExpression(), alias.getName());
+                nameToExpression.put(alias.getName(), alias.getExpression());
             } else if (expression instanceof Column column) {
-                var aliasedExpression = aliasToExpression.get(column.getName());
+                var aliasedExpression = nameToExpression.get(column.getName());
                 if (aliasedExpression instanceof GroupFunctionCall) {
                     expressionToOuterColumnNames.put(expression, getNewTemporaryName(TEMPORAL_COLUMN_NAME));
                 } else {
                     expressionToOuterColumnNames.put(expression, column.getName());
                 }
+                nameToExpression.put(column.getName(), expression);
             } else if (expression instanceof AggregationFunctionCall) {
                 expressionToOuterColumnNames.put(expression, getNewTemporaryName(TEMPORAL_COLUMN_NAME));
             } else if (expression instanceof GroupFunctionCall) {
@@ -211,12 +248,22 @@ public abstract class AbstractQueryBuilder<C> {
         }
     }
 
-    protected void resolveAliases(List<Expression> expressions) {
-        for (Expression expression : expressions) {
-            if (expression instanceof Alias alias) {
-                aliasToExpression.put(alias.getName(), alias.getExpression());
+    /**
+     * Resolves a sort/orderBy expression to its outer column name.
+     * First tries direct object lookup, then resolves by name through nameToExpression.
+     */
+    protected String resolveOrderByColumnName(Expression expression) {
+        var columnName = expressionToOuterColumnNames.get(expression);
+        if (columnName != null) {
+            return columnName;
+        }
+        if (expression instanceof Column column) {
+            var resolved = nameToExpression.get(column.getName());
+            if (resolved != null) {
+                return expressionToOuterColumnNames.get(resolved);
             }
         }
+        return null;
     }
 
     protected String getNewTemporaryName(String prefix) {
