@@ -140,6 +140,28 @@ public abstract class AbstractInfluxContainerTest {
     }
 
     @Nested
+    class SimpleSelectTests {
+
+        @Test
+        void simpleSelectWithTimeAlias() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["_time as completion_time", "deployment"],
+                      "from": "analytics",
+                      "where": {%s},
+                      "orderBy": [{"$asc": "_time"}],
+                      "limit": 1
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("completion_time", "deployment");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T14:00:00Z"), "gpt-4")
+            );
+        }
+
+    }
+
+    @Nested
     class AggregationTests {
 
         @Test
