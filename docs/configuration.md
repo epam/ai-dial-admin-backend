@@ -350,6 +350,7 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 |  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
 |  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
 |  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection |
+|  | METRICS_MAX_TIME_RANGE | 72h | No | metrics.enabled=true and default influx3 config used | Maximum query time range. Supports human-readable durations (e.g., 72h, 3d) and ISO-8601 (e.g., PT72H) |
 
 metrics/telemetry functionality in admin panel reads data produced by https://github.com/epam/ai-dial-analytics-realtime.
 
