@@ -13,6 +13,7 @@ import com.epam.aidial.ql.model.Table;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +41,13 @@ public class MetricService {
                 .sorted(Comparator.comparing(DatasetDeclaration::getName))
                 .map(d -> DatasetInfoDto.builder()
                         .name(d.getName())
-                        .maxTimeRangeMs(d.getMaxTimeRangeMs())
+                        .maxTimeRangeMs(toMillis(d.getMaxTimeRange()))
                         .build())
                 .toList();
+    }
+
+    private static Long toMillis(Duration duration) {
+        return duration != null ? duration.toMillis() : null;
     }
 
     public List<String> getTables(String datasetName) {

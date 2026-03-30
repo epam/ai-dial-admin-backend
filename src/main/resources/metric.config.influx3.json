@@ -3,7 +3,7 @@
   "name": "dial_analytics_realtime",
   "displayedName": "DIAL analytics-realtime dataset",
   "description": "DIAL analytics-realtime dataset",
-  "maxTimeRangeMs": 259200000,
+  "maxTimeRange": "72h",
   "source": {
     "url": "${METRICS_STORAGE_HOST}",
     "database": "${METRICS_STORAGE_DATABASE:analytics-realtime}",
