@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -36,16 +37,16 @@ public abstract class AbstractInfluxContainerTest {
     private static final List<String> MCP_RECORDS_NO_PROJECT = List.of(
             // INSIDE #1: 2026-03-11T14:00:00Z
             "mcp_analytics,deployment=gpt-4,mcp_method=tools/call "
-                    + "execution_path=\"path1\",chat_id=\"chat1\",user_hash=\"user1\" "
-                    + "1773237600000000000",
+            + "execution_path=\"path1\",chat_id=\"chat1\",user_hash=\"user1\" "
+            + "1773237600000000000",
             // INSIDE #2: 2026-03-12T10:00:00Z
             "mcp_analytics,deployment=gpt-4,mcp_method=tools/list "
-                    + "execution_path=\"path2\",chat_id=\"chat2\",user_hash=\"user2\" "
-                    + "1773309600000000000",
+            + "execution_path=\"path2\",chat_id=\"chat2\",user_hash=\"user2\" "
+            + "1773309600000000000",
             // INSIDE #3: 2026-03-12T18:00:00Z
             "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/call "
-                    + "execution_path=\"path3\",chat_id=\"chat3\",user_hash=\"user1\" "
-                    + "1773338400000000000"
+            + "execution_path=\"path3\",chat_id=\"chat3\",user_hash=\"user1\" "
+            + "1773338400000000000"
     );
 
     // mcp_analytics records WITH project_id tag — enables per-project aggregation.
@@ -53,20 +54,20 @@ public abstract class AbstractInfluxContainerTest {
     private static final List<String> MCP_RECORDS_WITH_PROJECT = List.of(
             // INSIDE #4: 2026-03-11T15:00:00Z
             "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=proj1 "
-                    + "execution_path=\"path4\",chat_id=\"chat4\",user_hash=\"user1\" "
-                    + "1773241200000000000",
+            + "execution_path=\"path4\",chat_id=\"chat4\",user_hash=\"user1\" "
+            + "1773241200000000000",
             // INSIDE #5: 2026-03-12T11:00:00Z
             "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/list,project_id=proj1 "
-                    + "execution_path=\"path5\",chat_id=\"chat5\",user_hash=\"user2\" "
-                    + "1773313200000000000",
+            + "execution_path=\"path5\",chat_id=\"chat5\",user_hash=\"user2\" "
+            + "1773313200000000000",
             // INSIDE #6: 2026-03-12T15:00:00Z
             "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=proj2 "
-                    + "execution_path=\"path6\",chat_id=\"chat6\",user_hash=\"user1\" "
-                    + "1773327600000000000",
+            + "execution_path=\"path6\",chat_id=\"chat6\",user_hash=\"user1\" "
+            + "1773327600000000000",
             // INSIDE #7: 2026-03-13T09:00:00Z
             "mcp_analytics,deployment=gpt-3.5,mcp_method=tools/call,project_id=proj2 "
-                    + "execution_path=\"path7\",chat_id=\"chat7\",user_hash=\"user2\" "
-                    + "1773392400000000000"
+            + "execution_path=\"path7\",chat_id=\"chat7\",user_hash=\"user2\" "
+            + "1773392400000000000"
     );
 
     // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
@@ -74,34 +75,34 @@ public abstract class AbstractInfluxContainerTest {
     private static final List<String> ANALYTICS_RECORDS = List.of(
             // OUTSIDE (before range): 2026-03-10T12:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
-                    + "user_hash=\"user1\",price=0.08,deployment_price=0.07,"
-                    + "prompt_tokens=300i,completion_tokens=100i "
-                    + "1773144000000000000",
+            + "user_hash=\"user1\",price=0.08,deployment_price=0.07,"
+            + "prompt_tokens=300i,completion_tokens=100i "
+            + "1773144000000000000",
             // INSIDE #1: 2026-03-11T14:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
-                    + "user_hash=\"user1\",price=0.05,deployment_price=0.04,"
-                    + "prompt_tokens=200i,completion_tokens=80i "
-                    + "1773237600000000000",
+            + "user_hash=\"user1\",price=0.05,deployment_price=0.04,"
+            + "prompt_tokens=200i,completion_tokens=80i "
+            + "1773237600000000000",
             // INSIDE #2: 2026-03-12T10:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj2 "
-                    + "user_hash=\"user2\",price=0.10,deployment_price=0.09,"
-                    + "prompt_tokens=100i,completion_tokens=50i "
-                    + "1773309600000000000",
+            + "user_hash=\"user2\",price=0.10,deployment_price=0.09,"
+            + "prompt_tokens=100i,completion_tokens=50i "
+            + "1773309600000000000",
             // INSIDE #3: 2026-03-12T18:00:00Z
             "analytics,deployment=gpt-3.5,model=gpt-3.5,project_id=proj1 "
-                    + "user_hash=\"user1\",price=0.02,deployment_price=0.01,"
-                    + "prompt_tokens=50i,completion_tokens=30i "
-                    + "1773338400000000000",
+            + "user_hash=\"user1\",price=0.02,deployment_price=0.01,"
+            + "prompt_tokens=50i,completion_tokens=30i "
+            + "1773338400000000000",
             // INSIDE #4: 2026-03-13T10:00:00Z
             "analytics,deployment=gpt-3.5,model=gpt-3.5,project_id=proj2 "
-                    + "user_hash=\"user2\",price=0.03,deployment_price=0.05,"
-                    + "prompt_tokens=150i,completion_tokens=60i "
-                    + "1773396000000000000",
+            + "user_hash=\"user2\",price=0.03,deployment_price=0.05,"
+            + "prompt_tokens=150i,completion_tokens=60i "
+            + "1773396000000000000",
             // OUTSIDE (after range): 2026-03-13T14:00:00Z
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
-                    + "user_hash=\"user3\",price=0.15,deployment_price=0.12,"
-                    + "prompt_tokens=400i,completion_tokens=200i "
-                    + "1773410400000000000"
+            + "user_hash=\"user3\",price=0.15,deployment_price=0.12,"
+            + "prompt_tokens=400i,completion_tokens=200i "
+            + "1773410400000000000"
     );
 
     protected static final List<String> TEST_RECORDS;
@@ -139,6 +140,28 @@ public abstract class AbstractInfluxContainerTest {
     }
 
     @Nested
+    class SimpleSelectTests {
+
+        @Test
+        void simpleSelectWithTimeAlias() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["_time as completion_time", "deployment"],
+                      "from": "analytics",
+                      "where": {%s},
+                      "orderBy": [{"$asc": "_time"}],
+                      "limit": 1
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("completion_time", "deployment");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T14:00:00Z"), "gpt-4")
+            );
+        }
+
+    }
+
+    @Nested
     class AggregationTests {
 
         @Test
@@ -148,12 +171,17 @@ public abstract class AbstractInfluxContainerTest {
                       "expressions": ["window(_time, 1, 'm') as time", "count() as requests"],
                       "from": "analytics",
                       "groupBy": ["window(_time, 1, 'm')"],
-                      "where": {%s}
+                      "where": {%s},
+                      "orderBy": [{"$asc": "time"}]
                     }""".formatted(TIME_FILTER));
 
             assertThat(columnNames(data)).containsExactly("time", "requests");
-            assertThat(data.getData()).hasSize(4)
-                    .allSatisfy(row -> assertThat(row.get(1)).isEqualTo(1L));
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T14:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T10:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T18:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-13T10:00:00Z"), 1L)
+            );
         }
 
         @Test
@@ -398,8 +426,12 @@ public abstract class AbstractInfluxContainerTest {
                     }""".formatted(TIME_FILTER));
 
             assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
-            assertThat(data.getData()).hasSize(4)
-                    .allSatisfy(row -> assertThat(row.get(2)).isEqualTo(1L));
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5", 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5", 1L)
+            );
         }
 
     }
@@ -876,6 +908,42 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(0L));
+        }
+
+        @Test
+        void sumWithNoMatchingFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["sum(deployment_price) as total"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'nonexistent'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("total");
+            assertThat(data.getData()).containsExactly(List.of(0.0));
+        }
+
+        @Test
+        void multipleAggregationsWithNoMatchingFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt", "sum(deployment_price) as money", "sum(prompt_tokens) as tokens"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'nonexistent'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt", "money", "tokens");
+            assertThat(data.getData()).containsExactly(List.of(0L, 0.0, 0L));
         }
 
         @Test
