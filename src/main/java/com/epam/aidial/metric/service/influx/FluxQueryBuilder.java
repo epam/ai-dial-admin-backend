@@ -199,7 +199,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             combiner.add(tempTableName + " = " + innerQueryContext.getQuery(), innerQueryContext.getImports(), innerQueryContext.getPreamble());
 
             var finalGroupByColumnNames = groupByColumnNames;
-            var fillNullJoinKeys0 = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
+            var fillNullJoinKeys = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
             aggregations = aggregationFunctionCalls.stream()
                     .map(f -> buildSimpleAggregationQueryForTempTable(
                             tempTableName,
@@ -209,18 +209,18 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                             finalGroupByColumnNames,
                             f,
                             regexCounter,
-                            fillNullJoinKeys0))
+                            fillNullJoinKeys))
                     .toList();
         } else {
             var table = getTable(query);
-            var finalGroupByColumnNames1 = groupByColumnNames;
+            var finalGroupByColumnNames = groupByColumnNames;
             var fillNullJoinKeys = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
             aggregations = aggregationFunctionCalls.stream()
                     .map(f -> buildSimpleAggregationQuery(
                             table.getName(),
                             expressionToOuterColumnNames.get(f),
                             query.getWhere(),
-                            finalGroupByColumnNames1,
+                            finalGroupByColumnNames,
                             f,
                             regexCounter,
                             fillNullJoinKeys))
