@@ -14,4 +14,5 @@ public abstract class AbstractDatasetDeclaration<
     private String description;
     private S source;
     private List<T> tables;
+    private Long maxTimeRangeMs;
 }

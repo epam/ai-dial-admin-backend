@@ -25,4 +25,6 @@ public interface DatasetDeclaration {
 
     List<? extends TableDeclaration> getTables();
 
+    Long getMaxTimeRangeMs();
+
 }

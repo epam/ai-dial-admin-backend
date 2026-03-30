@@ -3,6 +3,8 @@ package com.epam.aidial.metric.service;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.IsMetricsEnabledCondition;
 import com.epam.aidial.metric.model.FieldAvailability;
+import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
+import com.epam.aidial.metric.web.dto.DatasetInfoDto;
 import com.epam.aidial.ql.Engine;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.dto.CompletableDto;
@@ -11,6 +13,7 @@ import com.epam.aidial.ql.model.Table;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -20,19 +23,25 @@ import java.util.stream.Collectors;
 @Conditional(IsMetricsEnabledCondition.class)
 public class MetricService {
 
-    private final Map<String, Engine> engines; //TODO: engines will eventually fully replace metric providers
+    private final Map<String, Engine> engines;
     private final Map<String, LanguageConverter> languageConverters;
+    private final Map<String, DatasetDeclaration> declarations;
 
-    public MetricService(List<Engine> engines) {
+    public MetricService(List<Engine> engines, DatasetDeclaration datasetDeclaration) {
         this.engines = engines.stream()
                 .collect(Collectors.toMap(Engine::getName, Function.identity()));
         this.languageConverters = engines.stream()
                 .collect(Collectors.toMap(Engine::getName, LanguageConverter::new));
+        this.declarations = Map.of(datasetDeclaration.getName(), datasetDeclaration);
     }
 
-    public List<String> getDatasets() {
-        return engines.keySet().stream()
-                .sorted()
+    public List<DatasetInfoDto> getDatasets() {
+        return declarations.values().stream()
+                .sorted(Comparator.comparing(DatasetDeclaration::getName))
+                .map(d -> DatasetInfoDto.builder()
+                        .name(d.getName())
+                        .maxTimeRangeMs(d.getMaxTimeRangeMs())
+                        .build())
                 .toList();
     }
 

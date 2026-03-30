@@ -13,6 +13,7 @@ import com.epam.aidial.metric.service.MetricService;
 import com.epam.aidial.metric.web.dto.ColumnDeclarationDto;
 import com.epam.aidial.metric.web.dto.DataDto;
 import com.epam.aidial.metric.web.dto.DataQuery;
+import com.epam.aidial.metric.web.dto.DatasetInfoDto;
 import com.epam.aidial.metric.web.dto.JsonDataQuery;
 import com.epam.aidial.metric.web.dto.SqlDataQuery;
 import com.epam.aidial.metric.web.dto.TableSchemaDto;
@@ -53,7 +54,7 @@ public class MetricController {
 
     @GetMapping(path = "/datasets",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<String> getDatasets() {
+    public List<DatasetInfoDto> getDatasets() {
         return metricService.getDatasets();
     }
 
