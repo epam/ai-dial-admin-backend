@@ -2,9 +2,9 @@ package com.epam.aidial.metric.service;
 
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.IsMetricsEnabledCondition;
+import com.epam.aidial.metric.model.DatasetInfo;
 import com.epam.aidial.metric.model.FieldAvailability;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
-import com.epam.aidial.metric.model.DatasetInfo;
 import com.epam.aidial.ql.Engine;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.dto.CompletableDto;
