@@ -199,6 +199,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             combiner.add(tempTableName + " = " + innerQueryContext.getQuery(), innerQueryContext.getImports(), innerQueryContext.getPreamble());
 
             var finalGroupByColumnNames = groupByColumnNames;
+            var fillNullJoinKeys0 = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
             aggregations = aggregationFunctionCalls.stream()
                     .map(f -> buildSimpleAggregationQueryForTempTable(
                             tempTableName,
@@ -207,11 +208,13 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                             query.getWhere(),
                             finalGroupByColumnNames,
                             f,
-                            regexCounter))
+                            regexCounter,
+                            fillNullJoinKeys0))
                     .toList();
         } else {
             var table = getTable(query);
             var finalGroupByColumnNames1 = groupByColumnNames;
+            var fillNullJoinKeys = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
             aggregations = aggregationFunctionCalls.stream()
                     .map(f -> buildSimpleAggregationQuery(
                             table.getName(),
@@ -219,7 +222,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                             query.getWhere(),
                             finalGroupByColumnNames1,
                             f,
-                            regexCounter))
+                            regexCounter,
+                            fillNullJoinKeys))
                     .toList();
         }
 
@@ -340,6 +344,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var combiner = new InfluxQueryPartCombiner();
         var regexCounter = new AtomicInteger();
 
+        var fillNullJoinKeys = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
         List<FluxQueryPart> aggregations = aggregationFunctionCalls.stream()
                 .map(aggCall -> buildWindowColumnAggregationPart(
                         table.getName(),
@@ -349,7 +354,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                         groupByColumnNames,
                         groupFunctionCall,
                         aggCall,
-                        regexCounter))
+                        regexCounter,
+                        fillNullJoinKeys))
                 .toList();
 
         if (aggregations.isEmpty()) {
@@ -429,7 +435,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             List<String> groupByColumnNames,
             com.epam.aidial.expressions.GroupFunctionCall groupFunctionCall,
             AggregationFunctionCall aggregationFunctionCall,
-            AtomicInteger regexCounter
+            AtomicInteger regexCounter,
+            boolean fillNullJoinKeys
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
@@ -440,6 +447,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
         var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
         var aggregationFilterPart = createAggregationFilterPart(tableDeclaration, function, args);
+        var nullFillPart = fillNullJoinKeys
+                ? SimpleFluxBuilder.createNullFillPart(groupByColumnNames)
+                : "";
         var ungroupPart = SimpleFluxBuilder.createUngroupPart();
         var windowPart = SimpleFluxBuilder.createWindowPart(groupFunctionCall);
 
@@ -473,6 +483,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                 .add(measurementPart)
                 .add(filterPart)
                 .add(aggregationFilterPart)
+                .add(nullFillPart)
                 .add(ungroupPart)
                 .add(windowPart)
                 .add(windowGroupPart)
@@ -489,7 +500,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             Filter filter,
             List<String> groupByColumnNames,
             AggregationFunctionCall aggregationFunctionCall,
-            AtomicInteger regexCounter
+            AtomicInteger regexCounter,
+            boolean fillNullJoinKeys
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var keepColumns = new ArrayList<>(groupByColumnNames);
@@ -497,6 +509,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
 
         var rangePart = FluxConditionPartBuilder.createRangePart(filter, false);
         var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
+        var nullFillPart = fillNullJoinKeys
+                ? SimpleFluxBuilder.createNullFillPart(groupByColumnNames)
+                : "";
         var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);
         var aggregationPart = createAggregationPart(function, columnName);
         var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
@@ -506,6 +521,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                 .add(tempTableName)
                 .add(rangePart)
                 .add(filterPart)
+                .add(nullFillPart)
                 .add(groupPart)
                 .add(aggregationPart)
                 .add(keepPart)
@@ -519,7 +535,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             Filter filter,
             List<String> groupByColumnNames,
             AggregationFunctionCall aggregationFunctionCall,
-            AtomicInteger regexCounter
+            AtomicInteger regexCounter,
+            boolean fillNullJoinKeys
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
@@ -545,6 +562,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var caseWhenFilterPart = isCaseWhenSum
                 ? createCaseWhenFilterPart((CaseWhenExpression) args.get(0))
                 : "";
+        var nullFillPart = fillNullJoinKeys
+                ? SimpleFluxBuilder.createNullFillPart(groupByColumnNames)
+                : "";
         var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);
         var aggregationPart = createAggregationPart(effectiveAggFunction, aggregationColumnName);
         var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
@@ -560,6 +580,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             combiner.add(caseWhenFilterPart);
         }
         return combiner
+                .add(nullFillPart)
                 .add(groupPart)
                 .add(aggregationPart)
                 .add(keepPart)
