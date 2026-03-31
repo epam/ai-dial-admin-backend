@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.security;
 
+import com.epam.aidial.cfg.security.InternalSecurityAuthenticationToken;
 import com.epam.aidial.cfg.utils.MapExtractionUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,10 +46,16 @@ public class OpaqueAuthenticationConverter implements OpaqueTokenAuthenticationC
         var authentication = new BearerTokenAuthentication(authenticatedPrincipal, accessToken, userRoles);
         authentication.setDetails(details);
 
-        if (userRoles.isEmpty()) {
-            log.warn("Access denied for idp: {}. No allowed roles for user {}", providerName, authenticatedPrincipal.getName());
+        if (InternalSecurityAuthenticationToken.isReservedInternalPrincipal(authenticatedPrincipal.getName())) {
+            log.warn("'{}' principal is forbidden - idp: {}, authorities: {}, user roles: {}",
+                    authenticatedPrincipal.getName(), providerName, authorities, userRoles);
+            authentication.setAuthenticated(false);
+        } else if (userRoles.isEmpty()) {
+            log.warn("Access denied for idp: {}. No allowed roles for user {}",
+                    providerName, authenticatedPrincipal.getName());
             authentication.setAuthenticated(false);
         }
+
         return authentication;
     }
 }

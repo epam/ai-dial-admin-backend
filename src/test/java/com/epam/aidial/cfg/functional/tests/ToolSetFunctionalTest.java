@@ -102,7 +102,7 @@ public abstract class ToolSetFunctionalTest {
                 .thenReturn(null);
         Mockito.when(mcpSyncClient.listTools(null))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/ToolSet1/mcp"),
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/ToolSet1/mcp?useAllowedTools=false"),
                 eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
