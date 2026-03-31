@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class SimpleFluxBuilder {
 
+    public static final String NULL_SENTINEL = "__null__";
+
     public static String createFromPart(String bucketName) {
         return "from(bucket: %s)".formatted(quote(bucketName));
     }
@@ -137,6 +139,16 @@ public class SimpleFluxBuilder {
             throw new IllegalArgumentException("Only aggregate window functions are supported");
         }
         return value + unit;
+    }
+
+    public static String createNullFillPart(List<String> columnNames) {
+        if (columnNames.isEmpty()) {
+            return "";
+        }
+        var assignments = columnNames.stream()
+                .map(col -> "%s: if exists r.%s then r.%s else %s".formatted(col, col, col, quote(NULL_SENTINEL)))
+                .collect(Collectors.joining(", "));
+        return "|> map(fn: (r) => ({r with %s}))".formatted(assignments);
     }
 
     public static String compactWithQuoting(List<String> values) {

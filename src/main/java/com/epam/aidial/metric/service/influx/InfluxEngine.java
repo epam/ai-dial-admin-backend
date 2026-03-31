@@ -83,6 +83,9 @@ public class InfluxEngine extends AbstractQueryEngine {
                 var row = new ArrayList<>();
                 for (var columnName : columnNames) {
                     var value = record.getValueByKey(columnName);
+                    if (SimpleFluxBuilder.NULL_SENTINEL.equals(value)) {
+                        value = null;
+                    }
                     row.add(value);
                 }
                 rows.add(row);
