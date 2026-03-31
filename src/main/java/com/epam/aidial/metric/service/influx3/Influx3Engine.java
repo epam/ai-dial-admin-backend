@@ -28,13 +28,15 @@ public class Influx3Engine extends AbstractQueryEngine {
     private final InfluxDBClient client;
     private final SqlQueryBuilderFactory queryBuilderFactory;
     private final Influx3DatasetDeclaration influx3Declaration;
+    private final WindowGapFiller windowGapFiller;
 
     public Influx3Engine(Influx3DatasetDeclaration declaration, InfluxDBClient client,
-                         SqlQueryBuilderFactory queryBuilderFactory) {
+                         SqlQueryBuilderFactory queryBuilderFactory, WindowGapFiller windowGapFiller) {
         super(declaration);
         this.influx3Declaration = declaration;
         this.client = client;
         this.queryBuilderFactory = queryBuilderFactory;
+        this.windowGapFiller = windowGapFiller;
     }
 
     @Override
@@ -64,7 +66,7 @@ public class Influx3Engine extends AbstractQueryEngine {
 
         List<List<Object>> resultRows = rows;
         if (fillGaps && completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
-            resultRows = WindowGapFiller.fillGaps(rows, query);
+            resultRows = windowGapFiller.fillGaps(rows, query);
         }
 
         return DataImpl.builder()

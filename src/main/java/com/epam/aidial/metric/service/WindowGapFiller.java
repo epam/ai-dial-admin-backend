@@ -9,7 +9,8 @@ import com.epam.aidial.expressions.NumberConstant;
 import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.model.Query;
-import lombok.experimental.UtilityClass;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,9 +23,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
-@UtilityClass
+@Service
 public class WindowGapFiller {
+
+    private final int maxBuckets;
+
+    public WindowGapFiller(@Value("${metrics.gap-filler.max-buckets:10000}") int maxBuckets) {
+        this.maxBuckets = maxBuckets;
+    }
 
     public static Object defaultForType(Type type) {
         return switch (type) {
@@ -40,7 +48,7 @@ public class WindowGapFiller {
         return extractWindowFunction(query.getGroupBy()) != null;
     }
 
-    public static List<List<Object>> fillGaps(List<List<Object>> rows, Query query) {
+    public List<List<Object>> fillGaps(List<List<Object>> rows, Query query) {
         var windowFunction = extractWindowFunction(query.getGroupBy());
         if (windowFunction == null) {
             return rows;
@@ -162,15 +170,24 @@ public class WindowGapFiller {
         return new Interval(value, unit);
     }
 
-    private static List<Instant> generateTimeBuckets(Instant start, Instant end, Interval interval) {
+    private List<Instant> generateTimeBuckets(Instant start, Instant end, Interval interval) {
         var firstBucket = alignToStart(start, interval);
         var step = toStepFunction(interval);
 
         var buckets = new ArrayList<Instant>();
         var current = firstBucket;
         while (current.toInstant().isBefore(end)) {
+            if (buckets.size() >= maxBuckets) {
+                throw new IllegalArgumentException(
+                        "Time range produces too many buckets (>%s). Use a larger interval or narrower time range."
+                                .formatted(maxBuckets));
+            }
             buckets.add(current.toInstant());
-            current = step.apply(current);
+            var next = step.apply(current);
+            if (!next.isAfter(current)) {
+                throw new IllegalStateException("Step function did not advance time; aborting to prevent infinite loop.");
+            }
+            current = next;
         }
         return buckets;
     }
@@ -191,7 +208,7 @@ public class WindowGapFiller {
         };
     }
 
-    private static java.util.function.UnaryOperator<ZonedDateTime> toStepFunction(Interval interval) {
+    private static UnaryOperator<ZonedDateTime> toStepFunction(Interval interval) {
         var value = interval.value();
         return switch (interval.unit().toLowerCase()) {
             case "s" -> b -> b.plusSeconds(value);
