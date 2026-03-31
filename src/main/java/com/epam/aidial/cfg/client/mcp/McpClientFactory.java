@@ -26,6 +26,10 @@ public class McpClientFactory {
         var uri = new URI(mcpEndpoint);
         var baseUrl = uri.getScheme() + "://" + uri.getAuthority();
         var relativePath = uri.getRawPath();
+        var query = uri.getRawQuery();
+        if (query != null) {
+            relativePath = relativePath + "?" + query;
+        }
 
         HttpRequest.Builder requestBuilder = null;
 
