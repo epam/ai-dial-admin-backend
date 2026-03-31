@@ -12,4 +12,4 @@ alter table if exists model_entity_aud add column if not exists responses_endpoi
 
 -- Add responses_endpoint field to interceptor tables
 alter table if exists interceptor_entity add column if not exists responses_endpoint text;
-alter table if exists interceptor_entity_aud add column if not exists r4esponses_endpoint text;
+alter table if exists interceptor_entity_aud add column if not exists responses_endpoint text;
