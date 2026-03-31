@@ -715,14 +715,12 @@ public abstract class ModelFunctionalTest {
                       "upstreams": [
                         {
                           "endpoint": "http://localhost",
-                          "responsesEndpoint": null,
                           "extraData": "{\\"temp\\":800}",
                           "weight": 1,
                           "tier":0
                         },
                         {
                           "endpoint": "http://localhost",
-                          "responsesEndpoint": null,
                           "extraData": "{\\"temp\\":951}",
                           "weight": 1,
                           "tier":0
