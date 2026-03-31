@@ -164,6 +164,12 @@ instead to specify allowed roles along with their mapping to application roles.
 - Else if `config.rest.security.default.allowedRoles` is specified and not empty - all those roles mapped to `FULL_ADMIN`
 - Else - empty role mapping is used which will lead to 403 Forbidden response
 
+### Background tasks security context
+
+Background tasks (for example, auto import on bootstrap or scheduled endpoint refresh) use an internal `SecurityContext` 
+with a reserved principal (currently `system`, canonical form). REST security rejects JWT and opaque tokens 
+whose **principal claim** equals a reserved name **ignoring case**, so clients cannot impersonate internal principals.
+
 ### Auth Token Provider Configuration to interact with the DIAL Core
 
 | Setting                                                       | Environment Variable                                             | Default                   | Required | Applied when                                              | Description                                                                                                                                                                                                                                                   |
