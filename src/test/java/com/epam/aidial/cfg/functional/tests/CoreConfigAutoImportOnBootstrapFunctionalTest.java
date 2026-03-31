@@ -1,10 +1,13 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.ModelDto;
+import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 
@@ -21,6 +24,8 @@ public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
 
     @Autowired
     private ModelFacade modelFacade;
+    @Autowired
+    private TestHistoryFacade historyFacade;
 
     @Test
     public void testCoreConfigAutoImportedSuccessfully() {
@@ -30,6 +35,9 @@ public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
             assertThat(modelDto.getName()).isEqualTo("testModel");
             assertThat(modelDto.getDisplayName()).isEqualTo("testModel displayName");
         });
+
+        ConfigRevisionDto latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList());
+        assertThat(latestRevision.getAuthor()).isEqualTo("system");
     }
 
     @TestPropertySource(properties = {
