@@ -7,6 +7,7 @@ import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.GroupFunctionCall;
 import com.epam.aidial.expressions.enums.Type;
+import com.epam.aidial.metric.model.DatasetInfo;
 import com.epam.aidial.metric.model.FieldAvailability;
 import com.epam.aidial.metric.model.configuration.ColumnType;
 import com.epam.aidial.metric.service.MetricService;
@@ -53,7 +54,7 @@ public class MetricController {
 
     @GetMapping(path = "/datasets",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<String> getDatasets() {
+    public List<DatasetInfo> getDatasets() {
         return metricService.getDatasets();
     }
 
