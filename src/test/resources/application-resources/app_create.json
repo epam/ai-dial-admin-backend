@@ -3,6 +3,7 @@
   "version": "1",
   "folderId": "844pucrUihSTVTN9XSpCPW",
   "endpoint": null,
+  "responsesEndpoint": "http://responsesEndpoint",
   "displayName": null,
   "displayVersion": "0.0.1",
   "iconUrl": null,

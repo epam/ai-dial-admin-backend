@@ -6,6 +6,7 @@
   "author": "char_key",
   "name": "Char13",
   "endpoint": null,
+  "responsesEndpoint": "http://responsesEndpoint",
   "displayName": "Char_3",
   "displayVersion": "0.0.1",
   "iconUrl": "",

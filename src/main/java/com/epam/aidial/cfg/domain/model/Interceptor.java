@@ -12,6 +12,7 @@ public class Interceptor {
 
     private String name;
     private String endpoint;
+    private String responsesEndpoint;
     private String iconUrl;
     private String description;
     private Set<String> topics;
