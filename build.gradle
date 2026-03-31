@@ -74,6 +74,17 @@ dependencies {
     implementation platform("org.springframework.security:spring-security-bom:6.5.9") {
         because("previous versions have vulnerabilities")
     }
+
+    implementation platform("io.netty:netty-bom:4.2.11.Final") {
+        because("previous versions have vulnerabilities")
+    }
+
+    implementation 'io.netty:netty-codec-http2'
+    implementation 'io.netty:netty-codec'
+    implementation 'io.netty:netty-codec-http'
+    implementation 'io.netty:netty-handler'
+    implementation 'io.netty:netty-transport'
+
     // https://issues.apache.org/jira/browse/JCLOUDS-1637
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
@@ -183,25 +194,15 @@ dependencies {
         implementation ('com.nimbusds:nimbus-jose-jwt:10.3.1') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('io.projectreactor.netty:reactor-netty-http:1.2.8') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('io.netty:netty-codec-http2:4.2.4.Final') {
+        implementation('io.projectreactor.netty:reactor-netty-http:1.2.16') {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
                 because("previous versions have vulnerabilities)")
         }
-        implementation ('io.netty:netty-codec:4.2.8.Final') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation('io.netty:netty-codec-http:4.2.11.Final') {
-            because("previous versions have vulnerabilities")
-        }
         implementation ('org.springframework:spring-webmvc:6.2.17') {
             because("previous versions have vulnerabilities")
         }
-
         implementation ('org.springframework:spring-core:6.2.11') {
             because("previous versions have vulnerabilities")
         }
