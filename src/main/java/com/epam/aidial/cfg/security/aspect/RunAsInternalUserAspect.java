@@ -51,13 +51,14 @@ public class RunAsInternalUserAspect {
 
     private Authentication createAuth(RunAsInternalUser runAsInternalUser) {
         String principal = runAsInternalUser.principal();
+        String email = runAsInternalUser.email();
 
         List<SimpleGrantedAuthority> authorities = Arrays.stream(runAsInternalUser.roles())
                 .map(Enum::name)
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
-        return new InternalSecurityAuthenticationToken(principal, authorities);
+        return new InternalSecurityAuthenticationToken(principal, email, authorities);
     }
 
     private void setPreviousContextOrClear(SecurityContext previous) {
