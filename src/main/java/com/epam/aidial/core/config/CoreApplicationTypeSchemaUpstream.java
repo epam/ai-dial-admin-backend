@@ -2,7 +2,6 @@ package com.epam.aidial.core.config;
 
 import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
-
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

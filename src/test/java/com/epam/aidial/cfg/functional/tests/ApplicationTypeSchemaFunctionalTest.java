@@ -90,6 +90,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         dto.setInterceptors(List.of());
         dto.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
         dto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
+        dto.setApplicationTypeResponsesEndpoint("https://test.com/responses/endpoint");
         Assertions.assertThat(actual).isEqualTo(dto);
     }
 
@@ -341,6 +342,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         typeSchemaFacade.create(dto);
         dto.setApplications(List.of());
         dto.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
+        dto.setApplicationTypeResponsesEndpoint("https://test.com/responses/endpoint");
         dto.setInterceptors(List.of());
         ApplicationTypeSchemaDto schemaDto = typeSchemaFacade.get(dto.getId());
         Assertions.assertThat(schemaDto).isEqualTo(dto);
@@ -489,6 +491,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         expected.setApplicationTypeMcp(mcp);
         expected.setApplicationTypeAssistantAttachmentsInRequestSupported(false);
         expected.setApplicationTypeSchemaEndpoint("https://test.com/endpoint");
+        expected.setApplicationTypeResponsesEndpoint("https://test.com/responses/endpoint");
 
         CoreApplicationTypeSchema actual = typeSchemaFacade.getCoreSchemaWithHash(dto.getId()).core();
 
@@ -599,6 +602,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
                       "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
                       "dial:applicationTypeInterceptors": [],
                       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+                      "dial:applicationTypeResponsesEndpoint": "https://test.com/responses/endpoint",
                       "dial:applicationTypeBucketCopy": "ENABLED",
                       "dial:applicationTypeMcp": {
                         "dial:endpoint": "http://localhost:9876/mcp",

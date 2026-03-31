@@ -14,6 +14,8 @@ public class Upstream {
 
     private String endpoint;
 
+    private String responsesEndpoint;
+
     private String key;
 
     @JsonDeserialize(using = JsonToStringDeserializer.class)
@@ -25,7 +27,8 @@ public class Upstream {
     private int tier;
 
     public String toString() {
-        return "Upstream(endpoint=" + this.getEndpoint() + ", key=" + SecretUtils.mask(this.getKey())
+        return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
+                + ", key=" + SecretUtils.mask(this.getKey())
                 + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }

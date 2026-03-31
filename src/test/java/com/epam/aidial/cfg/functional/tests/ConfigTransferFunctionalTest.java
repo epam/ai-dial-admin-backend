@@ -3097,6 +3097,7 @@ public abstract class ConfigTransferFunctionalTest {
         List<UpstreamDto> upstreams = new ArrayList<>();
         var upstream = new UpstreamDto();
         upstream.setEndpoint("http://sample.com");
+        upstream.setResponsesEndpoint("http://sample.com/responses");
         upstream.setKey("someKey");
         upstream.setExtraData("{\"key1\":\"val1\"}");
         upstreams.add(upstream);
