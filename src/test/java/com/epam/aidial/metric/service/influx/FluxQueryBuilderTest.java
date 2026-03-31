@@ -919,7 +919,8 @@ class FluxQueryBuilderTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "price")
                 |> group()
-                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)
+                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 10m))}))
                 |> rename(columns: {_time: "temp_column_0", _value: "temp_column_1"})""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("temp_column_0", "temp_column_1"));
     }
@@ -977,7 +978,8 @@ class FluxQueryBuilderTest {
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
                 |> filter(fn: (r) => r["_field"] == "price")
                 |> group()
-                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)
+                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 10m))}))
                 |> rename(columns: {_time: "temp_column_0", _value: "temp_column_1"})""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("temp_column_0", "temp_column_1"));
     }
@@ -1036,7 +1038,8 @@ class FluxQueryBuilderTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "price")
                 |> group()
-                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)
+                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 10m))}))
                 |> rename(columns: {_time: "a", _value: "b"})""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("a", "b"));
     }
@@ -1088,6 +1091,7 @@ class FluxQueryBuilderTest {
                 |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group()
                 |> window(every: 10m)
+                |> map(fn: (r) => ({r with _start: time(v: int(v: r._start) - int(v: r._start) % int(v: 10m))}))
                 |> group(columns: ["_start", "_stop", "deployment"])
                 |> count(column: "_value")
                 |> keep(columns: ["_start", "deployment", "_value"])

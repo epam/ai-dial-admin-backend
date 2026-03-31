@@ -330,12 +330,12 @@ class SqlQueryIntegrationTest {
                 GROUP BY time_window ORDER BY time_window ASC""");
 
         assertThat(actual.getQuery()).isEqualTo("""
-                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "time_window"\
+                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "temp_column_0"\
                 , COUNT(*) AS "total" \
                 FROM "analytics" \
                 WHERE "time" >= $p0 AND "time" < $p1 \
-                GROUP BY "time_window" \
-                ORDER BY "time_window" ASC""");
+                GROUP BY "temp_column_0" \
+                ORDER BY "temp_column_0" ASC""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
 
@@ -350,12 +350,12 @@ class SqlQueryIntegrationTest {
         var actual = buildFromJson(queryDto);
 
         assertThat(actual.getQuery()).isEqualTo("""
-                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "time_window"\
+                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "temp_column_0"\
                 , COUNT(*) AS "total" \
                 FROM "analytics" \
                 WHERE "time" >= $p0 AND "time" < $p1 \
-                GROUP BY "time_window" \
-                ORDER BY "time_window" ASC""");
+                GROUP BY "temp_column_0" \
+                ORDER BY "temp_column_0" ASC""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
 
