@@ -127,17 +127,43 @@ public abstract class AbstractInfluxContainerTest {
     protected abstract Engine getEngine();
 
     protected Data queryFromJson(String json) throws Exception {
+        return queryFromJson(json, true);
+    }
+
+    protected Data queryFromJson(String json, boolean fillGaps) throws Exception {
         var engine = getEngine();
         var languageConverter = new LanguageConverter(engine);
         var dto = QUERY_MAPPER.readValue(json, CompletableDto.class);
         var completable = languageConverter.convert(dto, engine.getTables());
-        return engine.getData(completable, true);
+        return engine.getData(completable, fillGaps);
     }
 
     protected static List<String> columnNames(Data data) {
         return data.getExpressions().stream()
                 .map(expr -> (expr instanceof com.epam.aidial.expressions.Column col) ? col.getName() : expr.toString())
                 .toList();
+    }
+
+    @Nested
+    class SimpleSelectTests {
+
+        @Test
+        void simpleSelectWithTimeAlias() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["_time as completion_time", "deployment"],
+                      "from": "analytics",
+                      "where": {%s},
+                      "orderBy": [{"$asc": "_time"}],
+                      "limit": 1
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("completion_time", "deployment");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T14:00:00Z"), "gpt-4")
+            );
+        }
+
     }
 
     @Nested
@@ -1005,6 +1031,53 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("money", "requests");
             assertThat(data.getData()).hasSize(1);
+        }
+    }
+
+    @Nested
+    class GapFillingDisabledTests {
+
+        @Test
+        void windowAggregationNoGapFill() throws Exception {
+            // Same 8-hour window query as windowAggregationFillsGaps, but with fillGaps=false.
+            // Should return only buckets that have actual data (no zero-filled rows).
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 8, 'h') as time", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 8, 'h')"],
+                      "where": {%s},
+                      "orderBy": [{"$asc": "time"}]
+                    }""".formatted(TIME_FILTER), false);
+
+            assertThat(columnNames(data)).containsExactly("time", "requests");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T16:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-13T08:00:00Z"), 1L)
+            );
+        }
+
+        @Test
+        void windowAndColumnAggregationNoGapFill() throws Exception {
+            // Same query as windowAndColumnAggregation, but with fillGaps=false.
+            // Should return only rows with actual data (no zero-filled deployment rows).
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 1, 'd') as time", "deployment", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 1, 'd')", "deployment"],
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER), false);
+
+            assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5", 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5", 1L)
+            );
         }
     }
 

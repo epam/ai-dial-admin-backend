@@ -14,6 +14,7 @@ import com.influxdb.v3.client.query.QueryOptions;
 import com.influxdb.v3.client.query.QueryType;
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -22,16 +23,20 @@ import java.util.stream.Stream;
 
 public class Influx3Engine extends AbstractQueryEngine {
 
+    private static final long NANOS_PER_SECOND = 1_000_000_000L;
+
     private final InfluxDBClient client;
     private final SqlQueryBuilderFactory queryBuilderFactory;
     private final Influx3DatasetDeclaration influx3Declaration;
+    private final WindowGapFiller windowGapFiller;
 
     public Influx3Engine(Influx3DatasetDeclaration declaration, InfluxDBClient client,
-                         SqlQueryBuilderFactory queryBuilderFactory) {
+                         SqlQueryBuilderFactory queryBuilderFactory, WindowGapFiller windowGapFiller) {
         super(declaration);
         this.influx3Declaration = declaration;
         this.client = client;
         this.queryBuilderFactory = queryBuilderFactory;
+        this.windowGapFiller = windowGapFiller;
     }
 
     @Override
@@ -39,13 +44,15 @@ public class Influx3Engine extends AbstractQueryEngine {
         var queryContext = queryBuilderFactory.createQueryBuilder()
                 .buildQueryContext(completable);
 
+        var expressions = completable.getExpressions();
         var rows = new ArrayList<List<Object>>();
         var options = new QueryOptions(influx3Declaration.getSource().getDatabase(), QueryType.SQL);
         try (Stream<Object[]> stream = client.query(queryContext.getQuery(), queryContext.getParameters(), options)) {
             stream.forEach(record -> {
                 var row = new ArrayList<>(queryContext.getColumnNames().size());
                 for (int i = 0; i < queryContext.getColumnNames().size(); i++) {
-                    row.add(i < record.length ? normalizeValue(record[i]) : null);
+                    var type = i < expressions.size() ? expressions.get(i).getType() : null;
+                    row.add(i < record.length ? normalizeValue(record[i], type) : null);
                 }
                 rows.add(row);
             });
@@ -59,7 +66,7 @@ public class Influx3Engine extends AbstractQueryEngine {
 
         List<List<Object>> resultRows = rows;
         if (fillGaps && completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
-            resultRows = WindowGapFiller.fillGaps(rows, query);
+            resultRows = windowGapFiller.fillGaps(rows, query);
         }
 
         return DataImpl.builder()
@@ -106,9 +113,13 @@ public class Influx3Engine extends AbstractQueryEngine {
         };
     }
 
-    private Object normalizeValue(Object value) {
+    private Object normalizeValue(Object value, Type type) {
         if (value instanceof LocalDateTime localDateTime) {
             return localDateTime.toInstant(ZoneOffset.UTC);
+        }
+        if (type == Type.TIMESTAMP && value instanceof Number number) {
+            long nanos = number.longValue();
+            return Instant.ofEpochSecond(nanos / NANOS_PER_SECOND, nanos % NANOS_PER_SECOND);
         }
         return value;
     }
