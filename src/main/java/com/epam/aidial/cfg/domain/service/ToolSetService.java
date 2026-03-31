@@ -223,8 +223,15 @@ public class ToolSetService {
     public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
         var toolSet = get(toolSetName);
         var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
-        return toolDiscoveryService.discoverTools(String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp", toolSet.getDeployment().getName()),
-                toolSet.getTransport(), nextCursor, AuthHeaderUtils.getAuthHeaders());
+        return toolDiscoveryService.discoverTools(
+                String.format(
+                        normalizedCoreClientUrl + "/v1/toolset/%s/mcp?useAllowedTools=false",
+                        toolSet.getDeployment().getName()
+                ),
+                toolSet.getTransport(),
+                nextCursor,
+                AuthHeaderUtils.getAuthHeaders()
+        );
     }
 
     @Transactional(readOnly = true)
