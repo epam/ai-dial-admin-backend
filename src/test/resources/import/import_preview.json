@@ -348,7 +348,6 @@
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
-        "responsesEndpoint": "https://responsesEndpoint",
         "forwardAuthToken": false,
         "author": "test-author",
         "dependencies": [],

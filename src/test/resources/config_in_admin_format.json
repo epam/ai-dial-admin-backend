@@ -506,7 +506,6 @@
 		"testInterceptor1": {
 			"name": "testInterceptor1",
             "endpoint": "https://endpoint.test.com/interceptor",
-			"responsesEndpoint": "https://endpoint.test.com/interceptor/responses",
 			"forwardAuthToken": false,
 			"author": "test-author",
 			"createdAt": 12345,

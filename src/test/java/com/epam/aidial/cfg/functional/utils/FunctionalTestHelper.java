@@ -169,7 +169,6 @@ public class FunctionalTestHelper {
         interceptorDto.setDescription("description" + suffix);
         interceptorDto.setDisplayName("displayName" + suffix);
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
-        interceptorDto.setResponsesEndpoint("https://endpoint.test.com/interceptor" + suffix + "/responses");
         interceptorDto.setEntities(List.of());
         interceptorDto.setTopics(new TreeSet<>(Set.of("topic1", "topic2")));
         interceptorDto.setSource(new InterceptorEndpointsSourceDto());

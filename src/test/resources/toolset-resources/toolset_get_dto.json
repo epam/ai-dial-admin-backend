@@ -6,7 +6,6 @@
   "author": "key",
   "name": "toolset",
   "endpoint": "https://test",
-  "responsesEndpoint": "http://responsesEndpoint",
   "description": "test",
   "descriptionKeywords": [],
   "maxRetryAttempts": 1,

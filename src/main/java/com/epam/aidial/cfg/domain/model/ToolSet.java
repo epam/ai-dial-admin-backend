@@ -15,7 +15,6 @@ import java.util.Set;
 public class ToolSet extends SecuredRoleBased {
 
     private String endpoint;
-    private String responsesEndpoint;
     private String iconUrl;
     private String description;
     private String displayName;

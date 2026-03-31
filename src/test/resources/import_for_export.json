@@ -256,7 +256,6 @@
       "displayName": "ToolSet1",
       "userRoles": [],
       "endpoint": "http://sample-endpoint/api",
-      "responsesEndpoint": "https://toolset1/responses",
       "transport": "sse",
       "allowedTools": ["branch", "remote"],
       "authSettings": {

@@ -246,7 +246,6 @@
       "name": "toolset1",
       "user_roles": [],
       "endpoint": "http://sample-endpoint/api",
-      "responsesEndpoint": "https://toolset1/responses",
       "display_name": "ToolSet1",
       "forward_auth_token": false,
       "defaults": {},

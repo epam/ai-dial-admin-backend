@@ -13,7 +13,3 @@ alter table model_entity_aud add responses_endpoint nvarchar(max);
 -- Add responses_endpoint field to interceptor tables
 alter table interceptor_entity add responses_endpoint nvarchar(max);
 alter table interceptor_entity_aud add responses_endpoint nvarchar(max);
-
--- Add responses_endpoint field to tool_set tables
-alter table tool_set_entity add responses_endpoint nvarchar(max);
-alter table tool_set_entity_aud add responses_endpoint nvarchar(max);

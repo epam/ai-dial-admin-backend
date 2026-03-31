@@ -184,7 +184,6 @@
   "interceptors": {
     "testInterceptor1": {
       "name": "testInterceptor1",
-      "responsesEndpoint": "https://responsesEndpoint",
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
       "userRoles": [
