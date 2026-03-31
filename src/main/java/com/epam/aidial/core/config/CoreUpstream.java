@@ -17,7 +17,7 @@ public class CoreUpstream {
 
     @JsonAlias({"endpoint", "dial:endpoint"})
     private String endpoint;
-    @JsonAlias({"responsesEndpoint", "responses-endpoint", "dial:responsesEndpoint"})
+    @JsonAlias({"responsesEndpoint", "responses_endpoint", "dial:responsesEndpoint"})
     private String responsesEndpoint;  //0.43.0
     @JsonAlias({"key", "dial:key"})
     private String key;

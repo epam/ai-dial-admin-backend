@@ -536,7 +536,6 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         request.setUrl("testUrl");
         request.setAuthenticationType(AuthenticationTypeResourceDto.OAUTH);
         request.setCredentialsLevel(CredentialsLevelDto.GLOBAL);
-        request.setRedirectUri("redirectUri");
 
         mockMvc.perform(post(TOOLSET_SIGN_IN)
                         .contentType(MediaType.APPLICATION_JSON)

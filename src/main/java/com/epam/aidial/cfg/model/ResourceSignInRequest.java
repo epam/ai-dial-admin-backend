@@ -16,5 +16,4 @@ public class ResourceSignInRequest {
     private AuthenticationType authenticationType;
     private String code;
     private String apiKey;
-    private String redirectUri;
 }

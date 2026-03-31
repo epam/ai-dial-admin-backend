@@ -22,10 +22,6 @@ public class CoreApplicationTypeSchemaUpstream {
     @JsonProperty("dial:endpoint")
     private String endpoint;
 
-    @JsonAlias({"responsesEndpoint", "dial:responsesEndpoint"})
-    @JsonProperty("dial:responsesEndpoint")
-    private String responsesEndpoint;  //0.43.0
-
     @JsonAlias({"key", "dial:key"})
     @JsonProperty("dial:key")
     private String key;
@@ -44,8 +40,7 @@ public class CoreApplicationTypeSchemaUpstream {
     private int tier = 0;
 
     public String toString() {
-        return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
-                + ", key=" + SecretUtils.mask(this.getKey())
+        return "Upstream(endpoint=" + this.getEndpoint() + ", key=" + SecretUtils.mask(this.getKey())
                 + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }

@@ -16,5 +16,4 @@ public class ResourceSignInRequestDto {
     private AuthenticationTypeDto authenticationType;
     private String code;
     private String apiKey;
-    private String redirectUri;
 }

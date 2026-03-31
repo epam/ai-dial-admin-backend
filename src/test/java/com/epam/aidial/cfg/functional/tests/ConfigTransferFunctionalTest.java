@@ -3078,7 +3078,6 @@ public abstract class ConfigTransferFunctionalTest {
         var routeDto = new DependentRouteDto();
         routeDto.setName(routeName);
         routeDto.setDescription("some desc");
-        routeDto.setDescription("some desc");
         routeDto.setPaths(List.of("/first", "/second"));
         routeDto.setMethods(new TreeSet<>(Set.of("GET", "POST")));
         routeDto.setMaxRetryAttempts(5);
