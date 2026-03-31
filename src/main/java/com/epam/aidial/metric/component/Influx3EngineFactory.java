@@ -5,6 +5,7 @@ import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.TokenAuthorizationDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DataSourceDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.metric.service.influx3.Influx3Engine;
 import com.epam.aidial.metric.service.influx3.SqlQueryBuilderFactory;
 import com.epam.aidial.ql.Engine;
@@ -19,9 +20,12 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 public class Influx3EngineFactory implements EngineFactory {
 
     private final Influx3DatasetConfiguration datasetConfiguration;
+    private final WindowGapFiller windowGapFiller;
 
-    public Influx3EngineFactory(Influx3DatasetConfiguration datasetConfiguration) {
+    public Influx3EngineFactory(Influx3DatasetConfiguration datasetConfiguration,
+                                WindowGapFiller windowGapFiller) {
         this.datasetConfiguration = datasetConfiguration;
+        this.windowGapFiller = windowGapFiller;
     }
 
     @Override
@@ -35,7 +39,7 @@ public class Influx3EngineFactory implements EngineFactory {
         var influx3DbClient = createInflux3DbClient(influx3DatasetDeclaration.getSource());
         var builderFactory = new SqlQueryBuilderFactory(influx3DatasetDeclaration, datasetConfiguration);
 
-        return new Influx3Engine(influx3DatasetDeclaration, influx3DbClient, builderFactory);
+        return new Influx3Engine(influx3DatasetDeclaration, influx3DbClient, builderFactory, windowGapFiller);
     }
 
     private InfluxDBClient createInflux3DbClient(Influx3DataSourceDeclaration source) {

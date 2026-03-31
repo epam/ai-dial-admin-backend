@@ -10,5 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = SqlDataQuery.class, name = "sql"),
 })
 public interface DataQuery {
-
+    default boolean isFillGaps() {
+        return false;
+    }
 }

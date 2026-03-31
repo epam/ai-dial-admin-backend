@@ -239,12 +239,12 @@ class SqlQueryBuilderTest {
         var actual = sqlQueryBuilder.buildQueryContext(query);
 
         assertThat(actual.getQuery()).isEqualTo("""
-                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "window"\
+                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "temp_column_0"\
                 , COUNT(*) AS "total" \
                 FROM "analytics" \
                 WHERE "time" >= $p0 AND "time" < $p1 \
-                GROUP BY "window" \
-                ORDER BY "window" ASC""");
+                GROUP BY "temp_column_0" \
+                ORDER BY "temp_column_0" ASC""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("window", "total"));
     }
 
@@ -319,13 +319,13 @@ class SqlQueryBuilderTest {
         var actual = sqlQueryBuilder.buildQueryContext(query);
 
         assertThat(actual.getQuery()).isEqualTo("""
-                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "window"\
+                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "temp_column_0"\
                 , "deployment"\
                 , COUNT(*) AS "total" \
                 FROM "analytics" \
                 WHERE "time" >= $p0 AND "time" < $p1 \
-                GROUP BY "window", "deployment" \
-                ORDER BY "window" ASC""");
+                GROUP BY "temp_column_0", "deployment" \
+                ORDER BY "temp_column_0" ASC""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("window", "deployment", "total"));
     }
 
@@ -350,13 +350,13 @@ class SqlQueryBuilderTest {
         var actual = sqlQueryBuilder.buildQueryContext(query);
 
         assertThat(actual.getQuery()).isEqualTo("""
-                SELECT DATE_BIN(INTERVAL '1 day', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "window"\
+                SELECT DATE_BIN(INTERVAL '1 day', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "temp_column_0"\
                 , "deployment"\
                 , "project_id"\
                 , COUNT(*) AS "total" \
                 FROM "analytics" \
                 WHERE "time" >= $p0 AND "time" < $p1 \
-                GROUP BY "window", "deployment", "project_id\"""");
+                GROUP BY "temp_column_0", "deployment", "project_id\"""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("window", "deployment", "project_id", "total"));
     }
 

@@ -7,6 +7,7 @@ import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.model.influx.FluxQueryContext;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.common.model.enums.SortDirection;
@@ -45,8 +46,10 @@ class FluxQueryIntegrationTest {
         var datasetConfiguration = new InfluxDatasetConfiguration();
         datasetConfiguration.setDefaultPageSize(50);
 
+        var windowGapFiller = new WindowGapFiller(10_000);
+
         fluxQueryBuilderFactory = new FluxQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
-        engine = new InfluxEngine(datasetDeclaration, null, fluxQueryBuilderFactory);
+        engine = new InfluxEngine(datasetDeclaration, null, fluxQueryBuilderFactory, windowGapFiller);
         languageConverter = new LanguageConverter(engine);
     }
 
@@ -663,7 +666,8 @@ class FluxQueryIntegrationTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group()
-                |> aggregateWindow(every: 1h, fn: count, createEmpty: false)
+                |> aggregateWindow(every: 1h, fn: count, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 1h))}))
                 |> rename(columns: {_time: "time_window", _value: "total"})""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
@@ -686,7 +690,8 @@ class FluxQueryIntegrationTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group()
-                |> aggregateWindow(every: 1h, fn: count, createEmpty: false)
+                |> aggregateWindow(every: 1h, fn: count, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 1h))}))
                 |> rename(columns: {_time: "time_window", _value: "total"})""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
