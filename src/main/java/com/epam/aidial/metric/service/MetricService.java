@@ -67,12 +67,12 @@ public class MetricService {
         return null;
     }
 
-    public Data getData(String datasetName, CompletableDto completableDto) {
+    public Data getData(String datasetName, CompletableDto completableDto, boolean fillGaps) {
         var engine = getEngine(datasetName);
         var completable = languageConverters.get(datasetName)
                 .convert(completableDto, engine.getTables());
 
-        return getEngine(datasetName).getData(completable);
+        return engine.getData(completable, fillGaps);
     }
 
     private Engine getEngine(String datasetName) {

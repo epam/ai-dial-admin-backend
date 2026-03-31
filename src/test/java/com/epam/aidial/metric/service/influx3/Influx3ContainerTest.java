@@ -6,6 +6,7 @@ import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.service.AbstractInfluxContainerTest;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.Engine;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.influxdb.v3.client.InfluxDBClient;
@@ -62,7 +63,8 @@ class Influx3ContainerTest extends AbstractInfluxContainerTest {
         datasetConfiguration.setDefaultPageSize(50);
 
         var queryBuilderFactory = new SqlQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
-        engine = new Influx3Engine(datasetDeclaration, influx3Client, queryBuilderFactory);
+        var windowGapFiller = new WindowGapFiller(10_000);
+        engine = new Influx3Engine(datasetDeclaration, influx3Client, queryBuilderFactory, windowGapFiller);
     }
 
     @Override
