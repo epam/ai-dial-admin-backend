@@ -40,6 +40,7 @@ import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapperImpl;
+import com.epam.aidial.cfg.security.aspect.RunAsInternalUserAspect;
 import com.epam.aidial.cfg.service.CoreDeploymentService;
 import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
@@ -204,6 +205,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public ExternalSchemaLoader externalSchemaLoader() {
         return Mockito.mock(ExternalSchemaLoader.class);
+    }
+
+    @Bean
+    public RunAsInternalUserAspect runAsInternalUserAspect() {
+        return new RunAsInternalUserAspect();
     }
 
 }

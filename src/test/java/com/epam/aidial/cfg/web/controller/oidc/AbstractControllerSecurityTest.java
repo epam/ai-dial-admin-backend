@@ -126,6 +126,44 @@ public abstract class AbstractControllerSecurityTest {
         );
     }
 
+    protected static Stream<Arguments> reservedPrincipal() {
+        return Stream.of(
+                Arguments.of(
+                        JwtUtils.generateTestToken(
+                                TEST_AUDIENCE,
+                                TEST_ISSUER,
+                                Map.of(
+                                        PRINCIPAL_CLAIM, "system",
+                                        "resource_access", Map.of(ROLES_CLAIM, "testRole"),
+                                        EMAIL_CLAIM, "test@email.com"
+                                )
+                        )
+                ),
+                Arguments.of(
+                        JwtUtils.generateTestToken(
+                                TEST_AUDIENCE,
+                                TEST_ISSUER,
+                                Map.of(
+                                        PRINCIPAL_CLAIM, "System",
+                                        "resource_access", Map.of(ROLES_CLAIM, "testRole"),
+                                        EMAIL_CLAIM, "test@email.com"
+                                )
+                        )
+                ),
+                Arguments.of(
+                        JwtUtils.generateTestToken(
+                                TEST_AUDIENCE,
+                                TEST_ISSUER,
+                                Map.of(
+                                        PRINCIPAL_CLAIM, "SYSTEM",
+                                        "resource_access", Map.of(ROLES_CLAIM, "testRole"),
+                                        EMAIL_CLAIM, "test@email.com"
+                                )
+                        )
+                )
+        );
+    }
+
     protected static Stream<Arguments> fullAdminRoles() {
         return Stream.of(
                 Arguments.of(
