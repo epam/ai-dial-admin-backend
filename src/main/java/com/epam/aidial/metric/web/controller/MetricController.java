@@ -110,7 +110,7 @@ public class MetricController {
     public ResponseEntity<byte[]> getCsvDataBy(@PathVariable("dataset") String datasetName,
                                                @RequestBody @Valid DataQuery query) throws IOException {
         var completableDto = getCompletableDto(query);
-        var data = metricService.getData(datasetName, completableDto);
+        var data = metricService.getData(datasetName, completableDto, query.isFillGaps());
         var body = toByteArray(data);
         return ResponseEntity.ok(body);
     }
@@ -121,7 +121,7 @@ public class MetricController {
     public ResponseEntity<DataDto> getJsonData(@PathVariable("dataset") String datasetName,
                                                @RequestBody @Valid DataQuery query) {
         var completableDto = getCompletableDto(query);
-        var data = metricService.getData(datasetName, completableDto);
+        var data = metricService.getData(datasetName, completableDto, query.isFillGaps());
         var body = toDataDto(data);
         return ResponseEntity.ok(body);
     }
@@ -131,7 +131,7 @@ public class MetricController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DataDto> getJsonData(@PathVariable("dataset") String datasetName,
                                                @RequestBody @Valid String query) {
-        return getJsonData(datasetName, new SqlDataQuery(query));
+        return getJsonData(datasetName, new SqlDataQuery(query, false));
     }
 
     private CompletableDto getCompletableDto(DataQuery query) {

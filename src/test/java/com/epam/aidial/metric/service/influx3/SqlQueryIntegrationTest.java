@@ -6,6 +6,7 @@ import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.model.influx3.SqlQueryContext;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.common.model.enums.SortDirection;
@@ -46,8 +47,10 @@ class SqlQueryIntegrationTest {
         var datasetConfiguration = new Influx3DatasetConfiguration();
         datasetConfiguration.setDefaultPageSize(50);
 
+        var windowGapFiller = new WindowGapFiller(10_000);
+
         sqlQueryBuilderFactory = new SqlQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
-        engine = new Influx3Engine(datasetDeclaration, null, sqlQueryBuilderFactory);
+        engine = new Influx3Engine(datasetDeclaration, null, sqlQueryBuilderFactory, windowGapFiller);
         languageConverter = new LanguageConverter(engine);
     }
 

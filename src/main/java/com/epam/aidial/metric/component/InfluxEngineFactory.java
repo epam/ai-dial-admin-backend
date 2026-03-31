@@ -5,6 +5,7 @@ import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.TokenAuthorizationDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDataSourceDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.metric.service.influx.FluxQueryBuilder;
 import com.epam.aidial.metric.service.influx.FluxQueryBuilderFactory;
 import com.epam.aidial.metric.service.influx.InfluxEngine;
@@ -25,11 +26,14 @@ public class InfluxEngineFactory implements EngineFactory {
 
     private final OkHttpClient.Builder clientBuilder;
     private final InfluxDatasetConfiguration datasetConfiguration;
+    private final WindowGapFiller windowGapFiller;
 
     public InfluxEngineFactory(@Qualifier("influxOkHttpClientBuilder") OkHttpClient.Builder clientBuilder,
-                               InfluxDatasetConfiguration datasetConfiguration) {
+                               InfluxDatasetConfiguration datasetConfiguration,
+                               WindowGapFiller windowGapFiller) {
         this.clientBuilder = clientBuilder;
         this.datasetConfiguration = datasetConfiguration;
+        this.windowGapFiller = windowGapFiller;
     }
 
     @Override
@@ -43,7 +47,7 @@ public class InfluxEngineFactory implements EngineFactory {
         var influxDbClient = createInfluxDbClient(influxDatasetDeclaration.getSource());
         var builderFactory = createFluxQueryBuilderFactory(influxDatasetDeclaration);
 
-        return new InfluxEngine(influxDatasetDeclaration, influxDbClient, builderFactory);
+        return new InfluxEngine(influxDatasetDeclaration, influxDbClient, builderFactory, windowGapFiller);
     }
 
     private InfluxDBClient createInfluxDbClient(InfluxDataSourceDeclaration source) {
