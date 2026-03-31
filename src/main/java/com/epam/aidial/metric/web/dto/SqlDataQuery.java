@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SqlDataQuery implements DataQuery {
     private String query;
+    private boolean fillGaps;
 }
