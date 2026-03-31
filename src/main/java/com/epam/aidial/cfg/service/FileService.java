@@ -339,13 +339,19 @@ public class FileService implements ResourceService {
         var archiveFolderPath = "public/" + folderName;
         for (String filePath : collectFilePathsByPath(path)) {
             var fileName = PathUtils.parsePath(filePath).getName();
-            entries.putIfAbsent(filePath, archiveFolderPath + fileName);
+            if (entries.containsKey(filePath)) {
+                throw new IllegalStateException("Duplicate entry for path: " + filePath);
+            }
+            entries.put(filePath, archiveFolderPath + fileName);
         }
     }
 
     private void addSingleFileExportEntry(Map<String, String> entries, String filePath) {
         var fileName = PathUtils.parsePath(filePath).getName();
         if (isNotTechFile(filePath)) {
+            if (entries.containsKey(filePath)) {
+                throw new IllegalStateException("Duplicate entry for path: " + filePath);
+            }
             entries.putIfAbsent(filePath, "public/" + fileName);
         }
     }
