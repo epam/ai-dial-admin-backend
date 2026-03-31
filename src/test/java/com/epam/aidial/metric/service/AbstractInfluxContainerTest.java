@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -360,6 +361,35 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("project_id", "tool_calls", "mcp_calls");
             assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("proj1", 1L, 2L),
+                    List.of("proj2", 2L, 2L)
+            );
+        }
+
+        @Test
+        void multipleAggregationsWithNullGroupByColumn() throws Exception {
+            // Query multiple aggregations grouped by project_id WITHOUT filtering by project_id.
+            // Records #1-#3 have no project_id tag (null) → should appear with null project_id.
+            // null:  tool_calls=2 (#1 tools/call, #3 tools/call), mcp_calls=3 (#1, #2, #3)
+            // proj1: tool_calls=1 (#4 tools/call),                 mcp_calls=2 (#4, #5)
+            // proj2: tool_calls=2 (#6 tools/call, #7 tools/call),  mcp_calls=2 (#6, #7)
+            var data = queryFromJson("""
+                    {
+                      "expressions": [
+                        "project_id",
+                        "sum(case when mcp_method = 'tools/call' then 1 else 0 end) as tool_calls",
+                        "count() as mcp_calls"
+                      ],
+                      "from": "mcp_analytics",
+                      "groupBy": ["project_id"],
+                      "where": {
+                        "$and": [%s, %s]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("project_id", "tool_calls", "mcp_calls");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    Arrays.asList(null, 2L, 3L),
                     List.of("proj1", 1L, 2L),
                     List.of("proj2", 2L, 2L)
             );
