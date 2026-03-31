@@ -43,7 +43,7 @@ public abstract class Deployment extends RoleBasedEntity {
      */
     private List<String> interceptors = new ArrayList<>();
     /**
-     * The field contains a list of keyords aka tags which describe the deployment, e.g. code-gen, text2image.
+     * The field contains a list of keywords aka tags which describe the deployment, e.g. code-gen, text2image.
      */
     @JsonAlias({"descriptionKeywords", "description_keywords"})
     private List<String> descriptionKeywords = new ArrayList<>();
