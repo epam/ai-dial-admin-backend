@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.security;
 
+import com.epam.aidial.cfg.web.security.UserSecurityDetails;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -10,12 +11,13 @@ import java.util.Set;
 public class InternalSecurityAuthenticationToken extends AbstractAuthenticationToken {
 
     public static final String SYSTEM_PRINCIPAL = "system";
+    public static final String SYSTEM_PRINCIPAL_EMAIL = "system@dial.admin";
 
     private static final Set<String> RESERVED_PRINCIPALS = Set.of(SYSTEM_PRINCIPAL);
 
     private final String principal;
 
-    public InternalSecurityAuthenticationToken(String principal, Collection<? extends GrantedAuthority> authorities) {
+    public InternalSecurityAuthenticationToken(String principal, String email, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
 
         Optional<String> reservedInternalPrincipal = getReservedInternalPrincipal(principal);
@@ -24,6 +26,7 @@ public class InternalSecurityAuthenticationToken extends AbstractAuthenticationT
         }
 
         this.principal = reservedInternalPrincipal.get();
+        setDetails(new UserSecurityDetails(email));
         setAuthenticated(true);
     }
 

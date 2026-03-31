@@ -14,5 +14,7 @@ public @interface RunAsInternalUser {
 
     String principal() default InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL;
 
+    String email() default InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL_EMAIL;
+
     UserRole[] roles() default {UserRole.FULL_ADMIN};
 }

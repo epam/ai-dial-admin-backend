@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.security.aspect;
 
 import com.epam.aidial.cfg.security.InternalSecurityAuthenticationToken;
 import com.epam.aidial.cfg.web.security.UserRole;
+import com.epam.aidial.cfg.web.security.UserSecurityDetails;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -61,6 +62,7 @@ class RunAsInternalUserAspectTest {
 
         RunAsInternalUser annotation = mock(RunAsInternalUser.class);
         when(annotation.principal()).thenReturn(InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL);
+        when(annotation.email()).thenReturn(InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL_EMAIL);
         when(annotation.roles()).thenReturn(new UserRole[]{UserRole.FULL_ADMIN});
 
         // when
@@ -74,13 +76,16 @@ class RunAsInternalUserAspectTest {
 
     @ParameterizedTest
     @CsvSource({"system", "System", "SYSTEM"})
-    void duringProceedAuthenticationIsInternalTokenWithExpectedPrincipalAndAuthorities(String principal) throws Throwable {
+    void duringProceedAuthenticationIsInternalTokenWithExpectedPrincipalAndEmailAndAuthorities(String principal) throws Throwable {
         // given
         ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
         doAnswer(invocation -> {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             assertThat(auth).isInstanceOf(InternalSecurityAuthenticationToken.class);
             assertThat(auth.getPrincipal()).isEqualTo(InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL);
+            assertThat(auth.getDetails()).isInstanceOfSatisfying(
+                    UserSecurityDetails.class,
+                    userSecurityDetails -> assertThat(userSecurityDetails.email()).isEqualTo(InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL_EMAIL));
             assertThat(auth.getAuthorities())
                     .extracting(GrantedAuthority::getAuthority)
                     .containsExactly(UserRole.FULL_ADMIN.name());
@@ -89,6 +94,7 @@ class RunAsInternalUserAspectTest {
 
         RunAsInternalUser annotation = mock(RunAsInternalUser.class);
         when(annotation.principal()).thenReturn(principal);
+        when(annotation.email()).thenReturn(InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL_EMAIL);
         when(annotation.roles()).thenReturn(new UserRole[]{UserRole.FULL_ADMIN});
 
         // when
@@ -111,6 +117,7 @@ class RunAsInternalUserAspectTest {
 
         RunAsInternalUser annotation = mock(RunAsInternalUser.class);
         when(annotation.principal()).thenReturn(InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL);
+        when(annotation.email()).thenReturn(InternalSecurityAuthenticationToken.SYSTEM_PRINCIPAL_EMAIL);
         when(annotation.roles()).thenReturn(new UserRole[]{UserRole.FULL_ADMIN});
 
         // when & then

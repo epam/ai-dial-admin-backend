@@ -38,6 +38,7 @@ public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
 
         ConfigRevisionDto latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList());
         assertThat(latestRevision.getAuthor()).isEqualTo("system");
+        assertThat(latestRevision.getEmail()).isEqualTo("system@dial.admin");
     }
 
     @TestPropertySource(properties = {
