@@ -25,6 +25,7 @@ All notable infrastructure-relevant changes to this project will be documented i
 - `METRICS_STORAGE_MCP_ANALYTICS_MEASUREMENT` — InfluxDB 2 measurement name for MCP analytics data (default: `mcp_analytics`)
 - `METRICS_STORAGE_ANALYTICS_TABLE` — InfluxDB 3 table name for analytics data (default: `analytics`)
 - `METRICS_STORAGE_MCP_ANALYTICS_TABLE` — InfluxDB 3 table name for MCP analytics data (default: `mcp_analytics`)
+- `METRICS_MAX_TIME_RANGE` — maximum query time range for dataset queries; human-readable duration format (default: `72h` for InfluxDB 3)
 
 ---
 
