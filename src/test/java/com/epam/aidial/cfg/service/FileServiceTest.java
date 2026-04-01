@@ -292,6 +292,48 @@ class FileServiceTest {
                 "files/public/test1/test2.txt");
     }
 
+    @Test
+    void testExport_whenDeepNestedFolders() throws Exception {
+        // given
+        ExportResource exportResource = new ExportResource();
+        exportResource.setPaths(List.of("public/root/test1/test2/"));
+
+        FileMetadataDto file = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.ITEM)
+                .url("files/public/root/test1/test2/test3/file.txt")
+                .name("file.txt")
+                .build();
+
+        FileMetadataDto folderResponse = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.FOLDER)
+                .url("files/public/root/test1/test2/test3/")
+                .items(List.of(file))
+                .build();
+
+        when(fileClient.getFilesMetadata(eq("public/root/test1/test2/"), eq(true), any(), anyBoolean()))
+                .thenReturn(folderResponse);
+
+        Response mockResponse = mock(Response.class);
+        Response.Body body = mock(Response.Body.class);
+
+        when(fileClient.getFile(anyString())).thenReturn(mockResponse);
+        when(mockResponse.body()).thenReturn(body);
+        when(body.asInputStream()).thenReturn(new ByteArrayInputStream("content".getBytes()));
+
+        // when
+        StreamingResponseBody stream = fileService.export(exportResource);
+        var baos = new ByteArrayOutputStream();
+        stream.writeTo(baos);
+
+        // then
+        verify(fileClient).getFilesMetadata(eq("public/root/test1/test2/"), eq(true), any(), anyBoolean());
+        verify(fileClient).getFile("public/root/test1/test2/test3/file.txt");
+        Assertions.assertThat(readZipEntryNames(baos))
+                .containsExactly(
+                        "files/public/test2/test3/file.txt"
+                );
+    }
+
     private static List<String> readZipEntryNames(ByteArrayOutputStream baos) throws Exception {
         var names = new ArrayList<String>();
         try (var zis = new ZipInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
