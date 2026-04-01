@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ public class CoreUpstream {
 
     @JsonAlias({"endpoint", "dial:endpoint"})
     private String endpoint;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonAlias({"responsesEndpoint", "responses_endpoint", "dial:responsesEndpoint"})
     private String responsesEndpoint;  //0.43.0
     @JsonAlias({"key", "dial:key"})

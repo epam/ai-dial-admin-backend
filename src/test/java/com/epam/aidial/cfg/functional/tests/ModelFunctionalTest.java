@@ -531,6 +531,7 @@ public abstract class ModelFunctionalTest {
 
         UpstreamDto publicUpstreamDto = new UpstreamDto();
         publicUpstreamDto.setEndpoint("http://localhost");
+        publicUpstreamDto.setResponsesEndpoint("http://localhost/responses");
         publicUpstreamDto.setExtraData("{\"temp\":800}");
 
         ModelDto modelDto = createModelDto("1");
@@ -570,6 +571,7 @@ public abstract class ModelFunctionalTest {
 
         UpstreamDto publicUpstreamDto = new UpstreamDto();
         publicUpstreamDto.setEndpoint("http://localhost");
+        publicUpstreamDto.setResponsesEndpoint("http://localhost/responses");
         publicUpstreamDto.setExtraData("{\"temp\":800}");
 
         ModelDto modelDto = createModelDto("1");
@@ -715,14 +717,13 @@ public abstract class ModelFunctionalTest {
                       "upstreams": [
                         {
                           "endpoint": "http://localhost",
-                          "responsesEndpoint": null,
+                          "responsesEndpoint": "http://localhost/responses",
                           "extraData": "{\\"temp\\":800}",
                           "weight": 1,
                           "tier":0
                         },
                         {
                           "endpoint": "http://localhost",
-                          "responsesEndpoint": null,
                           "extraData": "{\\"temp\\":951}",
                           "weight": 1,
                           "tier":0
