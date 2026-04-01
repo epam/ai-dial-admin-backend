@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional;
 
+import com.epam.aidial.cfg.client.DeploymentClient;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.config.persistence.TestPersistenceService;
@@ -27,6 +28,8 @@ abstract class FunctionalTestSuite {
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
+    @Autowired
+    private DeploymentClient deploymentClient;
 
     @BeforeAll
     void beforeAllTests() {
@@ -37,7 +40,7 @@ abstract class FunctionalTestSuite {
     void afterEachTest() {
         persistenceService.restoreDb();
         doNothing().when(featureFlagAspect).evaluate(any(), any());
-        reset(transactionTimestampContext, coreConfigReloadCache, mcpClientFactory);
+        reset(transactionTimestampContext, coreConfigReloadCache, mcpClientFactory, deploymentClient);
     }
 
     @AfterAll

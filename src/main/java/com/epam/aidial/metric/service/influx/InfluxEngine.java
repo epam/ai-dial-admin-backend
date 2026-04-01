@@ -4,6 +4,7 @@ import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.service.AbstractQueryEngine;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.model.Completable;
 import com.epam.aidial.ql.model.Data;
 import com.epam.aidial.ql.model.Query;
@@ -19,16 +20,18 @@ public class InfluxEngine extends AbstractQueryEngine {
 
     private final InfluxDBClient client;
     private final FluxQueryBuilderFactory queryBuilderFactory;
+    private final WindowGapFiller windowGapFiller;
 
     public InfluxEngine(InfluxDatasetDeclaration declaration, InfluxDBClient client,
-                        FluxQueryBuilderFactory queryBuilderFactory) {
+                        FluxQueryBuilderFactory queryBuilderFactory, WindowGapFiller windowGapFiller) {
         super(declaration);
         this.client = client;
         this.queryBuilderFactory = queryBuilderFactory;
+        this.windowGapFiller = windowGapFiller;
     }
 
     @Override
-    public Data getData(Completable completable) {
+    public Data getData(Completable completable, boolean fillGaps) {
         var queryContext = queryBuilderFactory.createQueryBuilder()
                 .buildQueryContext(completable);
         var tables = client.getQueryApi().query(queryContext.buildFullQuery());
@@ -36,6 +39,10 @@ public class InfluxEngine extends AbstractQueryEngine {
 
         if (rows.isEmpty() && isUngroupedAggregation(completable)) {
             rows.add(buildDefaultAggregationRow(completable.getExpressions()));
+        }
+
+        if (fillGaps && completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
+            rows = new ArrayList<>(windowGapFiller.fillGaps(rows, query));
         }
 
         return DataImpl.builder()
@@ -76,6 +83,9 @@ public class InfluxEngine extends AbstractQueryEngine {
                 var row = new ArrayList<>();
                 for (var columnName : columnNames) {
                     var value = record.getValueByKey(columnName);
+                    if (SimpleFluxBuilder.NULL_SENTINEL.equals(value)) {
+                        value = null;
+                    }
                     row.add(value);
                 }
                 rows.add(row);

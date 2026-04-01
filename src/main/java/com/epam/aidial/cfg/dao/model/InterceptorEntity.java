@@ -28,6 +28,7 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     @EqualsAndHashCode.Include
     private String name;
     private String endpoint;
+    private String responsesEndpoint;
     private String iconUrl;
     private String description;
     private String displayName;

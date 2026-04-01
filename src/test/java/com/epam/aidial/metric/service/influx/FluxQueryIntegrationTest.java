@@ -7,6 +7,7 @@ import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.model.influx.FluxQueryContext;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.common.model.enums.SortDirection;
@@ -45,8 +46,10 @@ class FluxQueryIntegrationTest {
         var datasetConfiguration = new InfluxDatasetConfiguration();
         datasetConfiguration.setDefaultPageSize(50);
 
+        var windowGapFiller = new WindowGapFiller(10_000);
+
         fluxQueryBuilderFactory = new FluxQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
-        engine = new InfluxEngine(datasetDeclaration, null, fluxQueryBuilderFactory);
+        engine = new InfluxEngine(datasetDeclaration, null, fluxQueryBuilderFactory, windowGapFiller);
         languageConverter = new LanguageConverter(engine);
     }
 
@@ -591,6 +594,7 @@ class FluxQueryIntegrationTest {
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
                 |> count(column: "_measurement")
                 |> keep(columns: ["deployment", "_measurement"])
@@ -599,6 +603,7 @@ class FluxQueryIntegrationTest {
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
                 |> sum(column: "price")
                 |> keep(columns: ["deployment", "price"])
@@ -628,6 +633,7 @@ class FluxQueryIntegrationTest {
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
                 |> count(column: "_measurement")
                 |> keep(columns: ["deployment", "_measurement"])
@@ -636,6 +642,7 @@ class FluxQueryIntegrationTest {
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
                 |> sum(column: "price")
                 |> keep(columns: ["deployment", "price"])

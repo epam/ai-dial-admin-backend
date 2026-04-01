@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 public class UpstreamResourceDto {
 
     private String endpoint;
+    private String responsesEndpoint;
     private String key;
     private String extraData;
     private int weight;

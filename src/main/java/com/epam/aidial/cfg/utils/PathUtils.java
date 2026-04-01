@@ -34,6 +34,22 @@ public class PathUtils {
         return path != null && path.endsWith("/");
     }
 
+    public static String folderNameWithoutPath(String folderPath) {
+        if (StringUtils.isBlank(folderPath) || !isFolderPath(folderPath)) {
+            throw new IllegalArgumentException("Path cannot be blank and must be a valid folder path");
+        }
+
+        var normalized = trimTrailingSlash(folderPath);
+
+        int lastSlashIndex = normalized.lastIndexOf('/');
+
+        var folderName = (lastSlashIndex >= 0)
+                ? normalized.substring(lastSlashIndex + 1)
+                : normalized;
+
+        return folderName + "/";
+    }
+
     public static String ensureTrailingSlash(String path) {
         if (path == null || path.isEmpty()) {
             return "/";

@@ -18,4 +18,6 @@ public class ResourceSignInRequestDto {
     private String code;
 
     private String apiKey;
+
+    private String redirectUri;
 }
