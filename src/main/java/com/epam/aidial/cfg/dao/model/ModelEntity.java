@@ -73,6 +73,7 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private String overrideName;
     private List<String> fieldsHashingOrder;
     private String endpoint;
+    private String responsesEndpoint;
 
     @Embedded
     private ModelContainerEntity modelContainer;

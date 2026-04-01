@@ -37,6 +37,7 @@ public class ApplicationTypeSchema {
     private List<String> interceptors;
     private boolean applicationTypeAssistantAttachmentsInRequestSupported;
     private String applicationTypeSchemaEndpoint;
+    private String applicationTypeResponsesEndpoint;
     private ApplicationTypeMcp applicationTypeMcp;
 
     @JsonProperty("$defs")

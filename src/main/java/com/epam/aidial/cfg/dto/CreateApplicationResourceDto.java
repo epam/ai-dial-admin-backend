@@ -21,6 +21,8 @@ public class CreateApplicationResourceDto {
     private String folderId;
     @Endpoint
     private String endpoint;
+    @Endpoint
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;

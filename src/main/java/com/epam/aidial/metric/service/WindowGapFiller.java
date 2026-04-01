@@ -1,0 +1,324 @@
+package com.epam.aidial.metric.service;
+
+import com.epam.aidial.expressions.Alias;
+import com.epam.aidial.expressions.Column;
+import com.epam.aidial.expressions.Constant;
+import com.epam.aidial.expressions.Expression;
+import com.epam.aidial.expressions.GroupFunctionCall;
+import com.epam.aidial.expressions.NumberConstant;
+import com.epam.aidial.expressions.enums.Type;
+import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
+import com.epam.aidial.ql.model.Query;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
+
+@Service
+public class WindowGapFiller {
+
+    private final int maxBuckets;
+
+    public WindowGapFiller(@Value("${metrics.gap-filler.max-buckets:10000}") int maxBuckets) {
+        this.maxBuckets = maxBuckets;
+    }
+
+    public static Object defaultForType(Type type) {
+        return switch (type) {
+            case FLOAT, DOUBLE -> 0.0;
+            default -> 0L;
+        };
+    }
+
+    public static boolean isWindowQuery(Query query) {
+        if (query.getGroupBy() == null || query.getGroupBy().isEmpty()) {
+            return false;
+        }
+        return extractWindowFunction(query.getGroupBy()) != null;
+    }
+
+    public List<List<Object>> fillGaps(List<List<Object>> rows, Query query) {
+        var windowFunction = extractWindowFunction(query.getGroupBy());
+        if (windowFunction == null) {
+            return rows;
+        }
+
+        var timeRange = extractTimeRange(query);
+        if (timeRange.isEmpty()) {
+            return rows;
+        }
+
+        var interval = extractInterval(windowFunction);
+        var buckets = generateTimeBuckets(timeRange.get().start(), timeRange.get().end(), interval);
+        if (buckets.isEmpty()) {
+            return rows;
+        }
+
+        var layout = analyzeExpressions(query.getExpressions(), query.getGroupBy());
+        return fillGaps(rows, buckets, query.getExpressions(), layout);
+    }
+
+    /**
+     * Produces a complete time-series grid by filling missing time buckets with zero-valued rows.
+     *
+     * <p>For each distinct group key (e.g., {@code ["gpt-4"]}, {@code ["gpt-4.5"]}) discovered in the
+     * actual data, ensures every time bucket has a corresponding row. Missing combinations get a
+     * zero-filled row built by {@link #buildDefaultRow}.
+     *
+     * <p>For window-only queries (no group-by columns), a single implicit group key is used, so the
+     * result is one row per bucket. For window+column queries with no data at all, returns empty
+     * because the set of group key values (e.g., which deployments exist) is unknown.
+     *
+     * <p>Example: {@code SELECT window(1h), deployment, sum(tokens)} over 3 buckets with 2 deployments
+     * produces a 6-row grid (3 buckets x 2 deployments), even if the DB only returned 4 rows.
+     */
+    private static List<List<Object>> fillGaps(
+            List<List<Object>> rows,
+            List<Instant> buckets,
+            List<Expression> expressions,
+            ColumnLayout layout) {
+
+        if (rows.isEmpty() && !layout.groupColumnIndices().isEmpty()) {
+            return rows;
+        }
+
+        // Index existing rows by (groupKey, timestamp) for O(1) lookup
+        var groupKeys = new LinkedHashSet<List<Object>>();
+        var dataMap = new LinkedHashMap<List<Object>, Map<Instant, List<Object>>>();
+
+        for (var row : rows) {
+            var groupKey = extractGroupKey(row, layout.groupColumnIndices());
+            groupKeys.add(groupKey);
+
+            var time = (Instant) row.get(layout.timeIndex());
+            dataMap.computeIfAbsent(groupKey, k -> new LinkedHashMap<>()).put(time, row);
+        }
+
+        // Window-only queries have no group columns — use a single empty key
+        if (groupKeys.isEmpty()) {
+            groupKeys.add(List.of());
+        }
+
+        // Build the complete grid: for every (bucket, groupKey), use existing row or fill with zeros
+        var result = new ArrayList<List<Object>>();
+        for (var bucket : buckets) {
+            for (var groupKey : groupKeys) {
+                var timeMap = dataMap.get(groupKey);
+                var existing = timeMap != null ? timeMap.get(bucket) : null;
+                if (existing != null) {
+                    result.add(existing);
+                } else {
+                    result.add(buildDefaultRow(expressions, layout, bucket, groupKey));
+                }
+            }
+        }
+        return result;
+    }
+
+    record TimeRange(Instant start, Instant end) {}
+
+    record Interval(long value, String unit) {}
+
+    record ColumnLayout(int timeIndex, List<Integer> groupColumnIndices, List<Integer> aggregationIndices) {}
+
+    private static GroupFunctionCall extractWindowFunction(List<Expression> groupBy) {
+        return groupBy.stream()
+                .filter(GroupFunctionCall.class::isInstance)
+                .map(GroupFunctionCall.class::cast)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static Optional<TimeRange> extractTimeRange(Query query) {
+        var rangeFilters = RangeFilterUtils.extractRangeFilter(query.getWhere());
+        if (rangeFilters.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Instant start = null;
+        Instant end = null;
+
+        for (var filter : rangeFilters) {
+            if (filter.getOperator() == BinaryComparisonOperator.GREATER_OR_EQUALS) {
+                start = Instant.ofEpochMilli(RangeFilterUtils.getInstant(filter.getRightExpression()));
+            } else if (filter.getOperator() == BinaryComparisonOperator.LESS) {
+                end = Instant.ofEpochMilli(RangeFilterUtils.getInstant(filter.getRightExpression()));
+            }
+        }
+
+        if (start == null || end == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new TimeRange(start, end));
+    }
+
+    private static Interval extractInterval(GroupFunctionCall windowFunction) {
+        var value = ((NumberConstant) windowFunction.getArgs().get(1)).getNumberValue().longValue();
+        var unit = (String) ((Constant) windowFunction.getArgs().get(2)).getValue();
+        return new Interval(value, unit);
+    }
+
+    private List<Instant> generateTimeBuckets(Instant start, Instant end, Interval interval) {
+        var firstBucket = alignToStart(start, interval);
+        var step = toStepFunction(interval);
+
+        var buckets = new ArrayList<Instant>();
+        var current = firstBucket;
+        while (current.toInstant().isBefore(end)) {
+            if (buckets.size() >= maxBuckets) {
+                throw new IllegalArgumentException(
+                        "Time range produces too many buckets (>%s). Use a larger interval or narrower time range."
+                                .formatted(maxBuckets));
+            }
+            buckets.add(current.toInstant());
+            var next = step.apply(current);
+            if (!next.isAfter(current)) {
+                throw new IllegalStateException("Step function did not advance time; aborting to prevent infinite loop.");
+            }
+            current = next;
+        }
+        return buckets;
+    }
+
+    private static ZonedDateTime alignToStart(Instant start, Interval interval) {
+        var startZoned = start.atZone(ZoneOffset.UTC);
+        return switch (interval.unit().toLowerCase()) {
+            case "y" -> startZoned.withMonth(1).withDayOfMonth(1).toLocalDate().atStartOfDay(ZoneOffset.UTC);
+            case "mo" -> startZoned.withDayOfMonth(1).toLocalDate().atStartOfDay(ZoneOffset.UTC);
+            case "s", "m", "h", "d", "w" -> {
+                // Fixed-duration units: align to epoch like DATE_BIN
+                var epochMillis = toDuration(interval).toMillis();
+                var startMillis = start.toEpochMilli();
+                var aligned = startMillis - Math.floorMod(startMillis, epochMillis);
+                yield Instant.ofEpochMilli(aligned).atZone(ZoneOffset.UTC);
+            }
+            default -> throw new IllegalArgumentException("Unsupported interval unit: " + interval.unit());
+        };
+    }
+
+    private static UnaryOperator<ZonedDateTime> toStepFunction(Interval interval) {
+        var value = interval.value();
+        return switch (interval.unit().toLowerCase()) {
+            case "s" -> b -> b.plusSeconds(value);
+            case "m" -> b -> b.plusMinutes(value);
+            case "h" -> b -> b.plusHours(value);
+            case "d" -> b -> b.plusDays(value);
+            case "w" -> b -> b.plusWeeks(value);
+            case "mo" -> b -> b.plusMonths(value);
+            case "y" -> b -> b.plusYears(value);
+            default -> throw new IllegalArgumentException("Unsupported interval unit: " + interval.unit());
+        };
+    }
+
+    private static Duration toDuration(Interval interval) {
+        return switch (interval.unit().toLowerCase()) {
+            case "s" -> Duration.ofSeconds(interval.value());
+            case "m" -> Duration.ofMinutes(interval.value());
+            case "h" -> Duration.ofHours(interval.value());
+            case "d" -> Duration.ofDays(interval.value());
+            case "w" -> Duration.ofDays(interval.value() * 7);
+            default -> throw new IllegalArgumentException("Unsupported interval unit for duration: " + interval.unit());
+        };
+    }
+
+    /**
+     * Classifies each SELECT expression by its role in the result row:
+     * <ul>
+     *   <li>{@code timeIndex} — the window bucket timestamp (the {@link GroupFunctionCall}, currently always {@code window(...)})</li>
+     *   <li>{@code groupColumnIndices} — group-by key columns (e.g., {@code deployment})</li>
+     *   <li>{@code aggregationIndices} — aggregated value columns (e.g., {@code sum(tokens)})</li>
+     * </ul>
+     *
+     * <p>Group-by columns are identified by name because the parser creates separate {@link Expression}
+     * objects for the same column in SELECT and GROUP BY clauses, so reference equality cannot be used.
+     *
+     * <p>The returned {@link ColumnLayout} tells {@link #fillGaps} how to construct zero-filled rows
+     * for missing time buckets: where to place the timestamp, which positions to copy group key values
+     * into, and which positions get default zero values.
+     */
+    private static ColumnLayout analyzeExpressions(List<Expression> expressions, List<Expression> groupBy) {
+        // Collect non-window group-by column names so we can identify them among SELECT expressions
+        var groupColumnNames = new LinkedHashSet<String>();
+        for (var expr : groupBy) {
+            if (expr instanceof Column col && !(expr instanceof GroupFunctionCall)) {
+                groupColumnNames.add(col.getName());
+            }
+        }
+
+        int timeIndex = 0;
+        var groupColumnIndices = new ArrayList<Integer>();
+        var aggregationIndices = new ArrayList<Integer>();
+
+        for (int i = 0; i < expressions.size(); i++) {
+            var expr = expressions.get(i);
+
+            if (expr instanceof GroupFunctionCall
+                    || (expr instanceof Alias alias && alias.getExpression() instanceof GroupFunctionCall)) {
+                timeIndex = i;
+                continue;
+            }
+
+            if (expr.isAggregation()) {
+                aggregationIndices.add(i);
+                continue;
+            }
+
+            // Alias extends Column, so this covers both plain columns and aliased columns
+            if (expr instanceof Column col && groupColumnNames.contains(col.getName())) {
+                groupColumnIndices.add(i);
+            }
+        }
+
+        return new ColumnLayout(timeIndex, groupColumnIndices, aggregationIndices);
+    }
+
+    private static List<Object> extractGroupKey(List<Object> row, List<Integer> groupColumnIndices) {
+        var key = new ArrayList<>(groupColumnIndices.size());
+        for (var idx : groupColumnIndices) {
+            key.add(row.get(idx));
+        }
+        return key;
+    }
+
+    /**
+     * Constructs a zero-filled row for a missing time bucket. Allocates a row of nulls matching
+     * the SELECT list size, then populates each position based on its role:
+     * <ol>
+     *   <li>Timestamp position → the bucket time</li>
+     *   <li>Group column positions → the group key values (e.g., {@code "gpt-4"})</li>
+     *   <li>Aggregation positions → type-appropriate zero ({@code 0L} for integers, {@code 0.0} for floats)</li>
+     * </ol>
+     */
+    private static List<Object> buildDefaultRow(
+            List<Expression> expressions,
+            ColumnLayout layout,
+            Instant bucketTime,
+            List<Object> groupValues) {
+
+        var row = new ArrayList<>(Collections.nCopies(expressions.size(), null));
+
+        row.set(layout.timeIndex(), bucketTime);
+
+        for (int i = 0; i < layout.groupColumnIndices().size(); i++) {
+            row.set(layout.groupColumnIndices().get(i), groupValues.get(i));
+        }
+
+        for (var idx : layout.aggregationIndices()) {
+            row.set(idx, defaultForType(expressions.get(idx).getType()));
+        }
+
+        return row;
+    }
+}
