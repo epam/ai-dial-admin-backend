@@ -1,2 +1,0 @@
-insert into audit_activity_entity (activity_id, activity_type, resource_type, resource_id, initiated_author, initiated_email, revision, epoch_timestamp_ms)
-values (gen_random_uuid(), 'Create', 'Role', 'default', 'system', null, 1, (select timestamp from revinfo where id = 1));
