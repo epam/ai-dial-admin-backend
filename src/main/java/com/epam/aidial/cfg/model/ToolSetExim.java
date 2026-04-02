@@ -30,6 +30,6 @@ public class ToolSetExim {
     private boolean forwardPerRequestKey;
 
     public enum Transport {
-        HTTP, SSE;
+        HTTP, SSE
     }
 }

@@ -1,7 +1,10 @@
 package com.epam.aidial.cfg.functional.config;
 
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
+import com.epam.aidial.cfg.client.DeploymentClient;
 import com.epam.aidial.cfg.client.ResourceCredentialClient;
+import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
+import com.epam.aidial.cfg.client.mapper.DeploymentClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
@@ -37,6 +40,8 @@ import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapperImpl;
+import com.epam.aidial.cfg.security.aspect.RunAsInternalUserAspect;
+import com.epam.aidial.cfg.service.CoreDeploymentService;
 import com.epam.aidial.cfg.service.ResourceCredentialService;
 import com.epam.aidial.cfg.service.config.export.CoreConfigAggregatorService;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
@@ -183,8 +188,28 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
+    public DeploymentClientMapper deploymentClientMapper() {
+        return new DeploymentClientMapperImpl();
+    }
+
+    @Bean
+    public DeploymentClient deploymentClient() {
+        return Mockito.mock(DeploymentClient.class);
+    }
+
+    @Bean
+    public CoreDeploymentService coreDeploymentService(DeploymentClient client, DeploymentClientMapper mapper) {
+        return new CoreDeploymentService(client, mapper);
+    }
+
+    @Bean
     public ExternalSchemaLoader externalSchemaLoader() {
         return Mockito.mock(ExternalSchemaLoader.class);
+    }
+
+    @Bean
+    public RunAsInternalUserAspect runAsInternalUserAspect() {
+        return new RunAsInternalUserAspect();
     }
 
 }

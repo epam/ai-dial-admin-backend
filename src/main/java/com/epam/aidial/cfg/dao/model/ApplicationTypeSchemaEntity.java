@@ -53,6 +53,7 @@ public class ApplicationTypeSchemaEntity extends TimeTrackableEntity<String> {
     private CopyAppBucketOptionsEntity applicationTypeBucketCopy;
     private boolean applicationTypeAssistantAttachmentsInRequestSupported;
     private String applicationTypeSchemaEndpoint;
+    private String applicationTypeResponsesEndpoint;
     @Embedded
     private ApplicationTypeMcpEntity applicationTypeMcp;
 

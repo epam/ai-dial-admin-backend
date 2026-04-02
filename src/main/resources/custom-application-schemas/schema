@@ -47,6 +47,11 @@
           },
           "required": ["dial:endpoint"]
         },
+        "dial:applicationTypeResponsesEndpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the Responses API endpoint of the custom application of given type"
+        },
         "dial:applicationTypeSchemaEndpoint": {
           "type": "string",
           "format": "uri",

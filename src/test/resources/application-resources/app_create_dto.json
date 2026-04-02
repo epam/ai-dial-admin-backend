@@ -1,6 +1,7 @@
 {
   "name": "Char_with_schema_1",
   "folderId": "844pucrUihSTVTN9XSpCPW",
+  "responsesEndpoint": "http://responsesEndpoint",
   "version": "1",
   "displaName": "Char_with_schema_1",
   "displayVersion": "0.0.1",

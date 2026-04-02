@@ -19,6 +19,8 @@ public class CreateToolSetResourceDto {
     @NotBlank(message = "Completion endpoint is required")
     @Endpoint
     private String endpoint;
+    @Endpoint
+    private String responsesEndpoint;
     @NotBlank(message = "Display name is required")
     private String displayName;
     private String displayVersion;
