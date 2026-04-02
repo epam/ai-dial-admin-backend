@@ -7,6 +7,7 @@ import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.GroupFunctionCall;
 import com.epam.aidial.expressions.enums.Type;
+import com.epam.aidial.metric.model.DatasetInfo;
 import com.epam.aidial.metric.model.FieldAvailability;
 import com.epam.aidial.metric.model.configuration.ColumnType;
 import com.epam.aidial.metric.service.MetricService;
@@ -53,7 +54,7 @@ public class MetricController {
 
     @GetMapping(path = "/datasets",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<String> getDatasets() {
+    public List<DatasetInfo> getDatasets() {
         return metricService.getDatasets();
     }
 
@@ -109,7 +110,7 @@ public class MetricController {
     public ResponseEntity<byte[]> getCsvDataBy(@PathVariable("dataset") String datasetName,
                                                @RequestBody @Valid DataQuery query) throws IOException {
         var completableDto = getCompletableDto(query);
-        var data = metricService.getData(datasetName, completableDto);
+        var data = metricService.getData(datasetName, completableDto, query.isFillGaps());
         var body = toByteArray(data);
         return ResponseEntity.ok(body);
     }
@@ -120,7 +121,7 @@ public class MetricController {
     public ResponseEntity<DataDto> getJsonData(@PathVariable("dataset") String datasetName,
                                                @RequestBody @Valid DataQuery query) {
         var completableDto = getCompletableDto(query);
-        var data = metricService.getData(datasetName, completableDto);
+        var data = metricService.getData(datasetName, completableDto, query.isFillGaps());
         var body = toDataDto(data);
         return ResponseEntity.ok(body);
     }
@@ -130,7 +131,7 @@ public class MetricController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DataDto> getJsonData(@PathVariable("dataset") String datasetName,
                                                @RequestBody @Valid String query) {
-        return getJsonData(datasetName, new SqlDataQuery(query));
+        return getJsonData(datasetName, new SqlDataQuery(query, false));
     }
 
     private CompletableDto getCompletableDto(DataQuery query) {

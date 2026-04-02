@@ -34,6 +34,6 @@ public class ToolSetResource {
     private String url;
 
     public enum Transport {
-        HTTP, SSE;
+        HTTP, SSE
     }
 }

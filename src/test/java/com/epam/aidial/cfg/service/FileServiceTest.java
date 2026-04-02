@@ -32,10 +32,14 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import static com.epam.aidial.cfg.service.FileService.DIAL_FOLDER_FILE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -220,7 +224,7 @@ class FileServiceTest {
     void testExport_whenPathsAreFiles() throws Exception {
         // given
         ExportResource exportResource = new ExportResource();
-        exportResource.setPaths(List.of("public/test/test1.txt", "public/test2.txt"));
+        exportResource.setPaths(List.of("public/test/test1/test1.txt", "public/folder/test2.txt"));
         Response mockResponse = mock(Response.class);
         Response.Body body = mock(Response.Body.class);
 
@@ -230,35 +234,44 @@ class FileServiceTest {
 
         // when
         StreamingResponseBody stream = fileService.export(exportResource);
-        stream.writeTo(new ByteArrayOutputStream());
+        var baos = new ByteArrayOutputStream();
+        stream.writeTo(baos);
 
         // then
         verify(fileClient, never()).getFilesMetadata(any(), anyBoolean(), any(), anyBoolean());
-        verify(fileClient).getFile("public/test/test1.txt");
-        verify(fileClient).getFile("public/test2.txt");
+        verify(fileClient).getFile("public/test/test1/test1.txt");
+        verify(fileClient).getFile("public/folder/test2.txt");
+        Assertions.assertThat(readZipEntryNames(baos)).containsExactlyInAnyOrder(
+                "files/public/test1.txt",
+                "files/public/test2.txt");
     }
 
     @Test
     void testExport_whenPathIsFolder() throws Exception {
         // given
         ExportResource exportResource = new ExportResource();
-        exportResource.setPaths(List.of("public/test/"));
+        exportResource.setPaths(List.of("public/test/test1/"));
         FileMetadataDto item1 = FileMetadataDto.builder()
                 .nodeType(NodeTypeDto.ITEM)
-                .url("files/public/test/test1.txt")
+                .url("files/public/test/test1/test1.txt")
                 .name("test1.txt")
                 .build();
         FileMetadataDto item2 = FileMetadataDto.builder()
                 .nodeType(NodeTypeDto.ITEM)
-                .url("files/public/test/test2.txt")
+                .url("files/public/test/test1/test2.txt")
                 .name("test2.txt")
+                .build();
+        FileMetadataDto item3 = FileMetadataDto.builder()
+                .nodeType(NodeTypeDto.ITEM)
+                .url("files/public/test/test1/" + DIAL_FOLDER_FILE)
+                .name(DIAL_FOLDER_FILE)
                 .build();
         FileMetadataDto folderResponse = FileMetadataDto.builder()
                 .nodeType(NodeTypeDto.FOLDER)
-                .url("files/public/test/")
-                .items(List.of(item1, item2))
+                .url("files/public/test/test1/")
+                .items(List.of(item1, item2, item3))
                 .build();
-        when(fileClient.getFilesMetadata(eq("public/test/"), eq(true), any(), anyBoolean())).thenReturn(folderResponse);
+        when(fileClient.getFilesMetadata(eq("public/test/test1/"), eq(true), any(), anyBoolean())).thenReturn(folderResponse);
         Response mockResponse = mock(Response.class);
         Response.Body body = mock(Response.Body.class);
         when(fileClient.getFile(anyString())).thenReturn(mockResponse);
@@ -267,12 +280,27 @@ class FileServiceTest {
 
         // when
         StreamingResponseBody stream = fileService.export(exportResource);
-        stream.writeTo(new ByteArrayOutputStream());
+        var baos = new ByteArrayOutputStream();
+        stream.writeTo(baos);
 
         // then
-        verify(fileClient).getFilesMetadata(eq("public/test/"), eq(true), any(), anyBoolean());
-        verify(fileClient).getFile("public/test/test1.txt");
-        verify(fileClient).getFile("public/test/test2.txt");
+        verify(fileClient).getFilesMetadata(eq("public/test/test1/"), eq(true), any(), anyBoolean());
+        verify(fileClient).getFile("public/test/test1/test1.txt");
+        verify(fileClient).getFile("public/test/test1/test2.txt");
+        Assertions.assertThat(readZipEntryNames(baos)).containsExactlyInAnyOrder(
+                "files/public/test1/test1.txt",
+                "files/public/test1/test2.txt");
+    }
+
+    private static List<String> readZipEntryNames(ByteArrayOutputStream baos) throws Exception {
+        var names = new ArrayList<String>();
+        try (var zis = new ZipInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                names.add(entry.getName());
+            }
+        }
+        return names;
     }
 
 }

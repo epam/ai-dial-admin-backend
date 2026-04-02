@@ -35,6 +35,7 @@
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeAssistantAttachmentsInRequestSupported": false,
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+      "dial:applicationTypeResponsesEndpoint": "https://test.com/responses/endpoint",
       "dial:applicationTypeMcp": {
         "dial:endpoint": "http://localhost:9876/mcp",
         "dial:transport": "HTTP",

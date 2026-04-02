@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -126,11 +127,15 @@ public abstract class AbstractInfluxContainerTest {
     protected abstract Engine getEngine();
 
     protected Data queryFromJson(String json) throws Exception {
+        return queryFromJson(json, true);
+    }
+
+    protected Data queryFromJson(String json, boolean fillGaps) throws Exception {
         var engine = getEngine();
         var languageConverter = new LanguageConverter(engine);
         var dto = QUERY_MAPPER.readValue(json, CompletableDto.class);
         var completable = languageConverter.convert(dto, engine.getTables());
-        return engine.getData(completable);
+        return engine.getData(completable, fillGaps);
     }
 
     protected static List<String> columnNames(Data data) {
@@ -166,21 +171,59 @@ public abstract class AbstractInfluxContainerTest {
 
         @Test
         void windowAggregation() throws Exception {
+            // Use 1-day window over ~2 day range
+            // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
+            // DATE_BIN aligns to epoch, so 1-day buckets start at midnight UTC:
+            //   2026-03-11T00:00:00Z (record #1 at 14:00)
+            //   2026-03-12T00:00:00Z (records #2 at 10:00, #3 at 18:00)
+            //   2026-03-13T00:00:00Z (record #4 at 10:00)
             var data = queryFromJson("""
                     {
-                      "expressions": ["window(_time, 1, 'm') as time", "count() as requests"],
+                      "expressions": ["window(_time, 1, 'd') as time", "count() as requests"],
                       "from": "analytics",
-                      "groupBy": ["window(_time, 1, 'm')"],
+                      "groupBy": ["window(_time, 1, 'd')"],
                       "where": {%s},
                       "orderBy": [{"$asc": "time"}]
                     }""".formatted(TIME_FILTER));
 
             assertThat(columnNames(data)).containsExactly("time", "requests");
             assertThat(data.getData()).containsExactly(
-                    List.of(Instant.parse("2026-03-11T14:00:00Z"), 1L),
-                    List.of(Instant.parse("2026-03-12T10:00:00Z"), 1L),
-                    List.of(Instant.parse("2026-03-12T18:00:00Z"), 1L),
-                    List.of(Instant.parse("2026-03-13T10:00:00Z"), 1L)
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), 2L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), 1L)
+            );
+        }
+
+        @Test
+        void windowAggregationFillsGaps() throws Exception {
+            // Use 8-hour window over ~2 day range
+            // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
+            // 8-hour buckets aligned to epoch:
+            //   2026-03-11T08:00:00Z  -> record #1 at 14:00 -> count=1
+            //   2026-03-11T16:00:00Z  -> no data             -> count=0 (gap filled)
+            //   2026-03-12T00:00:00Z  -> no data             -> count=0 (gap filled)
+            //   2026-03-12T08:00:00Z  -> record #2 at 10:00 -> count=1
+            //   2026-03-12T16:00:00Z  -> record #3 at 18:00 -> count=1
+            //   2026-03-13T00:00:00Z  -> no data             -> count=0 (gap filled)
+            //   2026-03-13T08:00:00Z  -> record #4 at 10:00 -> count=1
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 8, 'h') as time", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 8, 'h')"],
+                      "where": {%s},
+                      "orderBy": [{"$asc": "time"}]
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("time", "requests");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-11T16:00:00Z"), 0L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), 0L),
+                    List.of(Instant.parse("2026-03-12T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T16:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), 0L),
+                    List.of(Instant.parse("2026-03-13T08:00:00Z"), 1L)
             );
         }
 
@@ -323,6 +366,35 @@ public abstract class AbstractInfluxContainerTest {
             );
         }
 
+        @Test
+        void multipleAggregationsWithNullGroupByColumn() throws Exception {
+            // Query multiple aggregations grouped by project_id WITHOUT filtering by project_id.
+            // Records #1-#3 have no project_id tag (null) → should appear with null project_id.
+            // null:  tool_calls=2 (#1 tools/call, #3 tools/call), mcp_calls=3 (#1, #2, #3)
+            // proj1: tool_calls=1 (#4 tools/call),                 mcp_calls=2 (#4, #5)
+            // proj2: tool_calls=2 (#6 tools/call, #7 tools/call),  mcp_calls=2 (#6, #7)
+            var data = queryFromJson("""
+                    {
+                      "expressions": [
+                        "project_id",
+                        "sum(case when mcp_method = 'tools/call' then 1 else 0 end) as tool_calls",
+                        "count() as mcp_calls"
+                      ],
+                      "from": "mcp_analytics",
+                      "groupBy": ["project_id"],
+                      "where": {
+                        "$and": [%s, %s]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("project_id", "tool_calls", "mcp_calls");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    Arrays.asList(null, 2L, 3L),
+                    List.of("proj1", 1L, 2L),
+                    List.of("proj2", 2L, 2L)
+            );
+        }
+
     }
 
     @Nested
@@ -414,9 +486,9 @@ public abstract class AbstractInfluxContainerTest {
         void windowAndColumnAggregation() throws Exception {
             // 4 in-range records across 3 days and 2 deployments.
             // GROUP BY 1-day window + deployment:
-            //   day1 (03-11): gpt-4=1
+            //   day1 (03-11): gpt-4=1, gpt-3.5=0 (gap filled)
             //   day2 (03-12): gpt-4=1, gpt-3.5=1
-            //   day3 (03-13): gpt-3.5=1
+            //   day3 (03-13): gpt-4=0 (gap filled), gpt-3.5=1
             var data = queryFromJson("""
                     {
                       "expressions": ["window(_time, 1, 'd') as time", "deployment", "count() as requests"],
@@ -428,8 +500,10 @@ public abstract class AbstractInfluxContainerTest {
             assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
             assertThat(data.getData()).containsExactlyInAnyOrder(
                     List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-3.5", 0L),
                     List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4", 1L),
                     List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5", 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-4", 0L),
                     List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5", 1L)
             );
         }
@@ -957,6 +1031,53 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("money", "requests");
             assertThat(data.getData()).hasSize(1);
+        }
+    }
+
+    @Nested
+    class GapFillingDisabledTests {
+
+        @Test
+        void windowAggregationNoGapFill() throws Exception {
+            // Same 8-hour window query as windowAggregationFillsGaps, but with fillGaps=false.
+            // Should return only buckets that have actual data (no zero-filled rows).
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 8, 'h') as time", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 8, 'h')"],
+                      "where": {%s},
+                      "orderBy": [{"$asc": "time"}]
+                    }""".formatted(TIME_FILTER), false);
+
+            assertThat(columnNames(data)).containsExactly("time", "requests");
+            assertThat(data.getData()).containsExactly(
+                    List.of(Instant.parse("2026-03-11T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T08:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-12T16:00:00Z"), 1L),
+                    List.of(Instant.parse("2026-03-13T08:00:00Z"), 1L)
+            );
+        }
+
+        @Test
+        void windowAndColumnAggregationNoGapFill() throws Exception {
+            // Same query as windowAndColumnAggregation, but with fillGaps=false.
+            // Should return only rows with actual data (no zero-filled deployment rows).
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["window(_time, 1, 'd') as time", "deployment", "count() as requests"],
+                      "from": "analytics",
+                      "groupBy": ["window(_time, 1, 'd')", "deployment"],
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER), false);
+
+            assertThat(columnNames(data)).containsExactly("time", "deployment", "requests");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of(Instant.parse("2026-03-11T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-4", 1L),
+                    List.of(Instant.parse("2026-03-12T00:00:00Z"), "gpt-3.5", 1L),
+                    List.of(Instant.parse("2026-03-13T00:00:00Z"), "gpt-3.5", 1L)
+            );
         }
     }
 

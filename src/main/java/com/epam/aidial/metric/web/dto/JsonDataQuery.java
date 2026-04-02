@@ -7,4 +7,5 @@ import lombok.Data;
 @Data
 public class JsonDataQuery implements DataQuery {
     private CompletableDto query;
+    private boolean fillGaps;
 }

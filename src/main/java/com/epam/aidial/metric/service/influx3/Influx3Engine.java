@@ -4,6 +4,7 @@ import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.service.AbstractQueryEngine;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.model.Completable;
 import com.epam.aidial.ql.model.Data;
 import com.epam.aidial.ql.model.Query;
@@ -27,17 +28,19 @@ public class Influx3Engine extends AbstractQueryEngine {
     private final InfluxDBClient client;
     private final SqlQueryBuilderFactory queryBuilderFactory;
     private final Influx3DatasetDeclaration influx3Declaration;
+    private final WindowGapFiller windowGapFiller;
 
     public Influx3Engine(Influx3DatasetDeclaration declaration, InfluxDBClient client,
-                         SqlQueryBuilderFactory queryBuilderFactory) {
+                         SqlQueryBuilderFactory queryBuilderFactory, WindowGapFiller windowGapFiller) {
         super(declaration);
         this.influx3Declaration = declaration;
         this.client = client;
         this.queryBuilderFactory = queryBuilderFactory;
+        this.windowGapFiller = windowGapFiller;
     }
 
     @Override
-    public Data getData(Completable completable) {
+    public Data getData(Completable completable, boolean fillGaps) {
         var queryContext = queryBuilderFactory.createQueryBuilder()
                 .buildQueryContext(completable);
 
@@ -61,9 +64,14 @@ public class Influx3Engine extends AbstractQueryEngine {
             rows.set(0, normalizeAggregationRow(rows.get(0), completable.getExpressions()));
         }
 
+        List<List<Object>> resultRows = rows;
+        if (fillGaps && completable instanceof Query query && WindowGapFiller.isWindowQuery(query)) {
+            resultRows = windowGapFiller.fillGaps(rows, query);
+        }
+
         return DataImpl.builder()
                 .expressions(completable.getExpressions())
-                .data(rows)
+                .data(resultRows)
                 .build();
     }
 
