@@ -46,6 +46,7 @@ public abstract class ApplicationClientMapper {
     @Mapping(target = "author", source = "metadataDto.author")
     @Mapping(target = "routes", source = "dto.routes")
     @Mapping(target = "validityState", source = "validityState")
+    @Mapping(target = "url", source = "metadataDto.url")
     protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto,
                                                                  ApplicationMetadataDto metadataDto,
                                                                  PathUtils.VersionedPathParts itemParts,
