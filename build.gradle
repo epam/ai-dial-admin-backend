@@ -184,6 +184,9 @@ dependencies {
         checkstyle ('org.apache.commons:commons-lang3:3.18.0') {
             because("previous versions have vulnerabilities")
         }
+        checkstyle ('org.codehaus.plexus:plexus-utils:4.0.3') {
+            because("previous versions have vulnerabilities")
+        }
     }
 }
 
