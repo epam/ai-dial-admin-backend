@@ -10,6 +10,9 @@ buildscript {
             classpath ('org.apache.logging.log4j:log4j-core:2.25.3') {
                 because("previous versions have vulnerabilities")
             }
+            classpath ('org.codehaus.plexus:plexus-utils:4.0.3') {
+                because("previous versions have vulnerabilities")
+            }
         }
     }
 }
