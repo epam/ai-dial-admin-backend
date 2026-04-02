@@ -194,6 +194,7 @@ public interface PublicationMapper {
     ApplicationPublication toApplicationResourcePublication(ApplicationPublicationDto applicationPublicationDto);
 
     @Mapping(target = "validityState", ignore = true)
+    @Mapping(target = "url", ignore = true)
     ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto);
 
     @Mapping(target = "resources", source = "prompts")
