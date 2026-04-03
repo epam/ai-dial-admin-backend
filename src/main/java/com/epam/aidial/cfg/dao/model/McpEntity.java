@@ -25,7 +25,7 @@ public class McpEntity {
     @Column(name = "mcp_config_delivery")
     private McpConfigDeliveryEntity configDelivery;
     @Column(name = "mcp_forward_per_request_key")
-    private boolean forwardPerRequestKey;
+    private Boolean forwardPerRequestKey;
 
     public enum TransportEntity {
         HTTP
