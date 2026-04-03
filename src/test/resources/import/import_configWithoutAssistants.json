@@ -85,7 +85,7 @@
         "endpoint": "http://localhost:9876/mcp",
         "transport": "http",
         "allowedTools": ["classify_text"],
-        "mcpConfigDelivery": "header",
+        "configDelivery": "header",
         "forwardPerRequestKey": false
       },
       "defaults": {
