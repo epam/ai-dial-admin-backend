@@ -544,13 +544,24 @@
         },
         "transport": {
           "type": "string",
-            "enum": ["HTTP"]
+          "enum": ["HTTP"]
         },
         "allowedTools": {
           "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "mcpConfigDelivery": {
+          "type": "string",
+          "enum": ["HEADER", "META"],
+          "default": "META",
+          "description": "Method for delivering application configuration to MCP server. 'header' sends config in HTTP header, 'meta' sends config in params._meta.ai_dial_config field of MCP protocol message."
+        },
+        "forwardPerRequestKey": {
+          "type": "boolean",
+          "default": true,
+          "description": "If this flag is set to true, the per-request API key will be forwarded in DIAL-API-KEY HTTP header with every MCP protocol request to the toolset endpoint. This allows schema-rich applications to access DIAL Core APIs (e.g., file storage, other DIAL resources) using the per-request API key."
         }
       },
       "required": ["endpoint"]
