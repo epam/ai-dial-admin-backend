@@ -1,8 +1,6 @@
 package com.epam.aidial.core.config.validation;
 
-import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.core.metaschemas.MetaSchemaHolder;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -18,7 +16,6 @@ public class SchemaConformToMetaSchemaValidator {
 
     private static final JsonSchemaFactory SCHEMA_FACTORY = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
     private static final JsonSchema SCHEMA = SCHEMA_FACTORY.getSchema(MetaSchemaHolder.getCustomApplicationMetaSchema());
-    private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     public static boolean isValid(String schema) {
         return getValidationMessages(schema).isEmpty();

@@ -2,13 +2,9 @@ package com.epam.aidial.cfg.dto.validation.validator;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.validation.annotation.ApplicationTypeSchema;
-import com.epam.aidial.core.metaschemas.MetaSchemaHolder;
+import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.networknt.schema.InputFormat;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -24,8 +20,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractConformToCoreMetaSchemaValidator<V> implements ConstraintValidator<ApplicationTypeSchema, V> {
 
-    private static final JsonSchemaFactory SCHEMA_FACTORY = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-    private static final JsonSchema SCHEMA = SCHEMA_FACTORY.getSchema(MetaSchemaHolder.getCustomApplicationMetaSchema());
     private static final ObjectMapper OBJECT_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
     @SneakyThrows
@@ -44,7 +38,7 @@ public abstract class AbstractConformToCoreMetaSchemaValidator<V> implements Con
         }
         ObjectWriter objectWriter = OBJECT_MAPPER.writer().withDefaultPrettyPrinter();
         String dtoJson = objectWriter.writeValueAsString(dto);
-        Set<ValidationMessage> validations = SCHEMA.validate(dtoJson, InputFormat.JSON);
+        Set<ValidationMessage> validations = SchemaConformToMetaSchemaValidator.getValidationMessages(dtoJson);
         if (!validations.isEmpty()) {
             context.disableDefaultConstraintViolation();
             String validationsMessage = validations.stream()
