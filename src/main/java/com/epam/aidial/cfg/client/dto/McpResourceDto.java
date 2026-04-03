@@ -19,8 +19,16 @@ public class McpResourceDto {
     @Builder.Default
     private TransportDto transport = TransportDto.HTTP;
     private List<String> allowedTools;
+    @Builder.Default
+    private McpConfigDeliveryDto configDelivery = McpConfigDeliveryDto.META;
+    @Builder.Default
+    private boolean forwardPerRequestKey = true;
 
     public enum TransportDto {
         HTTP
+    }
+
+    public enum McpConfigDeliveryDto {
+        HEADER, META
     }
 }

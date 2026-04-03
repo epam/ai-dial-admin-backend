@@ -21,8 +21,17 @@ public class McpEntity {
     @Convert(converter = StringNullableListJsonConverter.class)
     @Column(name = "mcp_allowed_tools")
     private List<String> allowedTools;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mcp_config_delivery")
+    private McpConfigDeliveryEntity configDelivery;
+    @Column(name = "mcp_forward_per_request_key")
+    private boolean forwardPerRequestKey;
 
     public enum TransportEntity {
         HTTP
+    }
+
+    public enum McpConfigDeliveryEntity {
+        HEADER, META
     }
 }

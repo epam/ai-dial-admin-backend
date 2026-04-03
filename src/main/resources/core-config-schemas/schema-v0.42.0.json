@@ -544,13 +544,22 @@
         },
         "transport": {
           "type": "string",
-            "enum": ["HTTP"]
+          "enum": ["HTTP"]
         },
         "allowedTools": {
           "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "configDelivery": {
+          "type": "string",
+          "enum": ["HEADER", "META"],
+          "default": "META"
+        },
+        "forwardPerRequestKey": {
+          "type": "boolean",
+          "default": true
         }
       },
       "required": ["endpoint"]

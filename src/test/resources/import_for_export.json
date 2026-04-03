@@ -52,7 +52,9 @@
       "responsesEndpoint": "https://application2/responses",
       "mcp": {
         "endpoint": "http://localhost:9876/mcp",
-        "allowedTools": ["classify_text"]
+        "allowedTools": ["classify_text"],
+        "configDelivery": "header",
+        "forwardPerRequestKey": false
       }
     }
   },
