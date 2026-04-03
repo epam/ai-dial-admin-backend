@@ -12,12 +12,14 @@
 	"dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
 	"dial:applicationTypeResponsesEndpoint": "https://test.com/responses/endpoint",
 	"dial:applicationTypeMcp": {
-            "dial:endpoint": "http://localhost:9876/mcp",
-            "dial:transport": "HTTP",
-            "dial:allowedTools": ["classify_text"],
-            "dial:mcpConfigDelivery": "META",
-            "dial:forwardPerRequestKey": true
-          },
+		"dial:endpoint": "http://localhost:9876/mcp",
+		"dial:transport": "HTTP",
+		"dial:allowedTools": [
+			"classify_text"
+		],
+		"dial:mcpConfigDelivery": "META",
+		"dial:forwardPerRequestKey": true
+	},
 	"dial:appendApplicationPropertiesHeader": true,
 	"dial:applicationTypeBucketCopy": "ENABLED",
 	"$defs": {

@@ -112,17 +112,24 @@ public class CoreApplication extends Deployment {
     }
 
     @Data
-    @Accessors(chain = true)
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Mcp {
+        @JsonAlias({"endpoint", "dial:endpoint"})
         private String endpoint;
-        private Transport transport = Transport.HTTP;
-        @JsonAlias({"allowedTools", "allowed_tools"})
-        private List<String> allowedTools;
+        @JsonAlias({"transport", "dial:transport"})
+        private final Transport transport = Transport.HTTP;
+        @JsonAlias({"allowedTools", "allowed_tools", "dial:allowedTools"})
+        private List<String> allowedTools = List.of();
+        @JsonAlias({"configDelivery", "config_delivery", "dial:mcpConfigDelivery"})
+        private McpConfigDelivery configDelivery = McpConfigDelivery.META;
+        @JsonAlias({"forwardAuthToken", "forward_auth_token", "dial:forwardPerRequestKey"})
+        private boolean forwardPerRequestKey = true;
 
         public enum Transport {
             HTTP
+        }
+
+        public enum McpConfigDelivery {
+            HEADER, META;
         }
     }
 
