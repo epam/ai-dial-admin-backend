@@ -17,7 +17,6 @@ public class McpDto {
     }
 
     public enum McpConfigDeliveryDto {
-        HEADER,
-        META
+        HEADER, META
     }
 }
