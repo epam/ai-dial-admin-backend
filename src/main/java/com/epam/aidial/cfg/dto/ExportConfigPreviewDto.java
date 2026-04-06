@@ -1,11 +1,9 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.model.InterceptorRunner;
 import lombok.Data;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class ExportConfigPreviewDto {
@@ -19,7 +17,7 @@ public class ExportConfigPreviewDto {
     private Collection<ExportKeyInfoDto> keys;
     private Collection<ExportApplicationTypeSchemaInfoDto> applicationRunners;
     private Collection<ExportComponentInfoDto> interceptors;
-    private Map<String, InterceptorRunner> interceptorRunners;
-    private Collection<ExportComponentInfoDto> adapters;
     private List<String> globalInterceptors;
+    private Collection<ExportComponentInfoDto> interceptorRunners;
+    private Collection<ExportComponentInfoDto> adapters;
 }
