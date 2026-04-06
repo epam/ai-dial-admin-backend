@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
+import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
@@ -16,6 +17,7 @@ import com.epam.aidial.cfg.dto.ExportConfigComponentTypeDto;
 import com.epam.aidial.cfg.dto.ExportFormatDto;
 import com.epam.aidial.cfg.dto.FullExportRequestDto;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
+import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.service.config.ConfigSyncErrorHandler;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.export.CoreConfigReloadService;
@@ -366,6 +368,39 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(expected, JsonCompareMode.LENIENT));
         verify(configTransfer).exportPreview(any());
+    }
+
+    @Test
+    void testExportPreview_InterceptorRunners_AdminFormat() throws Exception {
+        // given
+        FullExportRequestDto requestDto = new FullExportRequestDto();
+        requestDto.setExportFormat(ExportFormatDto.ADMIN);
+        requestDto.setComponentTypes(Set.of(ExportConfigComponentTypeDto.INTERCEPTOR_RUNNER));
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.INTERCEPTOR_RUNNER));
+
+        ExportComponentInfo componentInfo = ExportComponentInfo.builder()
+                .type(ExportConfigComponentType.INTERCEPTOR_RUNNER)
+                .name("name1")
+                .description("description1")
+                .displayName("displayName1")
+                .build();
+
+        ExportConfigPreview exportConfigPreview = new ExportConfigPreview();
+        exportConfigPreview.setInterceptorRunners(List.of(componentInfo));
+
+        when(configTransfer.exportPreview(request)).thenReturn(exportConfigPreview);
+        String expected = ResourceUtils.readResource("/preview_interceptor_runner.json");
+
+        // when
+        mockMvc.perform(post("/api/v1/configs/export/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(content().json(expected, JsonCompareMode.LENIENT));
     }
 
     @Test
