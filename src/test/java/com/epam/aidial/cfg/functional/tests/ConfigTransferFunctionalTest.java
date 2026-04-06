@@ -79,7 +79,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.json.JSONException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -176,11 +175,6 @@ public abstract class ConfigTransferFunctionalTest {
 
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
     private final ObjectMapper prettyJsonMapper = JsonMapperConfiguration.createPrettyJsonMapper();
-
-    @BeforeEach
-    void setUp() {
-        versionProperties.setTarget("latest");
-    }
 
     @Test
     void testImport_WithoutConflict() throws IOException {
