@@ -355,7 +355,9 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 |  | METRICS_STORAGE_HOST | - | Yes | metrics.enabled=true and default metrics config used | URL for InfluxDB database connection |
 |  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection |
 |  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
+|  | METRICS_STORAGE_ANALYTICS_BUCKET | analytics-realtime | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 bucket for analytics data |
 |  | METRICS_STORAGE_ANALYTICS_MEASUREMENT | analytics | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 measurement name for analytics data |
+|  | METRICS_STORAGE_MCP_ANALYTICS_BUCKET | analytics-realtime | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 bucket for MCP analytics data |
 |  | METRICS_STORAGE_MCP_ANALYTICS_MEASUREMENT | mcp_analytics | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 measurement name for MCP analytics data |
 |  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
 |  | METRICS_STORAGE_ANALYTICS_TABLE | analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for analytics data |
