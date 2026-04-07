@@ -1,5 +1,8 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.client.dto.PublicationDto;
+import com.epam.aidial.cfg.client.dto.RuleDto;
+import com.epam.aidial.cfg.client.dto.RuleFunctionDto;
 import com.epam.aidial.cfg.dao.audit.jpa.AuditActivityJpaRepository;
 import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
@@ -10,6 +13,8 @@ import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
+import com.epam.aidial.cfg.model.Rule;
+import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.security.SecurityClaimsExtractor;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
@@ -94,6 +99,8 @@ class AuditActivityLogServiceTest {
 
         var captor = ArgumentCaptor.forClass(AuditActivityEntity.class);
         verify(auditActivityJpaRepository).save(captor.capture());
+        assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.Publication);
+        assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.PublicationApprove);
         var meta = objectMapper.readTree(captor.getValue().getOperationMetadata());
         assertThat(meta.get("path").asText()).isEqualTo("testPublication");
         assertThat(meta.get("comment").asText()).isEqualTo("test comment");
@@ -108,7 +115,34 @@ class AuditActivityLogServiceTest {
         verify(auditActivityJpaRepository).save(captor.capture());
         assertThat(captor.getValue().getActivityId()).isEqualTo(id);
         assertThat(captor.getValue().getResourceId()).isEqualTo(id.toString());
+        assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.Publication);
         assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.Update);
+    }
+
+    @Test
+    void logPublicationCreate() {
+        var rule = RuleDto.builder()
+                .source("role")
+                .function(RuleFunctionDto.EQUAL)
+                .targets(List.of("admin"))
+                .build();
+
+        var publicationDto = PublicationDto.builder()
+                .url("publications/publicationUrl")
+                .targetFolder("public/")
+                .rules(List.of(rule))
+                .build();
+        service.logPublicationCreate(publicationDto, ActivityType.Create, null);
+
+        var captor = ArgumentCaptor.forClass(AuditActivityEntity.class);
+        verify(auditActivityJpaRepository).save(captor.capture());
+        assertThat(captor.getValue().getResourceId()).isEqualTo("publications/publicationUrl");
+        assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.Create);
+        assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.Publication);
+        assertThat(captor.getValue().getResourceId()).isEqualTo("publications/publicationUrl");
+
+        assertThat(captor.getValue().getOperationMetadata())
+                .isEqualTo("{\"path\":\"publications/publicationUrl\",\"rules\":[{\"function\":\"EQUAL\",\"source\":\"role\",\"targets\":[\"admin\"]}]}");
     }
 
     @Test
@@ -130,6 +164,7 @@ class AuditActivityLogServiceTest {
         verify(auditActivityJpaRepository).save(captor.capture());
         assertThat(captor.getValue().getResourceId()).isEqualTo("files.zip");
         assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.File);
+        assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.FileUpload);
         var meta = objectMapper.readTree(captor.getValue().getOperationMetadata());
         assertThat(meta.get("importPath").asText()).isEqualTo("public/folder/");
         assertThat(meta.get("flatImport").asBoolean()).isTrue();
@@ -145,11 +180,52 @@ class AuditActivityLogServiceTest {
         var captor = ArgumentCaptor.forClass(AuditActivityEntity.class);
         verify(auditActivityJpaRepository).save(captor.capture());
         assertThat(captor.getValue().getActivityId()).isEqualTo(id);
+        assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.ImportConfig);
+        assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.Import);
         var meta = objectMapper.readTree(captor.getValue().getOperationMetadata());
         assertThat(meta.get("format").asText()).isEqualTo("admin");
         assertThat(meta.get("conflictResolution").asText()).isEqualTo("SKIP");
         assertThat(meta.get("createRoleIfAbsent").asBoolean()).isFalse();
         assertThat(meta.get("createAdapterIfAbsent").asBoolean()).isTrue();
+    }
+
+    @Test
+    void logRollbackOperation_returnsIdAndSave() throws Exception {
+        UUID id = service.logRollbackOperation(1);
+
+        var captor = ArgumentCaptor.forClass(AuditActivityEntity.class);
+        verify(auditActivityJpaRepository).save(captor.capture());
+        assertThat(captor.getValue().getActivityId()).isEqualTo(id);
+        assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.Rollback);
+        assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.Rollback);
+        var meta = objectMapper.readTree(captor.getValue().getOperationMetadata());
+        assertThat(meta.get("revision").asText()).isEqualTo("1");
+    }
+
+    @Test
+    void logFolderAccessChange_returnsIdAndSave() throws Exception {
+        when(transactionTimestampContext.getTimestamp()).thenReturn(7L);
+        var rule = Rule.builder()
+                .function(RuleFunction.EQUAL)
+                .source("role")
+                .targets(List.of("admin"))
+                .build();
+
+        UUID id = service.logFolderAccessChange("public/folder1/", List.of(rule));
+
+        var captor = ArgumentCaptor.forClass(AuditActivityEntity.class);
+        verify(auditActivityJpaRepository).save(captor.capture());
+        assertThat(captor.getValue().getActivityId()).isEqualTo(id);
+        assertThat(captor.getValue().getResourceId()).isEqualTo(id.toString());
+        assertThat(captor.getValue().getEpochTimestampMs()).isEqualTo(7L);
+        assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.Folder);
+        assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.FolderAccessChange);
+        var meta = objectMapper.readTree(captor.getValue().getOperationMetadata());
+        assertThat(meta.get("path").asText()).isEqualTo("public/folder1/");
+        assertThat(meta.get("ruleCount").asInt()).isEqualTo(1);
+        assertThat(meta.get("rules")).hasSize(1);
+        assertThat(meta.get("rules").get(0).get("source").asText()).isEqualTo("role");
+        assertThat(meta.get("rules").get(0).get("function").asText()).isEqualTo("EQUAL");
     }
 
     @Test
@@ -161,6 +237,8 @@ class AuditActivityLogServiceTest {
 
         var captor = ArgumentCaptor.forClass(AuditActivityEntity.class);
         verify(auditActivityJpaRepository).save(captor.capture());
+        assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.Model);
+        assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.Delete);
         assertThat(captor.getValue().getParentActivityId()).isEqualTo(parentId);
     }
 }

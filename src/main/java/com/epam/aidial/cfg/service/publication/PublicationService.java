@@ -118,7 +118,7 @@ public class PublicationService {
     public String createPublication(CreatePublication createPublication) {
         CreatePublicationDto dto = mapper.toCreatePublicationDto(createPublication);
         PublicationDto publication = publicationClient.createPublication(dto);
-        auditActivityLogService.logPublication(publication.getUrl(), ActivityType.Create, null);
+        auditActivityLogService.logPublicationCreate(publication, ActivityType.Create, null);
         return publication.getUrl();
     }
 

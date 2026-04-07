@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.client.dto.PublicationDto;
 import com.epam.aidial.cfg.dao.audit.jpa.AuditActivityJpaRepository;
 import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,15 +41,7 @@ public class AuditActivityLogService {
     public UUID startParentOperation(ActivityType activityType,
                                      ActivityResourceType resourceType,
                                      String operationMetadataJson) {
-        return startParentOperation(null, activityType, resourceType, operationMetadataJson);
-    }
-
-    @Transactional
-    public UUID startParentOperation(UUID predefinedActivityId,
-                                     ActivityType activityType,
-                                     ActivityResourceType resourceType,
-                                     String operationMetadataJson) {
-        var entity = createAuditEntity(predefinedActivityId, activityType, resourceType, null, operationMetadataJson);
+        var entity = createAuditEntity(activityType, resourceType, null, operationMetadataJson);
         entity.setResourceId(entity.getActivityId().toString());
         auditActivityJpaRepository.save(entity);
         return entity.getActivityId();
@@ -75,6 +69,23 @@ public class AuditActivityLogService {
                 .putIfNotBlank("comment", comment)
                 .buildAsJson();
         logAuditOperation(activityType, ActivityResourceType.Publication, publicationPath, metaJson);
+    }
+
+    @Transactional
+    public void logPublicationCreate(PublicationDto publication,
+                                     ActivityType activityType,
+                                     String comment) {
+        var builder = AuditMetaBuilder.with(objectMapper)
+                .put("path", publication.getUrl())
+                .putIfNotBlank("comment", comment);
+        if (!CollectionUtils.isEmpty(publication.getRules())) {
+            builder.put("rules", publication.getRules());
+        }
+        if (!CollectionUtils.isEmpty(publication.getResourceTypes())) {
+            builder.put("resourceTypes", publication.getResourceTypes());
+        }
+        var metaJson = builder.buildAsJson();
+        logAuditOperation(activityType, ActivityResourceType.Publication, publication.getUrl(), metaJson);
     }
 
     @Transactional
@@ -113,7 +124,7 @@ public class AuditActivityLogService {
                                   String resourceId,
                                   String operationMetadataJson) {
         try {
-            var entity = createAuditEntity(null, activityType, resourceType, resourceId, operationMetadataJson);
+            var entity = createAuditEntity(activityType, resourceType, resourceId, operationMetadataJson);
             resourceId = StringUtils.isNotBlank(resourceId) ? resourceId : entity.getActivityId().toString();
             entity.setResourceId(resourceId);
             auditParentActivityHolder.getParentActivityId()
@@ -125,34 +136,26 @@ public class AuditActivityLogService {
     }
 
     @Transactional
-    public void logFolderAccessChange(String folderPath, List<Rule> rules) {
-        if (StringUtils.isBlank(folderPath)) {
-            return;
-        }
+    public UUID logFolderAccessChange(String folderPath, List<Rule> rules) {
         var builder = AuditMetaBuilder.with(objectMapper)
                 .put("path", folderPath)
                 .put("ruleCount", rules == null ? 0 : rules.size());
-        if (rules != null && !rules.isEmpty()) {
+        if (!CollectionUtils.isEmpty(rules)) {
             builder.put("rules", rules);
         }
         var metaJson = builder.buildAsJson();
-        logAuditOperation(ActivityType.FolderAccessChange, ActivityResourceType.Folder, folderPath, metaJson);
+        return startParentOperation(ActivityType.FolderAccessChange, ActivityResourceType.Folder, metaJson);
     }
 
     @Transactional
     public UUID logImportOperation(String format, ConfigImportOptions importOptions) {
-        return logImportOperation(null, format, importOptions);
-    }
-
-    @Transactional
-    public UUID logImportOperation(UUID predefinedActivityId, String format, ConfigImportOptions importOptions) {
         var metaJson = AuditMetaBuilder.with(objectMapper)
                 .put("format", format)
                 .put("conflictResolution", importOptions.conflictResolutionPolicy().name())
                 .put("createRoleIfAbsent", importOptions.createRoleIfAbsent())
                 .put("createAdapterIfAbsent", importOptions.createAdapterIfAbsent())
                 .buildAsJson();
-        return startParentOperation(predefinedActivityId, ActivityType.Import, ActivityResourceType.ImportConfig, metaJson);
+        return startParentOperation(ActivityType.Import, ActivityResourceType.ImportConfig, metaJson);
     }
 
     @Transactional
@@ -183,12 +186,11 @@ public class AuditActivityLogService {
         return builder.buildAsJson();
     }
 
-    private AuditActivityEntity createAuditEntity(UUID predefinedActivityId,
-                                                  ActivityType activityType,
+    private AuditActivityEntity createAuditEntity(ActivityType activityType,
                                                   ActivityResourceType resourceType,
                                                   String resourceId,
                                                   String operationMetadataJson) {
-        UUID id = predefinedActivityId != null ? predefinedActivityId : UuidCreator.getTimeOrderedEpoch();
+        UUID id = UuidCreator.getTimeOrderedEpoch();
         AuditActivityEntity entity = new AuditActivityEntity();
         entity.setActivityId(id);
         entity.setActivityType(activityType);
