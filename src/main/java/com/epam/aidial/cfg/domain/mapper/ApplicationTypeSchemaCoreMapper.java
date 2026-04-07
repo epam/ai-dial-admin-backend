@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,14 @@ public abstract class ApplicationTypeSchemaCoreMapper {
     protected Map<String, String> map(Map<String, ApplicationTypeSchema> schemas) {
         return schemas.entrySet().stream()
                 .map(entry -> Pair.of(entry.getKey(), mapToCoreString(entry.getValue())))
-                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+                .collect(Collectors.toMap(
+                        Pair::getLeft,
+                        Pair::getRight,
+                        (a, b) -> {
+                            throw new IllegalStateException("Duplicated schemas found: %s".formatted(a));
+                        },
+                        LinkedHashMap::new
+                ));
     }
 
     @Mapping(target = "id", source = "schemaId")

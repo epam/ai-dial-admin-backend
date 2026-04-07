@@ -7,6 +7,7 @@
   "viewerUrl": "https://viewer.test.com",
   "editorUrl": "https://editor.test.com",
   "endpoint": "https://endpoint.test.com/embeddings",
+  "responsesEndpoint": "https://endpoint.test.com/responses",
   "displayName": "Test Application",
   "description": "It is a test application",
   "displayVersion": "1.0.0",
@@ -49,5 +50,12 @@
   "author": "test-author",
   "createdAt": "2025-06-01T12:00:00Z",
   "updatedAt": "2025-06-01T15:30:00Z",
-  "dependencies": ["dep1", "dep2"]
+  "dependencies": ["dep1", "dep2"],
+  "mcp": {
+    "endpoint": "http://localhost:9876/mcp",
+    "transport": "http",
+    "allowedTools": ["classify_text"],
+    "configDelivery": "header",
+    "forwardPerRequestKey": false
+  }
 }

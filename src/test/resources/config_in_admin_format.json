@@ -23,6 +23,7 @@
 			"upstreams": [
 				{
 					"endpoint": "http://upstream1.example.com",
+					"responsesEndpoint": "https://endpoint.test.com/responses",
 					"key": "upstream-key-1",
 					"extraData": "{\"custom\":\"data1\"}",
 					"weight": 1,
@@ -133,6 +134,7 @@
 					"upstreams": [
 						{
 							"endpoint": "http://sample.com",
+							"responsesEndpoint": "http://sample.com/responses",
 							"key": "someKey",
 							"extraData": {
 								"key1": "val1"
@@ -157,7 +159,15 @@
 						]
 					}
 				}
-			]
+			],
+			"responsesEndpoint": "https://application1/responses",
+			"mcp": {
+				"endpoint": "http://localhost:9876/mcp",
+				"transport": "http",
+				"allowedTools": ["classify_text"],
+				"configDelivery": "header",
+				"forwardPerRequestKey": false
+			}
 		}
 	},
 	"models": {
@@ -195,7 +205,8 @@
 			"updatedAt": 12345,
 			"dependencies": ["dep1", "dep2"],
 			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
-        	"endpoint": "https://endpoint2/embeddings"
+			"endpoint": "https://endpoint2/embeddings",
+			"responsesEndpoint": "https://endpoint2/responses"
 		},
 		"testModel1": {
 			"deployment": {
@@ -430,6 +441,14 @@
 			"applicationTypeTokenizeEndpoint": "https://test.io/openai/tokenize",
 			"applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
 			"applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+			"applicationTypeResponsesEndpoint": "https://test.com/responses/endpoint",
+			"dial:applicationTypeMcp": {
+				"dial:endpoint": "http://localhost:9876/mcp",
+				"dial:transport": "http",
+				"dial:allowedTools": ["classify_text"],
+				"dial:mcpConfigDelivery": "meta",
+				"dial:forwardPerRequestKey": true
+			},
 			"appendApplicationPropertiesHeader": true,
 			"defs": {},
 			"properties": {},
@@ -457,6 +476,7 @@
 					"upstreams": [
 						{
 							"endpoint": "http://sample.com",
+							"responsesEndpoint": "http://sample.com/responses",
 							"key": "someKey",
 							"extraData": {
 								"key1": "val1"

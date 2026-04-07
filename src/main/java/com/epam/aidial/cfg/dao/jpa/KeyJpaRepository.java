@@ -21,4 +21,10 @@ public interface KeyJpaRepository extends CrudRepository<KeyEntity, String> {
     Set<String> findAllKeys();
 
     List<KeyEntity> findAllByValidityStateIsValidTrue();
+
+    List<KeyEntity> findAllByOrderByDisplayNameAscIdAsc();
+
+    List<KeyEntity> findAllByValidityStateIsValidTrueOrderByDisplayNameAscIdAsc();
+
+    List<KeyEntity> findByIdInOrderByDisplayNameAscIdAsc(Collection<String> ids);
 }

@@ -3,6 +3,7 @@
   "version": "1",
   "folderId": "844pucrUihSTVTN9XSpCPW",
   "endpoint": null,
+  "responsesEndpoint": "http://responsesEndpoint",
   "displayName": null,
   "displayVersion": "0.0.1",
   "iconUrl": null,
@@ -31,5 +32,12 @@
     "temperature": 1,
     "web_api_toolset": [],
     "mcp_toolset": []
+  },
+  "mcp": {
+    "endpoint": "http://localhost:9876/mcp",
+    "transport": "http",
+    "allowedTools": ["classify_text"],
+    "configDelivery": "header",
+    "forwardPerRequestKey": false
   }
 }

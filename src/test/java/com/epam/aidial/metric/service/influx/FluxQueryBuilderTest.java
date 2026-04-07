@@ -28,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -73,9 +72,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(
-                FluxStandardImports.SCHEMA
-        ));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -113,16 +110,19 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(
                 FluxStandardImports.SCHEMA,
-                FluxStandardImports.STRINGS
-        ));
+                FluxStandardImports.REGEXP
+        );
+        assertThat(actual.getPreamble()).containsExactly(
+                "_re0 = regexp.compile(v: \"(?i)^value\")"
+        );
         assertThat(actual.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> schema.fieldsAsCols()
-                |> filter(fn: (r) => exists r["deployment"] and strings.hasPrefix(v: r["deployment"], prefix: "value"))
+                |> filter(fn: (r) => r["deployment"] =~ _re0)
                 |> keep(columns: ["deployment", "price", "prompt_tokens"])
                 |> group()
                 |> sort(columns: ["prompt_tokens"], desc: true)""");
@@ -159,9 +159,7 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEqualTo(Set.of(
-                FluxStandardImports.SCHEMA
-        ));
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -406,34 +404,34 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEmpty();
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> count()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["price"])
+                |> rename(columns: {price: "temp_column_1"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_2"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_2"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_3"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["temp_column_3"])
@@ -477,37 +475,37 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEmpty();
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group(columns: [""])
-                |> count()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
-                |> filter(fn: (r) => r["_field"] == "price")
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["price"])
+                |> rename(columns: {price: "temp_column_1"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_2"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_2"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_3"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["temp_column_3"])
@@ -552,34 +550,34 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEmpty();
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> count()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "a"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["_measurement"])
+                |> rename(columns: {_measurement: "a"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "b"})
+                |> sum(column: "price")
+                |> keep(columns: ["price"])
+                |> rename(columns: {price: "b"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "c"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "c"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_0"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["temp_column_0"])
@@ -635,32 +633,35 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEmpty();
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> count()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["deployment", "_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> sum()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["deployment", "price"])
+                |> rename(columns: {price: "temp_column_1"})
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> sum()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_2"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["deployment", "prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_2"})
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["deployment"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["deployment"])
                 temp_table_4
@@ -719,35 +720,38 @@ class FluxQueryBuilderTest {
 
         var actual = fluxQueryBuilder.buildQueryContext(completable);
 
-        assertThat(actual.getImports()).isEmpty();
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(actual.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> count()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["deployment", "_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> sum()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["deployment", "price"])
+                |> rename(columns: {price: "temp_column_1"})
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> sum()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_2"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["deployment", "prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_2"})
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["deployment"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["deployment"])
                 temp_table_4
@@ -755,6 +759,68 @@ class FluxQueryBuilderTest {
                 |> sort(columns: ["temp_column_2"], desc: true)""");
         assertThat(actual.getColumnNames())
                 .isEqualTo(List.of("deployment", "temp_column_0", "temp_column_1", "temp_column_2"));
+    }
+
+    @Test
+    void buildQuery_SimpleAggregate_StartsWithFiltering() {
+        var completable = QueryImpl.builder()
+                .distinct(false)
+                .expressions(List.of(
+                        new AggregationFunctionCallImpl(
+                                new FunctionImpl("sum", Type.INT_64, true),
+                                List.of(),
+                                List.of(new ColumnImpl(Type.INT_64, "prompt_tokens"))
+                        ),
+                        new AggregationFunctionCallImpl(
+                                new FunctionImpl("sum", Type.INT_64, true),
+                                List.of(),
+                                List.of(new ColumnImpl(Type.INT_64, "completion_tokens"))
+                        )
+                ))
+                .from(TableImpl.builder().name("analytics").build())
+                .where(AndImpl.of(List.of(
+                        BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                BinaryComparisonOperator.GREATER_OR_EQUALS, new ConstantImpl(Type.TIMESTAMP, 1739286720000L)),
+                        BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                BinaryComparisonOperator.LESS, new ConstantImpl(Type.TIMESTAMP, 1739290800000L)),
+                        BinaryComparisonFilterImpl.of(new ColumnImpl(Type.STRING, "deployment"),
+                                BinaryComparisonOperator.STARTS_WITH, new ConstantImpl(Type.STRING, "ge"))
+                )))
+                .build();
+
+
+        var actual = fluxQueryBuilder.buildQueryContext(completable);
+
+        assertThat(actual.getImports()).containsExactlyInAnyOrder(FluxStandardImports.REGEXP, FluxStandardImports.SCHEMA);
+        assertThat(actual.getPreamble()).containsExactly(
+                "_re0 = regexp.compile(v: \"(?i)^ge\")",
+                "_re1 = regexp.compile(v: \"(?i)^ge\")"
+        );
+        assertThat(actual.getQuery()).isEqualTo("""
+                temp_table_0 = from(bucket: "analytics-realtime")
+                |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
+                |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
+                |> filter(fn: (r) => r["deployment"] =~ _re0)
+                |> group(columns: [""])
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_0"})
+                |> set(key: "temp_column_2", value: "any")
+                temp_table_1 = from(bucket: "analytics-realtime")
+                |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
+                |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> schema.fieldsAsCols()
+                |> filter(fn: (r) => r["deployment"] =~ _re1)
+                |> group(columns: [""])
+                |> sum(column: "completion_tokens")
+                |> keep(columns: ["completion_tokens"])
+                |> rename(columns: {completion_tokens: "temp_column_1"})
+                |> set(key: "temp_column_2", value: "any")
+                temp_table_2 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_2"])
+                temp_table_2
+                |> group()""");
+        assertThat(actual.getColumnNames()).isEqualTo(List.of("temp_column_0", "temp_column_1"));
     }
 
     @Test
@@ -859,7 +925,8 @@ class FluxQueryBuilderTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "price")
                 |> group()
-                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)
+                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 10m))}))
                 |> rename(columns: {_time: "temp_column_0", _value: "temp_column_1"})""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("temp_column_0", "temp_column_1"));
     }
@@ -917,7 +984,8 @@ class FluxQueryBuilderTest {
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
                 |> filter(fn: (r) => r["_field"] == "price")
                 |> group()
-                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)
+                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 10m))}))
                 |> rename(columns: {_time: "temp_column_0", _value: "temp_column_1"})""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("temp_column_0", "temp_column_1"));
     }
@@ -976,9 +1044,66 @@ class FluxQueryBuilderTest {
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "price")
                 |> group()
-                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false)
+                |> aggregateWindow(every: 10m, fn: sum, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 10m))}))
                 |> rename(columns: {_time: "a", _value: "b"})""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("a", "b"));
+    }
+
+    @Test
+    void buildQuery_WindowColumnAggregation() {
+        var completable =
+                QueryImpl.builder()
+                        .expressions(List.of(
+                                new AliasImpl("time",
+                                        new GroupFunctionCallImpl(
+                                                new FunctionImpl("window", null, true),
+                                                List.of(),
+                                                List.of(
+                                                        new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                                        NumberConstantImpl.valueOf(10L),
+                                                        new ConstantImpl(Type.STRING, "m")
+                                                )
+                                        )
+                                ),
+                                new ColumnImpl(Type.STRING, "deployment"),
+                                new AliasImpl("requests",
+                                        new AggregationFunctionCallImpl(
+                                                new FunctionImpl("count", Type.INT_64, true),
+                                                List.of(),
+                                                List.of()
+                                        )
+                                )
+                        ))
+                        .from(TableImpl.builder().name("analytics").build())
+                        .where(AndImpl.of(List.of(
+                                BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                        BinaryComparisonOperator.GREATER_OR_EQUALS, new ConstantImpl(Type.TIMESTAMP, 1739286720000L)),
+                                BinaryComparisonFilterImpl.of(new ColumnImpl(Type.TIMESTAMP, "_time"),
+                                        BinaryComparisonOperator.LESS, new ConstantImpl(Type.TIMESTAMP, 1739290800000L))
+                        )))
+                        .groupBy(List.of(
+                                new ColumnImpl(Type.TIMESTAMP, "time"),
+                                new ColumnImpl(Type.STRING, "deployment")
+                        ))
+                        .build();
+
+        var actual = fluxQueryBuilder.buildQueryContext(completable);
+
+        assertThat(actual.getQuery()).isEqualTo("""
+                from(bucket: "analytics-realtime")
+                |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
+                |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> group()
+                |> window(every: 10m)
+                |> map(fn: (r) => ({r with _start: time(v: int(v: r._start) - int(v: r._start) % int(v: 10m))}))
+                |> group(columns: ["_start", "_stop", "deployment"])
+                |> count(column: "_value")
+                |> keep(columns: ["_start", "deployment", "_value"])
+                |> rename(columns: {_start: "time", _value: "requests"})
+                |> group()""");
+        assertThat(actual.getColumnNames()).isEqualTo(List.of("time", "deployment", "requests"));
     }
 
 }

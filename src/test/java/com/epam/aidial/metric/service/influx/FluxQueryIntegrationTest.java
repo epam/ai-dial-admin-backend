@@ -7,6 +7,7 @@ import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.model.influx.FluxQueryContext;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.common.model.enums.SortDirection;
@@ -25,9 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,8 +46,10 @@ class FluxQueryIntegrationTest {
         var datasetConfiguration = new InfluxDatasetConfiguration();
         datasetConfiguration.setDefaultPageSize(50);
 
+        var windowGapFiller = new WindowGapFiller(10_000);
+
         fluxQueryBuilderFactory = new FluxQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
-        engine = new InfluxEngine(datasetDeclaration, null, fluxQueryBuilderFactory);
+        engine = new InfluxEngine(datasetDeclaration, null, fluxQueryBuilderFactory, windowGapFiller);
         languageConverter = new LanguageConverter(engine);
     }
 
@@ -91,7 +92,7 @@ class FluxQueryIntegrationTest {
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
                 ORDER BY prompt_tokens DESC""");
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -114,7 +115,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -135,7 +136,7 @@ class FluxQueryIntegrationTest {
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
                 ORDER BY prompt_tokens DESC""");
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -159,7 +160,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Set.of(FluxStandardImports.SCHEMA));
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -180,7 +181,7 @@ class FluxQueryIntegrationTest {
                 SELECT DISTINCT user_hash FROM analytics \
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -203,7 +204,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -224,7 +225,7 @@ class FluxQueryIntegrationTest {
                 SELECT DISTINCT user_hash AS a FROM analytics \
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -247,7 +248,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -269,7 +270,7 @@ class FluxQueryIntegrationTest {
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
                 AND deployment = 'dep_value'""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -295,7 +296,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -317,7 +318,7 @@ class FluxQueryIntegrationTest {
                 SELECT DISTINCT deployment FROM analytics \
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -339,7 +340,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -360,7 +361,7 @@ class FluxQueryIntegrationTest {
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
                 AND deployment = 'dep_value'""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -385,7 +386,7 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
@@ -406,34 +407,34 @@ class FluxQueryIntegrationTest {
                 SELECT count(), sum(price), sum(prompt_tokens) FROM analytics \
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> count()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["price"])
+                |> rename(columns: {price: "temp_column_1"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_2"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_2"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_3"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["temp_column_3"])
@@ -452,34 +453,34 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> count()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["price"])
+                |> rename(columns: {price: "temp_column_1"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "temp_column_2"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "temp_column_2"})
                 |> set(key: "temp_column_3", value: "any")
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_3"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["temp_column_3"])
@@ -496,34 +497,34 @@ class FluxQueryIntegrationTest {
                 SELECT count() AS a, sum(price) AS b, sum(prompt_tokens) AS c FROM analytics \
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z'""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> count()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "a"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["_measurement"])
+                |> rename(columns: {_measurement: "a"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "b"})
+                |> sum(column: "price")
+                |> keep(columns: ["price"])
+                |> rename(columns: {price: "b"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "c"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "c"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_0"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["temp_column_0"])
@@ -542,34 +543,34 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> count()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "a"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["_measurement"])
+                |> rename(columns: {_measurement: "a"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "b"})
+                |> sum(column: "price")
+                |> keep(columns: ["price"])
+                |> rename(columns: {price: "b"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_2 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "prompt_tokens")
+                |> schema.fieldsAsCols()
                 |> group(columns: [""])
-                |> sum()
-                |> keep(columns: ["_value"])
-                |> rename(columns: {_value: "c"})
+                |> sum(column: "prompt_tokens")
+                |> keep(columns: ["prompt_tokens"])
+                |> rename(columns: {prompt_tokens: "c"})
                 |> set(key: "temp_column_0", value: "any")
                 temp_table_3 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["temp_column_0"])
                 temp_table_4 = join(tables: {t1: temp_table_3, t2: temp_table_2}, on: ["temp_column_0"])
@@ -587,24 +588,26 @@ class FluxQueryIntegrationTest {
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
                 GROUP BY deployment ORDER BY deployment ASC""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> count()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["deployment", "_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> sum()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["deployment", "price"])
+                |> rename(columns: {price: "temp_column_1"})
                 temp_table_2 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["deployment"])
                 temp_table_2
                 |> group()
@@ -624,24 +627,26 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).containsExactlyInAnyOrder(FluxStandardImports.SCHEMA);
         assertThat(result.getQuery()).isEqualTo("""
                 temp_table_0 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "user_hash")
+                |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> count()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_0"})
+                |> count(column: "_measurement")
+                |> keep(columns: ["deployment", "_measurement"])
+                |> rename(columns: {_measurement: "temp_column_0"})
                 temp_table_1 = from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
-                |> filter(fn: (r) => r["_field"] == "price")
+                |> schema.fieldsAsCols()
+                |> map(fn: (r) => ({r with deployment: if exists r.deployment then r.deployment else "__null__"}))
                 |> group(columns: ["deployment"])
-                |> sum()
-                |> keep(columns: ["deployment", "_value"])
-                |> rename(columns: {_value: "temp_column_1"})
+                |> sum(column: "price")
+                |> keep(columns: ["deployment", "price"])
+                |> rename(columns: {price: "temp_column_1"})
                 temp_table_2 = join(tables: {t1: temp_table_0, t2: temp_table_1}, on: ["deployment"])
                 temp_table_2
                 |> group()
@@ -658,14 +663,15 @@ class FluxQueryIntegrationTest {
                 WHERE _time >= '2025-02-11T15:12:00Z' AND _time < '2025-02-11T16:20:00Z' \
                 GROUP BY time_window""");
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group()
-                |> aggregateWindow(every: 1h, fn: count, createEmpty: false)
+                |> aggregateWindow(every: 1h, fn: count, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 1h))}))
                 |> rename(columns: {_time: "time_window", _value: "total"})""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
@@ -681,14 +687,15 @@ class FluxQueryIntegrationTest {
 
         var result = buildFromJson(queryDto);
 
-        assertThat(result.getImports()).isEqualTo(Collections.emptySet());
+        assertThat(result.getImports()).isEmpty();
         assertThat(result.getQuery()).isEqualTo("""
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["_field"] == "user_hash")
                 |> group()
-                |> aggregateWindow(every: 1h, fn: count, createEmpty: false)
+                |> aggregateWindow(every: 1h, fn: count, createEmpty: false, timeSrc: "_start")
+                |> map(fn: (r) => ({r with _time: time(v: int(v: r._time) - int(v: r._time) % int(v: 1h))}))
                 |> rename(columns: {_time: "time_window", _value: "total"})""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }

@@ -6,6 +6,7 @@
   "author": "char_key",
   "name": "Char13",
   "endpoint": null,
+  "responsesEndpoint": "http://responsesEndpoint",
   "displayName": "Char_3",
   "displayVersion": "0.0.1",
   "iconUrl": "",
@@ -32,5 +33,12 @@
     "temperature": 1,
     "web_api_toolset": [],
     "mcp_toolset": []
+  },
+  "mcp": {
+    "endpoint": "http://localhost:9876/mcp",
+    "transport": "http",
+    "allowedTools": ["classify_text"],
+    "configDelivery": "header",
+    "forwardPerRequestKey": false
   }
 }

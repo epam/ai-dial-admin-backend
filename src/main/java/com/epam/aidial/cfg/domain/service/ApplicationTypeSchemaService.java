@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +67,23 @@ public class ApplicationTypeSchemaService {
     @Transactional(readOnly = true)
     public Collection<ApplicationTypeSchema> getAllByIds(List<String> ids) {
         return StreamSupport.stream(jpaRepository.findAllById(ids).spliterator(), false)
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApplicationTypeSchema> getAllOrderedByDisplayNameAscIdAsc() {
+        return jpaRepository.findAllByOrderByApplicationTypeDisplayNameAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApplicationTypeSchema> getAllByIdsOrderedByDisplayNameAscIdAsc(Collection<String> schemaIds) {
+        if (CollectionUtils.isEmpty(schemaIds)) {
+            return Collections.emptyList();
+        }
+        return jpaRepository.findByIdInOrderByApplicationTypeDisplayNameAscIdAsc(schemaIds).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }

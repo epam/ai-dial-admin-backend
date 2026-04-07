@@ -14,13 +14,17 @@ import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.normalizer.ApplicationNormalizer;
+import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
+import com.epam.aidial.cfg.utils.AuthHeaderUtils;
 import com.google.api.client.util.Lists;
+import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -32,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -58,6 +63,9 @@ public class ApplicationService {
     private final ApplicationValidator applicationValidator;
     private final HistoryService historyService;
     private final HashCalculator calculator;
+    private final CoreClientUrlUtils coreClientUrlUtils;
+    private final ToolDiscoveryService toolDiscoveryService;
+    private final ToolCallService toolCallService;
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
@@ -74,8 +82,25 @@ public class ApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Collection<Application> getAllValidApplications() {
-        return applicationJpaRepository.findAllByValidityStateIsValidTrue().stream()
+    public List<Application> getAllApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
+        return applicationJpaRepository.findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Application> getAllValidApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
+        return applicationJpaRepository.findByValidityStateIsValidTrueOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Application> getAllByNamesOrderedByDisplayNameAscDisplayVersionAscNameAsc(Collection<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+        return applicationJpaRepository.findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(names).stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -201,6 +226,64 @@ public class ApplicationService {
             ApplicationEntity applicationEntity = toEntity(application, entity);
             applicationJpaRepository.save(applicationEntity);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public McpSchema.CallToolResult callTool(String applicationName, McpSchema.CallToolRequest callToolRequest) {
+        var application = getApplication(applicationName);
+
+        var transport = resolveTransport(application, applicationName);
+
+        var url = String.format(
+                "%s/v1/toolset/%s/mcp",
+                coreClientUrlUtils.getNormalizedCoreClientUrl(),
+                application.getDeployment().getName()
+        );
+        return toolCallService.callTool(
+                url,
+                transport,
+                AuthHeaderUtils.getAuthHeaders(),
+                callToolRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public McpSchema.ListToolsResult getDiscoveredTools(String applicationName, String nextCursor) {
+        var application = getApplication(applicationName);
+
+        var transport = resolveTransport(application, applicationName);
+
+        var url = String.format(
+                "%s/v1/toolset/%s/mcp?useAllowedTools=false",
+                coreClientUrlUtils.getNormalizedCoreClientUrl(),
+                application.getDeployment().getName()
+        );
+
+        return toolDiscoveryService.discoverTools(
+                url,
+                transport,
+                nextCursor,
+                AuthHeaderUtils.getAuthHeaders()
+        );
+    }
+
+    private ToolSet.Transport resolveTransport(Application application, String applicationName) {
+        if (application.getMcp() != null) {
+            return ToolSet.Transport.valueOf(application.getMcp().getTransport().name());
+        }
+
+        if (application.getApplicationTypeSchemaId() != null) {
+            var schema = findApplicationTypeSchemaById(application.getApplicationTypeSchemaId());
+
+            if (schema != null && schema.getApplicationTypeMcp() != null) {
+                return ToolSet.Transport.valueOf(
+                        schema.getApplicationTypeMcp().getTransport().name()
+                );
+            }
+        }
+
+        throw new UnsupportedOperationException(
+                "Application '%s' does not support MCP tool discovery".formatted(applicationName)
+        );
     }
 
     private void assertExists(String name) {

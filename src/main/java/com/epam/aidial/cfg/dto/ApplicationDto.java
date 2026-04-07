@@ -23,6 +23,8 @@ public class ApplicationDto extends RoleBasedDto {
     private String name;
     @Endpoint
     private String endpoint;
+    @Endpoint
+    private String responsesEndpoint;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String displayVersion;
@@ -56,6 +58,7 @@ public class ApplicationDto extends RoleBasedDto {
 
     private URI customAppSchemaId;
     private ValidityStateDto validityState;
+    private McpDto mcp;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {
@@ -99,5 +102,4 @@ public class ApplicationDto extends RoleBasedDto {
             private String configuration;
         }
     }
-
 }

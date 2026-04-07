@@ -16,6 +16,7 @@ import java.util.Set;
 public class Application extends RoleBased {
 
     private String endpoint;
+    private String responsesEndpoint;
     private String iconUrl;
     private String reference;
     private String description;
@@ -39,5 +40,5 @@ public class Application extends RoleBased {
     private String editorUrl;
     private List<DependentRoute> routes;
     private ValidityState validityState;
-
+    private Mcp mcp;
 }

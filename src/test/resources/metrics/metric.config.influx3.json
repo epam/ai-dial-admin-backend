@@ -168,6 +168,65 @@
           }
         ]
       }
+    },
+    {
+      "name": "mcp_analytics",
+      "source": {
+        "table": "mcp_analytics"
+      },
+      "schema": {
+        "columns": [
+          {
+            "name": "_time",
+            "type": "timestamp",
+            "source": {
+              "column": "time"
+            }
+          },
+          {
+            "name": "project_id",
+            "type": "string",
+            "source": {
+              "column": "project_id"
+            }
+          },
+          {
+            "name": "deployment",
+            "type": "string",
+            "source": {
+              "column": "deployment"
+            }
+          },
+          {
+            "name": "mcp_method",
+            "type": "string",
+            "source": {
+              "column": "mcp_method"
+            }
+          },
+          {
+            "name": "execution_path",
+            "type": "string",
+            "source": {
+              "column": "execution_path"
+            }
+          },
+          {
+            "name": "chat_id",
+            "type": "string",
+            "source": {
+              "column": "chat_id"
+            }
+          },
+          {
+            "name": "user_hash",
+            "type": "string",
+            "source": {
+              "column": "user_hash"
+            }
+          }
+        ]
+      }
     }
   ]
 }

@@ -39,7 +39,7 @@ class AdaptersControllerSecurityTest extends AbstractControllerSecurityTest {
     }
 
     @ParameterizedTest
-    @MethodSource("notAllowedRoles")
+    @MethodSource({"notAllowedRoles", "reservedPrincipal"})
     void testGetAllAdaptersShouldReturnForbidden(String jwtToken) throws Exception {
         // Given & When
         final var result = performGet("/api/v1/adapters", jwtToken);
@@ -81,7 +81,7 @@ class AdaptersControllerSecurityTest extends AbstractControllerSecurityTest {
     }
 
     @ParameterizedTest
-    @MethodSource("notAllowedRoles")
+    @MethodSource({"notAllowedRoles", "reservedPrincipal"})
     void testGetAdapterShouldReturnForbidden(String jwtToken) throws Exception {
         // Given & When
         final var result = performGet("/api/v1/adapters/{adapterName}", jwtToken, "testAdapter");
@@ -127,7 +127,7 @@ class AdaptersControllerSecurityTest extends AbstractControllerSecurityTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"notAllowedRoles", "readOnlyAdminRoles"})
+    @MethodSource({"notAllowedRoles", "readOnlyAdminRoles", "reservedPrincipal"})
     void testCreateAdapterShouldReturnForbidden(String jwtToken) throws Exception {
         // Given & When
         final var result = performPost("/api/v1/adapters", jwtToken, MINIMAL_ADAPTER_JSON);
@@ -169,7 +169,7 @@ class AdaptersControllerSecurityTest extends AbstractControllerSecurityTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"notAllowedRoles", "readOnlyAdminRoles"})
+    @MethodSource({"notAllowedRoles", "readOnlyAdminRoles", "reservedPrincipal"})
     void testUpdateAdapterShouldReturnForbidden(String jwtToken) throws Exception {
         // Given & When
         final var result = performPut("/api/v1/adapters/{adapterName}", jwtToken, MINIMAL_ADAPTER_JSON, "testAdapter");
@@ -211,7 +211,7 @@ class AdaptersControllerSecurityTest extends AbstractControllerSecurityTest {
     }
 
     @ParameterizedTest
-    @MethodSource({"notAllowedRoles", "readOnlyAdminRoles"})
+    @MethodSource({"notAllowedRoles", "readOnlyAdminRoles", "reservedPrincipal"})
     void testDeleteAdapterShouldReturnForbidden(String jwtToken) throws Exception {
         // Given & When
         final var result = performDelete("/api/v1/adapters/{adapterName}", jwtToken, "testAdapter");

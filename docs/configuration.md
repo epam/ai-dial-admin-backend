@@ -164,6 +164,12 @@ instead to specify allowed roles along with their mapping to application roles.
 - Else if `config.rest.security.default.allowedRoles` is specified and not empty - all those roles mapped to `FULL_ADMIN`
 - Else - empty role mapping is used which will lead to 403 Forbidden response
 
+### Background tasks security context
+
+Background tasks (for example, auto import on bootstrap or scheduled endpoint refresh) use an internal `SecurityContext` 
+with a reserved principal (currently `system`, canonical form). REST security rejects JWT and opaque tokens 
+whose **principal claim** equals a reserved name **ignoring case**, so clients cannot impersonate internal principals.
+
 ### Auth Token Provider Configuration to interact with the DIAL Core
 
 | Setting                                                       | Environment Variable                                             | Default                   | Required | Applied when                                              | Description                                                                                                                                                                                                                                                   |
@@ -347,9 +353,17 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 | metrics.influx2.defaultPageSize | METRICS_INFLUX2_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 2 queries |
 | metrics.influx3.defaultPageSize | METRICS_INFLUX3_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 3 queries |
 |  | METRICS_STORAGE_HOST | - | Yes | metrics.enabled=true and default metrics config used | URL for InfluxDB database connection |
-|  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
-|  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
 |  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection |
+|  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
+|  | METRICS_STORAGE_ANALYTICS_BUCKET | analytics-realtime | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 bucket for analytics data |
+|  | METRICS_STORAGE_ANALYTICS_MEASUREMENT | analytics | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 measurement name for analytics data |
+|  | METRICS_STORAGE_MCP_ANALYTICS_BUCKET | analytics-realtime | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 bucket for MCP analytics data |
+|  | METRICS_STORAGE_MCP_ANALYTICS_MEASUREMENT | mcp_analytics | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 measurement name for MCP analytics data |
+|  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
+|  | METRICS_STORAGE_ANALYTICS_TABLE | analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for analytics data |
+|  | METRICS_STORAGE_MCP_ANALYTICS_TABLE | mcp_analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for MCP analytics data |
+|  | METRICS_MAX_TIME_RANGE | 72h | No | metrics.enabled=true and default influx3 config used | Maximum query time range. Supports human-readable durations (e.g., 72h, 3d) and ISO-8601 (e.g., PT72H) |
+| metrics.gap-filler.max-buckets | METRICS_GAP_FILLER_MAX_BUCKETS | 10000 | No | metrics.enabled=true | Maximum number of time buckets generated when gap-filling window queries. Prevents excessive memory usage for small intervals over large time ranges |
 
 metrics/telemetry functionality in admin panel reads data produced by https://github.com/epam/ai-dial-analytics-realtime.
 

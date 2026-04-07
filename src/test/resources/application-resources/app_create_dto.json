@@ -1,6 +1,7 @@
 {
   "name": "Char_with_schema_1",
   "folderId": "844pucrUihSTVTN9XSpCPW",
+  "responsesEndpoint": "http://responsesEndpoint",
   "version": "1",
   "displaName": "Char_with_schema_1",
   "displayVersion": "0.0.1",
@@ -16,6 +17,13 @@
     "temperature": 1,
     "web_api_toolset": [],
     "mcp_toolset": []
+  },
+  "mcp": {
+    "endpoint": "http://localhost:9876/mcp",
+    "transport": "http",
+    "allowedTools": ["classify_text"],
+    "configDelivery": "header",
+    "forwardPerRequestKey": false
   },
   "applicationTypeSchemaId": "https://mydial.epam.com/custom_application_schemas/quickapps"
 }

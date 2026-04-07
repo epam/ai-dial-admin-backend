@@ -21,6 +21,7 @@ public class ApplicationResource {
     private String author;
     private String name;
     private String endpoint;
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -44,4 +45,6 @@ public class ApplicationResource {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private ValidityStateResource validityState;
+    private McpResource mcp;
+    private String url;
 }

@@ -394,6 +394,14 @@
         "applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
         "appendApplicationPropertiesHeader": true,
         "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+        "applicationTypeResponsesEndpoint": "https://test.com/responses/endpoint",
+        "applicationTypeMcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "HTTP",
+          "allowedTools": ["classify_text"],
+          "mcpConfigDelivery": "META",
+          "forwardPerRequestKey": true
+        },
         "applicationTypeAssistantAttachmentsInRequestSupported": true,
         "applicationTypeRoutes": [
           {
@@ -493,6 +501,7 @@
         "upstreams": [
           {
             "endpoint": "http://upstream1.example.com",
+            "responsesEndpoint": "http://upstream1.example.com/responses",
             "key": "upstream-key-1",
             "extraData": {
               "custom": "data1"
@@ -609,6 +618,7 @@
           "isPublic": false,
           "defaultRoleLimit": {}
         },
+        "responsesEndpoint": "http://model1/responses",
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -910,6 +920,7 @@
           "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
+        "responsesEndpoint": "http://application2/responses",
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,
@@ -934,6 +945,13 @@
         "dependencies": [],
         "validityState": {
           "valid": true
+        },
+        "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "http",
+          "allowedTools": ["classify_text"],
+          "configDelivery": "header",
+          "forwardPerRequestKey": false
         }
       }
     }
@@ -997,6 +1015,7 @@
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
         "endpoint": "http://sample-endpoint/api",
+        "responsesEndpoint": "http://toolset1/responses",
         "transport": "sse",
         "allowedTools": ["branch", "remote"],
         "author": "test-author",

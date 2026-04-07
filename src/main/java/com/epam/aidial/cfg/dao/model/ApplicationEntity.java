@@ -39,6 +39,7 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private DeploymentEntity deployment;
 
     private String endpoint;
+    private String responsesEndpoint;
     private String iconUrl;
     private String reference;
     private String description;
@@ -71,6 +72,8 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private ApplicationTypeSchemaEntity applicationTypeSchema;
     private String viewerUrl;
     private String editorUrl;
+    @Embedded
+    private McpEntity mcp;
 
     @Column(columnDefinition = "CLOB")
     private String routes;

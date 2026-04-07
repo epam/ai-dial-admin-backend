@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
-import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
@@ -18,10 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.domain.model.ExportFormat.CORE;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.filterComponentsByTypeAndCollectToMap;
+import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUtils.toLinkedHashMap;
 
 @Service
 @LogExecution
@@ -34,19 +34,19 @@ public class ApplicationExporter {
         if (request instanceof FullExportRequest fullExportRequest) {
             return fullExportRequest.getComponentTypes().contains(ExportConfigComponentType.APPLICATION)
                     ? getApplicationsWithRemovedDependencies(fullExportRequest).stream()
-                    .collect(Collectors.toMap(app -> app.getDeployment().getName(), Function.identity()))
+                    .collect(toLinkedHashMap(app -> app.getDeployment().getName()))
                     : new HashMap<>();
         } else if (request instanceof SelectedItemsExportRequest selectedItemsExportRequest) {
             return getApplicationsWithRemovedDependencies(selectedItemsExportRequest).stream()
-                    .collect(Collectors.toMap(app -> app.getDeployment().getName(), Function.identity()));
+                    .collect(toLinkedHashMap(app -> app.getDeployment().getName()));
         }
         throw new IllegalArgumentException("Unsupported request type: " + request.getClass());
     }
 
     protected Collection<Application> getValidApplications(ExportRequest request) {
         return request.getExportFormat() == CORE
-                ? applicationService.getAllValidApplications()
-                : applicationService.getAllApplications();
+                ? applicationService.getAllValidApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc()
+                : applicationService.getAllApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc();
     }
 
     protected Collection<ExportComponentInfo> preview(ExportRequest request) {
@@ -72,20 +72,16 @@ public class ApplicationExporter {
     }
 
     private List<Application> getApplicationsWithRemovedDependencies(SelectedItemsExportRequest selectedItemsExportRequest) {
-        List<ExportConfigComponent> components = selectedItemsExportRequest.getComponents();
-        return components.stream()
-                .filter(component -> component.getType() == ExportConfigComponentType.APPLICATION)
-                .collect(Collectors.toMap(ExportConfigComponent::getName, Function.identity(),
-                        (existing, replacement) -> {
-                            existing.addDependencies(replacement.getDependencies());
-                            return existing;
-                        }))
-                .values()
-                .stream()
-                .map(component -> {
-                    Application application = getApplication(component.getName());
-                    return removeDependency(application, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
-                })
+        var componentsByName = filterComponentsByTypeAndCollectToMap(selectedItemsExportRequest.getComponents(), ExportConfigComponentType.APPLICATION);
+        if (componentsByName.isEmpty()) {
+            return List.of();
+        }
+        return applicationService.getAllByNamesOrderedByDisplayNameAscDisplayVersionAscNameAsc(componentsByName.keySet()).stream()
+                .map(application -> removeDependency(
+                        application,
+                        componentsByName.get(application.getDeployment().getName()).getDependencies(),
+                        selectedItemsExportRequest.getExportFormat())
+                )
                 .filter(app -> isValidApplication(app, selectedItemsExportRequest))
                 .toList();
     }

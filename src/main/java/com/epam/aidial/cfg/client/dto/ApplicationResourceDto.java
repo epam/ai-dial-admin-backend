@@ -19,6 +19,7 @@ public class ApplicationResourceDto {
 
     private String name;
     private String endpoint;
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -43,5 +44,5 @@ public class ApplicationResourceDto {
     private Map<String, RouteDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResourceDto mcp;
 }
-

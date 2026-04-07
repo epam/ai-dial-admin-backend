@@ -1,11 +1,14 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.McpDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -19,8 +22,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.modelcontextprotocol.client.McpSyncClient;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
@@ -33,11 +39,14 @@ import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpointAndLimits;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithMcp;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +64,8 @@ public abstract class ApplicationFunctionalTest {
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
+    @Autowired
+    private McpClientFactory mcpClientFactory;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -421,6 +432,16 @@ public abstract class ApplicationFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyGetApplicationWithMcp() {
+        ApplicationDto applicationDto = createApplicationDtoWithMcp("1");
+        applicationFacade.createApplication(applicationDto);
+        var actual = applicationFacade.getApplication(applicationDto.getName());
+        var expected = createApplicationDtoWithMcp("1");
+        expected.setRoleLimits(Map.of());
+        assertApplication(actual, expected);
+    }
+
+    @Test
     public void shouldSuccessfullyGetFullySyncedEntitySyncStateWhenApplicationIsEqualToConfigApplication() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
@@ -461,6 +482,52 @@ public abstract class ApplicationFunctionalTest {
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
     }
 
+    @Test
+    public void shouldSuccessfullyCreateApplicationAndGetDiscoveredTools() {
+        var mcp = new McpDto();
+        mcp.setEndpoint("https://endpoint.test.com/application1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setMcp(mcp);
+        applicationFacade.createApplication(applicationDto);
+
+        var expectedTools = Mockito.mock(McpSchema.ListToolsResult.class);
+        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
+
+        Mockito.when(mcpSyncClient.initialize())
+                .thenReturn(null);
+        Mockito.when(mcpSyncClient.listTools(null))
+                .thenReturn(expectedTools);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/application1/mcp?useAllowedTools=false"),
+                eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+        var actualTools = applicationFacade.getDiscoveredTools(applicationDto.getName(), null);
+
+        Assertions.assertEquals(expectedTools, actualTools);
+
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateApplicationAndCallTool() {
+        var mcp = new McpDto();
+        mcp.setEndpoint("https://endpoint.test.com/application1");
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setMcp(mcp);
+        applicationFacade.createApplication(applicationDto);
+
+        var callToolRequest = Mockito.mock(McpSchema.CallToolRequest.class);
+        var expectedCallToolResult = Mockito.mock(McpSchema.CallToolResult.class);
+        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
+        Mockito.when(mcpSyncClient.initialize())
+                .thenReturn(null);
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/application1/mcp"),
+                eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+        Mockito.when(mcpSyncClient.callTool(callToolRequest))
+                .thenReturn(expectedCallToolResult);
+
+        var actualCallToolResult = applicationFacade.callTool(applicationDto.getName(), callToolRequest);
+
+        Assertions.assertEquals(expectedCallToolResult, actualCallToolResult);
+    }
+
     private ApplicationDto createDtoWithDefaults(String suffix) {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits(suffix);
         applicationDto.setDefaults(Map.of("max_tokens", 8000));
@@ -471,6 +538,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
         Assertions.assertEquals(expected.getRoleLimits(), actual.getRoleLimits());
+        Assertions.assertEquals(expected.getMcp(), actual.getMcp());
     }
 
     private void assertApplicationWithDefaults(ApplicationDto actual, ApplicationDto expected) {

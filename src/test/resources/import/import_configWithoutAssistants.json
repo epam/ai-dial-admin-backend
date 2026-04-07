@@ -26,6 +26,7 @@
         "system"
       ],
       "endpoint": "https://endpoint1/embeddings",
+      "responsesEndpoint": "http://model1/responses",
       "descriptionKeywords": ["test1", "test2"]
     },
     "testModel2": {
@@ -79,6 +80,14 @@
         "testRole1"
       ],
       "endpoint": "endpoint",
+      "responsesEndpoint": "http://application2/responses",
+      "mcp": {
+        "endpoint": "http://localhost:9876/mcp",
+        "transport": "http",
+        "allowedTools": ["classify_text"],
+        "configDelivery": "header",
+        "forwardPerRequestKey": false
+      },
       "defaults": {
         "defaults_key": "defaults_value"
       }
@@ -229,6 +238,14 @@
       "dial:applicationTypeTruncatePromptEndpoint": "https://test.io/openai/truncate",
       "dial:appendApplicationPropertiesHeader": true,
       "dial:applicationTypeSchemaEndpoint": "https://test.com/endpoint",
+      "dial:applicationTypeResponsesEndpoint": "https://test.com/responses/endpoint",
+      "dial:applicationTypeMcp": {
+        "dial:endpoint": "http://localhost:9876/mcp",
+        "dial:transport": "HTTP",
+        "dial:allowedTools": ["classify_text"],
+        "dial:mcpConfigDelivery": "META",
+        "dial:forwardPerRequestKey": true
+      },
       "dial:applicationTypeAssistantAttachmentsInRequestSupported": true,
       "$defs": {},
       "properties": {},
@@ -303,6 +320,7 @@
       "upstreams": [
         {
           "endpoint": "http://upstream1.example.com",
+          "responsesEndpoint": "http://upstream1.example.com/responses",
           "key": "upstream-key-1",
           "extraData": {
             "custom": "data1"
@@ -340,6 +358,7 @@
     "toolset1": {
       "name": "toolset1",
       "displayName": "ToolSet1",
+      "responsesEndpoint": "http://toolset1/responses",
       "userRoles": [],
       "endpoint": "http://sample-endpoint/api",
       "transport": "sse",

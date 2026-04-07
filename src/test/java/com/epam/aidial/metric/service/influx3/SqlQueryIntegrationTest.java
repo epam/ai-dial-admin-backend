@@ -6,6 +6,7 @@ import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.model.influx3.SqlQueryContext;
+import com.epam.aidial.metric.service.WindowGapFiller;
 import com.epam.aidial.ql.LanguageConverter;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.common.model.enums.SortDirection;
@@ -46,8 +47,10 @@ class SqlQueryIntegrationTest {
         var datasetConfiguration = new Influx3DatasetConfiguration();
         datasetConfiguration.setDefaultPageSize(50);
 
+        var windowGapFiller = new WindowGapFiller(10_000);
+
         sqlQueryBuilderFactory = new SqlQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
-        engine = new Influx3Engine(datasetDeclaration, null, sqlQueryBuilderFactory);
+        engine = new Influx3Engine(datasetDeclaration, null, sqlQueryBuilderFactory, windowGapFiller);
         languageConverter = new LanguageConverter(engine);
     }
 
@@ -96,7 +99,7 @@ class SqlQueryIntegrationTest {
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment", "price", "prompt_tokens" FROM "analytics" \
-                WHERE "time" >= $p0 AND "time" < $p1 AND "deployment" LIKE $p2 ESCAPE '\\' \
+                WHERE "time" >= $p0 AND "time" < $p1 AND "deployment" ILIKE $p2 ESCAPE '\\' \
                 ORDER BY "prompt_tokens" DESC""");
         assertThat(actual.getParameters()).containsEntry("p2", "value%");
     }
@@ -112,7 +115,7 @@ class SqlQueryIntegrationTest {
 
         assertThat(actual.getQuery()).isEqualTo("""
                 SELECT "deployment", "price", "prompt_tokens" FROM "analytics" \
-                WHERE "time" >= $p0 AND "time" < $p1 AND "deployment" LIKE $p2 ESCAPE '\\' \
+                WHERE "time" >= $p0 AND "time" < $p1 AND "deployment" ILIKE $p2 ESCAPE '\\' \
                 ORDER BY "prompt_tokens" DESC""");
         assertThat(actual.getParameters()).containsEntry("p2", "value%");
     }
@@ -330,12 +333,12 @@ class SqlQueryIntegrationTest {
                 GROUP BY time_window ORDER BY time_window ASC""");
 
         assertThat(actual.getQuery()).isEqualTo("""
-                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "time_window"\
+                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "temp_column_0"\
                 , COUNT(*) AS "total" \
                 FROM "analytics" \
                 WHERE "time" >= $p0 AND "time" < $p1 \
-                GROUP BY "time_window" \
-                ORDER BY "time_window" ASC""");
+                GROUP BY "temp_column_0" \
+                ORDER BY "temp_column_0" ASC""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
 
@@ -350,12 +353,12 @@ class SqlQueryIntegrationTest {
         var actual = buildFromJson(queryDto);
 
         assertThat(actual.getQuery()).isEqualTo("""
-                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "time_window"\
+                SELECT DATE_BIN(INTERVAL '1 hour', "time", TIMESTAMP '1970-01-01T00:00:00Z') AS "temp_column_0"\
                 , COUNT(*) AS "total" \
                 FROM "analytics" \
                 WHERE "time" >= $p0 AND "time" < $p1 \
-                GROUP BY "time_window" \
-                ORDER BY "time_window" ASC""");
+                GROUP BY "temp_column_0" \
+                ORDER BY "temp_column_0" ASC""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("time_window", "total"));
     }
 

@@ -59,31 +59,31 @@ class SqlConditionBuilderTest {
                         Map.of("p0", (Object) "value")
                 ), Arguments.of("like => starts with",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "value%")),
-                        "\"x\" LIKE $p0 ESCAPE '\\'",
+                        "\"x\" ILIKE $p0 ESCAPE '\\'",
                         Map.of("p0", (Object) "value%")
                 ), Arguments.of("like => ends with",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "%value")),
-                        "\"x\" LIKE $p0 ESCAPE '\\'",
+                        "\"x\" ILIKE $p0 ESCAPE '\\'",
                         Map.of("p0", (Object) "%value")
                 ), Arguments.of("like => contains",
                         BinaryComparisonFilterImpl.of(stringColumn, LIKE, new ConstantImpl(Type.STRING, "%value%")),
-                        "\"x\" LIKE $p0 ESCAPE '\\'",
+                        "\"x\" ILIKE $p0 ESCAPE '\\'",
                         Map.of("p0", (Object) "%value%")
                 ), Arguments.of("contains",
                         BinaryComparisonFilterImpl.of(stringColumn, CONTAINS, stringConst),
-                        "\"x\" LIKE $p0 ESCAPE '\\'",
+                        "\"x\" ILIKE $p0 ESCAPE '\\'",
                         Map.of("p0", (Object) "%value%")
                 ), Arguments.of("not contains",
                         BinaryComparisonFilterImpl.of(stringColumn, NOT_CONTAINS, stringConst),
-                        "\"x\" NOT LIKE $p0 ESCAPE '\\'",
+                        "\"x\" NOT ILIKE $p0 ESCAPE '\\'",
                         Map.of("p0", (Object) "%value%")
                 ), Arguments.of("starts with",
                         BinaryComparisonFilterImpl.of(stringColumn, STARTS_WITH, stringConst),
-                        "\"x\" LIKE $p0 ESCAPE '\\'",
+                        "\"x\" ILIKE $p0 ESCAPE '\\'",
                         Map.of("p0", (Object) "value%")
                 ), Arguments.of("ends with",
                         BinaryComparisonFilterImpl.of(stringColumn, ENDS_WITH, stringConst),
-                        "\"x\" LIKE $p0 ESCAPE '\\'",
+                        "\"x\" ILIKE $p0 ESCAPE '\\'",
                         Map.of("p0", (Object) "%value")
                 ), Arguments.of("greater than",
                         BinaryComparisonFilterImpl.of(numericColumn, GREATER, numericConst),

@@ -3,19 +3,14 @@ package com.epam.aidial.metric.service.influx;
 
 import com.epam.aidial.expressions.AggregationFunctionCall;
 import com.epam.aidial.expressions.Constant;
-import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.GroupFunctionCall;
 import com.epam.aidial.expressions.NumberConstant;
 import com.epam.aidial.metric.model.influx.FluxQueryPart;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
-import com.epam.aidial.metric.util.CollectorsUtils;
-import com.epam.aidial.ql.common.model.enums.SortDirection;
 import com.epam.aidial.ql.model.Query;
-import com.epam.aidial.ql.model.Sort;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +20,8 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class SimpleFluxBuilder {
+
+    public static final String NULL_SENTINEL = "__null__";
 
     public static String createFromPart(String bucketName) {
         return "from(bucket: %s)".formatted(quote(bucketName));
@@ -49,29 +46,7 @@ public class SimpleFluxBuilder {
         return "|> group(columns: %s)".formatted(compactWithQuoting(columnNames));
     }
 
-    public static String createSortPart(List<Sort> orderBy, Map<Expression, String> expression2ColumnNames) {
-        if (CollectionUtils.isEmpty(orderBy)) {
-            return "";
-        }
-
-        var direction = orderBy.stream().map(Sort::getDirection).distinct()
-                .collect(CollectorsUtils.toSingleton(() -> new IllegalArgumentException("Only one sort direction is allowed")))
-                .orElseThrow();
-
-        var columnNames = orderBy.stream().map(Sort::getExpression)
-                .map(expression2ColumnNames::get)
-                .toList();
-
-        var noMapping = columnNames.stream().anyMatch(Objects::isNull);
-        if (noMapping) {
-            throw new NotImplementedException("Only sort for specified columns is supported");
-        }
-
-        var desc = direction == SortDirection.DESC;
-        return SimpleFluxBuilder.createSortPart(columnNames, desc);
-    }
-
-    private static String createSortPart(List<String> columnNames, boolean desc) {
+    public static String createSortPart(List<String> columnNames, boolean desc) {
         if (CollectionUtils.isEmpty(columnNames)) {
             return "";
         }
@@ -125,7 +100,21 @@ public class SimpleFluxBuilder {
 
         var functionName = aggregationFunctionCall.getFunction().getName();
 
-        return "|> aggregateWindow(every: %s, fn: %s, createEmpty: false)".formatted(duration, functionName);
+        return "|> aggregateWindow(every: %s, fn: %s, createEmpty: false, timeSrc: \"_start\")\n".formatted(duration, functionName)
+                + createTruncateMapPart("_time", duration);
+    }
+
+    public static String createWindowPart(GroupFunctionCall groupFunctionCall) {
+        var value = ((NumberConstant) groupFunctionCall.getArgs().get(1)).getNumberValue();
+        var unit = (String) ((Constant) groupFunctionCall.getArgs().get(2)).getValue();
+        var duration = createDuration(value, unit);
+        return "|> window(every: %s)\n".formatted(duration)
+                + createTruncateMapPart("_start", duration);
+    }
+
+    private static String createTruncateMapPart(String column, String duration) {
+        return "|> map(fn: (r) => ({r with %s: time(v: int(v: r.%s) - int(v: r.%s) %% int(v: %s))}))".formatted(
+                column, column, column, duration);
     }
 
     public static String createSetPart(String columnName, String value) {
@@ -150,6 +139,16 @@ public class SimpleFluxBuilder {
             throw new IllegalArgumentException("Only aggregate window functions are supported");
         }
         return value + unit;
+    }
+
+    public static String createNullFillPart(List<String> columnNames) {
+        if (columnNames.isEmpty()) {
+            return "";
+        }
+        var assignments = columnNames.stream()
+                .map(col -> "%s: if exists r.%s then r.%s else %s".formatted(col, col, col, quote(NULL_SENTINEL)))
+                .collect(Collectors.joining(", "));
+        return "|> map(fn: (r) => ({r with %s}))".formatted(assignments);
     }
 
     public static String compactWithQuoting(List<String> values) {

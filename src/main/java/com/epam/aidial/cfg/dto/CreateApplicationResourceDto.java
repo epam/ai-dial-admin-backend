@@ -21,6 +21,8 @@ public class CreateApplicationResourceDto {
     private String folderId;
     @Endpoint
     private String endpoint;
+    @Endpoint
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -46,4 +48,5 @@ public class CreateApplicationResourceDto {
     private List<RouteResourceDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResourceDto mcp;
 }

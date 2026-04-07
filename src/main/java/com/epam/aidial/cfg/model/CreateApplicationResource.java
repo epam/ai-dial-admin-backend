@@ -17,6 +17,7 @@ public class CreateApplicationResource {
     private String version;
     private String folderId;
     private String endpoint;
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -38,7 +39,5 @@ public class CreateApplicationResource {
     private List<RouteResource> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResource mcp;
 }
-
-
-

@@ -17,6 +17,7 @@ public class ApplicationExim {
     private String folderId;
     private String version;
     private String endpoint;
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -39,4 +40,5 @@ public class ApplicationExim {
     private FeaturesResource features;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResource mcp;
 }

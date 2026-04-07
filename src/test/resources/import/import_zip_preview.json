@@ -321,7 +321,15 @@
         "appendApplicationPropertiesHeader": true,
         "applicationTypeAssistantAttachmentsInRequestSupported": false,
         "applicationTypeSchemaEndpoint": "https://test.com/endpoint",
-        "interceptors":[],
+        "applicationTypeResponsesEndpoint": "https://test.com/responses/endpoint",
+        "dial:applicationTypeMcp": {
+          "dial:endpoint": "http://localhost:9876/mcp",
+          "dial:transport": "http",
+          "dial:allowedTools": ["classify_text"],
+          "dial:mcpConfigDelivery": "meta",
+          "dial:forwardPerRequestKey": true
+        },
+        "interceptors": [],
         "properties": {},
         "required": [],
         "applicationTypeRoutes": [
@@ -347,6 +355,7 @@
             "upstreams": [
               {
                 "endpoint": "http://sample.com",
+                "responsesEndpoint": "http://sample.com/responses",
                 "key": "someKey",
                 "extraData": {
                   "key1": "val1"
@@ -423,6 +432,7 @@
         "upstreams": [
           {
             "endpoint": "http://upstream1.example.com",
+            "responsesEndpoint": "https://endpoint.test.com/responses",
             "key": "upstream-key-1",
             "extraData": {
               "custom": "data1"
@@ -521,6 +531,7 @@
         "dependencies": ["dep1", "dep2"],
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
         "endpoint": "https://endpoint2/embeddings",
+        "responsesEndpoint": "https://endpoint2/responses",
         "source": {
           "$type": "endpoints"
         }
@@ -688,6 +699,7 @@
           "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
+        "responsesEndpoint": "https://application1/responses",
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,
@@ -734,6 +746,7 @@
             "upstreams": [
               {
                 "endpoint": "http://sample.com",
+                "responsesEndpoint": "http://sample.com/responses",
                 "key": "someKey",
                 "extraData": {
                   "key1": "val1"
@@ -761,6 +774,13 @@
         ],
         "validityState": {
           "valid": true
+        },
+        "mcp": {
+          "endpoint": "http://localhost:9876/mcp",
+          "transport": "http",
+          "allowedTools": ["classify_text"],
+          "configDelivery": "header",
+          "forwardPerRequestKey": false
         }
       }
     }

@@ -17,6 +17,7 @@ public class ApplicationEximDto {
     private String folderId;
     private String version;
     private String endpoint;
+    private String responsesEndpoint;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -39,4 +40,5 @@ public class ApplicationEximDto {
     private List<RouteResourceDto> routes;
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
+    private McpResourceDto mcp;
 }

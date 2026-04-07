@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
+import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -75,9 +76,11 @@ public class CoreApplicationTypeSchemaService {
 
         var schema = schemaWithHash.model();
         var coreApplicationTypeSchema = schemaCoreMapper.mapToCoreString(schema);
+        boolean isSchemaValid = SchemaConformToMetaSchemaValidator.isValid(coreApplicationTypeSchema);
 
         return entitySyncStateResolver.resolveForEntityInArray(
                 coreApplicationTypeSchema,
+                isSchemaValid,
                 schema.getUpdatedAt(),
                 "applicationTypeSchemas",
                 "$id",

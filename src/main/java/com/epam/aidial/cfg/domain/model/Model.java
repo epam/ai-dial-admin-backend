@@ -15,6 +15,7 @@ import java.util.Set;
 public class Model extends RoleBased {
 
     private String endpoint;
+    private String responsesEndpoint;
     private String description;
     private String displayName;
     private String displayVersion;

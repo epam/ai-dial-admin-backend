@@ -130,16 +130,22 @@ public interface PublicationMapper {
                                                           List<ToolSetPublicationResource> toolSetResources);
 
     private PublicationResourceAction getAction(Publication model) {
-        var resources = model.getResources().stream()
+        var actions = model.getResources().stream()
                 .filter(Objects::nonNull)
+                .map(PublicationResource::getAction)
                 .toList();
 
-        if (resources.isEmpty()) {
+        if (actions.isEmpty()) {
             return null;
         }
 
-        return resources.stream()
-                .map(PublicationResource::getAction)
+        if (model instanceof FilePublication
+                && actions.stream()
+                .allMatch(a -> a == PublicationResourceAction.ADD || a == PublicationResourceAction.ADD_IF_ABSENT)) {
+            return PublicationResourceAction.ADD;
+        }
+
+        return actions.stream()
                 .distinct()
                 .collect(CollectorsUtils.toSingleton(()
                         -> new IllegalStateException("Different actions found inside publication request. Publication: %s".formatted(model))))
@@ -188,6 +194,7 @@ public interface PublicationMapper {
     ApplicationPublication toApplicationResourcePublication(ApplicationPublicationDto applicationPublicationDto);
 
     @Mapping(target = "validityState", ignore = true)
+    @Mapping(target = "url", ignore = true)
     ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto);
 
     @Mapping(target = "resources", source = "prompts")

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.epam.aidial.cfg.dto.validation.annotation.UpstreamEndpoint;
 import com.epam.aidial.cfg.utils.SecretUtils;
 import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
@@ -18,6 +19,8 @@ public class UpstreamDto {
 
     @UpstreamEndpoint
     private String endpoint;
+    @Endpoint
+    private String responsesEndpoint;
     private String key;
     @JsonDeserialize(using = JsonToStringDeserializer.class)
     @JsonSerialize(using = StringToJsonSerializer.class)
@@ -27,7 +30,8 @@ public class UpstreamDto {
     private int tier = 0;
 
     public String toString() {
-        return "Upstream(endpoint=" + this.getEndpoint() + ", key=" + SecretUtils.mask(this.getKey())
+        return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
+                + ", key=" + SecretUtils.mask(this.getKey())
                 + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }
