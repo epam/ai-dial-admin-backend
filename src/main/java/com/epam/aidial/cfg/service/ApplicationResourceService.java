@@ -7,15 +7,14 @@ import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
 import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
-
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
