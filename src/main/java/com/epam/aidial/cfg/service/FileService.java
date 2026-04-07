@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -38,8 +39,11 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -292,9 +296,9 @@ public class FileService implements ResourceService {
         return ResourceType.FILE;
     }
 
-    public StreamingResponseBody export(List<String> paths) {
-        var distinctPaths = paths.stream()
-                .distinct()
+    public StreamingResponseBody export(ExportResource exportResource) {
+        var paths = resolveExportPaths(exportResource);
+        var sortedPaths = paths.stream()
                 .sorted()
                 .toList();
 
@@ -305,7 +309,7 @@ public class FileService implements ResourceService {
                     var zos = new ZipOutputStream(outputStream)
             ) {
 
-                for (var path : distinctPaths) {
+                for (var path : sortedPaths) {
                     var fileResponse = get(path);
 
                     zos.putNextEntry(new ZipEntry("files/" + path));
@@ -334,5 +338,45 @@ public class FileService implements ResourceService {
         } catch (ResourceNotFoundException e) {
             return false;
         }
+    }
+
+    private Set<String> resolveExportPaths(ExportResource exportResource) {
+        Set<String> paths = new HashSet<>();
+        for (String path : exportResource.getPaths()) {
+            paths.addAll(collectFilePathsByPath(path));
+        }
+        return paths;
+    }
+
+    private Set<String> collectFilePathsByPath(String path) {
+        if (!PathUtils.isFolderPath(path)) {
+            return path != null && !path.isEmpty() ? Set.of(path) : Collections.emptySet();
+        }
+        try {
+            var request = ResourceMetadataRequest.builder()
+                    .path(path)
+                    .recursive(true)
+                    .build();
+            FileNodeInfo node = getAll(request);
+            return collectPaths(node);
+        } catch (ResourceNotFoundException e) {
+            log.debug("Path not found for export: {}", path, e);
+            return Collections.emptySet();
+        }
+    }
+
+    private Set<String> collectPaths(FileNodeInfo node) {
+        if (node == null) {
+            return Collections.emptySet();
+        }
+        if (node.getNodeType() == NodeType.ITEM) {
+            return node.getPath() != null ? Set.of(node.getPath()) : Collections.emptySet();
+        }
+        if (node.getNodeType() == NodeType.FOLDER && node.getItems() != null) {
+            return node.getItems().stream().filter(i -> i.getNodeType() == NodeType.ITEM)
+                    .map(FileNodeInfo::getPath)
+                    .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
 }

@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.export.CoreConfigReloadService;
 import com.epam.aidial.cfg.service.config.transfer.ConfigTransfer;
 import com.epam.aidial.cfg.web.facade.mapper.ImportConfigMapper;
+import com.epam.aidial.cfg.web.security.FullAdminOnly;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.apache.commons.collections4.CollectionUtils;
@@ -70,6 +71,7 @@ public class ConfigController {
         this.configExportErrorHandlers = configExportErrorHandlers;
     }
 
+    @FullAdminOnly
     @GetMapping(path = "/reload")
     public void reload() throws Exception {
         if (coreConfigReloadService.isPresent()) {
@@ -135,6 +137,7 @@ public class ConfigController {
         return exportConfigMapper.toExportConfigMetadataDto(exportConfigMetadata);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void importConfig(@RequestPart("file") @Valid @Size(min = 1) List<MultipartFile> files,
                              @RequestParam("resolutionPolicy") ConflictResolutionPolicy resolutionPolicy,
@@ -165,6 +168,7 @@ public class ConfigController {
         return importConfigMapper.toImportConfigPreviewDto(importConfigPreview);
     }
 
+    @FullAdminOnly
     @PostMapping(path = "/import/zip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void importConfigZip(@RequestPart("file") MultipartFile file,
                                 @RequestParam("resolutionPolicy") ConflictResolutionPolicy resolutionPolicy,
