@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.model.EntitySyncStateStatus;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,12 +32,15 @@ class EntitySyncStateResolverTest {
     private CoreConfigReloadCache coreConfigReloadCache;
     @Mock
     private EntitySyncStateStatusResolver syncStateStatusResolver;
+    @Mock
+    private VersionAwareFieldFilter versionAwareFieldFilter;
 
     private EntitySyncStateResolver syncStateResolver;
 
     @BeforeEach
     void setUp() {
-        syncStateResolver = new EntitySyncStateResolver(objectMapper, coreObjectMapper, coreConfigReloadCache, syncStateStatusResolver);
+        syncStateResolver = new EntitySyncStateResolver(
+                objectMapper, coreObjectMapper, coreConfigReloadCache, syncStateStatusResolver, versionAwareFieldFilter);
     }
 
     @Test
@@ -109,6 +113,8 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
+        when(versionAwareFieldFilter.filterEntityNodeForTargetVersion(currentStateJsonNode, "entities")).thenReturn(currentStateJsonNode);
+
         when(syncStateStatusResolver.resolve(currentStateJsonNode, null, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
 
@@ -158,6 +164,8 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
+
+        when(versionAwareFieldFilter.filterEntityNodeForTargetVersion(currentStateJsonNode, "entities")).thenReturn(currentStateJsonNode);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.FULLY_SYNCED);
@@ -209,6 +217,8 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
+
+        when(versionAwareFieldFilter.filterEntityNodeForTargetVersion(currentStateJsonNode, "entities")).thenReturn(currentStateJsonNode);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, false, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
@@ -293,6 +303,8 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
 
+        when(versionAwareFieldFilter.filterEntityNodeForTargetVersion(currentStateJsonNode, "entities")).thenReturn(currentStateJsonNode);
+
         when(syncStateStatusResolver.resolve(currentStateJsonNode, null, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
 
@@ -344,6 +356,8 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
+
+        when(versionAwareFieldFilter.filterEntityNodeForTargetVersion(currentStateJsonNode, "entities")).thenReturn(currentStateJsonNode);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, true, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.FULLY_SYNCED);
@@ -397,6 +411,8 @@ class EntitySyncStateResolverTest {
         when(coreObjectMapper.readValue(currentStateJsonNodeAsString, CurrentState.class)).thenReturn(currentState);
         when(coreObjectMapper.writeValueAsString(currentState)).thenReturn(currentStateJsonNodeAsString);
         when(objectMapper.readTree(currentStateJsonNodeAsString)).thenReturn(currentStateJsonNode);
+
+        when(versionAwareFieldFilter.filterEntityNodeForTargetVersion(currentStateJsonNode, "entities")).thenReturn(currentStateJsonNode);
 
         when(syncStateStatusResolver.resolve(currentStateJsonNode, requestedEntity, CurrentState.class, false, currentStateUpdatedAt, configReloadTimestamp))
                 .thenReturn(EntitySyncStateStatus.IN_PROGRESS);
