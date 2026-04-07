@@ -19,7 +19,7 @@ public class ApplicationTypeMcpEntity {
     private List<String> allowedTools;
     @Enumerated(EnumType.STRING)
     private McpConfigDeliveryEntity configDelivery;
-    private boolean forwardPerRequestKey;
+    private Boolean forwardPerRequestKey;
 
     public enum McpConfigDeliveryEntity {
         HEADER, META

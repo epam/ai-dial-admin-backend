@@ -896,6 +896,15 @@
           "items": {
             "type": "string"
           }
+        },
+        "configDelivery": {
+          "type": "string",
+          "enum": ["HEADER", "META"],
+          "default": "META"
+        },
+        "forwardPerRequestKey": {
+          "type": "boolean",
+          "default": true
         }
       },
       "required": ["endpoint"]

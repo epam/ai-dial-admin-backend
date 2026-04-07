@@ -21,7 +21,9 @@
   "mcp": {
     "endpoint": "http://localhost:9876/mcp",
     "transport": "http",
-    "allowedTools": ["classify_text"]
+    "allowedTools": ["classify_text"],
+    "configDelivery": "header",
+    "forwardPerRequestKey": false
   },
   "applicationTypeSchemaId": "https://mydial.epam.com/custom_application_schemas/quickapps"
 }

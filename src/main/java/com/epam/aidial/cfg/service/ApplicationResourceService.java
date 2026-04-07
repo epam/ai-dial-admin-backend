@@ -176,9 +176,9 @@ public class ApplicationResourceService implements ResourceService {
         var transport = resolveTransport(application, application.getName());
 
         var url = String.format(
-                "%s/v1/toolset/applications/%s/mcp",
+                "%s/v1/toolset/%s/mcp",
                 coreClientUrlUtils.getNormalizedCoreClientUrl(),
-                application.getName()
+                application.getUrl()
         );
         return toolCallService.callTool(
                 url,
@@ -194,9 +194,9 @@ public class ApplicationResourceService implements ResourceService {
         var transport = resolveTransport(application, application.getName());
 
         var url = String.format(
-                "%s/v1/toolset/applications/%s/mcp?useAllowedTools=false",
+                "%s/v1/toolset/%s/mcp?useAllowedTools=false",
                 coreClientUrlUtils.getNormalizedCoreClientUrl(),
-                application.getName()
+                application.getUrl()
         );
 
         return toolDiscoveryService.discoverTools(

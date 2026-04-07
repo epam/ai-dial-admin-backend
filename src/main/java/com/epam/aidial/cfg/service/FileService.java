@@ -338,11 +338,13 @@ public class FileService implements ResourceService {
         var folderName = PathUtils.folderNameWithoutPath(path);
         var archiveFolderPath = "public/" + folderName;
         for (String filePath : collectFilePathsByPath(path)) {
-            var fileName = PathUtils.parsePath(filePath).getName();
+            var pathParts = PathUtils.parsePath(filePath);
+            var fileName = pathParts.getName();
+            var insideFolder = pathParts.getFolderId().substring(path.length());
             if (entries.containsKey(filePath)) {
                 throw new IllegalStateException("Duplicate entry for path: " + filePath);
             }
-            entries.put(filePath, archiveFolderPath + fileName);
+            entries.put(filePath, archiveFolderPath + insideFolder + fileName);
         }
     }
 
