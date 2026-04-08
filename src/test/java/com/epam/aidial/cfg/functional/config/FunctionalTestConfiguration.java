@@ -115,10 +115,7 @@ public class FunctionalTestConfiguration {
 
     @Bean
     public ConfigExportProperties configExportProperties() {
-        ConfigExportProperties configExportProperties = new ConfigExportProperties();
-        configExportProperties.setExportConfigFileName("aidial.config.json");
-        configExportProperties.setExportConfigFileZipName("admin.config.zip");
-        return configExportProperties;
+        return new ConfigExportProperties();
     }
 
     @Bean
@@ -140,11 +137,7 @@ public class FunctionalTestConfiguration {
 
     @Bean
     public CoreConfigVersionProperties coreConfigVersionProperties() {
-        CoreConfigVersionProperties properties = new CoreConfigVersionProperties();
-        properties.setTarget("latest");
-        properties.setAutoDetectEnabled(false);
-        properties.setCacheExpirationMs(300000);
-        return properties;
+        return new CoreConfigVersionProperties();
     }
 
     @Bean
