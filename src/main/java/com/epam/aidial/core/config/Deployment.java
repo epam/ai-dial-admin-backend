@@ -14,7 +14,7 @@ import java.util.Map;
 public abstract class Deployment extends RoleBasedEntity {
     private String endpoint;
     @JsonAlias({"responsesEndpoint", "responses_endpoint"})
-    private String responsesEndpoint;  //0.43.0
+    private String responsesEndpoint;  //0.42.0
     @JsonAlias({"displayName", "display_name"})
     private String displayName;
     @JsonAlias({"displayVersion", "display_version"})

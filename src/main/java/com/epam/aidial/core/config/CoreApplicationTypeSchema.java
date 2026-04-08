@@ -76,7 +76,7 @@ public class CoreApplicationTypeSchema {
     private String applicationTypeSchemaEndpoint; //0.41.0
 
     @JsonProperty("dial:applicationTypeResponsesEndpoint")
-    private String applicationTypeResponsesEndpoint; //0.43.0
+    private String applicationTypeResponsesEndpoint; //0.42.0
 
     @JsonProperty("dial:applicationTypeMcp")
     private ApplicationTypeMcp applicationTypeMcp; //0.42.0
