@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
-import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import java.util.Map;
 @Slf4j
 public class ConfigSourceFile implements ConfigSource {
 
-    private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final ObjectMapper objectMapper;
     private final String outputFilePath;
 
@@ -57,9 +55,8 @@ public class ConfigSourceFile implements ConfigSource {
     @Override
     public void writeConfig(Config configBody, boolean createResources) {
         try {
-            Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(configBody);
             createDirectoryIfNeed();
-            objectMapper.writeValue(new File(outputFilePath), versionedConfig);
+            objectMapper.writeValue(new File(outputFilePath), configBody);
         } catch (IOException e) {
             log.error("Can't serialize configuration", e);
         }
