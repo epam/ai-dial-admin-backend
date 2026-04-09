@@ -4,22 +4,29 @@ import com.epam.aidial.cfg.client.dto.PublicationDto;
 import com.epam.aidial.cfg.client.dto.PublicationResourceActionDto;
 import com.epam.aidial.cfg.client.dto.PublicationStatusDto;
 import com.epam.aidial.cfg.client.dto.ResourceTypeDto;
-import com.epam.aidial.cfg.client.mapper.ConversationClientMapper;
 import com.epam.aidial.cfg.client.mapper.PublicationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.ResourceAlreadyExistsException;
+import com.epam.aidial.cfg.model.ConversationPublication;
 import com.epam.aidial.cfg.model.ConversationPublicationResource;
 import com.epam.aidial.cfg.model.Publication;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.service.ConversationService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
+import com.epam.aidial.cfg.utils.PathUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import static com.epam.aidial.cfg.client.mapper.ConversationClientMapper.CONVERSATIONS_PREFIX;
 
 @Component
 @LogExecution
@@ -31,7 +38,8 @@ public class ConversationPublicationResolver extends PublicationResolver {
 
     protected ConversationPublicationResolver(PublicationResourceUrlResolver resolver,
                                               PublicationClientMapper mapper,
-                                              ConversationService conversationService, FilePublicationResolver filePublicationResolver) {
+                                              ConversationService conversationService,
+                                              FilePublicationResolver filePublicationResolver) {
         super(resolver);
         this.mapper = mapper;
         this.conversationService = conversationService;
@@ -47,9 +55,8 @@ public class ConversationPublicationResolver extends PublicationResolver {
                 .map(resourceInfo(status))
                 .toList();
         List<PublicationResourceIssue> resourceIssues = new ArrayList<>();
-
         var conversations = resourceInfoList.stream()
-                .filter(resourceUrlStartsWith(ConversationClientMapper.CONVERSATIONS_PREFIX))
+                .filter(resourceUrlStartsWith(CONVERSATIONS_PREFIX))
                 .map(resource -> resolveResourceAndCollectIssues(
                         () -> getConversationPublication(resource, status),
                         resourceIssues,
@@ -67,12 +74,41 @@ public class ConversationPublicationResolver extends PublicationResolver {
 
     @Override
     public void updatePublicationResources(Publication publication) {
-        throw new UnsupportedOperationException("Operation not supported");
+        var conversationPublication = (ConversationPublication) publication;
+        var conversations = conversationPublication.getResources();
+        conversations.stream()
+                .map(ConversationPublicationResource::getConversation)
+                .forEach(conversation -> conversationService.putConversation(conversation, true, null));
     }
 
     @Override
     public PublicationDto updatePublicationResourceTargets(Publication publication) {
-        throw new UnsupportedOperationException("Operation not supported");
+        var conversationPublication = (ConversationPublication) publication;
+        var folderId = publication.getFolderId();
+
+        var updatedConversationResources = conversationPublication.getResources().stream()
+                .map(conversation -> recalculateTargetUrl(conversation, folderId))
+                .toList();
+        var updatedFileResources = Optional.ofNullable(conversationPublication.getFiles())
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .map(file -> filePublicationResolver.recalculateTargetUrl(file, folderId))
+                .toList();
+
+        var updatedResources = Stream.concat(
+                        updatedConversationResources.stream(),
+                        updatedFileResources.stream())
+                .toList();
+        return mapper.toPublicationDto(publication, updatedResources);
+    }
+
+    private ConversationPublicationResource recalculateTargetUrl(ConversationPublicationResource resource, String folderId) {
+        var folder = PathUtils.ensureTrailingSlash(folderId);
+        var conversationResource = resource.getConversation();
+        var newTargetPath = PathUtils.buildEncodedPath(CONVERSATIONS_PREFIX + folder,
+                conversationResource.getName(), conversationResource.getVersion());
+        resource.setTargetUrl(newTargetPath);
+        return resource;
     }
 
     @Override
@@ -83,6 +119,17 @@ public class ConversationPublicationResolver extends PublicationResolver {
     @Override
     public Set<ResourceTypeDto> applicableResourceTypes() {
         return Set.of(ResourceTypeDto.CONVERSATION, ResourceTypeDto.FILE);
+    }
+
+    public void attachUploadedFiles(Publication publication, List<MultipartFile> files) {
+        if (CollectionUtils.isEmpty(files)) {
+            return;
+        }
+        var conversationPublication = (ConversationPublication) publication;
+        conversationPublication.setFiles(
+                filePublicationResolver.merge(
+                        conversationPublication.getFiles(),
+                        filePublicationResolver.uploadNewFileResources(files, publication.getFolderId())));
     }
 
     private ConversationPublicationResource getConversationPublication(ResourceInfo resourceInfo, PublicationStatusDto status) {
@@ -96,7 +143,7 @@ public class ConversationPublicationResolver extends PublicationResolver {
     public void validateTargetNotPublished(ResourceInfo resourceInfo, PublicationStatusDto status) {
         var insideResource = resourceInfo.resource();
         if (status == PublicationStatusDto.PENDING && insideResource.getAction() != PublicationResourceActionDto.DELETE) {
-            var targetUrl = extractTargetPath(resourceInfo, ConversationClientMapper.CONVERSATIONS_PREFIX);
+            var targetUrl = extractTargetPath(resourceInfo, CONVERSATIONS_PREFIX);
             validateNotPublishedAtPath(targetUrl);
         }
     }
@@ -108,7 +155,7 @@ public class ConversationPublicationResolver extends PublicationResolver {
     }
 
     private String extractConversationPath(ResourceInfo resourceInfo) {
-        return extractPath(resourceInfo, ConversationClientMapper.CONVERSATIONS_PREFIX);
+        return extractPath(resourceInfo, CONVERSATIONS_PREFIX);
     }
 
 }
