@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
-import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.ApplicationDeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet;
@@ -543,11 +543,8 @@ public abstract class ApplicationFunctionalTest {
         String completionPath = "/api/completion";
         String mcpCompletionPath = "/mcp/";
 
-        McpDeploymentInfoDto deploymentInfoDto = new McpDeploymentInfoDto();
-        deploymentInfoDto.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
-        deploymentInfoDto.setId(containerId);
-        deploymentInfoDto.setDisplayName("Test Container");
-        deploymentInfoDto.setUrl(containerUrl);
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
 
@@ -582,17 +579,11 @@ public abstract class ApplicationFunctionalTest {
         String completionPath = "/api/completion";
         String mcpCompletionPath = "/mcp/";
 
-        McpDeploymentInfoDto initialDeploymentInfo = new McpDeploymentInfoDto();
-        initialDeploymentInfo.setId(containerId);
-        initialDeploymentInfo.setDisplayName("Test Container");
-        initialDeploymentInfo.setUrl(initialUrl);
-        initialDeploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
+        ApplicationDeploymentInfoDto initialDeploymentInfo =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", initialUrl);
 
-        McpDeploymentInfoDto updatedDeploymentInfo = new McpDeploymentInfoDto();
-        updatedDeploymentInfo.setId(containerId);
-        updatedDeploymentInfo.setDisplayName("Test Container");
-        updatedDeploymentInfo.setUrl(updatedUrl);
-        updatedDeploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
+        ApplicationDeploymentInfoDto updatedDeploymentInfo =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", updatedUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
@@ -641,11 +632,8 @@ public abstract class ApplicationFunctionalTest {
         String completionPath = "/api/completion";
         String mcpCompletionPath = "/mcp/";
 
-        McpDeploymentInfoDto deploymentInfoDto = new McpDeploymentInfoDto();
-        deploymentInfoDto.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
-        deploymentInfoDto.setId(containerId);
-        deploymentInfoDto.setDisplayName("Test Container");
-        deploymentInfoDto.setUrl(containerUrl);
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
 
         Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
 
