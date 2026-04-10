@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Mcp;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,17 +32,13 @@ class ApplicationValidatorTest {
     private DeploymentValidator deploymentValidator;
     @Mock
     private FeaturesValidator featuresValidator;
-    @Mock
-    private DeploymentManagerService deploymentManagerService;
-    @Mock
-    private DeploymentInfoValidator deploymentInfoValidator;
 
     private ApplicationValidator applicationValidator;
 
     @BeforeEach
     void setUp() {
         applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, featuresValidator,
-                deploymentManagerService, deploymentInfoValidator, null);
+                null);
     }
 
     @Test

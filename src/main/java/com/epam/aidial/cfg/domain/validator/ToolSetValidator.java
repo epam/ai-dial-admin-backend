@@ -22,18 +22,16 @@ public class ToolSetValidator {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z0-9-_]+$");
 
     private final DeploymentManagerService deploymentManagerService;
-    private final DeploymentInfoValidator deploymentInfoValidator;
     private final DeploymentValidator deploymentValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
 
     private final String toolSetNameValidationPattern;
 
     public ToolSetValidator(DeploymentManagerService deploymentManagerService,
-                            DeploymentInfoValidator deploymentInfoValidator,
                             DeploymentValidator deploymentValidator,
-                            DisplayFieldsValidator displayFieldsValidator, @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
+                            DisplayFieldsValidator displayFieldsValidator,
+                            @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
         this.deploymentManagerService = deploymentManagerService;
-        this.deploymentInfoValidator = deploymentInfoValidator;
         this.deploymentValidator = deploymentValidator;
         this.displayFieldsValidator = displayFieldsValidator;
         this.toolSetNameValidationPattern = toolSetNameValidationPattern;
@@ -103,7 +101,6 @@ public class ToolSetValidator {
     private void validateContainerSource(ToolSetContainerSource containerSource, String toolSetName) {
         String containerId = containerSource.getContainerId();
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
-        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
         McpDeploymentInfoDto mcpDeploymentInfoDto = validateDeploymentType(deploymentInfo, toolSetName);
         validateToolsetTransport(mcpDeploymentInfoDto, toolSetName);
         validateEndpointPath(containerSource.getCompletionEndpointPath(), toolSetName);
