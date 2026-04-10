@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetMcpRegistrySource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -277,6 +278,92 @@ public class ToolSetValidatorTest {
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid endpoint path: 'invalid path with spaces'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenServerNameIsBlank() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource("", "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Server name is required when source type is 'MCP registry'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenServerNameIsNull() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource(null, "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Server name is required when source type is 'MCP registry'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenEndpointIsMissing() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint(null);
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Endpoint is required when source type is 'MCP registry'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenEndpointIsInvalid() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("invalid-url");
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid endpoint: 'invalid-url'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldAcceptValidSource() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", "1.0.0"));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldAcceptValidSourceWithoutVersion() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", null));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
     }
 
     @Test

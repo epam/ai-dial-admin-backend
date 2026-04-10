@@ -114,6 +114,7 @@
         {
           "properties": {
             "endpoint": {"type": "string"},
+            "responsesEndpoint": {"type": "string"},
             "displayName": {"type": "string"},
             "displayVersion": {"type": "string"},
             "iconUrl": {"type": "string"},
@@ -313,6 +314,7 @@
             "dial:applicationTypeBucketCopy": {"type": "string", "enum": ["ENABLED", "DISABLED"]},
             "dial:applicationTypeAssistantAttachmentsInRequestSupported": {"type": "boolean"},
             "dial:applicationTypeSchemaEndpoint": {"type": "string"},
+            "dial:applicationTypeResponsesEndpoint": {"type": "string"},
             "dial:applicationTypeMcp": {"$ref": "#/definitions/ApplicationTypeMcp"},
             "dial:applicationTypeInterceptors": {
                       "type": "array",
@@ -392,6 +394,7 @@
       "type": "object",
       "properties": {
         "endpoint": {"type": "string"},
+        "responsesEndpoint": {"type": "string"},
         "key": {"type": "string"},
         "extraData": {"type": "string"},
         "weight": {"type": "integer"},
