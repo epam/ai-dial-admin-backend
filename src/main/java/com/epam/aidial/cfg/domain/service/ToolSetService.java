@@ -19,6 +19,7 @@ import com.epam.aidial.cfg.domain.model.source.ToolSetMcpRegistrySource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
 import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -160,7 +161,7 @@ public class ToolSetService {
             }
         }
 
-        resolveEndpointsIfContainerSource(toolSet);
+        resolveEndpointsIfContainerSource(toolSet, toolSetEntity);
         return save(toEntity(toolSet, toolSetEntity));
     }
 
@@ -280,6 +281,21 @@ public class ToolSetService {
             return;
         }
         endpointResolver.processContainerEndpoints(toolSet);
+    }
+
+    private void resolveEndpointsIfContainerSource(ToolSet toolSet, ToolSetEntity existingEntity) {
+        if (!(toolSet.getSource() instanceof ToolSetContainerSource incomingSource)) {
+            return;
+        }
+
+        ToolSetContainerEntity existingContainer = existingEntity.getToolSetContainer();
+        if (existingContainer == null
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingSource, existingContainer)) {
+            endpointResolver.processContainerEndpoints(toolSet);
+            return;
+        }
+
+        endpointResolver.tryProcessContainerEndpoints(toolSet, existingEntity);
     }
 
     private void assertExists(String name) {
