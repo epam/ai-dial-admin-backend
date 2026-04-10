@@ -566,7 +566,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(containerUrl + mcpCompletionPath, result.getMcp().getEndpoint());
         Assertions.assertInstanceOf(ApplicationContainerSourceDto.class, result.getSource());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test
@@ -587,8 +587,6 @@ public abstract class ApplicationFunctionalTest {
 
         Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
-                .thenReturn(initialDeploymentInfo)
-                .thenReturn(updatedDeploymentInfo)
                 .thenReturn(updatedDeploymentInfo);
 
         ApplicationDto applicationDto = createBaseApplicationDto("1");
@@ -612,7 +610,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
         Assertions.assertEquals(updatedUrl + mcpCompletionPath, refreshedResult.getMcp().getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test

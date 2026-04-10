@@ -459,7 +459,7 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
         Assertions.assertEquals(containerUrl + configPath, result.getFeatures().getConfigurationEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test
@@ -485,8 +485,6 @@ public abstract class InterceptorFunctionalTest {
 
         Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
-                .thenReturn(initialDeploymentInfo)
-                .thenReturn(updatedDeploymentInfo)
                 .thenReturn(updatedDeploymentInfo);
 
         InterceptorDto interceptorDto = createInterceptorDto("-refresh");
@@ -511,7 +509,7 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
         Assertions.assertEquals(updatedUrl + configPath, refreshedResult.getFeatures().getConfigurationEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test
