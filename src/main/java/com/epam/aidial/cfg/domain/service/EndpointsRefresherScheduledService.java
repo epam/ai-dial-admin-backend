@@ -29,7 +29,6 @@ public class EndpointsRefresherScheduledService {
         refreshEndpoints(adapterService::refreshEndpoints, "adapter");
         refreshEndpoints(toolSetService::refreshEndpoints, "toolset");
         refreshEndpoints(modelService::refreshEndpoints, "model");
-        refreshEndpoints(modelService::refreshEndpoints, "model");
     }
 
     private void refreshEndpoints(Runnable refreshAction, String logEntity) {
