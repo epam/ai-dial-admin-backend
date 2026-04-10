@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dao.listener.validitystate.resolver;
 
+import com.epam.aidial.cfg.dao.mapper.ApplicationContainerEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
@@ -36,6 +37,7 @@ import java.util.List;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         ApplicationEntityMapperImpl.class,
+        ApplicationContainerEntityMapperImpl.class,
         RoleLimitEntityMapperImpl.class,
         LimitEntityMapperImpl.class,
         ResourceAuthSettingsEntityMapperImpl.class,

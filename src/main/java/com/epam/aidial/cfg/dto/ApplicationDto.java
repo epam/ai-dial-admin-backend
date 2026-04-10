@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
+import com.epam.aidial.cfg.dto.source.ApplicationSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
@@ -8,7 +9,6 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +56,7 @@ public class ApplicationDto extends RoleBasedDto {
 
     private Map<String, Object> applicationProperties = new HashMap<>();
 
-    private URI customAppSchemaId;
+    private ApplicationSourceDto source;
     private ValidityStateDto validityState;
     private McpDto mcp;
 
