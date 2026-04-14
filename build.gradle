@@ -169,7 +169,7 @@ dependencies {
     testImplementation 'org.testcontainers:mssqlserver'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.15') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.21') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
