@@ -362,9 +362,12 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 |  | METRICS_STORAGE_ANALYTICS_MEASUREMENT | analytics | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 measurement name for analytics data |
 |  | METRICS_STORAGE_MCP_ANALYTICS_BUCKET | analytics-realtime | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 bucket for MCP analytics data |
 |  | METRICS_STORAGE_MCP_ANALYTICS_MEASUREMENT | mcp_analytics | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 measurement name for MCP analytics data |
+|  | METRICS_STORAGE_ROUTES_ANALYTICS_BUCKET | analytics-realtime | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 bucket for routes analytics data |
+|  | METRICS_STORAGE_ROUTES_ANALYTICS_MEASUREMENT | routes_analytics | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 measurement name for routes analytics data |
 |  | METRICS_STORAGE_DATABASE | analytics-realtime | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 database with metrics |
 |  | METRICS_STORAGE_ANALYTICS_TABLE | analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for analytics data |
 |  | METRICS_STORAGE_MCP_ANALYTICS_TABLE | mcp_analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for MCP analytics data |
+|  | METRICS_STORAGE_ROUTES_ANALYTICS_TABLE | routes_analytics | No | metrics.enabled=true and default influx3 config used | InfluxDB 3 table name for routes analytics data |
 |  | METRICS_MAX_TIME_RANGE | 72h | No | metrics.enabled=true and default influx3 config used | Maximum query time range. Supports human-readable durations (e.g., 72h, 3d) and ISO-8601 (e.g., PT72H) |
 | metrics.gap-filler.max-buckets | METRICS_GAP_FILLER_MAX_BUCKETS | 10000 | No | metrics.enabled=true | Maximum number of time buckets generated when gap-filling window queries. Prevents excessive memory usage for small intervals over large time ranges |
 
