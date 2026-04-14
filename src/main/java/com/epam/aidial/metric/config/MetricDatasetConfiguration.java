@@ -43,11 +43,14 @@ public class MetricDatasetConfiguration {
     }
 
     @Bean("influxOkHttpClientBuilder")
-    public OkHttpClient.Builder influxOkHttpClientBuilder() {
+    public OkHttpClient.Builder influxOkHttpClientBuilder(
+            @Value("${metrics.influx.connectTimeout}") int connectTimeout,
+            @Value("${metrics.influx.readTimeout}") int readTimeout,
+            @Value("${metrics.influx.writeTimeout}") int writeTimeout) {
         return new OkHttpClient().newBuilder()
-                .connectTimeout(10, TimeUnit.SECONDS) // TODO: make configurable
-                .readTimeout(60, TimeUnit.SECONDS) // TODO: make configurable
-                .writeTimeout(60, TimeUnit.SECONDS); // TODO: make configurable
+                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                .readTimeout(readTimeout, TimeUnit.SECONDS)
+                .writeTimeout(writeTimeout, TimeUnit.SECONDS);
     }
 
     @Bean
