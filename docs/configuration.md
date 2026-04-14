@@ -352,6 +352,9 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 | metrics.config.type | METRICS_DATASOURCE_TYPE | influx2 | No | metrics.enabled=true and content/file are empty | Datasource type, selects default config: influx2 or influx3 |
 | metrics.influx2.defaultPageSize | METRICS_INFLUX2_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 2 queries |
 | metrics.influx3.defaultPageSize | METRICS_INFLUX3_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 3 queries |
+| metrics.influx.connectTimeout | METRICS_INFLUX_CONNECT_TIMEOUT | 10 | No | metrics.enabled=true | InfluxDB HTTP client connection timeout in seconds |
+| metrics.influx.readTimeout | METRICS_INFLUX_READ_TIMEOUT | 60 | No | metrics.enabled=true | InfluxDB HTTP client read timeout in seconds |
+| metrics.influx.writeTimeout | METRICS_INFLUX_WRITE_TIMEOUT | 60 | No | metrics.enabled=true | InfluxDB HTTP client write timeout in seconds |
 |  | METRICS_STORAGE_HOST | - | Yes | metrics.enabled=true and default metrics config used | URL for InfluxDB database connection |
 |  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection |
 |  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default influx2 config used | InfluxDB 2 organization with metrics |
