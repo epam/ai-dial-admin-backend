@@ -7,7 +7,7 @@ buildscript {
         classpath "com.gradleup.shadow:shadow-gradle-plugin:8.3.8"
 
         constraints {
-            classpath ('org.apache.logging.log4j:log4j-core:2.25.3') {
+            classpath ('org.apache.logging.log4j:log4j-core:2.25.4') {
                 because("previous versions have vulnerabilities")
             }
             classpath ('org.codehaus.plexus:plexus-utils:4.0.3') {
@@ -37,9 +37,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-jul:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-jul:2.25.4'
     implementation 'org.apache.commons:commons-lang3:3.18.0'
     implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
     compileOnly 'org.projectlombok:lombok:1.18.34'
