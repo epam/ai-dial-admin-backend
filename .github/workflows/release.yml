@@ -15,5 +15,5 @@ concurrency:
 
 jobs:
   release:
-    uses: epam/ai-dial-ci/.github/workflows/java_release.yml@2.7.0
+    uses: epam/ai-dial-ci/.github/workflows/java_release.yml@3.2.0
     secrets: inherit
