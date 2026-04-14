@@ -314,6 +314,9 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 | metrics.configFile.contentEnvVar | METRICS_CONFIGFILE_CONTENTENVVAR | METRICS_CONFIG_CONTENT | No | metrics.enabled=true | Environment variable containing metrics configuration |
 | metrics.configFile.location | METRICS_CONFIGFILE_LOCATION | data/admin/metric.config.json | No | metrics.enabled and env[metrics.configFile.contentEnvVar] does not defined | Path to metrics configuration file |
 | metrics.datasource.influx.defaultPageSize | METRICS_DATASOURCE_INFLUX_DEFAULTPAGESIZE | 100 | No | - | Default page size for InfluxDB queries |
+| metrics.influx.connectTimeout | METRICS_INFLUX_CONNECT_TIMEOUT | 10 | No | metrics.enabled=true | InfluxDB HTTP client connection timeout in seconds |
+| metrics.influx.readTimeout | METRICS_INFLUX_READ_TIMEOUT | 60 | No | metrics.enabled=true | InfluxDB HTTP client read timeout in seconds |
+| metrics.influx.writeTimeout | METRICS_INFLUX_WRITE_TIMEOUT | 60 | No | metrics.enabled=true | InfluxDB HTTP client write timeout in seconds |
 |  | METRICS_STORAGE_HOST | - | Yes | metrics.enabled=true and default metrics config used | URL for InfluxDB database connection |
 |  | METRICS_STORAGE_ORG | dial | No | metrics.enabled=true and default metrics config used | Inlux organization with metrics |
 |  | METRICS_STORAGE_TOKEN | - | Yes | metrics.enabled=true and default metrics config used | Token for InfluxDB database connection  |
