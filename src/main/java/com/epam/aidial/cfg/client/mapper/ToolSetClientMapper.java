@@ -92,7 +92,10 @@ public abstract class ToolSetClientMapper {
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
 
-    public abstract ToolSetExim toToolSetExim(ToolSetResource toolSetResource);
+    @Mapping(target = "name", source = "itemParts.name")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    public abstract ToolSetExim toToolSetExim(ToolSetResource toolSetResource, PathUtils.VersionedPathParts itemParts);
 
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "folderId", source = "itemParts.folderId")

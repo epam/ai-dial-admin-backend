@@ -13,7 +13,9 @@ import com.epam.aidial.cfg.model.ToolSetExim;
 import com.epam.aidial.cfg.model.ToolSetsExim;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.utils.EximServiceHelper;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
+import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -45,20 +48,24 @@ public class ToolSetEximService {
                 .sorted()
                 .toList();
 
-        var toolSetExims = getToolSetExports(distinctPaths);
+        var exportEntries = ResourceEximExportHelper.resolveExportEntries(distinctPaths,
+                folderPath -> ResourceEximExportHelper.collectPathsUnderFolder(
+                        folderPath, toolSetResourceService::getToolSetResources, "toolSet"));
+        var toolSetExims = exportEntries.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> getToolSetExport(e.getKey(), e.getValue()))
+                .toList();
         return new ToolSetsExim(toolSetExims);
     }
 
-    private List<ToolSetExim> getToolSetExports(List<String> paths) {
-        return paths.stream().map(this::getToolSetExport).toList();
-    }
-
-    private ToolSetExim getToolSetExport(String path) {
+    private ToolSetExim getToolSetExport(String storagePath, String exportFolderPath) {
         try {
-            var toolSetResource = toolSetResourceService.getToolSetResource(path);
-            return toolSetClientMapper.toToolSetExim(toolSetResource);
+            var toolSetResource = toolSetResourceService.getToolSetResource(storagePath);
+            var exportedPath = ExportPathUtils.toExportedVersionedStoragePath(storagePath, exportFolderPath);
+            var parts = PathUtils.parseVersionedPath(exportedPath);
+            return toolSetClientMapper.toToolSetExim(toolSetResource, parts);
         } catch (Exception e) {
-            log.warn("Cannot load toolSet from path {}", path, e);
+            log.warn("Cannot load toolSet from path {}", storagePath, e);
             throw new RuntimeException(e);
         }
     }
