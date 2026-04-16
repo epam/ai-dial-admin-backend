@@ -33,6 +33,7 @@ import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
 import com.epam.aidial.ql.model.filters.Not;
 import com.epam.aidial.ql.model.filters.Or;
 import com.epam.aidial.ql.model.filters.UnaryComparisonFilter;
+import com.epam.aidial.ql.model.filters.impl.AndImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
@@ -75,13 +76,11 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var sortPart = buildSortPart(query.getOrderBy());
         var limitPart = SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize());
 
-        // When the WHERE clause references only tags, apply it before fieldsAsCols() so the
-        // tag predicates get pushed down to the InfluxDB storage engine (TSI index) and fewer
-        // rows enter the expensive pivot. Otherwise keep the filter after the pivot so that
-        // field-based comparisons see the pivoted column values.
-        var tagOnlyFilter = filterReferencesOnlyTags(tableDeclaration, query.getWhere());
-        var preFilterPart = tagOnlyFilter ? FluxConditionPartBuilder.createFilterPart(query.getWhere()) : FluxQueryPart.of();
-        var postFilterPart = tagOnlyFilter ? FluxQueryPart.of() : FluxConditionPartBuilder.createFilterPart(query.getWhere());
+        // Split WHERE into tag-only predicates (applied before fieldsAsCols for storage-engine
+        // pushdown) and field predicates (applied after the pivot).
+        var splitFilter = splitFilterForPivot(tableDeclaration, query.getWhere());
+        var preFilterPart = FluxConditionPartBuilder.createFilterPart(splitFilter[0]);
+        var postFilterPart = FluxConditionPartBuilder.createFilterPart(splitFilter[1]);
 
         var queryPartsCombined = new InfluxQueryPartCombiner()
                 .add(fromPart)
@@ -655,9 +654,12 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
 
         var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
         var rangePart = FluxConditionPartBuilder.createRangePart(filter, true);
-        var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
         var fieldsAsColsPart = SimpleFluxBuilder.createFieldsAsColsPart();
+        // Split WHERE: tag-only predicates go before fieldsAsCols for storage-engine pushdown.
+        var splitFilter = splitFilterForPivot(tableDeclaration, filter);
+        var preFilterPart = FluxConditionPartBuilder.createFilterPart(splitFilter[0], regexCounter);
+        var postFilterPart = FluxConditionPartBuilder.createFilterPart(splitFilter[1], regexCounter);
         var caseWhenFilterPart = isCaseWhenSum
                 ? createCaseWhenFilterPart((CaseWhenExpression) args.get(0))
                 : "";
@@ -673,8 +675,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                 .add(fromPart)
                 .add(rangePart)
                 .add(measurementPart)
+                .add(preFilterPart)
                 .add(fieldsAsColsPart)
-                .add(filterPart);
+                .add(postFilterPart);
         if (!caseWhenFilterPart.isEmpty()) {
             combiner.add(caseWhenFilterPart);
         }
@@ -778,6 +781,42 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         // The time range filter is always pushed to range() and is always safe. Tag comparisons
         // run before fieldsAsCols in Flux, so they are also safe without the pivot.
         return RangeFilterUtils.TIME_COLUMN.equals(columnName) || isTagColumn(tableDeclaration, columnName);
+    }
+
+    /**
+     * Splits a WHERE filter into two parts: predicates that reference only tags (safe to apply
+     * before {@code schema.fieldsAsCols()}) and predicates that reference fields (must stay
+     * after the pivot). For top-level AND, each conjunct is classified independently; for
+     * other shapes (OR, single predicate) the entire filter goes to one bucket or the other.
+     *
+     * @return a two-element array: {@code [0]} = tag-only filter (or null), {@code [1]} = field filter (or null)
+     */
+    private Filter[] splitFilterForPivot(InfluxTableDeclaration tableDeclaration, Filter filter) {
+        if (filter == null) {
+            return new Filter[]{null, null};
+        }
+
+        if (filter instanceof And and) {
+            var tagFilters = new ArrayList<Filter>();
+            var fieldFilters = new ArrayList<Filter>();
+            for (var child : and.getFilters()) {
+                if (filterReferencesOnlyTags(tableDeclaration, child)) {
+                    tagFilters.add(child);
+                } else {
+                    fieldFilters.add(child);
+                }
+            }
+            return new Filter[]{
+                    tagFilters.isEmpty() ? null : (tagFilters.size() == 1 ? tagFilters.get(0) : AndImpl.of(tagFilters)),
+                    fieldFilters.isEmpty() ? null : (fieldFilters.size() == 1 ? fieldFilters.get(0) : AndImpl.of(fieldFilters))
+            };
+        }
+
+        // Non-AND filter: all-or-nothing classification
+        if (filterReferencesOnlyTags(tableDeclaration, filter)) {
+            return new Filter[]{filter, null};
+        }
+        return new Filter[]{null, filter};
     }
 
     private boolean isTagColumn(InfluxTableDeclaration tableDeclaration, String columnName) {
