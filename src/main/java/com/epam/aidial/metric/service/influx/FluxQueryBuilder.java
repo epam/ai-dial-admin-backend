@@ -20,6 +20,7 @@ import com.epam.aidial.metric.model.configuration.influx.InfluxTableDeclaration;
 import com.epam.aidial.metric.model.influx.FluxQueryContext;
 import com.epam.aidial.metric.model.influx.FluxQueryPart;
 import com.epam.aidial.metric.service.AbstractQueryBuilder;
+import com.epam.aidial.metric.service.RangeFilterUtils;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import com.epam.aidial.ql.common.model.enums.SortDirection;
 import com.epam.aidial.ql.model.Filter;
@@ -27,6 +28,11 @@ import com.epam.aidial.ql.model.From;
 import com.epam.aidial.ql.model.Query;
 import com.epam.aidial.ql.model.Sort;
 import com.epam.aidial.ql.model.Table;
+import com.epam.aidial.ql.model.filters.And;
+import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
+import com.epam.aidial.ql.model.filters.Not;
+import com.epam.aidial.ql.model.filters.Or;
+import com.epam.aidial.ql.model.filters.UnaryComparisonFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
@@ -63,19 +69,27 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
         var fieldsAsColsPart = SimpleFluxBuilder.createFieldsAsColsPart();
-        var filterPart = FluxConditionPartBuilder.createFilterPart(query.getWhere());
         var keepPart = createKeepPart(query.getFrom(), query.getExpressions());
         var renamePart = createRenamePart(query.getFrom(), query.getExpressions());
         var ungroupPart = SimpleFluxBuilder.createUngroupPart();
         var sortPart = buildSortPart(query.getOrderBy());
         var limitPart = SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize());
 
+        // When the WHERE clause references only tags, apply it before fieldsAsCols() so the
+        // tag predicates get pushed down to the InfluxDB storage engine (TSI index) and fewer
+        // rows enter the expensive pivot. Otherwise keep the filter after the pivot so that
+        // field-based comparisons see the pivoted column values.
+        var tagOnlyFilter = filterReferencesOnlyTags(tableDeclaration, query.getWhere());
+        var preFilterPart = tagOnlyFilter ? FluxConditionPartBuilder.createFilterPart(query.getWhere()) : FluxQueryPart.of();
+        var postFilterPart = tagOnlyFilter ? FluxQueryPart.of() : FluxConditionPartBuilder.createFilterPart(query.getWhere());
+
         var queryPartsCombined = new InfluxQueryPartCombiner()
                 .add(fromPart)
                 .add(rangePart)
                 .add(measurementPart)
+                .add(preFilterPart)
                 .add(fieldsAsColsPart)
-                .add(filterPart)
+                .add(postFilterPart)
                 .add(keepPart)
                 .add(renamePart)
                 .add(ungroupPart)
@@ -540,13 +554,98 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
     ) {
         var function = (FunctionImpl) aggregationFunctionCall.getFunction();
         var args = aggregationFunctionCall.getArgs();
-
         var tableDeclaration = getTableDeclaration(tableName);
+
+        if (canUseFieldFilterFastPath(tableDeclaration, filter, groupByColumnNames, function, args)) {
+            return buildFieldFilterAggregationQuery(
+                    tableDeclaration, columnName, filter, groupByColumnNames,
+                    function, args, regexCounter, fillNullJoinKeys);
+        }
+
+        return buildFieldsAsColsAggregationQuery(
+                tableDeclaration, columnName, filter, groupByColumnNames,
+                function, args, regexCounter, fillNullJoinKeys);
+    }
+
+    /**
+     * Lean aggregation path that skips {@code schema.fieldsAsCols()} entirely.
+     *
+     * <p>For {@code count()} and {@code sum(field)} where grouping and filtering only reference
+     * tags, we can push {@code filter(_field == "...")} down to the storage engine and aggregate
+     * directly on {@code _value}. This avoids the expensive pivot that materialises every field
+     * column on every row — the dominant cost when there are many fields on the measurement or
+     * many aggregations joined together.
+     */
+    private FluxQueryPart buildFieldFilterAggregationQuery(
+            InfluxTableDeclaration tableDeclaration,
+            String columnName,
+            Filter filter,
+            List<String> groupByColumnNames,
+            FunctionImpl function,
+            List<Expression> args,
+            AtomicInteger regexCounter,
+            boolean fillNullJoinKeys
+    ) {
+        var fieldForAgg = resolveFieldForAggregation(tableDeclaration, function, args);
+        var effectiveAggFunction = isCaseWhenSum(function, args)
+                ? new FunctionImpl("count", function.getType(), function.isDeterministic())
+                : function;
+
+        var keepColumns = new ArrayList<>(groupByColumnNames);
+        keepColumns.add(VALUE_COLUMN);
+
+        var fromPart = SimpleFluxBuilder.createFromPart(tableDeclaration.getSource().getBucket());
+        var rangePart = FluxConditionPartBuilder.createRangePart(filter, true);
+        var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
+        var fieldFilterPart = FluxConditionPartBuilder.createFilterPart(FIELD_COLUMN, fieldForAgg);
+        var filterPart = FluxConditionPartBuilder.createFilterPart(filter, regexCounter);
+        var caseWhenFilterPart = isCaseWhenSum(function, args)
+                ? createCaseWhenFilterPartOnValue((CaseWhenExpression) args.get(0), fieldForAgg)
+                : "";
+        var nullFillPart = fillNullJoinKeys
+                ? SimpleFluxBuilder.createNullFillPart(groupByColumnNames)
+                : "";
+        var groupPart = SimpleFluxBuilder.createGroupPart(groupByColumnNames);
+        var aggregationPart = createAggregationPart(effectiveAggFunction, VALUE_COLUMN);
+        var keepPart = SimpleFluxBuilder.createKeepPart(keepColumns);
+        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(VALUE_COLUMN, columnName));
+
+        var combiner = new InfluxQueryPartCombiner()
+                .add(fromPart)
+                .add(rangePart)
+                .add(measurementPart)
+                .add(fieldFilterPart)
+                .add(filterPart);
+        if (!caseWhenFilterPart.isEmpty()) {
+            combiner.add(caseWhenFilterPart);
+        }
+        return combiner
+                .add(nullFillPart)
+                .add(groupPart)
+                .add(aggregationPart)
+                .add(keepPart)
+                .add(renamePart)
+                .build();
+    }
+
+    /**
+     * Legacy aggregation path using {@code schema.fieldsAsCols()}. Retained as a fallback for
+     * queries that filter or group on field columns (which need the pivot so the field appears
+     * as a row column).
+     */
+    private FluxQueryPart buildFieldsAsColsAggregationQuery(
+            InfluxTableDeclaration tableDeclaration,
+            String columnName,
+            Filter filter,
+            List<String> groupByColumnNames,
+            FunctionImpl function,
+            List<Expression> args,
+            AtomicInteger regexCounter,
+            boolean fillNullJoinKeys
+    ) {
         var aggregationColumnName = resolveAggregationColumnName(function, args);
 
-        // For sum(case when cond then 1 else 0 end), use count after filtering by condition
-        var isCaseWhenSum = "sum".equals(function.getName())
-                && args.size() == 1 && args.get(0) instanceof CaseWhenExpression;
+        var isCaseWhenSum = isCaseWhenSum(function, args);
         var effectiveAggFunction = isCaseWhenSum
                 ? new FunctionImpl("count", function.getType(), function.isDeterministic())
                 : function;
@@ -586,6 +685,170 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                 .add(keepPart)
                 .add(renamePart)
                 .build();
+    }
+
+    private static boolean isCaseWhenSum(FunctionImpl function, List<Expression> args) {
+        return "sum".equals(function.getName())
+                && args.size() == 1 && args.get(0) instanceof CaseWhenExpression;
+    }
+
+    /**
+     * Fast-path eligibility check. The field-filter pipeline can serve a query only when
+     * {@code schema.fieldsAsCols()} is not actually needed — i.e. all group-by and WHERE
+     * references are tags. Case-when is allowed only when the condition references the
+     * same column being summed (so the comparison can be rewritten against {@code _value}).
+     */
+    private boolean canUseFieldFilterFastPath(
+            InfluxTableDeclaration tableDeclaration,
+            Filter filter,
+            List<String> groupByColumnNames,
+            FunctionImpl function,
+            List<Expression> args
+    ) {
+        for (var groupColumn : groupByColumnNames) {
+            if (!isTagColumn(tableDeclaration, groupColumn)) {
+                return false;
+            }
+        }
+        if (!filterReferencesOnlyTags(tableDeclaration, filter)) {
+            return false;
+        }
+        if (isCaseWhenSum(function, args)) {
+            return isCaseWhenAgainstAggregationField(tableDeclaration, function, args);
+        }
+        return true;
+    }
+
+    private boolean isCaseWhenAgainstAggregationField(
+            InfluxTableDeclaration tableDeclaration,
+            FunctionImpl function,
+            List<Expression> args
+    ) {
+        var caseWhen = (CaseWhenExpression) args.get(0);
+        var condition = caseWhen.getCondition();
+        if (!(condition instanceof FunctionCall fc) || fc.getArgs().size() != 2) {
+            return false;
+        }
+        if (!(fc.getArgs().get(0) instanceof Column col)) {
+            return false;
+        }
+        if (!(fc.getArgs().get(1) instanceof Constant)) {
+            return false;
+        }
+        // For sum(case when col op const then 1 else 0), the field we filter on at the storage
+        // layer is the *first* field of the table (same rule as count()), so the case-when
+        // column must equal that first field; otherwise it's not in the row after _field filter.
+        var firstFieldName = firstFieldName(tableDeclaration);
+        return firstFieldName.equals(col.getName()) && isFieldColumn(tableDeclaration, col.getName());
+    }
+
+    private boolean filterReferencesOnlyTags(InfluxTableDeclaration tableDeclaration, Filter filter) {
+        if (filter == null) {
+            return true;
+        }
+        if (filter instanceof And and) {
+            return and.getFilters().stream().allMatch(f -> filterReferencesOnlyTags(tableDeclaration, f));
+        }
+        if (filter instanceof Or or) {
+            return or.getFilters().stream().allMatch(f -> filterReferencesOnlyTags(tableDeclaration, f));
+        }
+        if (filter instanceof Not) {
+            // NOT is not supported today by the builder anyway; be conservative.
+            return false;
+        }
+        if (filter instanceof BinaryComparisonFilter bcf) {
+            if (bcf.getLeftExpression() instanceof Column col) {
+                return isSafeFilterColumn(tableDeclaration, col.getName());
+            }
+            if (bcf.getRightExpression() instanceof Column col) {
+                return isSafeFilterColumn(tableDeclaration, col.getName());
+            }
+            return false;
+        }
+        if (filter instanceof UnaryComparisonFilter ucf) {
+            if (ucf.getExpression() instanceof Column col) {
+                return isSafeFilterColumn(tableDeclaration, col.getName());
+            }
+            return false;
+        }
+        return false;
+    }
+
+    private boolean isSafeFilterColumn(InfluxTableDeclaration tableDeclaration, String columnName) {
+        // The time range filter is always pushed to range() and is always safe. Tag comparisons
+        // run before fieldsAsCols in Flux, so they are also safe without the pivot.
+        return RangeFilterUtils.TIME_COLUMN.equals(columnName) || isTagColumn(tableDeclaration, columnName);
+    }
+
+    private boolean isTagColumn(InfluxTableDeclaration tableDeclaration, String columnName) {
+        return tableDeclaration.getSchema().getColumns().stream()
+                .filter(c -> c.getName().equals(columnName))
+                .map(InfluxColumnDeclaration::getSource)
+                .filter(Objects::nonNull)
+                .anyMatch(source -> source.getType() == InfluxColumnSourceType.TAG);
+    }
+
+    private boolean isFieldColumn(InfluxTableDeclaration tableDeclaration, String columnName) {
+        return tableDeclaration.getSchema().getColumns().stream()
+                .filter(c -> c.getName().equals(columnName))
+                .map(InfluxColumnDeclaration::getSource)
+                .filter(Objects::nonNull)
+                .anyMatch(source -> source.getType() == InfluxColumnSourceType.FIELD);
+    }
+
+    private String firstFieldName(InfluxTableDeclaration tableDeclaration) {
+        return tableDeclaration.getSchema().getColumns().stream()
+                .map(InfluxColumnDeclaration::getSource)
+                .filter(columnSource -> columnSource.getType() == InfluxColumnSourceType.FIELD)
+                .map(InfluxColumnSource::getColumn)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private String resolveFieldForAggregation(
+            InfluxTableDeclaration tableDeclaration,
+            FunctionImpl function,
+            List<Expression> args
+    ) {
+        if ("count".equals(function.getName()) && args.isEmpty()) {
+            return firstFieldName(tableDeclaration);
+        }
+        if ("sum".equals(function.getName()) && args.size() == 1) {
+            if (args.get(0) instanceof CaseWhenExpression) {
+                return firstFieldName(tableDeclaration);
+            }
+            return ((ColumnImpl) args.get(0)).getName();
+        }
+        throw new NotImplementedException("Unsupported aggregation function");
+    }
+
+    /**
+     * Case-when filter for the field-filter fast path: after {@code filter(_field == ...)},
+     * every row carries the aggregation field's value in {@code _value}, so the comparison
+     * targets {@code r._value} directly instead of {@code r[col]}.
+     */
+    private String createCaseWhenFilterPartOnValue(CaseWhenExpression caseWhen, String fieldForAgg) {
+        var condition = caseWhen.getCondition();
+        if (condition instanceof FunctionCall fc && fc.getArgs().size() == 2
+                && fc.getArgs().get(0) instanceof Column col
+                && col.getName().equals(fieldForAgg)
+                && fc.getArgs().get(1) instanceof Constant val) {
+            var funcName = fc.getFunction().getName();
+            var operator = switch (funcName) {
+                case "equals" -> "==";
+                case "notEquals" -> "!=";
+                case "less" -> "<";
+                case "greater" -> ">";
+                case "lessOrEquals" -> "<=";
+                case "greaterOrEquals" -> ">=";
+                default -> throw new NotImplementedException("Unsupported CASE WHEN operator in Flux: " + funcName);
+            };
+            return "|> filter(fn: (r) => r[%s] %s %s)".formatted(
+                    SimpleFluxBuilder.quote(VALUE_COLUMN),
+                    operator,
+                    SimpleFluxBuilder.quote(String.valueOf(val.getValue())));
+        }
+        throw new NotImplementedException("Unsupported CASE WHEN condition for Flux: " + condition);
     }
 
     private String createCaseWhenFilterPart(CaseWhenExpression caseWhen) {
