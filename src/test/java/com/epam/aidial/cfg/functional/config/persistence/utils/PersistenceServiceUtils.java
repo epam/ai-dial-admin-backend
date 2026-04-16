@@ -23,8 +23,10 @@ public class PersistenceServiceUtils {
     }
 
     public static void executeWithinRawConnection(String jdbcUrl, String username, String password, List<String> sqlList) {
-        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
-             Statement statement = connection.createStatement()) {
+        try (
+                Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
+                Statement statement = connection.createStatement()
+        ) {
 
             connection.setAutoCommit(true);
             for (var sql : sqlList) {
