@@ -18,7 +18,6 @@
       "upstreams": [
         {
           "endpoint": "http://upstream1.example.com",
-          "responsesEndpoint": "http://upstream1.example.com/responses",
           "extraData": {
             "custom": "data1"
           },
@@ -314,7 +313,6 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
-      "responsesEndpoint": "https://testInterceptor1/responses",
       "displayName": "Test Interceptor1",
       "forwardAuthToken": false,
       "features": {
