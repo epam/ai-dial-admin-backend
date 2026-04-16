@@ -88,11 +88,12 @@ class ApplicationValidityStateResolverTest {
     }
 
     @Test
-    void resolveValidityState_shouldReturnValidStateWhenApplicationConformToItsSchema() {
+    void resolveValidityState_shouldReturnValidStateWhenApplicationConformToItsSchemaAndSchemaConformToMetaSchema() {
         // given
         ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
         applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
         applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setApplicationTypeDisplayName("displayName");
         applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
 
         DeploymentEntity deploymentEntity = new DeploymentEntity();
@@ -119,6 +120,7 @@ class ApplicationValidityStateResolverTest {
         ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
         applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
         applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setApplicationTypeDisplayName("displayName");
         applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
 
         DeploymentEntity deploymentEntity = new DeploymentEntity();
@@ -130,7 +132,61 @@ class ApplicationValidityStateResolverTest {
         applicationEntity.setDeployment(deploymentEntity);
 
         ValidityStateEntity expected = new ValidityStateEntity();
-        expected.setMessage("$: required property 'requiredProp' not found");
+        expected.setMessage("App: $: required property 'requiredProp' not found");
+        expected.setValid(false);
+
+        // when
+        ValidityStateEntity actual = applicationValidityStateResolver.resolveValidityState(applicationEntity);
+
+        // then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void resolveValidityState_shouldReturnInvalidStateWhenSchemaDoesNotConformToMetaSchema() {
+        // given
+        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
+        applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
+        applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
+
+        DeploymentEntity deploymentEntity = new DeploymentEntity();
+        deploymentEntity.setIsPublic(true);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setApplicationProperties("{\"requiredProp\":\"some-value\"}");
+        applicationEntity.setApplicationTypeSchema(applicationTypeSchemaEntity);
+        applicationEntity.setDeployment(deploymentEntity);
+
+        ValidityStateEntity expected = new ValidityStateEntity();
+        expected.setMessage("Schema: $: required property 'dial:applicationTypeDisplayName' not found");
+        expected.setValid(false);
+
+        // when
+        ValidityStateEntity actual = applicationValidityStateResolver.resolveValidityState(applicationEntity);
+
+        // then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void resolveValidityState_shouldReturnInvalidStateWhenApplicationDoesNotConformToItsSchemaAndSchemaDoesNotConformToMetaSchema() {
+        // given
+        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
+        applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
+        applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
+
+        DeploymentEntity deploymentEntity = new DeploymentEntity();
+        deploymentEntity.setIsPublic(true);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setApplicationProperties("{}");
+        applicationEntity.setApplicationTypeSchema(applicationTypeSchemaEntity);
+        applicationEntity.setDeployment(deploymentEntity);
+
+        ValidityStateEntity expected = new ValidityStateEntity();
+        expected.setMessage("App: $: required property 'requiredProp' not found; Schema: $: required property 'dial:applicationTypeDisplayName' not found");
         expected.setValid(false);
 
         // when
