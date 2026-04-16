@@ -9,7 +9,6 @@ import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
 import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
@@ -61,7 +60,6 @@ public class ApplicationResourceService implements ResourceService {
     private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
-    private final AuditActivityLogService auditActivityLogService;
 
     @Value("${core.applications.metadata.default.limit}")
     private int applicationsMetadataDefaultLimit;
