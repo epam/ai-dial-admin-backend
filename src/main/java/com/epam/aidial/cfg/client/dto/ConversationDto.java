@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -22,5 +23,6 @@ public class ConversationDto {
     private List<ConversationMessageDto> messages;
     private String assistantModelId;
     private Long updatedAt;
+    private Long lastActivityDate;
+    Map<String, Object> customViewState;
 }
-

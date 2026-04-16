@@ -18,23 +18,34 @@ import com.epam.aidial.cfg.model.PublicationResourceAction;
 import com.epam.aidial.cfg.model.PublicationResourceIssue;
 import com.epam.aidial.cfg.model.PublicationStatus;
 import com.epam.aidial.cfg.model.ResourceType;
+import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.service.ConversationService;
 import com.epam.aidial.cfg.service.publication.resolver.url.PublicationResourceUrlResolver;
+import com.epam.aidial.cfg.utils.PathUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.util.MimeTypeUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
+import static com.epam.aidial.cfg.client.mapper.ConversationClientMapper.CONVERSATIONS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -291,6 +302,107 @@ class ConversationPublicationResolverTest {
         assertThat(missingResource2.getResourceType()).isEqualTo(ResourceType.FILE);
         assertThat(missingResource2.getMessage()).isEqualTo("File not found");
         assertThat(missingResource2.getPath()).isEqualTo("/missing/file");
+    }
+
+    @Test
+    void updatePublicationResourcesShouldPutEachConversation() {
+        var conversationPublication = createConversationPublication();
+        var conversation = conversationPublication.getResources().get(0).getConversation();
+
+        conversationPublicationResolver.updatePublicationResources(conversationPublication);
+
+        verify(conversationService).putConversation(eq(conversation), eq(true), isNull());
+    }
+
+    @Test
+    void updatePublicationResourceTargetsShouldRecalculateConversationTargetUrls() {
+        var conversationPublication = createConversationPublication();
+        when(filePublicationResolver.recalculateTargetUrl(any(), any())).thenAnswer(i -> i.getArgument(0));
+
+        var resultDto = conversationPublicationResolver.updatePublicationResourceTargets(conversationPublication);
+
+        var convResource = (ConversationPublicationResource) conversationPublication.getResources().get(0);
+        var expectedTarget = PathUtils.buildEncodedPath(
+                CONVERSATIONS_PREFIX + PathUtils.ensureTrailingSlash(TARGET_FOLDER),
+                CONVERSATION_NAME,
+                "1");
+        assertThat(convResource.getTargetUrl()).isEqualTo(expectedTarget);
+        assertThat(resultDto).isNotNull();
+        assertThat(resultDto.getResources()).isNotEmpty();
+    }
+
+    @Test
+    void attachUploadedFilesShouldDoNothingWhenFilesEmpty() {
+        var publication = new ConversationPublication();
+        publication.setResources(new ArrayList<>());
+
+        conversationPublicationResolver.attachUploadedFiles(publication, List.of());
+
+        assertThat(publication.getResources()).isEmpty();
+    }
+
+    @Test
+    void attachUploadedFilesShouldAppendNewFilesToExisting() {
+        var targetFolder = "targetFolder/";
+        var existingFileResource = new FilePublicationResource();
+        var newFileResource = new FilePublicationResource();
+
+        var publication = new ConversationPublication();
+        publication.setFolderId(targetFolder);
+        publication.setFiles(List.of(existingFileResource));
+
+        var publicationFile = new MockMultipartFile("publication", "publication.json", MimeTypeUtils.APPLICATION_JSON_VALUE,
+                "dtoJson".getBytes(StandardCharsets.UTF_8));
+
+        when(filePublicationResolver.uploadNewFileResources(any(), any()))
+                .thenReturn(List.of(newFileResource));
+        when(filePublicationResolver.merge(anyList(), anyList()))
+                .thenAnswer(invocation -> {
+                    var existing = invocation.getArgument(0, List.class);
+                    var added = invocation.getArgument(1, List.class);
+                    return Stream.concat(existing.stream(), added.stream()).toList();
+                });
+
+        conversationPublicationResolver.attachUploadedFiles(publication, List.of(publicationFile));
+
+        assertThat(publication.getFiles()).hasSize(2);
+        assertThat(publication.getFiles()).containsExactly(existingFileResource, newFileResource);
+        verify(filePublicationResolver).uploadNewFileResources(any(), eq(targetFolder));
+        verify(filePublicationResolver).merge(eq(List.of(existingFileResource)), eq(List.of(newFileResource)));
+    }
+
+    private ConversationPublication createConversationPublication() {
+        var conversation = new Conversation();
+        conversation.setPath(REVIEW_CONVERSATION_PATH);
+        conversation.setFolderId(REVIEW_FOLDER);
+        conversation.setName(CONVERSATION_NAME);
+        conversation.setVersion("1");
+
+        var conversationPublicationResource = ConversationPublicationResource.builder()
+                .action(PublicationResourceAction.ADD)
+                .targetUrl(CONVERSATION_PREFIX + TARGET_CONVERSATION_PATH)
+                .reviewUrl(CONVERSATION_PREFIX + REVIEW_CONVERSATION_PATH)
+                .sourceUrl(CONVERSATION_PREFIX + SOURCE_FOLDER_PATH)
+                .conversation(conversation)
+                .build();
+
+        var rule = new Rule();
+        rule.setSource("role");
+        rule.setFunction(RuleFunction.EQUAL);
+        rule.setTargets(List.of("admin"));
+
+        return ConversationPublication.builder()
+                .path(REVIEW_FOLDER + CONVERSATION_NAME)
+                .createdAt(100)
+                .requestName("Test Publication")
+                .displayAuthor("Display Author Name")
+                .author("author Name")
+                .folderId(TARGET_FOLDER)
+                .status(PublicationStatus.PENDING)
+                .rules(List.of(rule))
+                .resources(List.of(conversationPublicationResource))
+                .files(List.of(getFilePublicationResource()))
+                .build();
     }
 
     private PublicationResourceDto getPublicationResourceDto() {
