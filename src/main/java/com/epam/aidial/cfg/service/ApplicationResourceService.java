@@ -55,7 +55,6 @@ public class ApplicationResourceService implements ResourceService {
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ApplicationResourceValidityStateOnGetResolver applicationResourceValidityStateOnGetResolver;
-
     private final CoreClientUrlUtils coreClientUrlUtils;
     private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
