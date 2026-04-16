@@ -1,73 +1,65 @@
 package com.epam.aidial.cfg.functional.config.persistence;
 
 import com.epam.aidial.cfg.functional.PostgresFunctionalTests;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import com.epam.aidial.cfg.functional.config.persistence.utils.PersistenceServiceUtils;
+import com.zaxxer.hikari.HikariDataSource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.io.IOException;
+import java.util.List;
 
 public class PostgresTestPersistenceService implements TestPersistenceService {
 
-    private static final String DUMP_FILE = "/tmp/test_dump.tar";
+    private final HikariDataSource hikariDataSource;
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final String adminJdbcUrl;
+    private final String username;
+    private final String password;
+    private final String dbName;
+    private final String templateDbName;
 
-    @Autowired
-    @Lazy
-    private PostgresTestPersistenceService self;
+    public PostgresTestPersistenceService(HikariDataSource hikariDataSource) {
+        this.hikariDataSource = hikariDataSource;
+
+        PostgreSQLContainer<?> c = PostgresFunctionalTests.getContainer();
+        // Build url to maintenance DB, not test DB.
+        this.adminJdbcUrl = c.getJdbcUrl().replace("/" + c.getDatabaseName(), "/postgres");
+        this.username = c.getUsername();
+        this.password = c.getPassword();
+        this.dbName = c.getDatabaseName();
+        this.templateDbName = "template_" + dbName;
+    }
 
     @Override
     public void dumpDb() {
-        PostgreSQLContainer<?> postgres = PostgresFunctionalTests.getContainer();
-        runContainerCommand(
-                String.format(
-                        "pg_dump -Ft -U %s -f %s %s",
-                        postgres.getUsername(), DUMP_FILE, postgres.getDatabaseName()
-                ),
-                String.format("take a snapshot '%s'", DUMP_FILE)
-        );
+        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
+                String.format("ALTER DATABASE %s CONNECTION LIMIT 0;", dbName),
+                String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
+                String.format("CREATE DATABASE %s TEMPLATE %s;", templateDbName, dbName),
+                String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
+        ));
     }
 
     @Override
     public void restoreDb() {
-        self.dropAndCreatePublicSchema();
-        PostgreSQLContainer<?> postgres = PostgresFunctionalTests.getContainer();
-        runContainerCommand(
-                String.format(
-                        "pg_restore -Ft -U %s -d %s %s",
-                        postgres.getUsername(), postgres.getDatabaseName(), DUMP_FILE
-                ),
-                String.format("restore from a snapshot '%s'", DUMP_FILE)
-        );
-    }
+        hikariDataSource.getHikariPoolMXBean().suspendPool();
+        hikariDataSource.getHikariPoolMXBean().softEvictConnections();
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void dropAndCreatePublicSchema() {
-        entityManager.createNativeQuery("DROP SCHEMA public cascade;").executeUpdate();
-        entityManager.createNativeQuery("CREATE SCHEMA public;").executeUpdate();
+        PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource);
+
+        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
+                String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
+                String.format("DROP DATABASE IF EXISTS %s;", dbName),
+                String.format("CREATE DATABASE %s TEMPLATE %s", dbName, templateDbName),
+                String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
+        ));
+
+        hikariDataSource.getHikariPoolMXBean().resumePool();
     }
 
     @Override
     public void cleanupResources() {
-        runContainerCommand(String.format("rm %s", DUMP_FILE), String.format("remove snapshot '%s'", DUMP_FILE));
-    }
-
-    private void runContainerCommand(String command, String description) {
-        PostgreSQLContainer<?> postgres = PostgresFunctionalTests.getContainer();
-        try {
-            var result = postgres.execInContainer("sh", "-c", command);
-
-            if (result.getExitCode() != 0) {
-                throw new RuntimeException("couldn't " + description + ": " + result.getStderr());
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("couldn't " + description, e);
-        }
+        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                String.format("DROP DATABASE IF EXISTS %s", templateDbName)
+        );
     }
 }
