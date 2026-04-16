@@ -193,6 +193,15 @@ dependencies {
 test {
     useJUnitPlatform()
     jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        exceptionFormat "full"
+        showCauses true
+        showExceptions true
+        showStackTraces true
+        showStandardStreams true
+    }
 }
 
 tasks.withType(JavaCompile) {
