@@ -31,12 +31,20 @@ public class PostgresTestPersistenceService implements TestPersistenceService {
 
     @Override
     public void dumpDb() {
-        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
-                String.format("ALTER DATABASE %s CONNECTION LIMIT 0;", dbName),
-                String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
-                String.format("CREATE DATABASE %s TEMPLATE %s;", templateDbName, dbName),
-                String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
-        ));
+        hikariDataSource.getHikariPoolMXBean().suspendPool();
+        hikariDataSource.getHikariPoolMXBean().softEvictConnections();
+        try {
+            PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource, 30000);
+
+            PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
+                    String.format("ALTER DATABASE %s CONNECTION LIMIT 0;", dbName),
+                    String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
+                    String.format("CREATE DATABASE %s TEMPLATE %s;", templateDbName, dbName),
+                    String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
+            ));
+        } finally {
+            hikariDataSource.getHikariPoolMXBean().resumePool();
+        }
     }
 
     @Override
@@ -44,16 +52,18 @@ public class PostgresTestPersistenceService implements TestPersistenceService {
         hikariDataSource.getHikariPoolMXBean().suspendPool();
         hikariDataSource.getHikariPoolMXBean().softEvictConnections();
 
-        PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource);
+        try {
+            PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource, 30000);
 
-        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
-                String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
-                String.format("DROP DATABASE IF EXISTS %s;", dbName),
-                String.format("CREATE DATABASE %s TEMPLATE %s;", dbName, templateDbName),
-                String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
-        ));
-
-        hikariDataSource.getHikariPoolMXBean().resumePool();
+            PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
+                    String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
+                    String.format("DROP DATABASE IF EXISTS %s;", dbName),
+                    String.format("CREATE DATABASE %s TEMPLATE %s;", dbName, templateDbName),
+                    String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
+            ));
+        } finally {
+            hikariDataSource.getHikariPoolMXBean().resumePool();
+        }
     }
 
     @Override

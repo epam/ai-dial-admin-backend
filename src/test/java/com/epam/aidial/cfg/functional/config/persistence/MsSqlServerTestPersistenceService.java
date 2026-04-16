@@ -31,11 +31,19 @@ public class MsSqlServerTestPersistenceService implements TestPersistenceService
 
     @Override
     public void dumpDb() {
-        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
-                String.format(
-                        "CREATE DATABASE [%s] ON (NAME = %s, FILENAME = '%s') AS SNAPSHOT OF [%s];",
-                        snapshotDbName, dbName, snapshotFile, dbName)
-        );
+        hikariDataSource.getHikariPoolMXBean().suspendPool();
+        hikariDataSource.getHikariPoolMXBean().softEvictConnections();
+        try {
+            PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource, 30000);
+
+            PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                    String.format(
+                            "CREATE DATABASE [%s] ON (NAME = %s, FILENAME = '%s') AS SNAPSHOT OF [%s];",
+                            snapshotDbName, dbName, snapshotFile, dbName)
+            );
+        } finally {
+            hikariDataSource.getHikariPoolMXBean().resumePool();
+        }
     }
 
     @Override
@@ -43,17 +51,19 @@ public class MsSqlServerTestPersistenceService implements TestPersistenceService
         hikariDataSource.getHikariPoolMXBean().suspendPool();
         hikariDataSource.getHikariPoolMXBean().softEvictConnections();
 
-        PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource);
+        try {
+            PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource, 30000);
 
-        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
-                String.format("""
-                        ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                        RESTORE DATABASE [%s] FROM DATABASE_SNAPSHOT = '%s';
-                        ALTER DATABASE [%s] SET MULTI_USER;
-                        """, dbName, dbName, snapshotDbName, dbName)
-        );
-
-        hikariDataSource.getHikariPoolMXBean().resumePool();
+            PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                    String.format("""
+                            ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                            RESTORE DATABASE [%s] FROM DATABASE_SNAPSHOT = '%s';
+                            ALTER DATABASE [%s] SET MULTI_USER;
+                            """, dbName, dbName, snapshotDbName, dbName)
+            );
+        } finally {
+            hikariDataSource.getHikariPoolMXBean().resumePool();
+        }
     }
 
     @Override

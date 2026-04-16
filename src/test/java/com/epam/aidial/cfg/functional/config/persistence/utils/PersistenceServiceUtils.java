@@ -37,18 +37,20 @@ public class PersistenceServiceUtils {
         }
     }
 
-    public static void waitForActiveConnectionsToDrain(HikariDataSource hikariDataSource) {
-        int maxWaitMs = 5000;
-        int elapsed = 0;
-
-        while (hikariDataSource.getHikariPoolMXBean().getActiveConnections() > 0 && elapsed < maxWaitMs) {
+    public static void waitForActiveConnectionsToDrain(HikariDataSource hikariDataSource, long maxWaitMs) {
+        long waited = 0;
+        while (hikariDataSource.getHikariPoolMXBean().getActiveConnections() > 0 && waited < maxWaitMs) {
             try {
                 Thread.sleep(100);
-                elapsed += 100;
+                waited += 100;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             }
+        }
+        int active = hikariDataSource.getHikariPoolMXBean().getActiveConnections();
+        if (active > 0) {
+            throw new IllegalStateException("Timed out waiting for active DB connections to drain. active=" + active);
         }
     }
 }
