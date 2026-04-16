@@ -7,9 +7,6 @@ import com.epam.aidial.cfg.client.mapper.FileClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
-import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
@@ -64,7 +61,6 @@ public class FileService implements ResourceService {
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ResourceImportValidator uniquenessValidator;
-    private final AuditActivityLogService auditActivityLogService;
 
     @Value("${files.import.consecutiveErrorsThreshold}")
     private int importErrorsThreshold;
@@ -95,10 +91,6 @@ public class FileService implements ResourceService {
 
     public ImportResourcesFileResult uploadFile(List<MultipartFile> files, ImportResources importFile) {
         var path = importFile.getPath();
-        var fileNames = files.stream()
-                .map(MultipartFile::getOriginalFilename)
-                .collect(Collectors.joining(","));
-        ImportResourcesFileResult uploadResult = null;
         try {
             var strategy = importFile.getConflictResolutionStrategy();
             var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
@@ -111,22 +103,21 @@ public class FileService implements ResourceService {
                     log.debug("File {} was successfully imported", targetPath);
                 }
             }
-            uploadResult = ImportResourcesFileResult.builder()
+            return ImportResourcesFileResult.builder()
                     .importResults(results)
                     .build();
-            return uploadResult;
         } catch (Exception ex) {
+            String fileNames = files.stream()
+                    .map(MultipartFile::getOriginalFilename)
+                    .collect(Collectors.joining(","));
             log.warn("Files {} import failed", fileNames, ex);
             String errorMessage = StringUtils.isEmpty(ex.getMessage())
                     ? "An unknown error occurred during files import"
                     : ex.getMessage();
-            uploadResult = ImportResourcesFileResult.builder()
+            return ImportResourcesFileResult.builder()
                     .importResults(List.of())
                     .error(errorMessage)
                     .build();
-            return uploadResult;
-        } finally {
-            auditActivityLogService.logFileUpload(ActivityType.FileUpload, importFile, null, fileNames, uploadResult);
         }
     }
 
@@ -138,52 +129,44 @@ public class FileService implements ResourceService {
     }
 
     public ImportResourcesFileResult uploadFileZip(ImportResources importFiles, MultipartFile zipFile) {
-        String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
-        ImportResourcesFileResult uploadResult = null;
         try {
-            try {
-                uniquenessValidator.validateFileImportInZip(importFiles, zipFile);
-            } catch (Exception ex) {
-                log.warn("Zip validation failed for file {}: {}", fileName, ex);
-                uploadResult = ImportResourcesFileResult.builder()
-                        .importResults(List.of())
-                        .error(ex.getMessage())
-                        .build();
+            uniquenessValidator.validateFileImportInZip(importFiles, zipFile);
+        } catch (Exception ex) {
+            String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
+            log.warn("Zip validation failed for file {}: {}", fileName, ex);
+            return ImportResourcesFileResult.builder()
+                    .importResults(List.of())
+                    .error(ex.getMessage())
+                    .build();
+        }
+        try {
+            var rootPath = importFiles.getPath();
+            var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
+            var inputStream = zipFile.getInputStream();
+            var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
 
-                return uploadResult;
-            }
-            try {
-                var rootPath = importFiles.getPath();
-                var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
-                var inputStream = zipFile.getInputStream();
-                var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
-
-                var results = new ArrayList<ImportResourcesResult>();
-                try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
-                    ZipEntry zipEntry;
-                    while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                        var result = importZipFile(rootPathStripped, zipEntry, zipInputStream, importFiles,
-                                circuitBreaker);
-                        results.add(result);
-                    }
+            var results = new ArrayList<ImportResourcesResult>();
+            try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
+                ZipEntry zipEntry;
+                while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                    var result = importZipFile(rootPathStripped, zipEntry, zipInputStream, importFiles,
+                            circuitBreaker);
+                    results.add(result);
                 }
-                uploadResult = ImportResourcesFileResult.builder()
-                        .importResults(results)
-                        .build();
-                return uploadResult;
-            } catch (Exception ex) {
-                log.warn("File {} import failed", fileName, ex);
-                String errorMessage = StringUtils.isEmpty(ex.getMessage())
-                        ? "An unknown error occurred during file import"
-                        : ex.getMessage();
-                uploadResult = ImportResourcesFileResult.builder()
-                        .importResults(List.of())
-                        .error(errorMessage)
-                        .build();
-                return uploadResult;
             }
-        } finally {
-            auditActivityLogService.logFileUpload(ActivityType.FileUploadZip, importFiles, fileName, null, uploadResult);
+            return ImportResourcesFileResult.builder()
+                    .importResults(results)
+                    .build();
+        } catch (Exception ex) {
+            String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
+            log.warn("File {} import failed", fileName, ex);
+            String errorMessage = StringUtils.isEmpty(ex.getMessage())
+                    ? "An unknown error occurred during file import"
+                    : ex.getMessage();
+            return ImportResourcesFileResult.builder()
+                    .importResults(List.of())
+                    .error(errorMessage)
+                    .build();
         }
     }
 
@@ -270,7 +253,6 @@ public class FileService implements ResourceService {
     @Override
     public void delete(String path, String etag) {
         fileClient.deleteFile(path);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.File, path);
     }
 
     public void deleteFiles(List<String> paths) {

@@ -43,7 +43,7 @@ public class AuditActivityController {
         return auditActivityFacade.getAuditActivitiesByParentId(parentId, pageRequestDto);
     }
 
-    @PostMapping("/activities/without-parent")
+    @PostMapping("/activities/root")
     public PageDto<AuditActivityDto> getActivitiesWithoutParentId(@RequestBody @Valid PageRequestDto pageRequestDto) {
         return auditActivityFacade.getActivitiesWithoutParentId(pageRequestDto);
     }

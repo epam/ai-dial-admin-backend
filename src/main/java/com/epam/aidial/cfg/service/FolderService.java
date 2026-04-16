@@ -2,8 +2,6 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.mapper.CoreMetadataUtils;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
@@ -43,8 +41,6 @@ public class FolderService {
 
     private final Map<ResourceType, ResourceService> resourceServicesByResourceType;
     private final PublicationService publicationService;
-    private final AuditActivityLogService auditActivityLogService;
-    private final AuditParentActivityHolder auditParentActivityHolder;
 
     public FolderInfo getFolders(ResourceMetadataRequest request) {
         List<FolderInfo> folderInfos = resourceServicesByResourceType.values().stream()
@@ -60,15 +56,12 @@ public class FolderService {
     }
 
     public void updatesRules(UpdateRulesRequest request) {
-        var parentId = auditActivityLogService.logFolderAccessChange(request.getTargetFolder(), request.getRules());
-        try (var scope = auditParentActivityHolder.openScope(parentId)) {
-            CreatePublication createPublication = CreatePublication.builder()
-                    .targetFolder(request.getTargetFolder())
-                    .rules(request.getRules())
-                    .build();
-            String publication = publicationService.createPublication(createPublication);
-            approvePublication(publication);
-        }
+        CreatePublication createPublication = CreatePublication.builder()
+                .targetFolder(request.getTargetFolder())
+                .rules(request.getRules())
+                .build();
+        String publication = publicationService.createPublication(createPublication);
+        approvePublication(publication);
     }
 
     public void unpublishFolder(String path) {

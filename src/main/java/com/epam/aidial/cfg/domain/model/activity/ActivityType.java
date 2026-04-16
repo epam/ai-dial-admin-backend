@@ -5,10 +5,5 @@ public enum ActivityType {
     Update,
     Delete,
     Import,
-    PublicationApprove,
-    PublicationReject,
-    FileUpload,
-    FileUploadZip,
-    FolderAccessChange,
     Rollback
 }

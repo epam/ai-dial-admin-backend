@@ -1,7 +1,5 @@
 package com.epam.aidial.cfg.service;
 
-import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
@@ -22,13 +20,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,8 +34,6 @@ class FolderServiceTest {
     private FileService fileService;
     private PromptService promptService;
     private PublicationService publicationService;
-    private AuditActivityLogService auditActivityLogService;
-    private AuditParentActivityHolder auditParentActivityHolder;
     private FolderService folderService;
 
     @BeforeEach
@@ -50,15 +43,13 @@ class FolderServiceTest {
         fileService = mock(FileService.class);
         promptService = mock(PromptService.class);
         publicationService = mock(PublicationService.class);
-        auditActivityLogService = mock(AuditActivityLogService.class);
-        auditParentActivityHolder = mock(AuditParentActivityHolder.class);
         Map<ResourceType, ResourceService> resourceServicesByResourceType = Map.of(
                 ResourceType.APPLICATION, applicationService,
                 ResourceType.CONVERSATION, conversationService,
                 ResourceType.FILE, fileService,
                 ResourceType.PROMPT, promptService
         );
-        folderService = new FolderService(resourceServicesByResourceType, publicationService, auditActivityLogService, auditParentActivityHolder);
+        folderService = new FolderService(resourceServicesByResourceType, publicationService);
     }
 
     @Test
@@ -126,18 +117,11 @@ class FolderServiceTest {
                 .build();
         when(publicationService.createPublication(any())).thenReturn("publications/publicationUrl");
         doNothing().when(publicationService).approvePublication("publicationUrl");
-        UUID parentActivityId = UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6");
-        when(auditActivityLogService.logFolderAccessChange(any(), any())).thenReturn(parentActivityId);
-        AuditParentActivityHolder.Scope auditScope = mock(AuditParentActivityHolder.Scope.class);
-        when(auditParentActivityHolder.openScope(parentActivityId)).thenReturn(auditScope);
         // when
         folderService.updatesRules(request);
         // then
         verify(publicationService).createPublication(any());
         verify(publicationService).approvePublication("publicationUrl");
-        verify(auditActivityLogService, times(1)).logFolderAccessChange(eq("public/test/"), eq(List.of(rule)));
-        verify(auditParentActivityHolder).openScope(parentActivityId);
-        verify(auditScope).close();
     }
 
     @Test
@@ -227,7 +211,6 @@ class FolderServiceTest {
         verify(publicationService).getRules(oldPath);
         verify(publicationService).createPublication(createPublication);
         verify(publicationService).approvePublication("pub");
-        verify(auditActivityLogService).logFolderAccessChange(eq(newPath), eq(rules));
         verify(promptService).getResourceUrls(oldPath);
         verify(promptService).move(movePrompt1);
         verify(promptService).move(movePrompt2);

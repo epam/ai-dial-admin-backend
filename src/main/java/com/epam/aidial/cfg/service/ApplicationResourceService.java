@@ -8,8 +8,6 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
-import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
-import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
@@ -140,8 +138,6 @@ public class ApplicationResourceService implements ResourceService {
         var headers = createHeadersForCreate(allowOverride, etag);
         try {
             var applicationMetadata = applicationClient.putApplicationResource(path, applicationResourceDto, headers);
-            var auditType = !allowOverride && etag == null ? ActivityType.Create : ActivityType.Update;
-            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.ApplicationResource, path);
             return applicationMetadata.getHeaders().getETag();
         } catch (ResourcePreconditionFailedException ex) {
             throw OptimisticLockConflictException.onUpdate("Application Resource", applicationResourceDto.getName());
@@ -174,7 +170,6 @@ public class ApplicationResourceService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         applicationClient.deleteApplicationResource(path, headers);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.ApplicationResource, path);
     }
 
     @Transactional(readOnly = true)

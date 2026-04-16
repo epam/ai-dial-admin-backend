@@ -7,9 +7,6 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
-import com.epam.aidial.cfg.domain.model.activity.ActivityType;
-import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
@@ -53,7 +50,6 @@ public class PromptService implements ResourceService {
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
-    private final AuditActivityLogService auditActivityLogService;
 
     private final int promptsMetadataDefaultLimit;
 
@@ -62,13 +58,12 @@ public class PromptService implements ResourceService {
                          ResourceClient resourceClient,
                          ResourceClientMapper resourceClientMapper,
                          FolderMapper folderMapper,
-                         AuditActivityLogService auditActivityLogService, @Value("${core.prompts.metadata.default.limit}") int promptsMetadataDefaultLimit) {
+                         @Value("${core.prompts.metadata.default.limit}") int promptsMetadataDefaultLimit) {
         this.promptClient = promptClient;
         this.promptClientMapper = promptClientMapper;
         this.resourceClient = resourceClient;
         this.resourceClientMapper = resourceClientMapper;
         this.folderMapper = folderMapper;
-        this.auditActivityLogService = auditActivityLogService;
         this.promptsMetadataDefaultLimit = promptsMetadataDefaultLimit;
     }
 
@@ -139,8 +134,6 @@ public class PromptService implements ResourceService {
         var headers = createHeadersForCreate(allowOverride, etag);
         try {
             var response = promptClient.createPrompt(path, promptDto, headers);
-            var auditType = !allowOverride && etag == null ? ActivityType.Create : ActivityType.Update;
-            auditActivityLogService.logAssetChange(auditType, ActivityResourceType.Prompt, path);
             return response.getHeaders().getETag();
         } catch (ResourcePreconditionFailedException ex) {
             throw OptimisticLockConflictException.onUpdate("Prompt", promptDto.getName());
@@ -164,7 +157,6 @@ public class PromptService implements ResourceService {
     public void delete(String path, String etag) {
         var headers = createIfMatchHeaders(etag);
         promptClient.deletePrompt(path, headers);
-        auditActivityLogService.logAssetChange(ActivityType.Delete, ActivityResourceType.Prompt, path);
     }
 
     @Override

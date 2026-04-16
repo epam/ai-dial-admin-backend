@@ -20,13 +20,5 @@ public enum ActivityResourceType {
     GlobalSettings,
     AdminSettings,
     ImportConfig,
-    ExportConfig,
-    ToolSetResource,
-    ApplicationResource,
-    Prompt,
-    File,
-    Publication,
-    Conversation,
-    Folder,
     Rollback
 }
