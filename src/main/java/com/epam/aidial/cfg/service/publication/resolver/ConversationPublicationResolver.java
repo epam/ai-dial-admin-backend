@@ -121,6 +121,7 @@ public class ConversationPublicationResolver extends PublicationResolver {
         return Set.of(ResourceTypeDto.CONVERSATION, ResourceTypeDto.FILE);
     }
 
+    @Override
     public void attachUploadedFiles(Publication publication, List<MultipartFile> files) {
         if (CollectionUtils.isEmpty(files)) {
             return;
