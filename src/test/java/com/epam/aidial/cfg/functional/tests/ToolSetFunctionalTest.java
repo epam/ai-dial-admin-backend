@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.source.ToolSetContainerSourceDto;
+import com.epam.aidial.cfg.dto.source.ToolSetMcpRegistrySourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
@@ -490,6 +491,60 @@ public abstract class ToolSetFunctionalTest {
         assertThat(actualSyncState.getCurrentState()).isEqualTo(currentToolSetState);
         assertThat(actualSyncState.getConfigState()).isEqualTo(configToolSetState);
         assertThat(actualSyncState.getStatus()).isEqualTo(EntitySyncStateStatusDto.IN_PROGRESS_TOO_LONG);
+    }
+
+    @Test
+    public void shouldResetMcpRegistryToNullWhenChangingToolSetSourceFromMcpRegistryToContainer() {
+        // Create a ToolSet with MCP Registry source
+        ToolSetDto toolSetDto = createToolSetDto("1");
+        toolSetDto.setSource(new ToolSetMcpRegistrySourceDto("mcp-server-1", "1.0.0"));
+        toolSetFacade.createToolSet(toolSetDto);
+
+        // Verify the ToolSet has MCP Registry source
+        ToolSetDto actualToolSet = toolSetFacade.getToolSet(toolSetDto.getName());
+        Assertions.assertNotNull(actualToolSet.getSource());
+        Assertions.assertInstanceOf(ToolSetMcpRegistrySourceDto.class, actualToolSet.getSource());
+        ToolSetMcpRegistrySourceDto mcpRegistrySource = (ToolSetMcpRegistrySourceDto) actualToolSet.getSource();
+        Assertions.assertEquals("mcp-server-1", mcpRegistrySource.serverName());
+        Assertions.assertEquals("1.0.0", mcpRegistrySource.serverVersion());
+
+        // Update the ToolSet to Container source
+        String containerId = "container-123";
+        String containerUrl = "https://container-url.com";
+        String completionPath = "/api/completion";
+
+        McpDeploymentInfoDto deploymentInfoDto = new McpDeploymentInfoDto();
+        deploymentInfoDto.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
+        deploymentInfoDto.setId(containerId);
+        deploymentInfoDto.setDisplayName("Test Container");
+        deploymentInfoDto.setUrl(containerUrl);
+
+        when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ToolSetDto updatedToolSet = createToolSetDto("1");
+        updatedToolSet.setSource(new ToolSetContainerSourceDto(containerId, "test-container", completionPath));
+        toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
+
+        // Verify the ToolSet now has Container source (not MCP Registry)
+        actualToolSet = toolSetFacade.getToolSet(toolSetDto.getName());
+        Assertions.assertNotNull(actualToolSet.getSource());
+        Assertions.assertInstanceOf(ToolSetContainerSourceDto.class, actualToolSet.getSource());
+        ToolSetContainerSourceDto containerSource = (ToolSetContainerSourceDto) actualToolSet.getSource();
+        Assertions.assertEquals(containerId, containerSource.containerId());
+        Assertions.assertEquals(containerUrl + completionPath, actualToolSet.getEndpoint());
+
+        // Update the ToolSet back to MCP Registry source
+        ToolSetDto revertedToolSet = createToolSetDto("1");
+        revertedToolSet.setSource(new ToolSetMcpRegistrySourceDto("mcp-server-2", "2.0.0"));
+        toolSetFacade.updateToolSet(toolSetDto.getName(), revertedToolSet, "*");
+
+        // Verify the ToolSet now has MCP Registry source again (not Container)
+        actualToolSet = toolSetFacade.getToolSet(toolSetDto.getName());
+        Assertions.assertNotNull(actualToolSet.getSource());
+        Assertions.assertInstanceOf(ToolSetMcpRegistrySourceDto.class, actualToolSet.getSource());
+        ToolSetMcpRegistrySourceDto mcpRegistrySourceAgain = (ToolSetMcpRegistrySourceDto) actualToolSet.getSource();
+        Assertions.assertEquals("mcp-server-2", mcpRegistrySourceAgain.serverName());
+        Assertions.assertEquals("2.0.0", mcpRegistrySourceAgain.serverVersion());
     }
 
     private void assertToolSet(ToolSetDto actual, ToolSetDto expected) {
