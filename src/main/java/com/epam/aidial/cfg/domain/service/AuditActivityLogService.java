@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,23 +36,6 @@ public class AuditActivityLogService {
         entity.setResourceId(entity.getActivityId().toString());
         auditActivityJpaRepository.save(entity);
         return entity.getActivityId();
-    }
-
-    @Transactional
-    public void logAuditOperation(ActivityType activityType,
-                                  ActivityResourceType resourceType,
-                                  String resourceId,
-                                  String operationMetadataJson) {
-        try {
-            var entity = createAuditEntity(activityType, resourceType, resourceId, operationMetadataJson);
-            resourceId = StringUtils.isNotBlank(resourceId) ? resourceId : entity.getActivityId().toString();
-            entity.setResourceId(resourceId);
-            auditParentActivityHolder.getParentActivityId()
-                    .ifPresent(entity::setParentActivityId);
-            auditActivityJpaRepository.save(entity);
-        } catch (Exception e) {
-            log.warn("Failed to record audit for {} {}", activityType, resourceId, e);
-        }
     }
 
     @Transactional
