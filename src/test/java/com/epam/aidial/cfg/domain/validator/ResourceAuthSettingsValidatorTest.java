@@ -43,8 +43,10 @@ class ResourceAuthSettingsValidatorTest {
 
     @Test
     void validate_shouldNotThrowExceptionWhenOauthAuthTypeAndAllFieldsAreValid() {
+        // given
         ResourceAuthSettings settings = buildValidOauthSettings();
 
+        // when & then
         assertThatNoException()
                 .isThrownBy(() -> validator.validate(settings, DOMAIN_OBJECT_TYPE, ID));
     }
@@ -125,10 +127,12 @@ class ResourceAuthSettingsValidatorTest {
     @NullAndEmptySource
     @ValueSource(strings = {"  ", "\t", "\n"})
     void validate_shouldThrowExceptionWhenApiKeyAuthTypeAndApiKeyHeaderIsBlank(String apiKeyHeader) {
+        // given
         ResourceAuthSettings settings = new ResourceAuthSettings();
         settings.setAuthenticationType(AuthenticationType.API_KEY);
         settings.setApiKeyHeader(apiKeyHeader);
 
+        // when & then
         assertThatThrownBy(() -> validator.validate(settings, DOMAIN_OBJECT_TYPE, ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("API Key header")
