@@ -259,7 +259,9 @@
       "dependencies": [],
       "auth_settings": {
         "authentication_type": "oauth",
-        "client_id": "some-client-id"
+        "client_id": "some-client-id",
+        "authorizationEndpoint": "some-auth-endpoint",
+        "tokenEndpoint": "some-token-endpoint"
       },
       "forward_per_request_key": false,
       "transport": "sse",
