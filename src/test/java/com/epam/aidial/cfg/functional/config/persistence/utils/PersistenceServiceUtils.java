@@ -38,7 +38,7 @@ public class PersistenceServiceUtils {
     }
 
     public static void waitForActiveConnectionsToDrain(HikariDataSource hikariDataSource) {
-        int maxWaitMs = 5000;
+        int maxWaitMs = 15000;
         int elapsed = 0;
 
         while (hikariDataSource.getHikariPoolMXBean().getActiveConnections() > 0 && elapsed < maxWaitMs) {
