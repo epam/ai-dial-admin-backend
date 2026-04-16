@@ -43,7 +43,7 @@ public abstract class AbstractInfluxPerformanceTest {
 
     private static final ObjectMapper QUERY_MAPPER = JsonMapperConfiguration.createJsonMapper();
 
-    protected static final int RECORD_COUNT = 25_000;
+    protected static final int RECORD_COUNT = 100_000;
     protected static final int WARMUP_RUNS = 0;
     protected static final int MEASURED_RUNS = 1;
 
