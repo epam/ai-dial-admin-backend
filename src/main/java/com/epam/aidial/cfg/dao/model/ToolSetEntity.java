@@ -44,6 +44,9 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     @Embedded
     private ToolSetContainerEntity toolSetContainer;
 
+    @Embedded
+    private ToolSetMcpRegistryEntity toolSetMcpRegistry;
+
     @Enumerated(EnumType.STRING)
     private TransportEntity transport;
 
