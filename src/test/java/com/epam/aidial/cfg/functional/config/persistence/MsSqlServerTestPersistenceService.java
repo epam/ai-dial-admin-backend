@@ -48,6 +48,8 @@ public class MsSqlServerTestPersistenceService implements TestPersistenceService
 
     @Override
     public void restoreDb() {
+        RuntimeException primaryFailure = null;
+
         hikariDataSource.getHikariPoolMXBean().suspendPool();
         hikariDataSource.getHikariPoolMXBean().softEvictConnections();
 
@@ -58,11 +60,23 @@ public class MsSqlServerTestPersistenceService implements TestPersistenceService
                     String.format("""
                             ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
                             RESTORE DATABASE [%s] FROM DATABASE_SNAPSHOT = '%s';
-                            ALTER DATABASE [%s] SET MULTI_USER;
-                            """, dbName, dbName, snapshotDbName, dbName)
-            );
+                            """, dbName, dbName, snapshotDbName));
+        } catch (RuntimeException e) {
+            primaryFailure = e;
+            throw e;
         } finally {
-            hikariDataSource.getHikariPoolMXBean().resumePool();
+            try {
+                PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                        String.format("ALTER DATABASE [%s] SET MULTI_USER;", dbName));
+            } catch (RuntimeException cleanupFailure) {
+                if (primaryFailure != null) {
+                    primaryFailure.addSuppressed(cleanupFailure);
+                } else {
+                    throw cleanupFailure;
+                }
+            } finally {
+                hikariDataSource.getHikariPoolMXBean().resumePool();
+            }
         }
     }
 

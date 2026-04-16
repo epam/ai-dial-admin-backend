@@ -31,19 +31,41 @@ public class PostgresTestPersistenceService implements TestPersistenceService {
 
     @Override
     public void dumpDb() {
+        RuntimeException primaryFailure = null;
+
         hikariDataSource.getHikariPoolMXBean().suspendPool();
         hikariDataSource.getHikariPoolMXBean().softEvictConnections();
+
         try {
             PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource, 30000);
 
             PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
                     String.format("ALTER DATABASE %s CONNECTION LIMIT 0;", dbName),
                     String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
-                    String.format("CREATE DATABASE %s TEMPLATE %s;", templateDbName, dbName),
-                    String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
+                    String.format("CREATE DATABASE %s TEMPLATE %s;", templateDbName, dbName)
             ));
+        } catch (RuntimeException e) {
+            primaryFailure = e;
+            throw e;
         } finally {
-            hikariDataSource.getHikariPoolMXBean().resumePool();
+            try {
+                if (primaryFailure != null) {
+                    PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                            String.format("DROP DATABASE IF EXISTS %s;", templateDbName)
+                    );
+                }
+                PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                        String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
+                );
+            } catch (RuntimeException cleanupFailure) {
+                if (primaryFailure != null) {
+                    primaryFailure.addSuppressed(cleanupFailure);
+                } else {
+                    throw cleanupFailure;
+                }
+            } finally {
+                hikariDataSource.getHikariPoolMXBean().resumePool();
+            }
         }
     }
 
@@ -58,8 +80,7 @@ public class PostgresTestPersistenceService implements TestPersistenceService {
             PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
                     String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
                     String.format("DROP DATABASE IF EXISTS %s;", dbName),
-                    String.format("CREATE DATABASE %s TEMPLATE %s;", dbName, templateDbName),
-                    String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
+                    String.format("CREATE DATABASE %s TEMPLATE %s;", dbName, templateDbName)
             ));
         } finally {
             hikariDataSource.getHikariPoolMXBean().resumePool();
