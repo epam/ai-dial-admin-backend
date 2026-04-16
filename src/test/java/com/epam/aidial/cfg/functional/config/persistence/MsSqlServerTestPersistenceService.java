@@ -59,7 +59,7 @@ public class MsSqlServerTestPersistenceService implements TestPersistenceService
     @Override
     public void cleanupResources() {
         PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
-                String.format("DROP DATABASE [%s]", snapshotDbName)
+                String.format("DROP DATABASE [%s];", snapshotDbName)
         );
     }
 }

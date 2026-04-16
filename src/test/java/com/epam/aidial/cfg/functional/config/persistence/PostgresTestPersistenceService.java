@@ -49,7 +49,7 @@ public class PostgresTestPersistenceService implements TestPersistenceService {
         PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password, List.of(
                 String.format("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid();", dbName),
                 String.format("DROP DATABASE IF EXISTS %s;", dbName),
-                String.format("CREATE DATABASE %s TEMPLATE %s", dbName, templateDbName),
+                String.format("CREATE DATABASE %s TEMPLATE %s;", dbName, templateDbName),
                 String.format("ALTER DATABASE %s CONNECTION LIMIT -1;", dbName)
         ));
 
@@ -59,7 +59,7 @@ public class PostgresTestPersistenceService implements TestPersistenceService {
     @Override
     public void cleanupResources() {
         PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
-                String.format("DROP DATABASE IF EXISTS %s", templateDbName)
+                String.format("DROP DATABASE IF EXISTS %s;", templateDbName)
         );
     }
 }

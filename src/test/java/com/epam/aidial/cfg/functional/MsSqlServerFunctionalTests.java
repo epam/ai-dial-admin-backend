@@ -71,9 +71,10 @@ public class MsSqlServerFunctionalTests extends FunctionalTestSuite {
 
     static {
         MS_SQL_SERVER
+                // Data live in RAM, not on disk
+                .withTmpFs(Map.of("/var/opt/mssql/data", "rw"))
                 .withEnv("MSSQL_PID", "Developer")
                 .withEnv("MSSQL_MEMORY_LIMIT_MB", "1024")
-                .withTmpFs(Map.of("/var/opt/mssql/data", "rw"))
                 .acceptLicense();
         MS_SQL_SERVER.start();
 
