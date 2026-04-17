@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -13,10 +14,12 @@ import java.util.List;
 @NoArgsConstructor
 public class Conversation {
 
+    private String id;
     private String path;
     private String version;
     private String folderId;
     private long updatedAt;
+    private Long lastActivityDate;
     private String author;
     private String name;
     private ModelResource model;
@@ -24,4 +27,5 @@ public class Conversation {
     private Double temperature;
     private List<ConversationMessage> messages;
     private String assistantModelId;
+    private Map<String, Object> customViewState;
 }
