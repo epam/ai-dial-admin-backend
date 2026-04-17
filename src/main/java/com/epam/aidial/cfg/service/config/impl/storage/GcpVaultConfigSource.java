@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
-import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.rpc.ApiException;
@@ -26,13 +25,12 @@ public class GcpVaultConfigSource extends CompositeConfigSource {
     private final SecretManagerServiceClient secretManagerServiceClient;
     private final String projectId;
 
-    public GcpVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
-                                SecretManagerServiceClient secretManagerServiceClient,
+    public GcpVaultConfigSource(SecretManagerServiceClient secretManagerServiceClient,
                                 ConfigSplitter configSplitter,
                                 ConfigMerger configMerger,
                                 List<String> secretNames,
                                 ObjectMapper objectMapper, String projectId) {
-        super(versionAwareFieldFilter, configSplitter, configMerger, secretNames, MAX_SECRET_SIZE);
+        super(configSplitter, configMerger, secretNames, MAX_SECRET_SIZE);
         this.objectMapper = objectMapper;
         this.secretManagerServiceClient = secretManagerServiceClient;
         this.projectId = projectId;
