@@ -248,10 +248,6 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                         regexCounter, fillNullJoinKeys))
                 .toList();
 
-        if (aggregations.isEmpty()) {
-            throw new IllegalArgumentException("At least one aggregation expression is required");
-        }
-
         var joinColumns = new ArrayList<String>();
         joinColumns.add(windowOuterName);
         joinColumns.addAll(groupByColumnNames);
@@ -534,6 +530,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             List<FluxQueryPart> aggregations,
             List<String> joinColumnNames
     ) {
+        if (aggregations.isEmpty()) {
+            throw new IllegalArgumentException("At least one aggregation expression is required");
+        }
         if (aggregations.size() == 1) {
             combiner.add(aggregations.get(0));
             return;
@@ -762,6 +761,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                 && args.size() == 1 && args.get(0) instanceof CaseWhenExpression;
     }
 
+    /** Precondition: caller must have validated {@link #isCaseWhenSum}, which guarantees {@code args.size() == 1}. */
     private boolean isCaseWhenAgainstFirstField(InfluxTableDeclaration tableDeclaration, List<Expression> args) {
         var caseWhen = (CaseWhenExpression) args.get(0);
         var condition = caseWhen.getCondition();

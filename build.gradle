@@ -198,7 +198,7 @@ test {
 }
 
 tasks.register('perfTest', Test) {
-    description = 'Runs InfluxDB performance tests (tagged "performance"). Not part of the default test suite.'
+    description = 'Runs tests tagged "performance". Not part of the default test suite.'
     group = 'verification'
     useJUnitPlatform {
         includeTags 'performance'
