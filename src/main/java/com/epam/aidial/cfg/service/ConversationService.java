@@ -7,7 +7,9 @@ import com.epam.aidial.cfg.client.mapper.ConversationClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.MoveResource;
@@ -17,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import static com.epam.aidial.cfg.client.mapper.ConversationClientMapper.CONVERSATIONS_PREFIX;
+import static com.epam.aidial.cfg.utils.HeaderUtils.createHeadersForCreate;
+import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +63,20 @@ public class ConversationService implements ResourceService {
         var conversationDto = conversationClient.getConversation(path);
         var conversationMetadataDto = conversationClient.getConversationMetadata(path, false, null, false);
         return conversationClientMapper.toConversation(conversationDto, conversationMetadataDto);
+    }
+
+    public String putConversation(Conversation conversation,
+                                  boolean allowOverride,
+                                  String etag) {
+        var conversationDto = conversationClientMapper.toConversationDto(conversation);
+        var path = buildPath(conversation.getFolderId(), conversation.getName(), conversation.getVersion());
+        var headers = createHeadersForCreate(allowOverride, etag);
+        try {
+            var response = conversationClient.putConversation(path, conversationDto, headers);
+            return response.getHeaders().getETag();
+        } catch (ResourcePreconditionFailedException ex) {
+            throw OptimisticLockConflictException.onUpdate("Conversation", conversation.getName());
+        }
     }
 
     @Override

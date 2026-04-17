@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
-import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class HashiVaultConfigSource implements ConfigSource {
 
-    private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final VaultTemplate vaultTemplate;
     private final String secretPath;
     private final ObjectMapper objectMapper;
@@ -44,15 +42,13 @@ public class HashiVaultConfigSource implements ConfigSource {
 
     @Override
     public void writeConfig(Config configBody, boolean createResources) {
-        Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(configBody);
-
         Optional<Config> persistedOptional = readConfigOptional();
         if (persistedOptional.isEmpty() && !createResources) {
             throw new IllegalStateException("Secret is not found " + secretPath);
         }
 
         Config persisted = persistedOptional.orElse(null);
-        Config secretConfig = ConfigUtils.secretsConfig(versionedConfig);
+        Config secretConfig = ConfigUtils.secretsConfig(configBody);
         if (!Objects.equals(persisted, secretConfig)) {
             vaultTemplate.write(secretPath, Map.of("data", secretConfig));
         }
