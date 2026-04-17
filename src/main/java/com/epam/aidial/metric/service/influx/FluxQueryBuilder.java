@@ -8,6 +8,7 @@ import com.epam.aidial.expressions.Column;
 import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.FunctionCall;
+import com.epam.aidial.expressions.GroupFunctionCall;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
@@ -484,7 +485,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             String aggOuterName,
             Filter filter,
             List<String> groupByColumnNames,
-            com.epam.aidial.expressions.GroupFunctionCall groupFunctionCall,
+            GroupFunctionCall groupFunctionCall,
             AggregationFunctionCall aggregationFunctionCall,
             AtomicInteger regexCounter,
             boolean fillNullJoinKeys
@@ -580,7 +581,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
      * Tag-only predicates go before the pivot for storage-engine pushdown; field predicates
      * stay after the pivot where the pivoted column values are available.
      */
-    private record SplitFilter(Filter prePivot, Filter postPivot) {}
+    private record SplitFilter(Filter prePivot, Filter postPivot) {
+    }
 
     private SplitFilter splitFilterForPivot(InfluxTableDeclaration tableDeclaration, Filter filter) {
         if (filter == null) {
@@ -786,6 +788,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
 
     /**
      * Adds a case-when filter to the combiner if the aggregation is {@code sum(caseWhen)}.
+     *
      * @param targetColumn the column to compare against, or null to use the original column name
      */
     private void addCaseWhenFilter(InfluxQueryPartCombiner combiner, FunctionImpl function,
