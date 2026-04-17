@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -654,9 +653,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             return false;
         }
         if (filter instanceof BinaryComparisonFilter bcf) {
-            return extractColumnName(bcf)
-                    .map(name -> isTimeOrTag(tableDeclaration, name))
-                    .orElse(false);
+            return isTagOrConstantOperand(tableDeclaration, bcf.getLeftExpression())
+                    && isTagOrConstantOperand(tableDeclaration, bcf.getRightExpression());
         }
         if (filter instanceof UnaryComparisonFilter ucf) {
             if (ucf.getExpression() instanceof Column col) {
@@ -667,14 +665,11 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         return false;
     }
 
-    private static java.util.Optional<String> extractColumnName(BinaryComparisonFilter bcf) {
-        if (bcf.getLeftExpression() instanceof Column col) {
-            return Optional.of(col.getName());
+    private boolean isTagOrConstantOperand(InfluxTableDeclaration tableDeclaration, Expression expression) {
+        if (expression instanceof Column col) {
+            return isTimeOrTag(tableDeclaration, col.getName());
         }
-        if (bcf.getRightExpression() instanceof Column col) {
-            return Optional.of(col.getName());
-        }
-        return Optional.empty();
+        return expression instanceof Constant;
     }
 
     private boolean isTimeOrTag(InfluxTableDeclaration tableDeclaration, String columnName) {

@@ -24,10 +24,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Shared performance test suite for InfluxDB 2 and InfluxDB 3 metrics extraction.
  *
- * <p>Seeds 50,000 deterministically-generated {@code analytics} records spread uniformly
- * across a 48-hour window, then executes the seven dashboard queries (provided by the
- * task) against the engine under test. Each query is warmed up once and measured across
- * five runs; min/p50/p95/max/mean wall-clock nanos are logged via SLF4J.
+ * <p>Seeds {@link #RECORD_COUNT} deterministically-generated {@code analytics} records spread
+ * uniformly across a 48-hour window, then executes the seven dashboard queries against the
+ * engine under test. Each query runs {@link #WARMUP_RUNS} warmup iterations (excluded from
+ * statistics) followed by {@link #MEASURED_RUNS} measured iterations; min/p50/p95/max/mean
+ * wall-clock nanos are logged via SLF4J. Default configuration is a single cold run — bump
+ * {@link #WARMUP_RUNS} and {@link #MEASURED_RUNS} for a real benchmark (percentiles are only
+ * meaningful when {@code MEASURED_RUNS > 1}).
  *
  * <p>Data is generated only once per JVM (static initializer) so both engines ingest
  * identical line-protocol bytes, and both test classes reuse the same {@link #PERF_RECORDS}
