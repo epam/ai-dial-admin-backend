@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
         with:
           disable-telemetry: true
           disable-sudo-and-containers: true
@@ -70,7 +70,7 @@ jobs:
             core.setOutput('base_sha', base_sha);
             core.setOutput('head_sha', head_sha);
       - name: Download and submit dependency graph
-        uses: gradle/actions/dependency-submission@f29f5a9d7b09a7c6b29859002d29d24e1674c884 # v5.0.1
+        uses: gradle/actions/dependency-submission@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
         with:
           dependency-graph: download-and-submit
       - id: dependency-review
@@ -81,6 +81,7 @@ jobs:
           base-ref: ${{ steps.get-pr.outputs.base_sha }}
           head-ref: ${{ steps.get-pr.outputs.head_sha }}
           warn-only: true # we don't want to fail the workflow, just to report the issues via comment
+          show-patched-versions: true
       - if: ${{ steps.dependency-review.outputs.comment-content != null }}
         name: Save dependency review output report
         run: |
@@ -103,5 +104,5 @@ jobs:
           number: ${{ steps.get-pr.outputs.number }}
           header: dependency-review
           hide_and_recreate: true
-          message: "⚠️ Dependency review workflow failed - results may be outdated. [Check logs](${{ github.event.workflow_run.html_url }})"
+          message: "⚠️ Dependency review workflow failed - results may be outdated. [Check logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           GITHUB_TOKEN: ${{ secrets.ACTIONS_BOT_TOKEN }}
