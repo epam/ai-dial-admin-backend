@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
-import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.util.HttpStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,15 +18,14 @@ public class ConfigSourceKubeSecret extends CompositeConfigSource {
     private final String secretKey;
     private final ObjectMapper objectMapper;
 
-    public ConfigSourceKubeSecret(VersionAwareFieldFilter versionAwareFieldFilter,
-                                  ConfigSplitter configSplitter,
+    public ConfigSourceKubeSecret(ConfigSplitter configSplitter,
                                   ConfigMerger configMerger,
                                   List<String> secretNames,
                                   int maxSecretSize,
                                   K8ConfigService k8ConfigService,
                                   String secretKey,
                                   ObjectMapper objectMapper) {
-        super(versionAwareFieldFilter, configSplitter, configMerger, secretNames, maxSecretSize);
+        super(configSplitter, configMerger, secretNames, maxSecretSize);
         this.k8ConfigService = k8ConfigService;
         this.secretKey = secretKey;
         this.objectMapper = objectMapper;
