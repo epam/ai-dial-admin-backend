@@ -16,7 +16,7 @@ plugins {
 }
 
 group = 'com.epam.aidial'
-version = "0.16.0-rc"
+version = "0.0.0"
 
 java {
     toolchain {
@@ -134,9 +134,9 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-log4j2') {
         exclude group: 'org.apache.logging.log4j'
     }
-    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-jul:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-jul:2.25.4'
     implementation 'io.opentelemetry:opentelemetry-sdk'
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:1.33.6-alpha'
@@ -166,7 +166,7 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.18') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.21') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
@@ -191,8 +191,26 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'performance'
+    }
     jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+}
+
+tasks.register('perfTest', Test) {
+    description = 'Runs tests tagged "performance". Not part of the default test suite.'
+    group = 'verification'
+    useJUnitPlatform {
+        includeTags 'performance'
+    }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+    shouldRunAfter test
+    outputs.upToDateWhen { false }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 tasks.withType(JavaCompile) {

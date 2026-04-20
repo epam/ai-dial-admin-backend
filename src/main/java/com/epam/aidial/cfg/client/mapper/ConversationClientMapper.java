@@ -28,8 +28,14 @@ public abstract class ConversationClientMapper {
         return toConversation(conversationDto, metadataDto, itemParts);
     }
 
+    @Mapping(target = "path", source = "itemParts.path")
+    @Mapping(target = "version", source = "itemParts.version")
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "folderId", source = "itemParts.folderId")
     @Mapping(target = "updatedAt", source = "metadataDto.updatedAt")
-    protected abstract Conversation toConversation(ConversationDto dto, ConversationMetadataDto metadataDto, PathUtils.VersionedPathParts itemParts);
+    @Mapping(target = "author", source = "metadataDto.author")
+    protected abstract Conversation toConversation(ConversationDto dto, ConversationMetadataDto metadataDto,
+                                                   PathUtils.VersionedPathParts itemParts);
+
+    public abstract ConversationDto toConversationDto(Conversation conversation);
 }

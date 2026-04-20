@@ -25,18 +25,22 @@ public class ToolSetValidator {
     private final DeploymentInfoValidator deploymentInfoValidator;
     private final DeploymentValidator deploymentValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
+    private final ResourceAuthSettingsValidator resourceAuthSettingsValidator;
 
     private final String toolSetNameValidationPattern;
 
     public ToolSetValidator(DeploymentManagerService deploymentManagerService,
                             DeploymentInfoValidator deploymentInfoValidator,
                             DeploymentValidator deploymentValidator,
-                            DisplayFieldsValidator displayFieldsValidator, @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
+                            DisplayFieldsValidator displayFieldsValidator,
+                            ResourceAuthSettingsValidator resourceAuthSettingsValidator,
+                            @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
         this.deploymentManagerService = deploymentManagerService;
         this.deploymentInfoValidator = deploymentInfoValidator;
         this.deploymentValidator = deploymentValidator;
         this.displayFieldsValidator = displayFieldsValidator;
         this.toolSetNameValidationPattern = toolSetNameValidationPattern;
+        this.resourceAuthSettingsValidator = resourceAuthSettingsValidator;
     }
 
     public void validateCreation(ToolSet toolSet) {
@@ -45,12 +49,14 @@ public class ToolSetValidator {
         deploymentValidator.validateCreation("ToolSet", toolSetName);
         validateName(toolSetName);
         displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
+        resourceAuthSettingsValidator.validate(toolSet.getDeployment().getAuthSettings(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 
     public void validateUpdate(String toolSetName, ToolSet toolSet) {
         deploymentValidator.validateUpdate(toolSetName, toolSet.getDeployment(), "ToolSet");
         displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
+        resourceAuthSettingsValidator.validate(toolSet.getDeployment().getAuthSettings(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 
