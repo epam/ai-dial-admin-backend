@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.mapper.CoreMetadataUtils;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.exception.FolderAlreadyExistsException;
 import com.epam.aidial.cfg.exception.FolderNotFoundException;
 import com.epam.aidial.cfg.model.CreatePublication;
 import com.epam.aidial.cfg.model.FolderInfo;
@@ -87,9 +86,8 @@ public class FolderService {
                 .orElseGet(() -> Arrays.stream(ResourceType.values()).toList());
 
         checkFolderExists(oldPath, resourceTypes);
-        checkFolderDoesNotExist(newPath);
         copyFolderRules(oldPath, newPath);
-        moveResources(oldPath, newPath, resourceTypes);
+        moveResources(moveFolderRequest, resourceTypes);
     }
 
     private List<PublicationResource> createResourcesForDeleting(Set<String> targetUrls) {
@@ -195,20 +193,6 @@ public class FolderService {
         }
     }
 
-    private void checkFolderDoesNotExist(String path) {
-        ResourceMetadataRequest resourceMetadataRequest = ResourceMetadataRequest.builder()
-                .path(path)
-                .build();
-        log.debug("checkFolderDoesNotExist. resourceMetadataRequest: {}", resourceMetadataRequest);
-        for (var resourceService : resourceServicesByResourceType.values()) {
-            FolderInfo folders = resourceService.getFolders(resourceMetadataRequest);
-            log.trace("checkFolderDoesNotExist. resourceServiceType: {}, resourceFolders: {}", resourceService.getResourceType(), folders);
-            if (folders != null) {
-                throw new FolderAlreadyExistsException("Folder: " + path + " already exists in " + resourceService.getResourceType() + " resources");
-            }
-        }
-    }
-
     private void copyFolderRules(String oldPath, String newPath) {
         List<Rule> rules = getRules(oldPath).values().stream()
                 .flatMap(Collection::stream)
@@ -221,7 +205,9 @@ public class FolderService {
         updatesRules(updateRulesRequest);
     }
 
-    private void moveResources(String oldPath, String newPath, List<ResourceType> resourceTypes) {
+    private void moveResources(MoveFolderRequest moveFolderRequest, List<ResourceType> resourceTypes) {
+        String oldPath = moveFolderRequest.getOldPath();
+        String newPath = moveFolderRequest.getNewPath();
         log.debug("moveResources. oldPath: {}, newPath: {}, resourceTypes: {}", oldPath, newPath, resourceTypes);
         List<String> movedResources = new ArrayList<>();
 
@@ -235,6 +221,7 @@ public class FolderService {
                     MoveResource moveResource = MoveResource.builder()
                             .sourceUrl(resourceUrl)
                             .destinationUrl(CoreMetadataUtils.replacePathSegment(resourceUrl, oldPath, newPath))
+                            .overwrite(moveFolderRequest.isOverwrite())
                             .build();
                     log.trace("moveResources. moveResource: {}, movedResources: {}", moveResource, movedResources);
                     resourceService.move(moveResource);
