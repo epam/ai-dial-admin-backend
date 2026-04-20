@@ -191,8 +191,26 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'performance'
+    }
     jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+}
+
+tasks.register('perfTest', Test) {
+    description = 'Runs tests tagged "performance". Not part of the default test suite.'
+    group = 'verification'
+    useJUnitPlatform {
+        includeTags 'performance'
+    }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+    shouldRunAfter test
+    outputs.upToDateWhen { false }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 tasks.withType(JavaCompile) {
