@@ -13,9 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class PromptImportValidatorTest {
@@ -44,7 +44,7 @@ class PromptImportValidatorTest {
         // when
         var validator = Validation.buildDefaultValidatorFactory().getValidator();
         var executableValidator = validator.forExecutables();
-        var method = promptImportValidator.getClass().getMethod("validatePromptImport", ImportResources.class, PromptsEximDto.class);
+        var method = promptImportValidator.getClass().getMethod("collectUniquenessConflicts", ImportResources.class, PromptsEximDto.class);
         var violations = executableValidator.validateParameters(promptImportValidator, method, new Object[]{importPrompts, promptsExim});
 
         // then
@@ -55,7 +55,7 @@ class PromptImportValidatorTest {
 
     @Test
     @SneakyThrows
-    void validatePromptImport_PathNotStartsWithPromptsPublic_ThrowValidationError() {
+    void collectUniquenessConflicts_PathNotStartsWithPromptsPublic_ThrowValidationError() {
         // given
         var importPrompts = ImportResources.builder()
                 .path("public/test/")
@@ -74,7 +74,7 @@ class PromptImportValidatorTest {
         // when
         var validator = Validation.buildDefaultValidatorFactory().getValidator();
         var executableValidator = validator.forExecutables();
-        var method = promptImportValidator.getClass().getMethod("validatePromptImport", ImportResources.class, PromptsEximDto.class);
+        var method = promptImportValidator.getClass().getMethod("collectUniquenessConflicts", ImportResources.class, PromptsEximDto.class);
         var violations = executableValidator.validateParameters(promptImportValidator, method, new Object[]{importPrompts, promptsExim});
 
         // then
@@ -85,7 +85,7 @@ class PromptImportValidatorTest {
 
     @Test
     @SneakyThrows
-    void validatePromptImport_DuplicatedIds_ThrowIllegalArgumentException() {
+    void collectUniquenessConflicts_DuplicatedIds_ReturnsConflictPerId() {
         // given
         var importPrompts = ImportResources.builder()
                 .path("public/test/")
@@ -104,18 +104,16 @@ class PromptImportValidatorTest {
         promptsExim.setFolders(List.of());
 
         // when/then
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> promptImportValidator.validatePromptImport(importPrompts, promptsExim));
+        Map<String, String> conflicts = promptImportValidator.collectUniquenessConflicts(importPrompts, promptsExim);
 
-        assertThat(thrown.getMessage())
-                .isEqualTo("""
-                        Prompt uniqueness violation. Conflicts found:
-                          - Duplicated prompt IDs: [prompts/public/PROMPT 1__1.0.0]""");
+        assertThat(conflicts).containsOnlyKeys("prompts/public/PROMPT 1__1.0.0");
+        assertThat(conflicts.get("prompts/public/PROMPT 1__1.0.0"))
+                .isEqualTo("Duplicate prompt id: \"prompts/public/PROMPT 1__1.0.0\" appears 2 in the import file.");
     }
 
     @Test
     @SneakyThrows
-    void validatePromptImport_FlatImportAndDuplicatedName_ThrowIllegalArgumentException() {
+    void collectUniquenessConflicts_FlatImportAndDuplicatedName_ReturnsConflictForEachSource() {
         // given
         var importPrompts = ImportResources.builder()
                 .path("public/test/")
@@ -135,18 +133,21 @@ class PromptImportValidatorTest {
         promptsExim.setFolders(List.of());
 
         // when/then
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> promptImportValidator.validatePromptImport(importPrompts, promptsExim));
+        Map<String, String> conflicts = promptImportValidator.collectUniquenessConflicts(importPrompts, promptsExim);
 
-        assertThat(thrown.getMessage())
-                .isEqualTo("""
-                        Prompt uniqueness violation. Conflicts found:
-                          - Duplicated prompt name PROMPT 1__1.0.0 for IDs: [prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0]""");
+        assertThat(conflicts).containsOnlyKeys(
+                "prompts/public/test1/PROMPT 1__1.0.0",
+                "prompts/public/test2/PROMPT 1__1.0.0"
+        );
+        assertThat(conflicts.get("prompts/public/test1/PROMPT 1__1.0.0"))
+                .isEqualTo("Duplicated prompt name PROMPT 1__1.0.0 for IDs: prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0");
+        assertThat(conflicts.get("prompts/public/test2/PROMPT 1__1.0.0"))
+                .isEqualTo("Duplicated prompt name PROMPT 1__1.0.0 for IDs: prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0");
     }
 
     @Test
     @SneakyThrows
-    void validatePromptImport_FlatImportAndDuplicatedIdAndName_ThrowIllegalArgumentException() {
+    void collectUniquenessConflicts_FlatImportAndDuplicatedIdAndName_MergesMessages() {
         // given
         var importPrompts = ImportResources.builder()
                 .path("public/test/")
@@ -169,14 +170,18 @@ class PromptImportValidatorTest {
         promptsExim.setFolders(List.of());
 
         // when/then
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> promptImportValidator.validatePromptImport(importPrompts, promptsExim));
+        Map<String, String> conflicts = promptImportValidator.collectUniquenessConflicts(importPrompts, promptsExim);
 
-        assertThat(thrown.getMessage())
+        assertThat(conflicts).containsOnlyKeys(
+                "prompts/public/test1/PROMPT 1__1.0.0",
+                "prompts/public/test2/PROMPT 1__1.0.0"
+        );
+        assertThat(conflicts.get("prompts/public/test1/PROMPT 1__1.0.0"))
+                .contains("Duplicated prompt name PROMPT 1__1.0.0 for IDs: prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0");
+        assertThat(conflicts.get("prompts/public/test2/PROMPT 1__1.0.0"))
                 .isEqualTo("""
-                        Prompt uniqueness violation. Conflicts found:
-                          - Duplicated prompt IDs: [prompts/public/test2/PROMPT 1__1.0.0]
-                          - Duplicated prompt name PROMPT 1__1.0.0 for IDs: [prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0]""");
+                        Duplicate prompt id: "prompts/public/test2/PROMPT 1__1.0.0" appears 2 in the import file.
+                        Duplicated prompt name PROMPT 1__1.0.0 for IDs: prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0""");
     }
 
 }
