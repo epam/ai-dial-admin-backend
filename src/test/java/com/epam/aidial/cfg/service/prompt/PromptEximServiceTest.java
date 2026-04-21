@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -225,7 +226,7 @@ class PromptEximServiceTest {
         assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(CreatePrompt.class);
-        verify(promptService).createPrompt(captor.capture());
+        verify(promptService).putPrompt(captor.capture(), eq(true), isNull());
         verify(folderService).updatesRules(updateRulesRequest);
 
         var prompt = captor.getValue();
@@ -279,7 +280,7 @@ class PromptEximServiceTest {
         assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(CreatePrompt.class);
-        verify(promptService).createPrompt(captor.capture());
+        verify(promptService).putPrompt(captor.capture(), eq(true), isNull());
         verify(folderService).updatesRules(updateRulesRequest);
 
         var prompt = captor.getValue();
@@ -327,7 +328,7 @@ class PromptEximServiceTest {
         assertThat(importResults.getImportResults().get(1).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
         assertThat(importResults.getImportResults().get(1).getError()).contains("Duplicate prompt id");
 
-        verify(promptService).createPrompt(any(CreatePrompt.class));
+        verify(promptService).putPrompt(any(CreatePrompt.class), eq(true), isNull());
     }
 
 }
