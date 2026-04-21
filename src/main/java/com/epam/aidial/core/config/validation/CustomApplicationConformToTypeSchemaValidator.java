@@ -2,6 +2,7 @@ package com.epam.aidial.core.config.validation;
 
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.core.config.CoreApplication;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,9 +27,11 @@ public class CustomApplicationConformToTypeSchemaValidator {
 
     public static Set<ValidationMessage> validate(Application application,
                                                   CustomApplicationConformToTypeSchemaValidationContext validationContext) {
+        URI schemaId = application.getSource() instanceof ApplicationSchemaSource schemaSource
+                ? schemaSource.getApplicationTypeSchemaId() : null;
         return validateApplicationProperties(
                 application.getApplicationProperties(),
-                application.getApplicationTypeSchemaId(),
+                schemaId,
                 validationContext
         );
     }
