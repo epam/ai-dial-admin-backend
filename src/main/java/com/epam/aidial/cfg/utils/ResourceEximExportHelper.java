@@ -38,7 +38,7 @@ public final class ResourceEximExportHelper {
                 for (String itemPath : collectPathsUnderFolder.apply(path)) {
                     addExportEntry(entries, itemPath, path);
                 }
-            } else if (ExportPathUtils.isNotTechnicalItem(path)) {
+            } else if (!ExportPathUtils.isTechnicalItem(path)) {
                 addExportEntry(entries, path, null);
             }
         }

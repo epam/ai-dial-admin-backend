@@ -18,16 +18,16 @@ public class ExportPathUtils {
      * Excludes the folder marker file. Prompts, applications, and toolsets store it as a versioned
      * resource (e.g. {@code .dial_folder__1.0.0}), not only as {@code .dial_folder}.
      */
-    public static boolean isNotTechnicalItem(String fullPath) {
+    public static boolean isTechnicalItem(String fullPath) {
         var fileName = PathUtils.parsePath(fullPath).getName();
         if (DIAL_FOLDER_FILE.equals(fileName)) {
-            return false;
+            return true;
         }
-        return !fileName.startsWith(DIAL_FOLDER_FILE + "__");
+        return fileName.startsWith(DIAL_FOLDER_FILE + "__");
     }
 
     /**
-     * Collects storage paths of exportable items ({@link #isNotTechnicalItem}).
+     * Collects storage paths of exportable items ({@link #isTechnicalItem}).
      * Only direct child items of a folder (flat, one level).
      */
     public static Set<String> collectExportablePaths(ResourceNodeInfo<?> node) {
@@ -36,7 +36,7 @@ public class ExportPathUtils {
         }
         if (node.getNodeType() == NodeType.ITEM) {
             var path = node.getPath();
-            if (path == null || !isNotTechnicalItem(path)) {
+            if (path == null || isTechnicalItem(path)) {
                 return Collections.emptySet();
             }
             return Set.of(path);
@@ -49,7 +49,7 @@ public class ExportPathUtils {
             return items.stream()
                     .filter(i -> i.getNodeType() == NodeType.ITEM)
                     .map(ResourceNodeInfo::getPath)
-                    .filter(ExportPathUtils::isNotTechnicalItem)
+                    .filter(path -> !isTechnicalItem(path))
                     .collect(Collectors.toSet());
         }
         return Collections.emptySet();

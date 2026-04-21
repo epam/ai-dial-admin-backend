@@ -39,16 +39,16 @@ class ExportPathUtilsTest {
     }
 
     @Test
-    void isNotTechnicalItem_falseForDialFolderMarker() {
-        assertThat(ExportPathUtils.isNotTechnicalItem("public/folder/" + ExportPathUtils.DIAL_FOLDER_FILE))
-                .isFalse();
+    void isTechnicalItem_trueForDialFolderMarker() {
+        assertThat(ExportPathUtils.isTechnicalItem("public/folder/" + ExportPathUtils.DIAL_FOLDER_FILE))
+                .isTrue();
     }
 
     @Test
-    void isNotTechnicalItem_falseForVersionedDialFolderMarker() {
-        assertThat(ExportPathUtils.isNotTechnicalItem(
+    void isTechnicalItem_trueForVersionedDialFolderMarker() {
+        assertThat(ExportPathUtils.isTechnicalItem(
                 "public/folder/" + ExportPathUtils.DIAL_FOLDER_FILE + "__1.0.0"))
-                .isFalse();
+                .isTrue();
     }
 
     @Test
