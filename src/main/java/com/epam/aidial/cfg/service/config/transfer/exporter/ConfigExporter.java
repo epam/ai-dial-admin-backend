@@ -17,6 +17,7 @@ import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.route.Route;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
@@ -299,8 +300,9 @@ public class ConfigExporter {
     }
 
     private void processApplicationTypeSchemaDependencies(Application application, Set<ExportConfigComponentType> dependencies, Set<ExportConfigComponent> updatedComponents) {
-        if (dependencies.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)) {
-            URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
+        if (dependencies.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
+                && application.getSource() instanceof ApplicationSchemaSource schemaSource) {
+            URI applicationTypeSchemaId = schemaSource.getApplicationTypeSchemaId();
             if (applicationTypeSchemaId != null) {
                 updatedComponents.add(new ExportConfigComponent(applicationTypeSchemaId.toString(), ExportConfigComponentType.APPLICATION_TYPE_SCHEMA, dependencies));
             }

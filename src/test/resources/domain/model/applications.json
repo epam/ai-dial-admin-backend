@@ -54,7 +54,10 @@
       "debug": true,
       "maxUsers": 1000
     },
-    "applicationTypeSchemaId": "https://example.com/schema.json",
+    "source": {
+      "$type": "schema",
+      "applicationTypeSchemaId": "https://example.com/schema.json"
+    },
     "deployment": {
       "id": 100,
       "name": "sampleDeployment",

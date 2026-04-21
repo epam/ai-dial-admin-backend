@@ -74,6 +74,8 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private String editorUrl;
     @Embedded
     private McpEntity mcp;
+    @Embedded
+    private ApplicationContainerEntity applicationContainer;
 
     @Column(columnDefinition = "CLOB")
     private String routes;

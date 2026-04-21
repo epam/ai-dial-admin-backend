@@ -28,6 +28,7 @@ import com.epam.aidial.cfg.web.facade.mapper.AdapterDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AdapterSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AddonDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.ApplicationSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ApplicationTypeSchemaDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AssistantDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.AttachmentPathDtoMapperImpl;
@@ -89,7 +90,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         AdapterDtoMapperImpl.class, ModelEndpointUtils.class, ShareResourceLimitDtoMapperImpl.class,
         InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class, AttachmentPathDtoMapperImpl.class,
         ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class, ResourceAuthSettingsDtoMapperImpl.class, CostLimitDtoMapperImpl.class,
-        ToolSetSourceDtoMapperImpl.class, ValidityStateDtoMapperImpl.class, AdapterSourceDtoMapperImpl.class
+        ToolSetSourceDtoMapperImpl.class, ValidityStateDtoMapperImpl.class, AdapterSourceDtoMapperImpl.class, ApplicationSourceDtoMapperImpl.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 

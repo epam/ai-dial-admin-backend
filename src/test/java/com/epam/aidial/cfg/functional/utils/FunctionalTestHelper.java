@@ -17,6 +17,7 @@ import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ValidityStateDto;
 import com.epam.aidial.cfg.dto.route.RouteDto;
 import com.epam.aidial.cfg.dto.source.AdapterEndpointsSourceDto;
+import com.epam.aidial.cfg.dto.source.ApplicationEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
@@ -186,11 +187,13 @@ public class FunctionalTestHelper {
         applicationDto.setName("application" + suffix);
         applicationDto.setDisplayName("application" + suffix);
         applicationDto.setDescription("description" + suffix);
+        applicationDto.setSource(new ApplicationEndpointsSourceDto());
         return applicationDto;
     }
 
     public static ApplicationDto createApplicationDtoWithMcp(String suffix) {
         ApplicationDto applicationDto = createBaseApplicationDto(suffix);
+        applicationDto.setSource(new ApplicationEndpointsSourceDto());
         var mcp = new McpDto();
         mcp.setEndpoint("http://localhost:9876/mcp");
         mcp.setAllowedTools(List.of("classify_text"));
@@ -200,6 +203,7 @@ public class FunctionalTestHelper {
 
     public static ApplicationDto createApplicationDtoWithEndpoint(String suffix) {
         ApplicationDto applicationDto = createBaseApplicationDto(suffix);
+        applicationDto.setSource(new ApplicationEndpointsSourceDto());
         applicationDto.setEndpoint("endpoint" + suffix);
         return applicationDto;
     }
