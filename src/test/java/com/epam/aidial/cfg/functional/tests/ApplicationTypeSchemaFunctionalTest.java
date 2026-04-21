@@ -120,7 +120,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         Assertions.assertThat(updatedApplication.getEndpoint()).isNull();
         Assertions.assertThat(updatedApplication.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(220));
         Assertions.assertThat(updatedApplication.getValidityState())
-                .isEqualTo(invalidState("$: required property 'temperature' not found, "
+                .isEqualTo(invalidState("App: $: required property 'temperature' not found, "
                         + "$: required property 'instructions' not found, $: required property 'model' not found, $: required property 'web_api_toolset' not found"));
     }
 
@@ -153,7 +153,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
         Assertions.assertThat(updatedApplication.getEndpoint()).isNull();
         Assertions.assertThat(updatedApplication.getUpdatedAt()).isEqualTo(Instant.ofEpochMilli(320));
         Assertions.assertThat(updatedApplication.getValidityState())
-                .isEqualTo(invalidState("$: required property 'instructions' not found"));
+                .isEqualTo(invalidState("App: $: required property 'instructions' not found"));
     }
 
     @Test

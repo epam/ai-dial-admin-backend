@@ -38,6 +38,8 @@ public class ToolSetValidatorTest {
     private DeploymentManagerService deploymentManagerService;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
+    @Mock
+    private ResourceAuthSettingsValidator resourceAuthSettingsValidator;
 
     private ToolSetValidator toolSetValidator;
 
@@ -48,6 +50,7 @@ public class ToolSetValidatorTest {
                 deploymentManagerService,
                 deploymentValidator,
                 displayFieldsValidator,
+                resourceAuthSettingsValidator,
                 null
         );
     }

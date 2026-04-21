@@ -18,7 +18,6 @@
       "upstreams": [
         {
           "endpoint": "http://upstream1.example.com",
-          "responsesEndpoint": "http://upstream1.example.com/responses",
           "extraData": {
             "custom": "data1"
           },
@@ -259,7 +258,9 @@
       "dependencies": [],
       "auth_settings": {
         "authentication_type": "oauth",
-        "client_id": "some-client-id"
+        "client_id": "some-client-id",
+        "authorizationEndpoint": "some-auth-endpoint",
+        "tokenEndpoint": "some-token-endpoint"
       },
       "forward_per_request_key": false,
       "transport": "sse",
@@ -314,7 +315,6 @@
     "testInterceptor1": {
       "name": "testInterceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
-      "responsesEndpoint": "https://testInterceptor1/responses",
       "displayName": "Test Interceptor1",
       "forwardAuthToken": false,
       "features": {
