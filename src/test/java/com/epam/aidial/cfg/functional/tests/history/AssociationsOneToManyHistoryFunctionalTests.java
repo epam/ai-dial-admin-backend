@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
+import com.epam.aidial.cfg.dto.source.ApplicationSchemaSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.utils.ResourceUtils;
@@ -479,14 +480,14 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         limitDto.setDay(10L);
 
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(new URI(appSchemaDto.getId())));
         applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
         applicationFacade.createApplication(applicationDto);
 
         // remove role limit
         doReturn(444L).when(transactionTimestampContext).getTimestamp();
         applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(new URI(appSchemaDto.getId())));
         applicationDto.setRoleLimits(null);
         applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
 
@@ -526,7 +527,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         limitDto.setDay(10L);
 
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(new URI(appSchemaDto.getId())));
         applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
         applicationFacade.createApplication(applicationDto);
 
@@ -572,7 +573,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         limitDto.setDay(10L);
 
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(new URI(appSchemaDto.getId())));
         applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
         applicationFacade.createApplication(applicationDto);
 
@@ -614,7 +615,7 @@ public abstract class AssociationsOneToManyHistoryFunctionalTests {
         limitDto.setDay(10L);
 
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(new URI(appSchemaDto.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(new URI(appSchemaDto.getId())));
         applicationDto.setRoleLimits(Map.of(roleDto.getName(), limitDto));
         applicationFacade.createApplication(applicationDto);
 

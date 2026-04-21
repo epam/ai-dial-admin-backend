@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
+import com.epam.aidial.cfg.dto.source.ApplicationSchemaSourceDto;
 import com.epam.aidial.cfg.functional.utils.FunctionalTestHelper;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
@@ -95,7 +96,7 @@ public abstract class ApplicationTypeSchemaHistoryFunctionalTest {
 
         // create application
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(URI.create(applicationTypeSchemaDto.getId())));
         applicationFacade.createApplication(applicationDto);
 
         // remember rev number and expected application type schemas state

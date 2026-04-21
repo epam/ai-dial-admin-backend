@@ -106,7 +106,6 @@
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
-      "responsesEndpoint": "https://testInterceptor1/responses",
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
@@ -199,7 +198,6 @@
       "upstreams": [
         {
           "endpoint": "http://upstream1.example.com",
-          "responsesEndpoint": "http://upstream1.example.com/responses",
           "key": "upstream-key-1",
           "extraData": "{\"custom\":\"data1\"}",
           "weight": 1,
@@ -263,7 +261,9 @@
       "authSettings": {
         "authenticationType": "OAUTH",
         "clientId": "some-client-id",
-        "clientSecret": "some-client-secret"
+        "clientSecret": "some-client-secret",
+        "authorizationEndpoint": "some-auth-endpoint",
+        "tokenEndpoint": "some-token-endpoint"
       }
     }
   }
