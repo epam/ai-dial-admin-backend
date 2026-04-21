@@ -2,6 +2,7 @@ package com.epam.aidial.core.config.validation;
 
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.core.config.CoreApplication;
 import com.networknt.schema.ValidationMessage;
 import org.junit.jupiter.api.BeforeAll;
@@ -94,7 +95,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
     void validate_emptyValidationMessagesForApplicationWhenSchemaIdIsNull() {
         // given
         Application application = new Application();
-        application.setApplicationTypeSchemaId(null);
+        application.setSource(null);
 
         // when
         Set<ValidationMessage> actualValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
@@ -107,7 +108,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
     void validate_emptyValidationMessagesForApplicationWhenAppPropertiesIsNull() {
         // given
         Application application = new Application();
-        application.setApplicationTypeSchemaId(URI.create("https://test-schema.example"));
+        application.setSource(new ApplicationSchemaSource(URI.create("https://test-schema.example")));
         application.setApplicationProperties(null);
 
         // when
@@ -121,7 +122,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
     void validate_validationMessagesWithErrorForApplicationWhenAppPropertiesFailValidation() {
         // given
         Application application = new Application();
-        application.setApplicationTypeSchemaId(URI.create("https://test-schema.example"));
+        application.setSource(new ApplicationSchemaSource(URI.create("https://test-schema.example")));
         application.setApplicationProperties(Map.of());
 
         Set<String> expectedValidationMessages = Set.of("$: required property 'requiredProp' not found");
@@ -137,7 +138,7 @@ class CustomApplicationConformToTypeSchemaValidatorTest {
     void validate_emptyValidationMessagesForApplicationWhenAppPropertiesPassValidation() {
         // given
         Application application = new Application();
-        application.setApplicationTypeSchemaId(URI.create("https://test-schema.example"));
+        application.setSource(new ApplicationSchemaSource(URI.create("https://test-schema.example")));
         application.setApplicationProperties(Map.of("requiredProp", "some-value"));
 
         // when

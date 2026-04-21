@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
-import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class CompositeConfigSource implements ConfigSource {
 
-    private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final ConfigSplitter configSplitter;
     private final ConfigMerger configMerger;
     private final List<String> sourceNames;
@@ -48,8 +46,7 @@ public abstract class CompositeConfigSource implements ConfigSource {
 
     @Override
     public void writeConfig(Config configBody, boolean createResources) {
-        Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(configBody);
-        List<SourceValue> sourceValues = resolveSourceNames(versionedConfig);
+        List<SourceValue> sourceValues = resolveSourceNames(configBody);
 
         for (SourceValue sourceValue : sourceValues) {
             setSource(sourceValue, createResources);

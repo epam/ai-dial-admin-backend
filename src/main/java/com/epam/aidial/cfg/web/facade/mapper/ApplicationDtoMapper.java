@@ -7,12 +7,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
-        LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class, FeaturesDtoMapper.class, RouteDtoMapper.class, ValidityStateDtoMapper.class
+        LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class, FeaturesDtoMapper.class,
+        RouteDtoMapper.class, ValidityStateDtoMapper.class, ApplicationSourceDtoMapper.class
 })
 public interface ApplicationDtoMapper {
 
     @Mapping(target = "descriptionKeywords", source = "topics")
-    @Mapping(target = "applicationTypeSchemaId", source = "customAppSchemaId")
+    @Mapping(target = "applicationTypeSchemaId", ignore = true)
     @RoleBasedDtoMapper.ToDomain
     @Mapping(target = "deployment.name", source = "name")
     @Mapping(target = "createdAt", ignore = true)
@@ -21,7 +22,6 @@ public interface ApplicationDtoMapper {
 
     @Mapping(target = "function", ignore = true)
     @Mapping(target = "topics", source = "descriptionKeywords")
-    @Mapping(target = "customAppSchemaId", source = "applicationTypeSchemaId")
     @RoleBasedDtoMapper.ToDto
     @Mapping(target = "name", source = "deployment.name")
     ApplicationDto toDto(Application domain);

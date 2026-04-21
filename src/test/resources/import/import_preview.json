@@ -846,7 +846,10 @@
           "temperatureSupported": true,
           "parallelToolCallsSupported": true
         },
-        "applicationTypeSchemaId": "https://test-schema-id.example",
+        "source": {
+          "$type": "schema",
+          "applicationTypeSchemaId": "https://test-schema-id.example"
+        },
         "author": "test-author",
         "dependencies": [
           "dep1",
@@ -920,6 +923,9 @@
           "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
+        "source": {
+          "$type": "endpoints"
+        },
         "responsesEndpoint": "http://application2/responses",
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",

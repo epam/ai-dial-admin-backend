@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -35,10 +37,14 @@ public class Application extends RoleBased {
     private List<String> dependencies;
     private Features features;
     private Map<String, Object> applicationProperties;
-    private URI applicationTypeSchemaId;
+    private ApplicationSource source;
     private String viewerUrl;
     private String editorUrl;
     private List<DependentRoute> routes;
     private ValidityState validityState;
     private Mcp mcp;
+
+    @Deprecated
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private URI applicationTypeSchemaId;
 }
