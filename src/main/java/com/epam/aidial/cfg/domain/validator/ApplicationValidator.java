@@ -1,13 +1,11 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.ApplicationContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,22 +23,16 @@ public class ApplicationValidator {
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
     private final FeaturesValidator featuresValidator;
-    private final DeploymentManagerService deploymentManagerService;
-    private final DeploymentInfoValidator deploymentInfoValidator;
 
     private final String applicationNameValidationPattern;
 
     public ApplicationValidator(DisplayFieldsValidator displayFieldsValidator,
                                 DeploymentValidator deploymentValidator,
                                 FeaturesValidator featuresValidator,
-                                DeploymentManagerService deploymentManagerService,
-                                DeploymentInfoValidator deploymentInfoValidator,
                                 @Value("${validation.application.name:}") String applicationNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
         this.featuresValidator = featuresValidator;
-        this.deploymentManagerService = deploymentManagerService;
-        this.deploymentInfoValidator = deploymentInfoValidator;
         this.applicationNameValidationPattern = applicationNameValidationPattern;
     }
 
