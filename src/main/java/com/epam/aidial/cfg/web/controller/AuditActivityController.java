@@ -35,16 +35,4 @@ public class AuditActivityController {
     public AuditActivityDto getAuditActivity(@PathVariable UUID activityId) {
         return auditActivityFacade.getAuditActivity(activityId);
     }
-
-    @PostMapping("/activities/by-parent/{parentId}")
-    public PageDto<AuditActivityDto> getAuditActivitiesByParentId(
-            @PathVariable UUID parentId,
-            @RequestBody @Valid PageRequestDto pageRequestDto) {
-        return auditActivityFacade.getAuditActivitiesByParentId(parentId, pageRequestDto);
-    }
-
-    @PostMapping("/activities/root")
-    public PageDto<AuditActivityDto> getActivitiesWithoutParentId(@RequestBody @Valid PageRequestDto pageRequestDto) {
-        return auditActivityFacade.getActivitiesWithoutParentId(pageRequestDto);
-    }
 }

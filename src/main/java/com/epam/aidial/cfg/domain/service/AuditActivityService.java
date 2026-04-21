@@ -48,20 +48,6 @@ public class AuditActivityService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AuditActivity> getActivitiesByParentId(UUID parentActivityId, PageRequestModel pageRequest) {
-        Specification<AuditActivityEntity> byParent = (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("parentActivityId"), parentActivityId);
-        return getActivitiesWithSpecification(pageRequest, byParent);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<AuditActivity> getActivitiesWithoutParentId(PageRequestModel pageRequest) {
-        Specification<AuditActivityEntity> parentIsNull = (root, query, criteriaBuilder) ->
-                criteriaBuilder.isNull(root.get("parentActivityId"));
-        return getActivitiesWithSpecification(pageRequest, parentIsNull);
-    }
-
-    @Transactional(readOnly = true)
     public Page<AuditActivity> getActivitiesWithSpecification(PageRequestModel pageRequest, Specification<AuditActivityEntity> specification) {
         var page = pageEntityMapper.toPageRequest(pageRequest);
         var filters = pageEntityMapper.toSpecifications(pageRequest,

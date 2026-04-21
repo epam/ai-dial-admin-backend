@@ -14,11 +14,7 @@ public class AuditParentActivityHolder {
 
     private static final Object PARENT_ACTIVITY_TRANSACTION_KEY = new Object();
 
-    private final ThreadLocal<UUID> parentActivityId = new ThreadLocal<>();
-
     public Scope openScope(UUID parentId) {
-        UUID previous = parentActivityId.get();
-        parentActivityId.set(parentId);
 
         final Object previousTransactionResource;
 
@@ -36,9 +32,14 @@ public class AuditParentActivityHolder {
                 @Override
                 public void afterCompletion(int status) {
                     if (previousTransactionResource != null) {
-                        TransactionSynchronizationManager.bindResource(PARENT_ACTIVITY_TRANSACTION_KEY, previousTransactionResource);
+                        TransactionSynchronizationManager.bindResource(
+                                PARENT_ACTIVITY_TRANSACTION_KEY,
+                                previousTransactionResource
+                        );
                     } else {
-                        TransactionSynchronizationManager.unbindResourceIfPossible(PARENT_ACTIVITY_TRANSACTION_KEY);
+                        TransactionSynchronizationManager.unbindResourceIfPossible(
+                                PARENT_ACTIVITY_TRANSACTION_KEY
+                        );
                     }
                 }
             });
@@ -48,27 +49,19 @@ public class AuditParentActivityHolder {
         }
 
         return () -> {
-            try {
-                if (previous == null) {
-                    parentActivityId.remove();
-                } else {
-                    parentActivityId.set(previous);
-                }
-            } finally {
-                if (TransactionSynchronizationManager.isSynchronizationActive()) {
-                    TransactionSynchronizationManager.unbindResourceIfPossible(
-                            PARENT_ACTIVITY_TRANSACTION_KEY
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.unbindResourceIfPossible(PARENT_ACTIVITY_TRANSACTION_KEY);
+
+                if (previousTransactionResource != null) {
+                    TransactionSynchronizationManager.bindResource(
+                            PARENT_ACTIVITY_TRANSACTION_KEY,
+                            previousTransactionResource
                     );
-                    if (previousTransactionResource != null) {
-                        TransactionSynchronizationManager.bindResource(
-                                PARENT_ACTIVITY_TRANSACTION_KEY,
-                                previousTransactionResource
-                        );
-                    }
                 }
             }
         };
     }
+
 
     public Optional<UUID> getParentActivityId() {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -77,7 +70,7 @@ public class AuditParentActivityHolder {
                 return Optional.of(uuid);
             }
         }
-        return Optional.ofNullable(parentActivityId.get());
+        return Optional.empty();
     }
 
     public interface Scope extends AutoCloseable {

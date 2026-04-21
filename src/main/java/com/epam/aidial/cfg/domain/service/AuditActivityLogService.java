@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.audit.jpa.AuditActivityJpaRepository;
-import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
@@ -14,6 +13,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
@@ -25,48 +25,43 @@ public class AuditActivityLogService {
 
     private final AuditActivityJpaRepository auditActivityJpaRepository;
     private final TransactionTimestampContext transactionTimestampContext;
-    private final AuditParentActivityHolder auditParentActivityHolder;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public UUID startParentOperation(ActivityType activityType,
                                      ActivityResourceType resourceType,
                                      String operationMetadataJson) {
-        var entity = createAuditEntity(activityType, resourceType, null, operationMetadataJson);
-        entity.setResourceId(entity.getActivityId().toString());
+        var entity = createAuditEntity(activityType, resourceType, operationMetadataJson);
         auditActivityJpaRepository.save(entity);
         return entity.getActivityId();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     public UUID logImportOperation(String format, ConfigImportOptions importOptions) {
         var metaJson = AuditMetaBuilder.with(objectMapper)
                 .put("format", format)
-                .put("conflictResolution", importOptions.conflictResolutionPolicy().name())
-                .put("createRoleIfAbsent", importOptions.createRoleIfAbsent())
-                .put("createAdapterIfAbsent", importOptions.createAdapterIfAbsent())
+                .put("importOptions", importOptions)
                 .buildAsJson();
-        return startParentOperation(ActivityType.Import, ActivityResourceType.ImportConfig, metaJson);
+        return startParentOperation(ActivityType.Import, ActivityResourceType.Config, metaJson);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     public UUID logRollbackOperation(Number revision) {
         var metaJson = AuditMetaBuilder.with(objectMapper)
                 .put("revision", revision)
                 .buildAsJson();
-        return startParentOperation(ActivityType.Rollback, ActivityResourceType.Rollback, metaJson);
+        return startParentOperation(ActivityType.Rollback, ActivityResourceType.System, metaJson);
     }
 
     private AuditActivityEntity createAuditEntity(ActivityType activityType,
                                                   ActivityResourceType resourceType,
-                                                  String resourceId,
                                                   String operationMetadataJson) {
         UUID id = UuidCreator.getTimeOrderedEpoch();
         AuditActivityEntity entity = new AuditActivityEntity();
         entity.setActivityId(id);
+        entity.setResourceId(entity.getActivityId().toString());
         entity.setActivityType(activityType);
         entity.setResourceType(resourceType);
-        entity.setResourceId(resourceId);
         entity.setEpochTimestampMs(transactionTimestampContext.getTimestamp());
         entity.setInitiatedAuthor(SecurityClaimsExtractor.getAuthor());
         entity.setInitiatedEmail(SecurityClaimsExtractor.getEmail());

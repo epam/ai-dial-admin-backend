@@ -36,19 +36,6 @@ public class AuditActivityFacade {
         return auditActivityDtoMapper.map(activity);
     }
 
-    public PageDto<AuditActivityDto> getAuditActivitiesByParentId(UUID parentActivityId,
-                                                                  PageRequestDto pageRequestDto) {
-        PageRequestModel pageRequest = pageDtoMapper.toPageRequestModel(pageRequestDto);
-        Page<AuditActivity> page = auditActivityService.getActivitiesByParentId(parentActivityId, pageRequest);
-        return mapToPageDto(page);
-    }
-
-    public PageDto<AuditActivityDto> getActivitiesWithoutParentId(PageRequestDto pageRequestDto) {
-        PageRequestModel pageRequest = pageDtoMapper.toPageRequestModel(pageRequestDto);
-        Page<AuditActivity> page = auditActivityService.getActivitiesWithoutParentId(pageRequest);
-        return mapToPageDto(page);
-    }
-
     private PageDto<AuditActivityDto> mapToPageDto(Page<AuditActivity> page) {
         List<AuditActivityDto> data = page.getData()
                 .stream()

@@ -19,6 +19,6 @@ public enum ActivityResourceType {
     ToolSet,
     GlobalSettings,
     AdminSettings,
-    ImportConfig,
-    Rollback
+    Config,
+    System
 }
