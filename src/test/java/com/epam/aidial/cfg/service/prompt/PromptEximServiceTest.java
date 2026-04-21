@@ -301,16 +301,16 @@ class PromptEximServiceTest {
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
 
-        var okPrompt = new PromptEximDto();
-        okPrompt.setId("prompts/public/from/OK__1.0.0");
-        okPrompt.setDescription("ok");
-        okPrompt.setContent("ok body");
+        var validPrompt = new PromptEximDto();
+        validPrompt.setId("prompts/public/from/OK__1.0.0");
+        validPrompt.setDescription("valid prompt");
+        validPrompt.setContent("valid prompt content");
         var conflictPrompt = new PromptEximDto();
         conflictPrompt.setId("prompts/public/from/BAD__1.0.0");
-        conflictPrompt.setDescription("bad");
-        conflictPrompt.setContent("bad body");
+        conflictPrompt.setDescription("bad prompt");
+        conflictPrompt.setContent("bad prompt content");
         var promptsExim = new PromptsEximDto();
-        promptsExim.setPrompts(List.of(okPrompt, conflictPrompt));
+        promptsExim.setPrompts(List.of(validPrompt, conflictPrompt));
         promptsExim.setFolders(List.of());
 
         when(validator.collectUniquenessConflicts(eq(importPrompts), eq(promptsExim)))
