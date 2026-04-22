@@ -18,7 +18,7 @@ public class HeaderUtils {
     }
 
     public static Map<String, String> createIfMatchHeaders(String etag) {
-        if (etag != null) {
+        if (etag != null && !ANY_ETAG.equals(etag)) {
             return Map.of(IF_MATCH_HEADER_NAME, etag);
         }
         return Map.of();
