@@ -122,7 +122,7 @@ class FileServiceTest {
         ImportResourcesFileResult result = fileService.uploadFile(List.of(multipart), importResources);
         // then
         Assertions.assertThat(result).isNotNull();
-        verify(fileClient).uploadFile(multipart, expectedFileName, Map.of("If-Match", "*"));
+        verify(fileClient).uploadFile(multipart, expectedFileName, Map.of());
     }
 
     @Test
