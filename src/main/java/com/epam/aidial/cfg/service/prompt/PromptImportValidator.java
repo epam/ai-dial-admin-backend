@@ -38,7 +38,7 @@ public class PromptImportValidator {
 
         var errorsByPromptId = new LinkedHashMap<String, String>();
         duplicatedPromptIds.forEach((id, count) ->
-                addError(errorsByPromptId, id, "Duplicate prompt id: \"%s\" appears %d in the import file."
+                addError(errorsByPromptId, id, "Duplicated prompt id: \"%s\" appears %d time(s) in the import file."
                         .formatted(id, count))
         );
         duplicatedPromptNames.forEach((promptName, promptIds) -> {

@@ -108,7 +108,7 @@ class PromptImportValidatorTest {
 
         assertThat(conflicts).containsOnlyKeys("prompts/public/PROMPT 1__1.0.0");
         assertThat(conflicts.get("prompts/public/PROMPT 1__1.0.0"))
-                .isEqualTo("Duplicate prompt id: \"prompts/public/PROMPT 1__1.0.0\" appears 2 in the import file.");
+                .isEqualTo("Duplicated prompt id: \"prompts/public/PROMPT 1__1.0.0\" appears 2 time(s) in the import file.");
     }
 
     @Test
@@ -180,7 +180,7 @@ class PromptImportValidatorTest {
                 .contains("Duplicated prompt name PROMPT 1__1.0.0 for IDs: prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0");
         assertThat(conflicts.get("prompts/public/test2/PROMPT 1__1.0.0"))
                 .isEqualTo("""
-                        Duplicate prompt id: "prompts/public/test2/PROMPT 1__1.0.0" appears 2 in the import file.
+                        Duplicated prompt id: "prompts/public/test2/PROMPT 1__1.0.0" appears 2 time(s) in the import file.
                         Duplicated prompt name PROMPT 1__1.0.0 for IDs: prompts/public/test2/PROMPT 1__1.0.0, prompts/public/test1/PROMPT 1__1.0.0""");
     }
 
