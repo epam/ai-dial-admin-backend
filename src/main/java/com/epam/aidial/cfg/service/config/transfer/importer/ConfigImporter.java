@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.domain.model.ImportFormat;
 import com.epam.aidial.cfg.domain.service.AuditActivityLogService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
@@ -156,7 +157,7 @@ public class ConfigImporter {
 
     @Transactional
     public void importConfig(Config config, ConfigImportOptions importOptions) {
-        var parentId = auditActivityLogService.logImportOperation("core", importOptions);
+        var parentId = auditActivityLogService.logImportOperation(ImportFormat.CORE, importOptions);
         try (var scope = auditParentActivityHolder.openScope(parentId)) {
             var resolutionPolicy = importOptions.conflictResolutionPolicy();
             var rolesPreImportInfo = coreRolesImportPreProcessor.preProcessRolesImport(config, importOptions.createRoleIfAbsent());
@@ -178,7 +179,7 @@ public class ConfigImporter {
 
     @Transactional
     public void importAdminConfig(ExportConfig config, ConfigImportOptions importOptions) {
-        var parentId = auditActivityLogService.logImportOperation("admin", importOptions);
+        var parentId = auditActivityLogService.logImportOperation(ImportFormat.ADMIN, importOptions);
         try (var scope = auditParentActivityHolder.openScope(parentId)) {
             adminConfigImportBackwardCompatibilityHandler.transformToLatestVersion(config);
             var resolutionPolicy = importOptions.conflictResolutionPolicy();

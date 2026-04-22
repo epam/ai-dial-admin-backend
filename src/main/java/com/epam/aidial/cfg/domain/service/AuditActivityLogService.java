@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.audit.jpa.AuditActivityJpaRepository;
 import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
+import com.epam.aidial.cfg.domain.model.ImportFormat;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import com.epam.aidial.cfg.domain.util.AuditMetaBuilder;
@@ -28,7 +29,7 @@ public class AuditActivityLogService {
     private final ObjectMapper objectMapper;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public UUID logImportOperation(String format, ConfigImportOptions importOptions) {
+    public UUID logImportOperation(ImportFormat format, ConfigImportOptions importOptions) {
         var metaJson = AuditMetaBuilder.with(objectMapper)
                 .put("format", format)
                 .put("importOptions", importOptions)

@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.service;
 import com.epam.aidial.cfg.dao.audit.jpa.AuditActivityJpaRepository;
 import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
+import com.epam.aidial.cfg.domain.model.ImportFormat;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
@@ -66,7 +67,7 @@ class AuditActivityLogServiceTest {
     void logImportOperation_returnsIdAndSave() throws Exception {
         var options = new ConfigImportOptions(ConflictResolutionPolicy.SKIP, false, true);
 
-        UUID id = service.logImportOperation("admin", options);
+        UUID id = service.logImportOperation(ImportFormat.ADMIN, options);
 
         var captor = ArgumentCaptor.forClass(AuditActivityEntity.class);
         verify(auditActivityJpaRepository).save(captor.capture());
@@ -74,7 +75,7 @@ class AuditActivityLogServiceTest {
         assertThat(captor.getValue().getResourceType()).isEqualTo(ActivityResourceType.Config);
         assertThat(captor.getValue().getActivityType()).isEqualTo(ActivityType.Import);
         var meta = objectMapper.readTree(captor.getValue().getOperationMetadata());
-        assertThat(meta.get("format").asText()).isEqualTo("admin");
+        assertThat(meta.get("format").asText()).isEqualTo("ADMIN");
         var importOptions = (JsonNode) meta.get("importOptions");
         assertThat(importOptions.path("conflictResolutionPolicy").asText()).isEqualTo("SKIP");
         assertThat(importOptions.path("createRoleIfAbsent").asBoolean()).isEqualTo(false);
