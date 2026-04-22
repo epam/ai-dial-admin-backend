@@ -22,6 +22,7 @@ import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
 import com.epam.aidial.cfg.utils.ExportPathUtils;
+import com.epam.aidial.cfg.utils.HeaderUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
 import feign.FeignException;
@@ -117,13 +118,6 @@ public class FileService implements ResourceService {
                     .error(errorMessage)
                     .build();
         }
-    }
-
-    private Map<String, String> getUploadHeader(ImportConflictResolutionStrategy strategy) {
-        return switch (strategy) {
-            case SKIP -> Map.of("If-None-Match", "*");
-            case OVERRIDE -> Map.of("If-Match", "*");
-        };
     }
 
     public ImportResourcesFileResult uploadFileZip(ImportResources importFiles, MultipartFile zipFile) {
@@ -230,7 +224,8 @@ public class FileService implements ResourceService {
                                                     String targetPath,
                                                     ImportConflictResolutionStrategy conflictResolutionStrategy) {
         try {
-            var header = getUploadHeader(conflictResolutionStrategy);
+            boolean override = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
+            var header = HeaderUtils.createHeadersForCreate(override, null);
             fileClient.uploadFile(file, targetPath, header);
             return ImportResourcesResult.createSuccess(sourcePath, targetPath);
         } catch (Exception ex) {
