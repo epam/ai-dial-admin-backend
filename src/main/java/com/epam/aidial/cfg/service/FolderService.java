@@ -208,7 +208,12 @@ public class FolderService {
     private void moveResources(MoveFolderRequest moveFolderRequest, List<ResourceType> resourceTypes) {
         String oldPath = moveFolderRequest.getOldPath();
         String newPath = moveFolderRequest.getNewPath();
-        log.debug("moveResources. request: {}", moveFolderRequest);
+        log.debug("moveResources. oldPath: {}, newPath: {}, overwrite: {}, resourceTypes: {}",
+                oldPath,
+                newPath,
+                moveFolderRequest.isOverwrite(),
+                resourceTypes
+        );
         List<String> movedResources = new ArrayList<>();
 
         for (var resourceType : resourceTypes) {

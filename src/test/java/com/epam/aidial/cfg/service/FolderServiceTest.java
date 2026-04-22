@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -265,11 +263,11 @@ class FolderServiceTest {
         when(fileService.getResourceUrls(oldPath)).thenReturn(Set.of(fileUrl));
 
         MoveResource moveResource = new MoveResource(fileUrl, destUrl, true);
-        doNothing().when(fileService).move(eq(moveResource));
+        doNothing().when(fileService).move(moveResource);
 
         folderService.moveFolder(moveFolderRequest);
 
-        verify(fileService).move(argThat(MoveResource::isOverwrite));
+        verify(fileService).move(moveResource);
         verifyNoMoreInteractions(applicationService, conversationService, promptService, toolSetService);
     }
 
