@@ -4,4 +4,5 @@ public enum ImportResourcesStatus {
     SUCCESS,
     FAILURE,
     ALREADY_EXISTS,
+    SKIPPED,
 }

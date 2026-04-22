@@ -63,7 +63,7 @@ class PromptEximServiceTest {
     private PromptEximService promptEximService;
 
     @BeforeEach
-    void stubUniquenessValidator() {
+    void setUp() {
         when(validator.collectUniquenessConflicts(any(), any())).thenReturn(Map.of());
     }
 

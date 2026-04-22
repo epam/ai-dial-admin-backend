@@ -202,13 +202,9 @@ public class PromptEximService {
                 promptService.putPrompt(createPrompt, true, null);
             }
             return ImportResourcesResult.createSuccess(sourcePath, targetPath);
-        } catch (Exception ex) {
-            if (ex instanceof EntityAlreadyExistsException) {
-                log.debug("Prompt {} import skipped - prompt already exists", targetPath, ex);
-                return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
-            }
-            throw ex;
+        } catch (EntityAlreadyExistsException ex) {
+            log.debug("Prompt {} import skipped - prompt already exists", targetPath, ex);
+            return ImportResourcesResult.createSkip(sourcePath, targetPath);
         }
     }
-
 }
