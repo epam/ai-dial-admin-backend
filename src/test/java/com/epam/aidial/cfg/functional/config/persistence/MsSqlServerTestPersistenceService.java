@@ -1,53 +1,89 @@
 package com.epam.aidial.cfg.functional.config.persistence;
 
 import com.epam.aidial.cfg.functional.MsSqlServerFunctionalTests;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import com.epam.aidial.cfg.functional.config.persistence.utils.PersistenceServiceUtils;
+import com.zaxxer.hikari.HikariDataSource;
+import org.testcontainers.containers.MSSQLServerContainer;
 
 public class MsSqlServerTestPersistenceService implements TestPersistenceService {
 
-    private static final String SNAPSHOT_DB_NAME = "test_snapshot";
-    private static final String SNAPSHOT_FILE = "/tmp/" + SNAPSHOT_DB_NAME + ".ss";
+    private final HikariDataSource hikariDataSource;
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final String adminJdbcUrl;
+    private final String username;
+    private final String password;
+    private final String dbName;
+    private final String snapshotDbName;
+    private final String snapshotFile;
+
+    public MsSqlServerTestPersistenceService(HikariDataSource hikariDataSource) {
+        this.hikariDataSource = hikariDataSource;
+
+        MSSQLServerContainer<?> c = MsSqlServerFunctionalTests.getContainer();
+        // Build url to maintenance DB, not test DB.
+        this.adminJdbcUrl = c.getJdbcUrl().replaceAll("database=[^;]+", "database=master");
+        this.username = c.getUsername();
+        this.password = c.getPassword();
+        this.dbName = MsSqlServerFunctionalTests.TEST_DB_NAME;
+        this.snapshotDbName = "snapshot_" + dbName;
+        this.snapshotFile = "/var/opt/mssql/data/" + snapshotDbName + ".ss";
+    }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void dumpDb() {
-        String sql = String.format(
-                "CREATE DATABASE [%s] ON (NAME = %s, FILENAME = '%s') AS SNAPSHOT OF [%s];",
-                SNAPSHOT_DB_NAME,
-                MsSqlServerFunctionalTests.TEST_DB_NAME,
-                SNAPSHOT_FILE,
-                MsSqlServerFunctionalTests.TEST_DB_NAME
-        );
-        entityManager.createNativeQuery(sql).executeUpdate();
+        hikariDataSource.getHikariPoolMXBean().suspendPool();
+        hikariDataSource.getHikariPoolMXBean().softEvictConnections();
+        try {
+            PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource, 30000);
+
+            PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                    String.format(
+                            "CREATE DATABASE [%s] ON (NAME = %s, FILENAME = '%s') AS SNAPSHOT OF [%s];",
+                            snapshotDbName, dbName, snapshotFile, dbName)
+            );
+        } finally {
+            hikariDataSource.getHikariPoolMXBean().resumePool();
+        }
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void restoreDb() {
-        String sql = String.format("""
-                USE MASTER;
-                ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                RESTORE DATABASE [%s] FROM DATABASE_SNAPSHOT = '%s';
-                ALTER DATABASE [%s] SET MULTI_USER WITH NO_WAIT;
-                USE [%s];""",
-                MsSqlServerFunctionalTests.TEST_DB_NAME,
-                MsSqlServerFunctionalTests.TEST_DB_NAME,
-                SNAPSHOT_DB_NAME,
-                MsSqlServerFunctionalTests.TEST_DB_NAME,
-                MsSqlServerFunctionalTests.TEST_DB_NAME
-                );
-        entityManager.createNativeQuery(sql).executeUpdate();
+        RuntimeException primaryFailure = null;
+
+        hikariDataSource.getHikariPoolMXBean().suspendPool();
+        hikariDataSource.getHikariPoolMXBean().softEvictConnections();
+
+        try {
+            PersistenceServiceUtils.waitForActiveConnectionsToDrain(hikariDataSource, 30000);
+
+            PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                    String.format("""
+                            ALTER DATABASE [%s] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                            RESTORE DATABASE [%s] FROM DATABASE_SNAPSHOT = '%s';
+                            """, dbName, dbName, snapshotDbName));
+        } catch (RuntimeException e) {
+            primaryFailure = e;
+            throw e;
+        } finally {
+            try {
+                PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                        String.format("ALTER DATABASE [%s] SET MULTI_USER;", dbName));
+            } catch (RuntimeException cleanupFailure) {
+                if (primaryFailure != null) {
+                    primaryFailure.addSuppressed(cleanupFailure);
+                } else {
+                    throw cleanupFailure;
+                }
+            } finally {
+                hikariDataSource.getHikariPoolMXBean().resumePool();
+            }
+        }
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cleanupResources() {
-        entityManager.createNativeQuery(String.format("DROP DATABASE [%s]", SNAPSHOT_DB_NAME)).executeUpdate();
+        PersistenceServiceUtils.executeWithinRawConnection(adminJdbcUrl, username, password,
+                String.format("DROP DATABASE [%s];", snapshotDbName)
+        );
     }
 }
