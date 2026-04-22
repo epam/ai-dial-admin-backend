@@ -59,7 +59,6 @@ public class AuditActivityLogService {
         UUID id = UuidCreator.getTimeOrderedEpoch();
         AuditActivityEntity entity = new AuditActivityEntity();
         entity.setActivityId(id);
-        entity.setResourceId(entity.getActivityId().toString());
         entity.setActivityType(activityType);
         entity.setResourceType(resourceType);
         entity.setEpochTimestampMs(transactionTimestampContext.getTimestamp());
