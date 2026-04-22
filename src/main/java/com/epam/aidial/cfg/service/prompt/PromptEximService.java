@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.PromptEximDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.FolderExim;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -91,7 +92,7 @@ public class PromptEximService {
     }
 
     public ImportResourcesFileResult importPrompts(ImportResources importPrompts, PromptsEximDto promptsEximDto) {
-        uniquenessValidator.validatePromptImport(importPrompts, promptsEximDto);
+        var uniquenessConflicts = uniquenessValidator.collectUniquenessConflicts(importPrompts, promptsEximDto);
 
         if (importPrompts.getRules() != null) {
             var updateRulesRequest = UpdateRulesRequest.builder()
@@ -110,16 +111,23 @@ public class PromptEximService {
                 .build();
         var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
 
-        return importPrompt(normalizedImportPrompts, promptsEximDto, circuitBreaker);
+        return importPrompt(normalizedImportPrompts, promptsEximDto, circuitBreaker, uniquenessConflicts);
     }
 
     private ImportResourcesFileResult importPrompt(ImportResources importPrompts,
                                                    PromptsEximDto promptsEximDto,
-                                                   SimpleCircuitBreaker circuitBreaker) {
+                                                   SimpleCircuitBreaker circuitBreaker,
+                                                   Map<String, String> uniquenessConflicts) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
             for (var prompt : promptsEximDto.getPrompts()) {
-                results.add(importPrompt(importPrompts, prompt, circuitBreaker));
+                var conflictMessage = uniquenessConflicts.get(prompt.getId());
+                if (conflictMessage != null) {
+                    var paths = resolveImportPaths(importPrompts, prompt);
+                    results.add(ImportResourcesResult.createFailure(paths.sourcePath(), paths.targetPath(), conflictMessage));
+                    continue;
+                }
+                results.add(importSinglePrompt(importPrompts, prompt, circuitBreaker));
             }
             return ImportResourcesFileResult.builder()
                     .importResults(results)
@@ -133,10 +141,7 @@ public class PromptEximService {
         }
     }
 
-    private ImportResourcesResult importPrompt(ImportResources importPrompts,
-                                               PromptEximDto promptExim,
-                                               SimpleCircuitBreaker circuitBreaker) {
-
+    private ImportPromptPaths resolveImportPaths(ImportResources importPrompts, PromptEximDto promptExim) {
         var rawPath = promptExim.getId();
         var sourcePath = StringUtils.removeStart(rawPath, PROMPTS_FOLDER);
         String targetPath;
@@ -147,6 +152,16 @@ public class PromptEximService {
             var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, PUBLIC_FOLDER);
             targetPath = importPrompts.getPath() + "/" + sourcePathWithoutPublic;
         }
+        return new ImportPromptPaths(sourcePath, targetPath);
+    }
+
+    private ImportResourcesResult importSinglePrompt(ImportResources importPrompts,
+                                                     PromptEximDto promptExim,
+                                                     SimpleCircuitBreaker circuitBreaker) {
+
+        var paths = resolveImportPaths(importPrompts, promptExim);
+        var sourcePath = paths.sourcePath();
+        var targetPath = paths.targetPath();
 
         try {
             var itemParts = PathUtils.parseVersionedPath(targetPath);
@@ -187,17 +202,15 @@ public class PromptEximService {
                                                       String targetPath,
                                                       ImportConflictResolutionStrategy conflictResolutionStrategy) {
         try {
-            promptService.createPrompt(createPrompt);
-            return ImportResourcesResult.createSuccess(sourcePath, targetPath);
-        } catch (Exception ex) {
-            if (ex instanceof FeignException feignException) {
-                if (feignException.status() == 412) {
-                    log.debug("Prompt {} import skipped - prompt already exists", targetPath, ex);
-                    return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
-                }
+            if (conflictResolutionStrategy == ImportConflictResolutionStrategy.SKIP) {
+                promptService.createPrompt(createPrompt);
+            } else {
+                promptService.putPrompt(createPrompt, true, null);
             }
-            throw ex;
+            return ImportResourcesResult.createSuccess(sourcePath, targetPath);
+        } catch (EntityAlreadyExistsException ex) {
+            log.debug("Prompt {} import skipped - prompt already exists", targetPath, ex);
+            return ImportResourcesResult.createSkip(sourcePath, targetPath);
         }
     }
-
 }

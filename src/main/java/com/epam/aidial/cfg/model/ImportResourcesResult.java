@@ -26,6 +26,10 @@ public class ImportResourcesResult {
         return new ImportResourcesResult(sourcePath, targetPath, ImportResourcesStatus.ALREADY_EXISTS, null);
     }
 
+    public static ImportResourcesResult createSkip(String sourcePath, String targetPath) {
+        return new ImportResourcesResult(sourcePath, targetPath, ImportResourcesStatus.SKIPPED, null);
+    }
+
     public boolean hasError() {
         return error != null;
     }
