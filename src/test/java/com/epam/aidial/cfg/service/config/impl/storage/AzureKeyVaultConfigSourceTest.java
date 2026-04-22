@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
-import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,12 +41,10 @@ class AzureKeyVaultConfigSourceTest {
     private ConfigSplitter configSplitter;
     @Mock
     private ConfigMerger configMerger;
-    @Mock
-    private VersionAwareFieldFilter versionAwareFieldFilter;
 
     @Test
     void writeConfig_shouldWriteSecret() throws JsonProcessingException {
-        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
+        source = new AzureKeyVaultConfigSource(configSplitter, configMerger, List.of("secret1"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
@@ -55,8 +52,6 @@ class AzureKeyVaultConfigSourceTest {
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
-
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
         when(secretClient.getSecret(any(String.class))).thenReturn(new KeyVaultSecret("secret", "{}"));
         Config secretConfig = new Config();
@@ -75,7 +70,7 @@ class AzureKeyVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldWriteWithoutSplit() throws JsonProcessingException {
-        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1", "secret2"),
+        source = new AzureKeyVaultConfigSource(configSplitter, configMerger, List.of("secret1", "secret2"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
@@ -83,8 +78,6 @@ class AzureKeyVaultConfigSourceTest {
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
-
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
         when(secretClient.getSecret(any(String.class))).thenReturn(new KeyVaultSecret("secret", "{}"));
         Config secretConfig = new Config();
@@ -106,7 +99,7 @@ class AzureKeyVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JsonProcessingException {
-        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1", "secret2"),
+        source = new AzureKeyVaultConfigSource(configSplitter, configMerger, List.of("secret1", "secret2"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
@@ -114,8 +107,6 @@ class AzureKeyVaultConfigSourceTest {
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
-
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
         Config secretConfig = new Config();
         secretConfig.setKeys(Map.of("key1", key));
@@ -128,7 +119,7 @@ class AzureKeyVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldCreateResourceWhenTrue() throws JsonProcessingException {
-        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
+        source = new AzureKeyVaultConfigSource(configSplitter, configMerger, List.of("secret1"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
@@ -136,8 +127,6 @@ class AzureKeyVaultConfigSourceTest {
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
-
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
         when(secretClient.getSecret(any(String.class)))
                 .thenThrow(new ResourceNotFoundException("Secret not found", null));
@@ -154,7 +143,7 @@ class AzureKeyVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldThrowExceptionWhenResourceNotFoundAndCreateResourcesFalse() {
-        source = new AzureKeyVaultConfigSource(versionAwareFieldFilter, configSplitter, configMerger, List.of("secret1"),
+        source = new AzureKeyVaultConfigSource(configSplitter, configMerger, List.of("secret1"),
             secretClient, expirationTimeUnit, expirationPeriod, objectMapper);
 
         Config config = new Config();
@@ -162,8 +151,6 @@ class AzureKeyVaultConfigSourceTest {
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
-
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
 
         when(secretClient.getSecret(any(String.class)))
                 .thenThrow(new ResourceNotFoundException("Secret not found", null));

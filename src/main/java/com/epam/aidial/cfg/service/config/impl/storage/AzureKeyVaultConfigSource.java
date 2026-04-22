@@ -4,7 +4,6 @@ import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
-import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -25,15 +24,14 @@ public class AzureKeyVaultConfigSource extends CompositeConfigSource {
     private final long expirationPeriod;
     private final ObjectMapper objectMapper;
 
-    public AzureKeyVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
-                                     ConfigSplitter configSplitter,
+    public AzureKeyVaultConfigSource(ConfigSplitter configSplitter,
                                      ConfigMerger configMerger,
                                      List<String> secretNames,
                                      SecretClient secretClient,
                                      String expirationTimeUnit,
                                      long expirationPeriod,
                                      ObjectMapper objectMapper) {
-        super(versionAwareFieldFilter, configSplitter, configMerger, secretNames, MAX_SECRET_SIZE);
+        super(configSplitter, configMerger, secretNames, MAX_SECRET_SIZE);
         this.secretClient = secretClient;
         this.expirationTimeUnit = expirationTimeUnit;
         this.expirationPeriod = expirationPeriod;

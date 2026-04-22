@@ -325,6 +325,51 @@ public abstract class ToolSetFunctionalTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenCreateWithNullClientSecretAndOauthAuthType() {
+        ResourceAuthSettingsDto resourceAuthSettingsDto = new ResourceAuthSettingsDto();
+        resourceAuthSettingsDto.setAuthenticationType(AuthenticationTypeDto.OAUTH);
+        resourceAuthSettingsDto.setClientId("clientId");
+        resourceAuthSettingsDto.setClientSecret(null);
+        resourceAuthSettingsDto.setAuthorizationEndpoint("/authorize");
+        resourceAuthSettingsDto.setTokenEndpoint("/token");
+        resourceAuthSettingsDto.setCodeChallengeMethod("S256");
+
+        ToolSetDto toolSetDto = createToolSetDtoWithoutRoleLimits("1");
+        toolSetDto.setAuthSettings(resourceAuthSettingsDto);
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> toolSetFacade.createToolSet(toolSetDto)
+        );
+        Assertions.assertEquals("Client secret: 'null' must not be blank for ToolSet with id:'ToolSet1'",
+                exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenUpdateWithEmptyTokenEndpointAndOauthAuthType() {
+        ResourceAuthSettingsDto resourceAuthSettingsDto = new ResourceAuthSettingsDto();
+        resourceAuthSettingsDto.setAuthenticationType(AuthenticationTypeDto.OAUTH);
+        resourceAuthSettingsDto.setClientId("clientId");
+        resourceAuthSettingsDto.setClientSecret("clientSecret");
+        resourceAuthSettingsDto.setAuthorizationEndpoint("/authorize");
+        resourceAuthSettingsDto.setTokenEndpoint("/token");
+        resourceAuthSettingsDto.setCodeChallengeMethod("S256");
+
+        ToolSetDto toolSetDto = createToolSetDtoWithoutRoleLimits("1");
+        toolSetDto.setAuthSettings(resourceAuthSettingsDto);
+        toolSetFacade.createToolSet(toolSetDto);
+
+        resourceAuthSettingsDto.setTokenEndpoint("");
+
+        IllegalArgumentException exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> toolSetFacade.updateToolSet(toolSetDto.getName(), toolSetDto, "*")
+        );
+        Assertions.assertEquals("Token endpoint: '' must not be blank for ToolSet with id:'ToolSet1'",
+                exception.getMessage());
+    }
+
+    @Test
     public void shouldResolveEndpointsForContainerSource() {
         // Given
         String containerId = "550e8400-e29b-41d4-a716-446655440000";
