@@ -22,6 +22,7 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -45,7 +46,6 @@ class FolderServiceTest {
         fileService = mock(FileService.class);
         promptService = mock(PromptService.class);
         toolSetService = mock(ResourceService.class);
-        when(toolSetService.getResourceType()).thenReturn(ResourceType.TOOL_SET);
         publicationService = mock(PublicationService.class);
         Map<ResourceType, ResourceService> resourceServicesByResourceType = Map.of(
                 ResourceType.APPLICATION, applicationService,
@@ -263,10 +263,9 @@ class FolderServiceTest {
         String fileUrl = "files/public/old/item.json";
         String destUrl = "files/public/new/item.json";
         when(fileService.getResourceUrls(oldPath)).thenReturn(Set.of(fileUrl));
-        doNothing().when(fileService).move(argThat(m ->
-                fileUrl.equals(m.getSourceUrl())
-                        && destUrl.equals(m.getDestinationUrl())
-                        && m.isOverwrite()));
+
+        MoveResource moveResource = new MoveResource(fileUrl, destUrl, true);
+        doNothing().when(fileService).move(eq(moveResource));
 
         folderService.moveFolder(moveFolderRequest);
 
