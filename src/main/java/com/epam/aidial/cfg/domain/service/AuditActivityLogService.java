@@ -27,15 +27,6 @@ public class AuditActivityLogService {
     private final TransactionTimestampContext transactionTimestampContext;
     private final ObjectMapper objectMapper;
 
-    @Transactional
-    public UUID startParentOperation(ActivityType activityType,
-                                     ActivityResourceType resourceType,
-                                     String operationMetadataJson) {
-        var entity = createAuditEntity(activityType, resourceType, operationMetadataJson);
-        auditActivityJpaRepository.save(entity);
-        return entity.getActivityId();
-    }
-
     @Transactional(propagation = Propagation.MANDATORY)
     public UUID logImportOperation(String format, ConfigImportOptions importOptions) {
         var metaJson = AuditMetaBuilder.with(objectMapper)
@@ -51,6 +42,14 @@ public class AuditActivityLogService {
                 .put("revision", revision)
                 .buildAsJson();
         return startParentOperation(ActivityType.Rollback, ActivityResourceType.System, metaJson);
+    }
+
+    private UUID startParentOperation(ActivityType activityType,
+                                      ActivityResourceType resourceType,
+                                      String operationMetadataJson) {
+        var entity = createAuditEntity(activityType, resourceType, operationMetadataJson);
+        auditActivityJpaRepository.save(entity);
+        return entity.getActivityId();
     }
 
     private AuditActivityEntity createAuditEntity(ActivityType activityType,
