@@ -5,19 +5,25 @@ import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.model.AdapterContainerEntity;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.dao.model.McpEntity;
 import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.Mcp;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
@@ -175,6 +181,52 @@ public class ContainerEndpointResolver {
                     features.setConfigurationEndpoint(endpoints.configurationEndpoint());
                 },
                 interceptor
+        );
+    }
+
+    public void processContainerEndpoints(Application application) {
+        ApplicationContainerSource containerSource = (ApplicationContainerSource) application.getSource();
+        processContainerEndpoints(
+                containerSource.getContainerId(),
+                containerSource,
+                ApplicationContainerSource::getCompletionEndpointPath,
+                ApplicationContainerSource::getMcpEndpointPath,
+                (target, endpoints) -> {
+                    ApplicationContainerSource targetSource = (ApplicationContainerSource) target.getSource();
+                    targetSource.setContainerName(endpoints.containerName());
+                    target.setEndpoint(endpoints.completionEndpoint());
+                    if (endpoints.configurationEndpoint() != null) {
+                        if (target.getMcp() == null) {
+                            target.setMcp(new Mcp());
+                        }
+                        target.getMcp().setEndpoint(endpoints.configurationEndpoint());
+                    }
+                },
+                application
+        );
+    }
+
+    public void processContainerEndpoints(ApplicationEntity applicationEntity) {
+        ApplicationContainerEntity container = applicationEntity.getApplicationContainer();
+        processContainerEndpoints(
+                container.getContainerId(),
+                container,
+                ApplicationContainerEntity::getCompletionEndpointPath,
+                ApplicationContainerEntity::getMcpEndpointPath,
+                (entity, endpoints) -> {
+                    ApplicationContainerEntity targetContainer = entity.getApplicationContainer();
+                    targetContainer.setContainerName(endpoints.containerName());
+                    entity.setEndpoint(endpoints.completionEndpoint());
+                    if (endpoints.configurationEndpoint() != null) {
+                        McpEntity mcp = entity.getMcp();
+                        if (mcp == null) {
+                            mcp = new McpEntity();
+                            entity.setMcp(mcp);
+                        }
+                        mcp.setEndpoint(endpoints.configurationEndpoint());
+                    }
+                },
+                applicationEntity
         );
     }
 

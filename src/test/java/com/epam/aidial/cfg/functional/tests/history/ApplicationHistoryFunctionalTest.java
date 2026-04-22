@@ -7,6 +7,8 @@ import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.source.ApplicationEndpointsSourceDto;
+import com.epam.aidial.cfg.dto.source.ApplicationSchemaSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.ApplicationFacade;
 import com.epam.aidial.cfg.web.facade.ApplicationTypeSchemaFacade;
@@ -182,7 +184,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         applicationTypeSchemaFacade.create(applicationTypeSchemaDto1);
         // create application1
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto1.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(URI.create(applicationTypeSchemaDto1.getId())));
         applicationFacade.createApplication(applicationDto);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
@@ -194,7 +196,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         applicationTypeSchemaFacade.create(applicationTypeSchemaDto2);
 
         // update application
-        applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto2.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(URI.create(applicationTypeSchemaDto2.getId())));
         applicationFacade.updateApplication(applicationDto.getName(), applicationDto, "*");
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
@@ -219,19 +221,19 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // create application1
         ApplicationDto application1Dto = createBaseApplicationDto("1");
-        application1Dto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));
+        application1Dto.setSource(new ApplicationSchemaSourceDto(URI.create(applicationTypeSchemaDto.getId())));
         applicationFacade.createApplication(application1Dto);
 
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
         var actualAtRevision = applicationFacade.getAllApplications();
         var actualApplication1AtRevision = applicationFacade.getApplication(application1Dto.getName());
 
-        application1Dto.setCustomAppSchemaId(null);
+        application1Dto.setSource(new ApplicationEndpointsSourceDto());
         application1Dto.setEndpoint("endpoint");
         applicationFacade.updateApplication(application1Dto.getName(), application1Dto, "*");
 
         ApplicationDto application2Dto = createBaseApplicationDto("2");
-        application2Dto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));
+        application2Dto.setSource(new ApplicationSchemaSourceDto(URI.create(applicationTypeSchemaDto.getId())));
         applicationFacade.createApplication(application2Dto);
 
         List<ConfigRevisionDto> revisionsListBeforeRollback = historyFacade.getRevisionsList();
@@ -254,7 +256,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // create application
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(URI.create(applicationTypeSchemaDto.getId()));
+        applicationDto.setSource(new ApplicationSchemaSourceDto(URI.create(applicationTypeSchemaDto.getId())));
         applicationFacade.createApplication(applicationDto);
 
         // remember rev number and expected applications state

@@ -5,6 +5,8 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
+import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
@@ -90,8 +92,9 @@ public class ApplicationExporter {
         if (!componentTypes.contains(ExportConfigComponentType.INTERCEPTOR)) {
             app.setInterceptors(null);
         }
-        if (!componentTypes.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)) {
-            app.setApplicationTypeSchemaId(null);
+        if (!componentTypes.contains(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
+                && app.getSource() instanceof ApplicationSchemaSource) {
+            app.setSource(new ApplicationEndpointsSource());
         }
         // Exclude role limits from deployment for Admin export format in order to have unidirectional association
         // between deployments and roles, so it means that role with its limits will be defined only under "roles" section

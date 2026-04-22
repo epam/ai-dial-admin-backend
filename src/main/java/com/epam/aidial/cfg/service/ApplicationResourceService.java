@@ -29,6 +29,7 @@ import com.epam.aidial.cfg.utils.AuthHeaderUtils;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -212,7 +213,7 @@ public class ApplicationResourceService implements ResourceService {
             return ToolSet.Transport.valueOf(application.getMcp().getTransport().name());
         }
 
-        if (application.getApplicationTypeSchemaId() != null) {
+        if (StringUtils.isNotBlank(application.getApplicationTypeSchemaId())) {
             var schema = applicationTypeSchemaService.get(application.getApplicationTypeSchemaId());
 
             if (schema != null && schema.getApplicationTypeMcp() != null) {
