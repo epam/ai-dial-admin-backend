@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.mapper.PromptClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.PromptEximDto;
 import com.epam.aidial.cfg.dto.PromptsEximDto;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.FolderExim;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -16,7 +17,6 @@ import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FolderService;
 import com.epam.aidial.cfg.service.SimpleCircuitBreaker;
 import com.epam.aidial.cfg.utils.PathUtils;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -203,11 +203,9 @@ public class PromptEximService {
             }
             return ImportResourcesResult.createSuccess(sourcePath, targetPath);
         } catch (Exception ex) {
-            if (ex instanceof FeignException feignException) {
-                if (feignException.status() == 412) {
-                    log.debug("Prompt {} import skipped - prompt already exists", targetPath, ex);
-                    return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
-                }
+            if (ex instanceof EntityAlreadyExistsException) {
+                log.debug("Prompt {} import skipped - prompt already exists", targetPath, ex);
+                return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
             }
             throw ex;
         }
