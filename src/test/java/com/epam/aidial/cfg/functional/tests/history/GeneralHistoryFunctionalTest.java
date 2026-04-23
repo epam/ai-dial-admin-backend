@@ -26,6 +26,8 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -86,6 +88,7 @@ public abstract class GeneralHistoryFunctionalTest {
         assertThat(auditActivities)
                 .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId")
                 .containsExactlyInAnyOrder(expectedKeyActivity);
+        assertRollbackParentActivityExists(auditActivities, revNumberToRollback);
     }
 
     @Test
@@ -133,6 +136,19 @@ public abstract class GeneralHistoryFunctionalTest {
         assertThat(auditActivities)
                 .usingRecursiveFieldByFieldElementComparatorOnFields("activityType", "resourceType", "resourceId")
                 .containsExactlyInAnyOrder(expectedRoleActivity, expectedModelActivity);
+        assertRollbackParentActivityExists(auditActivities, revNumberToRollback);
+    }
+
+    private void assertRollbackParentActivityExists(Collection<AuditActivityDto> revisionActivities, Integer rolledBackFromRevision) {
+        assertThat(revisionActivities).extracting(AuditActivityDto::getParentActivityId).allMatch(Objects::nonNull);
+        UUID parentId = revisionActivities.iterator().next().getParentActivityId();
+        assertThat(revisionActivities).extracting(AuditActivityDto::getParentActivityId).containsOnly(parentId);
+
+        AuditActivityDto parent = historyFacade.getAuditActivity(parentId);
+        assertThat(parent.getParentActivityId()).isNull();
+        assertThat(parent.getActivityType()).isEqualTo("Rollback");
+        assertThat(parent.getResourceType()).isEqualTo("System");
+        assertThat(parent.getOperationMetadata()).contains("\"revision\":" + rolledBackFromRevision);
     }
 
     private void loadData() {

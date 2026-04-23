@@ -36,7 +36,9 @@ All notable infrastructure-relevant changes to this project will be documented i
 - `METRICS_DATASOURCE_TYPE` — datasource type selector: `influx2` (default) or `influx3`
 - `METRICS_INFLUX3_DEFAULT_PAGE_SIZE` — default page size for InfluxDB 3 queries (default: `100`)
 - `METRICS_STORAGE_DATABASE` — InfluxDB 3 database name (default: `analytics-realtime`)
+- `METRICS_STORAGE_ANALYTICS_BUCKET` — InfluxDB 2 bucket for analytics data (default: `analytics-realtime`)
 - `METRICS_STORAGE_ANALYTICS_MEASUREMENT` — InfluxDB 2 measurement name for analytics data (default: `analytics`)
+- `METRICS_STORAGE_MCP_ANALYTICS_BUCKET` — InfluxDB 2 bucket for MCP analytics data (default: `analytics-realtime`)
 - `METRICS_STORAGE_MCP_ANALYTICS_MEASUREMENT` — InfluxDB 2 measurement name for MCP analytics data (default: `mcp_analytics`)
 - `METRICS_STORAGE_ANALYTICS_TABLE` — InfluxDB 3 table name for analytics data (default: `analytics`)
 - `METRICS_STORAGE_MCP_ANALYTICS_TABLE` — InfluxDB 3 table name for MCP analytics data (default: `mcp_analytics`)

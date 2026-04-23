@@ -21,6 +21,7 @@ import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -159,7 +160,7 @@ public class ModelService {
 
         assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
         assertNotConcurrencyOverwrite(modelEntity, hash);
-        resolveEndpointsIfContainerSource(model);
+        resolveEndpointsIfContainerSource(model, modelEntity);
         return save(toEntity(model, modelEntity));
     }
 
@@ -290,6 +291,21 @@ public class ModelService {
             return;
         }
         endpointResolver.processContainerEndpoints(model);
+    }
+
+    private void resolveEndpointsIfContainerSource(Model model, ModelEntity existingEntity) {
+        if (!(model.getSource() instanceof ModelContainerSource incomingContainer)) {
+            return;
+        }
+
+        ModelContainerEntity existingContainer = existingEntity.getModelContainer();
+        if (existingContainer == null
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
+            endpointResolver.processContainerEndpoints(model);
+            return;
+        }
+
+        endpointResolver.tryProcessContainerEndpoints(model, existingEntity);
     }
 
     private ModelEntity toEntity(Model domain, ModelEntity entity) {

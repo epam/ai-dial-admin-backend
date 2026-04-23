@@ -4,7 +4,9 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.ApplicationContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
+import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
@@ -15,7 +17,12 @@ import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.model.source.ApplicationContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.normalizer.ApplicationNormalizer;
+import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -35,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,6 +66,7 @@ public class ApplicationService {
     private final ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final ApplicationEntityMapper mapper;
+    private final ApplicationContainerEntityMapper applicationContainerEntityMapper;
     private final DeploymentService deploymentService;
     private final ApplicationNormalizer applicationNormalizer;
     private final ApplicationValidator applicationValidator;
@@ -66,6 +75,8 @@ public class ApplicationService {
     private final CoreClientUrlUtils coreClientUrlUtils;
     private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
+    private final ContainerEndpointResolver endpointResolver;
+    private final ApplicationRefreshService applicationRefreshService;
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
@@ -130,6 +141,7 @@ public class ApplicationService {
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
         assertNotExists(application.getDisplayName(), application.getDisplayVersion());
+        resolveEndpointsIfContainerSource(application);
         Optional.of(application)
                 .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))
                 .map(this::save)
@@ -159,6 +171,7 @@ public class ApplicationService {
 
         assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, application);
         assertNotConcurrencyOverwrite(applicationEntity, hash);
+        resolveEndpointsIfContainerSource(application, applicationEntity);
         return save(toEntity(application, applicationEntity));
     }
 
@@ -218,8 +231,9 @@ public class ApplicationService {
         Set<String> allSchemaIds = applicationTypeSchemaJpaRepository.findAllIds();
         for (Application application : applications) {
             application.getInterceptors().removeIf(interceptor -> !allInterceptorNames.contains(interceptor));
-            if (application.getApplicationTypeSchemaId() != null && !allSchemaIds.contains(application.getApplicationTypeSchemaId().toString())) {
-                application.setApplicationTypeSchemaId(null);
+            if (application.getSource() instanceof ApplicationSchemaSource schemaSource
+                    && !allSchemaIds.contains(schemaSource.getApplicationTypeSchemaId().toString())) {
+                application.setSource(new ApplicationEndpointsSource());
                 application.setEndpoint("endpoint");
             }
             ApplicationEntity entity = applicationJpaRepository.findById(application.getDeployment().getName()).orElseGet(ApplicationEntity::new);
@@ -266,13 +280,41 @@ public class ApplicationService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public void refreshEndpoints() {
+        var applicationEntities = applicationJpaRepository.findByApplicationContainerIsNotNull();
+        List<String> successfulApplications = new ArrayList<>();
+        List<String> failedApplications = new ArrayList<>();
+
+        for (var entity : applicationEntities) {
+            String applicationName = entity.getDeploymentName();
+            try {
+                applicationRefreshService.refreshEndpoints(entity);
+                successfulApplications.add(applicationName);
+            } catch (Exception e) {
+                log.debug("Failed to refresh endpoints for application '{}'", applicationName, e);
+                failedApplications.add(applicationName);
+            }
+        }
+
+        if (!failedApplications.isEmpty()) {
+            log.warn("Failed to refresh endpoints for {} applications: {}. Use DEBUG log level for details",
+                    failedApplications.size(), String.join(", ", failedApplications));
+        }
+
+        if (!successfulApplications.isEmpty()) {
+            log.debug("Successfully refreshed endpoints for {} applications: {}",
+                    successfulApplications.size(), String.join(", ", successfulApplications));
+        }
+    }
+
     private ToolSet.Transport resolveTransport(Application application, String applicationName) {
         if (application.getMcp() != null) {
             return ToolSet.Transport.valueOf(application.getMcp().getTransport().name());
         }
 
-        if (application.getApplicationTypeSchemaId() != null) {
-            var schema = findApplicationTypeSchemaById(application.getApplicationTypeSchemaId());
+        if (application.getSource() instanceof ApplicationSchemaSource schemaSource) {
+            var schema = findApplicationTypeSchemaById(schemaSource.getApplicationTypeSchemaId());
 
             if (schema != null && schema.getApplicationTypeMcp() != null) {
                 return ToolSet.Transport.valueOf(
@@ -284,6 +326,28 @@ public class ApplicationService {
         throw new UnsupportedOperationException(
                 "Application '%s' does not support MCP tool discovery".formatted(applicationName)
         );
+    }
+
+    private void resolveEndpointsIfContainerSource(Application application) {
+        if (!(application.getSource() instanceof ApplicationContainerSource)) {
+            return;
+        }
+        endpointResolver.processContainerEndpoints(application);
+    }
+
+    private void resolveEndpointsIfContainerSource(Application application, ApplicationEntity existingEntity) {
+        if (!(application.getSource() instanceof ApplicationContainerSource incomingContainer)) {
+            return;
+        }
+
+        ApplicationContainerEntity existingContainer = existingEntity.getApplicationContainer();
+        if (existingContainer == null
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
+            endpointResolver.processContainerEndpoints(application);
+            return;
+        }
+
+        endpointResolver.tryProcessContainerEndpoints(application, existingEntity);
     }
 
     private void assertExists(String name) {
@@ -313,12 +377,19 @@ public class ApplicationService {
     private ApplicationEntity toEntity(Application domain, ApplicationEntity entity) {
         List<InterceptorEntity> interceptors = findInterceptorsByNames(domain.getInterceptors());
 
-        ApplicationTypeSchemaEntity applicationTypeSchema = findApplicationTypeSchemaById(domain.getApplicationTypeSchemaId());
+        URI schemaId = domain.getSource() instanceof ApplicationSchemaSource schemaSource
+                ? schemaSource.getApplicationTypeSchemaId() : null;
+        ApplicationTypeSchemaEntity applicationTypeSchema = findApplicationTypeSchemaById(schemaId);
+
+        ApplicationContainerEntity applicationContainer = null;
+        if (domain.getSource() instanceof ApplicationContainerSource containerSource) {
+            applicationContainer = applicationContainerEntityMapper.toEntity(containerSource);
+        }
 
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        return mapper.toEntity(domain, entity, interceptors, applicationTypeSchema, roleLimits, rolesForLimits);
+        return mapper.toEntity(domain, entity, interceptors, applicationTypeSchema, applicationContainer, roleLimits, rolesForLimits);
     }
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {

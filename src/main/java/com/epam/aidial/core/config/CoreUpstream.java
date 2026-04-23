@@ -20,7 +20,7 @@ public class CoreUpstream {
     private String endpoint;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonAlias({"responsesEndpoint", "responses_endpoint", "dial:responsesEndpoint"})
-    private String responsesEndpoint;  //0.43.0
+    private String responsesEndpoint;  //0.42.0
     @JsonAlias({"key", "dial:key"})
     private String key;
 

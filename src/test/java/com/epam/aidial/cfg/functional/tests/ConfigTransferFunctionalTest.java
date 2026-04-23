@@ -13,6 +13,8 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.service.DatabaseService;
@@ -42,6 +44,7 @@ import com.epam.aidial.cfg.dto.UpstreamDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.ApplicationSchemaSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -79,7 +82,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.json.JSONException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -177,11 +179,6 @@ public abstract class ConfigTransferFunctionalTest {
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
     private final ObjectMapper prettyJsonMapper = JsonMapperConfiguration.createPrettyJsonMapper();
 
-    @BeforeEach
-    void setUp() {
-        versionProperties.setTarget("latest");
-    }
-
     @Test
     void testImport_WithoutConflict() throws IOException {
         // given
@@ -233,7 +230,8 @@ public abstract class ConfigTransferFunctionalTest {
 
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Assertions.assertThat(applicationDto.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(((ApplicationSchemaSourceDto) applicationDto.getSource()).applicationTypeSchemaId().toString()).isEqualTo("https://test-schema-id.example");
         ApplicationDto applicationDto2 = applicationFacade.getApplication("testApplication2");
         Assertions.assertThat(applicationDto2.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
 
@@ -1062,12 +1060,12 @@ public abstract class ConfigTransferFunctionalTest {
         URI customAppSchemaId = new URI("https://test-schema-id.example");
 
         ApplicationDto applicationDto1 = createBaseApplicationDto("1");
-        applicationDto1.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto1.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         applicationDto1.setTopics(new TreeSet<>(Set.of("b", "c", "d")));
         applicationFacade.createApplication(applicationDto1);
 
         ApplicationDto applicationDto2 = createBaseApplicationDto("2");
-        applicationDto2.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto2.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         applicationDto2.setTopics(new TreeSet<>(Set.of("c", "d")));
         applicationFacade.createApplication(applicationDto2);
 
@@ -1146,7 +1144,11 @@ public abstract class ConfigTransferFunctionalTest {
                     .containsOnlyKeys(applicationDto1.getName())
                     .satisfies(apps -> {
                         Application app = apps.get(applicationDto1.getName());
-                        Assertions.assertThat(app.getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
+                        Assertions.assertThat(app.getSource())
+                                .isInstanceOf(ApplicationSchemaSource.class);
+                        var schemaSource = (ApplicationSchemaSource) app.getSource();
+                        Assertions.assertThat(schemaSource.getApplicationTypeSchemaId())
+                                .isEqualTo(customAppSchemaId);
                     });
             Assertions.assertThat(config.getModels()).isNotEmpty()
                     .containsOnlyKeys(modelDto1.getName());
@@ -1183,7 +1185,7 @@ public abstract class ConfigTransferFunctionalTest {
         URI customAppSchemaId = new URI("https://test-schema-id.example");
 
         ApplicationDto applicationDto1 = createBaseApplicationDto("1");
-        applicationDto1.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto1.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         applicationDto1.setTopics(new TreeSet<>(Set.of("b", "c", "d")));
         applicationFacade.createApplication(applicationDto1);
 
@@ -1199,7 +1201,8 @@ public abstract class ConfigTransferFunctionalTest {
                     .containsOnlyKeys(applicationDto1.getName())
                     .satisfies(apps -> {
                         Application app = apps.get(applicationDto1.getName());
-                        Assertions.assertThat(app.getApplicationTypeSchemaId()).isNull();
+                        Assertions.assertThat(app.getSource())
+                                .isInstanceOf(ApplicationEndpointsSource.class);
                     });
         });
     }
@@ -1369,7 +1372,7 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = createBaseApplicationDto("1");
         applicationDto.setInterceptors(List.of("interceptor1"));
         URI customAppSchemaId = new URI("https://test-schema-id.example");
-        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         var dto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
         });
         applicationTypeSchemaFacade.create(dto);
@@ -1407,7 +1410,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         URI customAppSchemaId = new URI("https://test-schema-id.example");
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
 
         ApplicationTypeSchemaDto schemaDto = jsonMapper.readValue(
                 getAppRunnerDtoWithRequiredFields(List.of("external_url")),
@@ -1525,7 +1528,7 @@ public abstract class ConfigTransferFunctionalTest {
         shareResourceLimitDto.setMaxAcceptedUsers(10);
         applicationDto.setRoleLimits(Map.of("role1", limitDto));
         URI customAppSchemaId = new URI("https://test-schema-id.example");
-        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         var dto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
         });
         applicationTypeSchemaFacade.create(dto);
@@ -1539,7 +1542,11 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getApplications()).isNotEmpty()
                     .containsOnlyKeys("application1")
                     .satisfies(apps -> {
-                        Assertions.assertThat(apps.get("application1").getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
+                        Assertions.assertThat(apps.get("application1").getSource())
+                                .isInstanceOf(ApplicationSchemaSource.class);
+                        var schemaSource = (ApplicationSchemaSource) apps.get("application1").getSource();
+                        Assertions.assertThat(schemaSource.getApplicationTypeSchemaId())
+                                .isEqualTo(customAppSchemaId);
                         Assertions.assertThat(apps.get("application1").getDeployment().getRoleLimits()).isNull();
                     });
 
@@ -1970,7 +1977,10 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getApplications()).isNotEmpty().containsOnlyKeys("testApplication1")
                     .satisfies(apps -> {
                         Assertions.assertThat(apps.get("testApplication1").getInterceptors()).containsExactlyInAnyOrder("testInterceptor1");
-                        Assertions.assertThat(apps.get("testApplication1").getApplicationTypeSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
+                        Assertions.assertThat(apps.get("testApplication1").getSource())
+                                .isInstanceOf(ApplicationSchemaSource.class);
+                        Assertions.assertThat(((ApplicationSchemaSource) apps.get("testApplication1").getSource())
+                                .getApplicationTypeSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
                     });
             Assertions.assertThat(config.getModels()).isNotEmpty().containsOnlyKeys("testModel1")
                     .satisfies(models ->
@@ -2420,7 +2430,10 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto application2 = applicationFacade.getApplication("testApplication2");
 
         Assertions.assertThat(application1.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(application1.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(((ApplicationSchemaSourceDto) application1.getSource())
+                .applicationTypeSchemaId().toString()).isEqualTo("https://test-schema-id.example");
 
         var appRoute = application2.getRoutes().get(0);
         var expectedRoute = getDependentRouteDto("route1");
@@ -2516,7 +2529,10 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto application2 = applicationFacade.getApplication("testApplication2");
 
         Assertions.assertThat(application1.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(application1.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(((ApplicationSchemaSourceDto) application1.getSource())
+                .applicationTypeSchemaId().toString()).isEqualTo("https://test-schema-id.example");
 
         var appRoute = application2.getRoutes().get(0);
         var expectedRoute = getDependentRouteDto("route1");
@@ -2618,7 +2634,9 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app -> {
-            Assertions.assertThat(app.getCustomAppSchemaId()).isEqualTo(new URI("https://test2-schema-id.example"));
+            Assertions.assertThat(app.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+            Assertions.assertThat(((ApplicationSchemaSourceDto) app.getSource())
+                    .applicationTypeSchemaId()).isEqualTo(new URI("https://test2-schema-id.example"));
             Assertions.assertThat(app.getInterceptors()).containsExactlyInAnyOrder("testInterceptor1", "testInterceptor2");
         });
     }
@@ -2644,7 +2662,9 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app -> {
-            Assertions.assertThat(app.getCustomAppSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
+            Assertions.assertThat(app.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+            Assertions.assertThat(((ApplicationSchemaSourceDto) app.getSource())
+                    .applicationTypeSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
         });
     }
 
