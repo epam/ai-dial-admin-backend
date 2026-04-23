@@ -1,12 +1,9 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
 import com.epam.aidial.cfg.domain.model.source.AdapterEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +17,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AdapterValidatorTest {
@@ -35,8 +31,6 @@ class AdapterValidatorTest {
     private IdFieldValidator idFieldValidator;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
-    @Mock
-    private DeploymentManagerService deploymentManagerService;
 
     private AdapterValidator adapterValidator;
 
@@ -45,8 +39,6 @@ class AdapterValidatorTest {
         adapterValidator = new AdapterValidator(
                 idFieldValidator,
                 displayFieldsValidator,
-                deploymentManagerService,
-                new DeploymentInfoValidator(),
                 null
         );
     }
@@ -152,34 +144,9 @@ class AdapterValidatorTest {
     }
 
     @Test
-    void validateCreation_shouldThrowExceptionWhenContainerSourceAndDeploymentNotFound() {
-        Adapter adapter = createMinimalAdapter();
-        adapter.setSource(new AdapterContainerSource(CONTAINER_ID, null, "/path"));
-        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(null);
-
-        assertThatThrownBy(() -> adapterValidator.validateCreation(adapter))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Container with ID '%s' not found".formatted(CONTAINER_ID));
-    }
-
-    @Test
-    void validateCreation_shouldThrowExceptionWhenContainerSourceAndDeploymentInfoValidatorThrows() {
-        Adapter adapter = createMinimalAdapter();
-        adapter.setSource(new AdapterContainerSource(CONTAINER_ID, null, "/path"));
-        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto(CONTAINER_ID, "Container", null);
-        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
-
-        assertThatThrownBy(() -> adapterValidator.validateCreation(adapter))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Container URL is not present");
-    }
-
-    @Test
     void validateCreation_shouldThrowExceptionWhenContainerSourceAndCompletionPathIsInvalid() {
         Adapter adapter = createMinimalAdapter();
         adapter.setSource(new AdapterContainerSource(CONTAINER_ID, null, "invalid path with spaces"));
-        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto(CONTAINER_ID, "Container", "https://container.example.com");
-        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
 
         assertThatThrownBy(() -> adapterValidator.validateCreation(adapter))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -190,8 +157,6 @@ class AdapterValidatorTest {
     void validateCreation_shouldNotThrowWhenContainerSourceIsValid() {
         Adapter adapter = createMinimalAdapter();
         adapter.setSource(new AdapterContainerSource(CONTAINER_ID, "Container", "/completions"));
-        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto(CONTAINER_ID, "Container", "https://container.example.com");
-        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
 
         assertThatNoException().isThrownBy(() -> adapterValidator.validateCreation(adapter));
     }
@@ -200,8 +165,6 @@ class AdapterValidatorTest {
     void validateCreation_shouldNotThrowWhenContainerSourceAndCompletionPathIsNull() {
         Adapter adapter = createMinimalAdapter();
         adapter.setSource(new AdapterContainerSource(CONTAINER_ID, null, null));
-        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto(CONTAINER_ID, "Container", "https://container.example.com");
-        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
 
         assertThatNoException().isThrownBy(() -> adapterValidator.validateCreation(adapter));
     }
@@ -246,17 +209,6 @@ class AdapterValidatorTest {
         assertThatThrownBy(() -> adapterValidator.validateUpdate(ADAPTER_NAME, adapter))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Base endpoint is required when source type is 'Adapter endpoints'. Adapter: " + ADAPTER_NAME);
-    }
-
-    @Test
-    void validateUpdate_shouldThrowExceptionWhenContainerSourceAndDeploymentNotFound() {
-        Adapter adapter = createMinimalAdapter();
-        adapter.setSource(new AdapterContainerSource(CONTAINER_ID, null, "/path"));
-        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(null);
-
-        assertThatThrownBy(() -> adapterValidator.validateUpdate(ADAPTER_NAME, adapter))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Container with ID '%s' not found".formatted(CONTAINER_ID));
     }
 
     @Test

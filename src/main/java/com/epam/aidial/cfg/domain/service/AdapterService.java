@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.domain.model.EntityRevision;
 import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.domain.validator.AdapterValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -146,9 +147,9 @@ public class AdapterService {
 
     private AdapterEntity performUpdate(String adapterName, Adapter adapter, String hash) {
         adapterValidator.validateUpdate(adapterName, adapter);
-        resolveEndpointsIfContainerSource(adapter);
         AdapterEntity adapterEntity = findByAdapterName(adapterName);
         assertNotConcurrencyOverwrite(adapterEntity, hash);
+        resolveEndpointsIfContainerSource(adapter, adapterEntity);
         return adapterJpaRepository.save(toEntity(adapter, adapterEntity));
     }
 
@@ -283,6 +284,21 @@ public class AdapterService {
         if (adapter.getSource() instanceof AdapterContainerSource) {
             endpointResolver.processContainerEndpoints(adapter);
         }
+    }
+
+    private void resolveEndpointsIfContainerSource(Adapter adapter, AdapterEntity existingEntity) {
+        if (!(adapter.getSource() instanceof AdapterContainerSource incomingContainer)) {
+            return;
+        }
+
+        AdapterContainerEntity existingContainer = existingEntity.getAdapterContainer();
+        if (existingContainer == null
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
+            endpointResolver.processContainerEndpoints(adapter);
+            return;
+        }
+
+        endpointResolver.tryProcessContainerEndpoints(adapter, existingEntity);
     }
 
     private AdapterEntity toEntity(Adapter domain, AdapterEntity entity) {
