@@ -16,7 +16,10 @@ import com.epam.aidial.cfg.model.PromptsExim;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FolderService;
 import com.epam.aidial.cfg.service.SimpleCircuitBreaker;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
+import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -50,22 +53,25 @@ public class PromptEximService {
                 .sorted()
                 .toList();
 
-        var promptExims = getPromptExports(distinctPaths);
+        var exportEntries = ResourceEximExportHelper.resolveExportEntries(distinctPaths,
+                folderPath -> ResourceEximExportHelper.collectPathsUnderFolder(
+                        folderPath, promptService::getPrompts, "prompt"));
+        var promptExims = exportEntries.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> getPromptExport(e.getKey(), e.getValue()))
+                .toList();
         var folderExims = getFolderExports(distinctPaths);
         return new PromptsExim(promptExims, folderExims);
     }
 
-    private List<PromptExim> getPromptExports(List<String> paths) {
-        return paths.stream().map(this::getPromptExport).toList();
-    }
-
-    private PromptExim getPromptExport(String path) {
+    private PromptExim getPromptExport(String storagePath, String exportFolderPath) {
         try {
-            var prompt = promptService.getPrompt(path);
-            var parts = PathUtils.parseVersionedPath(path);
+            var prompt = promptService.getPrompt(storagePath);
+            var exportedPath = ExportPathUtils.toExportedVersionedStoragePath(storagePath, exportFolderPath);
+            var parts = PathUtils.parseVersionedPath(exportedPath);
             return promptClientMapper.toPromptExim(prompt, parts);
         } catch (Exception e) {
-            log.error("Cannot load prompt from path {}", path, e);
+            log.error("Cannot load prompt from path {}", storagePath, e);
             throw new RuntimeException(e);
         }
     }

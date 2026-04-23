@@ -101,7 +101,10 @@ public abstract class ApplicationClientMapper {
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
 
-    public abstract ApplicationExim toApplicationExim(ApplicationResource applicationResource);
+    @Mapping(target = "name", source = "itemParts.name")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    public abstract ApplicationExim toApplicationExim(ApplicationResource applicationResource, PathUtils.VersionedPathParts itemParts);
 
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "folderId", source = "itemParts.folderId")

@@ -9,10 +9,13 @@ import com.epam.aidial.cfg.model.CreateToolSetResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.ToolSetResource;
+import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +32,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -77,7 +81,7 @@ class ToolSetEximServiceTest {
 
         var toolSetExim = result.getToolSets().get(0);
         assertThat(toolSetExim.getDisplayName()).isEqualTo("toolSet1");
-        assertThat(toolSetExim.getFolderId()).isEqualTo("public/folder1/");
+        assertThat(toolSetExim.getFolderId()).isEqualTo("public/");
         assertThat(toolSetExim.getDescription()).isEqualTo("toolSet description 1");
         assertThat(toolSetExim.isForwardPerRequestKey()).isTrue();
     }
@@ -105,16 +109,92 @@ class ToolSetEximServiceTest {
         // Verify first toolSet
         var toolSetExim1 = result.getToolSets().get(0);
         assertThat(toolSetExim1.getName()).isEqualTo("toolSet1");
-        assertThat(toolSetExim1.getFolderId()).isEqualTo("public/folder1/");
+        assertThat(toolSetExim1.getFolderId()).isEqualTo("public/");
         assertThat(toolSetExim1.getDescription()).isEqualTo("toolSet description 1");
         assertThat(toolSetExim1.isForwardPerRequestKey()).isTrue();
 
         // Verify second toolSet1Exim1
         var toolSetExim2 = result.getToolSets().get(1);
         assertThat(toolSetExim2.getName()).isEqualTo("toolSet2");
-        assertThat(toolSetExim2.getFolderId()).isEqualTo("public/folder2/");
+        assertThat(toolSetExim2.getFolderId()).isEqualTo("public/");
         assertThat(toolSetExim2.getDescription()).isEqualTo("toolSet description 2");
         assertThat(toolSetExim2.isForwardPerRequestKey()).isTrue();
+    }
+
+    @Test
+    @SneakyThrows
+    void exportToolSets_FolderPath() {
+        var folderPath = "public/folder1/folder2/folder3/";
+        var toolSetStoragePath = "public/folder1/folder2/folder3/folder4/toolSet__0.0.1";
+
+        var item = ToolSetResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(toolSetStoragePath)
+                .build();
+        var folder = ToolSetResourceNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(item))
+                .build();
+
+        when(toolSetService.getToolSetResources(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var toolSet = new ToolSetResource();
+        toolSet.setPath(toolSetStoragePath);
+        toolSet.setName("toolSet");
+        toolSet.setVersion("0.0.1");
+        toolSet.setFolderId("public/folder1/folder2/folder3/folder4/");
+        toolSet.setForwardPerRequestKey(true);
+
+        when(toolSetService.getToolSetResource(toolSetStoragePath)).thenReturn(toolSet);
+
+        var result = toolSetEximService.exportToolSets(List.of(folderPath));
+
+        assertThat(result.getToolSets()).hasSize(1);
+        var exim = result.getToolSets().get(0);
+        assertThat(exim.getName()).isEqualTo("toolSet");
+        assertThat(exim.getFolderId()).isEqualTo("public/folder3/folder4/");
+        verify(toolSetService).getToolSetResource(toolSetStoragePath);
+    }
+
+    @Test
+    @SneakyThrows
+    void exportToolSets_FolderPath_excludesTechnicalFile() {
+        var folderPath = "public/folder1/folder2/";
+        var path = "public/folder1/folder2/toolSet__0.0.1";
+        var techPath = "public/folder1/folder2/" + ExportPathUtils.DIAL_FOLDER_FILE + "__0.0.1";
+
+        var techItem = ToolSetResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(techPath)
+                .build();
+        var item = ToolSetResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(path)
+                .build();
+        var folder = ToolSetResourceNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(techItem, item))
+                .build();
+
+        when(toolSetService.getToolSetResources(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var toolSet = new ToolSetResource();
+        toolSet.setPath(path);
+        toolSet.setName("toolSet");
+        toolSet.setVersion("0.0.1");
+        toolSet.setFolderId("public/folder1/folder2/");
+        toolSet.setForwardPerRequestKey(true);
+
+        when(toolSetService.getToolSetResource(path)).thenReturn(toolSet);
+
+        var result = toolSetEximService.exportToolSets(List.of(folderPath));
+
+        assertThat(result.getToolSets()).hasSize(1);
+        assertThat(result.getToolSets().get(0).getName()).isEqualTo("toolSet");
+        assertThat(result.getToolSets().get(0).getFolderId()).isEqualTo("public/folder2/");
+        verify(toolSetService).getToolSetResource(path);
     }
 
     @Test
