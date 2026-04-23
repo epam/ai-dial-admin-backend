@@ -20,6 +20,7 @@ import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.validator.InterceptorValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -146,10 +147,10 @@ public class InterceptorService {
 
     private InterceptorEntity performUpdate(String interceptorName, Interceptor interceptor, String hash) {
         interceptorValidator.validateUpdate(interceptorName, interceptor);
-        resolveEndpointsIfContainerSource(interceptor);
         var interceptorEntity = interceptorJpaRepository.findById(interceptorName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName)));
         assertNotConcurrencyOverwrite(interceptorEntity, hash);
+        resolveEndpointsIfContainerSource(interceptor, interceptorEntity);
         return interceptorJpaRepository.save(toEntity(interceptor, interceptorEntity));
     }
 
@@ -248,6 +249,21 @@ public class InterceptorService {
             return;
         }
         endpointResolver.processContainerEndpoints(interceptor);
+    }
+
+    private void resolveEndpointsIfContainerSource(Interceptor interceptor, InterceptorEntity existingEntity) {
+        if (!(interceptor.getSource() instanceof InterceptorContainerSource incomingContainer)) {
+            return;
+        }
+
+        InterceptorContainerEntity existingContainer = existingEntity.getInterceptorContainer();
+        if (existingContainer == null
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
+            endpointResolver.processContainerEndpoints(interceptor);
+            return;
+        }
+
+        endpointResolver.tryProcessContainerEndpoints(interceptor, existingEntity);
     }
 
     private void assertExists(String name) {

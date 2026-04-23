@@ -13,7 +13,9 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.utils.EximServiceHelper;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
+import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -45,20 +48,24 @@ public class ApplicationEximService {
                 .sorted()
                 .toList();
 
-        var applicationExims = getApplicationExports(distinctPaths);
+        var exportEntries = ResourceEximExportHelper.resolveExportEntries(distinctPaths,
+                folderPath -> ResourceEximExportHelper.collectPathsUnderFolder(
+                        folderPath, applicationResourceService::getApplications, "application"));
+        var applicationExims = exportEntries.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> getApplicationExport(e.getKey(), e.getValue()))
+                .toList();
         return new ApplicationsExim(applicationExims);
     }
 
-    private List<ApplicationExim> getApplicationExports(List<String> paths) {
-        return paths.stream().map(this::getApplicationExport).toList();
-    }
-
-    private ApplicationExim getApplicationExport(String path) {
+    private ApplicationExim getApplicationExport(String storagePath, String exportFolderPath) {
         try {
-            var applicationResource = applicationResourceService.getApplicationResource(path);
-            return applicationClientMapper.toApplicationExim(applicationResource);
+            var applicationResource = applicationResourceService.getApplicationResource(storagePath);
+            var exportedPath = ExportPathUtils.toExportedVersionedStoragePath(storagePath, exportFolderPath);
+            var parts = PathUtils.parseVersionedPath(exportedPath);
+            return applicationClientMapper.toApplicationExim(applicationResource, parts);
         } catch (Exception e) {
-            log.warn("Cannot load application from path {}", path, e);
+            log.warn("Cannot load application from path {}", storagePath, e);
             throw new RuntimeException(e);
         }
     }

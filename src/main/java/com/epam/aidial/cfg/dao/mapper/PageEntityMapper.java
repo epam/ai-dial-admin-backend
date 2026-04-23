@@ -44,7 +44,8 @@ public interface PageEntityMapper {
             }
             final Expression<String> column;
             final String value;
-            if (specificationContext.caseInSensitiveColumns().contains(filter.getColumn())) {
+            if (specificationContext.caseInSensitiveColumns().contains(filter.getColumn())
+                    && filter.getValue() != null) {
                 column = criteriaBuilder.lower(root.get(filter.getColumn()));
                 value = filter.getValue().toLowerCase();
             } else {
@@ -52,6 +53,12 @@ public interface PageEntityMapper {
                 value = filter.getValue();
             }
             switch (filter.getOperator()) {
+                case isnull -> {
+                    return criteriaBuilder.isNull(column);
+                }
+                case isnotnull -> {
+                    return criteriaBuilder.isNotNull(column);
+                }
                 case eq -> {
                     return criteriaBuilder.equal(column, value);
                 }

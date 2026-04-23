@@ -4,12 +4,6 @@ buildscript {
             classpath ('org.apache.commons:commons-lang3:3.18.0') {
                 because("previous versions have vulnerabilities")
             }
-            classpath ('org.springframework:spring-core:6.2.11') {
-                because("previous versions have vulnerabilities")
-            }
-            classpath ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
-                because("previous versions have vulnerabilities")
-            }
         }
     }
 }
@@ -22,7 +16,7 @@ plugins {
 }
 
 group = 'com.epam.aidial'
-version = "0.15.0-rc"
+version = "0.0.0"
 
 java {
     toolchain {
@@ -140,9 +134,9 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-log4j2') {
         exclude group: 'org.apache.logging.log4j'
     }
-    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-jul:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-jul:2.25.4'
     implementation 'io.opentelemetry:opentelemetry-sdk'
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:1.33.6-alpha'
@@ -172,41 +166,17 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.18') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.21') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('com.nimbusds:nimbus-jose-jwt:10.3.1') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('io.projectreactor.netty:reactor-netty-http:1.2.8') {
             because("previous versions have vulnerabilities")
         }
         implementation ('io.netty:netty-codec-http2:4.2.11.Final') {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
-                because("previous versions have vulnerabilities)")
-        }
-        implementation ('io.netty:netty-codec:4.2.8.Final') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('io.netty:netty-codec-http:4.2.8.Final') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('org.springframework:spring-webmvc:6.2.17') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('org.springframework.security:spring-security-core:6.5.4') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('org.springframework:spring-core:6.2.11') {
-            because("previous versions have vulnerabilities")
-        }
-        implementation ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
-            because("previous versions have vulnerabilities")
+            because("previous versions have vulnerabilities)")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
@@ -214,12 +184,33 @@ dependencies {
         checkstyle ('org.apache.commons:commons-lang3:3.18.0') {
             because("previous versions have vulnerabilities")
         }
+        checkstyle ('org.codehaus.plexus:plexus-utils:4.0.3') {
+            because("previous versions have vulnerabilities")
+        }
     }
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'performance'
+    }
     jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+}
+
+tasks.register('perfTest', Test) {
+    description = 'Runs tests tagged "performance". Not part of the default test suite.'
+    group = 'verification'
+    useJUnitPlatform {
+        includeTags 'performance'
+    }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+    shouldRunAfter test
+    outputs.upToDateWhen { false }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 tasks.withType(JavaCompile) {

@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetMcpRegistrySource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,21 +22,22 @@ public class ToolSetValidator {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z0-9-_]+$");
 
     private final DeploymentManagerService deploymentManagerService;
-    private final DeploymentInfoValidator deploymentInfoValidator;
     private final DeploymentValidator deploymentValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
+    private final ResourceAuthSettingsValidator resourceAuthSettingsValidator;
 
     private final String toolSetNameValidationPattern;
 
     public ToolSetValidator(DeploymentManagerService deploymentManagerService,
-                            DeploymentInfoValidator deploymentInfoValidator,
                             DeploymentValidator deploymentValidator,
-                            DisplayFieldsValidator displayFieldsValidator, @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
+                            DisplayFieldsValidator displayFieldsValidator,
+                            ResourceAuthSettingsValidator resourceAuthSettingsValidator,
+                            @Value("${validation.toolSet.name:}") String toolSetNameValidationPattern) {
         this.deploymentManagerService = deploymentManagerService;
-        this.deploymentInfoValidator = deploymentInfoValidator;
         this.deploymentValidator = deploymentValidator;
         this.displayFieldsValidator = displayFieldsValidator;
         this.toolSetNameValidationPattern = toolSetNameValidationPattern;
+        this.resourceAuthSettingsValidator = resourceAuthSettingsValidator;
     }
 
     public void validateCreation(ToolSet toolSet) {
@@ -44,12 +46,14 @@ public class ToolSetValidator {
         deploymentValidator.validateCreation("ToolSet", toolSetName);
         validateName(toolSetName);
         displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
+        resourceAuthSettingsValidator.validate(toolSet.getDeployment().getAuthSettings(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 
     public void validateUpdate(String toolSetName, ToolSet toolSet) {
         deploymentValidator.validateUpdate(toolSetName, toolSet.getDeployment(), "ToolSet");
         displayFieldsValidator.validateDisplayName(toolSet.getDisplayName(), "ToolSet", toolSetName);
+        resourceAuthSettingsValidator.validate(toolSet.getDeployment().getAuthSettings(), "ToolSet", toolSetName);
         validateToolSetSource(toolSet);
     }
 
@@ -73,9 +77,11 @@ public class ToolSetValidator {
 
         if (source != null) {
             if (source instanceof ToolSetEndpointsSource) {
-                validateEndpointsSource(toolSet);
+                validateEndpointsSource(toolSet, "Toolset endpoints");
             } else if (source instanceof ToolSetContainerSource containerSource) {
                 validateContainerSource(containerSource, name);
+            } else if (source instanceof ToolSetMcpRegistrySource mcpRegistrySource) {
+                validateMcpRegistrySource(mcpRegistrySource, toolSet);
             } else {
                 throw new IllegalArgumentException(
                     "Unsupported toolset source: %s. Toolset: %s".formatted(source, toolSet.getDeployment().getName())
@@ -87,12 +93,12 @@ public class ToolSetValidator {
         validateEndpoint(toolSet.getEndpoint(), name);
     }
 
-    private void validateEndpointsSource(ToolSet toolSet) {
+    private void validateEndpointsSource(ToolSet toolSet, String sourceType) {
         String name = toolSet.getDeployment().getName();
         String endpoint = toolSet.getEndpoint();
         if (endpoint == null) {
-            throw new IllegalArgumentException("Endpoint is required when source type is 'Toolset endpoints'. Toolset: %s"
-                    .formatted(toolSet.getDeployment().getName()));
+            throw new IllegalArgumentException("Endpoint is required when source type is '%s'. Toolset: %s"
+                    .formatted(sourceType, toolSet.getDeployment().getName()));
         }
         validateEndpoint(endpoint, name);
     }
@@ -100,7 +106,6 @@ public class ToolSetValidator {
     private void validateContainerSource(ToolSetContainerSource containerSource, String toolSetName) {
         String containerId = containerSource.getContainerId();
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
-        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
         McpDeploymentInfoDto mcpDeploymentInfoDto = validateDeploymentType(deploymentInfo, toolSetName);
         validateToolsetTransport(mcpDeploymentInfoDto, toolSetName);
         validateEndpointPath(containerSource.getCompletionEndpointPath(), toolSetName);
@@ -132,6 +137,15 @@ public class ToolSetValidator {
         if (StringUtils.isNotEmpty(endpoint) && EndpointValidator.isInvalidUrlPath(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint path: '%s'. Toolset: %s".formatted(endpoint, name));
         }
+    }
+
+    private void validateMcpRegistrySource(ToolSetMcpRegistrySource mcpRegistrySource, ToolSet toolSet) {
+        String toolSetName = toolSet.getDeployment().getName();
+        if (StringUtils.isBlank(mcpRegistrySource.getServerName())) {
+            throw new IllegalArgumentException(
+                    "Server name is required when source type is 'MCP registry'. Toolset: %s".formatted(toolSetName));
+        }
+        validateEndpointsSource(toolSet, "MCP registry");
     }
 
 }

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.epam.aidial.cfg.utils.SecretUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -14,7 +15,9 @@ public class ResourceAuthSettingsDto {
 
     private String clientId;
     private String clientSecret;
+    @Endpoint
     private String authorizationEndpoint;
+    @Endpoint
     private String tokenEndpoint;
     private String redirectUri;
     private String codeChallenge;

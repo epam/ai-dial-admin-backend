@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.model.EntitySyncState;
 import com.epam.aidial.cfg.model.EntitySyncStateStatus;
 import com.epam.aidial.cfg.service.config.reload.CoreConfigReloadCache;
+import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,15 +24,18 @@ public class EntitySyncStateResolver {
     private final ObjectMapper coreObjectMapper;
     private final CoreConfigReloadCache coreConfigReloadCache;
     private final EntitySyncStateStatusResolver syncStateStatusResolver;
+    private final VersionAwareFieldFilter versionAwareFieldFilter;
 
     public EntitySyncStateResolver(ObjectMapper objectMapper,
                                    @Qualifier("coreJsonMapper") ObjectMapper coreObjectMapper,
                                    CoreConfigReloadCache coreConfigReloadCache,
-                                   EntitySyncStateStatusResolver syncStateStatusResolver) {
+                                   EntitySyncStateStatusResolver syncStateStatusResolver,
+                                   VersionAwareFieldFilter versionAwareFieldFilter) {
         this.objectMapper = objectMapper;
         this.coreObjectMapper = coreObjectMapper;
         this.coreConfigReloadCache = coreConfigReloadCache;
         this.syncStateStatusResolver = syncStateStatusResolver;
+        this.versionAwareFieldFilter = versionAwareFieldFilter;
     }
 
     public <T> EntitySyncState resolveForEntityInObject(T currentState,
@@ -104,6 +108,9 @@ public class EntitySyncStateResolver {
 
         JsonNode configStateJsonNode = entityFinder.apply(entitiesJsonNode);
         JsonNode normalizedCurrentStateJsonNode = getNormalizedCurrentStateJsonNode(currentState);
+        // Strip fields unknown to the target Core version before comparison
+        normalizedCurrentStateJsonNode = versionAwareFieldFilter.filterEntityNodeForTargetVersion(
+                normalizedCurrentStateJsonNode, entityType);
 
         EntitySyncStateStatus syncStateStatus = syncStateStatusResolver.resolve(
                 normalizedCurrentStateJsonNode,

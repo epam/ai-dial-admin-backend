@@ -50,10 +50,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 @DataJpaTest
 @TestPropertySource(properties = {
         "datasource.vendor=MS_SQL_SERVER",
+        "spring.datasource.hikari.allow-pool-suspension=true",
+        "spring.datasource.hikari.minimum-idle=0",
+        "spring.datasource.hikari.validation-timeout=3000",
 })
 @Import(MsSqlServerFunctionalTestConfiguration.class)
 @Testcontainers
@@ -66,7 +70,12 @@ public class MsSqlServerFunctionalTests extends FunctionalTestSuite {
     private static final MSSQLServerContainer<?> MS_SQL_SERVER = new MSSQLServerContainer<>("mcr.microsoft.com/mssql/server:2022-CU18-ubuntu-22.04");
 
     static {
-        MS_SQL_SERVER.acceptLicense();
+        MS_SQL_SERVER
+                // Data live in RAM, not on disk
+                .withTmpFs(Map.of("/var/opt/mssql/data", "rw"))
+                .withEnv("MSSQL_PID", "Developer")
+                .withEnv("MSSQL_MEMORY_LIMIT_MB", "1024")
+                .acceptLicense();
         MS_SQL_SERVER.start();
 
         HikariConfig hikariConfig = new HikariConfig();
@@ -82,6 +91,10 @@ public class MsSqlServerFunctionalTests extends FunctionalTestSuite {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static MSSQLServerContainer<?> getContainer() {
+        return MS_SQL_SERVER;
     }
 
     @DynamicPropertySource

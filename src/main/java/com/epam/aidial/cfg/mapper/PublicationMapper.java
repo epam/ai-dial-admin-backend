@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.ApplicationPublicationDto;
 import com.epam.aidial.cfg.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.ConversationDto;
 import com.epam.aidial.cfg.dto.ConversationPublicationDto;
+import com.epam.aidial.cfg.dto.ConversationPublicationResourceDto;
 import com.epam.aidial.cfg.dto.FileInfoDto;
 import com.epam.aidial.cfg.dto.FilePublicationDto;
 import com.epam.aidial.cfg.dto.FilePublicationResourceDto;
@@ -190,10 +191,15 @@ public interface PublicationMapper {
     @Mapping(target = "resources", source = "conversations")
     ConversationPublication toConversationPublication(ConversationPublicationDto conversationPublicationDto);
 
+    ConversationPublicationResource toConversationPublicationResource(ConversationPublicationResourceDto dto);
+
+    Conversation toConversation(ConversationDto dto);
+
     @Mapping(target = "resources", source = "applicationResources")
     ApplicationPublication toApplicationResourcePublication(ApplicationPublicationDto applicationPublicationDto);
 
     @Mapping(target = "validityState", ignore = true)
+    @Mapping(target = "url", ignore = true)
     ApplicationResource toApplicationResource(ApplicationResourceDto applicationResourceDto);
 
     @Mapping(target = "resources", source = "prompts")

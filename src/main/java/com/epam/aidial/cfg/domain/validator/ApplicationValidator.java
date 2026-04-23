@@ -2,6 +2,10 @@ package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.source.ApplicationContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,31 +79,69 @@ public class ApplicationValidator {
     private void validateApplicationFields(Application application) {
         String appName = application.getDeployment().getName();
         String endpoint = application.getEndpoint();
-        URI applicationTypeSchemaId = application.getApplicationTypeSchemaId();
-        List<DependentRoute> routes = application.getRoutes();
-        var mcp = application.getMcp();
 
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint: '%s'. Application: %s".formatted(endpoint, appName));
         }
 
-        if (!isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            if (endpoint != null || mcp != null) {
-                throw new IllegalArgumentException("Neither application endpoint nor MCP must be set for schema based application."
-                        + " Application: %s".formatted(appName));
-            }
-        } else if (endpoint == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))) {
+        ApplicationSource source = application.getSource();
+        if (source == null) {
+            throw new IllegalArgumentException("Application source must be provided. Application: %s".formatted(appName));
+        }
+        if (source instanceof ApplicationEndpointsSource) {
+            validateEndpointsSource(application, appName);
+        } else if (source instanceof ApplicationSchemaSource schemaSource) {
+            validateSchemaSource(schemaSource, application, appName);
+        } else if (source instanceof ApplicationContainerSource containerSource) {
+            validateContainerSource(containerSource, appName);
+        } else {
+            throw new IllegalArgumentException("Unsupported application source type. Application: %s".formatted(appName));
+        }
+    }
+
+    private void validateEndpointsSource(Application application, String appName) {
+        var mcp = application.getMcp();
+        if (application.getEndpoint() == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))) {
             throw new IllegalArgumentException("At least application endpoint or MCP endpoint must be provided."
                     + " Application: %s".formatted(appName));
         }
+    }
 
-        if (CollectionUtils.isNotEmpty(routes) && !isBlankApplicationTypeSchemaId(applicationTypeSchemaId)) {
-            throw new IllegalArgumentException("Both routes and application type schema id are specified. Only one of them should be specified."
+    private void validateSchemaSource(ApplicationSchemaSource schemaSource, Application application, String appName) {
+        if (isBlankApplicationTypeSchemaId(schemaSource.getApplicationTypeSchemaId())) {
+            throw new IllegalArgumentException("Application type schema id must be provided for schema source."
+                    + " Application: %s".formatted(appName));
+        }
+
+        if (application.getEndpoint() != null || application.getMcp() != null) {
+            throw new IllegalArgumentException("Neither application endpoint nor MCP must be set for schema based application."
+                    + " Application: %s".formatted(appName));
+        }
+
+        List<DependentRoute> routes = application.getRoutes();
+        if (CollectionUtils.isNotEmpty(routes)) {
+            throw new IllegalArgumentException("Routes must not be set for schema based application."
                     + " Application: %s".formatted(appName));
         }
     }
 
     private boolean isBlankApplicationTypeSchemaId(URI applicationTypeSchemaId) {
         return applicationTypeSchemaId == null || StringUtils.isBlank(applicationTypeSchemaId.toString());
+    }
+
+    private void validateContainerSource(ApplicationContainerSource containerSource, String appName) {
+        String containerId = containerSource.getContainerId();
+        if (StringUtils.isBlank(containerId)) {
+            throw new IllegalArgumentException("Container ID must be provided for container source. Application: %s".formatted(appName));
+        }
+
+        validateEndpointPath(containerSource.getCompletionEndpointPath(), appName);
+        validateEndpointPath(containerSource.getMcpEndpointPath(), appName);
+    }
+
+    private void validateEndpointPath(String endpoint, String appName) {
+        if (StringUtils.isNotEmpty(endpoint) && EndpointValidator.isInvalidUrlPath(endpoint)) {
+            throw new IllegalArgumentException("Invalid endpoint path: '%s'. Application: %s".formatted(endpoint, appName));
+        }
     }
 }

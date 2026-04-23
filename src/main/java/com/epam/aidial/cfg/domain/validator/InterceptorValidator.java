@@ -1,12 +1,10 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,22 +20,16 @@ public class InterceptorValidator {
     private static final String COMPLETION_ENDPOINT_LOG_NAME = "completion";
     private static final String CONFIGURATION_ENDPOINT_LOG_NAME = "configuration";
 
-    private final DeploymentManagerService deploymentManagerService;
-    private final DeploymentInfoValidator deploymentInfoValidator;
     private final IdFieldValidator idFieldValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
     private final FeaturesValidator featuresValidator;
 
     private final String interceptorNameValidationPattern;
 
-    public InterceptorValidator(DeploymentManagerService deploymentManagerService,
-                                DeploymentInfoValidator deploymentInfoValidator,
-                                IdFieldValidator idFieldValidator,
+    public InterceptorValidator(IdFieldValidator idFieldValidator,
                                 DisplayFieldsValidator displayFieldsValidator,
                                 FeaturesValidator featuresValidator,
                                 @Value("${validation.interceptor.name:}") String interceptorNameValidationPattern) {
-        this.deploymentManagerService = deploymentManagerService;
-        this.deploymentInfoValidator = deploymentInfoValidator;
         this.idFieldValidator = idFieldValidator;
         this.displayFieldsValidator = displayFieldsValidator;
         this.featuresValidator = featuresValidator;
@@ -121,10 +113,6 @@ public class InterceptorValidator {
     }
 
     private void validateContainerSource(InterceptorContainerSource containerSource, String interceptorName) {
-        String containerId = containerSource.getContainerId();
-        DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
-        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
-
         validateEndpointPath(containerSource.getCompletionEndpointPath(), COMPLETION_ENDPOINT_LOG_NAME, interceptorName);
         validateEndpointPath(containerSource.getConfigurationEndpointPath(), CONFIGURATION_ENDPOINT_LOG_NAME, interceptorName);
     }

@@ -73,7 +73,10 @@
 				"parallelToolCallsSupported": true
 			},
 			"applicationProperties": {},
-			"applicationTypeSchemaId": "https://test-schema-id.example",
+			"source": {
+				"$type": "schema",
+				"applicationTypeSchemaId": "https://test-schema-id.example"
+			},
 			"viewerUrl": "https://viewer.test.com/app1",
 			"editorUrl": "https://editor.test.com/app1",
 			"author": "test-author",
@@ -88,6 +91,9 @@
 				"defaultRoleLimit": {}
 			},
 			"endpoint": "endpoint",
+			"source": {
+				"$type": "endpoints"
+			},
 			"displayName": "Test Application2",
 			"displayVersion": "1.0.0",
 			"forwardAuthToken": false,
@@ -164,7 +170,9 @@
 			"mcp": {
 				"endpoint": "http://localhost:9876/mcp",
 				"transport": "http",
-				"allowedTools": ["classify_text"]
+				"allowedTools": ["classify_text"],
+				"configDelivery": "header",
+				"forwardPerRequestKey": false
 			}
 		}
 	},

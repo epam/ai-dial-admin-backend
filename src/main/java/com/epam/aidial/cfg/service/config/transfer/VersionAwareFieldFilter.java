@@ -64,6 +64,56 @@ public class VersionAwareFieldFilter {
     }
 
     /**
+     * Filters a single entity's JsonNode to include only fields defined in the schema for the target Core version.
+     *
+     * @param entityNode The entity node to filter
+     * @param entityType The entity type key in Config (e.g. "applications", "applicationTypeSchemas")
+     * @return Filtered entity node with only schema-defined fields
+     * @throws SchemaValidationException if schema loading or filtering fails
+     */
+    public JsonNode filterEntityNodeForTargetVersion(JsonNode entityNode, String entityType) {
+        String version = coreConfigVersionService.getVersionForExport();
+        try {
+            JsonNode schema = schemaLoader.loadSchema(version);
+
+            ObjectNode configNode = objectMapper.createObjectNode();
+            if (APPLICATION_TYPE_SCHEMAS_KEY.equals(entityType)) {
+                ArrayNode array = objectMapper.createArrayNode();
+                array.add(entityNode);
+                configNode.set(entityType, array);
+            } else {
+                ObjectNode entitiesNode = objectMapper.createObjectNode();
+                entitiesNode.set("__entityKey__", entityNode);
+                configNode.set(entityType, entitiesNode);
+            }
+
+            JsonNode filteredConfig = filterNodeBySchema(configNode, schema);
+
+            JsonNode filteredEntities = filteredConfig.get(entityType);
+            if (filteredEntities == null) {
+                throw new SchemaValidationException(
+                        "Schema for version %s does not define entity type '%s'".formatted(version, entityType));
+            }
+
+            if (APPLICATION_TYPE_SCHEMAS_KEY.equals(entityType)) {
+                return filteredEntities.get(0);
+            } else {
+                JsonNode filtered = filteredEntities.get("__entityKey__");
+                if (filtered == null) {
+                    throw new SchemaValidationException(
+                            "Schema for version %s defines entity type '%s' without patternProperties".formatted(version, entityType));
+                }
+                return filtered;
+            }
+        } catch (SchemaValidationException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to filter entity node for version: {}, entityType: {}", version, entityType, e);
+            throw new SchemaValidationException("Failed to filter entity node for version: %s".formatted(version), e);
+        }
+    }
+
+    /**
      * Recursively filters a JSON node according to the provided schema.
      * Only fields defined in the schema will be included in the result.
      *

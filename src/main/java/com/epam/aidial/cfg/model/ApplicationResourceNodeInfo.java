@@ -1,26 +1,21 @@
 package com.epam.aidial.cfg.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-import java.util.List;
-
-@Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApplicationResourceNodeInfo {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class ApplicationResourceNodeInfo extends ResourceNodeInfo<ApplicationResourceNodeInfo> {
 
-    private String path;
-    private String name;
     private String version;
-    private String folderId;
-    private Long updatedAt;
-    private String author;
-    private NodeType nodeType;
-    private List<ApplicationResourceNodeInfo> items;
-    private String nextToken;
-
 }

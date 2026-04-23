@@ -7,7 +7,6 @@ import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,11 +45,7 @@ class ModelValidatorTest {
     @Mock
     private DeploymentValidator deploymentValidator;
     @Mock
-    private DeploymentInfoValidator deploymentInfoValidator;
-    @Mock
     private FeaturesValidator featuresValidator;
-    @Mock
-    private DeploymentManagerService deploymentManagerService;
     @Mock
     private ModelEndpointUtils modelEndpointUtils;
 
@@ -58,7 +53,7 @@ class ModelValidatorTest {
 
     @BeforeEach
     void setUp() {
-        modelValidator = new ModelValidator(deploymentManagerService, deploymentInfoValidator, displayFieldsValidator,
+        modelValidator = new ModelValidator(displayFieldsValidator,
                 deploymentValidator, featuresValidator, modelEndpointUtils, null);
     }
 

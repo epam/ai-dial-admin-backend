@@ -46,6 +46,7 @@ public abstract class ApplicationClientMapper {
     @Mapping(target = "author", source = "metadataDto.author")
     @Mapping(target = "routes", source = "dto.routes")
     @Mapping(target = "validityState", source = "validityState")
+    @Mapping(target = "url", source = "metadataDto.url")
     protected abstract ApplicationResource toApplicationResource(ApplicationResourceDto dto,
                                                                  ApplicationMetadataDto metadataDto,
                                                                  PathUtils.VersionedPathParts itemParts,
@@ -100,7 +101,10 @@ public abstract class ApplicationClientMapper {
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
 
-    public abstract ApplicationExim toApplicationExim(ApplicationResource applicationResource);
+    @Mapping(target = "name", source = "itemParts.name")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    public abstract ApplicationExim toApplicationExim(ApplicationResource applicationResource, PathUtils.VersionedPathParts itemParts);
 
     @Mapping(target = "name", source = "itemParts.name")
     @Mapping(target = "folderId", source = "itemParts.folderId")

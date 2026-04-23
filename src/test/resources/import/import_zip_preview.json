@@ -662,7 +662,10 @@
           "parallelToolCallsSupported": true
         },
         "applicationProperties": {},
-        "applicationTypeSchemaId": "https://test-schema-id.example",
+        "source": {
+          "$type": "schema",
+          "applicationTypeSchemaId": "https://test-schema-id.example"
+        },
         "author": "test-author",
         "dependencies": ["dep1", "dep2"],
         "validityState": {
@@ -699,6 +702,9 @@
           "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
+        "source": {
+          "$type": "endpoints"
+        },
         "responsesEndpoint": "https://application1/responses",
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
@@ -778,7 +784,9 @@
         "mcp": {
           "endpoint": "http://localhost:9876/mcp",
           "transport": "http",
-          "allowedTools": ["classify_text"]
+          "allowedTools": ["classify_text"],
+          "configDelivery": "header",
+          "forwardPerRequestKey": false
         }
       }
     }

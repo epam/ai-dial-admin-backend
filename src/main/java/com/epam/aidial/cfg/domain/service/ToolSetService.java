@@ -4,18 +4,22 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
+import com.epam.aidial.cfg.dao.mapper.ToolSetMcpRegistryEntityMapper;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
+import com.epam.aidial.cfg.dao.model.ToolSetMcpRegistryEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.SecuredRoleBased;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetMcpRegistrySource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
 import com.epam.aidial.cfg.domain.normalizer.ToolSetNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -52,6 +56,7 @@ public class ToolSetService {
     private final ToolSetValidator toolSetValidator;
     private final ToolSetEntityMapper mapper;
     private final ToolSetContainerEntityMapper toolSetContainerEntityMapper;
+    private final ToolSetMcpRegistryEntityMapper toolSetMcpRegistryEntityMapper;
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
     private final ToolDiscoveryService toolDiscoveryService;
@@ -156,7 +161,7 @@ public class ToolSetService {
             }
         }
 
-        resolveEndpointsIfContainerSource(toolSet);
+        resolveEndpointsIfContainerSource(toolSet, toolSetEntity);
         return save(toEntity(toolSet, toolSetEntity));
     }
 
@@ -278,6 +283,21 @@ public class ToolSetService {
         endpointResolver.processContainerEndpoints(toolSet);
     }
 
+    private void resolveEndpointsIfContainerSource(ToolSet toolSet, ToolSetEntity existingEntity) {
+        if (!(toolSet.getSource() instanceof ToolSetContainerSource incomingContainer)) {
+            return;
+        }
+
+        ToolSetContainerEntity existingContainer = existingEntity.getToolSetContainer();
+        if (existingContainer == null
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
+            endpointResolver.processContainerEndpoints(toolSet);
+            return;
+        }
+
+        endpointResolver.tryProcessContainerEndpoints(toolSet, existingEntity);
+    }
+
     private void assertExists(String name) {
         boolean exists = toolSetJpaRepository.existsById(name);
         if (!exists) {
@@ -290,12 +310,15 @@ public class ToolSetService {
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         ToolSetContainerEntity toolSetContainer = null;
+        ToolSetMcpRegistryEntity toolSetMcpRegistry = null;
 
         ToolSetSource source = domain.getSource();
         if (source instanceof ToolSetContainerSource containerSource) {
             toolSetContainer = toolSetContainerEntityMapper.toEntity(containerSource);
+        } else if (source instanceof ToolSetMcpRegistrySource mcpRegistrySource) {
+            toolSetMcpRegistry = toolSetMcpRegistryEntityMapper.toEntity(mcpRegistrySource);
         }
 
-        return mapper.toEntity(domain, entity, toolSetContainer, roleLimits, rolesForLimits);
+        return mapper.toEntity(domain, entity, toolSetContainer, toolSetMcpRegistry, roleLimits, rolesForLimits);
     }
 }
