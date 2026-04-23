@@ -19,4 +19,6 @@ public enum ActivityResourceType {
     ToolSet,
     GlobalSettings,
     AdminSettings,
+    Config,
+    System
 }

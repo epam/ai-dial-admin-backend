@@ -4,4 +4,6 @@ public enum ActivityType {
     Create,
     Update,
     Delete,
+    Import,
+    Rollback
 }
