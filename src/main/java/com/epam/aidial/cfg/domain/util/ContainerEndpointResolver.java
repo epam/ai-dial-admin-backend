@@ -197,7 +197,10 @@ public class ContainerEndpointResolver {
                     ApplicationContainerSource targetSource = (ApplicationContainerSource) target.getSource();
                     targetSource.setContainerName(endpoints.containerName());
                     target.setEndpoint(endpoints.completionEndpoint());
-                    if (endpoints.configurationEndpoint() != null) {
+                    boolean shouldSetMcp = (target.getMcp() != null
+                            || StringUtils.isNotBlank(targetSource.getMcpEndpointPath()))
+                            && endpoints.configurationEndpoint() != null;
+                    if (shouldSetMcp) {
                         if (target.getMcp() == null) {
                             target.setMcp(new Mcp());
                         }
@@ -219,7 +222,10 @@ public class ContainerEndpointResolver {
                     ApplicationContainerEntity targetContainer = entity.getApplicationContainer();
                     targetContainer.setContainerName(endpoints.containerName());
                     entity.setEndpoint(endpoints.completionEndpoint());
-                    if (endpoints.configurationEndpoint() != null) {
+                    boolean shouldSetMcp = (entity.getMcp() != null
+                            || StringUtils.isNotBlank(targetContainer.getMcpEndpointPath()))
+                            && endpoints.configurationEndpoint() != null;
+                    if (shouldSetMcp) {
                         McpEntity mcp = entity.getMcp();
                         if (mcp == null) {
                             mcp = new McpEntity();
