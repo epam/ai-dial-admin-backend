@@ -2,6 +2,21 @@
 
 All notable infrastructure-relevant changes to this project will be documented in this file.
 
+## 0.16.0
+
+### Added
+
+#### Observability
+
+- `METRICS_INFLUX_CONNECT_TIMEOUT` — InfluxDB HTTP client connection timeout in seconds (default: `10`)
+- `METRICS_INFLUX_READ_TIMEOUT` — InfluxDB HTTP client read timeout in seconds (default: `60`)
+- `METRICS_INFLUX_WRITE_TIMEOUT` — InfluxDB HTTP client write timeout in seconds (default: `60`)
+- `METRICS_STORAGE_ROUTES_ANALYTICS_BUCKET` — InfluxDB 2 bucket for routes analytics data (default: `analytics-realtime`)
+- `METRICS_STORAGE_ROUTES_ANALYTICS_MEASUREMENT` — InfluxDB 2 measurement name for routes analytics data (default: `routes_analytics`)
+- `METRICS_STORAGE_ROUTES_ANALYTICS_TABLE` — InfluxDB 3 table name for routes analytics data (default: `routes_analytics`)
+
+---
+
 ## 0.15.0
 
 ### Added
