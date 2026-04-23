@@ -113,9 +113,7 @@ public class ApplicationTypeSchemaDto {
     }
 
     public enum CopyAppBucketOptionsDto {
-        @JsonProperty("ENABLED")
         ENABLED,
-        @JsonProperty("DISABLED")
         DISABLED,
     }
 
@@ -139,14 +137,11 @@ public class ApplicationTypeSchemaDto {
     }
 
     public enum McpConfigDeliveryDto {
-        @JsonProperty("HEADER")
         HEADER,
-        @JsonProperty("META")
         META
     }
 
     public enum TransportDto {
-        @JsonProperty("HTTP")
         HTTP
     }
 
