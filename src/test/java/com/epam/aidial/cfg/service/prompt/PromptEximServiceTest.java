@@ -8,11 +8,14 @@ import com.epam.aidial.cfg.model.CreatePrompt;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Prompt;
+import com.epam.aidial.cfg.model.PromptNodeInfo;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FolderService;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -90,9 +94,9 @@ class PromptEximServiceTest {
         assertThat(result.getFolders()).hasSize(1);
 
         var promptExim = result.getPrompts().get(0);
-        assertThat(promptExim.getId()).isEqualTo(PROMPTS_FOLDER + "public/folder/PROMPT 1__1.0.0");
+        assertThat(promptExim.getId()).isEqualTo(PROMPTS_FOLDER + "public/PROMPT 1__1.0.0");
         assertThat(promptExim.getName()).isEqualTo("PROMPT 1");
-        assertThat(promptExim.getFolderId()).isEqualTo(PROMPTS_FOLDER + "public/folder/");
+        assertThat(promptExim.getFolderId()).isEqualTo(PROMPTS_FOLDER + "public/");
         assertThat(promptExim.getDescription()).isEqualTo("Test description");
         assertThat(promptExim.getContent()).isEqualTo("Test content");
 
@@ -137,19 +141,91 @@ class PromptEximServiceTest {
 
         // Verify first prompt
         var promptExim1 = result.getPrompts().get(0);
-        assertThat(promptExim1.getId()).isEqualTo(PROMPTS_FOLDER + "public/folder1/PROMPT 1__1.0.0");
+        assertThat(promptExim1.getId()).isEqualTo(PROMPTS_FOLDER + "public/PROMPT 1__1.0.0");
         assertThat(promptExim1.getName()).isEqualTo("PROMPT 1");
-        assertThat(promptExim1.getFolderId()).isEqualTo(PROMPTS_FOLDER + "public/folder1/");
+        assertThat(promptExim1.getFolderId()).isEqualTo(PROMPTS_FOLDER + "public/");
         assertThat(promptExim1.getDescription()).isEqualTo("Test description 1");
         assertThat(promptExim1.getContent()).isEqualTo("Test content 1");
 
         // Verify second prompt
         var promptExim2 = result.getPrompts().get(1);
-        assertThat(promptExim2.getId()).isEqualTo(PROMPTS_FOLDER + "public/folder2/PROMPT 2__1.0.0");
+        assertThat(promptExim2.getId()).isEqualTo(PROMPTS_FOLDER + "public/PROMPT 2__1.0.0");
         assertThat(promptExim2.getName()).isEqualTo("PROMPT 2");
-        assertThat(promptExim2.getFolderId()).isEqualTo(PROMPTS_FOLDER + "public/folder2/");
+        assertThat(promptExim2.getFolderId()).isEqualTo(PROMPTS_FOLDER + "public/");
         assertThat(promptExim2.getDescription()).isEqualTo("Test description 2");
         assertThat(promptExim2.getContent()).isEqualTo("Test content 2");
+    }
+
+    @Test
+    @SneakyThrows
+    void exportPrompts_FolderPath() {
+        var folderPath = "public/folder1/folder2/folder3/";
+        var promptStoragePath = "public/folder1/folder2/folder3/folder4/PROMPT__1.0.0";
+
+        var item = PromptNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(promptStoragePath)
+                .build();
+        var folder = PromptNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(item))
+                .build();
+
+        when(promptService.getPrompts(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var prompt = new Prompt();
+        prompt.setPath(promptStoragePath);
+        prompt.setName("PROMPT");
+        prompt.setFolderId("public/folder1/folder2/folder3/folder4/");
+        prompt.setContent("body");
+
+        when(promptService.getPrompt(promptStoragePath)).thenReturn(prompt);
+
+        var result = promptEximService.exportPrompts(List.of(folderPath));
+
+        assertThat(result.getPrompts()).hasSize(1);
+        assertThat(result.getFolders()).hasSize(1);
+        var exim = result.getPrompts().get(0);
+        assertThat(exim.getId()).isEqualTo(PROMPTS_FOLDER + "public/folder3/folder4/PROMPT__1.0.0");
+        assertThat(exim.getFolderId()).isEqualTo(PROMPTS_FOLDER + "public/folder3/folder4/");
+        assertThat(exim.getContent()).isEqualTo("body");
+    }
+
+    @Test
+    @SneakyThrows
+    void exportPrompts_FolderPath_excludesTechnicalFile() {
+        var folderPath = "public/folder1/folder2/";
+        var path = "public/folder1/folder2/real__1.0.0";
+        var techPath = "public/folder1/" + ExportPathUtils.DIAL_FOLDER_FILE + "__0.0.1";
+
+        var techItem = PromptNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(techPath)
+                .build();
+        var item = PromptNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(path)
+                .build();
+        var folder = PromptNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(techItem, item))
+                .build();
+
+        when(promptService.getPrompts(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var prompt = new Prompt();
+        prompt.setPath(path);
+        prompt.setName("real");
+        prompt.setFolderId("public/folder1/folder2/");
+        when(promptService.getPrompt(path)).thenReturn(prompt);
+
+        var result = promptEximService.exportPrompts(List.of(folderPath));
+
+        assertThat(result.getPrompts()).hasSize(1);
+        assertThat(result.getPrompts().get(0).getId()).isEqualTo(PROMPTS_FOLDER + "public/folder2/real__1.0.0");
+        verify(promptService).getPrompt(path);
     }
 
     @Test

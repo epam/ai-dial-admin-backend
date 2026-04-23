@@ -7,14 +7,17 @@ import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
 import com.epam.aidial.cfg.dto.McpResourceDto;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
 import com.epam.aidial.cfg.model.McpResource;
+import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +34,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -80,7 +84,7 @@ class ApplicationEximServiceTest {
         var applicationExim = result.getApplications().get(0);
         assertThat(applicationExim.getApplicationTypeSchemaId()).isEqualTo("https://test1.epam.com");
         assertThat(applicationExim.getDisplayName()).isEqualTo("application1");
-        assertThat(applicationExim.getFolderId()).isEqualTo("public/folder1/");
+        assertThat(applicationExim.getFolderId()).isEqualTo("public/");
         assertThat(applicationExim.getDescription()).isEqualTo("application description 1");
         assertThat(applicationExim.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
     }
@@ -109,7 +113,7 @@ class ApplicationEximServiceTest {
         var application1Exim1 = result.getApplications().get(0);
         assertThat(application1Exim1.getApplicationTypeSchemaId()).isEqualTo("https://test1.epam.com");
         assertThat(application1Exim1.getName()).isEqualTo("application1");
-        assertThat(application1Exim1.getFolderId()).isEqualTo("public/folder1/");
+        assertThat(application1Exim1.getFolderId()).isEqualTo("public/");
         assertThat(application1Exim1.getDescription()).isEqualTo("application description 1");
         assertThat(application1Exim1.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
 
@@ -117,9 +121,92 @@ class ApplicationEximServiceTest {
         var application1Exim2 = result.getApplications().get(1);
         assertThat(application1Exim2.getApplicationTypeSchemaId()).isEqualTo("https://test2.epam.com");
         assertThat(application1Exim2.getName()).isEqualTo("application2");
-        assertThat(application1Exim2.getFolderId()).isEqualTo("public/folder2/");
+        assertThat(application1Exim2.getFolderId()).isEqualTo("public/");
         assertThat(application1Exim2.getDescription()).isEqualTo("application description 2");
         assertThat(application1Exim2.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/2/mcp");
+    }
+
+    @Test
+    @SneakyThrows
+    void exportApplications_FolderPath() {
+        var folderPath = "public/folder1/folder2/folder3/";
+        var appStoragePath = "public/folder1/folder2/folder3/folder4/myApp__0.0.1";
+
+        var item = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(appStoragePath)
+                .build();
+        var folder = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(item))
+                .build();
+
+        when(applicationService.getApplications(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var mcp = new McpResource();
+        mcp.setEndpoint("http://localhost/mcp");
+        var application = new ApplicationResource();
+        application.setPath(appStoragePath);
+        application.setName("myApp");
+        application.setVersion("0.0.1");
+        application.setFolderId("public/folder1/folder2/folder3/folder4/");
+        application.setMcp(mcp);
+        application.setApplicationTypeSchemaId("https://test.epam.com");
+
+        when(applicationService.getApplicationResource(appStoragePath)).thenReturn(application);
+
+        var result = applicationEximService.exportApplications(List.of(folderPath));
+
+        assertThat(result.getApplications()).hasSize(1);
+        var exim = result.getApplications().get(0);
+        assertThat(exim.getName()).isEqualTo("myApp");
+        assertThat(exim.getFolderId()).isEqualTo("public/folder3/folder4/");
+        verify(applicationService).getApplicationResource(appStoragePath);
+    }
+
+    @Test
+    @SneakyThrows
+    void exportApplications_FolderPath_excludesTechnicalFile() {
+        var folderPath = "public/folder1/folder2/";
+        var path = "public/folder1/folder2/test__0.0.1";
+        var techPath = "public/folder1/folder2/" + ExportPathUtils.DIAL_FOLDER_FILE + "__0.0.1";
+
+        var techItem = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(techPath)
+                .build();
+        var item = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(path)
+                .build();
+        var folder = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(techItem, item))
+                .build();
+
+        when(applicationService.getApplications(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var mcp = new McpResource();
+        mcp.setEndpoint("http://localhost/mcp");
+        var application = new ApplicationResource();
+        application.setPath(path);
+        application.setName("test");
+        application.setVersion("0.0.1");
+        application.setFolderId("public/folder1/folder2/");
+        application.setDescription("d");
+        application.setMcp(mcp);
+        application.setApplicationTypeSchemaId("https://test.epam.com");
+
+        when(applicationService.getApplicationResource(path)).thenReturn(application);
+
+        var result = applicationEximService.exportApplications(List.of(folderPath));
+
+        assertThat(result.getApplications()).hasSize(1);
+        assertThat(result.getApplications().get(0).getName()).isEqualTo("test");
+        assertThat(result.getApplications().get(0).getFolderId()).isEqualTo("public/folder2/");
+        verify(applicationService).getApplicationResource(path);
     }
 
     @Test

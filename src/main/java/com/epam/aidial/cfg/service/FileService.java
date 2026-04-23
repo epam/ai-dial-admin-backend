@@ -21,8 +21,10 @@ import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import com.epam.aidial.cfg.model.ResourceType;
 import com.epam.aidial.cfg.security.AuthorizationTokenHolder;
 import com.epam.aidial.cfg.security.AuthorizationTokenWrapper;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.HeaderUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
+import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
 import feign.FeignException;
 import feign.Response;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +39,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -54,7 +53,6 @@ import static com.epam.aidial.cfg.client.mapper.FileClientMapper.FILES_PREFIX;
 @LogExecution
 @Slf4j
 public class FileService implements ResourceService {
-    public static final String DIAL_FOLDER_FILE = ".dial_folder";
 
     private final FileClient fileClient;
     private final FileClientMapper fileClientMapper;
@@ -289,7 +287,8 @@ public class FileService implements ResourceService {
 
                 for (var path : sortedPaths) {
                     var fileResponse = get(path);
-                    zos.putNextEntry(new ZipEntry("files/" + exportEntries.get(path)));
+                    var archivePath = ExportPathUtils.toExportedFileStoragePath(path, exportEntries.get(path));
+                    zos.putNextEntry(new ZipEntry("files/" + archivePath));
                     try (InputStream responseBodyStream = fileResponse.body().asInputStream()) {
                         byte[] buffer = new byte[1024];
                         int bytesRead = responseBodyStream.read(buffer);
@@ -318,76 +317,9 @@ public class FileService implements ResourceService {
     }
 
     private Map<String, String> resolveExportFileEntries(ExportResource exportResource) {
-        Map<String, String> entries = new HashMap<>();
-        for (String path : exportResource.getPaths()) {
-            if (PathUtils.isFolderPath(path)) {
-                addFolderExportEntries(entries, path);
-            } else {
-                addSingleFileExportEntry(entries, path);
-            }
-        }
-        return entries;
+        return ResourceEximExportHelper.resolveExportEntries(
+                exportResource.getPaths(),
+                folder -> ResourceEximExportHelper.collectPathsUnderFolder(folder, this::getAll, "file"));
     }
 
-    private void addFolderExportEntries(Map<String, String> entries, String path) {
-        var folderName = PathUtils.folderNameWithoutPath(path);
-        var archiveFolderPath = "public/" + folderName;
-        for (String filePath : collectFilePathsByPath(path)) {
-            var pathParts = PathUtils.parsePath(filePath);
-            var fileName = pathParts.getName();
-            var insideFolder = pathParts.getFolderId().substring(path.length());
-            if (entries.containsKey(filePath)) {
-                throw new IllegalStateException("Duplicate entry for path: " + filePath);
-            }
-            entries.put(filePath, archiveFolderPath + insideFolder + fileName);
-        }
-    }
-
-    private void addSingleFileExportEntry(Map<String, String> entries, String filePath) {
-        var fileName = PathUtils.parsePath(filePath).getName();
-        if (isNotTechFile(filePath)) {
-            if (entries.containsKey(filePath)) {
-                throw new IllegalStateException("Duplicate entry for path: " + filePath);
-            }
-            entries.putIfAbsent(filePath, "public/" + fileName);
-        }
-    }
-
-    private Set<String> collectFilePathsByPath(String path) {
-        if (!PathUtils.isFolderPath(path)) {
-            return path != null && !path.isEmpty() ? Set.of(path) : Collections.emptySet();
-        }
-        try {
-            var request = ResourceMetadataRequest.builder()
-                    .path(path)
-                    .recursive(true)
-                    .build();
-            FileNodeInfo node = getAll(request);
-            return collectPaths(node);
-        } catch (ResourceNotFoundException e) {
-            log.debug("Path not found for export: {}", path, e);
-            return Collections.emptySet();
-        }
-    }
-
-    private Set<String> collectPaths(FileNodeInfo node) {
-        if (node == null) {
-            return Collections.emptySet();
-        }
-        if (node.getNodeType() == NodeType.ITEM) {
-            return node.getPath() != null && isNotTechFile(node.getPath()) ? Set.of(node.getPath()) : Collections.emptySet();
-        }
-        if (node.getNodeType() == NodeType.FOLDER && node.getItems() != null) {
-            return node.getItems().stream().filter(i -> i.getNodeType() == NodeType.ITEM)
-                    .map(FileNodeInfo::getPath)
-                    .filter(this::isNotTechFile)
-                    .collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
-    }
-
-    private boolean isNotTechFile(String path) {
-        var fileName = PathUtils.parsePath(path).getName();
-        return !DIAL_FOLDER_FILE.equals(fileName);
-    }
 }

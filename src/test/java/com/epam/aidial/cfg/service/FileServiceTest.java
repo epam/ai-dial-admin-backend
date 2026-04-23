@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static com.epam.aidial.cfg.service.FileService.DIAL_FOLDER_FILE;
+import static com.epam.aidial.cfg.utils.ExportPathUtils.DIAL_FOLDER_FILE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
