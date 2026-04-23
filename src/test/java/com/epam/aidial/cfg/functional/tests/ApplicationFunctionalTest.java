@@ -566,7 +566,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(containerUrl + mcpCompletionPath, result.getMcp().getEndpoint());
         Assertions.assertInstanceOf(ApplicationContainerSourceDto.class, result.getSource());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test
@@ -587,8 +587,6 @@ public abstract class ApplicationFunctionalTest {
 
         Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
-                .thenReturn(initialDeploymentInfo)
-                .thenReturn(updatedDeploymentInfo)
                 .thenReturn(updatedDeploymentInfo);
 
         ApplicationDto applicationDto = createBaseApplicationDto("1");
@@ -612,7 +610,7 @@ public abstract class ApplicationFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
         Assertions.assertEquals(updatedUrl + mcpCompletionPath, refreshedResult.getMcp().getEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test
@@ -664,6 +662,126 @@ public abstract class ApplicationFunctionalTest {
         actualApplication = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertInstanceOf(ApplicationEndpointsSourceDto.class, actualApplication.getSource());
         Assertions.assertEquals("https://new-endpoint.com", actualApplication.getEndpoint());
+    }
+
+    @Test
+    public void shouldNotCreateMcpForContainerSourceWhenMcpAndPathAreAbsent() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440001";
+        String containerUrl = "https://container-no-mcp.com";
+        String completionPath = "/api/completion";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                null
+        ));
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
+        Assertions.assertNull(result.getMcp());
+    }
+
+    @Test
+    public void shouldCreateMcpForContainerSourceWhenOnlyMcpPathIsProvided() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440002";
+        String containerUrl = "https://container-mcp-path.com";
+        String completionPath = "/api/completion";
+        String mcpCompletionPath = "/mcp/";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                mcpCompletionPath
+        ));
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertNotNull(result.getMcp());
+        Assertions.assertEquals(containerUrl + mcpCompletionPath, result.getMcp().getEndpoint());
+    }
+
+    @Test
+    public void shouldSetMcpEndpointToContainerUrlWhenMcpIsProvidedWithoutPath() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440003";
+        String containerUrl = "https://container-mcp-only.com";
+        String completionPath = "/api/completion";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                null
+        ));
+        McpDto mcp = new McpDto();
+        mcp.setEndpoint("stale-endpoint");
+        applicationDto.setMcp(mcp);
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertNotNull(result.getMcp());
+        Assertions.assertEquals(containerUrl, result.getMcp().getEndpoint());
+    }
+
+    @Test
+    public void shouldSetMcpEndpointToContainerUrlPlusPathWhenBothProvided() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440004";
+        String containerUrl = "https://container-both.com";
+        String completionPath = "/api/completion";
+        String mcpCompletionPath = "/mcp/";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                mcpCompletionPath
+        ));
+        McpDto mcp = new McpDto();
+        mcp.setEndpoint("stale-endpoint");
+        applicationDto.setMcp(mcp);
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertNotNull(result.getMcp());
+        Assertions.assertEquals(containerUrl + mcpCompletionPath, result.getMcp().getEndpoint());
     }
 
     private ApplicationDto createDtoWithDefaults(String suffix) {

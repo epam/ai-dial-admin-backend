@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.util;
 
+import com.epam.aidial.cfg.client.dto.ApplicationDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
@@ -7,19 +8,25 @@ import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.NimDeploymentInfoDto;
 import com.epam.aidial.cfg.dao.model.AdapterContainerEntity;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
+import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.FeaturesEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorContainerEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
+import com.epam.aidial.cfg.dao.model.McpEntity;
 import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
 import com.epam.aidial.cfg.domain.model.Adapter;
+import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.Mcp;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
@@ -266,6 +273,206 @@ class ContainerEndpointResolverTest {
         verify(deploymentManagerService).getById(CONTAINER_ID);
         verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
         assertThat(toolSetEntity.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplication_WithMcpNullAndPathBlank_ShouldKeepMcpNull() {
+        // given
+        Application application = new Application();
+        ApplicationContainerSource containerSource = new ApplicationContainerSource(CONTAINER_ID, null, COMPLETION_PATH, null);
+        application.setSource(containerSource);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(application);
+
+        // then
+        assertThat(application.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerSource.getContainerName()).isEqualTo(CONTAINER_NAME);
+        assertThat(application.getMcp()).isNull();
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplication_WithMcpNullAndPathProvided_ShouldCreateMcpWithResolvedEndpoint() {
+        // given
+        Application application = new Application();
+        ApplicationContainerSource containerSource = new ApplicationContainerSource(CONTAINER_ID, null, COMPLETION_PATH, CONFIG_PATH);
+        application.setSource(containerSource);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(application);
+
+        // then
+        assertThat(application.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerSource.getContainerName()).isEqualTo(CONTAINER_NAME);
+        assertThat(application.getMcp()).isNotNull();
+        assertThat(application.getMcp().getEndpoint()).isEqualTo(CONTAINER_URL + CONFIG_PATH);
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplication_WithMcpProvidedAndPathBlank_ShouldSetMcpEndpointToContainerUrl() {
+        // given
+        Application application = new Application();
+        ApplicationContainerSource containerSource = new ApplicationContainerSource(CONTAINER_ID, null, COMPLETION_PATH, null);
+        application.setSource(containerSource);
+        Mcp existingMcp = new Mcp();
+        existingMcp.setEndpoint("stale-endpoint");
+        application.setMcp(existingMcp);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(application);
+
+        // then
+        assertThat(application.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerSource.getContainerName()).isEqualTo(CONTAINER_NAME);
+        assertThat(application.getMcp()).isSameAs(existingMcp);
+        assertThat(application.getMcp().getEndpoint()).isEqualTo(CONTAINER_URL);
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplication_WithMcpProvidedAndPathProvided_ShouldSetMcpEndpointToContainerUrlPlusPath() {
+        // given
+        Application application = new Application();
+        ApplicationContainerSource containerSource = new ApplicationContainerSource(CONTAINER_ID, null, COMPLETION_PATH, CONFIG_PATH);
+        application.setSource(containerSource);
+        Mcp existingMcp = new Mcp();
+        existingMcp.setEndpoint("stale-endpoint");
+        application.setMcp(existingMcp);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(application);
+
+        // then
+        assertThat(application.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerSource.getContainerName()).isEqualTo(CONTAINER_NAME);
+        assertThat(application.getMcp()).isSameAs(existingMcp);
+        assertThat(application.getMcp().getEndpoint()).isEqualTo(CONTAINER_URL + CONFIG_PATH);
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplicationEntity_WithMcpNullAndPathBlank_ShouldKeepMcpNull() {
+        // given
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        ApplicationContainerEntity containerEntity = new ApplicationContainerEntity();
+        containerEntity.setContainerId(CONTAINER_ID);
+        containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        applicationEntity.setApplicationContainer(containerEntity);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(applicationEntity);
+
+        // then
+        assertThat(applicationEntity.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerEntity.getContainerName()).isEqualTo(CONTAINER_NAME);
+        assertThat(applicationEntity.getMcp()).isNull();
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplicationEntity_WithMcpNullAndPathProvided_ShouldCreateMcpWithResolvedEndpoint() {
+        // given
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        ApplicationContainerEntity containerEntity = new ApplicationContainerEntity();
+        containerEntity.setContainerId(CONTAINER_ID);
+        containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        containerEntity.setMcpEndpointPath(CONFIG_PATH);
+        applicationEntity.setApplicationContainer(containerEntity);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(applicationEntity);
+
+        // then
+        assertThat(applicationEntity.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(containerEntity.getContainerName()).isEqualTo(CONTAINER_NAME);
+        assertThat(applicationEntity.getMcp()).isNotNull();
+        assertThat(applicationEntity.getMcp().getEndpoint()).isEqualTo(CONTAINER_URL + CONFIG_PATH);
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplicationEntity_WithMcpProvidedAndPathBlank_ShouldSetMcpEndpointToContainerUrl() {
+        // given
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        ApplicationContainerEntity containerEntity = new ApplicationContainerEntity();
+        containerEntity.setContainerId(CONTAINER_ID);
+        containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        applicationEntity.setApplicationContainer(containerEntity);
+        McpEntity existingMcp = new McpEntity();
+        existingMcp.setEndpoint("stale-endpoint");
+        applicationEntity.setMcp(existingMcp);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(applicationEntity);
+
+        // then
+        assertThat(applicationEntity.getMcp()).isSameAs(existingMcp);
+        assertThat(applicationEntity.getMcp().getEndpoint()).isEqualTo(CONTAINER_URL);
+    }
+
+    @Test
+    void processContainerEndpoints_ForApplicationEntity_WithMcpProvidedAndPathProvided_ShouldSetMcpEndpointToContainerUrlPlusPath() {
+        // given
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        ApplicationContainerEntity containerEntity = new ApplicationContainerEntity();
+        containerEntity.setContainerId(CONTAINER_ID);
+        containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        containerEntity.setMcpEndpointPath(CONFIG_PATH);
+        applicationEntity.setApplicationContainer(containerEntity);
+        McpEntity existingMcp = new McpEntity();
+        existingMcp.setEndpoint("stale-endpoint");
+        applicationEntity.setMcp(existingMcp);
+
+        DeploymentInfoDto deploymentInfo = new ApplicationDeploymentInfoDto();
+        deploymentInfo.setUrl(CONTAINER_URL);
+        deploymentInfo.setDisplayName(CONTAINER_NAME);
+
+        when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when
+        containerEndpointResolver.processContainerEndpoints(applicationEntity);
+
+        // then
+        assertThat(applicationEntity.getMcp()).isSameAs(existingMcp);
+        assertThat(applicationEntity.getMcp().getEndpoint()).isEqualTo(CONTAINER_URL + CONFIG_PATH);
     }
 
     @Test

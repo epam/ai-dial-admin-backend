@@ -30,6 +30,7 @@ import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.validator.DeploymentInfoValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ import java.util.function.Function;
 /**
  * Service class for handling container endpoint operations.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @LogExecution
@@ -195,7 +197,10 @@ public class ContainerEndpointResolver {
                     ApplicationContainerSource targetSource = (ApplicationContainerSource) target.getSource();
                     targetSource.setContainerName(endpoints.containerName());
                     target.setEndpoint(endpoints.completionEndpoint());
-                    if (endpoints.configurationEndpoint() != null) {
+                    boolean shouldSetMcp = (target.getMcp() != null
+                            || StringUtils.isNotBlank(targetSource.getMcpEndpointPath()))
+                            && endpoints.configurationEndpoint() != null;
+                    if (shouldSetMcp) {
                         if (target.getMcp() == null) {
                             target.setMcp(new Mcp());
                         }
@@ -217,7 +222,10 @@ public class ContainerEndpointResolver {
                     ApplicationContainerEntity targetContainer = entity.getApplicationContainer();
                     targetContainer.setContainerName(endpoints.containerName());
                     entity.setEndpoint(endpoints.completionEndpoint());
-                    if (endpoints.configurationEndpoint() != null) {
+                    boolean shouldSetMcp = (entity.getMcp() != null
+                            || StringUtils.isNotBlank(targetContainer.getMcpEndpointPath()))
+                            && endpoints.configurationEndpoint() != null;
+                    if (shouldSetMcp) {
                         McpEntity mcp = entity.getMcp();
                         if (mcp == null) {
                             mcp = new McpEntity();
@@ -382,5 +390,111 @@ public class ContainerEndpointResolver {
             case HTTP_STREAMING -> ToolSetEntity.TransportEntity.HTTP;
             case SSE -> ToolSetEntity.TransportEntity.SSE;
         };
+    }
+
+    /**
+     * Attempts to resolve container endpoints for the adapter.
+     * If resolution fails (e.g. container URL is unavailable), retains the existing endpoints.
+     */
+    public void tryProcessContainerEndpoints(Adapter adapter, AdapterEntity existingEntity) {
+        try {
+            processContainerEndpoints(adapter);
+        } catch (IllegalArgumentException e) {
+            AdapterContainerSource source = (AdapterContainerSource) adapter.getSource();
+            AdapterContainerEntity existingContainer = existingEntity.getAdapterContainer();
+            log.warn("Failed to resolve container endpoints for adapter '{}', container '{}'. "
+                    + "Retaining existing endpoints. Reason: {}",
+                    adapter.getName(), source.getContainerId(), e.getMessage());
+            adapter.setBaseEndpoint(existingEntity.getBaseEndpoint());
+            source.setContainerName(existingContainer.getContainerName());
+        }
+    }
+
+    /**
+     * Attempts to resolve container endpoints for the application.
+     * If resolution fails (e.g. container URL is unavailable), retains the existing endpoints.
+     */
+    public void tryProcessContainerEndpoints(Application application, ApplicationEntity existingEntity) {
+        try {
+            processContainerEndpoints(application);
+        } catch (IllegalArgumentException e) {
+            ApplicationContainerSource source = (ApplicationContainerSource) application.getSource();
+            ApplicationContainerEntity existingContainer = existingEntity.getApplicationContainer();
+            log.warn("Failed to resolve container endpoints for application '{}', container '{}'. "
+                    + "Retaining existing endpoints. Reason: {}",
+                    application.getDeployment().getName(), source.getContainerId(), e.getMessage());
+            application.setEndpoint(existingEntity.getEndpoint());
+            source.setContainerName(existingContainer.getContainerName());
+            McpEntity existingMcp = existingEntity.getMcp();
+            if (existingMcp != null && existingMcp.getEndpoint() != null) {
+                if (application.getMcp() == null) {
+                    application.setMcp(new Mcp());
+                }
+                application.getMcp().setEndpoint(existingMcp.getEndpoint());
+            }
+        }
+    }
+
+    /**
+     * Attempts to resolve container endpoints for the model.
+     * If resolution fails (e.g. container URL is unavailable), retains the existing endpoints.
+     */
+    public void tryProcessContainerEndpoints(Model model, ModelEntity existingEntity) {
+        try {
+            processContainerEndpoints(model);
+        } catch (IllegalArgumentException e) {
+            ModelContainerSource source = (ModelContainerSource) model.getSource();
+            ModelContainerEntity existingContainer = existingEntity.getModelContainer();
+            log.warn("Failed to resolve container endpoints for model '{}', container '{}'. "
+                    + "Retaining existing endpoints. Reason: {}",
+                    model.getDeployment().getName(), source.getContainerId(), e.getMessage());
+            model.setEndpoint(existingEntity.getEndpoint());
+            source.setContainerName(existingContainer.getContainerName());
+        }
+    }
+
+    /**
+     * Attempts to resolve container endpoints for the interceptor.
+     * If resolution fails (e.g. container URL is unavailable), retains the existing endpoints.
+     */
+    public void tryProcessContainerEndpoints(Interceptor interceptor, InterceptorEntity existingEntity) {
+        try {
+            processContainerEndpoints(interceptor);
+        } catch (IllegalArgumentException e) {
+            InterceptorContainerSource source = (InterceptorContainerSource) interceptor.getSource();
+            InterceptorContainerEntity existingContainer = existingEntity.getInterceptorContainer();
+            log.warn("Failed to resolve container endpoints for interceptor '{}', container '{}'. "
+                    + "Retaining existing endpoints. Reason: {}",
+                    interceptor.getName(), source.getContainerId(), e.getMessage());
+            interceptor.setEndpoint(existingEntity.getEndpoint());
+            source.setContainerName(existingContainer.getContainerName());
+            FeaturesEntity existingFeatures = existingEntity.getFeatures();
+            if (existingFeatures != null) {
+                Features features = Optional.ofNullable(interceptor.getFeatures()).orElse(new Features());
+                interceptor.setFeatures(features);
+                features.setConfigurationEndpoint(existingFeatures.getConfigurationEndpoint());
+            }
+        }
+    }
+
+    /**
+     * Attempts to resolve container endpoints for the toolset.
+     * If resolution fails (e.g. container URL is unavailable), retains the existing endpoints.
+     */
+    public void tryProcessContainerEndpoints(ToolSet toolSet, ToolSetEntity existingEntity) {
+        try {
+            processContainerEndpoints(toolSet);
+        } catch (IllegalArgumentException e) {
+            ToolSetContainerSource source = (ToolSetContainerSource) toolSet.getSource();
+            ToolSetContainerEntity existingContainer = existingEntity.getToolSetContainer();
+            log.warn("Failed to resolve container endpoints for toolset '{}', container '{}'. "
+                    + "Retaining existing endpoints. Reason: {}",
+                    toolSet.getDeployment().getName(), source.getContainerId(), e.getMessage());
+            toolSet.setEndpoint(existingEntity.getEndpoint());
+            source.setContainerName(existingContainer.getContainerName());
+            if (existingEntity.getTransport() != null) {
+                toolSet.setTransport(ToolSet.Transport.valueOf(existingEntity.getTransport().name()));
+            }
+        }
     }
 }
