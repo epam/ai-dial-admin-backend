@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,11 @@ public class DeploymentManagerService {
         } catch (DeploymentClientNotExistsException deploymentClientNotExistsException) {
             throw deploymentClientNotExistsException;
         } catch (Exception e) {
-            log.error("Failed to get deployment by ID '{}'", id, e);
+            if (e.getCause() instanceof FeignException.NotFound) {
+                log.warn("Deployment not found by ID '{}'", id);
+            } else {
+                log.error("Failed to get deployment by ID '{}'", id, e);
+            }
             return null;
         }
     }

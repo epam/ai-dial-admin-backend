@@ -1,11 +1,9 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.source.AdapterContainerSource;
 import com.epam.aidial.cfg.domain.model.source.AdapterEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.AdapterSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,19 +18,13 @@ public class AdapterValidator {
 
     private final IdFieldValidator idFieldValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
-    private final DeploymentManagerService deploymentManagerService;
-    private final DeploymentInfoValidator deploymentInfoValidator;
     private final String adapterNameValidationPattern;
 
     public AdapterValidator(IdFieldValidator idFieldValidator,
                             DisplayFieldsValidator displayFieldsValidator,
-                            DeploymentManagerService deploymentManagerService,
-                            DeploymentInfoValidator deploymentInfoValidator,
                             @Value("${validation.adapter.name:}") String adapterNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.displayFieldsValidator = displayFieldsValidator;
-        this.deploymentManagerService = deploymentManagerService;
-        this.deploymentInfoValidator = deploymentInfoValidator;
         this.adapterNameValidationPattern = adapterNameValidationPattern;
     }
 
@@ -88,10 +80,6 @@ public class AdapterValidator {
     }
 
     private void validateContainerSource(AdapterContainerSource containerSource, String adapterName) {
-        String containerId = containerSource.getContainerId();
-        DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
-        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
-
         validateEndpointPath(containerSource.getCompletionEndpointPath(), adapterName);
     }
 

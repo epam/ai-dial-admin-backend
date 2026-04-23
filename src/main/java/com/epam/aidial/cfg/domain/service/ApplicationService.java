@@ -22,6 +22,7 @@ import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.normalizer.ApplicationNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
+import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -170,7 +171,7 @@ public class ApplicationService {
 
         assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, application);
         assertNotConcurrencyOverwrite(applicationEntity, hash);
-        resolveEndpointsIfContainerSource(application);
+        resolveEndpointsIfContainerSource(application, applicationEntity);
         return save(toEntity(application, applicationEntity));
     }
 
@@ -332,6 +333,21 @@ public class ApplicationService {
             return;
         }
         endpointResolver.processContainerEndpoints(application);
+    }
+
+    private void resolveEndpointsIfContainerSource(Application application, ApplicationEntity existingEntity) {
+        if (!(application.getSource() instanceof ApplicationContainerSource incomingContainer)) {
+            return;
+        }
+
+        ApplicationContainerEntity existingContainer = existingEntity.getApplicationContainer();
+        if (existingContainer == null
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
+            endpointResolver.processContainerEndpoints(application);
+            return;
+        }
+
+        endpointResolver.tryProcessContainerEndpoints(application, existingEntity);
     }
 
     private void assertExists(String name) {

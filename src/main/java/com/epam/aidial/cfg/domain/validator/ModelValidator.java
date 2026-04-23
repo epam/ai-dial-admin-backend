@@ -1,13 +1,11 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,8 +24,6 @@ public class ModelValidator {
             false, "embeddings"
     );
 
-    private final DeploymentManagerService deploymentManagerService;
-    private final DeploymentInfoValidator deploymentInfoValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
     private final FeaturesValidator featuresValidator;
@@ -35,15 +31,11 @@ public class ModelValidator {
 
     private final String modelNameValidationPattern;
 
-    public ModelValidator(DeploymentManagerService deploymentManagerService,
-                          DeploymentInfoValidator deploymentInfoValidator,
-                          DisplayFieldsValidator displayFieldsValidator,
+    public ModelValidator(DisplayFieldsValidator displayFieldsValidator,
                           DeploymentValidator deploymentValidator,
                           FeaturesValidator featuresValidator,
                           ModelEndpointUtils modelEndpointUtils,
                           @Value("${validation.model.name:}") String modelNameValidationPattern) {
-        this.deploymentManagerService = deploymentManagerService;
-        this.deploymentInfoValidator = deploymentInfoValidator;
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
         this.featuresValidator = featuresValidator;
@@ -143,10 +135,6 @@ public class ModelValidator {
     }
 
     private void validateContainerSource(ModelContainerSource containerSource, Model model) {
-        String containerId = containerSource.getContainerId();
-        DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
-        deploymentInfoValidator.validateDeploymentInfo(deploymentInfo, containerId);
-
         String name = model.getDeployment().getName();
         String completionPath = containerSource.getCompletionEndpointPath();
         validateEndpointEnding(model.getType(), completionPath, name);
