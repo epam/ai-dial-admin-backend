@@ -294,13 +294,13 @@ public class ModelService {
     }
 
     private void resolveEndpointsIfContainerSource(Model model, ModelEntity existingEntity) {
-        if (!(model.getSource() instanceof ModelContainerSource incomingSource)) {
+        if (!(model.getSource() instanceof ModelContainerSource incomingContainer)) {
             return;
         }
 
         ModelContainerEntity existingContainer = existingEntity.getModelContainer();
         if (existingContainer == null
-                || ContainerSourceChangeDetector.hasSourceChanged(incomingSource, existingContainer)) {
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
             endpointResolver.processContainerEndpoints(model);
             return;
         }

@@ -287,13 +287,13 @@ public class AdapterService {
     }
 
     private void resolveEndpointsIfContainerSource(Adapter adapter, AdapterEntity existingEntity) {
-        if (!(adapter.getSource() instanceof AdapterContainerSource incomingSource)) {
+        if (!(adapter.getSource() instanceof AdapterContainerSource incomingContainer)) {
             return;
         }
 
         AdapterContainerEntity existingContainer = existingEntity.getAdapterContainer();
         if (existingContainer == null
-                || ContainerSourceChangeDetector.hasSourceChanged(incomingSource, existingContainer)) {
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
             endpointResolver.processContainerEndpoints(adapter);
             return;
         }

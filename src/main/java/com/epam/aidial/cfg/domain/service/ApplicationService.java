@@ -336,13 +336,13 @@ public class ApplicationService {
     }
 
     private void resolveEndpointsIfContainerSource(Application application, ApplicationEntity existingEntity) {
-        if (!(application.getSource() instanceof ApplicationContainerSource incomingSource)) {
+        if (!(application.getSource() instanceof ApplicationContainerSource incomingContainer)) {
             return;
         }
 
         ApplicationContainerEntity existingContainer = existingEntity.getApplicationContainer();
         if (existingContainer == null
-                || ContainerSourceChangeDetector.hasSourceChanged(incomingSource, existingContainer)) {
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
             endpointResolver.processContainerEndpoints(application);
             return;
         }

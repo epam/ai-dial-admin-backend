@@ -252,13 +252,13 @@ public class InterceptorService {
     }
 
     private void resolveEndpointsIfContainerSource(Interceptor interceptor, InterceptorEntity existingEntity) {
-        if (!(interceptor.getSource() instanceof InterceptorContainerSource incomingSource)) {
+        if (!(interceptor.getSource() instanceof InterceptorContainerSource incomingContainer)) {
             return;
         }
 
         InterceptorContainerEntity existingContainer = existingEntity.getInterceptorContainer();
         if (existingContainer == null
-                || ContainerSourceChangeDetector.hasSourceChanged(incomingSource, existingContainer)) {
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
             endpointResolver.processContainerEndpoints(interceptor);
             return;
         }

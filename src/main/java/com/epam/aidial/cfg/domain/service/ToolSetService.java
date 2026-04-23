@@ -284,13 +284,13 @@ public class ToolSetService {
     }
 
     private void resolveEndpointsIfContainerSource(ToolSet toolSet, ToolSetEntity existingEntity) {
-        if (!(toolSet.getSource() instanceof ToolSetContainerSource incomingSource)) {
+        if (!(toolSet.getSource() instanceof ToolSetContainerSource incomingContainer)) {
             return;
         }
 
         ToolSetContainerEntity existingContainer = existingEntity.getToolSetContainer();
         if (existingContainer == null
-                || ContainerSourceChangeDetector.hasSourceChanged(incomingSource, existingContainer)) {
+                || ContainerSourceChangeDetector.hasSourceChanged(incomingContainer, existingContainer)) {
             endpointResolver.processContainerEndpoints(toolSet);
             return;
         }
