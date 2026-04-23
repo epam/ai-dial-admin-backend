@@ -121,7 +121,7 @@ public class PromptService implements ResourceService {
     public String createPrompt(CreatePrompt createPrompt) {
         try {
             return putPrompt(createPrompt, false, null);
-        } catch (ResourcePreconditionFailedException ex) {
+        } catch (OptimisticLockConflictException ex) {
             throw new EntityAlreadyExistsException("Prompt with name " + createPrompt.getName() + " already exists");
         }
     }

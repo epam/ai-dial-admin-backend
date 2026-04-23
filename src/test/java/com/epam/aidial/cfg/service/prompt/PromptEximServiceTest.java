@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
 import com.epam.aidial.cfg.service.FolderService;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,12 +26,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -57,6 +61,11 @@ class PromptEximServiceTest {
 
     @Autowired
     private PromptEximService promptEximService;
+
+    @BeforeEach
+    void setUp() {
+        when(validator.collectUniquenessConflicts(any(), any())).thenReturn(Map.of());
+    }
 
     @Test
     @SneakyThrows
@@ -217,7 +226,7 @@ class PromptEximServiceTest {
         assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(CreatePrompt.class);
-        verify(promptService).createPrompt(captor.capture());
+        verify(promptService).putPrompt(captor.capture(), eq(true), isNull());
         verify(folderService).updatesRules(updateRulesRequest);
 
         var prompt = captor.getValue();
@@ -271,7 +280,7 @@ class PromptEximServiceTest {
         assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(CreatePrompt.class);
-        verify(promptService).createPrompt(captor.capture());
+        verify(promptService).putPrompt(captor.capture(), eq(true), isNull());
         verify(folderService).updatesRules(updateRulesRequest);
 
         var prompt = captor.getValue();
@@ -284,29 +293,42 @@ class PromptEximServiceTest {
 
     @Test
     @SneakyThrows
-    void importPrompts_ValidatorThrowsError_RethrowsError() {
+    void importPrompts_UniquenessConflict_ImportsRemainingItemsAndReturnsPerItemFailures() {
         // given
+        var path = "public/test/";
         var importPrompts = ImportResources.builder()
-                .path("public/test/")
+                .path(path)
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
 
-        var promptExim = new PromptEximDto();
-        promptExim.setId("prompts/test/PROMPT 1__1.0.0");
-        promptExim.setContent("Test content");
+        var validPrompt = new PromptEximDto();
+        validPrompt.setId("prompts/public/from/OK__1.0.0");
+        validPrompt.setDescription("valid prompt");
+        validPrompt.setContent("valid prompt content");
+        var conflictPrompt = new PromptEximDto();
+        conflictPrompt.setId("prompts/public/from/BAD__1.0.0");
+        conflictPrompt.setDescription("bad prompt");
+        conflictPrompt.setContent("bad prompt content");
         var promptsExim = new PromptsEximDto();
-        promptsExim.setPrompts(List.of(promptExim));
+        promptsExim.setPrompts(List.of(validPrompt, conflictPrompt));
         promptsExim.setFolders(List.of());
 
-        doThrow(new IllegalArgumentException("Validation error"))
-                .when(validator).validatePromptImport(importPrompts, promptsExim);
+        when(validator.collectUniquenessConflicts(eq(importPrompts), eq(promptsExim)))
+                .thenReturn(Map.of(
+                        conflictPrompt.getId(),
+                        "Duplicate prompt id: \"public/from/BAD__1.0.0\" appears 2 times in this import file."
+                ));
 
-        // when/then
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> promptEximService.importPrompts(importPrompts, promptsExim));
+        // when
+        var importResults = promptEximService.importPrompts(importPrompts, promptsExim);
 
-        assertThat(thrown).hasMessage("Validation error");
-        verifyNoInteractions(promptService);
+        // then
+        assertThat(importResults.getImportResults()).hasSize(2);
+        assertThat(importResults.getImportResults().get(0).getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
+        assertThat(importResults.getImportResults().get(1).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(1).getError()).contains("Duplicate prompt id");
+
+        verify(promptService).putPrompt(any(CreatePrompt.class), eq(true), isNull());
     }
 
 }
