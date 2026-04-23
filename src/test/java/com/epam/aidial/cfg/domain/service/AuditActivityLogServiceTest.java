@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.audit.jpa.AuditActivityJpaRepository;
-import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import com.epam.aidial.cfg.dao.audit.model.AuditActivityEntity;
 import com.epam.aidial.cfg.domain.model.ImportFormat;
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
@@ -27,16 +26,11 @@ class AuditActivityLogServiceTest {
 
     @Mock
     private TransactionTimestampContext transactionTimestampContext;
-
-    @Mock
-    private AuditParentActivityHolder auditParentActivityHolder;
-
-    private ObjectMapper objectMapper;
     private AuditActivityLogService service;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         service = new AuditActivityLogService(
                 auditActivityJpaRepository,
                 transactionTimestampContext,
@@ -56,11 +50,11 @@ class AuditActivityLogServiceTest {
         expectedEntity.setActivityType(ActivityType.Import);
         expectedEntity.setEpochTimestampMs(0L);
         expectedEntity.setOperationMetadata(
-                "{\"format\":\"ADMIN\",\"importOptions\":{" +
-                        "\"conflictResolutionPolicy\":\"SKIP\"," +
-                        "\"createRoleIfAbsent\":false," +
-                        "\"createAdapterIfAbsent\":true" +
-                        "}}"
+                "{\"format\":\"ADMIN\",\"importOptions\":{"
+                        + "\"conflictResolutionPolicy\":\"SKIP\","
+                        + "\"createRoleIfAbsent\":false,"
+                        + "\"createAdapterIfAbsent\":true"
+                        + "}}"
         );
 
         verify(auditActivityJpaRepository).save(expectedEntity);
