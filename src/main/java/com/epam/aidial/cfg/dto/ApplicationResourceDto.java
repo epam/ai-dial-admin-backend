@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.ApplicationResourceSourceDto;
+import jakarta.validation.Valid;
 import lombok.Data;
 
 import java.util.List;
@@ -36,7 +38,8 @@ public class ApplicationResourceDto {
     private List<String> userRoles;
     private FeaturesResourceDto features;
     private List<RouteResourceDto> routes;
-    private String applicationTypeSchemaId;
+    @Valid
+    private ApplicationResourceSourceDto source;
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
     private McpResourceDto mcp;

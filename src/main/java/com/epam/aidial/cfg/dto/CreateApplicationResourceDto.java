@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.ApplicationResourceSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -46,7 +48,8 @@ public class CreateApplicationResourceDto {
     private List<String> userRoles;
     private FeaturesResourceDto features;
     private List<RouteResourceDto> routes;
-    private String applicationTypeSchemaId;
+    @Valid
+    private ApplicationResourceSourceDto source;
     private Map<String, Object> applicationProperties;
     private McpResourceDto mcp;
 }
