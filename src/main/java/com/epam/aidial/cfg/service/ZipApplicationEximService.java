@@ -42,6 +42,8 @@ public class ZipApplicationEximService {
     private static final String APPLICATIONS_FILENAME = "applications.json";
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String APPLICATIONS_FULL_PATH = APPLICATIONS_FOLDER + APPLICATIONS_FILENAME;
+    private static final String INVALID_EXPORT_ZIP =
+            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
 
     private final ResourceImportValidator uniquenessValidator;
 
@@ -89,14 +91,29 @@ public class ZipApplicationEximService {
                     continue;
                 }
 
-                if (zipEntryName.startsWith(APPLICATIONS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
-                    applicationsEximDtos.put(zipEntryName, jsonMapper.readValue(zipInputStream, ApplicationsEximDto.class));
-                } else {
-                    log.warn("Ignoring file {} in zip archive during import. Application import context {}",
+                if (!zipEntryName.startsWith(APPLICATIONS_FOLDER) || !zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
+                    log.warn("Ignoring file {} in zip archive during import. context={}",
                             zipEntryName, importApplications);
+                    continue;
+                }
+                try {
+                    var dto = jsonMapper.readValue(zipInputStream, ApplicationsEximDto.class);
+                    applicationsEximDtos.put(zipEntryName, dto);
+                } catch (Exception e) {
+                    log.warn("Invalid JSON in zip entry {}. path={}", zipEntryName, rootPath, e);
+                    return ImportResourcesFileResult.builder()
+                            .importResults(List.of())
+                            .error(INVALID_EXPORT_ZIP)
+                            .build();
                 }
             }
-
+            if (applicationsEximDtos.isEmpty()) {
+                log.warn("No valid application entries found in zip. path={}", rootPath);
+                return ImportResourcesFileResult.builder()
+                        .importResults(List.of())
+                        .error(INVALID_EXPORT_ZIP)
+                        .build();
+            }
             var compacted = compactApplicationsEximDtos(importApplications, applicationsEximDtos);
             return applicationEximService.importApplications(importApplications, compacted);
         } catch (Exception ex) {
@@ -177,5 +194,5 @@ public class ZipApplicationEximService {
                 .fileName(fileName)
                 .build();
     }
-    
+
 }

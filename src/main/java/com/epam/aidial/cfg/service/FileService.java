@@ -54,6 +54,9 @@ import static com.epam.aidial.cfg.client.mapper.FileClientMapper.FILES_PREFIX;
 @Slf4j
 public class FileService implements ResourceService {
 
+    private static final String INVALID_EXPORT_ZIP =
+            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
+
     private final FileClient fileClient;
     private final FileClientMapper fileClientMapper;
     private final ResourceClient resourceClient;
@@ -121,36 +124,55 @@ public class FileService implements ResourceService {
     }
 
     public ImportResourcesFileResult uploadFileZip(ImportResources importFiles, MultipartFile zipFile) {
+        String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
         try {
             uniquenessValidator.validateFileImportInZip(importFiles, zipFile);
         } catch (Exception ex) {
-            String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
             log.warn("Zip validation failed for file {}: {}", fileName, ex);
             return ImportResourcesFileResult.builder()
                     .importResults(List.of())
-                    .error(ex.getMessage())
+                    .error(INVALID_EXPORT_ZIP)
                     .build();
         }
-        try {
+        try (ZipInputStream zipInputStream = new ZipInputStream(zipFile.getInputStream())) {
             var rootPath = importFiles.getPath();
             var rootPathStripped = StringUtils.stripEnd(rootPath, "/");
-            var inputStream = zipFile.getInputStream();
             var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
-
+            ZipEntry zipEntry;
             var results = new ArrayList<ImportResourcesResult>();
-            try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
-                ZipEntry zipEntry;
-                while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                    var result = importZipFile(rootPathStripped, zipEntry, zipInputStream, importFiles,
-                            circuitBreaker);
-                    results.add(result);
+            boolean hasValidEntries = false;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                var filename = zipEntry.getName();
+                try {
+                    filename = PathUtils.validateZipEntryPath(filename);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Skipping zip entry with invalid path: {}", filename, e);
+                    results.add(ImportResourcesResult.createFailure(filename, null,
+                            "Invalid zip entry path: " + e.getMessage()));
+                    continue;
                 }
+                if (!filename.startsWith(FILES_PREFIX)) {
+                    log.warn("Ignoring file {} in zip archive during import.", filename);
+                    results.add(ImportResourcesResult.createFailure(filename, null,
+                            "Invalid zip entry path: " + filename));
+                    continue;
+                }
+                hasValidEntries = true;
+                var result = importZipFile(rootPathStripped, filename, zipInputStream, importFiles,
+                        circuitBreaker);
+                results.add(result);
+            }
+            if (!hasValidEntries) {
+                log.warn("No valid file entries found in zip. path={}", rootPath);
+                return ImportResourcesFileResult.builder()
+                        .importResults(List.of())
+                        .error(INVALID_EXPORT_ZIP)
+                        .build();
             }
             return ImportResourcesFileResult.builder()
                     .importResults(results)
                     .build();
         } catch (Exception ex) {
-            String fileName = zipFile == null ? "not specified" : zipFile.getOriginalFilename();
             log.warn("File {} import failed", fileName, ex);
             String errorMessage = StringUtils.isEmpty(ex.getMessage())
                     ? "An unknown error occurred during file import"
@@ -163,24 +185,13 @@ public class FileService implements ResourceService {
     }
 
     private ImportResourcesResult importZipFile(String rootPath,
-                                                ZipEntry zipEntry,
+                                                String filename,
                                                 InputStream fileInputStream,
                                                 ImportResources importFiles,
                                                 SimpleCircuitBreaker circuitBreaker) {
         String sourcePath = null;
         String targetPath = null;
         try {
-            var filename = zipEntry.getName();
-
-            // Validate zip entry path to prevent path traversal attacks
-            try {
-                filename = PathUtils.validateZipEntryPath(filename);
-            } catch (IllegalArgumentException e) {
-                log.warn("Skipping zip entry with invalid path: {}", filename, e);
-                return ImportResourcesResult.createFailure(filename, null,
-                        "Invalid zip entry path: " + e.getMessage());
-            }
-
             sourcePath = StringUtils.removeStart(filename, "files/");
             if (importFiles.isFlatImport()) {
                 var fileNameWithoutPath = PathUtils.parsePath(filename).getName();

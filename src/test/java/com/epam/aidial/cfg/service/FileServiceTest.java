@@ -18,11 +18,13 @@ import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
 import feign.Response;
+import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -33,11 +35,13 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import static com.epam.aidial.cfg.utils.ExportPathUtils.DIAL_FOLDER_FILE;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,6 +65,9 @@ import static org.mockito.Mockito.when;
         "files.import.consecutiveErrorsThreshold=2"
 })
 class FileServiceTest {
+
+    private static final String INVALID_EXPORT_ZIP =
+            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
 
     @MockitoBean
     private FileClient fileClient;
@@ -123,6 +130,62 @@ class FileServiceTest {
         // then
         Assertions.assertThat(result).isNotNull();
         verify(fileClient).uploadFile(multipart, expectedFileName, Map.of());
+    }
+
+    @Test
+    @SneakyThrows
+    void uploadFileZip_noEntriesUnderFilesPrefix_returnsInvalidArchive() {
+        var importFiles = ImportResources.builder()
+                .path("public/")
+                .flatImport(false)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+        var zip = buildZip(Map.of(
+                "other/readme.txt", "readme".getBytes()
+        ));
+
+        var result = fileService.uploadFileZip(importFiles, zip);
+
+        Assertions.assertThat(result.getImportResults()).isEmpty();
+        Assertions.assertThat(result.getError()).isEqualTo(INVALID_EXPORT_ZIP);
+        verify(fileClient, never()).uploadFile(any(), anyString(), any());
+    }
+
+    @Test
+    @SneakyThrows
+    void uploadFileZip_flatImport_duplicateFileNamesInZip_returnsInvalidArchive() {
+        var importFiles = ImportResources.builder()
+                .path("public/")
+                .flatImport(true)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+        var zip = buildZip(new LinkedHashMap<>(Map.of(
+                "files/public/folder1/test.txt", "1".getBytes(),
+                "files/public/folder2/test.txt", "2".getBytes()
+        )));
+
+        var result = fileService.uploadFileZip(importFiles, zip);
+
+        Assertions.assertThat(result.getImportResults()).isEmpty();
+        Assertions.assertThat(result.getError()).isEqualTo(INVALID_EXPORT_ZIP);
+        verify(fileClient, never()).uploadFile(any(), anyString(), any());
+    }
+
+    @Test
+    @SneakyThrows
+    void uploadFileZip_zipContainsDirectoryEntry_returnsInvalidArchive() {
+        var importFiles = ImportResources.builder()
+                .path("public/")
+                .flatImport(false)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+        var zip = buildZipWithDirectory("files/public/folder/");
+
+        var result = fileService.uploadFileZip(importFiles, zip);
+
+        Assertions.assertThat(result.getImportResults()).isEmpty();
+        Assertions.assertThat(result.getError()).isEqualTo(INVALID_EXPORT_ZIP);
+        verify(fileClient, never()).uploadFile(any(), anyString(), any());
     }
 
     @Test
@@ -343,6 +406,35 @@ class FileServiceTest {
             }
         }
         return names;
+    }
+
+    @SneakyThrows
+    private MockMultipartFile buildZip(Map<String, byte[]> pathToContent) {
+        return buildZip(new LinkedHashMap<>(pathToContent));
+    }
+
+    @SneakyThrows
+    private MockMultipartFile buildZip(LinkedHashMap<String, byte[]> pathToContent) {
+        var baos = new ByteArrayOutputStream();
+        try (var zos = new ZipOutputStream(baos)) {
+            for (var e : pathToContent.entrySet()) {
+                zos.putNextEntry(new ZipEntry(e.getKey()));
+                zos.write(e.getValue());
+                zos.closeEntry();
+            }
+        }
+        byte[] bytes = baos.toByteArray();
+        return new MockMultipartFile("import.zip", "import.zip", "application/zip", bytes);
+    }
+
+    @SneakyThrows
+    private MockMultipartFile buildZipWithDirectory(String directoryEntryName) {
+        var baos = new ByteArrayOutputStream();
+        try (var zos = new ZipOutputStream(baos)) {
+            zos.putNextEntry(new ZipEntry(directoryEntryName));
+            zos.closeEntry();
+        }
+        return new MockMultipartFile("import.zip", "import.zip", "application/zip", baos.toByteArray());
     }
 
 }

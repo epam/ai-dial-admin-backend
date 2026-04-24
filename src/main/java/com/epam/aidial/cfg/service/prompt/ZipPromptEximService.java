@@ -44,6 +44,8 @@ public class ZipPromptEximService {
     private static final String PROMPTS_FILENAME = "prompts.json";
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String PROMPTS_FULL_PATH = PROMPTS_FOLDER + PROMPTS_FILENAME;
+    private static final String INVALID_EXPORT_ZIP =
+            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
 
     private final JsonMapper jsonMapper = JsonMapper.builder()
             .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)
@@ -88,13 +90,29 @@ public class ZipPromptEximService {
                     log.warn("Skipping zip entry with invalid path: {}", zipEntryName, e);
                     continue;
                 }
-                
-                if (zipEntryName.startsWith(PROMPTS_FOLDER) && zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
-                    promptsEximDtos.put(zipEntryName, jsonMapper.readValue(zipInputStream, PromptsEximDto.class));
-                } else {
-                    log.info("Ignoring file {} in zip archive during import. Prompt import context {}",
+
+                if (!zipEntryName.startsWith(PROMPTS_FOLDER) || !zipEntryName.endsWith(JSON_FILE_EXTENSION)) {
+                    log.warn("Ignoring file {} in zip archive during import. Prompt import context {}",
                             zipEntryName, importPrompts);
+                    continue;
                 }
+                try {
+                    var dto = jsonMapper.readValue(zipInputStream, PromptsEximDto.class);
+                    promptsEximDtos.put(zipEntryName, dto);
+                } catch (Exception e) {
+                    log.warn("Invalid JSON in zip entry {}. path={}", zipEntryName, rootPath, e);
+                    return ImportResourcesFileResult.builder()
+                            .importResults(List.of())
+                            .error(INVALID_EXPORT_ZIP)
+                            .build();
+                }
+            }
+            if (promptsEximDtos.isEmpty()) {
+                log.warn("No valid prompt entries found in zip. path={}", rootPath);
+                return ImportResourcesFileResult.builder()
+                        .importResults(List.of())
+                        .error(INVALID_EXPORT_ZIP)
+                        .build();
             }
 
             var compacted = compactPromptsEximDtos(promptsEximDtos);
