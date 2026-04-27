@@ -164,6 +164,27 @@ public abstract class AbstractInfluxContainerTest {
             );
         }
 
+        @Test
+        void simpleSelectWithProjectIdAndDeploymentFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["deployment", "project_id", "price"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$eq": {"left": "deployment", "right": "'gpt-3.5'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("deployment", "project_id", "price");
+            assertThat(data.getData()).containsExactly(
+                    List.of("gpt-3.5", "proj1", 0.02)
+            );
+        }
+
     }
 
     @Nested
@@ -364,6 +385,34 @@ public abstract class AbstractInfluxContainerTest {
                     List.of("proj1", 1L, 2L),
                     List.of("proj2", 2L, 2L)
             );
+        }
+
+        @Test
+        void toolCallsForProjectAndDeployment() throws Exception {
+            // project_id=proj1 AND deployment=gpt-3.5 on mcp_analytics → only MCP #5.
+            // #5 has mcp_method=tools/list, so tool_calls=0, mcp_calls=1.
+            // Exercises a two-aggregation query with no group-by where the two aggregations
+            // take different build paths: count() uses the field-filter fast path, while
+            // sum(case when <tag>) uses the pivot path. The two branches must still join
+            // correctly through the synthetic key.
+            var data = queryFromJson("""
+                    {
+                      "expressions": [
+                        "sum(case when mcp_method = 'tools/call' then 1 else 0 end) as tool_calls",
+                        "count() as mcp_calls"
+                      ],
+                      "from": "mcp_analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$eq": {"left": "deployment", "right": "'gpt-3.5'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("tool_calls", "mcp_calls");
+            assertThat(data.getData()).containsExactly(List.of(0L, 1L));
         }
 
         @Test
@@ -570,6 +619,46 @@ public abstract class AbstractInfluxContainerTest {
             assertThat(data.getData()).containsExactly(List.of(4L));
         }
 
+        @Test
+        void doubleEqualityFilterCount() throws Exception {
+            // project_id=proj1 AND deployment=gpt-4 → only INSIDE #1 matches.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$eq": {"left": "deployment", "right": "'gpt-4'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(1L));
+        }
+
+        @Test
+        void equalityAndNotEqualFilter() throws Exception {
+            // project_id=proj1 AND deployment!=gpt-4 → only INSIDE #3 (gpt-3.5, proj1) matches.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$ne": {"left": "deployment", "right": "'gpt-4'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(1L));
+        }
+
     }
 
     @Nested
@@ -755,6 +844,26 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
+        }
+
+        @Test
+        void startsWithAndEqualityFilter() throws Exception {
+            // deployment STARTS_WITH 'gpt-4' AND project_id='proj1' → only INSIDE #1.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$starts_with": {"left": "deployment", "right": "'gpt-4'"}},
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(1L));
         }
 
         @Test
@@ -1018,6 +1127,28 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("cnt", "money", "tokens");
             assertThat(data.getData()).containsExactly(List.of(0L, 0.0, 0L));
+        }
+
+        @Test
+        void doubleEqualityNoIntersection() throws Exception {
+            // deployment=gpt-3.5 matches #3,#4 (user_hash=user1,user2).
+            // user_hash=user3 appears only on the OUT-OF-RANGE record.
+            // AND of both inside the time range → empty intersection.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'gpt-3.5'"}},
+                          {"$eq": {"left": "user_hash", "right": "'user3'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(0L));
         }
 
         @Test
