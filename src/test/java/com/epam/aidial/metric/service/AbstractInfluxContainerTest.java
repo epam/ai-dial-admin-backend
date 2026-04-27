@@ -526,6 +526,27 @@ public abstract class AbstractInfluxContainerTest {
             );
         }
 
+        @Test
+        void groupByAliasInExpressionsAndOrderBy() throws Exception {
+            // groupBy references an alias defined in expressions ("proj" for project_id)
+            // and orderBy references the count alias ("cnt"). Both must resolve correctly.
+            // 4 in-range records — proj1: #1, #3 → 2; proj2: #2, #4 → 2.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["project_id as proj", "count() as cnt"],
+                      "from": "analytics",
+                      "groupBy": ["proj"],
+                      "where": {%s},
+                      "orderBy": [{"$desc": "cnt"}]
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("proj", "cnt");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("proj1", 2L),
+                    List.of("proj2", 2L)
+            );
+        }
+
     }
 
     @Nested

@@ -130,7 +130,10 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
 
     @Override
     protected FluxQueryContext buildAggregationQuery(Query query) {
-        var groupByColumnNames = getGroupByColumns(query.getGroupBy()).stream().map(Column::getName).toList();
+        var groupByColumnNames = getGroupByColumns(query.getGroupBy()).stream()
+                .map(Column::getName)
+                .map(this::resolveGroupBySourceName)
+                .toList();
         var aggregationFunctionCalls = query.getExpressions().stream()
                 .map(this::resolveAlias)
                 .filter(e -> e instanceof AggregationFunctionCall)
@@ -233,7 +236,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
     @Override
     protected FluxQueryContext buildWindowColumnAggregationQuery(Query query) {
         var groupFunctionCall = extractWindowFunction(query.getGroupBy());
-        var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy());
+        var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy()).stream()
+                .map(this::resolveGroupBySourceName)
+                .toList();
         var aggregationFunctionCalls = resolveAggregationFunctionCalls(query.getExpressions());
 
         var table = getTable(query);
