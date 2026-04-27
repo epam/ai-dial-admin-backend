@@ -680,6 +680,42 @@ public abstract class AbstractInfluxContainerTest {
             assertThat(data.getData()).containsExactly(List.of(1L));
         }
 
+        @Test
+        void inFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$in": {"left": "user_hash", "right": ["'user1'", "'user2'"]}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(4L));
+        }
+
+        @Test
+        void notInFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$nin": {"left": "user_hash", "right": ["'user1'"]}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
+        }
+
     }
 
     @Nested
