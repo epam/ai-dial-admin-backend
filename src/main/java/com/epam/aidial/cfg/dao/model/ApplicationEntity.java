@@ -52,6 +52,8 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private int maxRetryAttempts = 1;
     @Column(columnDefinition = "CLOB")
     private String defaults;
+    @Column(columnDefinition = "CLOB")
+    private String responsesDefaults;
     @ToString.Exclude
     @ManyToMany
     @JoinTable(

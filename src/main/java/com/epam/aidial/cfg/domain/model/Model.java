@@ -26,6 +26,7 @@ public class Model extends RoleBased {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private Set<String> topics; //todo: rename to descriptionKeywords
     private Integer maxRetryAttempts;

@@ -132,7 +132,13 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
         var paramCounter = new AtomicInteger(0);
         var allParams = new HashMap<String, Object>();
 
-        var groupByColumns = getGroupByColumns(query.getGroupBy()).stream().map(Column::getName).toList();
+        // Outer names are what the user wrote in groupBy (which may be aliases from
+        // expressions). Source names are what we emit in the SQL — alias references
+        // must be unwound to the underlying storage column.
+        var groupByOuterNames = getGroupByColumns(query.getGroupBy()).stream().map(Column::getName).toList();
+        var groupBySourceNames = groupByOuterNames.stream()
+                .map(this::resolveGroupBySourceName)
+                .toList();
         var aggregationFunctionCalls = query.getExpressions().stream()
                 .map(this::resolveAlias)
                 .filter(AggregationFunctionCall.class::isInstance)
@@ -162,10 +168,18 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
                 .collect(Collectors.toSet());
         var selectParts = new ArrayList<String>();
 
-        // Add group by columns to select only if they appear in expressions
-        for (var groupByCol : groupByColumns) {
-            if (expressionColumnNames.contains(groupByCol)) {
-                selectParts.add("\"" + groupByCol + "\"");
+        // Add group by columns to select only if they appear in expressions; render
+        // `"source" AS "outer"` when the user defined an alias.
+        for (int i = 0; i < groupByOuterNames.size(); i++) {
+            var outer = groupByOuterNames.get(i);
+            if (!expressionColumnNames.contains(outer)) {
+                continue;
+            }
+            var source = groupBySourceNames.get(i);
+            if (source.equals(outer)) {
+                selectParts.add("\"" + outer + "\"");
+            } else {
+                selectParts.add("\"" + source + "\" AS \"" + outer + "\"");
             }
         }
 
@@ -183,8 +197,8 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
         if (!innerWhereClause.isEmpty()) {
             sql.append(" WHERE ").append(innerWhereClause);
         }
-        if (!groupByColumns.isEmpty()) {
-            var groupByClause = groupByColumns.stream()
+        if (!groupBySourceNames.isEmpty()) {
+            var groupByClause = groupBySourceNames.stream()
                     .map(col -> "\"" + col + "\"")
                     .collect(Collectors.joining(", "));
             sql.append(" GROUP BY ").append(groupByClause);
