@@ -177,7 +177,7 @@ public class ApplicationResourceService implements ResourceService {
         var transport = resolveTransport(application, application.getName());
 
         var url = String.format(
-                "%s/v1/toolset/%s/mcp",
+                "%s/v1/deployments/%s/mcp",
                 coreClientUrlUtils.getNormalizedCoreClientUrl(),
                 application.getUrl()
         );
@@ -195,7 +195,7 @@ public class ApplicationResourceService implements ResourceService {
         var transport = resolveTransport(application, application.getName());
 
         var url = String.format(
-                "%s/v1/toolset/%s/mcp?useAllowedTools=false",
+                "%s/v1/deployments/%s/mcp?useAllowedTools=false",
                 coreClientUrlUtils.getNormalizedCoreClientUrl(),
                 application.getUrl()
         );
