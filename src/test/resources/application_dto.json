@@ -8,6 +8,9 @@
   "editorUrl": "https://editor.test.com",
   "endpoint": "https://endpoint.test.com/embeddings",
   "responsesEndpoint": "https://endpoint.test.com/responses",
+  "responsesDefaults": {
+    "field": "skipped-value"
+  },
   "displayName": "Test Application",
   "description": "It is a test application",
   "displayVersion": "1.0.0",

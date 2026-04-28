@@ -846,6 +846,7 @@ public abstract class ApplicationFunctionalTest {
                         "assistant_attachments_in_request_supported": false
                       },
                       "defaults": {},
+                      "responses_defaults": {},
                       "interceptors": [],
                       "description_keywords": [],
                       "max_retry_attempts": 1,

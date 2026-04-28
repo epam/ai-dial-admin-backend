@@ -91,6 +91,9 @@
       "name": "testModel1",
       "endpoint": "https://endpoint1/embeddings",
       "responsesEndpoint": "https://endpoint1/responses",
+      "responsesDefaults": {
+        "field": "skipped-value"
+      },
       "displayName": "Test Model1",
       "displayVersion": "2.0.0",
       "forwardAuthToken": false,
@@ -233,6 +236,9 @@
       "dependencies": [],
       "routes": {},
       "responsesEndpoint": "https://application2/responses",
+      "responsesDefaults": {
+        "field": "skipped-value"
+      },
       "mcp": {
         "endpoint": "http://localhost:9876/mcp",
         "transport": "http",

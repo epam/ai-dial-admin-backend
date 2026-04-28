@@ -703,6 +703,7 @@ public abstract class ModelFunctionalTest {
                       "inputAttachmentTypes": null,
                       "maxInputAttachments":null,
                       "defaults": {},
+                      "responsesDefaults": {},
                       "interceptors": [],
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,

@@ -532,6 +532,9 @@
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
         "endpoint": "https://endpoint2/embeddings",
         "responsesEndpoint": "https://endpoint2/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "source": {
           "$type": "endpoints"
         }
@@ -706,6 +709,9 @@
           "$type": "endpoints"
         },
         "responsesEndpoint": "https://application1/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,

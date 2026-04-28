@@ -18,6 +18,7 @@
       "description": "This is a sample interceptor",
       "forwardAuthToken": true,
       "defaults": {},
+      "responsesDefaults": {},
       "interceptors": [],
       "descriptionKeywords": [],
       "maxRetryAttempts": 1,

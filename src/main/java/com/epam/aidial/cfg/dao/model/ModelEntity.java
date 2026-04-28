@@ -49,6 +49,8 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private Integer maxInputAttachments;
     @Column(columnDefinition = "CLOB")
     private String defaults;
+    @Column(columnDefinition = "CLOB")
+    private String responsesDefaults;
     @ToString.Exclude
     @ManyToMany
     @JoinTable(

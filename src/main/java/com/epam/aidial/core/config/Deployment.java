@@ -39,6 +39,11 @@ public abstract class Deployment extends RoleBasedEntity {
      */
     private Map<String, Object> defaults = new HashMap<>();
     /**
+     * Default parameters are applied if a request doesn't contain them in OpenAI Responses API call.
+     */
+    @JsonAlias({"responses_defaults", "responsesDefaults"})
+    private Map<String, Object> responsesDefaults = Map.of(); //0.43.0
+    /**
      * List of interceptors to be called for the deployment
      */
     private List<String> interceptors = new ArrayList<>();
