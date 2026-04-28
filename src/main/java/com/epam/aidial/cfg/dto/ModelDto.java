@@ -36,6 +36,7 @@ public class ModelDto extends RoleBasedDto {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private TreeSet<String> topics;
     @Positive(message = "Max retry attempts should be greater than 0")

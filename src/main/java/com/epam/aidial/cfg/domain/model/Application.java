@@ -30,6 +30,7 @@ public class Application extends RoleBased {
     private Set<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private String author;
     private Long createdAt;

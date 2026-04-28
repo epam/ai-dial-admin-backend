@@ -47,6 +47,9 @@ import static org.mockito.Mockito.when;
 })
 class ZipToolSetEximServiceTest {
 
+    private static final String INVALID_EXPORT_ZIP =
+            "Invalid archive format. Please upload a valid aidial-admin archive.";
+
     @MockitoBean
     private ToolSetEximService toolSetEximService;
 
@@ -260,12 +263,50 @@ class ZipToolSetEximServiceTest {
         var importResults = zipToolSetEximService.importToolSets(importToolSets, mockMultipartFile);
 
         // then
-        // Since the zip doesn't contain toolSets.json, the method should return an empty result with an error
         assertThat(importResults.getImportResults()).isEmpty();
-        assertThat(importResults.getError()).isEqualTo("No toolset files (e.g., `toolsets/*.json`) found or loaded from the archive. "
-                + "Please ensure toolset files are placed in a `toolsets/` directory and have a `.json` extension.");
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
 
-        // Verify that toolSetEximService was not called
+        verifyNoInteractions(toolSetEximService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importZipToolSets_InvalidJsonInToolSetsFile_ReturnsInvalidArchiveError() {
+        var importToolSets = ImportResources.builder()
+                .path("public/test/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var inputStream = getZipWithRawEntry("toolSets/fail.json", "{{not-json".getBytes());
+        var mockMultipartFile = new MockMultipartFile("file", inputStream);
+
+        var importResults = zipToolSetEximService.importToolSets(importToolSets, mockMultipartFile);
+
+        assertThat(importResults.getImportResults()).isEmpty();
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
+        verifyNoInteractions(toolSetEximService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importZipToolSets_ZipContainsOnlyPathTraversalToolSetPaths_ReturnsInvalidArchiveError() {
+        var importToolSets = ImportResources.builder()
+                .path("public/test/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var toolSet = getToolSetEximDto("1");
+        var inputStream = getZipInputStream(List.of(
+                Pair.of("test/toolSets/test.json", ToolSetsEximDto.builder()
+                        .toolSets(List.of(toolSet))
+                        .build())
+        ));
+        var mockMultipartFile = new MockMultipartFile("file", inputStream);
+
+        var importResults = zipToolSetEximService.importToolSets(importToolSets, mockMultipartFile);
+
+        assertThat(importResults.getImportResults()).isEmpty();
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
         verifyNoInteractions(toolSetEximService);
     }
 
@@ -318,6 +359,22 @@ class ZipToolSetEximServiceTest {
             }
             zos.finish();
 
+            data = baos.toByteArray();
+        }
+        return new ByteArrayInputStream(data);
+    }
+
+    @SneakyThrows
+    private InputStream getZipWithRawEntry(String entryPath, byte[] rawContent) {
+        byte[] data;
+        try (
+                var baos = new ByteArrayOutputStream();
+                var zos = new ZipOutputStream(baos)
+        ) {
+            zos.putNextEntry(new ZipEntry(entryPath));
+            zos.write(rawContent);
+            zos.closeEntry();
+            zos.finish();
             data = baos.toByteArray();
         }
         return new ByteArrayInputStream(data);
