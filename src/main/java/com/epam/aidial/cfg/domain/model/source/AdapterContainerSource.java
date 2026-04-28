@@ -15,4 +15,5 @@ public class AdapterContainerSource extends AdapterSource {
     private String containerId;
     private String containerName;
     private String completionEndpointPath;
+    private String responsesEndpointPath;
 }

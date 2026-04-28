@@ -111,12 +111,37 @@ public class AdapterService {
     }
 
     @Transactional(readOnly = true)
-    public Adapter getByEndpoint(String adapterEndpoint) {
+    public Adapter getByEndpointAndNullResponsesEndpoint(String adapterEndpoint) {
         return Optional.ofNullable(adapterEndpoint)
-                .map(adapterJpaRepository::findByBaseEndpointOrderByNameAsc)
+                .map(adapterJpaRepository::findByBaseEndpointAndResponsesEndpointNullOrderByNameAsc)
                 .map(this::resolveAdapterFromAdaptersWithSameBaseEndpoint)
                 .map(mapper::toDomain)
                 .orElseThrow(() -> new EntityNotFoundException("Adapter with endpoint %s does not exist".formatted(adapterEndpoint)));
+    }
+
+    @Transactional(readOnly = true)
+    public Adapter getByResponsesEndpointAndNullEndpoint(String adapterResponsesEndpoint) {
+        return Optional.ofNullable(adapterResponsesEndpoint)
+                .map(adapterJpaRepository::findByResponsesEndpointAndBaseEndpointNullOrderByNameAsc)
+                .map(this::resolveAdapterFromAdaptersWithSameResponsesEndpoint)
+                .map(mapper::toDomain)
+                .orElseThrow(() -> new EntityNotFoundException("Adapter with responses endpoint %s does not exist".formatted(adapterResponsesEndpoint)));
+    }
+
+    @Transactional(readOnly = true)
+    public Adapter getByEndpointAndResponsesEndpoint(String adapterEndpoint, String adapterResponsesEndpoint) {
+        if (adapterEndpoint == null || adapterResponsesEndpoint == null) {
+            throw new IllegalArgumentException("Endpoint and responses endpoint must both be non-null");
+        }
+
+        var adapters = adapterJpaRepository.findByBaseEndpointAndResponsesEndpointOrderByNameAsc(adapterEndpoint, adapterResponsesEndpoint);
+        var adapter = resolveAdapterFromAdaptersWithSameBaseAndResponsesEndpoint(adapters);
+
+        if (adapter == null) {
+            throw new EntityNotFoundException("Adapter with endpoint %s and responses endpoint %s does not exist".formatted(adapterEndpoint, adapterResponsesEndpoint));
+        }
+
+        return mapper.toDomain(adapter);
     }
 
     @Transactional
@@ -164,9 +189,12 @@ public class AdapterService {
                 modelJpaRepository.deleteAll(new ArrayList<>(models));
             } else {
                 String baseEndpoint = adapterEntity.getBaseEndpoint();
+                String responsesEndpoint = adapterEntity.getResponsesEndpoint();
                 models.forEach(model -> {
                     model.setAdapter(null);
                     model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(baseEndpoint, model.getAdapterCompletionEndpointPath()));
+                    model.setResponsesEndpoint(responsesEndpoint);
+                    model.setAdapterCompletionEndpointPath(null);
                 });
             }
         }
@@ -266,15 +294,39 @@ public class AdapterService {
         }
     }
 
+    private AdapterEntity resolveAdapterFromAdaptersWithSameBaseEndpoint(Iterable<AdapterEntity> adapters) {
+        return resolveAdapterFromAdaptersWithSameEndpoints(
+                adapters,
+                "Found multiple adapters with same base endpoint: {}. Will use the first one"
+        );
+    }
+
+    private AdapterEntity resolveAdapterFromAdaptersWithSameResponsesEndpoint(Iterable<AdapterEntity> adapters) {
+        return resolveAdapterFromAdaptersWithSameEndpoints(
+                adapters,
+                "Found multiple adapters with same responses endpoint: {}. Will use the first one"
+        );
+    }
+
+    private AdapterEntity resolveAdapterFromAdaptersWithSameBaseAndResponsesEndpoint(Iterable<AdapterEntity> adapters) {
+        return resolveAdapterFromAdaptersWithSameEndpoints(
+                adapters,
+                "Found multiple adapters with same base and responses endpoints: {}. Will use the first one"
+        );
+    }
+
     // Such resolution is temporary and will be removed once there is an option for user to resolve
     // conflict on UI
-    private AdapterEntity resolveAdapterFromAdaptersWithSameBaseEndpoint(Iterable<AdapterEntity> adapters) {
+    private AdapterEntity resolveAdapterFromAdaptersWithSameEndpoints(Iterable<AdapterEntity> adapters, String messageTemplate) {
         if (IterableUtils.isEmpty(adapters)) {
             return null;
         }
 
         if (IterableUtils.size(adapters) != 1) {
-            log.warn("Found multiple adapters with same base endpoint: {}. Will use the first one", adapters);
+            List<String> adapterNames = StreamSupport.stream(adapters.spliterator(), false)
+                    .map(AdapterEntity::getName)
+                    .toList();
+            log.warn(messageTemplate, adapterNames);
         }
 
         return IterableUtils.first(adapters);

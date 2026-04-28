@@ -56,6 +56,7 @@ class ContainerEndpointResolverTest {
     private static final String CONTAINER_NAME = "test-container";
     private static final String CONTAINER_URL = "https://test-container.com";
     private static final String COMPLETION_PATH = "/api/completion";
+    private static final String RESPONSES_PATH = "/api/responses";
     private static final String CONFIG_PATH = "/api/config";
 
     @Mock
@@ -72,10 +73,10 @@ class ContainerEndpointResolverTest {
     }
 
     @Test
-    void processContainerEndpoints_ForAdapter_ShouldSetBaseEndpointAndContainerName() {
+    void processContainerEndpoints_ForAdapter_ShouldSetBaseEndpointAndResponsesEndpointAndContainerName() {
         // given
         Adapter adapter = new Adapter();
-        AdapterContainerSource containerSource = new AdapterContainerSource(CONTAINER_ID, null, COMPLETION_PATH);
+        AdapterContainerSource containerSource = new AdapterContainerSource(CONTAINER_ID, null, COMPLETION_PATH, RESPONSES_PATH);
         adapter.setSource(containerSource);
 
         DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
@@ -91,16 +92,18 @@ class ContainerEndpointResolverTest {
         verify(deploymentManagerService).getById(CONTAINER_ID);
         verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
         assertThat(adapter.getBaseEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(adapter.getResponsesEndpoint()).isEqualTo(CONTAINER_URL + RESPONSES_PATH);
         assertThat(containerSource.getContainerName()).isEqualTo(CONTAINER_NAME);
     }
 
     @Test
-    void processContainerEndpoints_ForAdapterEntity_ShouldSetBaseEndpointAndContainerName() {
+    void processContainerEndpoints_ForAdapterEntity_ShouldSetBaseEndpointAndResponsesEndpointAndContainerName() {
         // given
         AdapterEntity adapterEntity = new AdapterEntity();
         AdapterContainerEntity containerEntity = new AdapterContainerEntity();
         containerEntity.setContainerId(CONTAINER_ID);
         containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        containerEntity.setResponsesEndpointPath(RESPONSES_PATH);
         adapterEntity.setAdapterContainer(containerEntity);
 
         DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
@@ -116,14 +119,15 @@ class ContainerEndpointResolverTest {
         verify(deploymentManagerService).getById(CONTAINER_ID);
         verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
         assertThat(adapterEntity.getBaseEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(adapterEntity.getResponsesEndpoint()).isEqualTo(CONTAINER_URL + RESPONSES_PATH);
         assertThat(containerEntity.getContainerName()).isEqualTo(CONTAINER_NAME);
     }
 
     @Test
-    void processContainerEndpoints_ForAdapter_WithNullCompletionPath_ShouldSetBaseEndpointToContainerUrl() {
+    void processContainerEndpoints_ForAdapter_WithNullCompletionPathAndResponsesPath_ShouldSetEndpointsToNull() {
         // given
         Adapter adapter = new Adapter();
-        AdapterContainerSource containerSource = new AdapterContainerSource(CONTAINER_ID, null, null);
+        AdapterContainerSource containerSource = new AdapterContainerSource(CONTAINER_ID, null, null, null);
         adapter.setSource(containerSource);
 
         InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
@@ -135,14 +139,15 @@ class ContainerEndpointResolverTest {
         containerEndpointResolver.processContainerEndpoints(adapter);
 
         // then
-        assertThat(adapter.getBaseEndpoint()).isEqualTo(CONTAINER_URL);
+        assertThat(adapter.getBaseEndpoint()).isNull();
+        assertThat(adapter.getResponsesEndpoint()).isNull();
     }
 
     @Test
-    void processContainerEndpoints_ForModel_ShouldSetEndpoint() {
+    void processContainerEndpoints_ForModel_ShouldSetEndpointAndResponsesEndpoint() {
         // given
         Model model = new Model();
-        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH);
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, RESPONSES_PATH);
         model.setSource(containerSource);
 
         DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
@@ -157,15 +162,17 @@ class ContainerEndpointResolverTest {
         verify(deploymentManagerService).getById(CONTAINER_ID);
         verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
         assertThat(model.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(model.getResponsesEndpoint()).isEqualTo(CONTAINER_URL + RESPONSES_PATH);
     }
 
     @Test
-    void processContainerEndpoints_ForModelEntity_ShouldSetEndpoint() {
+    void processContainerEndpoints_ForModelEntity_ShouldSetEndpointAndResponsesEndpoint() {
         // given
         ModelEntity modelEntity = new ModelEntity();
         ModelContainerEntity containerEntity = new ModelContainerEntity();
         containerEntity.setContainerId(CONTAINER_ID);
         containerEntity.setCompletionEndpointPath(COMPLETION_PATH);
+        containerEntity.setResponsesEndpointPath(RESPONSES_PATH);
         modelEntity.setModelContainer(containerEntity);
 
         DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
@@ -180,6 +187,7 @@ class ContainerEndpointResolverTest {
         verify(deploymentManagerService).getById(CONTAINER_ID);
         verify(deploymentInfoValidator).validateDeploymentInfo(deploymentInfo, CONTAINER_ID);
         assertThat(modelEntity.getEndpoint()).isEqualTo(CONTAINER_URL + COMPLETION_PATH);
+        assertThat(modelEntity.getResponsesEndpoint()).isEqualTo(CONTAINER_URL + RESPONSES_PATH);
     }
 
     @Test
@@ -479,7 +487,7 @@ class ContainerEndpointResolverTest {
     void processContainerEndpoints_WhenDeploymentInfoNull_ShouldDelegateValidation() {
         // given
         Model model = new Model();
-        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH);
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, COMPLETION_PATH, RESPONSES_PATH);
         model.setSource(containerSource);
 
         when(deploymentManagerService.getById(CONTAINER_ID)).thenReturn(null);
@@ -493,10 +501,10 @@ class ContainerEndpointResolverTest {
     }
 
     @Test
-    void processContainerEndpoints_WithNullCompletionPath_ShouldHandleGracefully() {
+    void processContainerEndpoints_WithNullCompletionPathAndResponsesPath_ShouldHandleGracefully() {
         // given
         Model model = new Model();
-        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, null);
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, null, null);
         model.setSource(containerSource);
 
         InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
@@ -508,7 +516,8 @@ class ContainerEndpointResolverTest {
         containerEndpointResolver.processContainerEndpoints(model);
 
         // then
-        assertThat(model.getEndpoint()).isEqualTo(CONTAINER_URL);
+        assertThat(model.getEndpoint()).isNull();
+        assertThat(model.getResponsesEndpoint()).isNull();
     }
 
     @Test
@@ -585,10 +594,11 @@ class ContainerEndpointResolverTest {
     @ParameterizedTest
     @MethodSource("slashCompatibilityTestCases")
     void processContainerEndpoints_ForModel_WithDifferentSlashCombinations_ShouldResolveCorrectly(
-            String url, String path, String expectedEndpoint, String testDescription) {
+            String url, String path, String responsesPath, String expectedEndpoint, String expectedResponsesEndpoint,
+            String testDescription) {
         // given
         Model model = new Model();
-        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, path);
+        ModelContainerSource containerSource = new ModelContainerSource(CONTAINER_ID, CONTAINER_NAME, path, responsesPath);
         model.setSource(containerSource);
 
         DeploymentInfoDto deploymentInfo = new NimDeploymentInfoDto();
@@ -603,6 +613,9 @@ class ContainerEndpointResolverTest {
         assertThat(model.getEndpoint())
                 .as(testDescription)
                 .isEqualTo(expectedEndpoint);
+        assertThat(model.getResponsesEndpoint())
+                .as(testDescription)
+                .isEqualTo(expectedResponsesEndpoint);
     }
 
     private static Stream<Arguments> slashCompatibilityTestCases() {
@@ -610,37 +623,49 @@ class ContainerEndpointResolverTest {
                 Arguments.of(
                         CONTAINER_URL + "/",
                         COMPLETION_PATH,
+                        RESPONSES_PATH,
                         CONTAINER_URL + COMPLETION_PATH,
+                        CONTAINER_URL + RESPONSES_PATH,
                         "URL ends with slash and path starts with slash - should avoid double slash"
                 ),
                 Arguments.of(
                         CONTAINER_URL,
                         "api/completion",
+                        "api/responses",
                         CONTAINER_URL + "/api/completion",
+                        CONTAINER_URL + "/api/responses",
                         "URL has no trailing slash and path has no leading slash - should add slash"
                 ),
                 Arguments.of(
                         CONTAINER_URL + "/",
                         "api/completion",
+                        "api/responses",
                         CONTAINER_URL + "/api/completion",
+                        CONTAINER_URL + "/api/responses",
                         "URL ends with slash and path has no leading slash - should concatenate correctly"
                 ),
                 Arguments.of(
                         CONTAINER_URL,
                         COMPLETION_PATH,
+                        RESPONSES_PATH,
                         CONTAINER_URL + COMPLETION_PATH,
+                        CONTAINER_URL + RESPONSES_PATH,
                         "URL has no trailing slash and path starts with slash - should concatenate correctly"
                 ),
                 Arguments.of(
                         CONTAINER_URL,
                         "",
-                        CONTAINER_URL,
+                        "",
+                        null,
+                        null,
                         "Empty path - should return URL only"
                 ),
                 Arguments.of(
                         CONTAINER_URL + "/",
                         "",
-                        CONTAINER_URL + "/",
+                        "",
+                        null,
+                        null,
                         "URL ends with slash and empty path - should return URL with trailing slash"
                 )
         );
