@@ -249,6 +249,22 @@ public abstract class AbstractQueryBuilder<C, T extends TableDeclaration> {
     }
 
     /**
+     * Translates a groupBy column name to the underlying source column name. When the
+     * user writes `groupBy: ["proj"]` referencing an alias `"project_id as proj"` in
+     * `expressions`, the parser yields a Column("proj"), but the storage column is
+     * actually "project_id". `nameToExpression["proj"]` was set by
+     * {@link #resolveExpressionsToOuterColumnNames} to the aliased Column, so this
+     * unwinds the alias. For non-aliased names it is a no-op.
+     */
+    protected String resolveGroupBySourceName(String name) {
+        var expression = nameToExpression.get(name);
+        if (expression instanceof Column column) {
+            return column.getName();
+        }
+        return name;
+    }
+
+    /**
      * Resolves a sort/orderBy expression to its outer column name.
      * First tries direct object lookup, then resolves by name through nameToExpression.
      */
