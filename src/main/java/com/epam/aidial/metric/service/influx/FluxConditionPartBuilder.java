@@ -9,6 +9,7 @@ import com.epam.aidial.metric.service.RangeFilterUtils;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.model.Filter;
+import com.epam.aidial.ql.model.Tuple;
 import com.epam.aidial.ql.model.filters.And;
 import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
 import com.epam.aidial.ql.model.filters.Not;
@@ -127,13 +128,20 @@ public class FluxConditionPartBuilder {
         if (!(binaryComparisonFilter.getLeftExpression() instanceof Column column)) {
             throw new NotImplementedException("Left part of expression must be a column");
         }
-        if (!(binaryComparisonFilter.getRightExpression() instanceof Constant constant)) {
-            throw new NotImplementedException("Right part of expression must be a constant");
+
+        var operator = binaryComparisonFilter.getOperator();
+        var right = binaryComparisonFilter.getRightExpression();
+        if (operator == BinaryComparisonOperator.IN || operator == BinaryComparisonOperator.NOT_IN) {
+            if (!(right instanceof Tuple tuple)) {
+                throw new NotImplementedException("Right part of IN/NOT IN expression must be a tuple");
+            }
+            return createInFilter(column.getName(), tuple, operator);
         }
 
-        var columnName = column.getName();
-        var value = constant.getValue();
-        return createBinaryComparisonFilter(columnName, value, binaryComparisonFilter.getOperator(), regexCounter);
+        if (!(right instanceof Constant constant)) {
+            throw new NotImplementedException("Right part of expression must be a constant");
+        }
+        return createBinaryComparisonFilter(column.getName(), constant.getValue(), operator, regexCounter);
     }
 
     private FluxQueryPart createBinaryComparisonFilter(String columnName, Comparable<?> value,
@@ -149,9 +157,25 @@ public class FluxConditionPartBuilder {
             case LIKE -> createLikeFilter(columnName, value, regexCounter);
             case NOT_LIKE -> throw new NotImplementedException("NOT LIKE operator is not supported yet");
 
-            case IN -> throw new NotImplementedException("IN operator is not supported yet");
-            case NOT_IN -> throw new NotImplementedException("NOT IN operator is not supported yet");
+            case IN, NOT_IN -> throw new IllegalStateException("IN/NOT IN handled before this point");
         };
+    }
+
+    private FluxQueryPart createInFilter(String columnName, Tuple tuple, BinaryComparisonOperator operator) {
+        var values = tuple.getExpressions().stream()
+                .map(e -> {
+                    if (!(e instanceof Constant c)) {
+                        throw new NotImplementedException("IN values must be constants");
+                    }
+                    return quoteIfNeeded(c.getValue());
+                })
+                .collect(Collectors.joining(", ", "[", "]"));
+        var quotedColumn = SimpleFluxBuilder.quote(columnName);
+        var clause = "contains(value: r[%s], set: %s)".formatted(quotedColumn, values);
+        if (operator == BinaryComparisonOperator.NOT_IN) {
+            clause = "not " + clause;
+        }
+        return FluxQueryPart.of(clause);
     }
 
     private FluxQueryPart createEqualsFilter(String columnName, Comparable<?> comparable) {
