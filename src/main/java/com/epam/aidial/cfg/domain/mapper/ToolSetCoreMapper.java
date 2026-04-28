@@ -34,6 +34,7 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "interceptors", ignore = true)
     @Mapping(target = "dependencies", ignore = true)
     @Mapping(target = "responsesEndpoint", ignore = true)
+    @Mapping(target = "responsesDefaults", ignore = true)
     @Mapping(target = "authSettings", source = "deployment.authSettings")
     @Mapping(target = "forwardPerRequestKey", source = "deployment.forwardPerRequestKey")
     public abstract CoreToolSet mapToolSet(ToolSet toolSet);

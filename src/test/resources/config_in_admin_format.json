@@ -167,6 +167,9 @@
 				}
 			],
 			"responsesEndpoint": "https://application1/responses",
+			"responsesDefaults": {
+				"field": "skipped-value"
+			},
 			"mcp": {
 				"endpoint": "http://localhost:9876/mcp",
 				"transport": "http",
@@ -212,7 +215,10 @@
 			"dependencies": ["dep1", "dep2"],
 			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
 			"endpoint": "https://endpoint2/embeddings",
-			"responsesEndpoint": "https://endpoint2/responses"
+			"responsesEndpoint": "https://endpoint2/responses",
+			"responsesDefaults": {
+				"field": "skipped-value"
+			}
 		},
 		"testModel1": {
 			"deployment": {

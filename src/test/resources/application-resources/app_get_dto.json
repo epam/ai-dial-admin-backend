@@ -12,6 +12,7 @@
   "reference": "a596922a-96f4-447f-a586-9227ff301320",
   "forwardAuthToken": false,
   "defaults": {},
+  "responsesDefaults": {},
   "interceptors": [],
   "descriptionKeywords": [
     "Analysis"
