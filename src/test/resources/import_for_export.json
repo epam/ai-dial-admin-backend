@@ -14,7 +14,10 @@
       "dependencies": ["dep1", "dep2"],
       "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
       "endpoint": "https://endpoint1/embeddings",
-      "responsesEndpoint": "https://endpoint1/responses"
+      "responsesEndpoint": "https://endpoint1/responses",
+      "responsesDefaults": {
+        "field": "skipped-value"
+      }
     },
     "testModel2": {
       "type": "embedding",
@@ -50,6 +53,9 @@
       ],
       "endpoint": "endpoint",
       "responsesEndpoint": "https://application2/responses",
+      "responsesDefaults": {
+        "field": "skipped-value"
+      },
       "mcp": {
         "endpoint": "http://localhost:9876/mcp",
         "allowedTools": ["classify_text"],

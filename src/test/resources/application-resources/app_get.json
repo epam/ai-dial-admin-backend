@@ -15,6 +15,7 @@
   "forwardAuthToken": false,
   "inputAttachmentTypes": null,
   "defaults": {},
+  "responsesDefaults": {},
   "interceptors": [],
   "descriptionKeywords": [
     "Analysis"
