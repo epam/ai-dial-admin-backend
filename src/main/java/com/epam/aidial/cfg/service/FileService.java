@@ -55,7 +55,7 @@ import static com.epam.aidial.cfg.client.mapper.FileClientMapper.FILES_PREFIX;
 public class FileService implements ResourceService {
 
     private static final String INVALID_EXPORT_ZIP =
-            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
+            "Invalid archive format. Please upload a valid aidial-admin archive.";
 
     private final FileClient fileClient;
     private final FileClientMapper fileClientMapper;

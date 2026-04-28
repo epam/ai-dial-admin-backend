@@ -45,7 +45,7 @@ public class ZipPromptEximService {
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String PROMPTS_FULL_PATH = PROMPTS_FOLDER + PROMPTS_FILENAME;
     private static final String INVALID_EXPORT_ZIP =
-            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
+            "Invalid archive format. Please upload a valid aidial-admin archive.";
 
     private final JsonMapper jsonMapper = JsonMapper.builder()
             .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)

@@ -67,7 +67,7 @@ import static org.mockito.Mockito.when;
 class FileServiceTest {
 
     private static final String INVALID_EXPORT_ZIP =
-            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
+            "Invalid archive format. Please upload a valid aidial-admin archive.";
 
     @MockitoBean
     private FileClient fileClient;

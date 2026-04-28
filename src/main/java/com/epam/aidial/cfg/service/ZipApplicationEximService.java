@@ -43,7 +43,7 @@ public class ZipApplicationEximService {
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String APPLICATIONS_FULL_PATH = APPLICATIONS_FOLDER + APPLICATIONS_FILENAME;
     private static final String INVALID_EXPORT_ZIP =
-            "Invalid archive format. Please upload a valid aidial-admin export ZIP.";
+            "Invalid archive format. Please upload a valid aidial-admin archive.";
 
     private final ResourceImportValidator uniquenessValidator;
 
