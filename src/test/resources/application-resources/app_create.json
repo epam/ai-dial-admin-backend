@@ -12,6 +12,7 @@
   "inputAttachmentTypes": null,
   "maxInputAttachments": null,
   "defaults": null,
+  "responsesDefaults": null,
   "interceptors": null,
   "descriptionKeywords": [
     "Analysis"

@@ -24,7 +24,8 @@ public final class ContainerSourceChangeDetector {
 
     public static boolean hasSourceChanged(AdapterContainerSource incoming, AdapterContainerEntity existing) {
         return hasCommonFieldsChanged(incoming.getContainerId(), incoming.getCompletionEndpointPath(),
-                existing.getContainerId(), existing.getCompletionEndpointPath());
+                existing.getContainerId(), existing.getCompletionEndpointPath())
+                || !Objects.equals(incoming.getResponsesEndpointPath(), existing.getResponsesEndpointPath());
     }
 
     public static boolean hasSourceChanged(ApplicationContainerSource incoming, ApplicationContainerEntity existing) {
@@ -35,7 +36,8 @@ public final class ContainerSourceChangeDetector {
 
     public static boolean hasSourceChanged(ModelContainerSource incoming, ModelContainerEntity existing) {
         return hasCommonFieldsChanged(incoming.getContainerId(), incoming.getCompletionEndpointPath(),
-                existing.getContainerId(), existing.getCompletionEndpointPath());
+                existing.getContainerId(), existing.getCompletionEndpointPath())
+                || !Objects.equals(incoming.getResponsesEndpointPath(), existing.getResponsesEndpointPath());
     }
 
     public static boolean hasSourceChanged(InterceptorContainerSource incoming, InterceptorContainerEntity existing) {
@@ -50,7 +52,7 @@ public final class ContainerSourceChangeDetector {
     }
 
     private static boolean hasCommonFieldsChanged(String incomingContainerId, String incomingCompletionPath,
-                                                   String existingContainerId, String existingCompletionPath) {
+                                                  String existingContainerId, String existingCompletionPath) {
         return !Objects.equals(incomingContainerId, existingContainerId)
                 || !Objects.equals(incomingCompletionPath, existingCompletionPath);
     }

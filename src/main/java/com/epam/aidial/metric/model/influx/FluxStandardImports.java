@@ -6,4 +6,5 @@ import lombok.experimental.UtilityClass;
 public class FluxStandardImports {
     public static final String SCHEMA = "import \"influxdata/influxdb/schema\"";
     public static final String REGEXP = "import \"regexp\"";
+    public static final String ARRAY = "import \"array\"";
 }

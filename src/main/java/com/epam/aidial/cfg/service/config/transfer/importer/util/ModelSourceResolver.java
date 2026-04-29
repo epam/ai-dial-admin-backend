@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.core.config.CoreModel;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -31,24 +32,31 @@ public class ModelSourceResolver {
     }
 
     public ModelSource resolveSourceForNewModel(@NotNull CoreModel coreModel) {
-        ModelEndpointComponents modelEndpointComponents = getModelEndpointComponents(coreModel);
-        if (modelEndpointComponents == null) {
-            return new ModelEndpointsSource();
+        String endpoint = coreModel.getEndpoint();
+        String responsesEndpoint = coreModel.getResponsesEndpoint();
+
+        boolean hasEndpoint = StringUtils.isNotBlank(endpoint);
+        boolean hasResponsesEndpoint = StringUtils.isNotBlank(responsesEndpoint);
+
+        if (!hasEndpoint && hasResponsesEndpoint) {
+            Adapter adapter = adapterService.getByResponsesEndpointAndNullEndpoint(responsesEndpoint);
+            return new ModelAdapterSource(adapter.getName(), null);
         }
 
-        Adapter adapter = resolveAdapter(modelEndpointComponents);
-        return new ModelAdapterSource(adapter.getName(), modelEndpointComponents.completionEndpointPath());
+        if (hasEndpoint) {
+            ModelEndpointComponents components = getModelEndpointComponents(coreModel);
+            if (components != null) {
+                Adapter adapter = hasResponsesEndpoint
+                        ? adapterService.getByEndpointAndResponsesEndpoint(components.adapterEndpoint(), responsesEndpoint)
+                        : adapterService.getByEndpointAndNullResponsesEndpoint(components.adapterEndpoint());
+                return new ModelAdapterSource(adapter.getName(), components.completionEndpointPath());
+            }
+        }
+
+        return new ModelEndpointsSource();
     }
 
     private ModelEndpointComponents getModelEndpointComponents(CoreModel coreModel) {
-        if (coreModel.getEndpoint() == null) {
-            return null;
-        }
         return modelEndpointUtils.parseModelEndpoint(coreModel.getEndpoint(), coreModel.getType());
-    }
-
-    private Adapter resolveAdapter(ModelEndpointComponents modelEndpointComponents) {
-        String adapterEndpoint = modelEndpointComponents.adapterEndpoint();
-        return adapterService.getByEndpoint(adapterEndpoint);
     }
 }

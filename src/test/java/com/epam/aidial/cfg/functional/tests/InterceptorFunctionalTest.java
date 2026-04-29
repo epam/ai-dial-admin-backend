@@ -666,6 +666,7 @@ public abstract class InterceptorFunctionalTest {
                       "maxInputAttachments": null,
                       "responsesEndpoint": null,
                       "defaults": {},
+                      "responsesDefaults": {},
                       "interceptors": [],
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,

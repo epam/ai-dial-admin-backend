@@ -23,17 +23,25 @@ public class ModelSourceRetentionPolicy {
 
     public boolean shouldRetainSource(CoreModel coreModel, Model model) {
         String endpoint = coreModel.getEndpoint();
+        String responsesEndpoint = coreModel.getResponsesEndpoint();
 
-        return endpoint == null
-                || endpoint.equals(model.getEndpoint())
-                || endpointMatchesAdapterSource(endpoint, model);
+        return (endpoint == null || endpoint.equals(getCurrentEndpoint(model)))
+                && (responsesEndpoint == null || responsesEndpoint.equals(getCurrentResponsesEndpoint(model)));
     }
 
-    private boolean endpointMatchesAdapterSource(String endpoint, Model model) {
+    private String getCurrentEndpoint(Model model) {
         if (model.getSource() instanceof ModelAdapterSource adapterSource) {
             Adapter adapter = adapterService.get(adapterSource.getAdapterName());
-            return endpoint.equals(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
+            return ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath());
         }
-        return false;
+        return model.getEndpoint();
+    }
+
+    private String getCurrentResponsesEndpoint(Model model) {
+        if (model.getSource() instanceof ModelAdapterSource adapterSource) {
+            Adapter adapter = adapterService.get(adapterSource.getAdapterName());
+            return adapter.getResponsesEndpoint();
+        }
+        return model.getResponsesEndpoint();
     }
 }

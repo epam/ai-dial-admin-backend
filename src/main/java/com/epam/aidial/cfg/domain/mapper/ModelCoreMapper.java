@@ -27,7 +27,8 @@ public abstract class ModelCoreMapper {
     @Mapping(target = "name", source = "model.deployment.name")
     @Mapping(target = "userRoles", source = "model.deployment")
     @Mapping(target = "endpoint", source = "endpoint")
-    public abstract CoreModel mapModel(Model model, String endpoint);
+    @Mapping(target = "responsesEndpoint", source = "responsesEndpoint")
+    public abstract CoreModel mapModel(Model model, String endpoint, String responsesEndpoint);
 
     @Mapping(target = "descriptionKeywords", source = "topics")
     @Mapping(target = "name", source = "deployment.name")

@@ -44,6 +44,7 @@
         "timeout": "30s",
         "language": "en"
       },
+      "responsesDefaults": {},
       "interceptors": [
         "auth",
         "logging"
