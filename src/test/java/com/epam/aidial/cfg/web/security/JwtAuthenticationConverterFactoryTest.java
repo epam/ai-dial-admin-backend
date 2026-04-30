@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.epam.aidial.cfg.web.security.UserRole.FULL_ADMIN;
+import static com.epam.aidial.cfg.web.security.UserRole.READ_ONLY_ADMIN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -30,10 +32,14 @@ class JwtAuthenticationConverterFactoryTest {
     void setup() {
         RolesMappingResolver rolesMappingResolver = new RolesMappingResolver();
         IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils(
-                rolesMappingResolver, OBJECT_MAPPER, Set.of("admin", "ConfigAdmin"), null, "unique_name", "oid", false
+                rolesMappingResolver, OBJECT_MAPPER, "{\"admin\":[\"FULL_ADMIN\"],\"ConfigAdmin\":[\"FULL_ADMIN\"]}", "unique_name", "oid", false
         );
         JwtAuthenticationConverterFactory factory = new JwtAuthenticationConverterFactory(
-                List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig(), Map.of())),
+                List.of(JwtProviderConfig.from(
+                        "test",
+                        IdentityProviderTestHelper.createJwtProviderConfig(),
+                        Map.of("testRole", Set.of(FULL_ADMIN), "USER", Set.of(READ_ONLY_ADMIN))
+                )),
                 identityProviderUtils
         );
         converter = factory.getConverter(TEST_ISSUER);
@@ -111,7 +117,7 @@ class JwtAuthenticationConverterFactoryTest {
     void whenEmailNotPresentAndRequired_thenThrow() {
         RolesMappingResolver rolesMappingResolver = new RolesMappingResolver();
         IdentityProviderUtils identityProviderUtils = new IdentityProviderUtils(
-                rolesMappingResolver, OBJECT_MAPPER, Set.of("admin", "ConfigAdmin"), null, "unique_name", "oid", true
+                rolesMappingResolver, OBJECT_MAPPER, "{\"admin\":[\"FULL_ADMIN\"],\"ConfigAdmin\":[\"FULL_ADMIN\"]}", "unique_name", "oid", true
         );
         var factoryWithRequiredEmail = new JwtAuthenticationConverterFactory(
                 List.of(JwtProviderConfig.from("test", IdentityProviderTestHelper.createJwtProviderConfig(), Map.of())),
