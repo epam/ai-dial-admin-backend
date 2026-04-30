@@ -83,7 +83,9 @@ Configure the Azure identity provider using environment variables with the `prov
 | providers.azure.aliases | login.microsoftonline.com, login.windows.net, ... | No | Aliases for accepted JWT token issuers (Azure-specific). Used to support multiple Azure cloud environments. |
 | providers.azure.audiences | `<AZURE_CLIENT_ID>` | Yes | Unique identifier assigned to DIAL Admin backend application by Azure AD (Ai.Dial.Env.Tst Client ID). Can be a comma-separated list for multiple audiences. |
 | providers.azure.role-claims | roles | No | JWT claim name for user roles. Defaults to "roles" if not specified. |
-| providers.azure.roles-mapping | {"ConfigAdmin":["FULL_ADMIN"]} | No | Json object with mapping of provider roles to application roles. If not specified, uses the default from `config.rest.security.default.roles-mapping` ({"ConfigAdmin":["FULL_ADMIN"],"admin":["FULL_ADMIN"]}). |
+| providers.azure.allowed-roles | ConfigAdmin | No | Comma-separated list of roles with access permissions for this provider. If not specified, uses the default from `config.rest.security.default.allowedRoles` (ConfigAdmin,admin). |
+
+**Note:** The `SECURITY_ALLOWED_ROLES` environment variable is no longer used. Use `providers.azure.allowed-roles` for provider-specific role configuration, or rely on the default `config.rest.security.default.allowedRoles` setting.
 
 ---
 

@@ -18,7 +18,29 @@ class RolesMappingResolverTest {
     }
 
     @Test
-    void shouldReturnCombinedRolesMappingWhenDefaultAndProviderMapping() {
+    void shouldMergeProviderAndDefaultAllowedRolesAndMapToFullAdmin() {
+        // given
+        Set<String> defaultAllowedRoles = Set.of("ROLE_A");
+        Set<String> providerAllowedRoles = Set.of("ROLE_B");
+
+        Map<String, Set<UserRole>> expected = Map.of(
+                "ROLE_A", Set.of(UserRole.FULL_ADMIN),
+                "ROLE_B", Set.of(UserRole.FULL_ADMIN)
+        );
+
+        // when
+        Map<String, Set<UserRole>> result = resolver.resolve(
+                defaultAllowedRoles,
+                null,
+                providerAllowedRoles,
+                null
+        );
+
+        assertThat(result).containsExactlyInAnyOrderEntriesOf(expected);
+    }
+
+    @Test
+    void shouldReturnProviderRolesMappingWhenProviderAllowedRolesIsEmpty() {
         // given
         Map<String, Set<UserRole>> defaultMapping = Map.of(
                 "ROLE_A", Set.of(UserRole.FULL_ADMIN)
@@ -35,7 +57,9 @@ class RolesMappingResolverTest {
 
         // when
         Map<String, Set<UserRole>> result = resolver.resolve(
+                null,
                 defaultMapping,
+                Set.of(),
                 providerMapping
         );
 
@@ -60,7 +84,9 @@ class RolesMappingResolverTest {
 
         // when
         Map<String, Set<UserRole>> result = resolver.resolve(
+                null,
                 defaultMapping,
+                null,
                 providerMapping
         );
 
@@ -69,7 +95,29 @@ class RolesMappingResolverTest {
     }
 
     @Test
-    void shouldReturnDefaultRolesMappingWhenNoProviderMapping() {
+    void shouldMapDefaultAllowedRolesToFullAdminWhenNoProviderDataExists() {
+        // given
+        Set<String> defaultAllowedRoles = Set.of("ROLE_A", "ROLE_B");
+
+        Map<String, Set<UserRole>> expected = Map.of(
+                "ROLE_A", Set.of(UserRole.FULL_ADMIN),
+                "ROLE_B", Set.of(UserRole.FULL_ADMIN)
+        );
+
+        // when
+        Map<String, Set<UserRole>> result = resolver.resolve(
+                defaultAllowedRoles,
+                null,
+                null,
+                null
+        );
+
+        // then
+        assertThat(result).containsExactlyInAnyOrderEntriesOf(expected);
+    }
+
+    @Test
+    void shouldReturnDefaultRolesMappingWhenNoOtherDataExists() {
         // given
         Map<String, Set<UserRole>> defaultMapping = Map.of(
                 "ROLE_A", Set.of(UserRole.FULL_ADMIN),
@@ -78,7 +126,9 @@ class RolesMappingResolverTest {
 
         // when
         Map<String, Set<UserRole>> result = resolver.resolve(
+                null,
                 defaultMapping,
+                null,
                 null
         );
 
@@ -90,6 +140,8 @@ class RolesMappingResolverTest {
     void shouldReturnEmptyMapWhenAllInputsAreNullOrEmpty() {
         // when
         Map<String, Set<UserRole>> result = resolver.resolve(
+                null,
+                null,
                 null,
                 null
         );
