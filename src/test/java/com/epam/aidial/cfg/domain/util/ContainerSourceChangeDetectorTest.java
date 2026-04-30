@@ -18,6 +18,7 @@ class ContainerSourceChangeDetectorTest {
 
     private static final String CONTAINER_ID = "container-1";
     private static final String COMPLETION_PATH = "/api/completion";
+    private static final String RESPONSES_PATH = "/api/responses";
     private static final String CONFIG_PATH = "/api/config";
     private static final String MCP_PATH = "/api/mcp";
 
@@ -25,32 +26,40 @@ class ContainerSourceChangeDetectorTest {
 
     @Test
     void adapter_noChange_returnsFalse() {
-        var incoming = new AdapterContainerSource(CONTAINER_ID, "name", COMPLETION_PATH);
-        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH);
+        var incoming = new AdapterContainerSource(CONTAINER_ID, "name", COMPLETION_PATH, RESPONSES_PATH);
+        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isFalse();
     }
 
     @Test
     void adapter_containerIdChanged_returnsTrue() {
-        var incoming = new AdapterContainerSource("container-2", "name", COMPLETION_PATH);
-        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH);
+        var incoming = new AdapterContainerSource("container-2", "name", COMPLETION_PATH, RESPONSES_PATH);
+        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isTrue();
     }
 
     @Test
     void adapter_completionPathChanged_returnsTrue() {
-        var incoming = new AdapterContainerSource(CONTAINER_ID, "name", "/api/v2/completion");
-        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH);
+        var incoming = new AdapterContainerSource(CONTAINER_ID, "name", "/api/v2/completion", RESPONSES_PATH);
+        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
+
+        assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isTrue();
+    }
+
+    @Test
+    void adapter_responsesPathChanged_returnsTrue() {
+        var incoming = new AdapterContainerSource(CONTAINER_ID, "name", COMPLETION_PATH, "/api/v2/responses");
+        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isTrue();
     }
 
     @Test
     void adapter_containerNameDiffers_returnsFalse() {
-        var incoming = new AdapterContainerSource(CONTAINER_ID, "new-name", COMPLETION_PATH);
-        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH);
+        var incoming = new AdapterContainerSource(CONTAINER_ID, "new-name", COMPLETION_PATH, RESPONSES_PATH);
+        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
         existing.setContainerName("old-name");
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isFalse();
@@ -86,16 +95,24 @@ class ContainerSourceChangeDetectorTest {
 
     @Test
     void model_noChange_returnsFalse() {
-        var incoming = new ModelContainerSource(CONTAINER_ID, "name", COMPLETION_PATH);
-        var existing = modelContainerEntity(CONTAINER_ID, COMPLETION_PATH);
+        var incoming = new ModelContainerSource(CONTAINER_ID, "name", COMPLETION_PATH, RESPONSES_PATH);
+        var existing = modelContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isFalse();
     }
 
     @Test
     void model_completionPathChanged_returnsTrue() {
-        var incoming = new ModelContainerSource(CONTAINER_ID, "name", "/api/v2/completion");
-        var existing = modelContainerEntity(CONTAINER_ID, COMPLETION_PATH);
+        var incoming = new ModelContainerSource(CONTAINER_ID, "name", "/api/v2/completion", RESPONSES_PATH);
+        var existing = modelContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
+
+        assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isTrue();
+    }
+
+    @Test
+    void model_responsesPathChanged_returnsTrue() {
+        var incoming = new ModelContainerSource(CONTAINER_ID, "name", COMPLETION_PATH, "/api/v2/responses");
+        var existing = modelContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isTrue();
     }
@@ -148,26 +165,28 @@ class ContainerSourceChangeDetectorTest {
 
     @Test
     void nullFieldsMatch_returnsFalse() {
-        var incoming = new AdapterContainerSource(null, null, null);
-        var existing = adapterContainerEntity(null, null);
+        var incoming = new AdapterContainerSource(null, null, null, null);
+        var existing = adapterContainerEntity(null, null, null);
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isFalse();
     }
 
     @Test
     void nullVsNonNull_returnsTrue() {
-        var incoming = new AdapterContainerSource(CONTAINER_ID, "name", null);
-        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH);
+        var incoming = new AdapterContainerSource(CONTAINER_ID, "name", null, null);
+        var existing = adapterContainerEntity(CONTAINER_ID, COMPLETION_PATH, RESPONSES_PATH);
 
         assertThat(ContainerSourceChangeDetector.hasSourceChanged(incoming, existing)).isTrue();
     }
 
     // --- Helper methods ---
 
-    private static AdapterContainerEntity adapterContainerEntity(String containerId, String completionPath) {
+    private static AdapterContainerEntity adapterContainerEntity(
+            String containerId, String completionPath, String responsesPath) {
         var entity = new AdapterContainerEntity();
         entity.setContainerId(containerId);
         entity.setCompletionEndpointPath(completionPath);
+        entity.setResponsesEndpointPath(responsesPath);
         return entity;
     }
 
@@ -180,10 +199,12 @@ class ContainerSourceChangeDetectorTest {
         return entity;
     }
 
-    private static ModelContainerEntity modelContainerEntity(String containerId, String completionPath) {
+    private static ModelContainerEntity modelContainerEntity(
+            String containerId, String completionPath, String responsesPath) {
         var entity = new ModelContainerEntity();
         entity.setContainerId(containerId);
         entity.setCompletionEndpointPath(completionPath);
+        entity.setResponsesEndpointPath(responsesPath);
         return entity;
     }
 

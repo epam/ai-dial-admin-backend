@@ -36,6 +36,7 @@ public class CreateApplicationResourceDto {
     @Max(value = 1000, message = "Attachments max number exceeds allowed limit")
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;

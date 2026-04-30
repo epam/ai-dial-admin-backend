@@ -27,6 +27,7 @@ public class ApplicationEximDto {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;

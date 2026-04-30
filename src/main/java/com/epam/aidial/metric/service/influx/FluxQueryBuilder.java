@@ -9,6 +9,7 @@ import com.epam.aidial.expressions.Constant;
 import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.FunctionCall;
 import com.epam.aidial.expressions.GroupFunctionCall;
+import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
@@ -20,6 +21,7 @@ import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaratio
 import com.epam.aidial.metric.model.configuration.influx.InfluxTableDeclaration;
 import com.epam.aidial.metric.model.influx.FluxQueryContext;
 import com.epam.aidial.metric.model.influx.FluxQueryPart;
+import com.epam.aidial.metric.model.influx.FluxStandardImports;
 import com.epam.aidial.metric.service.AbstractQueryBuilder;
 import com.epam.aidial.metric.service.RangeFilterUtils;
 import com.epam.aidial.metric.util.CollectorsUtils;
@@ -41,9 +43,11 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -126,7 +130,10 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
 
     @Override
     protected FluxQueryContext buildAggregationQuery(Query query) {
-        var groupByColumnNames = getGroupByColumns(query.getGroupBy()).stream().map(Column::getName).toList();
+        var groupByColumnNames = getGroupByColumns(query.getGroupBy()).stream()
+                .map(Column::getName)
+                .map(this::resolveGroupBySourceName)
+                .toList();
         var aggregationFunctionCalls = query.getExpressions().stream()
                 .map(this::resolveAlias)
                 .filter(e -> e instanceof AggregationFunctionCall)
@@ -142,25 +149,23 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             String columnName = innerQueryContext.getColumnNames().get(0);
             combiner.add(tempTableName + " = " + innerQueryContext.getQuery(), innerQueryContext.getImports(), innerQueryContext.getPreamble());
 
-            var finalGroupByColumnNames = groupByColumnNames;
             var fillNullJoinKeys = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
             aggregations = aggregationFunctionCalls.stream()
                     .map(f -> buildAggregationForTempTable(
                             tempTableName, columnName, expressionToOuterColumnNames.get(f),
-                            query.getWhere(), finalGroupByColumnNames, f, regexCounter, fillNullJoinKeys))
+                            query.getWhere(), groupByColumnNames, f, regexCounter, fillNullJoinKeys))
                     .toList();
         } else {
             var table = getTable(query);
-            var finalGroupByColumnNames = groupByColumnNames;
             var fillNullJoinKeys = aggregationFunctionCalls.size() > 1 && !groupByColumnNames.isEmpty();
             aggregations = aggregationFunctionCalls.stream()
                     .map(f -> buildAggregationForTable(
                             table.getName(), expressionToOuterColumnNames.get(f),
-                            query.getWhere(), finalGroupByColumnNames, f, regexCounter, fillNullJoinKeys))
+                            query.getWhere(), groupByColumnNames, f, regexCounter, fillNullJoinKeys))
                     .toList();
         }
 
-        combineAggregations(combiner, aggregations, groupByColumnNames);
+        combineAggregations(combiner, aggregations, aggregationFunctionCalls, groupByColumnNames);
 
         combiner.add(SimpleFluxBuilder.createUngroupPart());
         combiner.add(createRenamePart(query.getFrom(), query.getExpressions()));
@@ -231,7 +236,9 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
     @Override
     protected FluxQueryContext buildWindowColumnAggregationQuery(Query query) {
         var groupFunctionCall = extractWindowFunction(query.getGroupBy());
-        var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy());
+        var groupByColumnNames = extractGroupByColumnNames(query.getGroupBy()).stream()
+                .map(this::resolveGroupBySourceName)
+                .toList();
         var aggregationFunctionCalls = resolveAggregationFunctionCalls(query.getExpressions());
 
         var table = getTable(query);
@@ -251,7 +258,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var joinColumns = new ArrayList<String>();
         joinColumns.add(windowOuterName);
         joinColumns.addAll(groupByColumnNames);
-        combineAggregations(combiner, aggregations, joinColumns);
+        combineAggregations(combiner, aggregations, aggregationFunctionCalls, joinColumns);
 
         combiner.add(SimpleFluxBuilder.createUngroupPart());
         combiner.add(buildSortPart(query.getOrderBy()));
@@ -522,12 +529,40 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
     // ---- Multi-aggregation join logic ----
 
     /**
+     * Wraps a single aggregation branch so it always emits exactly one row, then tags it
+     * with the synthetic join key. Unions the original pipeline with a one-row zero
+     * sentinel, re-groups, and re-sums over the output column. Both supported
+     * aggregations (count, sum) are additive, so adding a zero row is an identity
+     * operation when the branch has real data and yields 0 when it has none.
+     */
+    private FluxQueryPart wrapWithZeroFallback(FluxQueryPart agg, String outerColumn, Type type, String joinKey) {
+        var zero = zeroLiteralForType(type);
+        var quotedOuter = SimpleFluxBuilder.quote(outerColumn);
+        var wrappedQuery = "union(tables: [\n" + agg.getQuery()
+                + ",\narray.from(rows: [{" + outerColumn + ": " + zero + "}])\n])"
+                + "\n|> group()"
+                + "\n|> sum(column: " + quotedOuter + ")"
+                + "\n" + SimpleFluxBuilder.createSetPart(joinKey, "any");
+        var imports = new HashSet<>(agg.getImports());
+        imports.add(FluxStandardImports.ARRAY);
+        return FluxQueryPart.of(Set.copyOf(imports), agg.getPreamble(), wrappedQuery);
+    }
+
+    private static String zeroLiteralForType(Type type) {
+        return switch (type) {
+            case FLOAT, DOUBLE -> "0.0";
+            default -> "0";
+        };
+    }
+
+    /**
      * Combines multiple aggregation sub-pipelines into the combiner using temp tables
      * and sequential joins. For a single aggregation, no join is needed.
      */
     private void combineAggregations(
             InfluxQueryPartCombiner combiner,
             List<FluxQueryPart> aggregations,
+            List<AggregationFunctionCall> aggregationCalls,
             List<String> joinColumnNames
     ) {
         if (aggregations.isEmpty()) {
@@ -538,16 +573,22 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
             return;
         }
 
-        // When there are no group-by columns, add a synthetic join key.
+        // When there are no group-by columns, add a synthetic join key. Each branch may
+        // filter down to zero rows, in which case count()/sum() emit no row at all;
+        // the subsequent inner-join would then collapse the entire result and wipe out
+        // real values from non-empty branches. Wrap each branch in a zero-row union so
+        // every branch emits exactly one row (actual value or 0), letting the join
+        // preserve non-empty branches.
         if (joinColumnNames.isEmpty()) {
             var syntheticColumn = getNewTemporaryName(TEMPORAL_COLUMN_NAME);
             joinColumnNames = List.of(syntheticColumn);
-            var syntheticColumnName = syntheticColumn;
-            aggregations = aggregations.stream()
-                    .map(agg -> new InfluxQueryPartCombiner()
-                            .add(agg)
-                            .add(SimpleFluxBuilder.createSetPart(syntheticColumnName, "any"))
-                            .build())
+            var originalAggregations = aggregations;
+            aggregations = IntStream.range(0, originalAggregations.size())
+                    .mapToObj(i -> wrapWithZeroFallback(
+                            originalAggregations.get(i),
+                            expressionToOuterColumnNames.get(aggregationCalls.get(i)),
+                            aggregationCalls.get(i).getType(),
+                            syntheticColumn))
                     .toList();
         }
 

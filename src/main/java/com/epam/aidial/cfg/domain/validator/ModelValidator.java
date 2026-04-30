@@ -24,6 +24,8 @@ public class ModelValidator {
             false, "embeddings"
     );
 
+    private static final String RESPONSES_ENDPOINT_ENDING = "responses";
+
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
     private final FeaturesValidator featuresValidator;
@@ -107,14 +109,26 @@ public class ModelValidator {
             return;
         }
 
-        validateEndpoint(model.getEndpoint(), modelName);
+        validateCompletionEndpoint(model.getEndpoint(), modelName);
+        validateResponsesEndpoint(model.getResponsesEndpoint(), modelName);
     }
 
     private void validateEndpointsSource(Model model) {
         String name = model.getDeployment().getName();
+
         String completionEndpoint = model.getEndpoint();
-        validateEndpointEnding(model.getType(), completionEndpoint, name);
-        validateEndpoint(completionEndpoint, name);
+        String responsesEndpoint = model.getResponsesEndpoint();
+
+        if (StringUtils.isBlank(completionEndpoint) && StringUtils.isBlank(responsesEndpoint)) {
+            throw new IllegalArgumentException("At least endpoint or responses endpoint is required when source type is 'Model endpoints'. Model: %s"
+                    .formatted(name));
+        }
+
+        validateCompletionEndpointEnding(model.getType(), completionEndpoint, name);
+        validateResponsesEndpointEnding(responsesEndpoint, name);
+
+        validateCompletionEndpoint(completionEndpoint, name);
+        validateResponsesEndpoint(responsesEndpoint, name);
     }
 
     private void validateAdapterSource(ModelAdapterSource adapterSource, Model model) {
@@ -126,7 +140,7 @@ public class ModelValidator {
         }
 
         String completionPath = adapterSource.getCompletionEndpointPath();
-        validateEndpointEnding(model.getType(), completionPath, name);
+        validateCompletionEndpointEnding(model.getType(), completionPath, name);
         // TODO: partial revert for https://github.com/epam/ai-dial-admin-backend/pull/547. will fix review env
         // validateEndpointPath(completionPath, name);
         if (completionPath != null && completionPath.contains(" ")) {
@@ -136,30 +150,64 @@ public class ModelValidator {
 
     private void validateContainerSource(ModelContainerSource containerSource, Model model) {
         String name = model.getDeployment().getName();
+
         String completionPath = containerSource.getCompletionEndpointPath();
-        validateEndpointEnding(model.getType(), completionPath, name);
-        validateEndpointPath(completionPath, name);
+        String responsesPath = containerSource.getResponsesEndpointPath();
+
+        if (StringUtils.isBlank(completionPath) && StringUtils.isBlank(responsesPath)) {
+            throw new IllegalArgumentException("At least endpoint path or responses endpoint path is required when source type is 'Model container'. Model: %s"
+                    .formatted(name));
+        }
+
+        validateCompletionEndpointEnding(model.getType(), completionPath, name);
+        validateResponsesEndpointEnding(responsesPath, name);
+
+        validateCompletionEndpointPath(completionPath, name);
+        validateResponsesEndpointPath(responsesPath, name);
     }
 
-    private void validateEndpointEnding(ModelType type, String endpoint, String modelName) {
+    private void validateCompletionEndpointEnding(ModelType type, String endpoint, String modelName) {
         boolean isChat = modelEndpointUtils.isChat(type);
         String endpointEnding = ENDPOINT_ENDING_MAP.get(isChat);
 
-        if (endpoint == null || !endpoint.endsWith(endpointEnding)) {
-            throw new IllegalArgumentException("Completion endpoint path should be provided and end with '%s' when model type is '%s'. Model: %s"
+        if (endpoint != null && !endpoint.endsWith(endpointEnding)) {
+            throw new IllegalArgumentException("Completion endpoint path should end with '%s' when model type is '%s'. Model: %s"
                     .formatted(endpointEnding, type, modelName));
         }
     }
 
-    private void validateEndpoint(String endpoint, String modelName) {
-        if (endpoint != null && EndpointValidator.isInvalidUrl(endpoint)) {
-            throw new IllegalArgumentException("Invalid completion endpoint: '%s'. Model: %s".formatted(endpoint, modelName));
+    private void validateResponsesEndpointEnding(String endpoint, String modelName) {
+        if (endpoint != null && !endpoint.endsWith(RESPONSES_ENDPOINT_ENDING)) {
+            throw new IllegalArgumentException("Responses endpoint path should end with '%s'. Model: %s"
+                    .formatted(RESPONSES_ENDPOINT_ENDING, modelName));
         }
     }
 
-    private void validateEndpointPath(String endpoint, String modelName) {
+    private void validateCompletionEndpoint(String endpoint, String modelName) {
+        validateEndpoint(endpoint, modelName, "completion");
+    }
+
+    private void validateResponsesEndpoint(String endpoint, String modelName) {
+        validateEndpoint(endpoint, modelName, "responses");
+    }
+
+    private void validateEndpoint(String endpoint, String modelName, String endpointType) {
+        if (endpoint != null && EndpointValidator.isInvalidUrl(endpoint)) {
+            throw new IllegalArgumentException("Invalid %s endpoint: '%s'. Model: %s".formatted(endpointType, endpoint, modelName));
+        }
+    }
+
+    private void validateCompletionEndpointPath(String endpoint, String modelName) {
+        validateEndpointPath(endpoint, modelName, "completion");
+    }
+
+    private void validateResponsesEndpointPath(String endpoint, String modelName) {
+        validateEndpointPath(endpoint, modelName, "responses");
+    }
+
+    private void validateEndpointPath(String endpoint, String modelName, String endpointType) {
         if (endpoint != null && EndpointValidator.isInvalidUrlPath(endpoint)) {
-            throw new IllegalArgumentException("Invalid completion endpoint path: '%s'. Model: %s".formatted(endpoint, modelName));
+            throw new IllegalArgumentException("Invalid %s endpoint path: '%s'. Model: %s".formatted(endpointType, endpoint, modelName));
         }
     }
 }

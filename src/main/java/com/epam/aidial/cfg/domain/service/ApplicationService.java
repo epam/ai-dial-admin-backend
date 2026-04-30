@@ -249,7 +249,7 @@ public class ApplicationService {
         var transport = resolveTransport(application, applicationName);
 
         var url = String.format(
-                "%s/v1/toolset/%s/mcp",
+                "%s/v1/deployments/%s/mcp",
                 coreClientUrlUtils.getNormalizedCoreClientUrl(),
                 application.getDeployment().getName()
         );
@@ -267,7 +267,7 @@ public class ApplicationService {
         var transport = resolveTransport(application, applicationName);
 
         var url = String.format(
-                "%s/v1/toolset/%s/mcp?useAllowedTools=false",
+                "%s/v1/deployments/%s/mcp?useAllowedTools=false",
                 coreClientUrlUtils.getNormalizedCoreClientUrl(),
                 application.getDeployment().getName()
         );

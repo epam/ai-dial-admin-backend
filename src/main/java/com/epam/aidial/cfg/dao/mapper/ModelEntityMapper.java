@@ -105,9 +105,10 @@ public abstract class ModelEntityMapper {
         }
         // Explicitly clear and set adapter/container fields to ensure mutual exclusivity
         if (adapterEntity != null) {
-            // Setting adapter: clear container and endpoint and set adapter
+            // Setting adapter: clear container and endpoints and set adapter
             updatedEntity.setModelContainer(null);
             updatedEntity.setEndpoint(null);
+            updatedEntity.setResponsesEndpoint(null);
             if (!adapterEntity.equals(currentAdapter)) {
                 adapterEntity.getModels().add(updatedEntity);
             }

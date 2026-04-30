@@ -546,6 +546,7 @@
         "name": "<will be defined during import 1>",
         "displayName": "<will be defined during import 1>",
         "baseEndpoint": "https://endpoint1/",
+        "responsesEndpoint": "http://model1/responses",
         "models": [
           "testModel1"
         ],
@@ -618,7 +619,9 @@
           "isPublic": false,
           "defaultRoleLimit": {}
         },
-        "responsesEndpoint": "http://model1/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -737,6 +740,7 @@
           "parallelToolCallsSupported": true
         },
         "defaults": {},
+        "responsesDefaults": {},
         "topics": [],
         "maxRetryAttempts": 5,
         "type": "embedding",
@@ -831,6 +835,7 @@
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
         "defaults": {},
+        "responsesDefaults": {},
         "interceptors": [
           "testInterceptor1"
         ],
@@ -927,6 +932,9 @@
           "$type": "endpoints"
         },
         "responsesEndpoint": "http://application2/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,
