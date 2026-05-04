@@ -38,7 +38,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -48,6 +47,7 @@ import static org.mockito.Mockito.when;
         JsonMapperConfiguration.class,
         ApplicationClientMapperImpl.class,
         ApplicationEximService.class,
+        ResourceImportValidator.class,
         RouteMapperImpl.class
 })
 @TestPropertySource(properties = {
@@ -59,8 +59,6 @@ class ApplicationEximServiceTest {
     private ApplicationResourceService applicationService;
     @MockitoBean
     private FolderService folderService;
-    @MockitoBean
-    private ResourceImportValidator validator;
 
     @Autowired
     private ApplicationEximService applicationEximService;
@@ -343,26 +341,44 @@ class ApplicationEximServiceTest {
 
     @Test
     @SneakyThrows
-    void importApplications_ValidatorThrowsError_RethrowsError() {
-        // given
+    void importApplications_DuplicatePayloadEntries_PerItemFailuresAndNoBackendCalls() {
         var importApplications = ImportResources.builder()
                 .path("public/test/")
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
 
-        var applicationExim = getApplicationEximDto("1");
         var applicationsExim = new ApplicationsEximDto();
-        applicationsExim.setApplications(List.of(applicationExim));
+        applicationsExim.setApplications(List.of(getApplicationEximDto("1"), getApplicationEximDto("1")));
 
-        doThrow(new IllegalArgumentException("Validation error"))
-                .when(validator).validateApplicationImport(importApplications, applicationsExim);
+        var importResults = applicationEximService.importApplications(importApplications, applicationsExim);
 
-        // when/then
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> applicationEximService.importApplications(importApplications, applicationsExim));
-
-        assertThat(thrown).hasMessage("Validation error");
+        assertThat(importResults.getImportResults()).hasSize(2);
+        assertThat(importResults.getImportResults()).allMatch(r -> r.getStatus() == ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(0).getError()).contains("Duplicated application");
         verifyNoInteractions(applicationService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importApplications_UniquenessConflict_ImportsNonDuplicateItems() {
+        var path = "public/folder/";
+        var importApplications = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var applicationsExim = new ApplicationsEximDto();
+        applicationsExim.setApplications(List.of(getApplicationEximDto("1"), getApplicationEximDto("2"), getApplicationEximDto("2")));
+
+        var captor = ArgumentCaptor.forClass(CreateApplicationResource.class);
+
+        var importResults = applicationEximService.importApplications(importApplications, applicationsExim);
+
+        assertThat(importResults.getImportResults()).hasSize(3);
+        assertThat(importResults.getImportResults().get(0).getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
+        assertThat(importResults.getImportResults().get(1).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(2).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        verify(applicationService).putApplicationResource(captor.capture(), eq(true), isNull());
     }
 
     private ApplicationResource getApplicationResource(String suffix) {

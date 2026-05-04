@@ -36,7 +36,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -46,6 +45,7 @@ import static org.mockito.Mockito.when;
         JsonMapperConfiguration.class,
         ToolSetClientMapperImpl.class,
         ToolSetEximService.class,
+        ResourceImportValidator.class,
         RouteMapperImpl.class
 })
 @TestPropertySource(properties = {
@@ -57,8 +57,6 @@ class ToolSetEximServiceTest {
     private ToolSetResourceService toolSetService;
     @MockitoBean
     private FolderService folderService;
-    @MockitoBean
-    private ResourceImportValidator validator;
 
     @Autowired
     private ToolSetEximService toolSetEximService;
@@ -330,26 +328,45 @@ class ToolSetEximServiceTest {
 
     @Test
     @SneakyThrows
-    void importToolSets_ValidatorThrowsError_RethrowsError() {
-        // given
+    void importToolSets_DuplicatedResources_PerItemFailuresAndNoBackendCalls() {
         var importToolSets = ImportResources.builder()
                 .path("public/test/")
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
 
-        var toolSetExim = getToolSetEximDto("1");
         var toolSetsExim = new ToolSetsEximDto();
-        toolSetsExim.setToolSets(List.of(toolSetExim));
+        toolSetsExim.setToolSets(List.of(getToolSetEximDto("1"), getToolSetEximDto("1")));
 
-        doThrow(new IllegalArgumentException("Validation error"))
-                .when(validator).validateToolSetImport(importToolSets, toolSetsExim);
+        var importResults = toolSetEximService.importToolSets(importToolSets, toolSetsExim);
 
-        // when/then
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> toolSetEximService.importToolSets(importToolSets, toolSetsExim));
-
-        assertThat(thrown).hasMessage("Validation error");
+        assertThat(importResults.getImportResults()).hasSize(2);
+        assertThat(importResults.getImportResults()).allMatch(r -> r.getStatus() == ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(0).getError()).contains("Duplicated toolset");
         verifyNoInteractions(toolSetService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importToolSets_UniquenessConflict_ImportsNonDuplicateItems() {
+        var path = "public/folder/";
+        var importToolSets = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var toolSetsExim = new ToolSetsEximDto();
+        toolSetsExim.setToolSets(List.of(getToolSetEximDto("1"), getToolSetEximDto("2"), getToolSetEximDto("2")));
+
+        var captor = ArgumentCaptor.forClass(CreateToolSetResource.class);
+
+        var importResults = toolSetEximService.importToolSets(importToolSets, toolSetsExim);
+
+        assertThat(importResults.getImportResults()).hasSize(3);
+        assertThat(importResults.getImportResults().get(0).getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
+        assertThat(importResults.getImportResults().get(1).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(2).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+
+        verify(toolSetService).putToolSetResource(captor.capture(), eq(true), isNull());
     }
 
     private ToolSetResource getToolSetResource(String suffix) {
