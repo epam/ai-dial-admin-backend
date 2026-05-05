@@ -29,7 +29,7 @@ class VersionAwareFieldFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new VersionAwareFieldFilter(coreConfigVersionService, schemaLoader, MAPPER, MAPPER);
+        filter = new VersionAwareFieldFilter(coreConfigVersionService, schemaLoader, MAPPER);
         when(coreConfigVersionService.getVersionForExport()).thenReturn(VERSION);
     }
 
