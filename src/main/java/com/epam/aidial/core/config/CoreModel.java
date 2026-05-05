@@ -35,6 +35,7 @@ public class CoreModel extends Deployment {
         coreModel.setFieldsHashingOrder(null);
         coreModel.setForwardAuthToken(null);
         coreModel.setDefaults(null);
+        coreModel.setResponsesDefaults(null);
         coreModel.setInterceptors(null);
         coreModel.setDescriptionKeywords(null);
         coreModel.setMaxRetryAttempts(null);
