@@ -31,12 +31,16 @@ public class HashiVaultConfigSource implements ConfigSource {
         return Map.of(secretPath, content);
     }
 
+    @SneakyThrows
     @Override
     public Config readConfig() {
-        return readConfigOptional().orElse(null);
+        Optional<JsonNode> config = readConfigOptional();
+        return config.isPresent()
+                ? objectMapper.treeToValue(config.get(), Config.class)
+                : null;
     }
 
-    private Optional<Config> readConfigOptional() {
+    private Optional<JsonNode> readConfigOptional() {
         VaultResponseSupport<SecretConfigVaultResponse> response = vaultTemplate.read(secretPath, SecretConfigVaultResponse.class);
         return Optional.ofNullable(response)
                 .map(VaultResponseSupport::getData)
@@ -45,19 +49,20 @@ public class HashiVaultConfigSource implements ConfigSource {
 
     @Override
     public void writeConfig(Config configBody, boolean createResources) {
-        Optional<Config> persistedOptional = readConfigOptional();
+        Optional<JsonNode> persistedOptional = readConfigOptional();
         if (persistedOptional.isEmpty() && !createResources) {
             throw new IllegalStateException("Secret is not found " + secretPath);
         }
 
-        Config persisted = persistedOptional.orElse(null);
+        JsonNode persisted = persistedOptional.orElse(null);
+
         Config secretConfig = ConfigUtils.secretsConfig(configBody);
-        if (!Objects.equals(persisted, secretConfig)) {
-            JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(secretConfig);
+        JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(secretConfig);
+        if (!Objects.equals(persisted, versionedConfig)) {
             vaultTemplate.write(secretPath, Map.of("data", versionedConfig));
         }
     }
 
-    public static class SecretConfigVaultResponse extends VaultResponseSupport<Config> {
+    public static class SecretConfigVaultResponse extends VaultResponseSupport<JsonNode> {
     }
 }
