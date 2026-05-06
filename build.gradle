@@ -176,7 +176,10 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
-            because("previous versions have vulnerabilities)")
+            because("previous versions have vulnerabilities")
+        }
+        implementation("org.bouncycastle:bcprov-jdk18on:1.84") {
+            because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
