@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.ConversationsEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.utils.PathUtils;
@@ -33,6 +34,7 @@ import java.util.zip.ZipInputStream;
 public class ResourceImportValidator {
     private static final String APPLICATION_RESOURCE = "Application";
     private static final String TOOLSET_RESOURCE = "ToolSet";
+    private static final String CONVERSATION_RESOURCE = "Conversation";
     private static final String DUPLICATES_WITHIN_FILES_FLAT_IMPORT = "\n    - File '%s' has duplicate %s: name '%s', version '%s'";
     private static final String DUPLICATES_WITHIN_FILES_NON_FLAT_IMPORT = DUPLICATES_WITHIN_FILES_FLAT_IMPORT + ", folder '%s'";
     private static final String DUPLICATES_ACROSS_FILES_FLAT_IMPORT = "\n    - %s with name '%s', version '%s' found in multiple files: %s";
@@ -55,6 +57,14 @@ public class ResourceImportValidator {
                 .map(t -> new ResourceNameAndVersionAndPath(t.getName(), t.getVersion(), isFlatImport ? null : t.getFolderId()))
                 .toList();
         validateResourceUniqueness(resources, isFlatImport, TOOLSET_RESOURCE);
+    }
+
+    public void validateConversationImport(ImportResources importConversations, @Valid ConversationsEximDto conversationsEximDto) {
+        var isFlatImport = importConversations.isFlatImport();
+        var resources = conversationsEximDto.getConversations().stream()
+                .map(c -> new ResourceNameAndVersionAndPath(c.getName(), c.getVersion(), isFlatImport ? null : c.getFolderId()))
+                .toList();
+        validateResourceUniqueness(resources, isFlatImport, CONVERSATION_RESOURCE);
     }
 
     public void validateFileImportInZip(ImportResources importFiles, MultipartFile zipFile) throws IOException {
@@ -159,6 +169,16 @@ public class ResourceImportValidator {
                 app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), isFlatImport ? null : app.getFolderId()));
         checkResourcesExistence(fileNameToListResources, TOOLSET_RESOURCE);
         checkResourcesConflicts(isFlatImport, fileNameToListResources, TOOLSET_RESOURCE);
+    }
+
+    public void checkConversationConflicts(ImportResources importConversations, HashMap<String, ConversationsEximDto> fileNameToConversationsEximDtos) {
+        var isFlatImport = importConversations.isFlatImport();
+        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
+                fileNameToConversationsEximDtos,
+                ConversationsEximDto::getConversations,
+                c -> new ResourceNameAndVersionAndPath(c.getName(), c.getVersion(), isFlatImport ? null : c.getFolderId()));
+        checkResourcesExistence(fileNameToListResources, CONVERSATION_RESOURCE);
+        checkResourcesConflicts(isFlatImport, fileNameToListResources, CONVERSATION_RESOURCE);
     }
 
     private void checkResourcesConflicts(boolean isFlatImport,

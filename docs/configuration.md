@@ -226,12 +226,13 @@ Applied when: config.export.keyvault.type=vault
 
 ## DIAL Core Configuration
 
-| Setting                                  | Environment Variable                     | Default | Required | Applied when | Description                                                                              |
-|------------------------------------------|------------------------------------------|---------|----------|-----------|------------------------------------------------------------------------------------------|
-| core.client.url                          | CORE_CLIENT_URL                          | localhost:8081 | No (recommended to adjust for target environment) | - | URL of the DIAL Core service                                                             |
-| core.prompts.metadata.default.limit      | CORE_PROMPTS_METADATA_DEFAULT_LIMIT      | 256 | No | - | Default limit on the number of items in the prompts metadata response from DIAL Core     |
-| core.applications.metadata.default.limit | CORE_APPLICATIONS_METADATA_DEFAULT_LIMIT | 256 | No | - | Default limit on the number of items in the applications metadata response from DIAL Core |
-| core.toolsets.metadata.default.limit     | CORE_TOOLSETS_METADATA_DEFAULT_LIMIT     | 256 | No | - | Default limit on the number of items in the toolsets metadata response from DIAL Core    |
+| Setting                                   | Environment Variable                      | Default        | Required                                          | Applied when | Description                                                                                |
+|-------------------------------------------|-------------------------------------------|----------------|---------------------------------------------------|--------------|--------------------------------------------------------------------------------------------|
+| core.client.url                           | CORE_CLIENT_URL                           | localhost:8081 | No (recommended to adjust for target environment) | -            | URL of the DIAL Core service                                                               |
+| core.prompts.metadata.default.limit       | CORE_PROMPTS_METADATA_DEFAULT_LIMIT       | 256            | No                                                | -            | Default limit on the number of items in the prompts metadata response from DIAL Core       |
+| core.applications.metadata.default.limit  | CORE_APPLICATIONS_METADATA_DEFAULT_LIMIT  | 256            | No                                                | -            | Default limit on the number of items in the applications metadata response from DIAL Core  |
+| core.toolsets.metadata.default.limit      | CORE_TOOLSETS_METADATA_DEFAULT_LIMIT      | 256            | No                                                | -            | Default limit on the number of items in the toolsets metadata response from DIAL Core      |
+| core.conversations.metadata.default.limit | CORE_CONVERSATIONS_METADATA_DEFAULT_LIMIT | 256            | No                                                | -            | Default limit on the number of items in the conversations metadata response from DIAL Core |
 
 ## OpenTelemetry Configuration
 
@@ -393,18 +394,20 @@ example of dataset configuration JSON can be found at "ai-dial-admin-backend/src
 
 ## Retry Configuration
 
-| Setting                                        | Environment Variable                             | Default                 | Required | Applied when | Description                                                             |
-|------------------------------------------------|--------------------------------------------------|-------------------------|----------|--------------|-------------------------------------------------------------------------|
-| feign.retry.period                             | FEIGN_RETRY_PERIOD                               | 10000                   | No       | -            | Initial retry delay in milliseconds                                     |
-| feign.retry.maxPeriod                          | FEIGN_RETRY_MAXPERIOD                            | 15000                   | No       | -            | Maximum retry delay in milliseconds                                     |
-| feign.retry.maxAttempts                        | FEIGN_RETRY_MAXATTEMPTS                          | 5                       | No       | -            | Maximum number of retry attempts                                        |
-| feign.retry.errorCodes                         | FEIGN_RETRY_ERRORCODES                           | 408,429,500,502,503,504 | No       | -            | HTTP status codes that trigger retries                                  |
-| prompts.import.consecutiveErrorsThreshold      | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD      | 2                       | No       | -            | Maximum number of consecutive errors allowed during prompts import      |
-| applications.import.consecutiveErrorsThreshold | APPLICATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No       | -            | Maximum number of consecutive errors allowed during applications import |
-| toolsets.import.consecutiveErrorsThreshold     | TOOLSETS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD     | 2                       | No       | -            | Maximum number of consecutive errors allowed during toolsets import     |
-| files.import.consecutiveErrorsThreshold        | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD        | 2                       | No       | -            | Maximum number of consecutive errors allowed during files import        |
+| Setting                                         | Environment Variable                              | Default                 | Required | Applied when | Description                                                              |
+|-------------------------------------------------|---------------------------------------------------|-------------------------|----------|--------------|--------------------------------------------------------------------------|
+| feign.retry.period                              | FEIGN_RETRY_PERIOD                                | 10000                   | No       | -            | Initial retry delay in milliseconds                                      |
+| feign.retry.maxPeriod                           | FEIGN_RETRY_MAXPERIOD                             | 15000                   | No       | -            | Maximum retry delay in milliseconds                                      |
+| feign.retry.maxAttempts                         | FEIGN_RETRY_MAXATTEMPTS                           | 5                       | No       | -            | Maximum number of retry attempts                                         |
+| feign.retry.errorCodes                          | FEIGN_RETRY_ERRORCODES                            | 408,429,500,502,503,504 | No       | -            | HTTP status codes that trigger retries                                   |
+| prompts.import.consecutiveErrorsThreshold       | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD       | 2                       | No       | -            | Maximum number of consecutive errors allowed during prompts import       |
+| applications.import.consecutiveErrorsThreshold  | APPLICATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD  | 2                       | No       | -            | Maximum number of consecutive errors allowed during applications import  |
+| toolsets.import.consecutiveErrorsThreshold      | TOOLSETS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD      | 2                       | No       | -            | Maximum number of consecutive errors allowed during toolsets import      |
+| conversations.import.consecutiveErrorsThreshold | CONVERSATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No       | -            | Maximum number of consecutive errors allowed during conversations import |
+| files.import.consecutiveErrorsThreshold         | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD         | 2                       | No       | -            | Maximum number of consecutive errors allowed during files import         |
 
 ## Additional Entities Configuration
+
 *(Temporary configuration - will be implemented as managed entities inside admin app)*
 
 | Setting | Environment Variable | Default | Required | Applied when | Description |
