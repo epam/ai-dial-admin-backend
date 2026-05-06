@@ -241,7 +241,7 @@ class ResourceImportValidatorTest {
                 () -> validator.validateFileImportInZip(importResources, mockFile));
 
         assertEquals("""
-                Files uniqueness violation. Conflicts found:
+                        Files uniqueness violation. Conflicts found:
                          - Duplicated file name 'file1.json' found in folders: folder1/folder2/, folder1/folder2/folder3/""",
                 exception.getMessage());
     }
