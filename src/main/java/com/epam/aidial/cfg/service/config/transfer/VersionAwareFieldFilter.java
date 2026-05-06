@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -23,6 +23,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @LogExecution
+@RequiredArgsConstructor
 public class VersionAwareFieldFilter {
 
     private static final String APPLICATION_TYPE_SCHEMAS_KEY = "applicationTypeSchemas";
@@ -30,33 +31,20 @@ public class VersionAwareFieldFilter {
     private final CoreConfigVersionService coreConfigVersionService;
     private final VersionedSchemaLoader schemaLoader;
     private final ObjectMapper objectMapper;
-    private final ObjectMapper nullIncludedJsonMapper;
-
-    public VersionAwareFieldFilter(CoreConfigVersionService coreConfigVersionService,
-                                   VersionedSchemaLoader schemaLoader,
-                                   ObjectMapper objectMapper,
-                                   @Qualifier("nullIncludedJsonMapper") ObjectMapper nullIncludedJsonMapper) {
-        this.coreConfigVersionService = coreConfigVersionService;
-        this.schemaLoader = schemaLoader;
-        this.objectMapper = objectMapper;
-        this.nullIncludedJsonMapper = nullIncludedJsonMapper;
-    }
 
     /**
      * Filters a Config object to include only fields defined in the schema for the specified version.
      *
      * @param config The config to filter by target version
-     * @return Filtered config with only schema-defined fields
+     * @return Filtered config node with only schema-defined fields
      */
-    public Config filterForTargetVersion(Config config) {
+    public JsonNode filterForTargetVersion(Config config) {
         String version = coreConfigVersionService.getVersionForExport();
         try {
             JsonNode schema = schemaLoader.loadSchema(version);
-            String configJson = nullIncludedJsonMapper.writeValueAsString(config);
+            String configJson = objectMapper.writeValueAsString(config);
             JsonNode configNode = objectMapper.readTree(configJson);
-            JsonNode filteredNode = filterNodeBySchema(configNode, schema);
-            return objectMapper.treeToValue(filteredNode, Config.class);
-
+            return filterNodeBySchema(configNode, schema);
         } catch (Exception e) {
             log.error("Failed to filter config for version: {}", version, e);
             throw new SchemaValidationException("Failed to filter config for version: %s".formatted(version), e);
