@@ -109,11 +109,20 @@ public class ContainerEndpointResolver {
                 containerSource.getContainerId(),
                 containerSource,
                 AdapterContainerSource::getCompletionEndpointPath,
-                null,
+                AdapterContainerSource::getResponsesEndpointPath,
                 (target, endpoints) -> {
                     AdapterContainerSource targetSource = (AdapterContainerSource) target.getSource();
                     targetSource.setContainerName(endpoints.containerName());
-                    target.setBaseEndpoint(endpoints.completionEndpoint());
+                    if (StringUtils.isNotBlank(targetSource.getCompletionEndpointPath())) {
+                        target.setBaseEndpoint(endpoints.completionEndpoint());
+                    } else {
+                        target.setBaseEndpoint(null);
+                    }
+                    if (StringUtils.isNotBlank(targetSource.getResponsesEndpointPath())) {
+                        target.setResponsesEndpoint(endpoints.configurationEndpoint());
+                    } else {
+                        target.setResponsesEndpoint(null);
+                    }
                 },
                 adapter
         );
@@ -125,11 +134,20 @@ public class ContainerEndpointResolver {
                 adapterContainerEntity.getContainerId(),
                 adapterContainerEntity,
                 AdapterContainerEntity::getCompletionEndpointPath,
-                null,
+                AdapterContainerEntity::getResponsesEndpointPath,
                 (entity, endpoints) -> {
                     AdapterContainerEntity targetContainer = entity.getAdapterContainer();
                     targetContainer.setContainerName(endpoints.containerName());
-                    entity.setBaseEndpoint(endpoints.completionEndpoint());
+                    if (StringUtils.isNotBlank(targetContainer.getCompletionEndpointPath())) {
+                        entity.setBaseEndpoint(endpoints.completionEndpoint());
+                    } else {
+                        entity.setBaseEndpoint(null);
+                    }
+                    if (StringUtils.isNotBlank(targetContainer.getResponsesEndpointPath())) {
+                        entity.setResponsesEndpoint(endpoints.configurationEndpoint());
+                    } else {
+                        entity.setResponsesEndpoint(null);
+                    }
                 },
                 adapterEntity
         );
@@ -141,11 +159,20 @@ public class ContainerEndpointResolver {
                 containerSource.getContainerId(),
                 containerSource,
                 ModelContainerSource::getCompletionEndpointPath,
-                null,
+                ModelContainerSource::getResponsesEndpointPath,
                 (target, endpoints) -> {
                     ModelContainerSource targetSource = (ModelContainerSource) target.getSource();
                     targetSource.setContainerName(endpoints.containerName());
-                    target.setEndpoint(endpoints.completionEndpoint());
+                    if (StringUtils.isNotBlank(targetSource.getCompletionEndpointPath())) {
+                        target.setEndpoint(endpoints.completionEndpoint());
+                    } else {
+                        target.setEndpoint(null);
+                    }
+                    if (StringUtils.isNotBlank(targetSource.getResponsesEndpointPath())) {
+                        target.setResponsesEndpoint(endpoints.configurationEndpoint());
+                    } else {
+                        target.setResponsesEndpoint(null);
+                    }
                 },
                 model
         );
@@ -157,11 +184,20 @@ public class ContainerEndpointResolver {
                 modelContainerEntity.getContainerId(),
                 modelContainerEntity,
                 ModelContainerEntity::getCompletionEndpointPath,
-                null,
+                ModelContainerEntity::getResponsesEndpointPath,
                 (entity, endpoints) -> {
                     ModelContainerEntity targetContainer = entity.getModelContainer();
                     targetContainer.setContainerName(endpoints.containerName());
-                    entity.setEndpoint(endpoints.completionEndpoint());
+                    if (StringUtils.isNotBlank(targetContainer.getCompletionEndpointPath())) {
+                        entity.setEndpoint(endpoints.completionEndpoint());
+                    } else {
+                        entity.setEndpoint(null);
+                    }
+                    if (StringUtils.isNotBlank(targetContainer.getResponsesEndpointPath())) {
+                        entity.setResponsesEndpoint(endpoints.configurationEndpoint());
+                    } else {
+                        entity.setResponsesEndpoint(null);
+                    }
                 },
                 modelEntity
         );
@@ -406,6 +442,7 @@ public class ContainerEndpointResolver {
                     + "Retaining existing endpoints. Reason: {}",
                     adapter.getName(), source.getContainerId(), e.getMessage());
             adapter.setBaseEndpoint(existingEntity.getBaseEndpoint());
+            adapter.setResponsesEndpoint(existingEntity.getResponsesEndpoint());
             source.setContainerName(existingContainer.getContainerName());
         }
     }
@@ -449,6 +486,7 @@ public class ContainerEndpointResolver {
                     + "Retaining existing endpoints. Reason: {}",
                     model.getDeployment().getName(), source.getContainerId(), e.getMessage());
             model.setEndpoint(existingEntity.getEndpoint());
+            model.setResponsesEndpoint(existingEntity.getResponsesEndpoint());
             source.setContainerName(existingContainer.getContainerName());
         }
     }

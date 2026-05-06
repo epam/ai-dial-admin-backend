@@ -105,6 +105,7 @@ public class ModelExporter {
                 && model.getSource() instanceof ModelAdapterSource adapterSource) {
             var adapter = adapterService.get(adapterSource.getAdapterName());
             model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
+            model.setResponsesEndpoint(adapter.getResponsesEndpoint());
             model.setSource(null);
         }
 

@@ -49,6 +49,7 @@ public abstract class AdapterEntityMapper {
                     .forEach(model -> {
                         model.setAdapter(null);
                         model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(updatedEntity.getBaseEndpoint(), model.getAdapterCompletionEndpointPath()));
+                        model.setResponsesEndpoint(updatedEntity.getResponsesEndpoint());
                         // Clear container and adapter completion endpoint path when removing from adapter
                         model.setModelContainer(null);
                         model.setAdapterCompletionEndpointPath(null);
@@ -60,6 +61,7 @@ public abstract class AdapterEntityMapper {
                         model.setModelContainer(null);
                         model.setAdapter(updatedEntity);
                         model.setEndpoint(null);
+                        model.setResponsesEndpoint(null);
                         model.setAdapterCompletionEndpointPath(ModelEndpointUtils.getAdapterCompletionEndpointPath(model.getType(), model.getId()));
                     });
             updatedEntity.getModels().clear();

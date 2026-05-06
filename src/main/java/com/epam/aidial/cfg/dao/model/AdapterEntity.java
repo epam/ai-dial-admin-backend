@@ -24,6 +24,7 @@ public class AdapterEntity extends TimeTrackableEntity<String> {
     private String name;
     private String displayName;
     private String baseEndpoint;
+    private String responsesEndpoint;
     private String description;
     private Set<String> topics;
 

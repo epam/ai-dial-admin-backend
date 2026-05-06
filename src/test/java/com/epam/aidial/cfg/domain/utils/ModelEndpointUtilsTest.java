@@ -79,10 +79,14 @@ class ModelEndpointUtilsTest {
 
     private static Stream<Arguments> parseModelEndpoint_shouldReturnNullWhenInvalidModelEndpointTestParams() {
         return Stream.of(
+                Arguments.of(null, ModelType.CHAT),
+                Arguments.of("", ModelType.CHAT),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat/completions/text", ModelType.CHAT),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name/chat", ModelType.CHAT),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name/", ModelType.CHAT),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name", ModelType.CHAT),
+                Arguments.of(null, ModelType.EMBEDDING),
+                Arguments.of("", ModelType.EMBEDDING),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name/embeddings/text", ModelType.EMBEDDING),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name/", ModelType.EMBEDDING),
                 Arguments.of("http://host/openai/deployments/endpoint-deployment-name", ModelType.EMBEDDING)

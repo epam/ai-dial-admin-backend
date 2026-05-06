@@ -488,7 +488,7 @@ public abstract class ModelFunctionalTest {
         when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfo);
 
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
-        updatedModel.setSource(new ModelContainerSourceDto(containerId, "test-container", "/chat/completions"));
+        updatedModel.setSource(new ModelContainerSourceDto(containerId, "test-container", "/chat/completions", "/responses"));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 
         // Verify the model now has container source (not adapter source)

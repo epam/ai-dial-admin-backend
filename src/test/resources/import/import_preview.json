@@ -546,6 +546,7 @@
         "name": "<will be defined during import 1>",
         "displayName": "<will be defined during import 1>",
         "baseEndpoint": "https://endpoint1/",
+        "responsesEndpoint": "http://model1/responses",
         "models": [
           "testModel1"
         ],
@@ -618,7 +619,6 @@
           "isPublic": false,
           "defaultRoleLimit": {}
         },
-        "responsesEndpoint": "http://model1/responses",
         "responsesDefaults": {
           "field": "skipped-value"
         },
