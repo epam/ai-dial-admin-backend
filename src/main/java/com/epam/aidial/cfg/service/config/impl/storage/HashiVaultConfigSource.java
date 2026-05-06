@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +32,18 @@ public class HashiVaultConfigSource implements ConfigSource {
         return Map.of(secretPath, content);
     }
 
-    @SneakyThrows
     @Override
     public Config readConfig() {
         Optional<JsonNode> config = readConfigOptional();
-        return config.isPresent()
-                ? objectMapper.treeToValue(config.get(), Config.class)
-                : null;
+        if (config.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return objectMapper.treeToValue(config.get(), Config.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error reading config", e);
+        }
     }
 
     private Optional<JsonNode> readConfigOptional() {
