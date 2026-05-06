@@ -1,14 +1,27 @@
 package com.epam.aidial.cfg.service.config.transfer;
 
+import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.exception.SchemaValidationException;
 import com.epam.aidial.cfg.service.config.transfer.version.CoreConfigVersionService;
+import com.epam.aidial.cfg.utils.ResourceUtils;
+import com.epam.aidial.core.config.Config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,7 +30,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class VersionAwareFieldFilterTest {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapperConfiguration.createJsonMapper();
     private static final String VERSION = "1.0.0";
 
     @Mock
@@ -267,5 +280,44 @@ class VersionAwareFieldFilterTest {
         // when / then
         assertThatThrownBy(() -> filter.filterEntityNodeForTargetVersion(entityNode, "applications"))
                 .isSameAs(original);
+    }
+
+    @ParameterizedTest
+    @MethodSource("realSchemaVersions")
+    void filterForTargetVersion_fullyPopulatedConfig_resultHasNoSchemaViolations(String version) throws IOException {
+        // given
+        JsonNode schema = loadRealSchema(version);
+        when(coreConfigVersionService.getVersionForExport()).thenReturn(version);
+        when(schemaLoader.loadSchema(version)).thenReturn(schema);
+
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue(ResourceUtils.readResource("/import_for_export.json"), Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        List<String> violations = schemaChecker.check(result, version);
+        assertThat(violations)
+                .as("Schema violations for version %s", version)
+                .isEmpty();
+    }
+
+    private JsonNode loadRealSchema(String version) throws IOException {
+        String path = "core-config-schemas/schema-v" + version + ".json";
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(path)) {
+            return MAPPER.readTree(is);
+        }
+    }
+
+    private static Stream<String> realSchemaVersions() throws IOException {
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource[] resources = resolver.getResources("classpath:core-config-schemas/schema-v*.json");
+
+        return Arrays.stream(resources)
+                .map(Resource::getFilename)
+                .map(name -> name
+                        .replace("schema-v", "")
+                        .replace(".json", ""));
     }
 }
