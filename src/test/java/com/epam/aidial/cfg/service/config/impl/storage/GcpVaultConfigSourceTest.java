@@ -1,8 +1,10 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
+import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.httpjson.HttpJsonStatusCode;
 import com.google.api.gax.rpc.NotFoundException;
@@ -46,16 +48,20 @@ class GcpVaultConfigSourceTest {
     private ConfigSplitter configSplitter;
     @Mock
     private ConfigMerger configMerger;
+    @Mock
+    private VersionAwareFieldFilter versionAwareFieldFilter;
 
     @Test
     void writeConfig_shouldWriteSecret() throws JsonProcessingException, UnsupportedEncodingException {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
+
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
 
         ByteString body = ByteString.copyFrom("{}", "utf-8");
         SecretPayload payload = SecretPayload.newBuilder().setData(body).build();
@@ -76,13 +82,16 @@ class GcpVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldWriteWithoutSplit() throws JsonProcessingException, UnsupportedEncodingException {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
+
+        Config emptyConfig = new Config();
+        when(versionAwareFieldFilter.filterForTargetVersion(emptyConfig)).thenReturn(configAsJsonNode(emptyConfig));
 
         ByteString body = ByteString.copyFrom("{}", "utf-8");
         SecretPayload payload = SecretPayload.newBuilder().setData(body).build();
@@ -106,7 +115,7 @@ class GcpVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldThrowExceptionNotEnoughSpace() throws JsonProcessingException {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1", "secret2"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
@@ -125,13 +134,15 @@ class GcpVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldCreateResourceWhenTrue() throws JsonProcessingException {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
+
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
 
         when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
                 .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
@@ -147,13 +158,15 @@ class GcpVaultConfigSourceTest {
 
     @Test
     void writeConfig_shouldThrowExceptionWhenResourceNotFoundAndCreateResourcesFalse() {
-        source = new GcpVaultConfigSource(secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
+        source = new GcpVaultConfigSource(versionAwareFieldFilter, secretClient, configSplitter, configMerger, List.of("secret1"), objectMapper, "projectId");
 
         Config config = new Config();
         CoreKey key = new CoreKey();
         key.setProject("project");
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
+
+        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
 
         when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
                 .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
@@ -170,5 +183,10 @@ class GcpVaultConfigSourceTest {
     private ConfigPart emptyConfigPart() {
         Config config = new Config();
         return new ConfigPart(config, objectMapper.writeValueAsString(config));
+    }
+
+
+    private JsonNode configAsJsonNode(Config config) {
+        return objectMapper.valueToTree(config);
     }
 }
