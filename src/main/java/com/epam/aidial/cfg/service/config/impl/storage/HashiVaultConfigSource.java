@@ -1,6 +1,9 @@
 package com.epam.aidial.cfg.service.config.impl.storage;
 
+import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -15,6 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class HashiVaultConfigSource implements ConfigSource {
 
+    private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final VaultTemplate vaultTemplate;
     private final String secretPath;
     private final ObjectMapper objectMapper;
@@ -30,10 +34,19 @@ public class HashiVaultConfigSource implements ConfigSource {
 
     @Override
     public Config readConfig() {
-        return readConfigOptional().orElse(null);
+        Optional<JsonNode> config = readConfigOptional();
+        if (config.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return objectMapper.treeToValue(config.get(), Config.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error reading config", e);
+        }
     }
 
-    private Optional<Config> readConfigOptional() {
+    private Optional<JsonNode> readConfigOptional() {
         VaultResponseSupport<SecretConfigVaultResponse> response = vaultTemplate.read(secretPath, SecretConfigVaultResponse.class);
         return Optional.ofNullable(response)
                 .map(VaultResponseSupport::getData)
@@ -42,18 +55,20 @@ public class HashiVaultConfigSource implements ConfigSource {
 
     @Override
     public void writeConfig(Config configBody, boolean createResources) {
-        Optional<Config> persistedOptional = readConfigOptional();
+        Optional<JsonNode> persistedOptional = readConfigOptional();
         if (persistedOptional.isEmpty() && !createResources) {
             throw new IllegalStateException("Secret is not found " + secretPath);
         }
 
-        Config persisted = persistedOptional.orElse(null);
+        JsonNode persisted = persistedOptional.orElse(null);
+
         Config secretConfig = ConfigUtils.secretsConfig(configBody);
-        if (!Objects.equals(persisted, secretConfig)) {
-            vaultTemplate.write(secretPath, Map.of("data", secretConfig));
+        JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(secretConfig);
+        if (!Objects.equals(persisted, versionedConfig)) {
+            vaultTemplate.write(secretPath, Map.of("data", versionedConfig));
         }
     }
 
-    public static class SecretConfigVaultResponse extends VaultResponseSupport<Config> {
+    public static class SecretConfigVaultResponse extends VaultResponseSupport<JsonNode> {
     }
 }
