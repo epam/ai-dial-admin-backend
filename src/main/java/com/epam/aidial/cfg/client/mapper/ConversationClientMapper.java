@@ -46,6 +46,19 @@ public abstract class ConversationClientMapper {
     protected abstract Conversation toConversation(ConversationDto dto, ConversationMetadataDto metadataDto,
                                                    PathUtils.VersionedPathParts itemParts);
 
+    @Mapping(target = "name", source = "itemParts.name")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "lastActivityDate", ignore = true)
+    @Mapping(target = "author", ignore = true)
+    public abstract Conversation toConversation(ConversationEximDto dto, PathUtils.VersionedPathParts itemParts);
+
+    @Mapping(target = "name", source = "itemParts.name")
+    @Mapping(target = "folderId", source = "itemParts.folderId")
+    @Mapping(target = "version", source = "itemParts.version")
+    public abstract ConversationExim toConversationExim(Conversation conversation, PathUtils.VersionedPathParts itemParts);
+
     public abstract ConversationDto toConversationDto(Conversation conversation);
 
     public ConversationNodeInfo toConversationInfo(ConversationMetadataDto dto) {
@@ -90,17 +103,4 @@ public abstract class ConversationClientMapper {
     }
 
     protected abstract NodeType toNodeType(NodeTypeDto dto);
-
-    @Mapping(target = "name", source = "itemParts.name")
-    @Mapping(target = "folderId", source = "itemParts.folderId")
-    @Mapping(target = "version", source = "itemParts.version")
-    public abstract ConversationExim toConversationExim(Conversation conversation, PathUtils.VersionedPathParts itemParts);
-
-    @Mapping(target = "name", source = "itemParts.name")
-    @Mapping(target = "folderId", source = "itemParts.folderId")
-    @Mapping(target = "version", source = "itemParts.version")
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "lastActivityDate", ignore = true)
-    @Mapping(target = "author", ignore = true)
-    public abstract Conversation toConversation(ConversationEximDto dto, PathUtils.VersionedPathParts itemParts);
 }
