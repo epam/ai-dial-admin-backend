@@ -178,6 +178,12 @@ dependencies {
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
             because("previous versions have vulnerabilities")
         }
+        implementation("io.netty:netty-codec-dns:4.1.133.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-transport-native-epoll:4.1.133.Final") {
+            because("previous versions have vulnerabilities")
+        }
         implementation("org.bouncycastle:bcprov-jdk18on:1.84") {
             because("previous versions have vulnerabilities")
         }
