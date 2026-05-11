@@ -181,7 +181,7 @@ dependencies {
         implementation("io.netty:netty-codec-dns:4.1.133.Final") {
             because("previous versions have vulnerabilities")
         }
-        implementation("io.netty:netty-transport-native-epoll:4.1.133.Final") {
+        implementation("io.netty:netty-transport-native-epoll:4.2.13.Final") {
             because("previous versions have vulnerabilities")
         }
         implementation("org.bouncycastle:bcprov-jdk18on:1.84") {
