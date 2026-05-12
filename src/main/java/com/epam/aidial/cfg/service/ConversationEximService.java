@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.utils.EximServiceHelper;
 import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
+import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +72,7 @@ public class ConversationEximService {
     }
 
     public ImportResourcesFileResult importConversations(ImportResources importConversations, ConversationsEximDto conversationsEximDto) {
-        uniquenessValidator.validateConversationImport(importConversations, conversationsEximDto);
+        var uniquenessConflicts = uniquenessValidator.collectConversationUniquenessConflicts(importConversations.isFlatImport(), conversationsEximDto);
 
         if (importConversations.getRules() != null) {
             var updateRulesRequest = UpdateRulesRequest.builder()
@@ -90,19 +91,31 @@ public class ConversationEximService {
                 .build();
         var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
 
-        return importConversations(normalized, conversationsEximDto, circuitBreaker);
+        return importConversations(normalized, conversationsEximDto, circuitBreaker, uniquenessConflicts);
     }
 
     private ImportResourcesFileResult importConversations(ImportResources importConversations,
                                                           ConversationsEximDto conversationsEximDto,
-                                                          SimpleCircuitBreaker circuitBreaker) {
+                                                          SimpleCircuitBreaker circuitBreaker,
+                                                          Map<ResourceLocation, String> uniquenessConflicts) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
-            var items = conversationsEximDto.getConversations() == null
-                    ? List.<ConversationEximDto>of()
-                    : conversationsEximDto.getConversations();
-            for (var conversation : items) {
-                results.add(importConversation(importConversations, conversation, circuitBreaker));
+            for (var conversation : conversationsEximDto.getConversations()) {
+                var key = ResourceLocation.from(
+                        conversation.getName(),
+                        conversation.getVersion(),
+                        conversation.getFolderId(),
+                        importConversations.isFlatImport());
+                var conflictMessage = uniquenessConflicts.get(key);
+                if (conflictMessage != null) {
+                    var paths = ResourceImportPathUtils.resolveVersionedEximImportPaths(
+                            importConversations,
+                            EximServiceHelper.getVersionedName(conversation),
+                            conversation.getFolderId());
+                    results.add(ImportResourcesResult.createFailure(paths.sourcePath(), paths.targetPath(), conflictMessage));
+                    continue;
+                }
+                results.add(importSingleConversation(importConversations, conversation, circuitBreaker));
             }
             return ImportResourcesFileResult.builder()
                     .importResults(results)
@@ -116,24 +129,20 @@ public class ConversationEximService {
         }
     }
 
-    private ImportResourcesResult importConversation(ImportResources importConversations,
-                                                     ConversationEximDto conversationExim,
-                                                     SimpleCircuitBreaker circuitBreaker) {
-        var conversationName = EximServiceHelper.getVersionedName(conversationExim);
-        String targetPath;
-        if (importConversations.isFlatImport()) {
-            targetPath = importConversations.getPath() + "/" + conversationName;
-        } else {
-            var folderPathWithoutPublic = StringUtils.removeStart(conversationExim.getFolderId(), PUBLIC_FOLDER);
-            targetPath = importConversations.getPath() + "/" + folderPathWithoutPublic + conversationName;
-        }
-        var sourcePath = conversationExim.getFolderId() == null
-                ? conversationName
-                : StringUtils.stripEnd(conversationExim.getFolderId(), "/") + "/" + conversationName;
+    private ImportResourcesResult importSingleConversation(ImportResources importConversations,
+                                                           ConversationEximDto conversationExim,
+                                                           SimpleCircuitBreaker circuitBreaker) {
+        var paths = ResourceImportPathUtils.resolveVersionedEximImportPaths(
+                importConversations,
+                EximServiceHelper.getVersionedName(conversationExim),
+                conversationExim.getFolderId());
+
+        var sourcePath = paths.sourcePath();
+        var targetPath = paths.targetPath();
         try {
             var itemParts = PathUtils.parseVersionedPath(targetPath);
-            var conversation = conversationClientMapper.toConversation(conversationExim, itemParts);
-            return createConversationWithCircuitBreaker(conversation, sourcePath, targetPath,
+            var createConversation = conversationClientMapper.toConversation(conversationExim, itemParts);
+            return createConversationWithCircuitBreaker(createConversation, sourcePath, targetPath,
                     importConversations.getConflictResolutionStrategy(), circuitBreaker);
         } catch (Exception ex) {
             log.warn("Conversation file {} import failed", importConversations.getPath(), ex);

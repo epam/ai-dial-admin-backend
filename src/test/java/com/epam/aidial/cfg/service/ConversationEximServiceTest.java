@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.mapper.ConversationClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ConversationEximDto;
 import com.epam.aidial.cfg.dto.ConversationsEximDto;
+import com.epam.aidial.cfg.dto.ModelResourceDto;
 import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.ConversationNodeInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -31,10 +32,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -43,7 +44,8 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {
         JsonMapperConfiguration.class,
         ConversationClientMapperImpl.class,
-        ConversationEximService.class
+        ConversationEximService.class,
+        ResourceImportValidator.class
 })
 @TestPropertySource(properties = {
         "conversations.import.consecutiveErrorsThreshold=2"
@@ -54,8 +56,6 @@ class ConversationEximServiceTest {
     private ConversationService conversationService;
     @MockitoBean
     private FolderService folderService;
-    @MockitoBean
-    private ResourceImportValidator validator;
 
     @Autowired
     private ConversationEximService conversationEximService;
@@ -63,13 +63,16 @@ class ConversationEximServiceTest {
     @Test
     @SneakyThrows
     void exportConversations_SinglePath() {
+        // given
         var conversation = getConversation("1");
         var path = conversation.getPath();
 
         when(conversationService.getConversation(path)).thenReturn(conversation);
 
+        // when
         var result = conversationEximService.exportConversations(List.of(path));
 
+        // then
         assertThat(result).isNotNull();
         assertThat(result.getConversations()).hasSize(1);
 
@@ -83,6 +86,7 @@ class ConversationEximServiceTest {
     @Test
     @SneakyThrows
     void exportConversations_MultiplePaths() {
+        // given
         var conversation1 = getConversation("1");
         var conversation2 = getConversation("2");
 
@@ -92,11 +96,24 @@ class ConversationEximServiceTest {
         when(conversationService.getConversation(path1)).thenReturn(conversation1);
         when(conversationService.getConversation(path2)).thenReturn(conversation2);
 
+        // when
         var result = conversationEximService.exportConversations(List.of(path1, path2));
 
+        // then
+        assertThat(result).isNotNull();
         assertThat(result.getConversations()).hasSize(2);
-        assertThat(result.getConversations().get(0).getName()).isEqualTo("conversation1");
-        assertThat(result.getConversations().get(1).getName()).isEqualTo("conversation2");
+
+        var exim1 = result.getConversations().get(0);
+        assertThat(exim1.getName()).isEqualTo("conversation1");
+        assertThat(exim1.getFolderId()).isEqualTo("public/");
+        assertThat(exim1.getPrompt()).isEqualTo("conversation description 1");
+        assertThat(exim1.getModel().getId()).isEqualTo("gpt-1");
+
+        var exim2 = result.getConversations().get(1);
+        assertThat(exim2.getName()).isEqualTo("conversation2");
+        assertThat(exim2.getFolderId()).isEqualTo("public/");
+        assertThat(exim2.getPrompt()).isEqualTo("conversation description 2");
+        assertThat(exim2.getModel().getId()).isEqualTo("gpt-2");
     }
 
     @Test
@@ -114,7 +131,7 @@ class ConversationEximServiceTest {
                 .items(List.of(item))
                 .build();
 
-        when(conversationService.getConversations(org.mockito.ArgumentMatchers.argThat(req ->
+        when(conversationService.getConversations(argThat(req ->
                 folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
 
         var conv = new Conversation();
@@ -155,7 +172,7 @@ class ConversationEximServiceTest {
                 .items(List.of(techItem, item))
                 .build();
 
-        when(conversationService.getConversations(org.mockito.ArgumentMatchers.argThat(req ->
+        when(conversationService.getConversations(argThat(req ->
                 folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
 
         var conv = new Conversation();
@@ -186,14 +203,16 @@ class ConversationEximServiceTest {
     }
 
     @Test
-    void exportConversations_ServiceThrowsException_PropagatesException() {
+    void exportConversations_ConversationServiceThrowsException_PropagatesException() {
         var path = "public/folder1/conversation1__0.0.1";
         var exception = new RuntimeException("Test exception");
 
         when(conversationService.getConversation(anyString())).thenThrow(exception);
 
         RuntimeException thrown = assertThrows(RuntimeException.class,
-                () -> conversationEximService.exportConversations(List.of(path)));
+                () -> conversationEximService.exportConversations(List.of(path)),
+                "Expected exportConversations to throw RuntimeException"
+        );
 
         assertThat(thrown.getCause()).isEqualTo(exception);
     }
@@ -201,6 +220,7 @@ class ConversationEximServiceTest {
     @Test
     @SneakyThrows
     void importConversations_NotFlatImport() {
+        // given
         var path = "public/to/";
         var rule = Rule.builder()
                 .source("role")
@@ -241,6 +261,7 @@ class ConversationEximServiceTest {
         assertThat(captured.getVersion()).isEqualTo("0.0.1");
         assertThat(captured.getFolderId()).isEqualTo("public/to/folder1/");
         assertThat(captured.getPrompt()).isEqualTo("conversation description 1");
+        assertThat(captured.getModel().getId()).isEqualTo("gpt-1");
     }
 
     @Test
@@ -277,34 +298,60 @@ class ConversationEximServiceTest {
         assertThat(importResult.getSourcePath()).isEqualTo("public/folder1/conversation1__0.0.1");
         assertThat(importResult.getTargetPath()).isEqualTo("public/to/conversation1__0.0.1");
         assertThat(importResult.getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
+        assertThat(importResult.getError()).isNull();
 
         var captor = ArgumentCaptor.forClass(Conversation.class);
         verify(conversationService).putConversation(captor.capture(), eq(true), isNull());
+        verify(folderService).updatesRules(updateRulesRequest);
 
         var captured = captor.getValue();
+        assertThat(captured.getName()).isEqualTo("conversation1");
+        assertThat(captured.getVersion()).isEqualTo("0.0.1");
         assertThat(captured.getFolderId()).isEqualTo("public/to/");
+        assertThat(captured.getPrompt()).isEqualTo("conversation description 1");
+        assertThat(captured.getModel().getId()).isEqualTo("gpt-1");
     }
 
     @Test
     @SneakyThrows
-    void importConversations_ValidatorThrowsError_RethrowsError() {
+    void importConversations_DuplicatePayloadEntries_PerItemFailuresAndNoImport() {
         var importResources = ImportResources.builder()
                 .path("public/test/")
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
 
-        var exim = getConversationEximDto("1");
         var conversationsExim = new ConversationsEximDto();
-        conversationsExim.setConversations(List.of(exim));
+        conversationsExim.setConversations(List.of(getConversationEximDto("1"), getConversationEximDto("1")));
 
-        doThrow(new IllegalArgumentException("Validation error"))
-                .when(validator).validateConversationImport(importResources, conversationsExim);
+        var importResults = conversationEximService.importConversations(importResources, conversationsExim);
 
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> conversationEximService.importConversations(importResources, conversationsExim));
-
-        assertThat(thrown).hasMessage("Validation error");
+        assertThat(importResults.getImportResults()).hasSize(2);
+        assertThat(importResults.getImportResults()).allMatch(r -> r.getStatus() == ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(0).getError()).contains("Duplicated conversation");
         verifyNoInteractions(conversationService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importConversations_UniquenessConflict_ImportsNonDuplicateItems() {
+        var path = "public/folder/";
+        var importResources = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var conversationsExim = new ConversationsEximDto();
+        conversationsExim.setConversations(List.of(getConversationEximDto("1"), getConversationEximDto("2"), getConversationEximDto("2")));
+
+        var captor = ArgumentCaptor.forClass(Conversation.class);
+
+        var importResults = conversationEximService.importConversations(importResources, conversationsExim);
+
+        assertThat(importResults.getImportResults()).hasSize(3);
+        assertThat(importResults.getImportResults().get(0).getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
+        assertThat(importResults.getImportResults().get(1).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(2).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        verify(conversationService).putConversation(captor.capture(), eq(true), isNull());
     }
 
     private Conversation getConversation(String suffix) {
@@ -320,11 +367,14 @@ class ConversationEximServiceTest {
     }
 
     private ConversationEximDto getConversationEximDto(String suffix) {
+        var modelDto = new ModelResourceDto();
+        modelDto.setId("gpt-" + suffix);
         return ConversationEximDto.builder()
                 .name("conversation" + suffix)
                 .version(String.format("0.0.%s", suffix))
                 .folderId(String.format("public/folder%s/", suffix))
                 .prompt(String.format("conversation description %s", suffix))
+                .model(modelDto)
                 .build();
     }
 }

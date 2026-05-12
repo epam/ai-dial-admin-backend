@@ -19,6 +19,7 @@ import com.epam.aidial.cfg.service.SimpleCircuitBreaker;
 import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
+import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,9 +35,6 @@ import java.util.Map;
 @LogExecution
 @RequiredArgsConstructor
 public class PromptEximService {
-
-    private static final String PROMPTS_FOLDER = "prompts/";
-    private static final String PUBLIC_FOLDER = "public/";
 
     private final PromptClientMapper promptClientMapper;
     private final PromptService promptService;
@@ -82,10 +80,10 @@ public class PromptEximService {
                 .filter(PathUtils::isPathParseable)
                 .map(PathUtils::parsePath)
                 .map(parts -> FolderExim.builder()
-                        .id(PROMPTS_FOLDER + parts.getPath())
+                        .id(ResourceImportPathUtils.PROMPTS_FOLDER + parts.getPath())
                         .name(parts.getName())
                         .type("prompt")
-                        .folderId(PROMPTS_FOLDER + parts.getFolderId())
+                        .folderId(ResourceImportPathUtils.PROMPTS_FOLDER + parts.getFolderId())
                         .build())
                 .toList();
     }
@@ -122,7 +120,7 @@ public class PromptEximService {
             for (var prompt : promptsEximDto.getPrompts()) {
                 var conflictMessage = uniquenessConflicts.get(prompt.getId());
                 if (conflictMessage != null) {
-                    var paths = resolveImportPaths(importPrompts, prompt);
+                    var paths = ResourceImportPathUtils.resolvePromptImportPaths(importPrompts, prompt.getId());
                     results.add(ImportResourcesResult.createFailure(paths.sourcePath(), paths.targetPath(), conflictMessage));
                     continue;
                 }
@@ -140,25 +138,11 @@ public class PromptEximService {
         }
     }
 
-    private ImportPromptPaths resolveImportPaths(ImportResources importPrompts, PromptEximDto promptExim) {
-        var rawPath = promptExim.getId();
-        var sourcePath = StringUtils.removeStart(rawPath, PROMPTS_FOLDER);
-        String targetPath;
-        if (importPrompts.isFlatImport()) {
-            var promptName = PathUtils.parseVersionedPath(sourcePath).getVersionedName();
-            targetPath = importPrompts.getPath() + "/" + promptName;
-        } else {
-            var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, PUBLIC_FOLDER);
-            targetPath = importPrompts.getPath() + "/" + sourcePathWithoutPublic;
-        }
-        return new ImportPromptPaths(sourcePath, targetPath);
-    }
-
     private ImportResourcesResult importSinglePrompt(ImportResources importPrompts,
                                                      PromptEximDto promptExim,
                                                      SimpleCircuitBreaker circuitBreaker) {
 
-        var paths = resolveImportPaths(importPrompts, promptExim);
+        var paths = ResourceImportPathUtils.resolvePromptImportPaths(importPrompts, promptExim.getId());
         var sourcePath = paths.sourcePath();
         var targetPath = paths.targetPath();
 

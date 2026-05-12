@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.utils.EximServiceHelper;
 import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
+import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ApplicationEximService {
     
-    private static final String PUBLIC_FOLDER = "public/";
     private final ApplicationClientMapper applicationClientMapper;
     private final ApplicationResourceService applicationResourceService;
     private final FolderService folderService;
@@ -71,7 +71,8 @@ public class ApplicationEximService {
     }
 
     public ImportResourcesFileResult importApplications(ImportResources importApplications, ApplicationsEximDto applicationsEximDto) {
-        uniquenessValidator.validateApplicationImport(importApplications, applicationsEximDto);
+        var uniquenessConflicts = uniquenessValidator.collectApplicationUniquenessConflicts(importApplications.isFlatImport(),
+                applicationsEximDto);
 
         if (importApplications.getRules() != null) {
             var updateRulesRequest = UpdateRulesRequest.builder()
@@ -90,16 +91,31 @@ public class ApplicationEximService {
                 .build();
         var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
 
-        return importApplication(normalizedImportApplications, applicationsEximDto, circuitBreaker);
+        return importApplications(normalizedImportApplications, applicationsEximDto, circuitBreaker, uniquenessConflicts);
     }
 
-    private ImportResourcesFileResult importApplication(ImportResources importApplications,
-                                                        ApplicationsEximDto applicationsEximDto,
-                                                        SimpleCircuitBreaker circuitBreaker) {
+    private ImportResourcesFileResult importApplications(ImportResources importApplications,
+                                                         ApplicationsEximDto applicationsEximDto,
+                                                         SimpleCircuitBreaker circuitBreaker,
+                                                         Map<ResourceLocation, String> uniquenessConflicts) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
             for (var application : applicationsEximDto.getApplications()) {
-                results.add(importApplication(importApplications, application, circuitBreaker));
+                var key = ResourceLocation.from(
+                        application.getName(),
+                        application.getVersion(),
+                        application.getFolderId(),
+                        importApplications.isFlatImport());
+                var conflictMessage = uniquenessConflicts.get(key);
+                if (conflictMessage != null) {
+                    var paths = ResourceImportPathUtils.resolveVersionedEximImportPaths(
+                            importApplications,
+                            EximServiceHelper.getVersionedName(application),
+                            application.getFolderId());
+                    results.add(ImportResourcesResult.createFailure(paths.sourcePath(), paths.targetPath(), conflictMessage));
+                    continue;
+                }
+                results.add(importSingleApplication(importApplications, application, circuitBreaker));
             }
             return ImportResourcesFileResult.builder()
                     .importResults(results)
@@ -113,20 +129,15 @@ public class ApplicationEximService {
         }
     }
 
-    private ImportResourcesResult importApplication(ImportResources importApplications,
-                                                    ApplicationEximDto applicationExim,
-                                                    SimpleCircuitBreaker circuitBreaker) {
-        var applicationName = EximServiceHelper.getVersionedName(applicationExim);
-        String targetPath;
-        if (importApplications.isFlatImport()) {
-            targetPath = importApplications.getPath() + "/" + applicationName;
-        } else {
-            var folderPathWithoutPublic = StringUtils.removeStart(applicationExim.getFolderId(), PUBLIC_FOLDER);
-            targetPath = importApplications.getPath() + "/" + folderPathWithoutPublic + applicationName;
-        }
-        var sourcePath = applicationExim.getFolderId() == null
-                ? applicationName
-                : StringUtils.stripEnd(applicationExim.getFolderId(), "/") + "/" + applicationName;
+    private ImportResourcesResult importSingleApplication(ImportResources importApplications,
+                                                          ApplicationEximDto applicationExim,
+                                                          SimpleCircuitBreaker circuitBreaker) {
+        var paths = ResourceImportPathUtils.resolveVersionedEximImportPaths(
+                importApplications,
+                EximServiceHelper.getVersionedName(applicationExim),
+                applicationExim.getFolderId());
+        var sourcePath = paths.sourcePath();
+        var targetPath = paths.targetPath();
         try {
             var itemParts = PathUtils.parseVersionedPath(targetPath);
             var createApplicationResource = applicationClientMapper.toCreateApplicationResource(applicationExim, itemParts);
