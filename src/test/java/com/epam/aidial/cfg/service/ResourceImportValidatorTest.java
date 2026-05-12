@@ -316,9 +316,9 @@ class ResourceImportValidatorTest {
         return application;
     }
 
-    private ResourceNameAndVersionAndPath getResourceNameAndVersionAndPath(ApplicationEximDto applicationEximDto,
-                                                                           boolean isFlatImport) {
-        return ResourceNameAndVersionAndPath.from(
+    private ResourceLocation getResourceNameAndVersionAndPath(ApplicationEximDto applicationEximDto,
+                                                              boolean isFlatImport) {
+        return ResourceLocation.from(
                 applicationEximDto.getName(),
                 applicationEximDto.getVersion(),
                 applicationEximDto.getFolderId(),
@@ -326,9 +326,9 @@ class ResourceImportValidatorTest {
         );
     }
 
-    private ResourceNameAndVersionAndPath getResourceNameAndVersionAndPath(ToolSetEximDto toolSetEximDto,
-                                                                           boolean isFlatImport) {
-        return ResourceNameAndVersionAndPath.from(
+    private ResourceLocation getResourceNameAndVersionAndPath(ToolSetEximDto toolSetEximDto,
+                                                              boolean isFlatImport) {
+        return ResourceLocation.from(
                 toolSetEximDto.getName(),
                 toolSetEximDto.getVersion(),
                 toolSetEximDto.getFolderId(),

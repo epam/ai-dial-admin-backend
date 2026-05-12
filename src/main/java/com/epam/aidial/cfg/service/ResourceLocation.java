@@ -1,13 +1,13 @@
 package com.epam.aidial.cfg.service;
 
-public record ResourceNameAndVersionAndPath(String name, String version, String folder) {
-    public static ResourceNameAndVersionAndPath from(
+public record ResourceLocation(String name, String version, String folder) {
+    public static ResourceLocation from(
             String name,
             String version,
             String folder,
             boolean flatImport
     ) {
-        return new ResourceNameAndVersionAndPath(
+        return new ResourceLocation(
                 name,
                 version,
                 flatImport ? null : folder

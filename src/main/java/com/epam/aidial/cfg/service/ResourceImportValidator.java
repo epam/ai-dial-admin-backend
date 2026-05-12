@@ -39,7 +39,7 @@ public class ResourceImportValidator {
     private static final String DUPLICATES_ACROSS_FILES_FLAT_IMPORT = "\n    - %s with name '%s', version '%s' found in multiple files: %s";
     private static final String DUPLICATES_ACROSS_FILES_NON_FLAT_IMPORT = "\n    - %s with name '%s', version '%s', folder '%s found in multiple files: %s";
 
-    public Map<ResourceNameAndVersionAndPath, String> collectApplicationUniquenessConflicts(
+    public Map<ResourceLocation, String> collectApplicationUniquenessConflicts(
             boolean flatImport,
             @Valid ApplicationsEximDto applicationsEximDto
     ) {
@@ -47,7 +47,7 @@ public class ResourceImportValidator {
                 flatImport,
                 applicationsEximDto,
                 ApplicationsEximDto::getApplications,
-                application -> ResourceNameAndVersionAndPath.from(
+                application -> ResourceLocation.from(
                         application.getName(),
                         application.getVersion(),
                         application.getFolderId(),
@@ -57,7 +57,7 @@ public class ResourceImportValidator {
         );
     }
 
-    public Map<ResourceNameAndVersionAndPath, String> collectToolSetUniquenessConflicts(
+    public Map<ResourceLocation, String> collectToolSetUniquenessConflicts(
             boolean flatImport,
             @Valid ToolSetsEximDto toolSetsEximDto
     ) {
@@ -65,7 +65,7 @@ public class ResourceImportValidator {
                 flatImport,
                 toolSetsEximDto,
                 ToolSetsEximDto::getToolSets,
-                toolset -> ResourceNameAndVersionAndPath.from(
+                toolset -> ResourceLocation.from(
                         toolset.getName(),
                         toolset.getVersion(),
                         toolset.getFolderId(),
@@ -75,11 +75,11 @@ public class ResourceImportValidator {
         );
     }
 
-    private <T, I> Map<ResourceNameAndVersionAndPath, String> collectUniquenessConflicts(
+    private <T, I> Map<ResourceLocation, String> collectUniquenessConflicts(
             boolean flatImport,
             T dto,
             Function<T, List<I>> extractor,
-            Function<I, ResourceNameAndVersionAndPath> mapper,
+            Function<I, ResourceLocation> mapper,
             String resourceType
     ) {
         if (dto == null) {
@@ -102,8 +102,8 @@ public class ResourceImportValidator {
         );
     }
 
-    private Map<ResourceNameAndVersionAndPath, String> collectNameVersionFolderUniquenessConflicts(
-            List<ResourceNameAndVersionAndPath> tuples,
+    private Map<ResourceLocation, String> collectNameVersionFolderUniquenessConflicts(
+            List<ResourceLocation> tuples,
             boolean flatImport,
             String resourceType) {
         var duplicateTuples = getDuplicateResourceNamesAndPath(tuples);
@@ -111,25 +111,24 @@ public class ResourceImportValidator {
             return Map.of();
         }
 
-        var errorsByKey = new LinkedHashMap<ResourceNameAndVersionAndPath, String>();
+        var errorsByKey = new LinkedHashMap<ResourceLocation, String>();
 
-        for (var tuple : tuples) {
-            if (duplicateTuples.contains(tuple)) {
-                var message = formatDuplicateResourceInImportMessage(tuple, flatImport, resourceType);
-                errorsByKey.putIfAbsent(tuple, message);
-            }
+        for (var tuple : duplicateTuples) {
+            var message = formatDuplicateResourceInImportMessage(tuple, flatImport, resourceType);
+            errorsByKey.putIfAbsent(tuple, message);
         }
+
         return errorsByKey;
     }
 
-    private String formatDuplicateResourceInImportMessage(ResourceNameAndVersionAndPath resource,
+    private String formatDuplicateResourceInImportMessage(ResourceLocation resource,
                                                           boolean isFlatImport,
                                                           String resourceType) {
-        if (isFlatImport) {
-            return "Duplicated %s name '%s' and version '%s' appears multiple times in the import file."
-                    .formatted(resourceType.toLowerCase(), resource.name(), resource.version());
-        }
-        return "Duplicated %s name '%s' and version '%s' and folder '%s' appears multiple times in the import file."
+        return isFlatImport
+                ? "Duplicated %s name '%s' and version '%s' appears multiple times in the import file."
+                .formatted(resourceType.toLowerCase(), resource.name(), resource.version())
+
+                : "Duplicated %s name '%s' and version '%s' and folder '%s' appears multiple times in the import file."
                 .formatted(resourceType.toLowerCase(), resource.name(), resource.version(), resource.folder());
     }
 
@@ -169,10 +168,10 @@ public class ResourceImportValidator {
         return Objects.toString(file.getOriginalFilename(), "");
     }
 
-    private List<ResourceNameAndVersionAndPath> getFileNamesFromZip(MultipartFile zipFile) throws IOException {
+    private List<ResourceLocation> getFileNamesFromZip(MultipartFile zipFile) throws IOException {
         try (ZipInputStream zipInputStream = new ZipInputStream(zipFile.getInputStream())) {
             ZipEntry zipEntry;
-            var names = new ArrayList<ResourceNameAndVersionAndPath>();
+            var names = new ArrayList<ResourceLocation>();
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (zipEntry.isDirectory()) {
                     throw new IllegalArgumentException(String.format("Invalid zip format for file '%s'", zipFile.getOriginalFilename()));
@@ -185,17 +184,17 @@ public class ResourceImportValidator {
                     continue;
                 }
                 var parts = PathUtils.parsePath(zipEntryName);
-                names.add(new ResourceNameAndVersionAndPath(parts.getName(), null, parts.getFolderId()));
+                names.add(new ResourceLocation(parts.getName(), null, parts.getFolderId()));
             }
             return names;
         }
     }
 
-    private void validateUniquenessFileNamesInFolders(List<ResourceNameAndVersionAndPath> resources) {
+    private void validateUniquenessFileNamesInFolders(List<ResourceLocation> resources) {
         Map<String, Set<String>> nameToFolders = resources.stream()
                 .collect(Collectors.groupingBy(
-                        ResourceNameAndVersionAndPath::name,
-                        Collectors.mapping(ResourceNameAndVersionAndPath::folder, Collectors.toSet())));
+                        ResourceLocation::name,
+                        Collectors.mapping(ResourceLocation::folder, Collectors.toSet())));
 
         Map<String, Set<String>> duplicated = nameToFolders.entrySet().stream()
                 .filter(e -> e.getValue().size() > 1)
@@ -213,7 +212,7 @@ public class ResourceImportValidator {
         throw new IllegalArgumentException(errorMessage.toString());
     }
 
-    private Set<ResourceNameAndVersionAndPath> getDuplicateResourceNamesAndPath(List<ResourceNameAndVersionAndPath> resources) {
+    private Set<ResourceLocation> getDuplicateResourceNamesAndPath(List<ResourceLocation> resources) {
         var counts = resources.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
@@ -228,7 +227,7 @@ public class ResourceImportValidator {
         var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
                 fileNameToApplicationsEximDtos,
                 ApplicationsEximDto::getApplications,
-                app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), isFlatImport ? null : app.getFolderId()));
+                app -> ResourceLocation.from(app.getName(), app.getVersion(), app.getFolderId(), isFlatImport));
 
         checkResourcesExistence(fileNameToListResources, APPLICATION_RESOURCE);
         checkResourcesConflicts(isFlatImport, fileNameToListResources, APPLICATION_RESOURCE);
@@ -239,13 +238,13 @@ public class ResourceImportValidator {
         var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
                 fileNameToToolSetsEximDtos,
                 ToolSetsEximDto::getToolSets,
-                app -> new ResourceNameAndVersionAndPath(app.getName(), app.getVersion(), isFlatImport ? null : app.getFolderId()));
+                app -> ResourceLocation.from(app.getName(), app.getVersion(), app.getFolderId(), isFlatImport));
         checkResourcesExistence(fileNameToListResources, TOOLSET_RESOURCE);
         checkResourcesConflicts(isFlatImport, fileNameToListResources, TOOLSET_RESOURCE);
     }
 
     private void checkResourcesConflicts(boolean isFlatImport,
-                                         Map<String, List<ResourceNameAndVersionAndPath>> fileNameToListResources,
+                                         Map<String, List<ResourceLocation>> fileNameToListResources,
                                          String resourceType) {
 
         var duplicatesWithinFiles = findSameResourcesWithinSameFiles(fileNameToListResources);
@@ -285,8 +284,8 @@ public class ResourceImportValidator {
         }
     }
 
-    private Map<String, Set<ResourceNameAndVersionAndPath>> findSameResourcesWithinSameFiles(Map<String, List<ResourceNameAndVersionAndPath>> fileNameToListResources) {
-        var filesWithDuplicateApplications = new HashMap<String, Set<ResourceNameAndVersionAndPath>>();
+    private Map<String, Set<ResourceLocation>> findSameResourcesWithinSameFiles(Map<String, List<ResourceLocation>> fileNameToListResources) {
+        var filesWithDuplicateApplications = new HashMap<String, Set<ResourceLocation>>();
 
         for (var entry : fileNameToListResources.entrySet()) {
             var filename = entry.getKey();
@@ -304,8 +303,8 @@ public class ResourceImportValidator {
         return filesWithDuplicateApplications;
     }
 
-    private Map<ResourceNameAndVersionAndPath, Set<String>> findSameResourcesWithinDifferentFiles(Map<String, List<ResourceNameAndVersionAndPath>> fileNameToListResources) {
-        var resourceToFilenamesMap = new HashMap<ResourceNameAndVersionAndPath, Set<String>>();
+    private Map<ResourceLocation, Set<String>> findSameResourcesWithinDifferentFiles(Map<String, List<ResourceLocation>> fileNameToListResources) {
+        var resourceToFilenamesMap = new HashMap<ResourceLocation, Set<String>>();
 
         for (var entry : fileNameToListResources.entrySet()) {
             var filename = entry.getKey();
@@ -326,7 +325,7 @@ public class ResourceImportValidator {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private void checkResourcesExistence(Map<String, List<ResourceNameAndVersionAndPath>> fileNameToListResources,
+    private void checkResourcesExistence(Map<String, List<ResourceLocation>> fileNameToListResources,
                                          String resourceType) {
         var resourceTypeLower = resourceType.toLowerCase();
         if (fileNameToListResources.isEmpty()) {
@@ -345,10 +344,10 @@ public class ResourceImportValidator {
         }
     }
 
-    private static <T, I> Map<String, List<ResourceNameAndVersionAndPath>> toMapOfResourceNameAndVersionAndPath(
+    private static <T, I> Map<String, List<ResourceLocation>> toMapOfResourceNameAndVersionAndPath(
             Map<String, T> dtos,
             Function<T, List<I>> listExtractor,
-            Function<I, ResourceNameAndVersionAndPath> mapper) {
+            Function<I, ResourceLocation> mapper) {
 
         return dtos.entrySet().stream()
                 .collect(Collectors.toMap(

@@ -328,7 +328,7 @@ class ToolSetEximServiceTest {
 
     @Test
     @SneakyThrows
-    void importToolSets_DuplicatedResources_PerItemFailuresAndNoBackendCalls() {
+    void importToolSets_DuplicatedResources_PerItemFailuresAndNoImport() {
         var importToolSets = ImportResources.builder()
                 .path("public/test/")
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)

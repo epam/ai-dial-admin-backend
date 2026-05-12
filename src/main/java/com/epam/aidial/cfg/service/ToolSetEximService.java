@@ -96,11 +96,11 @@ public class ToolSetEximService {
     private ImportResourcesFileResult importToolSets(ImportResources importToolSets,
                                                      ToolSetsEximDto toolSetsEximDto,
                                                      SimpleCircuitBreaker circuitBreaker,
-                                                     Map<ResourceNameAndVersionAndPath, String> uniquenessConflicts) {
+                                                     Map<ResourceLocation, String> uniquenessConflicts) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
             for (var toolSet : toolSetsEximDto.getToolSets()) {
-                var key = ResourceNameAndVersionAndPath.from(
+                var key = ResourceLocation.from(
                         toolSet.getName(),
                         toolSet.getVersion(),
                         toolSet.getFolderId(),

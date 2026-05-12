@@ -97,11 +97,11 @@ public class ApplicationEximService {
     private ImportResourcesFileResult importApplications(ImportResources importApplications,
                                                          ApplicationsEximDto applicationsEximDto,
                                                          SimpleCircuitBreaker circuitBreaker,
-                                                         Map<ResourceNameAndVersionAndPath, String> uniquenessConflicts) {
+                                                         Map<ResourceLocation, String> uniquenessConflicts) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
             for (var application : applicationsEximDto.getApplications()) {
-                var key = ResourceNameAndVersionAndPath.from(
+                var key = ResourceLocation.from(
                         application.getName(),
                         application.getVersion(),
                         application.getFolderId(),

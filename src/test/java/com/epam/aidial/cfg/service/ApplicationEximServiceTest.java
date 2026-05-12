@@ -341,7 +341,7 @@ class ApplicationEximServiceTest {
 
     @Test
     @SneakyThrows
-    void importApplications_DuplicatePayloadEntries_PerItemFailuresAndNoBackendCalls() {
+    void importApplications_DuplicatePayloadEntries_PerItemFailuresAndNoImport() {
         var importApplications = ImportResources.builder()
                 .path("public/test/")
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
