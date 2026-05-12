@@ -12,7 +12,7 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '3.5.13'
+    id 'org.springframework.boot' version '3.5.14'
 }
 
 group = 'com.epam.aidial'
@@ -176,6 +176,12 @@ dependencies {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-codec-dns:4.1.133.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-transport-native-epoll:4.2.13.Final") {
             because("previous versions have vulnerabilities")
         }
         implementation("org.bouncycastle:bcprov-jdk18on:1.84") {
