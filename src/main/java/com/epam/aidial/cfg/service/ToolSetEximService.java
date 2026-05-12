@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.utils.EximServiceHelper;
 import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
+import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ToolSetEximService {
     
-    private static final String PUBLIC_FOLDER = "public/";
     private final ToolSetClientMapper toolSetClientMapper;
     private final ToolSetResourceService toolSetResourceService;
     private final FolderService folderService;
@@ -71,7 +71,7 @@ public class ToolSetEximService {
     }
 
     public ImportResourcesFileResult importToolSets(ImportResources importToolSets, ToolSetsEximDto toolSetsEximDto) {
-        uniquenessValidator.validateToolSetImport(importToolSets, toolSetsEximDto);
+        var uniquenessConflicts = uniquenessValidator.collectToolSetUniquenessConflicts(importToolSets.isFlatImport(), toolSetsEximDto);
 
         if (importToolSets.getRules() != null) {
             var updateRulesRequest = UpdateRulesRequest.builder()
@@ -90,16 +90,31 @@ public class ToolSetEximService {
                 .build();
         var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
 
-        return importToolSet(normalizedImportToolSets, toolSetsEximDto, circuitBreaker);
+        return importToolSets(normalizedImportToolSets, toolSetsEximDto, circuitBreaker, uniquenessConflicts);
     }
 
-    private ImportResourcesFileResult importToolSet(ImportResources importToolSets,
-                                                    ToolSetsEximDto toolSetsEximDto,
-                                                    SimpleCircuitBreaker circuitBreaker) {
+    private ImportResourcesFileResult importToolSets(ImportResources importToolSets,
+                                                     ToolSetsEximDto toolSetsEximDto,
+                                                     SimpleCircuitBreaker circuitBreaker,
+                                                     Map<ResourceLocation, String> uniquenessConflicts) {
         try {
             var results = new ArrayList<ImportResourcesResult>();
             for (var toolSet : toolSetsEximDto.getToolSets()) {
-                results.add(importToolSet(importToolSets, toolSet, circuitBreaker));
+                var key = ResourceLocation.from(
+                        toolSet.getName(),
+                        toolSet.getVersion(),
+                        toolSet.getFolderId(),
+                        importToolSets.isFlatImport());
+                var conflictMessage = uniquenessConflicts.get(key);
+                if (conflictMessage != null) {
+                    var paths = ResourceImportPathUtils.resolveVersionedEximImportPaths(
+                            importToolSets,
+                            EximServiceHelper.getVersionedName(toolSet),
+                            toolSet.getFolderId());
+                    results.add(ImportResourcesResult.createFailure(paths.sourcePath(), paths.targetPath(), conflictMessage));
+                    continue;
+                }
+                results.add(importSingleToolSet(importToolSets, toolSet, circuitBreaker));
             }
             return ImportResourcesFileResult.builder()
                     .importResults(results)
@@ -113,20 +128,15 @@ public class ToolSetEximService {
         }
     }
 
-    private ImportResourcesResult importToolSet(ImportResources importToolSets,
-                                                ToolSetEximDto toolSetExim,
-                                                SimpleCircuitBreaker circuitBreaker) {
-        var toolSetName = EximServiceHelper.getVersionedName(toolSetExim);
-        String targetPath;
-        if (importToolSets.isFlatImport()) {
-            targetPath = importToolSets.getPath() + "/" + toolSetName;
-        } else {
-            var folderPathWithoutPublic = StringUtils.removeStart(toolSetExim.getFolderId(), PUBLIC_FOLDER);
-            targetPath = importToolSets.getPath() + "/" + folderPathWithoutPublic + toolSetName;
-        }
-        var sourcePath = toolSetExim.getFolderId() == null
-                ? toolSetName
-                : StringUtils.stripEnd(toolSetExim.getFolderId(), "/") + "/" + toolSetName;
+    private ImportResourcesResult importSingleToolSet(ImportResources importToolSets,
+                                                      ToolSetEximDto toolSetExim,
+                                                      SimpleCircuitBreaker circuitBreaker) {
+        var paths = ResourceImportPathUtils.resolveVersionedEximImportPaths(
+                importToolSets,
+                EximServiceHelper.getVersionedName(toolSetExim),
+                toolSetExim.getFolderId());
+        var sourcePath = paths.sourcePath();
+        var targetPath = paths.targetPath();
         try {
             var itemParts = PathUtils.parseVersionedPath(targetPath);
             var createToolSetResource = toolSetClientMapper.toCreateToolSetResource(toolSetExim, itemParts);
