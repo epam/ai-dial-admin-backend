@@ -24,6 +24,7 @@ public class ToolSet extends SecuredRoleBased {
     private String author;
     private Long createdAt;
     private Long updatedAt;
+    private boolean forwardAuthToken;
 
     private Transport transport;
     private List<String> allowedTools = new ArrayList<>();

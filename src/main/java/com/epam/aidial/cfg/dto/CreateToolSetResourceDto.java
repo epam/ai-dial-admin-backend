@@ -30,6 +30,7 @@ public class CreateToolSetResourceDto {
     private List<String> allowedTools;
     private CoreResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
 
     public enum TransportDto {
         HTTP, SSE

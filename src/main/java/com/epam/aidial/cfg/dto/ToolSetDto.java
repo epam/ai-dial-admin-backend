@@ -40,6 +40,7 @@ public class ToolSetDto extends RoleBasedDto {
 
     private ResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
 
     public enum TransportDto {
         HTTP, SSE

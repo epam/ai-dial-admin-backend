@@ -40,6 +40,7 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private Set<String> descriptionKeywords;
     private int maxRetryAttempts = 1;
     private String author;
+    private boolean forwardAuthToken;
 
     @Embedded
     private ToolSetContainerEntity toolSetContainer;
