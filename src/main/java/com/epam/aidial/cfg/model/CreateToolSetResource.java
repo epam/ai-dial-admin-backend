@@ -26,6 +26,7 @@ public class CreateToolSetResource {
     private List<String> allowedTools;
     private ResourceAuthSettings authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
 
     public enum Transport {
         HTTP, SSE
