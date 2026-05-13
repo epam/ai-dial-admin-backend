@@ -254,7 +254,7 @@
       "user_roles": [],
       "endpoint": "http://sample-endpoint/api",
       "display_name": "ToolSet1",
-      "forward_auth_token": false,
+      "forward_auth_token": true,
       "defaults": {},
       "responses_defaults": {},
       "interceptors": [],
