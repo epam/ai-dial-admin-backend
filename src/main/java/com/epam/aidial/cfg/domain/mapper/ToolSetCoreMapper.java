@@ -26,7 +26,6 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "userRoles", source = "deployment")
     @Mapping(target = "displayVersion", ignore = true)
     @Mapping(target = "reference", ignore = true)
-    @Mapping(target = "forwardAuthToken", ignore = true)
     @Mapping(target = "features", ignore = true)
     @Mapping(target = "inputAttachmentTypes", ignore = true)
     @Mapping(target = "maxInputAttachments", ignore = true)
