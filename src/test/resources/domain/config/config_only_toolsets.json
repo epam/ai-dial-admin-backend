@@ -35,7 +35,7 @@
       "author": "test-author",
       "created_at": 12345,
       "updated_at": 12345,
-      "forward_auth_token": false,
+      "forward_auth_token": true,
       "defaults": {},
       "responses_defaults": {},
       "interceptors": [],
