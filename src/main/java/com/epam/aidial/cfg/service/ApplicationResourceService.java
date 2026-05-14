@@ -145,7 +145,7 @@ public class ApplicationResourceService implements ResourceService {
     public String createApplicationResource(CreateApplicationResource createApplicationResource) {
         try {
             return putApplicationResource(createApplicationResource, false, null);
-        } catch (ResourcePreconditionFailedException ex) {
+        } catch (OptimisticLockConflictException ex) {
             throw new EntityAlreadyExistsException("Application with name " + createApplicationResource.getName() + " already exists");
         }
     }

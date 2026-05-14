@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
@@ -26,7 +27,6 @@ import com.epam.aidial.cfg.utils.HeaderUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
 import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
-import feign.FeignException;
 import feign.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -233,21 +233,20 @@ public class FileService implements ResourceService {
         );
     }
 
-    private ImportResourcesResult createFileOrThrow(MultipartFile file,
-                                                    String sourcePath,
-                                                    String targetPath,
-                                                    ImportConflictResolutionStrategy conflictResolutionStrategy) {
+    private ImportResourcesResult createFileOrThrow(
+            MultipartFile file,
+            String sourcePath,
+            String targetPath,
+            ImportConflictResolutionStrategy conflictResolutionStrategy) {
+        boolean override = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
+        var header = HeaderUtils.createHeadersForCreate(override, null);
         try {
-            boolean override = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
-            var header = HeaderUtils.createHeadersForCreate(override, null);
             fileClient.uploadFile(file, targetPath, header);
             return ImportResourcesResult.createSuccess(sourcePath, targetPath);
-        } catch (Exception ex) {
-            if (ex instanceof FeignException feignException) {
-                if (feignException.status() == 412) {
-                    log.debug("File {} import skipped - file already exists", targetPath, ex);
-                    return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
-                }
+        } catch (ResourcePreconditionFailedException ex) {
+            if (conflictResolutionStrategy == ImportConflictResolutionStrategy.SKIP) {
+                log.debug("File {} import skipped - file already exists", targetPath, ex);
+                return ImportResourcesResult.createSkip(sourcePath, targetPath);
             }
             throw ex;
         }
