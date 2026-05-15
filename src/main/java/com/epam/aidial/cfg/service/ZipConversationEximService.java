@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +68,10 @@ public class ZipConversationEximService {
                 var conversationsExim = conversationEximService.exportConversations(paths);
                 var conversationsEximDto = conversationResourceMapper.toConversationsEximDto(conversationsExim);
                 zos.putNextEntry(new ZipEntry(CONVERSATIONS_FULL_PATH));
-                zos.write(jsonMapper.writeValueAsString(conversationsEximDto).getBytes());
+                zos.write(
+                        jsonMapper.writeValueAsString(conversationsEximDto)
+                                .getBytes(StandardCharsets.UTF_8)
+                );
                 zos.closeEntry();
             } catch (Exception e) {
                 log.warn("An error occurred while exporting conversations", e);

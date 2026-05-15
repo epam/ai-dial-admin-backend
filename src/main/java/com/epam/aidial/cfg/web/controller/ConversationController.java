@@ -65,7 +65,7 @@ public class ConversationController {
     public ResponseEntity<ConversationDto> getConversation(@RequestBody ResourcePathDto pathDto,
                                                            @RequestHeader(value = "If-None-Match") String etag) {
         var withEtag = conversationService.getConversation(pathDto.getPath(), etag);
-        var dto = publicationMapper.toConversationDto(withEtag.model());
+        var dto = conversationMapper.toConversationDto(withEtag.model());
         return ResponseEntity.status(HttpStatus.OK).eTag(withEtag.etag()).body(dto);
     }
 

@@ -4,6 +4,8 @@ import com.epam.aidial.cfg.client.mapper.ConversationClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ConversationEximDto;
 import com.epam.aidial.cfg.dto.ConversationsEximDto;
+import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
+import com.epam.aidial.cfg.model.Conversation;
 import com.epam.aidial.cfg.model.ConversationExim;
 import com.epam.aidial.cfg.model.ConversationsExim;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
@@ -16,7 +18,6 @@ import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
 import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,8 +33,6 @@ import java.util.Map;
 @LogExecution
 @RequiredArgsConstructor
 public class ConversationEximService {
-
-    private static final String PUBLIC_FOLDER = "public/";
 
     private final ConversationClientMapper conversationClientMapper;
     private final ConversationService conversationService;
@@ -150,7 +149,7 @@ public class ConversationEximService {
         }
     }
 
-    private ImportResourcesResult createConversationWithCircuitBreaker(com.epam.aidial.cfg.model.Conversation conversation,
+    private ImportResourcesResult createConversationWithCircuitBreaker(Conversation conversation,
                                                                        String sourcePath,
                                                                        String targetPath,
                                                                        ImportConflictResolutionStrategy conflictResolutionStrategy,
@@ -168,7 +167,7 @@ public class ConversationEximService {
         );
     }
 
-    private ImportResourcesResult createConversationOrThrow(com.epam.aidial.cfg.model.Conversation conversation,
+    private ImportResourcesResult createConversationOrThrow(Conversation conversation,
                                                             String sourcePath,
                                                             String targetPath,
                                                             ImportConflictResolutionStrategy conflictResolutionStrategy) {
@@ -176,12 +175,10 @@ public class ConversationEximService {
             var allowOverride = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
             conversationService.putConversation(conversation, allowOverride, null);
             return ImportResourcesResult.createSuccess(sourcePath, targetPath);
-        } catch (Exception ex) {
-            if (ex instanceof FeignException feignException) {
-                if (feignException.status() == 412) {
-                    log.debug("Conversation {} import skipped - conversation already exists", targetPath, ex);
-                    return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
-                }
+        } catch (OptimisticLockConflictException ex) {
+            if (conflictResolutionStrategy == ImportConflictResolutionStrategy.SKIP) {
+                log.debug("Conversation {} import skipped - conversation already exists", targetPath, ex);
+                return ImportResourcesResult.createSkip(sourcePath, targetPath);
             }
             throw ex;
         }

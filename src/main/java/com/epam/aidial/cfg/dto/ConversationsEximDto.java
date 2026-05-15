@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,5 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConversationsEximDto {
-    private List<ConversationEximDto> conversations;
+    @NotNull
+    private List<@Valid ConversationEximDto> conversations;
 }

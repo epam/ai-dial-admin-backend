@@ -85,10 +85,10 @@ public class ResourceImportValidator {
                 flatImport,
                 conversationsEximDto,
                 ConversationsEximDto::getConversations,
-                toolset -> ResourceLocation.from(
-                        toolset.getName(),
-                        toolset.getVersion(),
-                        toolset.getFolderId(),
+                conversation -> ResourceLocation.from(
+                        conversation.getName(),
+                        conversation.getVersion(),
+                        conversation.getFolderId(),
                         flatImport
                 ),
                 CONVERSATION_RESOURCE
@@ -244,7 +244,7 @@ public class ResourceImportValidator {
 
     public void checkApplicationConflicts(ImportResources importApplications, Map<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
         var isFlatImport = importApplications.isFlatImport();
-        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
+        var fileNameToListResources = toMapOfResourceLocations(
                 fileNameToApplicationsEximDtos,
                 ApplicationsEximDto::getApplications,
                 app -> ResourceLocation.from(app.getName(), app.getVersion(), app.getFolderId(), isFlatImport));
@@ -255,7 +255,7 @@ public class ResourceImportValidator {
 
     public void checkToolSetConflicts(ImportResources importToolSets, HashMap<String, ToolSetsEximDto> fileNameToToolSetsEximDtos) {
         var isFlatImport = importToolSets.isFlatImport();
-        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
+        var fileNameToListResources = toMapOfResourceLocations(
                 fileNameToToolSetsEximDtos,
                 ToolSetsEximDto::getToolSets,
                 app -> ResourceLocation.from(app.getName(), app.getVersion(), app.getFolderId(), isFlatImport));
@@ -265,7 +265,7 @@ public class ResourceImportValidator {
 
     public void checkConversationConflicts(ImportResources importConversations, HashMap<String, ConversationsEximDto> fileNameToConversationsEximDtos) {
         var isFlatImport = importConversations.isFlatImport();
-        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
+        var fileNameToListResources = toMapOfResourceLocations(
                 fileNameToConversationsEximDtos,
                 ConversationsEximDto::getConversations,
                 c -> ResourceLocation.from(c.getName(), c.getVersion(), c.getFolderId(), isFlatImport));
@@ -374,7 +374,7 @@ public class ResourceImportValidator {
         }
     }
 
-    private static <T, I> Map<String, List<ResourceLocation>> toMapOfResourceNameAndVersionAndPath(
+    private static <T, I> Map<String, List<ResourceLocation>> toMapOfResourceLocations(
             Map<String, T> dtos,
             Function<T, List<I>> listExtractor,
             Function<I, ResourceLocation> mapper) {
