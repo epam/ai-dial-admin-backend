@@ -136,7 +136,7 @@ public class ToolSetResourceService implements ResourceService {
     public String createToolSetResource(CreateToolSetResource createToolSetResource) {
         try {
             return putToolSetResource(createToolSetResource, false, null);
-        } catch (ResourcePreconditionFailedException ex) {
+        } catch (OptimisticLockConflictException ex) {
             throw new EntityAlreadyExistsException("ToolSet with name " + createToolSetResource.getName() + " already exists");
         }
     }
