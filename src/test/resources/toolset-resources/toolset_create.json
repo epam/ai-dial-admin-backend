@@ -13,5 +13,6 @@
   "transport": "HTTP",
   "allowedTools": null,
   "authSettings": null,
-  "forwardPerRequestKey": true
+  "forwardPerRequestKey": true,
+  "forwardAuthToken": true
 }
