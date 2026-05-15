@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ToolSetEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
@@ -17,7 +18,6 @@ import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
 import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -171,17 +171,15 @@ public class ToolSetEximService {
                                                        String targetPath,
                                                        ImportConflictResolutionStrategy conflictResolutionStrategy) {
         try {
-            var allowOverride = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
-            toolSetResourceService.putToolSetResource(createToolSetResource, allowOverride, null);
-            return ImportResourcesResult.createSuccess(sourcePath, targetPath);
-        } catch (Exception ex) {
-            if (ex instanceof FeignException feignException) {
-                if (feignException.status() == 412) {
-                    log.debug("ToolSet {} import skipped - toolSet already exists", targetPath, ex);
-                    return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
-                }
+            if (conflictResolutionStrategy == ImportConflictResolutionStrategy.SKIP) {
+                toolSetResourceService.createToolSetResource(createToolSetResource);
+            } else {
+                toolSetResourceService.putToolSetResource(createToolSetResource, true, null);
             }
-            throw ex;
+            return ImportResourcesResult.createSuccess(sourcePath, targetPath);
+        } catch (EntityAlreadyExistsException ex) {
+            log.debug("ToolSet {} import skipped - toolSet already exists", targetPath, ex);
+            return ImportResourcesResult.createSkip(sourcePath, targetPath);
         }
     }
 }
