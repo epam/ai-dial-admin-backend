@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
@@ -72,7 +73,15 @@ import java.util.Map;
         "com.epam.aidial.cfg.service.core",
         "com.epam.aidial.cfg.transaction"
 })
-@Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, HashCalculator.class, SyncStateConfiguration.class})
+@Import({
+        JsonMapperConfiguration.class,
+        JpaConfiguration.class,
+        HibernateConfiguration.class,
+        HashCalculator.class,
+        SyncStateConfiguration.class,
+        RouteMapperImpl.class,
+        DeploymentClientMapperImpl.class
+})
 @EnableAspectJAutoProxy
 public class FunctionalTestConfiguration {
 
@@ -178,11 +187,6 @@ public class FunctionalTestConfiguration {
     @Bean
     public ResourceCredentialService resourceCredentialService(ResourceCredentialClient client, ResourceCredentialClientMapper resourceCredentialMapper) {
         return new ResourceCredentialService(client, resourceCredentialMapper);
-    }
-
-    @Bean
-    public DeploymentClientMapper deploymentClientMapper() {
-        return new DeploymentClientMapperImpl();
     }
 
     @Bean

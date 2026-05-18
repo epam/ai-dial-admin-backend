@@ -1,24 +1,13 @@
-package com.epam.aidial.cfg.client.dto;
+package com.epam.aidial.cfg.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-@SuperBuilder
-@AllArgsConstructor
-@NoArgsConstructor
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "object", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ModelDataDto.class, name = "model"),
@@ -42,8 +31,8 @@ public class DeploymentDataDto {
     private String owner;
     private String object;
     private String status;
-    private long createdAt;
-    private long updatedAt;
+    private Long createdAt;
+    private Long updatedAt;
     private ScaleSettingsDataDto scaleSettings;
     private FeaturesDataDto features;
     private List<String> inputAttachmentTypes;
@@ -51,6 +40,6 @@ public class DeploymentDataDto {
     private Map<String, Object> defaults;
     private Map<String, Object> responsesDefaults;
     private List<String> descriptionKeywords;
-    private int maxRetryAttempts;
+    private Integer maxRetryAttempts;
     private List<String> interfaces;
 }
