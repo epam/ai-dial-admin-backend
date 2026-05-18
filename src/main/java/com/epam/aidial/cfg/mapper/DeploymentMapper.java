@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.ModelCapabilitiesDataDto;
 import com.epam.aidial.cfg.dto.ModelDataDto;
 import com.epam.aidial.cfg.dto.ModelLimitsDataDto;
 import com.epam.aidial.cfg.dto.ModelPricingDataDto;
+import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.RouteResourceDto;
 import com.epam.aidial.cfg.dto.ScaleSettingsDataDto;
 import com.epam.aidial.cfg.dto.ToolSetDataDto;
@@ -78,16 +79,16 @@ public interface DeploymentMapper {
 
     ModelPricingDataDto toModelPricingDataDto(ModelPricingData model);
 
-    com.epam.aidial.cfg.dto.ResourceAuthSettingsDto toResourceAuthSettingsDto(ResourceAuthSettings model);
+    ResourceAuthSettingsDto toResourceAuthSettingsDto(ResourceAuthSettings model);
 
     default AuthenticationTypeDto toAuthenticationTypeDto(AuthenticationType type) {
         return type == null ? null : AuthenticationTypeDto.valueOf(type.name());
     }
 
-    default com.epam.aidial.cfg.dto.ResourceAuthSettingsDto.ResourceAuthStatus mapResourceAuthStatusDto(
+    default ResourceAuthSettingsDto.ResourceAuthStatus mapResourceAuthStatusDto(
             ResourceAuthSettings.ResourceAuthStatus status) {
         return status == null ? null
-                : com.epam.aidial.cfg.dto.ResourceAuthSettingsDto.ResourceAuthStatus.valueOf(status.name());
+                : ResourceAuthSettingsDto.ResourceAuthStatus.valueOf(status.name());
     }
 
     RouteResourceDto toRouteResourceDto(RouteResource route);
