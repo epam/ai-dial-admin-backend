@@ -1,22 +1,11 @@
 package com.epam.aidial.cfg.dto;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "object", visible = true)
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = ModelDataDto.class, name = "model"),
-        @JsonSubTypes.Type(value = ModelDataDto.class, name = "dial-model"),
-        @JsonSubTypes.Type(value = ToolSetDataDto.class, name = "toolset"),
-        @JsonSubTypes.Type(value = ToolSetDataDto.class, name = "dial-toolset"),
-        @JsonSubTypes.Type(value = ApplicationDataDto.class, name = "application"),
-        @JsonSubTypes.Type(value = ApplicationDataDto.class, name = "dial-application"),
-})
 public class DeploymentDataDto {
 
     private String id;
