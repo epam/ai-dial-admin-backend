@@ -179,7 +179,7 @@ class DeploymentControllerTest extends AbstractControllerNoneSecureTest {
         when(coreDeploymentService.listDeployments(null, List.of(DeploymentType.MODEL))).thenReturn(List.of(model));
         when(deploymentMapper.toDeploymentDataDtoList(List.of(model))).thenReturn(List.of(modelDto));
 
-        mockMvc.perform(get("/api/v1/deployments").param("deployment_type", "MODEL"))
+        mockMvc.perform(get("/api/v1/deployments").param("deployment_types", "MODEL"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("gpt-4"));
 
