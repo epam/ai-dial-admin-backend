@@ -12,7 +12,7 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '3.5.13'
+    id 'org.springframework.boot' version '3.5.14'
 }
 
 group = 'com.epam.aidial'
@@ -108,7 +108,7 @@ dependencies {
     implementation 'info.picocli:picocli-spring-boot-starter:4.7.6'
 
     implementation 'com.h2database:h2'
-    implementation 'org.postgresql:postgresql:42.7.7'
+    implementation 'org.postgresql:postgresql:42.7.11'
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.2.jre11'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.data:spring-data-envers'
@@ -166,17 +166,26 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.21') {
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.22') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('io.netty:netty-codec-http2:4.2.11.Final') {
+        implementation ('io.netty:netty-codec-http2:4.2.13.Final') {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
-            because("previous versions have vulnerabilities)")
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-codec-dns:4.1.133.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-transport-native-epoll:4.2.13.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("org.bouncycastle:bcprov-jdk18on:1.84") {
+            because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")

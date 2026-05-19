@@ -31,6 +31,7 @@ public class ToolSetResource {
     private List<String> allowedTools;
     private ResourceAuthSettings authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
     private String url;
 
     public enum Transport {
