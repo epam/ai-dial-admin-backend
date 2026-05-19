@@ -13,7 +13,6 @@ import com.epam.aidial.cfg.dto.ResourceMetadataRequestDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.mapper.ConversationMapper;
-import com.epam.aidial.cfg.mapper.PublicationMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapper;
 import com.epam.aidial.cfg.service.ConversationEximService;
 import com.epam.aidial.cfg.service.ConversationService;
@@ -46,7 +45,6 @@ public class ConversationController {
     private final ConversationService conversationService;
     private final ResourceMapper resourceMapper;
     private final ConversationMapper conversationMapper;
-    private final PublicationMapper publicationMapper;
     private final ConversationEximService conversationEximService;
     private final ZipConversationEximService zipConversationEximService;
 
