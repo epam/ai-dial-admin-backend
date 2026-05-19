@@ -2,7 +2,6 @@ package com.epam.aidial.metric.service.influx3;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.service.AbstractInfluxPerformanceTest;
@@ -77,11 +76,7 @@ class Influx3PerformanceTest extends AbstractInfluxPerformanceTest {
         var datasetDeclaration = (Influx3DatasetDeclaration) OBJECT_MAPPER.readValue(
                 testMetricConfig, DatasetDeclaration.class);
 
-        var datasetConfiguration = new Influx3DatasetConfiguration();
-        // Page size large enough that the 48h / 15m window query (~192 rows) returns in a single page.
-        datasetConfiguration.setDefaultPageSize(1_000);
-
-        var queryBuilderFactory = new SqlQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
+        var queryBuilderFactory = new SqlQueryBuilderFactory(datasetDeclaration);
         var windowGapFiller = new WindowGapFiller(10_000);
         engine = new Influx3Engine(datasetDeclaration, influx3Client, queryBuilderFactory, windowGapFiller);
     }
