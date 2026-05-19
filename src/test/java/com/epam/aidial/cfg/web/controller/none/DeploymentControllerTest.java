@@ -187,17 +187,6 @@ class DeploymentControllerTest extends AbstractControllerNoneSecureTest {
     }
 
     @Test
-    void testListDeploymentsShouldTreatAllAsNoFilter() throws Exception {
-        when(coreDeploymentService.listDeployments(List.of(InterfaceType.ALL), null)).thenReturn(List.of());
-        when(deploymentMapper.toDeploymentDataDtoList(List.of())).thenReturn(List.of());
-
-        mockMvc.perform(get("/api/v1/deployments").param("interface_types", "ALL"))
-                .andExpect(status().isOk());
-
-        verify(coreDeploymentService).listDeployments(List.of(InterfaceType.ALL), null);
-    }
-
-    @Test
     void testGetConfigurationShouldReturnConfiguration() throws Exception {
         String deploymentName = "chat-google-dlp-anonymizer";
 

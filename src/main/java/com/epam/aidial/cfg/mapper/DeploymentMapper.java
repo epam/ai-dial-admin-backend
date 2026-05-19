@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.model.ScaleSettingsData;
 import com.epam.aidial.cfg.model.ToolSetData;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.SubclassMapping;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,24 +40,16 @@ public interface DeploymentMapper {
         if (models == null) {
             return List.of();
         }
-        return models.stream().map(this::toDeploymentDataDto).toList();
+
+        return models.stream()
+                .map(this::toDeploymentDataDto)
+                .toList();
     }
 
-    default DeploymentDataDto toDeploymentDataDto(DeploymentData model) {
-        if (model == null) {
-            return null;
-        }
-        if (model instanceof ModelData modelData) {
-            return toModelDataDto(modelData);
-        }
-        if (model instanceof ApplicationData applicationData) {
-            return toApplicationDataDto(applicationData);
-        }
-        if (model instanceof ToolSetData toolSetData) {
-            return toToolSetDataDto(toolSetData);
-        }
-        return toBaseDeploymentDataDto(model);
-    }
+    @SubclassMapping(source = ModelData.class, target = ModelDataDto.class)
+    @SubclassMapping(source = ApplicationData.class, target = ApplicationDataDto.class)
+    @SubclassMapping(source = ToolSetData.class, target = ToolSetDataDto.class)
+    DeploymentDataDto toDeploymentDataDto(DeploymentData model);
 
     ModelDataDto toModelDataDto(ModelData model);
 

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.client.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -18,8 +17,12 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "object", visible = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "object",
+        visible = true,
+        defaultImpl = DeploymentDataDto.class
+)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ModelDataDto.class, name = "model"),
         @JsonSubTypes.Type(value = ModelDataDto.class, name = "dial-model"),
