@@ -15,13 +15,6 @@ All notable infrastructure-relevant changes to this project will be documented i
 - `METRICS_STORAGE_ROUTES_ANALYTICS_MEASUREMENT` — InfluxDB 2 measurement name for routes analytics data (default: `routes_analytics`)
 - `METRICS_STORAGE_ROUTES_ANALYTICS_TABLE` — InfluxDB 3 table name for routes analytics data (default: `routes_analytics`)
 
-### Removed
-
-#### Observability
-
-- `METRICS_INFLUX2_DEFAULT_PAGE_SIZE` — analytics queries are no longer page-bound; the limit/offset from the request are honored as-is and queries without a limit return all matching rows
-- `METRICS_INFLUX3_DEFAULT_PAGE_SIZE` — see above
-
 ---
 
 ## 0.15.0
