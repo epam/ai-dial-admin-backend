@@ -1,0 +1,18 @@
+{
+  "path": "public/Same_Company/",
+  "nodeType": "folder",
+  "nextToken": "testNextToken",
+  "items": [
+    {
+      "path": "public/Same_Company/conversation__1",
+      "name": "conversation__1",
+      "version": "1",
+      "folderId": "public/Same_Company/",
+      "updatedAt": 1750766372516,
+      "author": "Test author",
+      "nodeType": "item",
+      "nextToken": null,
+      "items": null
+    }
+  ]
+}

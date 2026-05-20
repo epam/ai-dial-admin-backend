@@ -29,6 +29,7 @@ public interface ConversationClient {
     ConversationMetadataDto getConversationMetadata(@PathVariable String path,
                                                     @RequestParam boolean recursive,
                                                     @RequestParam String token,
+                                                    @RequestParam int limit,
                                                     @RequestParam boolean permissions);
 
     /**
@@ -41,7 +42,8 @@ public interface ConversationClient {
      * {@link MessageConversionCoreClientConfiguration#feignDecoder(com.fasterxml.jackson.databind.ObjectMapper)}
      */
     @GetMapping("/v1/conversations/{path}")
-    ConversationDto getConversation(@PathVariable String path);
+    ResponseEntity<ConversationDto> getConversation(@PathVariable String path,
+                                                    @RequestHeader Map<String, String> headers);
 
     @PutMapping("/v1/conversations/{path}")
     ResponseEntity<ConversationMetadataDto> putConversation(@PathVariable String path,
@@ -49,5 +51,6 @@ public interface ConversationClient {
                                                             @RequestHeader Map<String, String> headers);
 
     @DeleteMapping("/v1/conversations/{path}")
-    void deleteConversation(@PathVariable String path);
+    void deleteConversation(@PathVariable String path,
+                            @RequestHeader Map<String, String> headers);
 }
