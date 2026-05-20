@@ -2,7 +2,6 @@ package com.epam.aidial.metric.service.influx;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.epam.aidial.metric.config.InfluxDatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.model.influx.FluxQueryContext;
@@ -43,12 +42,9 @@ class FluxQueryIntegrationTest {
         var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.influx2.json");
         var datasetDeclaration = (InfluxDatasetDeclaration) OBJECT_MAPPER.readValue(testMetricConfig, DatasetDeclaration.class);
 
-        var datasetConfiguration = new InfluxDatasetConfiguration();
-        datasetConfiguration.setDefaultPageSize(50);
-
         var windowGapFiller = new WindowGapFiller(10_000);
 
-        fluxQueryBuilderFactory = new FluxQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
+        fluxQueryBuilderFactory = new FluxQueryBuilderFactory(datasetDeclaration);
         engine = new InfluxEngine(datasetDeclaration, null, fluxQueryBuilderFactory, windowGapFiller);
         languageConverter = new LanguageConverter(engine);
     }
