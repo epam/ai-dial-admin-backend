@@ -71,6 +71,21 @@ public abstract class AbstractInfluxContainerTest {
             + "1773392400000000000"
     );
 
+    // mcp_analytics record with a UUID-shaped project_id, timestamped outside
+    // every other test's time range. Used by UuidLiteralFilterTests to verify
+    // that a UUID-shaped string literal is accepted as a filter value against a
+    // STRING tag column. Lives on mcp_analytics (not analytics) because Flux's
+    // distinct(column:) doesn't always respect the upstream range() filter — a
+    // UUID project_id added to analytics would leak into pre-existing distinct
+    // tests like distinctWithContainsFilter.
+    private static final String UUID_PROJECT_ID = "a36d8a75-aa7d-4185-a84d-566066cf91f2";
+    private static final List<String> UUID_PROJECT_RECORDS = List.of(
+            // 2026-03-15T10:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=" + UUID_PROJECT_ID + " "
+            + "execution_path=\"path_uuid\",chat_id=\"chat_uuid\",user_hash=\"user1\" "
+            + "1773568800000000000"
+    );
+
     // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
     // 6 records total: 4 inside the range, 2 outside
     private static final List<String> ANALYTICS_RECORDS = List.of(
@@ -112,6 +127,7 @@ public abstract class AbstractInfluxContainerTest {
         var all = new ArrayList<>(ANALYTICS_RECORDS);
         all.addAll(MCP_RECORDS_NO_PROJECT);
         all.addAll(MCP_RECORDS_WITH_PROJECT);
+        all.addAll(UUID_PROJECT_RECORDS);
         TEST_RECORDS = List.copyOf(all);
     }
 
@@ -1219,6 +1235,40 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("money", "requests");
             assertThat(data.getData()).hasSize(1);
+        }
+    }
+
+    @Nested
+    class UuidLiteralFilterTests {
+
+        // Time range covering only the UUID_PROJECT_RECORDS row at 2026-03-15T10:00:00Z.
+        private static final String UUID_TIME_GTE = """
+                {"$gte": {"left": "_time", "right": "'2026-03-15T00:00:00Z'"}}""";
+        private static final String UUID_TIME_LT = """
+                {"$lt": {"left": "_time", "right": "'2026-03-16T00:00:00Z'"}}""";
+
+        @Test
+        void equalityFilterWithUuidLiteralAgainstStringColumn() throws Exception {
+            // Reproduces the analytics-UI bug: project_id is a STRING tag, but a
+            // UUID-shaped literal is auto-typed as Type.UUID by enterString_literal.
+            // Without the STRING/UUID coercion in ValidationUtils.isSubType this query
+            // throws "Comparision STRING (project_id) and UUID (...) types using
+            // EQUALS operator is unsupported." With the fix it matches exactly one row.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["project_id", "count() as cnt"],
+                      "from": "mcp_analytics",
+                      "groupBy": ["project_id"],
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'%s'"}}
+                        ]
+                      }
+                    }""".formatted(UUID_TIME_GTE, UUID_TIME_LT, UUID_PROJECT_ID));
+
+            assertThat(columnNames(data)).containsExactly("project_id", "cnt");
+            assertThat(data.getData()).containsExactly(List.of(UUID_PROJECT_ID, 1L));
         }
     }
 
