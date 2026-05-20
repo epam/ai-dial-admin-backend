@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.ApplicationClient;
 import com.epam.aidial.cfg.client.ResourceClient;
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
@@ -10,7 +11,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
-import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -51,13 +51,13 @@ public class ApplicationResourceService implements ResourceService {
     private static final String BASE_PATH = "public/";
 
     private final ApplicationClient applicationClient;
+    private final ToolsClient toolsClient;
     private final ApplicationClientMapper applicationClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ApplicationResourceValidityStateOnGetResolver applicationResourceValidityStateOnGetResolver;
     private final CoreClientUrlUtils coreClientUrlUtils;
-    private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
 
@@ -190,22 +190,7 @@ public class ApplicationResourceService implements ResourceService {
 
     @Transactional(readOnly = true)
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
-        var application = getApplicationResource(path);
-
-        var transport = resolveTransport(application, application.getName());
-
-        var url = String.format(
-                "%s/v1/deployments/%s/mcp?useAllowedTools=false",
-                coreClientUrlUtils.getNormalizedCoreClientUrl(),
-                application.getUrl()
-        );
-
-        return toolDiscoveryService.discoverTools(
-                url,
-                transport,
-                nextCursor,
-                AuthHeaderUtils.getAuthHeaders()
-        );
+        return toolsClient.getTools(APPLICATIONS_PREFIX + path, nextCursor);
     }
 
     private ToolSet.Transport resolveTransport(ApplicationResource application, String applicationName) {

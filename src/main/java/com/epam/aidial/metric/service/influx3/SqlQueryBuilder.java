@@ -10,7 +10,6 @@ import com.epam.aidial.expressions.NumberConstant;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
-import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3TableDeclaration;
 import com.epam.aidial.metric.model.influx3.SqlQueryContext;
@@ -36,9 +35,8 @@ import java.util.stream.Collectors;
 public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influx3TableDeclaration> {
 
     public SqlQueryBuilder(Influx3DatasetDeclaration datasetDeclaration,
-                           Influx3DatasetConfiguration datasourceConfiguration,
                            TemporalNameGenerator temporalNameGenerator) {
-        super(datasetDeclaration, datasourceConfiguration, temporalNameGenerator);
+        super(datasetDeclaration, temporalNameGenerator);
     }
 
     @Override
@@ -500,14 +498,11 @@ public class SqlQueryBuilder extends AbstractQueryBuilder<SqlQueryContext, Influ
 
     private String buildLimitClause(Query query) {
         var limit = query.getLimit();
-        var offset = query.getOffset();
-
-        if (limit == null && offset == null) {
+        if (limit == null) {
             return "";
         }
-
-        var size = limit == null ? datasetConfiguration.getDefaultPageSize() : limit;
-        var sb = new StringBuilder("LIMIT ").append(size);
+        var sb = new StringBuilder("LIMIT ").append(limit);
+        var offset = query.getOffset();
         if (offset != null && offset > 0) {
             sb.append(" OFFSET ").append(offset);
         }

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetContainerEntityMapper;
@@ -59,12 +60,12 @@ public class ToolSetService {
     private final ToolSetMcpRegistryEntityMapper toolSetMcpRegistryEntityMapper;
     private final DeploymentService deploymentService;
     private final HistoryService historyService;
-    private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final ToolSetRefreshService toolSetRefreshService;
     private final ContainerEndpointResolver endpointResolver;
     private final HashCalculator calculator;
     private final CoreClientUrlUtils coreClientUrlUtils;
+    private final ToolsClient toolsClient;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
@@ -226,17 +227,8 @@ public class ToolSetService {
 
     @Transactional(readOnly = true)
     public McpSchema.ListToolsResult getDiscoveredTools(String toolSetName, String nextCursor) {
-        var toolSet = get(toolSetName);
-        var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
-        return toolDiscoveryService.discoverTools(
-                String.format(
-                        normalizedCoreClientUrl + "/v1/toolset/%s/mcp?useAllowedTools=false",
-                        toolSet.getDeployment().getName()
-                ),
-                toolSet.getTransport(),
-                nextCursor,
-                AuthHeaderUtils.getAuthHeaders()
-        );
+        assertExists(toolSetName);
+        return toolsClient.getTools(toolSetName, nextCursor);
     }
 
     @Transactional(readOnly = true)

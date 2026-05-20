@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.config;
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
 import com.epam.aidial.cfg.client.DeploymentClient;
 import com.epam.aidial.cfg.client.ResourceCredentialClient;
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
@@ -195,6 +196,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public DeploymentClient deploymentClient() {
         return Mockito.mock(DeploymentClient.class);
+    }
+
+    @Bean
+    public ToolsClient toolsClient() {
+        return Mockito.mock(ToolsClient.class);
     }
 
     @Bean
