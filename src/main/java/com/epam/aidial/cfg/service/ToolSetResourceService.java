@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.ResourceClient;
 import com.epam.aidial.cfg.client.ToolSetClient;
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
@@ -9,7 +10,6 @@ import com.epam.aidial.cfg.client.mapper.ToolSetClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
-import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -46,11 +46,11 @@ import static com.epam.aidial.cfg.utils.PathUtils.buildPath;
 public class ToolSetResourceService implements ResourceService {
     private static final String BASE_PATH = "public/";
     private final ToolSetClient toolSetClient;
+    private final ToolsClient toolsClient;
     private final ToolSetClientMapper toolSetClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
-    private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final CoreClientUrlUtils coreClientUrlUtils;
 
@@ -162,14 +162,7 @@ public class ToolSetResourceService implements ResourceService {
     }
 
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
-        var toolSet = getToolSetResource(path);
-        var normalizedCoreClientUrl = coreClientUrlUtils.getNormalizedCoreClientUrl();
-        return toolDiscoveryService.discoverTools(
-                String.format(normalizedCoreClientUrl + "/v1/toolset/%s/mcp?useAllowedTools=false", toolSet.getUrl()),
-                ToolSet.Transport.valueOf(String.valueOf(toolSet.getTransport())),
-                nextCursor,
-                AuthHeaderUtils.getAuthHeaders()
-        );
+        return toolsClient.getTools(TOOLSETS_PREFIX + path, nextCursor);
     }
 
     public McpSchema.CallToolResult callTool(String path, McpSchema.CallToolRequest callToolRequest) {

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.client.DeploymentClient;
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.ToolSetDataDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
@@ -70,6 +71,8 @@ public abstract class ToolSetFunctionalTest {
     private TransactionTimestampContext transactionTimestampContext;
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
+    @Autowired
+    private ToolsClient toolsClient;
 
     @BeforeEach
     public void beforeEach() {
@@ -140,14 +143,9 @@ public abstract class ToolSetFunctionalTest {
         toolSetFacade.createToolSet(toolSetDto);
 
         var expectedTools = Mockito.mock(McpSchema.ListToolsResult.class);
-        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
-
-        Mockito.when(mcpSyncClient.initialize())
-                .thenReturn(null);
-        Mockito.when(mcpSyncClient.listTools(null))
+        when(toolsClient.getTools(eq(toolSetDto.getName()), isNull()))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/ToolSet1/mcp?useAllowedTools=false"),
-                eq(Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+
         var actualTools = toolSetFacade.getDiscoveredTools(toolSetDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
