@@ -1,18 +1,12 @@
-package com.epam.aidial.cfg.model;
+package com.epam.aidial.cfg.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-@SuperBuilder
-@AllArgsConstructor
-@NoArgsConstructor
-public class DeploymentData {
+public class DeploymentDataDto {
 
     private String id;
     private String model;
@@ -26,15 +20,15 @@ public class DeploymentData {
     private String owner;
     private String object;
     private String status;
-    private long createdAt;
-    private long updatedAt;
-    private ScaleSettingsData scaleSettings;
-    private FeaturesData features;
+    private Long createdAt;
+    private Long updatedAt;
+    private ScaleSettingsDataDto scaleSettings;
+    private FeaturesDataDto features;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
     private Map<String, Object> responsesDefaults;
     private List<String> descriptionKeywords;
-    private int maxRetryAttempts;
+    private Integer maxRetryAttempts;
     private List<String> interfaces;
 }

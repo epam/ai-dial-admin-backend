@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.ConversationsEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.utils.PathUtils;
@@ -34,6 +35,7 @@ import java.util.zip.ZipInputStream;
 public class ResourceImportValidator {
     private static final String APPLICATION_RESOURCE = "Application";
     private static final String TOOLSET_RESOURCE = "ToolSet";
+    private static final String CONVERSATION_RESOURCE = "Conversation";
     private static final String DUPLICATES_WITHIN_FILES_FLAT_IMPORT = "\n    - File '%s' has duplicate %s: name '%s', version '%s'";
     private static final String DUPLICATES_WITHIN_FILES_NON_FLAT_IMPORT = DUPLICATES_WITHIN_FILES_FLAT_IMPORT + ", folder '%s'";
     private static final String DUPLICATES_ACROSS_FILES_FLAT_IMPORT = "\n    - %s with name '%s', version '%s' found in multiple files: %s";
@@ -72,6 +74,24 @@ public class ResourceImportValidator {
                         flatImport
                 ),
                 TOOLSET_RESOURCE
+        );
+    }
+
+    public Map<ResourceLocation, String> collectConversationUniquenessConflicts(
+            boolean flatImport,
+            @Valid ConversationsEximDto conversationsEximDto
+    ) {
+        return collectUniquenessConflicts(
+                flatImport,
+                conversationsEximDto,
+                ConversationsEximDto::getConversations,
+                conversation -> ResourceLocation.from(
+                        conversation.getName(),
+                        conversation.getVersion(),
+                        conversation.getFolderId(),
+                        flatImport
+                ),
+                CONVERSATION_RESOURCE
         );
     }
 
@@ -224,7 +244,7 @@ public class ResourceImportValidator {
 
     public void checkApplicationConflicts(ImportResources importApplications, Map<String, ApplicationsEximDto> fileNameToApplicationsEximDtos) {
         var isFlatImport = importApplications.isFlatImport();
-        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
+        var fileNameToListResources = toMapOfResourceLocations(
                 fileNameToApplicationsEximDtos,
                 ApplicationsEximDto::getApplications,
                 app -> ResourceLocation.from(app.getName(), app.getVersion(), app.getFolderId(), isFlatImport));
@@ -235,12 +255,22 @@ public class ResourceImportValidator {
 
     public void checkToolSetConflicts(ImportResources importToolSets, HashMap<String, ToolSetsEximDto> fileNameToToolSetsEximDtos) {
         var isFlatImport = importToolSets.isFlatImport();
-        var fileNameToListResources = toMapOfResourceNameAndVersionAndPath(
+        var fileNameToListResources = toMapOfResourceLocations(
                 fileNameToToolSetsEximDtos,
                 ToolSetsEximDto::getToolSets,
                 app -> ResourceLocation.from(app.getName(), app.getVersion(), app.getFolderId(), isFlatImport));
         checkResourcesExistence(fileNameToListResources, TOOLSET_RESOURCE);
         checkResourcesConflicts(isFlatImport, fileNameToListResources, TOOLSET_RESOURCE);
+    }
+
+    public void checkConversationConflicts(ImportResources importConversations, HashMap<String, ConversationsEximDto> fileNameToConversationsEximDtos) {
+        var isFlatImport = importConversations.isFlatImport();
+        var fileNameToListResources = toMapOfResourceLocations(
+                fileNameToConversationsEximDtos,
+                ConversationsEximDto::getConversations,
+                c -> ResourceLocation.from(c.getName(), c.getVersion(), c.getFolderId(), isFlatImport));
+        checkResourcesExistence(fileNameToListResources, CONVERSATION_RESOURCE);
+        checkResourcesConflicts(isFlatImport, fileNameToListResources, CONVERSATION_RESOURCE);
     }
 
     private void checkResourcesConflicts(boolean isFlatImport,
@@ -344,7 +374,7 @@ public class ResourceImportValidator {
         }
     }
 
-    private static <T, I> Map<String, List<ResourceLocation>> toMapOfResourceNameAndVersionAndPath(
+    private static <T, I> Map<String, List<ResourceLocation>> toMapOfResourceLocations(
             Map<String, T> dtos,
             Function<T, List<I>> listExtractor,
             Function<I, ResourceLocation> mapper) {
