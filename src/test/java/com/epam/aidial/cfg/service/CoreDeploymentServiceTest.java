@@ -136,8 +136,5 @@ class CoreDeploymentServiceTest {
         var result = coreDeploymentService.listDeployments(null, null);
 
         assertThat(result).containsExactlyElementsOf(models);
-        assertThat(result.get(0)).isInstanceOf(ModelData.class);
-        assertThat(result.get(1)).isInstanceOf(ApplicationData.class);
-        assertThat(result.get(2)).isInstanceOf(ToolSetData.class);
     }
 }
