@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.model.FolderInfo;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesFileResult;
+import com.epam.aidial.cfg.model.ImportResourcesStatus;
 import com.epam.aidial.cfg.model.MoveResource;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.ResourceMetadataRequest;
@@ -168,6 +169,22 @@ class FileServiceTest {
 
         Assertions.assertThat(result.getImportResults()).isEmpty();
         Assertions.assertThat(result.getError()).isEqualTo(INVALID_EXPORT_ZIP);
+        verify(fileClient, never()).uploadFile(any(), anyString(), any());
+    }
+
+    @Test
+    void uploadFile_duplicateOriginalNames_returnsPerItemFailures() {
+        var importResources = ImportResources.builder()
+                .path("public/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+        var a = new MockMultipartFile("files", "dup.txt", null, "a".getBytes());
+        var b = new MockMultipartFile("files", "dup.txt", null, "b".getBytes());
+
+        var result = fileService.uploadFile(List.of(a, b), importResources);
+
+        Assertions.assertThat(result.getImportResults()).hasSize(2);
+        Assertions.assertThat(result.getImportResults()).allMatch(r -> r.getStatus() == ImportResourcesStatus.FAILURE);
         verify(fileClient, never()).uploadFile(any(), anyString(), any());
     }
 

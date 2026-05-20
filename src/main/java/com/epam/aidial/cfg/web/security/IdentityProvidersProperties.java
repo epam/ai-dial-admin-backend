@@ -53,7 +53,6 @@ public class IdentityProvidersProperties {
         private List<String> aliases;
         private List<String> roleClaims;
         private List<String> emailClaims;
-        private Set<String> allowedRoles;
         private String rolesMapping;
 
         public boolean hasIssuer() {

@@ -1,0 +1,17 @@
+{
+  "path": "public/folder/conversation1",
+  "version": "1",
+  "folderId": "public/folder",
+  "updatedAt": 1757583286303,
+  "lastActivityDate": null,
+  "author": "author",
+  "name": "conversation1",
+  "model": {
+    "id": "gpt-4o"
+  },
+  "prompt": "",
+  "temperature": 0.5,
+  "messages": [],
+  "assistantModelId": null,
+  "customViewState": {}
+}

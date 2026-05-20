@@ -76,12 +76,12 @@ import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
 import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -1902,7 +1902,7 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
-    void testExport_CoreFormatAll_FullRequest() throws IOException, JSONException {
+    void testExport_CoreFormatAll_FullRequest() throws IOException {
         // given
         String importConfig = ResourceUtils.readResource("/import_for_export.json");
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -1912,8 +1912,8 @@ public abstract class ConfigTransferFunctionalTest {
                 importConfig.getBytes()
         );
 
-        Config expectedConfigObj = jsonMapper.readValue(ResourceUtils.readResource("/full_core_export.json"), Config.class);
-        String expectedConfig = prettyJsonMapper.writeValueAsString(expectedConfigObj);
+        JsonNode expectedConfigNode = jsonMapper.readTree(ResourceUtils.readResource("/full_core_export.json"));
+        String expectedConfig = prettyJsonMapper.writeValueAsString(expectedConfigNode);
 
         doReturn(123L).when(transactionTimestampContext).getTimestamp();
 

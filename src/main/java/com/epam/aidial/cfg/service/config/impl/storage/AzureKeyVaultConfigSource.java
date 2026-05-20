@@ -4,7 +4,9 @@ import com.azure.core.exception.ResourceNotFoundException;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
+import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -24,14 +26,15 @@ public class AzureKeyVaultConfigSource extends CompositeConfigSource {
     private final long expirationPeriod;
     private final ObjectMapper objectMapper;
 
-    public AzureKeyVaultConfigSource(ConfigSplitter configSplitter,
+    public AzureKeyVaultConfigSource(VersionAwareFieldFilter versionAwareFieldFilter,
+                                     ConfigSplitter configSplitter,
                                      ConfigMerger configMerger,
                                      List<String> secretNames,
                                      SecretClient secretClient,
                                      String expirationTimeUnit,
                                      long expirationPeriod,
                                      ObjectMapper objectMapper) {
-        super(configSplitter, configMerger, secretNames, MAX_SECRET_SIZE);
+        super(versionAwareFieldFilter, configSplitter, configMerger, secretNames, MAX_SECRET_SIZE);
         this.secretClient = secretClient;
         this.expirationTimeUnit = expirationTimeUnit;
         this.expirationPeriod = expirationPeriod;
@@ -81,7 +84,7 @@ public class AzureKeyVaultConfigSource extends CompositeConfigSource {
 
     @Override
     @SneakyThrows
-    protected String encode(Config body) {
+    protected String encode(JsonNode body) {
         return objectMapper.writeValueAsString(body);
     }
 }

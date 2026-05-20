@@ -31,4 +31,5 @@ public class FeaturesDataDto {
     private boolean autoCaching;
     private boolean parallelToolCalls;
     private boolean assistantAttachmentsInRequest;
+    private boolean mcp;
 }
