@@ -11,7 +11,6 @@ import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.expressions.impl.GroupFunctionCallImpl;
 import com.epam.aidial.expressions.impl.NumberConstantImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
-import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
@@ -46,10 +45,7 @@ class SqlQueryBuilderTest {
         var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.influx3.json");
         var datasetDeclaration = (Influx3DatasetDeclaration) OBJECT_MAPPER.readValue(testMetricConfig, DatasetDeclaration.class);
 
-        var datasetConfiguration = new Influx3DatasetConfiguration();
-        datasetConfiguration.setDefaultPageSize(50);
-
-        sqlQueryBuilder = new SqlQueryBuilder(datasetDeclaration, datasetConfiguration, new TemporalNameGenerator());
+        sqlQueryBuilder = new SqlQueryBuilder(datasetDeclaration, new TemporalNameGenerator());
     }
 
     @Test
