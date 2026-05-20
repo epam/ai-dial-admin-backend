@@ -231,7 +231,10 @@ public class ValidationUtils {
                 }
             }
             return true;
-        } else if (!(TypeHelper.isSubclass(child.getType(), parentType) || parentType == Type.ENUM && child.getType() == Type.STRING)) {
+        } else if (!(TypeHelper.isSubclass(child.getType(), parentType)
+                || parentType == Type.ENUM && child.getType() == Type.STRING
+                || parentType == Type.STRING && child.getType() == Type.UUID
+                || parentType == Type.UUID && child.getType() == Type.STRING)) {
             return false;
         }
         Set<BinaryComparisonOperator> typeOperators = operators.get(parentType);
