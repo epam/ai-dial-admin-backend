@@ -1252,7 +1252,7 @@ public abstract class AbstractInfluxContainerTest {
             // Reproduces the analytics-UI bug: project_id is a STRING tag, but a
             // UUID-shaped literal is auto-typed as Type.UUID by enterString_literal.
             // Without the STRING/UUID coercion in ValidationUtils.isSubType this query
-            // throws "Comparision STRING (project_id) and UUID (...) types using
+            // throws "Comparison STRING (project_id) and UUID (...) types using
             // EQUALS operator is unsupported." With the fix it matches exactly one row.
             var data = queryFromJson("""
                     {

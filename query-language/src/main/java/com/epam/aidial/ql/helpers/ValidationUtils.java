@@ -232,9 +232,9 @@ public class ValidationUtils {
             }
             return true;
         } else if (!(TypeHelper.isSubclass(child.getType(), parentType)
-                || parentType == Type.ENUM && child.getType() == Type.STRING
-                || parentType == Type.STRING && child.getType() == Type.UUID
-                || parentType == Type.UUID && child.getType() == Type.STRING)) {
+                || (parentType == Type.ENUM && child.getType() == Type.STRING)
+                || (parentType == Type.STRING && child.getType() == Type.UUID)
+                || (parentType == Type.UUID && child.getType() == Type.STRING))) {
             return false;
         }
         Set<BinaryComparisonOperator> typeOperators = operators.get(parentType);
@@ -250,7 +250,7 @@ public class ValidationUtils {
             if (right instanceof Completable) {
                 if (!isSubType(operator, right, left)) {
                     throw new ValidationException(String.format(
-                            "Comparision `%s` (%s) and `%s` (%s) types using `%s` operator is unsupported.",
+                            "Comparison `%s` (%s) and `%s` (%s) types using `%s` operator is unsupported.",
                             getFullType(left), leftName, getFullType(right), rightName, operator
                     ));
                 }
@@ -259,7 +259,7 @@ public class ValidationUtils {
                     ((Tuple) right).getExpressions().forEach(expression -> {
                         if (!isSubType(operator, expression, left)) {
                             throw new ValidationException(String.format(
-                                    "Comparision `%s` (%s) and `%s` (%s) types using `%s` operator is unsupported.",
+                                    "Comparison `%s` (%s) and `%s` (%s) types using `%s` operator is unsupported.",
                                     getFullType(left), leftName, getFullType(right), rightName, operator
                             ));
                         }
@@ -271,7 +271,7 @@ public class ValidationUtils {
         } else {
             if (!isSubType(operator, left, right) && !isSubType(operator, right, left)) {
                 throw new ValidationException(String.format(
-                        "Comparision `%s` (%s) and `%s` (%s) types using `%s` operator is unsupported.",
+                        "Comparison `%s` (%s) and `%s` (%s) types using `%s` operator is unsupported.",
                         getFullType(left), leftName, getFullType(right), rightName, operator
                 ));
             }
