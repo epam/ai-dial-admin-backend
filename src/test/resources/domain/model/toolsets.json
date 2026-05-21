@@ -69,7 +69,7 @@
           "first",
           "second"
         ],
-        "tokenEndpointAuthMethod": "https://some-token-endpoint_auth_method"
+        "tokenEndpointAuthMethod": "client_secret_basic"
       }
     },
     "author": "test-author",

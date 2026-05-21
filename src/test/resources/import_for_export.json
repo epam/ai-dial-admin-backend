@@ -271,7 +271,7 @@
         "clientSecret": "some-client-secret",
         "authorizationEndpoint": "some-auth-endpoint",
         "tokenEndpoint": "some-token-endpoint",
-        "tokenEndpointAuthMethod": "https://some-token-endpoint_auth_method"
+        "tokenEndpointAuthMethod": "CLIENT_SECRET_POST"
       }
     }
   }

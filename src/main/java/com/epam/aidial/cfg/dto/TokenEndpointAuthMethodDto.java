@@ -1,0 +1,7 @@
+package com.epam.aidial.cfg.dto;
+
+public enum TokenEndpointAuthMethodDto {
+    CLIENT_SECRET_POST,
+    CLIENT_SECRET_BASIC,
+    NONE
+}

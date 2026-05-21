@@ -20,7 +20,7 @@ public class CoreResourceAuthSettingsDto {
     private ResourceAuthStatus userLevelAuthStatus;
     private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
-    private String tokenEndpointAuthMethod;
+    private TokenEndpointAuthMethodResourceDto tokenEndpointAuthMethod;
 
     public enum ResourceAuthStatus {
         SIGNED_IN,

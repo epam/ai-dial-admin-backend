@@ -1022,7 +1022,7 @@
               "first",
               "second"
             ],
-            "tokenEndpointAuthMethod": "https://some-token-endpoint_auth_method"
+            "tokenEndpointAuthMethod": "NONE"
           }
         },
         "displayName": "ToolSet1",

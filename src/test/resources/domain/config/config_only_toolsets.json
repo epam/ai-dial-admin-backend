@@ -54,7 +54,7 @@
           "first",
           "second"
         ],
-        "token_endpoint_auth_method": "https://some-token-endpoint_auth_method"
+        "token_endpoint_auth_method": "CLIENT_SECRET_BASIC"
       },
       "forward_per_request_key": false,
       "dependencies": []
