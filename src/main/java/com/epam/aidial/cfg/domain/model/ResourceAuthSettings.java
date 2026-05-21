@@ -23,6 +23,7 @@ public class ResourceAuthSettings {
     private String apiKeyHeader;
 
     private List<String> scopesSupported;
+    private String tokenEndpointAuthMethod;
 
     @Override
     public String toString() {

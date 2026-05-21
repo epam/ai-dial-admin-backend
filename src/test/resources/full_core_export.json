@@ -268,7 +268,8 @@
         "authentication_type": "oauth",
         "client_id": "some-client-id",
         "authorization_endpoint": "some-auth-endpoint",
-        "token_endpoint": "some-token-endpoint"
+        "token_endpoint": "some-token-endpoint",
+        "token_endpoint_auth_method": "https://some-token-endpoint_auth_method"
       },
       "transport": "sse",
       "allowed_tools": [

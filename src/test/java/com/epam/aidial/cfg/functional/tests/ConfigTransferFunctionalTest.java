@@ -3166,6 +3166,7 @@ public abstract class ConfigTransferFunctionalTest {
         authSettings.setCodeVerifier("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk");
         authSettings.setApiKeyHeader("someApiKeyHeader");
         authSettings.setScopesSupported(List.of("first", "second"));
+        authSettings.setTokenEndpointAuthMethod("https://some-token-endpoint_auth_method");
         return authSettings;
     }
 
@@ -3192,9 +3193,6 @@ public abstract class ConfigTransferFunctionalTest {
         assertEmptyRoleLimit(roleLimit, true);
     }
 
-    private void assertEmptyDisabledRoleLimit(LimitDto roleLimit) {
-        assertEmptyRoleLimit(roleLimit, false);
-    }
 
     private void assertEmptyRoleLimit(LimitDto roleLimit, boolean enabled) {
         Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto -> {

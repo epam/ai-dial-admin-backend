@@ -53,7 +53,8 @@
         "scopes_supported": [
           "first",
           "second"
-        ]
+        ],
+        "token_endpoint_auth_method": "https://some-token-endpoint_auth_method"
       },
       "forward_per_request_key": false,
       "dependencies": []

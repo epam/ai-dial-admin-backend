@@ -28,6 +28,8 @@ public class ResourceAuthSettingsDto {
     private ResourceAuthStatus userLevelAuthStatus;
     private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
+    @Endpoint
+    private String tokenEndpointAuthMethod;
 
     @Override
     public String toString() {
@@ -45,6 +47,7 @@ public class ResourceAuthSettingsDto {
                 + ", userLevelAuthStatus=" + getUserLevelAuthStatus()
                 + ", appLevelAuthStatus=" + getAppLevelAuthStatus()
                 + ", scopesSupported=" + getScopesSupported()
+                + ", tokenEndpointAuthMethod" + getTokenEndpointAuthMethod()
                 + ')';
     }
 

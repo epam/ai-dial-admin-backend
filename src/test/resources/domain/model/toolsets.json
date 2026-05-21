@@ -68,7 +68,8 @@
         "scopesSupported": [
           "first",
           "second"
-        ]
+        ],
+        "tokenEndpointAuthMethod": "https://some-token-endpoint_auth_method"
       }
     },
     "author": "test-author",

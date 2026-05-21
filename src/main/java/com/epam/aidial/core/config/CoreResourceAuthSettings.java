@@ -57,6 +57,9 @@ public class CoreResourceAuthSettings {
     @JsonAlias({"scopesSupported", "scopes_supported"})
     private List<String> scopesSupported;
 
+    @JsonAlias({"tokenEndpointAuthMethod", "token_endpoint_auth_method"})
+    private String tokenEndpointAuthMethod; // 0.44.0
+
     @Override
     public String toString() {
         return "CoreResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()
@@ -70,6 +73,7 @@ public class CoreResourceAuthSettings {
                 + ", codeVerifier='" + getCodeVerifier()
                 + ", apiKeyHeader='" + getApiKeyHeader()
                 + ", scopesSupported=" + getScopesSupported()
+                + ", tokenEndpointAuthMethod=" + getScopesSupported()
                 + ')';
     }
 

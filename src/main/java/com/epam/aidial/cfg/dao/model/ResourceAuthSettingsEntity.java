@@ -25,4 +25,5 @@ public class ResourceAuthSettingsEntity {
     private String apiKeyHeader;
 
     private List<String> scopesSupported;
+    private String tokenEndpointAuthMethod;
 }

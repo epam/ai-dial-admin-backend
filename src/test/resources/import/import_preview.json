@@ -1021,7 +1021,8 @@
             "scopesSupported": [
               "first",
               "second"
-            ]
+            ],
+            "tokenEndpointAuthMethod": "https://some-token-endpoint_auth_method"
           }
         },
         "displayName": "ToolSet1",
