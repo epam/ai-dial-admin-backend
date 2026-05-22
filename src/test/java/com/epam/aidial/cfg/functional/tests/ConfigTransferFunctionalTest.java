@@ -38,6 +38,7 @@ import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.TokenEndpointAuthMethodDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
@@ -3166,6 +3167,7 @@ public abstract class ConfigTransferFunctionalTest {
         authSettings.setCodeVerifier("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk");
         authSettings.setApiKeyHeader("someApiKeyHeader");
         authSettings.setScopesSupported(List.of("first", "second"));
+        authSettings.setTokenEndpointAuthMethod(TokenEndpointAuthMethodDto.NONE);
         return authSettings;
     }
 
@@ -3192,9 +3194,6 @@ public abstract class ConfigTransferFunctionalTest {
         assertEmptyRoleLimit(roleLimit, true);
     }
 
-    private void assertEmptyDisabledRoleLimit(LimitDto roleLimit) {
-        assertEmptyRoleLimit(roleLimit, false);
-    }
 
     private void assertEmptyRoleLimit(LimitDto roleLimit, boolean enabled) {
         Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto -> {

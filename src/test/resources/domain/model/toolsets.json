@@ -68,7 +68,8 @@
         "scopesSupported": [
           "first",
           "second"
-        ]
+        ],
+        "tokenEndpointAuthMethod": "client_secret_basic"
       }
     },
     "author": "test-author",
