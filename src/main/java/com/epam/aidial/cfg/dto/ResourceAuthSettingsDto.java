@@ -28,7 +28,7 @@ public class ResourceAuthSettingsDto {
     private ResourceAuthStatus userLevelAuthStatus;
     private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
-    private TokenEndpointAuthMethodDto tokenEndpointAuthMethod;
+    private TokenEndpointAuthMethodDto tokenEndpointAuthMethod = TokenEndpointAuthMethodDto.CLIENT_SECRET_BASIC;
 
     @Override
     public String toString() {
