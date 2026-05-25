@@ -115,12 +115,23 @@ public class PathUtils {
 
     public static String buildPath(String folderId, String name, String version) {
         var cleanFolderId = StringUtils.stripEnd(folderId, "/");
-        return cleanFolderId + "/" + name + "__" + version;
+        var versionedName = getVersionedName(name, version);
+        return cleanFolderId + "/" + versionedName;
     }
 
     public static String buildEncodedPath(String folderId, String name, String version) {
         var cleanFolderId = StringUtils.stripEnd(folderId, "/");
-        return UrlUtil.encodePath(cleanFolderId + "/" + name + "__" + version);
+        var versionedName = getVersionedName(name, version);
+        return UrlUtil.encodePath(cleanFolderId + "/" + versionedName);
+    }
+
+    public static String getVersionedName(String name, String version) {
+        if (name == null) {
+            throw new IllegalArgumentException("Name must not be null");
+        }
+        return version == null || version.isBlank()
+                ? name
+                : name + "__" + version;
     }
 
     /**
