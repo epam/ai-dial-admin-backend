@@ -812,6 +812,7 @@ public abstract class ApplicationFunctionalTest {
     private void assertApp(ApplicationInfoDto actual, ApplicationDto expected) {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
+        Assertions.assertEquals(expected.getSource(), actual.getSource());
     }
 
     private <T> Map<String, T> toMap(Collection<T> dtos, Function<T, String> getName) {
