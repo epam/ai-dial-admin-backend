@@ -386,7 +386,8 @@
         "scopesSupported": [
           "first",
           "second"
-        ]
+        ],
+        "tokenEndpointAuthMethod": "NONE"
       }
     }
   }

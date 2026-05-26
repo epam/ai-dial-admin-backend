@@ -1,6 +1,5 @@
 package com.epam.aidial.metric.component;
 
-import com.epam.aidial.metric.config.InfluxDatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.TokenAuthorizationDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDataSourceDeclaration;
@@ -25,14 +24,11 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 public class InfluxEngineFactory implements EngineFactory {
 
     private final OkHttpClient.Builder clientBuilder;
-    private final InfluxDatasetConfiguration datasetConfiguration;
     private final WindowGapFiller windowGapFiller;
 
     public InfluxEngineFactory(@Qualifier("influxOkHttpClientBuilder") OkHttpClient.Builder clientBuilder,
-                               InfluxDatasetConfiguration datasetConfiguration,
                                WindowGapFiller windowGapFiller) {
         this.clientBuilder = clientBuilder;
-        this.datasetConfiguration = datasetConfiguration;
         this.windowGapFiller = windowGapFiller;
     }
 
@@ -66,7 +62,7 @@ public class InfluxEngineFactory implements EngineFactory {
     }
 
     private FluxQueryBuilderFactory createFluxQueryBuilderFactory(InfluxDatasetDeclaration datasetDeclaration) {
-        return new FluxQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
+        return new FluxQueryBuilderFactory(datasetDeclaration);
     }
 
 }

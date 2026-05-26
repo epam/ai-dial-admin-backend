@@ -28,4 +28,5 @@ public class FeaturesData {
     private boolean autoCaching;
     private boolean parallelToolCalls;
     private boolean assistantAttachmentsInRequest;
+    private boolean mcp;
 }

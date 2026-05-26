@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.dto.ApplicationDeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
@@ -72,6 +73,8 @@ public abstract class ApplicationFunctionalTest {
     private DeploymentManagerService deploymentManagerService;
     @Autowired
     private McpClientFactory mcpClientFactory;
+    @Autowired
+    private ToolsClient toolsClient;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -497,14 +500,9 @@ public abstract class ApplicationFunctionalTest {
         applicationFacade.createApplication(applicationDto);
 
         var expectedTools = Mockito.mock(McpSchema.ListToolsResult.class);
-        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
-
-        Mockito.when(mcpSyncClient.initialize())
-                .thenReturn(null);
-        Mockito.when(mcpSyncClient.listTools(null))
+        when(toolsClient.getTools(eq(applicationDto.getName()), isNull()))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/deployments/application1/mcp?useAllowedTools=false"),
-                eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+
         var actualTools = applicationFacade.getDiscoveredTools(applicationDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
@@ -814,6 +812,7 @@ public abstract class ApplicationFunctionalTest {
     private void assertApp(ApplicationInfoDto actual, ApplicationDto expected) {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
+        Assertions.assertEquals(expected.getSource(), actual.getSource());
     }
 
     private <T> Map<String, T> toMap(Collection<T> dtos, Function<T, String> getName) {

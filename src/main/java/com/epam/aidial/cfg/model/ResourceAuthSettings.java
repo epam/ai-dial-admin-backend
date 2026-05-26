@@ -26,10 +26,11 @@ public class ResourceAuthSettings {
     private ResourceAuthStatus userLevelAuthStatus;
     private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
+    private TokenEndpointAuthMethod tokenEndpointAuthMethod;
 
     public enum ResourceAuthStatus {
         SIGNED_IN,
         SIGNED_OUT,
-        FAILED;
+        FAILED
     }
 }

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.mapper.FolderMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceClientMapper;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
+import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.model.ExportResource;
 import com.epam.aidial.cfg.model.FileNodeInfo;
 import com.epam.aidial.cfg.model.FolderInfo;
@@ -25,7 +26,7 @@ import com.epam.aidial.cfg.utils.ExportPathUtils;
 import com.epam.aidial.cfg.utils.HeaderUtils;
 import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.cfg.utils.ResourceEximExportHelper;
-import feign.FeignException;
+import com.epam.aidial.cfg.utils.ResourceImportPathUtils;
 import feign.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,12 +95,18 @@ public class FileService implements ResourceService {
     public ImportResourcesFileResult uploadFile(List<MultipartFile> files, ImportResources importFile) {
         var path = importFile.getPath();
         try {
+            var uniquenessConflicts = uniquenessValidator.collectMultipartFilesUniquenessConflicts(files);
             var strategy = importFile.getConflictResolutionStrategy();
             var circuitBreaker = new SimpleCircuitBreaker(importErrorsThreshold);
             var results = new ArrayList<ImportResourcesResult>();
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     var targetPath = path + file.getOriginalFilename();
+                    var conflictMessage = uniquenessConflicts.get(uniquenessValidator.multipartFileUniquenessKey(file));
+                    if (conflictMessage != null) {
+                        results.add(ImportResourcesResult.createFailure(null, targetPath, conflictMessage));
+                        continue;
+                    }
                     var result = createFileWithCircuitBreaker(file, null, targetPath, strategy, circuitBreaker);
                     results.add(result);
                     log.debug("File {} was successfully imported", targetPath);
@@ -192,14 +199,10 @@ public class FileService implements ResourceService {
         String sourcePath = null;
         String targetPath = null;
         try {
-            sourcePath = StringUtils.removeStart(filename, "files/");
-            if (importFiles.isFlatImport()) {
-                var fileNameWithoutPath = PathUtils.parsePath(filename).getName();
-                targetPath = rootPath + "/" + fileNameWithoutPath;
-            } else {
-                var sourcePathWithoutPublic = StringUtils.removeStart(sourcePath, "public/");
-                targetPath = rootPath + "/" + sourcePathWithoutPublic;
-            }
+            var paths = ResourceImportPathUtils.resolveFileZipImportPaths(
+                    rootPath, filename, importFiles.isFlatImport(), FILES_PREFIX);
+            sourcePath = paths.sourcePath();
+            targetPath = paths.targetPath();
             byte[] fileData = fileInputStream.readAllBytes();
 
             String contentTypeFromName = URLConnection.guessContentTypeFromName(filename);
@@ -230,21 +233,20 @@ public class FileService implements ResourceService {
         );
     }
 
-    private ImportResourcesResult createFileOrThrow(MultipartFile file,
-                                                    String sourcePath,
-                                                    String targetPath,
-                                                    ImportConflictResolutionStrategy conflictResolutionStrategy) {
+    private ImportResourcesResult createFileOrThrow(
+            MultipartFile file,
+            String sourcePath,
+            String targetPath,
+            ImportConflictResolutionStrategy conflictResolutionStrategy) {
+        boolean override = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
+        var header = HeaderUtils.createHeadersForCreate(override, null);
         try {
-            boolean override = conflictResolutionStrategy == ImportConflictResolutionStrategy.OVERRIDE;
-            var header = HeaderUtils.createHeadersForCreate(override, null);
             fileClient.uploadFile(file, targetPath, header);
             return ImportResourcesResult.createSuccess(sourcePath, targetPath);
-        } catch (Exception ex) {
-            if (ex instanceof FeignException feignException) {
-                if (feignException.status() == 412) {
-                    log.debug("File {} import skipped - file already exists", targetPath, ex);
-                    return ImportResourcesResult.createAlreadyExists(sourcePath, targetPath);
-                }
+        } catch (ResourcePreconditionFailedException ex) {
+            if (conflictResolutionStrategy == ImportConflictResolutionStrategy.SKIP) {
+                log.debug("File {} import skipped - file already exists", targetPath, ex);
+                return ImportResourcesResult.createSkip(sourcePath, targetPath);
             }
             throw ex;
         }

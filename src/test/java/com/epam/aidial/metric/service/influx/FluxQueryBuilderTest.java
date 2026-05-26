@@ -11,7 +11,6 @@ import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.expressions.impl.GroupFunctionCallImpl;
 import com.epam.aidial.expressions.impl.NumberConstantImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
-import com.epam.aidial.metric.config.InfluxDatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.model.influx.FluxStandardImports;
@@ -42,10 +41,7 @@ class FluxQueryBuilderTest {
         var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.influx2.json");
         var datasetDeclaration = (InfluxDatasetDeclaration) OBJECT_MAPPER.readValue(testMetricConfig, DatasetDeclaration.class);
 
-        var datasetConfiguration = new InfluxDatasetConfiguration();
-        datasetConfiguration.setDefaultPageSize(50);
-
-        fluxQueryBuilder = new FluxQueryBuilder(datasetDeclaration, datasetConfiguration, new TemporalNameGenerator());
+        fluxQueryBuilder = new FluxQueryBuilder(datasetDeclaration, new TemporalNameGenerator());
     }
 
     @Test

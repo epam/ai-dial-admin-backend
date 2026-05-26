@@ -1021,7 +1021,8 @@
             "scopesSupported": [
               "first",
               "second"
-            ]
+            ],
+            "tokenEndpointAuthMethod": "NONE"
           }
         },
         "displayName": "ToolSet1",

@@ -35,7 +35,7 @@
       "author": "test-author",
       "created_at": 12345,
       "updated_at": 12345,
-      "forward_auth_token": false,
+      "forward_auth_token": true,
       "defaults": {},
       "responses_defaults": {},
       "interceptors": [],
@@ -53,7 +53,8 @@
         "scopes_supported": [
           "first",
           "second"
-        ]
+        ],
+        "token_endpoint_auth_method": "CLIENT_SECRET_BASIC"
       },
       "forward_per_request_key": false,
       "dependencies": []

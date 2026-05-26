@@ -28,6 +28,8 @@ public class ResourceAuthSettingsDto {
     private ResourceAuthStatus userLevelAuthStatus;
     private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
+    @NotNull(message = "Authentication method must be defined")
+    private TokenEndpointAuthMethodDto tokenEndpointAuthMethod = TokenEndpointAuthMethodDto.CLIENT_SECRET_BASIC;
 
     @Override
     public String toString() {
@@ -45,6 +47,7 @@ public class ResourceAuthSettingsDto {
                 + ", userLevelAuthStatus=" + getUserLevelAuthStatus()
                 + ", appLevelAuthStatus=" + getAppLevelAuthStatus()
                 + ", scopesSupported=" + getScopesSupported()
+                + ", tokenEndpointAuthMethod" + getTokenEndpointAuthMethod()
                 + ')';
     }
 

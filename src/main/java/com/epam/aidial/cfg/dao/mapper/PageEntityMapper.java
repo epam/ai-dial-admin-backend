@@ -9,6 +9,7 @@ import org.mapstruct.Mapper;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,6 +83,14 @@ public interface PageEntityMapper {
                 }
                 case nc -> {
                     return criteriaBuilder.notLike(column, "%" + value + "%");
+                }
+                case in -> {
+                    Set<String> values = Arrays.stream(value.split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isBlank())
+                            .collect(Collectors.toSet());
+
+                    return column.in(values);
                 }
                 default -> throw new IllegalArgumentException("Operator " + filter.getOperator() + " is not supported");
             }

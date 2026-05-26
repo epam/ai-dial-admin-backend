@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class ValidationUtilsTests {
 
@@ -76,6 +77,64 @@ public class ValidationUtilsTests {
                         .build(),
                 "column",
                 "subquery"
+        );
+    }
+
+    @Test
+    public void shouldVerifySupportOperatorStringColumnEqualsUuidLiteral() {
+        ValidationUtils.verifySupportOperator(
+                BinaryComparisonOperator.EQUALS,
+                new ColumnImpl(Type.STRING, "project_id"),
+                new ConstantImpl(Type.UUID, UUID.fromString("a36d8a75-aa7d-4185-a84d-566066cf91f2")),
+                "project_id",
+                "'a36d8a75-aa7d-4185-a84d-566066cf91f2'"
+        );
+    }
+
+    @Test
+    public void shouldVerifySupportOperatorUuidColumnEqualsStringLiteral() {
+        ValidationUtils.verifySupportOperator(
+                BinaryComparisonOperator.EQUALS,
+                new ColumnImpl(Type.UUID, "id"),
+                new ConstantImpl(Type.STRING, "a36d8a75-aa7d-4185-a84d-566066cf91f2"),
+                "id",
+                "'a36d8a75-aa7d-4185-a84d-566066cf91f2'"
+        );
+    }
+
+    @Test
+    public void shouldVerifySupportOperatorStringColumnInUuidTuple() {
+        ValidationUtils.verifySupportOperator(
+                BinaryComparisonOperator.IN,
+                new ColumnImpl(Type.STRING, "project_id"),
+                TupleImpl.of(Arrays.asList(
+                        new ConstantImpl(Type.UUID, UUID.fromString("a36d8a75-aa7d-4185-a84d-566066cf91f2")),
+                        new ConstantImpl(Type.UUID, UUID.fromString("b47e9b86-bb8e-5296-b95e-677177d02e93"))
+                )),
+                "project_id",
+                "uuids"
+        );
+    }
+
+    @Test
+    public void shouldVerifySupportOperatorStringColumnNotEqualsUuidLiteral() {
+        ValidationUtils.verifySupportOperator(
+                BinaryComparisonOperator.NOT_EQUALS,
+                new ColumnImpl(Type.STRING, "project_id"),
+                new ConstantImpl(Type.UUID, UUID.fromString("a36d8a75-aa7d-4185-a84d-566066cf91f2")),
+                "project_id",
+                "'a36d8a75-aa7d-4185-a84d-566066cf91f2'"
+        );
+    }
+
+    @Test(expected = ValidationException.class)
+    public void shouldNotVerifySupportOperatorUuidLessThanUuid() {
+        ValidationUtils.verifySupportOperator(
+                BinaryComparisonOperator.LESS,
+                new ColumnImpl(Type.UUID, "id"),
+                new ConstantImpl(Type.UUID, UUID.fromString("a36d8a75-aa7d-4185-a84d-566066cf91f2")),
+                "id",
+                "'a36d8a75-aa7d-4185-a84d-566066cf91f2'"
         );
     }
 

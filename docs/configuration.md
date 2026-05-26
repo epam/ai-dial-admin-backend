@@ -107,17 +107,14 @@ Additional Kubernetes client configuration options are available from the [Fabri
 
 ### General Settings
 
-| Setting                                                    | Environment Variable          | Default           | Required                                          | Applied when                   | Description                                                                                       |
-|------------------------------------------------------------|-------------------------------|-------------------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------|
-| config.rest.security.mode                                  | CONFIG_REST_SECURITY_MODE     | none              | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)                                                        |
-| config.rest.security.default.allowedRoles **(deprecated)** | -                             | ConfigAdmin,admin | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions                                             |
-| config.rest.security.default.roles-mapping                 | -                             | {}                | No                                                | config.rest.security.mode=oidc | Json object with mapping of provider roles to application roles                                   |
-| config.rest.security.default.email-claim                   | CLAIMS_EMAIL_KEY              | unique_name       | No                                                | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) used to extract user email |
-| config.rest.security.default.principal-claim               | SECURITY_USER_CLAIM           | oid               | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) for user identification    |
-| config.rest.security.require-email                         | SECURITY_REQUIRE_EMAIL        | false             | No                                                | config.rest.security.mode=oidc | Controls whether an email claim is required in JWT (in /userinfo response for opaque tokens)      |
-| config.rest.security.disable-swagger-authorization         | DISABLE_SWAGGER_AUTHORIZATION | false             | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                                                              |
-
-**Important**: see [deprecated properties](#important-note-about-deprecated-security-props)
+| Setting                                            | Environment Variable          | Default                                               | Required                                          | Applied when                   | Description                                                                                       |
+|----------------------------------------------------|-------------------------------|-------------------------------------------------------|---------------------------------------------------|--------------------------------|---------------------------------------------------------------------------------------------------|
+| config.rest.security.mode                          | CONFIG_REST_SECURITY_MODE     | none                                                  | No (recommended to adjust for target environment) | -                              | Authentication mode (oidc, basic, or none)                                                        |
+| config.rest.security.default.roles-mapping         | -                             | {"ConfigAdmin":["FULL_ADMIN"],"admin":["FULL_ADMIN"]} | No                                                | config.rest.security.mode=oidc | Json object with mapping of provider roles to application roles                                   |
+| config.rest.security.default.email-claim           | CLAIMS_EMAIL_KEY              | unique_name                                           | No                                                | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) used to extract user email |
+| config.rest.security.default.principal-claim       | SECURITY_USER_CLAIM           | oid                                                   | No (recommended to adjust for target environment) | config.rest.security.mode=oidc | Default JWT claim name (field in /userinfo response for opaque tokens) for user identification    |
+| config.rest.security.require-email                 | SECURITY_REQUIRE_EMAIL        | false                                                 | No                                                | config.rest.security.mode=oidc | Controls whether an email claim is required in JWT (in /userinfo response for opaque tokens)      |
+| config.rest.security.disable-swagger-authorization | DISABLE_SWAGGER_AUTHORIZATION | false                                                 | No                                                | config.rest.security.mode=oidc | Disable authorization for Swagger UI                                                              |
 
 ### Identity Providers Configuration
 
@@ -137,15 +134,9 @@ Applied when: config.rest.security.mode=oidc
 | providers.*.aliases                        | providers.azure.aliases            | No                                          | config.rest.security.mode=oidc | Aliases for accepted JWT token issuers for the provider(only for Azure provider)                                                |
 | providers.*.audiences                      | providers.azure.audiences          | Yes, if jwk-set-uri is specified            | config.rest.security.mode=oidc | List of accepted JWT token audiences. Specifies the intended recipients of the authorization token as defined in its aud claim. |
 | providers.*.role-claims                    | providers.azure.role-claims        | Yes                                         | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user roles for the provider.                                            |
-| providers.*.allowed-roles **(deprecated)** | providers.azure.allowed-roles      | No                                          | config.rest.security.mode=oidc | Comma-separated list of roles with access permissions for the provider                                                          |
 | providers.*.roles-mapping                  | providers.azure.roles-mapping      | No                                          | config.rest.security.mode=oidc | Json object with mapping of provider roles to application roles                                                                 |
 | providers.*.email-claims                   | providers.azure.email-claims       | No                                          | config.rest.security.mode=oidc | Comma-separated list of JWT claim paths used to extract user email                                                              |
 | providers.*.principal-claim                | providers.azure.principal-claim    | No                                          | config.rest.security.mode=oidc | Specifies which claim is used as the application’s principal                                                                    |
-
-<a id="important-note-about-deprecated-security-props"></a>
-⚠️ **Warning**: `config.rest.security.default.allowedRoles` and `providers.*.allowed-roles` **environment variables are marked 
-as deprecated and will soon be removed.** Use `config.rest.security.default.roles-mapping` and `providers.*.roles-mapping`
-instead to specify allowed roles along with their mapping to application roles.
 
 **Example:**
 `config.rest.security.default.roles-mapping={"defaultIdpRole1":["FULL_ADMIN"],"defaultIdpRole2":["READ_ONLY_ADMIN"]}`
@@ -158,10 +149,7 @@ instead to specify allowed roles along with their mapping to application roles.
 - If `providers.*.roles-mapping` is specified and not empty - this roles mapping is merged with `config.rest.security.default.roles-mapping`
   (if any). Provider roles mapping has higher priority, e.g. if `providers.azure.roles-mapping={"role1":["FULL_ADMIN"]}` and `config.rest.security.default.roles-mapping={"role1":["READ_ONLY_ADMIN"]}`,
   the result is `{"role1":["FULL_ADMIN"]}`
-- Else if `providers.*.allowed-roles` are specified and not empty - all those roles along with `config.rest.security.default.allowedRoles` 
-(if any) mapped to `FULL_ADMIN`
 - Else if `config.rest.security.default.roles-mapping` is specified and not empty - this role mapping is used
-- Else if `config.rest.security.default.allowedRoles` is specified and not empty - all those roles mapped to `FULL_ADMIN`
 - Else - empty role mapping is used which will lead to 403 Forbidden response
 
 ### Background tasks security context
@@ -226,12 +214,13 @@ Applied when: config.export.keyvault.type=vault
 
 ## DIAL Core Configuration
 
-| Setting                                  | Environment Variable                     | Default | Required | Applied when | Description                                                                              |
-|------------------------------------------|------------------------------------------|---------|----------|-----------|------------------------------------------------------------------------------------------|
-| core.client.url                          | CORE_CLIENT_URL                          | localhost:8081 | No (recommended to adjust for target environment) | - | URL of the DIAL Core service                                                             |
-| core.prompts.metadata.default.limit      | CORE_PROMPTS_METADATA_DEFAULT_LIMIT      | 256 | No | - | Default limit on the number of items in the prompts metadata response from DIAL Core     |
-| core.applications.metadata.default.limit | CORE_APPLICATIONS_METADATA_DEFAULT_LIMIT | 256 | No | - | Default limit on the number of items in the applications metadata response from DIAL Core |
-| core.toolsets.metadata.default.limit     | CORE_TOOLSETS_METADATA_DEFAULT_LIMIT     | 256 | No | - | Default limit on the number of items in the toolsets metadata response from DIAL Core    |
+| Setting                                   | Environment Variable                      | Default        | Required                                          | Applied when | Description                                                                                |
+|-------------------------------------------|-------------------------------------------|----------------|---------------------------------------------------|--------------|--------------------------------------------------------------------------------------------|
+| core.client.url                           | CORE_CLIENT_URL                           | localhost:8081 | No (recommended to adjust for target environment) | -            | URL of the DIAL Core service                                                               |
+| core.prompts.metadata.default.limit       | CORE_PROMPTS_METADATA_DEFAULT_LIMIT       | 256            | No                                                | -            | Default limit on the number of items in the prompts metadata response from DIAL Core       |
+| core.applications.metadata.default.limit  | CORE_APPLICATIONS_METADATA_DEFAULT_LIMIT  | 256            | No                                                | -            | Default limit on the number of items in the applications metadata response from DIAL Core  |
+| core.toolsets.metadata.default.limit      | CORE_TOOLSETS_METADATA_DEFAULT_LIMIT      | 256            | No                                                | -            | Default limit on the number of items in the toolsets metadata response from DIAL Core      |
+| core.conversations.metadata.default.limit | CORE_CONVERSATIONS_METADATA_DEFAULT_LIMIT | 256            | No                                                | -            | Default limit on the number of items in the conversations metadata response from DIAL Core |
 
 ## OpenTelemetry Configuration
 
@@ -350,8 +339,6 @@ ai-dial-admin-backend/secrets-utils/generate_h2_secrets.sh can help to generate 
 | metrics.config.content | METRICS_CONFIG_CONTENT | - | No | metrics.enabled=true | Dataset configuration JSON content (first non-empty wins) |
 | metrics.config.file | METRICS_CONFIG_FILE | - | No | metrics.enabled=true and content is empty | Path to dataset configuration JSON file |
 | metrics.config.type | METRICS_DATASOURCE_TYPE | influx2 | No | metrics.enabled=true and content/file are empty | Datasource type, selects default config: influx2 or influx3 |
-| metrics.influx2.defaultPageSize | METRICS_INFLUX2_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 2 queries |
-| metrics.influx3.defaultPageSize | METRICS_INFLUX3_DEFAULT_PAGE_SIZE | 100 | No | - | Default page size for InfluxDB 3 queries |
 | metrics.influx.connectTimeout | METRICS_INFLUX_CONNECT_TIMEOUT | 10 | No | metrics.enabled=true | InfluxDB HTTP client connection timeout in seconds |
 | metrics.influx.readTimeout | METRICS_INFLUX_READ_TIMEOUT | 60 | No | metrics.enabled=true | InfluxDB HTTP client read timeout in seconds |
 | metrics.influx.writeTimeout | METRICS_INFLUX_WRITE_TIMEOUT | 60 | No | metrics.enabled=true | InfluxDB HTTP client write timeout in seconds |
@@ -393,18 +380,20 @@ example of dataset configuration JSON can be found at "ai-dial-admin-backend/src
 
 ## Retry Configuration
 
-| Setting                                        | Environment Variable                             | Default                 | Required | Applied when | Description                                                             |
-|------------------------------------------------|--------------------------------------------------|-------------------------|----------|--------------|-------------------------------------------------------------------------|
-| feign.retry.period                             | FEIGN_RETRY_PERIOD                               | 10000                   | No       | -            | Initial retry delay in milliseconds                                     |
-| feign.retry.maxPeriod                          | FEIGN_RETRY_MAXPERIOD                            | 15000                   | No       | -            | Maximum retry delay in milliseconds                                     |
-| feign.retry.maxAttempts                        | FEIGN_RETRY_MAXATTEMPTS                          | 5                       | No       | -            | Maximum number of retry attempts                                        |
-| feign.retry.errorCodes                         | FEIGN_RETRY_ERRORCODES                           | 408,429,500,502,503,504 | No       | -            | HTTP status codes that trigger retries                                  |
-| prompts.import.consecutiveErrorsThreshold      | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD      | 2                       | No       | -            | Maximum number of consecutive errors allowed during prompts import      |
-| applications.import.consecutiveErrorsThreshold | APPLICATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No       | -            | Maximum number of consecutive errors allowed during applications import |
-| toolsets.import.consecutiveErrorsThreshold     | TOOLSETS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD     | 2                       | No       | -            | Maximum number of consecutive errors allowed during toolsets import     |
-| files.import.consecutiveErrorsThreshold        | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD        | 2                       | No       | -            | Maximum number of consecutive errors allowed during files import        |
+| Setting                                         | Environment Variable                              | Default                 | Required | Applied when | Description                                                              |
+|-------------------------------------------------|---------------------------------------------------|-------------------------|----------|--------------|--------------------------------------------------------------------------|
+| feign.retry.period                              | FEIGN_RETRY_PERIOD                                | 10000                   | No       | -            | Initial retry delay in milliseconds                                      |
+| feign.retry.maxPeriod                           | FEIGN_RETRY_MAXPERIOD                             | 15000                   | No       | -            | Maximum retry delay in milliseconds                                      |
+| feign.retry.maxAttempts                         | FEIGN_RETRY_MAXATTEMPTS                           | 5                       | No       | -            | Maximum number of retry attempts                                         |
+| feign.retry.errorCodes                          | FEIGN_RETRY_ERRORCODES                            | 408,429,500,502,503,504 | No       | -            | HTTP status codes that trigger retries                                   |
+| prompts.import.consecutiveErrorsThreshold       | PROMPTS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD       | 2                       | No       | -            | Maximum number of consecutive errors allowed during prompts import       |
+| applications.import.consecutiveErrorsThreshold  | APPLICATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD  | 2                       | No       | -            | Maximum number of consecutive errors allowed during applications import  |
+| toolsets.import.consecutiveErrorsThreshold      | TOOLSETS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD      | 2                       | No       | -            | Maximum number of consecutive errors allowed during toolsets import      |
+| conversations.import.consecutiveErrorsThreshold | CONVERSATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD | 2                       | No       | -            | Maximum number of consecutive errors allowed during conversations import |
+| files.import.consecutiveErrorsThreshold         | FILES_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD         | 2                       | No       | -            | Maximum number of consecutive errors allowed during files import         |
 
 ## Additional Entities Configuration
+
 *(Temporary configuration - will be implemented as managed entities inside admin app)*
 
 | Setting | Environment Variable | Default | Required | Applied when | Description |

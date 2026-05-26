@@ -1,0 +1,19 @@
+package com.epam.aidial.cfg.dto;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class ConversationNodeInfoDto {
+
+    private String path;
+    private String name;
+    private String version;
+    private String folderId;
+    private Long updatedAt;
+    private String author;
+    private NodeTypeDto nodeType;
+    private String nextToken;
+    private List<ConversationNodeInfoDto> items;
+}
