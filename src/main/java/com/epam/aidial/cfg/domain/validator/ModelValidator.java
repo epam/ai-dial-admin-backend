@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -49,6 +50,7 @@ public class ModelValidator {
         validateModelName(model);
         validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
+        validateUpstreams(model);
         featuresValidator.validate(model.getFeatures());
     }
 
@@ -56,6 +58,7 @@ public class ModelValidator {
         deploymentValidator.validateUpdate(modelName, model.getDeployment(), "Model");
         validateDisplayNameDisplayVersion(model);
         validateModelSource(model);
+        validateUpstreams(model);
         featuresValidator.validate(model.getFeatures());
     }
 
@@ -83,6 +86,21 @@ public class ModelValidator {
                 "Model",
                 modelName
         );
+    }
+
+    private void validateUpstreams(Model model) {
+        var modelName = model.getDeployment().getName();
+        var upstreams = model.getUpstreams();
+        if (CollectionUtils.isNotEmpty(upstreams)) {
+            upstreams.forEach(s -> validateUpstream(s.getId(), modelName));
+        }
+    }
+
+    private void validateUpstream(String id, String name) {
+        if (id != null && StringUtils.isBlank(id)) {
+            throw new IllegalArgumentException("Upstream Id for : '%s' must be null or must not be blank for model with name:'%s'"
+                    .formatted(id, name));
+        }
     }
 
     private void validateModelSource(Model model) {

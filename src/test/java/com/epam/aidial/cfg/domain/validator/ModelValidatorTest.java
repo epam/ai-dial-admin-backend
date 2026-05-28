@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
+import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
@@ -14,12 +15,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -180,6 +183,41 @@ class ModelValidatorTest {
                 null, "/api/responses");
 
         assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"null", "test", "1"}, nullValues = "null")
+    void validateCreation_shouldNotExceptionForValidUpstreamId(String id) {
+        // given
+        Model model = createModel(
+                new ModelContainerSource(), ModelType.EMBEDDING,
+                null, "/api/responses");
+
+        Upstream upstream = new Upstream();
+        upstream.setId(id);
+
+        model.setUpstreams(List.of(upstream));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"''", "' '"}, nullValues = "null")
+    void validateCreation_shouldThrowExceptionForInvalidUpstreamId(String id) {
+        // given
+        Model model = createModel(
+                new ModelContainerSource(), ModelType.EMBEDDING,
+                null, "/api/responses");
+
+        Upstream upstream = new Upstream();
+        upstream.setId(id);
+
+        model.setUpstreams(List.of(upstream));
+
+        // when/then
+        Assertions.assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     private static Model createModel(ModelSource source, ModelType type, String endpoint) {
