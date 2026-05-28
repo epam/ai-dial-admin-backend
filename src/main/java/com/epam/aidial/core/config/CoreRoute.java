@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CoreRoute extends RoleBasedEntity {
 
     public static final AttachmentPath EMPTY_ATTACHMENT_PATHS = new AttachmentPath();

@@ -65,6 +65,7 @@
       },
       "upstreams": [
         {
+          "id": "10",
           "endpoint": "https://upstream1.example.com",
           "key": "upstream-key-1",
           "extraData": "metadata-1",
@@ -72,6 +73,7 @@
           "tier": 1
         },
         {
+          "id": "11",
           "endpoint": "https://upstream2.example.com",
           "key": "upstream-key-2",
           "extraData": "metadata-2",

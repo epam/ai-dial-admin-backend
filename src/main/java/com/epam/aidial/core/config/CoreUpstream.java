@@ -35,6 +35,10 @@ public class CoreUpstream {
     @JsonAlias({"tier", "dial:tier"})
     private int tier = 0;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonAlias({"id", "dial:id"})
+    private String id;   //0.44.0
+
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
                 + ", key=" + SecretUtils.mask(this.getKey())
