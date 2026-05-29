@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class Upstream {
 
-    private Long id;
+    private String id;
 
     private String endpoint;
 

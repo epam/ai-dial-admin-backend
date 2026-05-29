@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpstreamDto {
 
+    private String id;
     @UpstreamEndpoint
     private String endpoint;
     @Endpoint

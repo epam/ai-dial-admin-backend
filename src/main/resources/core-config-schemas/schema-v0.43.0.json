@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Core Config Schema v0.42.0",
+  "title": "Core Config Schema v0.43.0",
   "type": "object",
   "properties": {
     "models": {
