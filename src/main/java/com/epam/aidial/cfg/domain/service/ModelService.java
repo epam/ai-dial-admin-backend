@@ -130,6 +130,7 @@ public class ModelService {
         modelValidator.validateCreation(model);
         deploymentService.assertDeploymentNotExists(model.getDeployment().getName());
         assertNotExists(model.getDisplayName(), model.getDisplayVersion());
+        assertInterceptorNotExists(model.getDeployment().getName());
         resolveEndpointsIfContainerSource(model);
         Optional.of(model)
                 .map(domainModel -> toEntity(domainModel, new ModelEntity()))
@@ -261,6 +262,12 @@ public class ModelService {
     private void assertNotExists(String displayName, String displayVersion) {
         if ((displayName != null || displayVersion != null) && modelJpaRepository.existsByDisplayNameAndDisplayVersion(displayName, displayVersion)) {
             throw new EntityAlreadyExistsException("Model with display name: '" + displayName + "' and display version: '" + displayVersion + "' already exists");
+        }
+    }
+
+    private void assertInterceptorNotExists(String name) {
+        if (interceptorJpaRepository.existsById(name)) {
+            throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
         }
     }
 

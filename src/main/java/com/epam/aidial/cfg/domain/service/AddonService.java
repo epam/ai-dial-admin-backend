@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.AddonJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AddonEntityMapper;
 import com.epam.aidial.cfg.dao.model.AddonEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
@@ -10,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.validator.AddonValidator;
+import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
@@ -37,6 +39,7 @@ public class AddonService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Addon with name %s does not exist";
 
     private final AddonJpaRepository addonJpaRepository;
+    private final InterceptorJpaRepository interceptorJpaRepository;
     private final AddonEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final AddonValidator addonValidator;
@@ -81,6 +84,7 @@ public class AddonService {
     public void createAddon(Addon addon) {
         addonValidator.validateAddonCreation(addon);
         deploymentService.assertDeploymentNotExists(addon.getDeployment().getName());
+        assertInterceptorNotExists(addon.getDeployment().getName());
         Optional.of(addon)
                 .map(domainAddon -> toEntity(domainAddon, new AddonEntity()))
                 .map(this::save)
@@ -184,5 +188,11 @@ public class AddonService {
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
+    }
+
+    private void assertInterceptorNotExists(String name) {
+        if (interceptorJpaRepository.existsById(name)) {
+            throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
+        }
     }
 }

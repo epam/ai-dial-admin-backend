@@ -142,6 +142,7 @@ public class ApplicationService {
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
         assertNotExists(application.getDisplayName(), application.getDisplayVersion());
+        assertInterceptorNotExists(application.getDeployment().getName());
         resolveEndpointsIfContainerSource(application);
         Optional.of(application)
                 .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))
@@ -347,6 +348,12 @@ public class ApplicationService {
     private void assertNotExists(String displayName, String displayVersion) {
         if ((displayName != null || displayVersion != null) && applicationJpaRepository.existsByDisplayNameAndDisplayVersion(displayName, displayVersion)) {
             throw new EntityAlreadyExistsException("Application with display name: '" + displayName + "' and display version: '" + displayVersion + "' already exists");
+        }
+    }
+
+    private void assertInterceptorNotExists(String name) {
+        if (interceptorJpaRepository.existsById(name)) {
+            throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
         }
     }
 
