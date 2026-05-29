@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
@@ -24,7 +23,6 @@ import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ToolSetValidator;
-import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
@@ -55,7 +53,6 @@ public class ToolSetService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "ToolSet with name %s does not exist";
 
     private final ToolSetJpaRepository toolSetJpaRepository;
-    private final InterceptorJpaRepository interceptorJpaRepository;
     private final ToolSetNormalizer toolSetNormalizer;
     private final ToolSetValidator toolSetValidator;
     private final ToolSetEntityMapper mapper;
@@ -125,7 +122,7 @@ public class ToolSetService {
         toolSetNormalizer.normalize(toolSet);
         toolSetValidator.validateCreation(toolSet);
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
-        assertInterceptorNotExists(toolSet.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(toolSet.getDeployment().getName());
         resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
                 .map(domainModel -> toEntity(domainModel, new ToolSetEntity()))
@@ -316,11 +313,5 @@ public class ToolSetService {
         }
 
         return mapper.toEntity(domain, entity, toolSetContainer, toolSetMcpRegistry, roleLimits, rolesForLimits);
-    }
-
-    private void assertInterceptorNotExists(String name) {
-        if (interceptorJpaRepository.existsById(name)) {
-            throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
-        }
     }
 }

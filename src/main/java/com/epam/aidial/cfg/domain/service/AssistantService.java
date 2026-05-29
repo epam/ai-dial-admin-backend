@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.AssistantJpaRepository;
-import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.AssistantEntityMapper;
 import com.epam.aidial.cfg.dao.model.AssistantEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
@@ -10,7 +9,6 @@ import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.validator.AssistantValidator;
-import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.annotation.FeatureFlagGate;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +30,6 @@ public class AssistantService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Assistant with name %s does not exist";
 
     private final AssistantJpaRepository assistantJpaRepository;
-    private final InterceptorJpaRepository interceptorJpaRepository;
     private final AssistantEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final AssistantValidator assistantValidator;
@@ -70,7 +67,7 @@ public class AssistantService {
     public void createAssistant(Assistant assistant) {
         assistantValidator.validateAssistantCreation(assistant);
         deploymentService.assertDeploymentNotExists(assistant.getDeployment().getName());
-        assertInterceptorNotExists(assistant.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(assistant.getDeployment().getName());
         Optional.of(assistant)
                 .map(domainModel -> toEntity(domainModel, new AssistantEntity()))
                 .map(this::save)
@@ -151,11 +148,5 @@ public class AssistantService {
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
-    }
-
-    private void assertInterceptorNotExists(String name) {
-        if (interceptorJpaRepository.existsById(name)) {
-            throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
-        }
     }
 }

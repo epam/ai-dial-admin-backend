@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
-import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.RouteJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapper;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
@@ -12,7 +11,6 @@ import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.validator.RouteValidator;
-import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
@@ -41,7 +39,6 @@ public class RouteService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Route with name %s does not exist";
 
     private final RouteJpaRepository routeJpaRepository;
-    private final InterceptorJpaRepository interceptorJpaRepository;
     private final RouteEntityMapper mapper;
     private final DeploymentService deploymentService;
     private final RouteValidator routeValidator;
@@ -102,7 +99,7 @@ public class RouteService {
     public void create(Route route) {
         routeValidator.validateRouteCreation(route);
         deploymentService.assertDeploymentNotExists(route.getDeployment().getName());
-        assertInterceptorNotExists(route.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(route.getDeployment().getName());
         Optional.of(route)
                 .map(domainModel -> toEntity(domainModel, new RouteEntity()))
                 .map(this::save)
@@ -203,12 +200,6 @@ public class RouteService {
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         return mapper.toEntity(domain, entity, roleLimits, rolesForLimits);
-    }
-
-    private void assertInterceptorNotExists(String name) {
-        if (interceptorJpaRepository.existsById(name)) {
-            throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
-        }
     }
 
 }
