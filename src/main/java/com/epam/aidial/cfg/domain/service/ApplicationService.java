@@ -141,8 +141,8 @@ public class ApplicationService {
         applicationNormalizer.normalize(application);
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
-        assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         deploymentService.assertInterceptorNotExists(application.getDeployment().getName());
+        assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         resolveEndpointsIfContainerSource(application);
         Optional.of(application)
                 .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))

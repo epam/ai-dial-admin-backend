@@ -129,8 +129,8 @@ public class ModelService {
         modelNormalizer.normalize(model);
         modelValidator.validateCreation(model);
         deploymentService.assertDeploymentNotExists(model.getDeployment().getName());
-        assertNotExists(model.getDisplayName(), model.getDisplayVersion());
         deploymentService.assertInterceptorNotExists(model.getDeployment().getName());
+        assertNotExists(model.getDisplayName(), model.getDisplayVersion());
         resolveEndpointsIfContainerSource(model);
         Optional.of(model)
                 .map(domainModel -> toEntity(domainModel, new ModelEntity()))
