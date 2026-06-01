@@ -28,6 +28,10 @@ public class InterceptorFacade {
     private final CoreInterceptorService coreInterceptorService;
     private final EntitySyncStateDtoMapper entitySyncStateDtoMapper;
 
+    public void ensureExists(String interceptorName) {
+        interceptorService.ensureExists(interceptorName);
+    }
+
     public Collection<InterceptorDto> getAllInterceptors() {
         return interceptorService.getAll()
                 .stream()
