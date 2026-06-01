@@ -122,6 +122,7 @@ public class ToolSetService {
         toolSetNormalizer.normalize(toolSet);
         toolSetValidator.validateCreation(toolSet);
         deploymentService.assertDeploymentNotExists(toolSet.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(toolSet.getDeployment().getName());
         resolveEndpointsIfContainerSource(toolSet);
         Optional.of(toolSet)
                 .map(domainModel -> toEntity(domainModel, new ToolSetEntity()))
