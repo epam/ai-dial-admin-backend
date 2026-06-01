@@ -141,6 +141,7 @@ public class ApplicationService {
         applicationNormalizer.normalize(application);
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(application.getDeployment().getName());
         assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         resolveEndpointsIfContainerSource(application);
         Optional.of(application)

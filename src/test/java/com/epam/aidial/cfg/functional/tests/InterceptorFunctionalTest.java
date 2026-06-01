@@ -279,6 +279,25 @@ public abstract class InterceptorFunctionalTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenCreateInterceptorWithExistingApplicationName() {
+        String name = "test";
+
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setName(name);
+        applicationFacade.createApplication(applicationDto);
+
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setName(name);
+
+        EntityAlreadyExistsException exception = Assertions.assertThrows(
+                EntityAlreadyExistsException.class,
+                () -> interceptorFacade.createInterceptor(interceptorDto)
+        );
+
+        Assertions.assertEquals("Deployment with name test already exists", exception.getMessage());
+    }
+
+    @Test
     public void shouldThrowExceptionWhenInterceptorConcurrencyOverwrite() {
         ApplicationDto applicationDto1 = createApplicationDtoWithEndpoint("1");
         applicationFacade.createApplication(applicationDto1);
