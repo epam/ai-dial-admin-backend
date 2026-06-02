@@ -72,6 +72,13 @@ public class InterceptorService {
     private final HashCalculator calculator;
 
     @Transactional(readOnly = true)
+    public void ensureExists(String interceptorName) {
+        if (!interceptorJpaRepository.existsById(interceptorName)) {
+            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName));
+        }
+    }
+
+    @Transactional(readOnly = true)
     public Collection<Interceptor> getAll() {
         return interceptorJpaRepository.findAll().stream()
                 .map(mapper::toDomain)
