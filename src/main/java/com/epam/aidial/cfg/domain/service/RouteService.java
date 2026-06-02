@@ -99,6 +99,7 @@ public class RouteService {
     public void create(Route route) {
         routeValidator.validateRouteCreation(route);
         deploymentService.assertDeploymentNotExists(route.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(route.getDeployment().getName());
         Optional.of(route)
                 .map(domainModel -> toEntity(domainModel, new RouteEntity()))
                 .map(this::save)

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.dao.jpa.DeploymentJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapper;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
@@ -29,6 +30,7 @@ public class DeploymentService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "Deployment with name %s does not exist";
 
     private final DeploymentJpaRepository deploymentJpaRepository;
+    private final InterceptorJpaRepository interceptorJpaRepository;
     private final RoleJpaRepository roleJpaRepository;
     private final DeploymentEntityMapper mapper;
 
@@ -51,6 +53,13 @@ public class DeploymentService {
         boolean exists = deploymentJpaRepository.existsById(name);
         if (exists) {
             throw new EntityAlreadyExistsException("Deployment with name " + name + " already exists");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public void assertInterceptorNotExists(String name) {
+        if (interceptorJpaRepository.existsById(name)) {
+            throw new EntityAlreadyExistsException("Interceptor with name " + name + " already exists");
         }
     }
 
