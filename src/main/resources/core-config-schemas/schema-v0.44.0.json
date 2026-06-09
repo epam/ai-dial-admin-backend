@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Core Config Schema v0.43.0",
+  "title": "Core Config Schema v0.44.0",
   "type": "object",
   "properties": {
     "models": {
@@ -631,6 +631,9 @@
     "Upstream": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string"
+        },
         "endpoint": {
           "type": "string"
         },
@@ -805,6 +808,9 @@
               "items": {
                 "type": "string"
               }
+            },
+            "tokenEndpointAuthMethod": {
+              "type": "string"
             }
           }
         }

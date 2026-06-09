@@ -68,7 +68,15 @@ public class InterceptorService {
     private final InterceptorContainerEntityMapper interceptorContainerEntityMapper;
     private final HistoryService historyService;
     private final GlobalSettingsService globalSettingsService;
+    private final DeploymentService deploymentService;
     private final HashCalculator calculator;
+
+    @Transactional(readOnly = true)
+    public void ensureExists(String interceptorName) {
+        if (!interceptorJpaRepository.existsById(interceptorName)) {
+            throw new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(interceptorName));
+        }
+    }
 
     @Transactional(readOnly = true)
     public Collection<Interceptor> getAll() {
@@ -124,6 +132,7 @@ public class InterceptorService {
     public void create(Interceptor interceptor) {
         interceptorValidator.validateCreation(interceptor);
         assertNotExists(interceptor.getName());
+        deploymentService.assertDeploymentNotExists(interceptor.getName());
         resolveEndpointsIfContainerSource(interceptor);
         Optional.of(interceptor)
                 .map(domainModel -> toEntity(domainModel, new InterceptorEntity()))

@@ -25,4 +25,6 @@ public class ResourceAuthSettingsEntity {
     private String apiKeyHeader;
 
     private List<String> scopesSupported;
+    @Enumerated(EnumType.STRING)
+    private TokenEndpointAuthMethodEntity tokenEndpointAuthMethod;
 }

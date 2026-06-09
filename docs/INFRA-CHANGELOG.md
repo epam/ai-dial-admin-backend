@@ -2,6 +2,35 @@
 
 All notable infrastructure-relevant changes to this project will be documented in this file.
 
+## 0.17.0
+
+### Added
+
+#### Configuration Management
+- `CORE_CONVERSATIONS_METADATA_DEFAULT_LIMIT` — Default limit on the number of items in the conversations metadata response from DIAL Core (default: `256`)
+- `CONVERSATIONS_IMPORT_CONSECUTIVE_ERRORS_THRESHOLD` — Maximum number of consecutive errors allowed during conversations import (default: `2`)
+
+---
+
+### Changed
+
+#### Security & RBAC
+- `config.rest.security.default.roles-mapping` default changed from `{}` to `{"ConfigAdmin":["FULL_ADMIN"],"admin":["FULL_ADMIN"]}`
+
+---
+
+### Removed
+
+#### Security & RBAC
+- `config.rest.security.default.allowedRoles` — no longer supported
+- `providers.*.allowed-roles` — no longer supported
+
+#### Observability
+- `METRICS_INFLUX2_DEFAULT_PAGE_SIZE` — no longer supported
+- `METRICS_INFLUX3_DEFAULT_PAGE_SIZE` — no longer supported
+
+---
+
 ## 0.16.0
 
 ### Added

@@ -13,7 +13,6 @@ import com.epam.aidial.expressions.enums.Type;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.expressions.impl.FunctionImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
-import com.epam.aidial.metric.config.InfluxDatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxColumnDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxColumnSource;
 import com.epam.aidial.metric.model.configuration.influx.InfluxColumnSourceType;
@@ -62,9 +61,8 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
     private static final String TEMPORAL_TABLE_NAME = "temp_table_";
 
     public FluxQueryBuilder(InfluxDatasetDeclaration datasetDeclaration,
-                            InfluxDatasetConfiguration datasourceConfiguration,
                             TemporalNameGenerator temporalNameGenerator) {
-        super(datasetDeclaration, datasourceConfiguration, temporalNameGenerator);
+        super(datasetDeclaration, temporalNameGenerator);
     }
 
     // ---- Query builders (top-level dispatch targets) ----
@@ -81,7 +79,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var renamePart = createRenamePart(query.getFrom(), query.getExpressions());
         var ungroupPart = SimpleFluxBuilder.createUngroupPart();
         var sortPart = buildSortPart(query.getOrderBy());
-        var limitPart = SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize());
+        var limitPart = SimpleFluxBuilder.createLimitPart(query);
 
         var split = splitFilterForPivot(tableDeclaration, query.getWhere());
         var preFilterPart = FluxConditionPartBuilder.createFilterPart(split.prePivot());
@@ -170,7 +168,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         combiner.add(SimpleFluxBuilder.createUngroupPart());
         combiner.add(createRenamePart(query.getFrom(), query.getExpressions()));
         combiner.add(buildSortPart(query.getOrderBy()));
-        combiner.add(SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize()));
+        combiner.add(SimpleFluxBuilder.createLimitPart(query));
         var combined = combiner.build();
 
         var columnNames = query.getExpressions().stream()
@@ -207,7 +205,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                 VALUE_COLUMN, expressionToOuterColumnNames.get(aggregationFunctionCall)
         ));
         var sortPart = buildSortPart(query.getOrderBy());
-        var limitPart = SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize());
+        var limitPart = SimpleFluxBuilder.createLimitPart(query);
 
         var queryPartsCombined = new InfluxQueryPartCombiner()
                 .add(fromPart)
@@ -262,7 +260,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
 
         combiner.add(SimpleFluxBuilder.createUngroupPart());
         combiner.add(buildSortPart(query.getOrderBy()));
-        combiner.add(SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize()));
+        combiner.add(SimpleFluxBuilder.createLimitPart(query));
         var combined = combiner.build();
 
         var columnNames = query.getExpressions().stream()
@@ -289,7 +287,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var distinctPart = SimpleFluxBuilder.createDistinctPart(tagName);
         var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(VALUE_COLUMN, outerColumnName));
         var sortPart = buildSortPart(query.getOrderBy());
-        var limitPart = SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize());
+        var limitPart = SimpleFluxBuilder.createLimitPart(query);
 
         var queryPartsCombined = new InfluxQueryPartCombiner()
                 .add(fromPart)
@@ -324,7 +322,7 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var keepPart = SimpleFluxBuilder.createKeepPart(List.of(outerColumnName));
         var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(VALUE_COLUMN, outerColumnName));
         var sortPart = buildSortPart(query.getOrderBy());
-        var limitPart = SimpleFluxBuilder.createLimitPart(query, datasetConfiguration.getDefaultPageSize());
+        var limitPart = SimpleFluxBuilder.createLimitPart(query);
 
         var queryPartsCombined = new InfluxQueryPartCombiner()
                 .add(fromPart)

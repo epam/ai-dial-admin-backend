@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -149,7 +150,7 @@ public class SqlConditionBuilder {
                 throw new NotImplementedException("IN values must be constants");
             }
             var paramName = "p" + paramCounter.getAndIncrement();
-            params.put(paramName, constant.getValue());
+            params.put(paramName, normalizeParamValue(constant.getValue()));
             paramRefs.add("$" + paramName);
         }
         var sqlOperator = operator == BinaryComparisonOperator.NOT_IN ? "NOT IN" : "IN";
@@ -161,7 +162,14 @@ public class SqlConditionBuilder {
                                                                    String operator, AtomicInteger paramCounter) {
         var paramName = "p" + paramCounter.getAndIncrement();
         var query = "\"%s\" %s $%s".formatted(columnName, operator, paramName);
-        return new SqlConditionResult(query, Map.of(paramName, value));
+        return new SqlConditionResult(query, Map.of(paramName, normalizeParamValue(value)));
+    }
+
+    // The InfluxDB 3 client rejects java.util.UUID parameters (unsupported type).
+    // UUID-shaped string literals are auto-typed as Type.UUID by the expressions
+    // parser, so we render them back to their canonical string form for binding.
+    private static Object normalizeParamValue(Comparable<?> value) {
+        return value instanceof UUID ? value.toString() : value;
     }
 
     private static SqlConditionResult createLikePatternFilter(String columnName, String pattern, AtomicInteger paramCounter) {

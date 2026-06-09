@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
@@ -73,10 +74,10 @@ public class ApplicationService {
     private final HistoryService historyService;
     private final HashCalculator calculator;
     private final CoreClientUrlUtils coreClientUrlUtils;
-    private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final ContainerEndpointResolver endpointResolver;
     private final ApplicationRefreshService applicationRefreshService;
+    private final ToolsClient toolsClient;
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
@@ -140,6 +141,7 @@ public class ApplicationService {
         applicationNormalizer.normalize(application);
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(application.getDeployment().getName());
         assertNotExists(application.getDisplayName(), application.getDisplayVersion());
         resolveEndpointsIfContainerSource(application);
         Optional.of(application)
@@ -262,22 +264,8 @@ public class ApplicationService {
 
     @Transactional(readOnly = true)
     public McpSchema.ListToolsResult getDiscoveredTools(String applicationName, String nextCursor) {
-        var application = getApplication(applicationName);
-
-        var transport = resolveTransport(application, applicationName);
-
-        var url = String.format(
-                "%s/v1/deployments/%s/mcp?useAllowedTools=false",
-                coreClientUrlUtils.getNormalizedCoreClientUrl(),
-                application.getDeployment().getName()
-        );
-
-        return toolDiscoveryService.discoverTools(
-                url,
-                transport,
-                nextCursor,
-                AuthHeaderUtils.getAuthHeaders()
-        );
+        assertExists(applicationName);
+        return toolsClient.getTools(applicationName, nextCursor);
     }
 
     @Transactional(readOnly = true)

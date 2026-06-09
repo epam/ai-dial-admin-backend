@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.web.controller.none;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.DtoWithDomainHash;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.utils.ResourceUtils;
 import com.epam.aidial.cfg.web.controller.InterceptorController;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -50,6 +52,30 @@ public class InterceptorControllerTest extends AbstractControllerNoneSecureTest 
 
     @MockitoBean
     private InterceptorFacade interceptorFacade;
+
+    @Test
+    void testEnsureExistsShouldReturnEmptyBodyWhenInterceptorExists() throws Exception {
+        String interceptorName = "test";
+
+        doNothing().when(interceptorFacade).ensureExists(interceptorName);
+
+        mockMvc.perform(head("/api/v1/interceptors/{interceptorName}", interceptorName))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testEnsureExistsShouldReturnNotFoundWhenInterceptorDoesNotExist() throws Exception {
+        String interceptorName = "test";
+        String notFoundMessage = "Interceptor with name " + interceptorName + " doesn't exist";
+
+        doThrow(new EntityNotFoundException(notFoundMessage))
+                .when(interceptorFacade).ensureExists(interceptorName);
+
+        mockMvc.perform(head("/api/v1/interceptors/{interceptorName}", interceptorName))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value(notFoundMessage));
+    }
 
     @Test
     void testGetAllInterceptors() throws Exception {

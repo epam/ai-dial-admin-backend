@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.ApplicationSourceDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,7 +28,7 @@ public class ApplicationInfoDto {
 
     private String viewerUrl;
     private String editorUrl;
-
+    private ApplicationSourceDto source;
     private ValidityStateDto validityState;
 
 }

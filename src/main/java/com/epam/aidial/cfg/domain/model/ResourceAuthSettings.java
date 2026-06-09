@@ -24,6 +24,9 @@ public class ResourceAuthSettings {
 
     private List<String> scopesSupported;
 
+    @NotNull(message = "Authentication method must be defined")
+    private TokenEndpointAuthMethod tokenEndpointAuthMethod = TokenEndpointAuthMethod.CLIENT_SECRET_BASIC;
+
     @Override
     public String toString() {
         return "ResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()

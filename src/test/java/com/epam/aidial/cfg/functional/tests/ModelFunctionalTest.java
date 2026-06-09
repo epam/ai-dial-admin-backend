@@ -396,6 +396,25 @@ public abstract class ModelFunctionalTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenCreateModelWithExistingInterceptorName() {
+        String name = "test";
+
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setName(name);
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setName(name);
+
+        EntityAlreadyExistsException exception = Assertions.assertThrows(
+                EntityAlreadyExistsException.class,
+                () -> modelFacade.createModel(modelDto)
+        );
+
+        Assertions.assertEquals("Interceptor with name test already exists", exception.getMessage());
+    }
+
+    @Test
     public void shouldSaveAndReturnModelWithUniqueTopics() {
         ModelDto modelDto = createModelDto("1");
         modelDto.setTopics(new TreeSet<>(Set.of("topic3", "topic2", "topic1")));

@@ -2,7 +2,6 @@ package com.epam.aidial.metric.service.influx3;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.epam.aidial.metric.config.Influx3DatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx3.Influx3DatasetDeclaration;
 import com.epam.aidial.metric.model.influx3.SqlQueryContext;
@@ -44,12 +43,9 @@ class SqlQueryIntegrationTest {
         var testMetricConfig = ResourceUtils.readResource("/metrics/metric.config.influx3.json");
         var datasetDeclaration = (Influx3DatasetDeclaration) OBJECT_MAPPER.readValue(testMetricConfig, DatasetDeclaration.class);
 
-        var datasetConfiguration = new Influx3DatasetConfiguration();
-        datasetConfiguration.setDefaultPageSize(50);
-
         var windowGapFiller = new WindowGapFiller(10_000);
 
-        sqlQueryBuilderFactory = new SqlQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
+        sqlQueryBuilderFactory = new SqlQueryBuilderFactory(datasetDeclaration);
         engine = new Influx3Engine(datasetDeclaration, null, sqlQueryBuilderFactory, windowGapFiller);
         languageConverter = new LanguageConverter(engine);
     }
