@@ -13,10 +13,11 @@ COPY query-language/build.gradle query-language/
 RUN gradle --no-daemon clean bootJar
 
 # Runtime stage
-FROM eclipse-temurin:17-jre-noble AS runtime
+FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
-RUN adduser -u 1001 --disabled-password --gecos "" appuser && \
+RUN apk add --no-cache bash && \
+    adduser -u 1001 -D appuser && \
     mkdir -p /app/data && \
     chown -R appuser:appuser /app
 
