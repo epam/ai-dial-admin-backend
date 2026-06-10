@@ -48,7 +48,11 @@
       "consentRequired": true,
       "parallelToolCallsSupported": true,
       "assistantAttachmentsInRequestSupported": true,
-      "supportCommentInRateResponse": true
+      "supportCommentInRateResponse": true,
+      "maxTokensSupported": true,
+      "maxCompletionTokensSupported": false,
+      "customTemperatureSupported": true,
+      "reasoningEffortsSupported": false
     },
     "applicationProperties": {
       "debug": true,

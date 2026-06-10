@@ -28,4 +28,8 @@ public class FeaturesResourceDto {
     private Boolean parallelToolCallsSupported;
     private boolean assistantAttachmentsInRequestSupported;
     private Boolean supportCommentInRateResponse;
+    private Boolean maxTokensSupported;
+    private Boolean maxCompletionTokensSupported;
+    private Boolean customTemperatureSupported;
+    private Boolean reasoningEffortsSupported;
 }

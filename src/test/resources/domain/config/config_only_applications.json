@@ -37,7 +37,11 @@
         "consent_required": true,
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": true,
-        "support_comment_in_rate_response": true
+        "support_comment_in_rate_response": true,
+        "max_tokens_supported": true,
+        "max_completion_tokens_supported": false,
+        "custom_temperature_supported": true,
+        "reasoning_efforts_supported": false
       },
       "input_attachment_types": [
         "pdf",

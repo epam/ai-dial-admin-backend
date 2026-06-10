@@ -28,7 +28,11 @@
       "autoCachingSupported": false,
       "consentRequired": true,
       "parallelToolCallsSupported": true,
-      "supportCommentInRateResponse": false
+      "supportCommentInRateResponse": false,
+      "maxTokensSupported": true,
+      "maxCompletionTokensSupported": false,
+      "customTemperatureSupported": true,
+      "reasoningEffortsSupported": false
     },
     "inputAttachmentTypes": [
       "pdf",

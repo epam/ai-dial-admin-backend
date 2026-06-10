@@ -55,4 +55,16 @@ public class CoreFeatures {
 
     @JsonAlias({"supportCommentInRateResponse", "support_comment_in_rate_response"})//0.38.0
     private Boolean supportCommentInRateResponse;
+
+    @JsonAlias({"maxTokensSupported", "max_tokens_supported"})
+    private Boolean maxTokensSupported; // 0.45.0
+
+    @JsonAlias({"maxCompletionTokensSupported", "max_completion_tokens_supported"})
+    private Boolean maxCompletionTokensSupported; // 0.45.0
+
+    @JsonAlias({"customTemperatureSupported", "custom_temperature_supported"})
+    private Boolean customTemperatureSupported; // 0.45.0
+
+    @JsonAlias({"reasoningEffortsSupported", "reasoning_efforts_supported"})
+    private Boolean reasoningEffortsSupported; // 0.45.0
 }
