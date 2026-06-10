@@ -72,7 +72,6 @@ dependencies {
 
     implementation 'org.apache.jclouds:jclouds-allblobstore:2.7.0'
     implementation 'org.apache.jclouds.api:filesystem:2.6.0'
-    implementation 'com.amazonaws:aws-java-sdk-sts:1.12.663'
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
     implementation 'com.azure:azure-identity:1.15.3'
     implementation 'com.azure:azure-identity-extensions:1.2.7'
