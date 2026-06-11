@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
+import com.epam.aidial.cfg.mapper.ApplicationResourceMapperImpl;
 import com.epam.aidial.cfg.mapper.ConversationMapperImpl;
 import com.epam.aidial.cfg.mapper.PublicationMapperImpl;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
@@ -50,7 +51,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ConversationMapperImpl.class,
         PublicationMapperImpl.class,
         RouteMapperImpl.class,
-        ResourceMapperImpl.class
+        ResourceMapperImpl.class,
+        ApplicationResourceMapperImpl.class
 })
 class ConversationControllerTest extends AbstractControllerNoneSecureTest {
 
