@@ -73,7 +73,7 @@
           "endpoint": "https://upstream1.example.com",
           "key": "upstream-key-1",
           "extraData": "metadata-1",
-          "secretExtraData": "{\"secret\": \"value1\"}",
+          "secretExtraData": "secret_value1",
           "weight": 10,
           "tier": 1
         },
@@ -82,7 +82,7 @@
           "endpoint": "https://upstream2.example.com",
           "key": "upstream-key-2",
           "extraData": "metadata-2",
-          "secretExtraData": "{\"secret\": \"value2\"}",
+          "secretExtraData": "secret_value2",
           "weight": 20,
           "tier": 2
         }
