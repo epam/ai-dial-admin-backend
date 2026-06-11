@@ -25,5 +25,8 @@
     "configDelivery": "header",
     "forwardPerRequestKey": false
   },
-  "applicationTypeSchemaId": "https://mydial.epam.com/custom_application_schemas/quickapps"
+  "source": {
+    "$type": "schema",
+    "applicationTypeSchemaId": "https://mydial.epam.com/custom_application_schemas/quickapps"
+  }
 }
