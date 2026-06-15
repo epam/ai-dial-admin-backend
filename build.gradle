@@ -172,16 +172,22 @@ dependencies {
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('io.netty:netty-codec-http2:4.2.13.Final') {
+        implementation ('io.netty:netty-codec-http2:4.2.15.Final') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('io.netty:netty-handler:4.2.15.Final') {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
             because("previous versions have vulnerabilities")
         }
-        implementation("io.netty:netty-codec-dns:4.1.133.Final") {
+        implementation("io.netty:netty-codec-dns:4.1.135.Final") {
             because("previous versions have vulnerabilities")
         }
-        implementation("io.netty:netty-transport-native-epoll:4.2.13.Final") {
+        implementation("io.netty:netty-resolver-dns:4.1.135.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-transport-native-epoll:4.2.15.Final") {
             because("previous versions have vulnerabilities")
         }
         implementation("org.bouncycastle:bcprov-jdk18on:1.84") {

@@ -13,10 +13,13 @@ COPY query-language/build.gradle query-language/
 RUN gradle --no-daemon clean bootJar
 
 # Runtime stage
-FROM eclipse-temurin:17-jre-noble AS runtime
+FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
-RUN adduser -u 1001 --disabled-password --gecos "" appuser && \
+# TODO: remove explicit openssl pinning once eclipse-temurin:21-jre-alpine ships with libcrypto3>=3.5.7-r0 (CVE-2026-45447)
+RUN apk add --no-cache 'libcrypto3=3.5.7-r0' 'libssl3=3.5.7-r0' 'openssl=3.5.7-r0' && \
+    apk add --no-cache bash && \
+    adduser -u 1001 -D appuser && \
     mkdir -p /app/data && \
     chown -R appuser:appuser /app
 
