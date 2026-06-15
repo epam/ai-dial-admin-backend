@@ -36,7 +36,9 @@ public class UpstreamDto {
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
                 + ", key=" + SecretUtils.mask(this.getKey())
-                + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
+                + ", extraData=" + this.getExtraData()
+                + ", secretExtraData=" + SecretUtils.mask(this.getSecretExtraData())
+                + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }
 }
