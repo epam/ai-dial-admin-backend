@@ -4,6 +4,8 @@ import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Maintain the same default values in:
  * <ul>
@@ -52,5 +54,5 @@ public class FeaturesDto {
     private Boolean maxTokensSupported;
     private Boolean maxCompletionTokensSupported;
     private Boolean customTemperatureSupported;
-    private Boolean reasoningEffortsSupported;
+    private List<String> reasoningEfforts;
 }

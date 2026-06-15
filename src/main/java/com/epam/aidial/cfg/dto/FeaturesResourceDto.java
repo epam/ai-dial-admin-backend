@@ -3,6 +3,8 @@ package com.epam.aidial.cfg.dto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class FeaturesResourceDto {
     @Endpoint
@@ -31,5 +33,5 @@ public class FeaturesResourceDto {
     private Boolean maxTokensSupported;
     private Boolean maxCompletionTokensSupported;
     private Boolean customTemperatureSupported;
-    private Boolean reasoningEffortsSupported;
+    private List<String> reasoningEfforts;
 }

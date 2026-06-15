@@ -52,7 +52,7 @@
       "maxTokensSupported": true,
       "maxCompletionTokensSupported": false,
       "customTemperatureSupported": true,
-      "reasoningEffortsSupported": false
+      "reasoningEfforts": ["effort1", "effort2"]
     },
     "applicationProperties": {
       "debug": true,

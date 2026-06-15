@@ -32,7 +32,7 @@
       "maxTokensSupported": true,
       "maxCompletionTokensSupported": false,
       "customTemperatureSupported": true,
-      "reasoningEffortsSupported": false
+      "reasoningEfforts": ["effort1", "effort2"]
     },
     "inputAttachmentTypes": [
       "pdf",
@@ -135,6 +135,7 @@
     "createdAt": 12345,
     "updatedAt": 12345,
     "dependencies": ["dep1", "dep2"],
-    "endpoint": "https://example.com/model/sampleDeployment/chat/completions"
+    "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
+    "embeddingDimensions": 1536
   }
 ]

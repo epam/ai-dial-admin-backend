@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -65,6 +67,7 @@ public class CoreFeatures {
     @JsonAlias({"customTemperatureSupported", "custom_temperature_supported"})
     private Boolean customTemperatureSupported; // 0.45.0
 
-    @JsonAlias({"reasoningEffortsSupported", "reasoning_efforts_supported"})
-    private Boolean reasoningEffortsSupported; // 0.45.0
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonAlias({"reasoningEfforts", "reasoning_efforts"})
+    private List<String> reasoningEfforts; // 0.45.0
 }
