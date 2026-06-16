@@ -11,4 +11,8 @@ public abstract class CoreUpstreamMixinForCoreObjectMapper {
 
     @JsonSerialize(using = ToStringSerializer.class)
     private String extraData;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonSerialize(using = ToStringSerializer.class)
+    private String secretExtraData;
 }

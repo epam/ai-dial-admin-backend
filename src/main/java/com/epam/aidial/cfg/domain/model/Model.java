@@ -41,5 +41,6 @@ public class Model extends RoleBased {
     private List<Upstream> upstreams;
     private String overrideName;
     private List<String> fieldsHashingOrder;
+    private Integer embeddingDimensions;
     private ModelSource source;
 }

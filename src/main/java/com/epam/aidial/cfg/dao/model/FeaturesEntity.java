@@ -3,6 +3,8 @@ package com.epam.aidial.cfg.dao.model;
 import jakarta.persistence.Embeddable;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Maintain the same default values in:
  * <ul>
@@ -44,4 +46,8 @@ public class FeaturesEntity {
     private boolean parallelToolCallsSupported = true;
     private boolean assistantAttachmentsInRequestSupported;
     private Boolean supportCommentInRateResponse;
+    private Boolean maxTokensSupported;
+    private Boolean maxCompletionTokensSupported;
+    private Boolean customTemperatureSupported;
+    private List<String> reasoningEfforts;
 }

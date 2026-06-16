@@ -20,12 +20,13 @@ public class CoreUpstream {
     private String endpoint;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonAlias({"responsesEndpoint", "responses_endpoint", "dial:responsesEndpoint"})
-    private String responsesEndpoint;  //0.42.0
+    private String responsesEndpoint;  // 0.42.0
     @JsonAlias({"key", "dial:key"})
     private String key;
 
     @JsonDeserialize(using = JsonToStringDeserializer.class)
     @JsonSerialize(using = StringToJsonSerializer.class)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonAlias({"extraData", "dial:extraData"})
     private String extraData;
 
@@ -37,12 +38,19 @@ public class CoreUpstream {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonAlias({"id", "dial:id"})
-    private String id;   //0.44.0
+    private String id;   // 0.44.0
+
+    @JsonDeserialize(using = JsonToStringDeserializer.class)
+    @JsonSerialize(using = StringToJsonSerializer.class)
+    @JsonAlias({"secretExtraData", "dial:secretExtraData"})
+    private String secretExtraData;   // 0.45.0
 
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
                 + ", key=" + SecretUtils.mask(this.getKey())
-                + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
+                + ", extraData=" + this.getExtraData()
+                + ", secretExtraData=" + SecretUtils.mask(this.getSecretExtraData())
+                + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }
 }

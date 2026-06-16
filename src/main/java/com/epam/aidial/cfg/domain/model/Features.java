@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.domain.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Maintain the same default values in:
  * <ul>
@@ -42,4 +44,8 @@ public class Features {
     private boolean parallelToolCallsSupported = true;
     private boolean assistantAttachmentsInRequestSupported;
     private Boolean supportCommentInRateResponse;
+    private Boolean maxTokensSupported;
+    private Boolean maxCompletionTokensSupported;
+    private Boolean customTemperatureSupported;
+    private List<String> reasoningEfforts;
 }

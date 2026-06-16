@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -29,4 +31,8 @@ public class FeaturesResource {
     private Boolean parallelToolCallsSupported;
     private Boolean assistantAttachmentsInRequestSupported;
     private Boolean supportCommentInRateResponse;
+    private Boolean maxTokensSupported;
+    private Boolean maxCompletionTokensSupported;
+    private Boolean customTemperatureSupported;
+    private List<String> reasoningEfforts;
 }

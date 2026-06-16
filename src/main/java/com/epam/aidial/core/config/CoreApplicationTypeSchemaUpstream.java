@@ -39,9 +39,16 @@ public class CoreApplicationTypeSchemaUpstream {
     @JsonProperty("dial:tier")
     private int tier = 0;
 
+    @JsonDeserialize(using = JsonToStringDeserializer.class)
+    @JsonAlias({"secretExtraData", "dial:secretExtraData"})
+    @JsonProperty("dial:secretExtraData")
+    private String secretExtraData;
+
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", key=" + SecretUtils.mask(this.getKey())
-                + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
+                + ", extraData=" + this.getExtraData()
+                + ", secretExtraData=" + SecretUtils.mask(this.getSecretExtraData())
+                + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }
 }

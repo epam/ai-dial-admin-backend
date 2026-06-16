@@ -17,4 +17,5 @@ public class ModelData extends DeploymentData {
     private String tokenizerModel;
     private ModelLimitsData limits;
     private ModelPricingData pricing;
+    private Integer embeddingDimensions;
 }

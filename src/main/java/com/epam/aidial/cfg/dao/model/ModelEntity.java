@@ -74,6 +74,7 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private String upstreams;
     private String overrideName;
     private List<String> fieldsHashingOrder;
+    private Integer embeddingDimensions;
     private String endpoint;
     private String responsesEndpoint;
 

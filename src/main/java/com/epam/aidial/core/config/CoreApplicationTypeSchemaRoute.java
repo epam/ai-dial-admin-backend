@@ -1,5 +1,6 @@
 package com.epam.aidial.core.config;
 
+import com.epam.aidial.core.config.CoreRoute.ResourceAccessType;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
@@ -9,15 +10,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import com.epam.aidial.core.config.CoreRoute.ResourceAccessType;
-
 /**
     This class conforms to application type schema's meta schema. Main class for reference is CoreRoute.
     @see com.epam.aidial.core.config.CoreRoute
  */
 @Data
 public class CoreApplicationTypeSchemaRoute {
-
     @JsonAlias({"userRoles", "user_roles", "dial:userRoles"})
     @JsonProperty("dial:userRoles")
     private Set<String> userRoles;

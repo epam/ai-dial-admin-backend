@@ -23,6 +23,9 @@ public class CoreModel extends Deployment {
     @JsonAlias({"fieldsHashingOrder", "fields_hashing_order"})
     private List<String> fieldsHashingOrder = List.of("prefix.body.tools", "prefix.body.messages"); // 0.26.0
 
+    @JsonAlias({"embeddingDimensions", "embedding_dimensions"})
+    private Integer embeddingDimensions;
+
     public CoreModel() {
         setMaxRetryAttempts(5);
     }
