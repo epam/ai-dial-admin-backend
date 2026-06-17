@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.utils;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -8,6 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static com.epam.aidial.cfg.utils.PathUtils.parseVersionedPath;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -83,6 +85,15 @@ class PathUtilsTest {
     @CsvSource(value = {"public/file.txt", "public", "''", "null"}, nullValues = "null")
     void testIsFolderPath_WithoutTrailingSlash_ReturnsFalse(String path) {
         assertThat(PathUtils.isFolderPath(path)).isFalse();
+    }
+
+    @Test
+    void shouldUseLastSeparatorWhenMultipleSeparatorsPresent() {
+        var result = parseVersionedPath("public/my__super__model__2.0");
+
+        Assertions.assertEquals("my__super__model", result.getName());
+        Assertions.assertEquals("2.0", result.getVersion());
+        Assertions.assertEquals("my__super__model__2.0", result.getVersionedName());
     }
 
     @Test
