@@ -57,15 +57,13 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
-
+        ConfigPart configPart = new ConfigPart(config, objectMapper.writeValueAsString(config));
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.getSecret(any(String.class))).thenReturn(new KeyVaultSecret("secret", "{}"));
-        Config secretConfig = new Config();
-        secretConfig.setKeys(Map.of("key1", key));
 
         source.writeConfig(config, false);
 
-        verify(configSplitter, times(0)).splitConfig(any(), any(), anyInt(), eq(1));
+        verify(configSplitter, times(1)).splitConfig(any(), any(), anyInt(), eq(1));
         verify(secretClient, times(1)).setSecret(keyVaultSecretArgumentCaptor.capture());
 
         List<KeyVaultSecret> allValues = keyVaultSecretArgumentCaptor.getAllValues();
@@ -137,8 +135,8 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
-
+        ConfigPart configPart = new ConfigPart(config, objectMapper.writeValueAsString(config));
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.getSecret(any(String.class)))
                 .thenThrow(new ResourceNotFoundException("Secret not found", null));
 
@@ -163,8 +161,8 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
-
+        ConfigPart configPart = new ConfigPart(config, "{}");
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.getSecret(any(String.class)))
                 .thenThrow(new ResourceNotFoundException("Secret not found", null));
 

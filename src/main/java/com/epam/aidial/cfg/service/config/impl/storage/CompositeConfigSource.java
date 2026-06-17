@@ -61,11 +61,6 @@ public abstract class CompositeConfigSource implements ConfigSource {
         if (CollectionUtils.isEmpty(sourceNames)) {
             throw new IllegalStateException("Unable to store source, names is not configured.");
         }
-        if (sourceNames.size() == 1) {
-            String newValue = encodeConfig(configBody);
-            return List.of(new SourceValue(sourceNames.get(0), newValue));
-        }
-
         List<ConfigPart> configs = configSplitter.splitConfig(configBody, this::encodeConfig, maxSourceSize, sourceNames.size());
 
         if (configs.size() > sourceNames.size()) {

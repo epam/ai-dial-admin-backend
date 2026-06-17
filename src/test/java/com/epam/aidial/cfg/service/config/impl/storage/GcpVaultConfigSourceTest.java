@@ -61,18 +61,17 @@ class GcpVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
+        ConfigPart configPart = new ConfigPart(config, objectMapper.writeValueAsString(config));
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
 
         ByteString body = ByteString.copyFrom("{}", "utf-8");
         SecretPayload payload = SecretPayload.newBuilder().setData(body).build();
         AccessSecretVersionResponse response = AccessSecretVersionResponse.newBuilder().setPayload(payload).build();
         when(secretClient.accessSecretVersion(any(SecretVersionName.class))).thenReturn(response);
-        Config secretConfig = new Config();
-        secretConfig.setKeys(Map.of("key1", key));
 
         source.writeConfig(config, false);
 
-        verify(configSplitter, times(0)).splitConfig(any(), any(), anyInt(), eq(1));
+        verify(configSplitter, times(1)).splitConfig(any(), any(), anyInt(), eq(1));
         verify(secretClient, times(1)).addSecretVersion(Mockito.eq("secret1"), keyVaultSecretArgumentCaptor.capture());
 
         List<SecretPayload> allValues = keyVaultSecretArgumentCaptor.getAllValues();
@@ -142,8 +141,8 @@ class GcpVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
-
+        ConfigPart configPart = new ConfigPart(config, objectMapper.writeValueAsString(config));
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
                 .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
 
@@ -166,8 +165,8 @@ class GcpVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(configAsJsonNode(config));
-
+        ConfigPart configPart = new ConfigPart(config, "{}");
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.accessSecretVersion(any(SecretVersionName.class)))
                 .thenThrow(new NotFoundException(new RuntimeException(), HttpJsonStatusCode.of(StatusCode.Code.NOT_FOUND), false));
 
