@@ -100,13 +100,11 @@ public class PathUtils {
     }
 
     private static Pair<String, String> extractNameAndVersion(String rawName) {
-        var nameParts = rawName.split("__");
+        int lastSeparatorIndex = rawName.lastIndexOf("__");
 
-        if (nameParts.length < 2) {
+        if (lastSeparatorIndex == -1) {
             return Pair.of(rawName, null);
         }
-
-        int lastSeparatorIndex = rawName.lastIndexOf("__");
 
         String name = rawName.substring(0, lastSeparatorIndex);
         String version = rawName.substring(lastSeparatorIndex + 2);

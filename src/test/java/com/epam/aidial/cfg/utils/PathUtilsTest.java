@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.utils;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -87,13 +86,23 @@ class PathUtilsTest {
         assertThat(PathUtils.isFolderPath(path)).isFalse();
     }
 
-    @Test
-    void shouldUseLastSeparatorWhenMultipleSeparatorsPresent() {
-        var result = parseVersionedPath("public/my__super__model__2.0");
+    @ParameterizedTest
+    @CsvSource(value = {
+            "public/promptname, promptname, null, promptname",
+            "public/prompt__1.0, prompt, 1.0, prompt__1.0",
+            "public/name__, name, '', name__",
+            "public/my__super__model__2.0, my__super__model, 2.0, my__super__model__2.0"}, nullValues = "null")
+    void shouldParseVersionedPath(
+            String path,
+            String expectedName,
+            String expectedVersion,
+            String expectedVersionedName
+    ) {
+        var result = parseVersionedPath(path);
 
-        Assertions.assertEquals("my__super__model", result.getName());
-        Assertions.assertEquals("2.0", result.getVersion());
-        Assertions.assertEquals("my__super__model__2.0", result.getVersionedName());
+        assertThat(result.getName()).isEqualTo(expectedName);
+        assertThat(result.getVersion()).isEqualTo(expectedVersion);
+        assertThat(result.getVersionedName()).isEqualTo(expectedVersionedName);
     }
 
     @Test
