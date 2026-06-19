@@ -69,5 +69,6 @@ public class CoreFeatures {
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonAlias({"reasoningEfforts", "reasoning_efforts"})
-    private List<String> reasoningEfforts; // 0.45.0
+    private List<String> reasoningEfforts = List.of();
+    // 0.45.0
 }

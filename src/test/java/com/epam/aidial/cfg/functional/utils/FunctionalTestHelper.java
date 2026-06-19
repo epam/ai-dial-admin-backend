@@ -241,6 +241,8 @@ public class FunctionalTestHelper {
         features.setTemperatureSupported(true);
         features.setParallelToolCallsSupported(true);
         features.setAssistantAttachmentsInRequestSupported(false);
+        features.setCustomTemperatureSupported(true);
+        features.setMaxTokensSupported(true);
 
         return features;
     }
