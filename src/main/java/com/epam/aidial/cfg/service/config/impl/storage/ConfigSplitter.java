@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,7 +52,8 @@ public class ConfigSplitter {
             }
             return configs;
         }
-        throw new IllegalStateException("Unable to split config to " + partitioningLimit + " parts with maxSize " + maxSize);
+        throw new IllegalStateException("Unable to split config to " + partitioningLimit + " part(s) with maxSize " + maxSize + ". "
+                + buildErrorDetail(encoder, maxSize, entries, partitioningLimit));
     }
 
     private List<ConfigPart> trySplit(Function<Config, String> encoder, int maxSize, List<ConfigEntry> entries, int partSize) {
@@ -73,10 +75,33 @@ public class ConfigSplitter {
         return configs;
     }
 
+    private String buildErrorDetail(Function<Config, String> encoder, int maxSize,
+                                    List<ConfigEntry> entries, int partitioningLimit) {
+        long totalSize = 0;
+        List<EntrySizeInfo> entrySizes = new ArrayList<>();
+        for (int i = 0; i < entries.size(); i++) {
+            Config config = createConfig();
+            entries.get(i).put().accept(config);
+            ConfigUtils.removeEmptyCollections(config);
+            int size = encoder.apply(config).getBytes().length;
+            totalSize += size;
+            String label = entries.get(i).label() != null ? entries.get(i).label() : "entry[" + i + "]";
+            entrySizes.add(new EntrySizeInfo(label, size));
+        }
+        long capacity = (long) partitioningLimit * maxSize;
+        List<String> topEntries = entrySizes.stream()
+                .sorted(Comparator.comparingInt(EntrySizeInfo::size).reversed())
+                .limit(5)
+                .map(e -> e.label() + "=" + e.size() + "B")
+                .toList();
+        return ("Total encoded size %d bytes exceeds available capacity %d bytes "
+                + "(%d destinations x %d maxSize). Largest entries: %s")
+                .formatted(totalSize, capacity, partitioningLimit, maxSize, topEntries);
+    }
+
     private Stream<ConfigEntry> mapRetriableErrorCodes(Config configBody) {
         Consumer<Config> put = config -> config.setRetriableErrorCodes(configBody.getRetriableErrorCodes());
-        ConfigEntry configEntry = new ConfigEntry(put);
-        return Stream.of(configEntry);
+        return Stream.of(new ConfigEntry(put, "retriableErrorCodes"));
     }
 
     private Stream<ConfigEntry> mapAssistantEndpoint(Config configBody) {
@@ -87,8 +112,7 @@ public class ConfigSplitter {
                 }
                 config.getAssistant().setEndpoint(configBody.getAssistant().getEndpoint());
             };
-            ConfigEntry endpoint = new ConfigEntry(putEndpoint);
-            return Stream.of(endpoint);
+            return Stream.of(new ConfigEntry(putEndpoint, "assistant.endpoint"));
         }
         return Stream.empty();
     }
@@ -101,8 +125,7 @@ public class ConfigSplitter {
                 }
                 config.getAssistant().setFeatures(configBody.getAssistant().getFeatures());
             };
-            ConfigEntry features = new ConfigEntry(putFeatures);
-            return Stream.of(features);
+            return Stream.of(new ConfigEntry(putFeatures, "assistant.features"));
         }
         return Stream.empty();
     }
@@ -144,11 +167,12 @@ public class ConfigSplitter {
                                 setter.accept(config, map);
                             }
                             map.put(e.getKey(), e.getValue());
-                        })
+                        },
+                        e.getKey())
                 );
     }
 
-    record ConfigEntry(Consumer<Config> put) {
+    record ConfigEntry(Consumer<Config> put, String label) {
     }
 
     private static Config createConfig() {
@@ -178,4 +202,6 @@ public class ConfigSplitter {
     private Map<String, CoreRoute> getRoutes(Config config) {
         return config.getRoutes();
     }
+
+    private record EntrySizeInfo(String label, int size) {}
 }
