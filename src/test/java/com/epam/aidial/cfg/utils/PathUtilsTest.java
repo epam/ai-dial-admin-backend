@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static com.epam.aidial.cfg.utils.PathUtils.parseVersionedPath;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -83,6 +84,25 @@ class PathUtilsTest {
     @CsvSource(value = {"public/file.txt", "public", "''", "null"}, nullValues = "null")
     void testIsFolderPath_WithoutTrailingSlash_ReturnsFalse(String path) {
         assertThat(PathUtils.isFolderPath(path)).isFalse();
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "public/promptname, promptname, null, promptname",
+            "public/prompt__1.0, prompt, 1.0, prompt__1.0",
+            "public/name__, name, '', name__",
+            "public/my__super__model__2.0, my__super__model, 2.0, my__super__model__2.0"}, nullValues = "null")
+    void shouldParseVersionedPath(
+            String path,
+            String expectedName,
+            String expectedVersion,
+            String expectedVersionedName
+    ) {
+        var result = parseVersionedPath(path);
+
+        assertThat(result.getName()).isEqualTo(expectedName);
+        assertThat(result.getVersion()).isEqualTo(expectedVersion);
+        assertThat(result.getVersionedName()).isEqualTo(expectedVersionedName);
     }
 
     @Test
