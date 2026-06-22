@@ -51,8 +51,8 @@ public class FeaturesDto {
     private boolean parallelToolCallsSupported = true;
     private boolean assistantAttachmentsInRequestSupported;
     private Boolean supportCommentInRateResponse;
-    private Boolean maxTokensSupported;
+    private boolean maxTokensSupported = true;
     private Boolean maxCompletionTokensSupported;
-    private Boolean customTemperatureSupported;
-    private List<String> reasoningEfforts;
+    private boolean customTemperatureSupported = true;
+    private List<String> reasoningEfforts = List.of();
 }
