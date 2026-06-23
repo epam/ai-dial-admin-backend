@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ConfigUtils {
 
@@ -25,12 +26,12 @@ public class ConfigUtils {
         config.setKeys(Map.of());
 
         config.getModels().forEach((key, model) -> {
-            removeSecretsFromUpstreams(model.getUpstreams());
+            model.setUpstreams(removeUpstreamsWithSecrets(model.getUpstreams()));
         });
 
         if (MapUtils.isNotEmpty(config.getRoutes())) {
             config.getRoutes().forEach((key, route) -> {
-                removeSecretsFromUpstreams(route.getUpstreams());
+                route.setUpstreams(removeUpstreamsWithSecrets(route.getUpstreams()));
             });
         }
 
@@ -38,7 +39,7 @@ public class ConfigUtils {
             config.getApplications().forEach((key, application) -> {
                 if (MapUtils.isNotEmpty(application.getRoutes())) {
                     application.getRoutes().forEach((routeKey, route) -> {
-                        removeSecretsFromUpstreams(route.getUpstreams());
+                        route.setUpstreams(removeUpstreamsWithSecrets(route.getUpstreams()));
                     });
                 }
             });
@@ -53,13 +54,13 @@ public class ConfigUtils {
         });
     }
 
-    private static void removeSecretsFromUpstreams(List<CoreUpstream> coreUpstreamList) {
+    private static List<CoreUpstream> removeUpstreamsWithSecrets(List<CoreUpstream> coreUpstreamList) {
         if (CollectionUtils.isNotEmpty(coreUpstreamList)) {
-            for (CoreUpstream upstream : coreUpstreamList) {
-                upstream.setKey(null);
-                upstream.setSecretExtraData(null);
-            }
+            return coreUpstreamList.stream()
+                    .filter(upstream -> (upstream.getKey() == null && upstream.getSecretExtraData() == null))
+                    .collect(Collectors.toList());
         }
+        return coreUpstreamList;
     }
 
     public static void removeEmptyCollections(Config config) {

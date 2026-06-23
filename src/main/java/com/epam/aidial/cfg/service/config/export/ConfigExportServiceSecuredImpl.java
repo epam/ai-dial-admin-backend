@@ -83,13 +83,6 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .stream()
                 .flatMap(Collection::stream)
                 .filter(upstream -> upstream.getKey() != null || upstream.getSecretExtraData() != null)
-                .map(upstream -> {
-                    CoreUpstream secretUpstream = new CoreUpstream();
-                    secretUpstream.setEndpoint(upstream.getEndpoint());
-                    secretUpstream.setKey(upstream.getKey());
-                    secretUpstream.setSecretExtraData(upstream.getSecretExtraData());
-                    return secretUpstream;
-                })
                 .collect(Collectors.toList());
 
         CoreModel model = CoreModel.empty();
@@ -103,13 +96,6 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .stream()
                 .flatMap(Collection::stream)
                 .filter(upstream -> upstream.getKey() != null || upstream.getSecretExtraData() != null)
-                .map(upstream -> {
-                    CoreUpstream secretUpstream = new CoreUpstream();
-                    secretUpstream.setEndpoint(upstream.getEndpoint());
-                    secretUpstream.setKey(upstream.getKey());
-                    secretUpstream.setSecretExtraData(upstream.getSecretExtraData());
-                    return secretUpstream;
-                })
                 .collect(Collectors.toList());
 
         CoreRoute route = new CoreRoute();

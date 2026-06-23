@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
+import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
@@ -12,6 +13,7 @@ import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -70,6 +72,7 @@ public class ApplicationExporter {
     private Collection<Application> getApplicationsWithRemovedDependencies(FullExportRequest fullExportRequest) {
         return getValidApplications(fullExportRequest).stream()
                 .map(app -> removeDependency(app, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
+                .map(app -> removeSecretData(app, fullExportRequest.isAddSecrets()))
                 .toList();
     }
 
@@ -84,6 +87,7 @@ public class ApplicationExporter {
                         componentsByName.get(application.getDeployment().getName()).getDependencies(),
                         selectedItemsExportRequest.getExportFormat())
                 )
+                .map(application -> removeSecretData(application, selectedItemsExportRequest.isAddSecrets()))
                 .filter(app -> isValidApplication(app, selectedItemsExportRequest))
                 .toList();
     }
@@ -108,4 +112,17 @@ public class ApplicationExporter {
         return selectedItemsExportRequest.getExportFormat() != CORE || application.getValidityState().isValid();
     }
 
+    private Application removeSecretData(Application application, boolean addSecrets) {
+        if (!addSecrets && CollectionUtils.isNotEmpty(application.getRoutes())) {
+            application.getRoutes().forEach(route -> {
+                if (CollectionUtils.isNotEmpty(route.getUpstreams())) {
+                    for (Upstream upstream : route.getUpstreams()) {
+                        upstream.setKey(null);
+                        upstream.setSecretExtraData(null);
+                    }
+                }
+            });
+        }
+        return application;
+    }
 }

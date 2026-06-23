@@ -932,6 +932,7 @@ public abstract class ConfigTransferFunctionalTest {
         Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.APPLICATION, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA);
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(true);
         request.setComponentTypes(componentTypes);
 
         // Routes
@@ -1583,6 +1584,7 @@ public abstract class ConfigTransferFunctionalTest {
         );
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
+        request.setAddSecrets(true);
         request.setComponentTypes(componentTypes);
 
         // When
@@ -2895,9 +2897,9 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://api.example.com");
             Assertions.assertThat(modelUpstream.getExtraData()).isEqualTo("{\"timeout\":30}");
 
-            Assertions.assertThat(config.getRoutes()).containsKey("test_route1");
-            Assertions.assertThat(config.getRoutes().get("test_route1").getUpstreams()).hasSize(1);
-            var routeUpstreamResult = config.getRoutes().get("test_route1").getUpstreams().get(0);
+            Assertions.assertThat(config.getRoutes()).containsKey("route1");
+            Assertions.assertThat(config.getRoutes().get("route1").getUpstreams()).hasSize(1);
+            var routeUpstreamResult = config.getRoutes().get("route1").getUpstreams().get(0);
             Assertions.assertThat(routeUpstreamResult.getKey()).isNull();
             Assertions.assertThat(routeUpstreamResult.getSecretExtraData()).isNull();
             Assertions.assertThat(routeUpstreamResult.getEndpoint()).isEqualTo("https://route.example.com");
