@@ -3,14 +3,18 @@ package com.epam.aidial.cfg.service.config.transfer.exporter;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.service.config.impl.storage.ConfigSource;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreResourceAuthSettings;
+import com.epam.aidial.core.config.CoreRoute;
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.CoreUpstream;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.MapUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,6 +56,12 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
         Map<String, CoreModel> models = getModels(optionalMap(publicConfig.getModels()), optionalMap(secretConfig.getModels()));
         publicConfig.setModels(models);
 
+        LinkedHashMap<String, CoreRoute> routes = new LinkedHashMap<>(getRoutes(optionalMap(publicConfig.getRoutes()), optionalMap(secretConfig.getRoutes())));
+        publicConfig.setRoutes(routes);
+
+        Map<String, CoreApplication> applications = getApplications(optionalMap(publicConfig.getApplications()), optionalMap(secretConfig.getApplications()));
+        publicConfig.setApplications(applications);
+
         Map<String, CoreToolSet> toolSets = getToolSets(optionalMap(publicConfig.getToolsets()), optionalMap(secretConfig.getToolsets()));
         publicConfig.setToolsets(toolSets);
 
@@ -74,6 +84,56 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
             publicModel.setUpstreams(mergedUpstreams);
         }
         return publicModels;
+    }
+
+    private Map<String, CoreRoute> getRoutes(Map<String, CoreRoute> publicRoutes, Map<String, CoreRoute> secretRoutes) {
+        for (Map.Entry<String, CoreRoute> entry : secretRoutes.entrySet()) {
+            String routeName = entry.getKey();
+            CoreRoute secretRoute = entry.getValue();
+            CoreRoute publicRoute = publicRoutes.computeIfAbsent(routeName, k -> new CoreRoute());
+
+            List<CoreUpstream> mergedUpstreams = new ArrayList<>();
+            if (publicRoute.getUpstreams() != null) {
+                mergedUpstreams.addAll(publicRoute.getUpstreams());
+            }
+            if (secretRoute.getUpstreams() != null) {
+                mergedUpstreams.addAll(secretRoute.getUpstreams());
+            }
+            publicRoute.setUpstreams(mergedUpstreams);
+        }
+        return publicRoutes;
+    }
+
+    private Map<String, CoreApplication> getApplications(Map<String, CoreApplication> publicApps, Map<String, CoreApplication> secretApps) {
+        for (Map.Entry<String, CoreApplication> entry : secretApps.entrySet()) {
+            String appName = entry.getKey();
+            CoreApplication secretApp = entry.getValue();
+            CoreApplication publicApp = publicApps.computeIfAbsent(appName, k -> new CoreApplication());
+
+            if (MapUtils.isNotEmpty(secretApp.getRoutes())) {
+                LinkedHashMap<String, CoreRoute> publicRoutes = publicApp.getRoutes();
+                if (publicRoutes == null) {
+                    publicRoutes = new LinkedHashMap<>();
+                    publicApp.setRoutes(publicRoutes);
+                }
+
+                for (Map.Entry<String, CoreRoute> routeEntry : secretApp.getRoutes().entrySet()) {
+                    String routeName = routeEntry.getKey();
+                    CoreRoute secretRoute = routeEntry.getValue();
+                    CoreRoute publicRoute = publicRoutes.computeIfAbsent(routeName, k -> new CoreRoute());
+
+                    List<CoreUpstream> mergedUpstreams = new ArrayList<>();
+                    if (publicRoute.getUpstreams() != null) {
+                        mergedUpstreams.addAll(publicRoute.getUpstreams());
+                    }
+                    if (secretRoute.getUpstreams() != null) {
+                        mergedUpstreams.addAll(secretRoute.getUpstreams());
+                    }
+                    publicRoute.setUpstreams(mergedUpstreams);
+                }
+            }
+        }
+        return publicApps;
     }
 
     private Map<String, CoreToolSet> getToolSets(Map<String, CoreToolSet> publicToolSets, Map<String, CoreToolSet> secretToolSets) {

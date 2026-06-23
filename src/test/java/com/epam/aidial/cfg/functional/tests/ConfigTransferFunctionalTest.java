@@ -2855,6 +2855,56 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
     }
 
+    @Test
+    void testExport_CoreFormatDoesNotLeakSecrets() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setEndpoint("https://api.example.com");
+        upstream.setKey("secret-api-key-12345");
+        upstream.setSecretExtraData("{\"apiSecret\":\"super-secret-value\"}");
+        upstream.setExtraData("{\"timeout\":30}");
+        modelDto.setUpstreams(List.of(upstream));
+        modelFacade.createModel(modelDto);
+
+        RouteDto routeDto = createRouteDto("1");
+        UpstreamDto routeUpstream = new UpstreamDto();
+        routeUpstream.setEndpoint("https://route.example.com");
+        routeUpstream.setKey("route-secret-key");
+        routeUpstream.setSecretExtraData("{\"token\":\"route-secret-token\"}");
+        routeUpstream.setExtraData("{\"retries\":3}");
+        routeDto.setUpstreams(List.of(routeUpstream));
+        routeFacade.createRoute(routeDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROUTE));
+
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+        String exportedJson = outputStream.toString();
+
+        Config result = jsonMapper.readValue(exportedJson, Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getModels()).containsKey("model1");
+            Assertions.assertThat(config.getModels().get("model1").getUpstreams()).hasSize(1);
+            var modelUpstream = config.getModels().get("model1").getUpstreams().get(0);
+            Assertions.assertThat(modelUpstream.getKey()).isNull();
+            Assertions.assertThat(modelUpstream.getSecretExtraData()).isNull();
+            Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://api.example.com");
+            Assertions.assertThat(modelUpstream.getExtraData()).isEqualTo("{\"timeout\":30}");
+
+            Assertions.assertThat(config.getRoutes()).containsKey("test_route1");
+            Assertions.assertThat(config.getRoutes().get("test_route1").getUpstreams()).hasSize(1);
+            var routeUpstreamResult = config.getRoutes().get("test_route1").getUpstreams().get(0);
+            Assertions.assertThat(routeUpstreamResult.getKey()).isNull();
+            Assertions.assertThat(routeUpstreamResult.getSecretExtraData()).isNull();
+            Assertions.assertThat(routeUpstreamResult.getEndpoint()).isEqualTo("https://route.example.com");
+            Assertions.assertThat(routeUpstreamResult.getExtraData()).isEqualTo("{\"retries\":3}");
+        });
+    }
+
     @SneakyThrows
     private InputStream getZipInputStreamWithAdminConfig() {
         byte[] data;

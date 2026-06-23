@@ -7,7 +7,6 @@ import org.apache.commons.collections4.MapUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ConfigUtils {
 
@@ -15,22 +14,36 @@ public class ConfigUtils {
         Config secretConfig = new Config();
         secretConfig.setKeys(config.getKeys());
         secretConfig.setModels(config.getModels());
+        secretConfig.setRoutes(config.getRoutes());
+        secretConfig.setApplications(config.getApplications());
         secretConfig.setToolsets(config.getToolsets());
         return secretConfig;
     }
 
+
     public static void removeSecrets(Config config) {
         config.setKeys(Map.of());
+
         config.getModels().forEach((key, model) -> {
-            if (model.getUpstreams() == null) {
-                return;
-            }
-            List<CoreUpstream> upstreams = model.getUpstreams()
-                    .stream()
-                    .filter(upstream -> upstream.getKey() == null)
-                    .collect(Collectors.toList());
-            model.setUpstreams(upstreams);
+            removeSecretsFromUpstreams(model.getUpstreams());
         });
+
+        if (MapUtils.isNotEmpty(config.getRoutes())) {
+            config.getRoutes().forEach((key, route) -> {
+                removeSecretsFromUpstreams(route.getUpstreams());
+            });
+        }
+
+        if (MapUtils.isNotEmpty(config.getApplications())) {
+            config.getApplications().forEach((key, application) -> {
+                if (MapUtils.isNotEmpty(application.getRoutes())) {
+                    application.getRoutes().forEach((routeKey, route) -> {
+                        removeSecretsFromUpstreams(route.getUpstreams());
+                    });
+                }
+            });
+        }
+
         config.getToolsets().forEach((key, toolset) -> {
             var authSettings = toolset.getAuthSettings();
             if (authSettings == null) {
@@ -38,6 +51,15 @@ public class ConfigUtils {
             }
             toolset.getAuthSettings().setClientSecret(null);
         });
+    }
+
+    private static void removeSecretsFromUpstreams(List<CoreUpstream> coreUpstreamList) {
+        if (CollectionUtils.isNotEmpty(coreUpstreamList)) {
+            for (CoreUpstream upstream : coreUpstreamList) {
+                upstream.setKey(null);
+                upstream.setSecretExtraData(null);
+            }
+        }
     }
 
     public static void removeEmptyCollections(Config config) {

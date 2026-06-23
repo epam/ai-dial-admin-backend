@@ -54,6 +54,7 @@ public class ConfigTransfer {
     private final ConfigMapper configMapper;
     private final ObjectMapper jsonMapper = JsonMapperConfiguration.createJsonMapper();
     private final ObjectMapper prettyJsonMapper = JsonMapperConfiguration.createPrettyJsonMapper();
+    private final ObjectMapper coreJsonMapper = JsonMapperConfiguration.createCoreJsonMapper();
     private final ConfigExportProperties properties;
     private final VersionAwareFieldFilter versionAwareFieldFilter;
     private final List<CoreConfigNormalizer> normalizers;
@@ -96,7 +97,7 @@ public class ConfigTransfer {
         JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(fullCoreConfig);
         return outputStream -> {
             try {
-                prettyJsonMapper.writeValue(outputStream, versionedConfig);
+                coreJsonMapper.writer().withDefaultPrettyPrinter().writeValue(outputStream, versionedConfig);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to export core config.", e);
             }
