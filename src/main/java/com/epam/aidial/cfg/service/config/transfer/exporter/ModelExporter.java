@@ -63,13 +63,13 @@ public class ModelExporter {
                     ExportConfigComponent component = componentsByName.get(model.getDeployment().getName());
                     return removeDependency(model, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
-                .map(model -> removeUpstreamKey(model, addSecrets))
+                .map(model -> removeSecretData(model, addSecrets))
                 .toList();
     }
 
     private Collection<Model> getModels(FullExportRequest fullExportRequest) {
         return modelService.getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc().stream()
-                .map(model -> removeUpstreamKey(model, fullExportRequest.isAddSecrets()))
+                .map(model -> removeSecretData(model, fullExportRequest.isAddSecrets()))
                 .map(model -> removeDependency(model, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
@@ -112,7 +112,7 @@ public class ModelExporter {
         return model;
     }
 
-    private Model removeUpstreamKey(Model model, boolean addSecrets) {
+    private Model removeSecretData(Model model, boolean addSecrets) {
         List<Upstream> upstreams = model.getUpstreams();
         if (CollectionUtils.isNotEmpty(upstreams) && !addSecrets) {
             for (Upstream upstream : upstreams) {
