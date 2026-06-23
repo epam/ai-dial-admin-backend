@@ -117,6 +117,7 @@ public class ModelExporter {
         if (CollectionUtils.isNotEmpty(upstreams) && !addSecrets) {
             for (Upstream upstream : upstreams) {
                 upstream.setKey(null);
+                upstream.setSecretExtraData(null);
             }
         }
         return model;

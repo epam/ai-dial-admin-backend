@@ -1718,7 +1718,21 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getModels()).isNotEmpty().containsOnlyKeys("testModel1")
                     .satisfies(models ->
                             Assertions.assertThat(models.get("testModel1").getInterceptors()).containsExactlyInAnyOrder("testInterceptor1"));
-            Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1");
+            Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1")
+                    .satisfies(routes -> {
+                        var route = routes.get("test_route1");
+                        Assertions.assertThat(route.getUpstreams()).isNotEmpty();
+                        route.getUpstreams().forEach(upstream -> {
+                            if (addSecrets) {
+                                Assertions.assertThat(upstream.getKey()).isNotNull();
+                                Assertions.assertThat(upstream.getSecretExtraData()).isNotNull();
+                            } else {
+                                Assertions.assertThat(upstream.getKey()).isNull();
+                                Assertions.assertThat(upstream.getSecretExtraData()).isNull();
+                            }
+                            Assertions.assertThat(upstream.getExtraData()).isNotNull();
+                        });
+                    });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1");
             Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
         });
