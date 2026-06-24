@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +52,6 @@ public class CreateApplicationResourceDto {
     private List<RouteResourceDto> routes;
     @Valid
     private ApplicationResourceSourceDto source;
-    private Map<String, Object> applicationProperties;
+    private Map<String, Object> applicationProperties = new HashMap<>();
     private McpResourceDto mcp;
 }
