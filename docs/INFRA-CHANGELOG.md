@@ -1,6 +1,6 @@
 # Infrastructure Changelog
 
-All notable infrastructure-relevant changes to this project will be documented in this file.
+All notable infrastructure-relevant changes to this project will be documented in this file. 
 
 ## 0.17.0
 
