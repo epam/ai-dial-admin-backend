@@ -932,7 +932,6 @@ public abstract class ConfigTransferFunctionalTest {
         Set<ExportConfigComponentType> componentTypes = Set.of(ExportConfigComponentType.APPLICATION, ExportConfigComponentType.APPLICATION_TYPE_SCHEMA);
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.ADMIN);
-        request.setAddSecrets(true);
         request.setComponentTypes(componentTypes);
 
         // Routes
@@ -997,7 +996,7 @@ public abstract class ConfigTransferFunctionalTest {
                                     var upstream = upstreams.get(0);
                                     var expectedUpstream = route1.getUpstreams().get(0);
                                     Assertions.assertThat(upstream.getEndpoint()).isEqualTo(expectedUpstream.getEndpoint());
-                                    Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
+                                    Assertions.assertThat(upstream.getKey()).isNull();
                                     Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
                                 });
                     });
@@ -1584,7 +1583,6 @@ public abstract class ConfigTransferFunctionalTest {
         );
         FullExportRequest request = new FullExportRequest();
         request.setExportFormat(ExportFormat.CORE);
-        request.setAddSecrets(true);
         request.setComponentTypes(componentTypes);
 
         // When
@@ -1632,7 +1630,7 @@ public abstract class ConfigTransferFunctionalTest {
                                     Assertions.assertThat(upstreams).isNotEmpty();
                                     var upstream = upstreams.get(0);
                                     Assertions.assertThat(upstream.getEndpoint()).isEqualTo("http://upstream.com/api");
-                                    Assertions.assertThat(upstream.getKey()).isEqualTo("123");
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo(null);
                                     Assertions.assertThat(upstream.getExtraData()).isEqualTo("{\"field1\":\"val1\"}");
                                 });
                     });

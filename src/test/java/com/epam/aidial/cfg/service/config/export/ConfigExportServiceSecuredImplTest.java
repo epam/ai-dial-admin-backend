@@ -74,6 +74,7 @@ class ConfigExportServiceSecuredImplTest {
         // Verify regular config has secrets removed but upstreams preserved
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
+        assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
         assertNull(regularConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
 
         // Verify secured config contains only secrets
@@ -102,6 +103,7 @@ class ConfigExportServiceSecuredImplTest {
         // Verify regular config has secrets removed but upstreams preserved
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
+        assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
         assertNull(regularConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
 
         // Verify secured config contains only secrets
@@ -160,9 +162,11 @@ class ConfigExportServiceSecuredImplTest {
         // Verify regular config has secrets removed but upstreams preserved
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
-        assertNull(regularConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
+        assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
         assertEquals(1, regularConfig.getModels().get("model2").getUpstreams().size());
+        assertEquals("https://api2.example.com", regularConfig.getModels().get("model2").getUpstreams().get(0).getEndpoint());
         assertNull(regularConfig.getModels().get("model2").getUpstreams().get(0).getKey());
+        assertNull(regularConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
 
         // Verify secured config contains only secrets
         Config secretConfig = securedConfigCaptor.getValue();

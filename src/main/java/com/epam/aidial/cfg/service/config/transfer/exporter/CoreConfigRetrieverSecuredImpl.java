@@ -110,14 +110,15 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
             CoreApplication secretApp = entry.getValue();
             CoreApplication publicApp = publicApps.computeIfAbsent(appName, k -> new CoreApplication());
 
-            if (MapUtils.isNotEmpty(secretApp.getRoutes())) {
+            var secretAppRoutes = secretApp.getRoutes();
+            if (MapUtils.isNotEmpty(secretAppRoutes)) {
                 LinkedHashMap<String, CoreRoute> publicRoutes = publicApp.getRoutes();
                 if (publicRoutes == null) {
                     publicRoutes = new LinkedHashMap<>();
                     publicApp.setRoutes(publicRoutes);
                 }
 
-                for (Map.Entry<String, CoreRoute> routeEntry : secretApp.getRoutes().entrySet()) {
+                for (Map.Entry<String, CoreRoute> routeEntry : secretAppRoutes.entrySet()) {
                     String routeName = routeEntry.getKey();
                     CoreRoute secretRoute = routeEntry.getValue();
                     CoreRoute publicRoute = publicRoutes.computeIfAbsent(routeName, k -> new CoreRoute());

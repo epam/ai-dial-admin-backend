@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
@@ -73,5 +74,23 @@ public class CoreRoute extends RoleBasedEntity {
          * List of JSON paths in the HTTP response body.
          */
         private List<String> responseBody = List.of();
+    }
+
+    @JsonIgnore
+    public static CoreRoute empty() {
+        CoreRoute coreRoute = new CoreRoute();
+
+        coreRoute.setResponse(null);
+        coreRoute.setPaths(null);
+        coreRoute.setMethods(null);
+        coreRoute.setUpstreams(null);
+        coreRoute.setMaxRetryAttempts(0);
+        coreRoute.setOrder(0);
+        coreRoute.setPermissions(null);
+        coreRoute.setAttachmentPaths(null);
+        coreRoute.setName(null);
+        coreRoute.setUserRoles(null);
+        coreRoute.setRewritePath(false);
+        return coreRoute;
     }
 }

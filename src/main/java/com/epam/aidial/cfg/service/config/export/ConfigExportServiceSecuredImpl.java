@@ -98,7 +98,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .filter(upstream -> upstream.getKey() != null || upstream.getSecretExtraData() != null)
                 .collect(Collectors.toList());
 
-        CoreRoute route = new CoreRoute();
+        CoreRoute route = CoreRoute.empty();
         route.setUpstreams(upstreams);
         return route;
     }
@@ -112,7 +112,7 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .filter(p -> CollectionUtils.isNotEmpty(p.getValue().getUpstreams()))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue, (a, b) -> a, LinkedHashMap::new));
 
-        CoreApplication app = new CoreApplication();
+        CoreApplication app = CoreApplication.empty();
         app.setRoutes(routes);
         return app;
     }

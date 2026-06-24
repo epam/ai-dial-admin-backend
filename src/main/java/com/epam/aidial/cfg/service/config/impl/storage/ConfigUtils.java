@@ -21,7 +21,6 @@ public class ConfigUtils {
         return secretConfig;
     }
 
-
     public static void removeSecrets(Config config) {
         config.setKeys(Map.of());
 
