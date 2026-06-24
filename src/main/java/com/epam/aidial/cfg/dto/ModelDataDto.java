@@ -11,4 +11,5 @@ public class ModelDataDto extends DeploymentDataDto {
     private String tokenizerModel;
     private ModelLimitsDataDto limits;
     private ModelPricingDataDto pricing;
+    private Integer embeddingDimensions;
 }

@@ -555,6 +555,7 @@ public abstract class ModelFunctionalTest {
 
         ModelDto modelDto = createModelDto("1");
         modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
+        modelDto.setEmbeddingDimensions(1536);
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
@@ -596,6 +597,7 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createModelDto("1");
         modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelDto.setDescription("description OLD");
+        modelDto.setEmbeddingDimensions(1536);
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
@@ -717,7 +719,9 @@ public abstract class ModelFunctionalTest {
                         "content_parts_supported": false,
                         "temperature_supported": true,
                         "parallel_tool_calls_supported": true,
-                        "assistant_attachments_in_request_supported": false
+                        "assistant_attachments_in_request_supported": false,
+                        "max_tokens_supported": true,
+                        "custom_temperature_supported": true
                       },
                       "inputAttachmentTypes": null,
                       "maxInputAttachments":null,
@@ -750,7 +754,8 @@ public abstract class ModelFunctionalTest {
                         }
                       ],
                       "overrideName": null,
-                      "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"]
+                      "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"],
+                      "embeddingDimensions": 1536
                     }
                   }
                 }

@@ -13,6 +13,7 @@ public class UpstreamResourceDto {
     private String endpoint;
     private String key;
     private String extraData;
+    private String secretExtraData;
     private int weight;
     @Min(value = 0, message = "Tier must be a non-negative number")
     private int tier;

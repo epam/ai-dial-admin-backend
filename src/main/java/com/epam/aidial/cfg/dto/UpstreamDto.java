@@ -29,11 +29,16 @@ public class UpstreamDto {
     private int weight = 1;
     @Min(value = 0, message = "Tier must be a non-negative number")
     private int tier = 0;
+    @JsonDeserialize(using = JsonToStringDeserializer.class)
+    @JsonSerialize(using = StringToJsonSerializer.class)
+    private String secretExtraData;
 
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
                 + ", key=" + SecretUtils.mask(this.getKey())
-                + ", extraData=" + this.getExtraData() + ", weight=" + this.getWeight()
+                + ", extraData=" + this.getExtraData()
+                + ", secretExtraData=" + SecretUtils.mask(this.getSecretExtraData())
+                + ", weight=" + this.getWeight()
                 + ", tier=" + this.getTier() + ")";
     }
 }

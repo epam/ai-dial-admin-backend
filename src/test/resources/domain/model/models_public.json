@@ -28,7 +28,11 @@
       "autoCachingSupported": false,
       "consentRequired": true,
       "parallelToolCallsSupported": true,
-      "supportCommentInRateResponse": true
+      "supportCommentInRateResponse": true,
+      "maxTokensSupported": true,
+      "maxCompletionTokensSupported": false,
+      "customTemperatureSupported": true,
+      "reasoningEfforts": ["effort1", "effort2"]
     },
     "inputAttachmentTypes": [
       "pdf",
@@ -67,6 +71,7 @@
         "endpoint": "https://upstream1.example.com",
         "key": "upstream-key-1",
         "extraData": "metadata-1",
+        "secretExtraData": "secret_value1",
         "weight": 10,
         "tier": 1
       },
@@ -75,6 +80,7 @@
         "endpoint": "https://upstream2.example.com",
         "key": "upstream-key-2",
         "extraData": "metadata-2",
+        "secretExtraData": "secret_value2",
         "weight": 20,
         "tier": 2
       }
@@ -125,6 +131,7 @@
     "createdAt": 12345,
     "updatedAt": 12345,
     "dependencies": ["dep1", "dep2"],
-    "endpoint": "https://example.com/model/sampleDeployment/chat/completions"
+    "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
+    "embeddingDimensions": 1536
   }
 ]

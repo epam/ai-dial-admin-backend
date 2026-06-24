@@ -679,7 +679,9 @@ public abstract class InterceptorFunctionalTest {
                         "content_parts_supported": false,
                         "temperature_supported": true,
                         "parallel_tool_calls_supported": true,
-                        "assistant_attachments_in_request_supported": false
+                        "assistant_attachments_in_request_supported": false,
+                        "max_tokens_supported": true,
+                        "custom_temperature_supported": true
                       },
                       "inputAttachmentTypes": null,
                       "maxInputAttachments": null,
