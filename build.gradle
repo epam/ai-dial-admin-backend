@@ -165,7 +165,7 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
-        implementation ('com.fasterxml.jackson.core:jackson-databind:2.21.4') {
+        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.0') {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.22') {

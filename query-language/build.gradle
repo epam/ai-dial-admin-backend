@@ -31,7 +31,7 @@ dependencies {
 
     api project(':expressions-parser')
 
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.0'
     implementation 'org.hibernate:hibernate-validator:8.0.2.Final'
 
     implementation 'org.apache.commons:commons-lang3:3.18.0'
