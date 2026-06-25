@@ -96,7 +96,7 @@ public class ConfigTransfer {
         JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(fullCoreConfig);
         return outputStream -> {
             try {
-                prettyJsonMapper.writer().withDefaultPrettyPrinter().writeValue(outputStream, versionedConfig);
+                prettyJsonMapper.writeValue(outputStream, versionedConfig);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to export core config.", e);
             }

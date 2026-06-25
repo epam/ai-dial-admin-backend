@@ -86,7 +86,7 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
         return publicModels;
     }
 
-    private Map<String, CoreRoute> getRoutes(Map<String, CoreRoute> publicRoutes, Map<String, CoreRoute> secretRoutes) {
+    private void mergeRoutes(Map<String, CoreRoute> publicRoutes, Map<String, CoreRoute> secretRoutes) {
         for (Map.Entry<String, CoreRoute> entry : secretRoutes.entrySet()) {
             String routeName = entry.getKey();
             CoreRoute secretRoute = entry.getValue();
@@ -101,6 +101,10 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
             }
             publicRoute.setUpstreams(mergedUpstreams);
         }
+    }
+
+    private Map<String, CoreRoute> getRoutes(Map<String, CoreRoute> publicRoutes, Map<String, CoreRoute> secretRoutes) {
+        mergeRoutes(publicRoutes, secretRoutes);
         return publicRoutes;
     }
 
@@ -117,21 +121,7 @@ public class CoreConfigRetrieverSecuredImpl implements CoreConfigRetriever {
                     publicRoutes = new LinkedHashMap<>();
                     publicApp.setRoutes(publicRoutes);
                 }
-
-                for (Map.Entry<String, CoreRoute> routeEntry : secretAppRoutes.entrySet()) {
-                    String routeName = routeEntry.getKey();
-                    CoreRoute secretRoute = routeEntry.getValue();
-                    CoreRoute publicRoute = publicRoutes.computeIfAbsent(routeName, k -> new CoreRoute());
-
-                    List<CoreUpstream> mergedUpstreams = new ArrayList<>();
-                    if (publicRoute.getUpstreams() != null) {
-                        mergedUpstreams.addAll(publicRoute.getUpstreams());
-                    }
-                    if (secretRoute.getUpstreams() != null) {
-                        mergedUpstreams.addAll(secretRoute.getUpstreams());
-                    }
-                    publicRoute.setUpstreams(mergedUpstreams);
-                }
+                mergeRoutes(publicRoutes, secretAppRoutes);
             }
         }
         return publicApps;

@@ -71,7 +71,7 @@ class ConfigExportServiceSecuredImplTest {
         verify(securedConfigSource).writeConfig(securedConfigCaptor.capture(), eq(createResources));
         verify(configTransferLock).withWriteLock(any());
 
-        // Verify regular config has secrets removed but upstreams preserved
+        // Verify regular config has secrets removed
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
         assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
@@ -100,7 +100,7 @@ class ConfigExportServiceSecuredImplTest {
         verify(securedConfigSource).writeConfig(securedConfigCaptor.capture(), eq(createResources));
         verify(configTransferLock).withWriteLock(any());
 
-        // Verify regular config has secrets removed but upstreams preserved
+        // Verify regular config has secrets removed
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
         assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
@@ -159,7 +159,7 @@ class ConfigExportServiceSecuredImplTest {
         verify(configSource).writeConfig(configCaptor.capture(), eq(createResources));
         verify(securedConfigSource).writeConfig(securedConfigCaptor.capture(), eq(createResources));
 
-        // Verify regular config has secrets removed but upstreams preserved
+        // Verify regular config has secrets removed
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
         assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
