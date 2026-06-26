@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -129,11 +130,47 @@ public class CoreApplication extends Deployment {
         }
 
         public enum McpConfigDelivery {
-            HEADER, META;
+            HEADER, META
         }
     }
 
     public CoreApplication() {
         super();
+    }
+
+    @JsonIgnore
+    public static CoreApplication empty() {
+        CoreApplication coreApplication = new CoreApplication();
+
+        coreApplication.setApplicationProperties(null);
+        coreApplication.setApplicationTypeSchemaId(null);
+        coreApplication.setAuthor(null);
+        coreApplication.setCreatedAt(null);
+        coreApplication.setDefaults(null);
+        coreApplication.setDependencies(null);
+        coreApplication.setDescription(null);
+        coreApplication.setDescriptionKeywords(null);
+        coreApplication.setDisplayName(null);
+        coreApplication.setDisplayVersion(null);
+        coreApplication.setEditorUrl(null);
+        coreApplication.setEndpoint(null);
+        coreApplication.setFeatures(null);
+        coreApplication.setForwardAuthToken(null);
+        coreApplication.setFunction(null);
+        coreApplication.setIconUrl(null);
+        coreApplication.setInputAttachmentTypes(null);
+        coreApplication.setInterceptors(null);
+        coreApplication.setMaxInputAttachments(null);
+        coreApplication.setMaxRetryAttempts(null);
+        coreApplication.setMcp(null);
+        coreApplication.setName(null);
+        coreApplication.setUserRoles(null);
+        coreApplication.setReference(null);
+        coreApplication.setResponsesDefaults(null);
+        coreApplication.setResponsesEndpoint(null);
+        coreApplication.setRoutes(null);
+        coreApplication.setUpdatedAt(null);
+        coreApplication.setViewerUrl(null);
+        return coreApplication;
     }
 }

@@ -81,6 +81,7 @@ class ConfigExportServiceSecuredImplTest {
         Config secretConfig = securedConfigCaptor.getValue();
         assertNotNull(secretConfig.getKeys().get("key1"));
         assertEquals("upstream-key-1", secretConfig.getModels().get("model1").getUpstreams().get(0).getKey());
+        assertEquals("secretExtraData", secretConfig.getModels().get("model1").getUpstreams().get(0).getSecretExtraData());
         assertEquals("client-secret-1", secretConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
         assertTrue(secretConfig.getRoles().isEmpty());
     }
@@ -109,6 +110,7 @@ class ConfigExportServiceSecuredImplTest {
         Config secretConfig = securedConfigCaptor.getValue();
         assertNotNull(secretConfig.getKeys().get("key1"));
         assertEquals("upstream-key-1", secretConfig.getModels().get("model1").getUpstreams().get(0).getKey());
+        assertEquals("secretExtraData", secretConfig.getModels().get("model1").getUpstreams().get(0).getSecretExtraData());
         assertEquals("client-secret-1", secretConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
         assertTrue(secretConfig.getRoles().isEmpty());
     }
@@ -161,15 +163,16 @@ class ConfigExportServiceSecuredImplTest {
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
         assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
+        assertEquals(1, regularConfig.getModels().get("model2").getUpstreams().size());
+        assertEquals("https://api2.example.com", regularConfig.getModels().get("model2").getUpstreams().get(0).getEndpoint());
+        assertNull(regularConfig.getModels().get("model2").getUpstreams().get(0).getKey());
         assertNull(regularConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
-        assertTrue(regularConfig.getModels().get("model2").getUpstreams().isEmpty());
 
         // Verify secured config contains only secrets
         Config secretConfig = securedConfigCaptor.getValue();
         assertNotNull(secretConfig.getKeys().get("key1"));
         assertEquals("upstream-key-1", secretConfig.getModels().get("model1").getUpstreams().get(0).getKey());
-        assertEquals("upstream-key-2", secretConfig.getModels().get("model2").getUpstreams().get(0).getKey());
-        assertEquals("https://api2.example.com", secretConfig.getModels().get("model2").getUpstreams().get(0).getEndpoint());
+        assertEquals("secretExtraData", secretConfig.getModels().get("model1").getUpstreams().get(0).getSecretExtraData());
         assertEquals("client-secret-1", secretConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
         assertTrue(secretConfig.getRoles().isEmpty());
     }
@@ -235,6 +238,7 @@ class ConfigExportServiceSecuredImplTest {
         CoreUpstream upstream = new CoreUpstream();
         upstream.setEndpoint("https://api.example.com");
         upstream.setKey("upstream-key-1");
+        upstream.setSecretExtraData("secretExtraData");
         model.setUpstreams(List.of(upstream));
         
         models.put("model1", model);
@@ -265,7 +269,6 @@ class ConfigExportServiceSecuredImplTest {
         
         CoreUpstream upstream2 = new CoreUpstream();
         upstream2.setEndpoint("https://api2.example.com");
-        upstream2.setKey("upstream-key-2");
         model2.setUpstreams(List.of(upstream2));
         
         config.getModels().put("model2", model2);
