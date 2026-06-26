@@ -996,7 +996,7 @@ public abstract class ConfigTransferFunctionalTest {
                                     var upstream = upstreams.get(0);
                                     var expectedUpstream = route1.getUpstreams().get(0);
                                     Assertions.assertThat(upstream.getEndpoint()).isEqualTo(expectedUpstream.getEndpoint());
-                                    Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
+                                    Assertions.assertThat(upstream.getKey()).isNull();
                                     Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
                                 });
                     });
@@ -1630,7 +1630,7 @@ public abstract class ConfigTransferFunctionalTest {
                                     Assertions.assertThat(upstreams).isNotEmpty();
                                     var upstream = upstreams.get(0);
                                     Assertions.assertThat(upstream.getEndpoint()).isEqualTo("http://upstream.com/api");
-                                    Assertions.assertThat(upstream.getKey()).isEqualTo("123");
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo(null);
                                     Assertions.assertThat(upstream.getExtraData()).isEqualTo("{\"field1\":\"val1\"}");
                                 });
                     });
@@ -1718,7 +1718,21 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getModels()).isNotEmpty().containsOnlyKeys("testModel1")
                     .satisfies(models ->
                             Assertions.assertThat(models.get("testModel1").getInterceptors()).containsExactlyInAnyOrder("testInterceptor1"));
-            Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1");
+            Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1")
+                    .satisfies(routes -> {
+                        var route = routes.get("test_route1");
+                        Assertions.assertThat(route.getUpstreams()).isNotEmpty();
+                        route.getUpstreams().forEach(upstream -> {
+                            if (addSecrets) {
+                                Assertions.assertThat(upstream.getKey()).isNotNull();
+                                Assertions.assertThat(upstream.getSecretExtraData()).isNotNull();
+                            } else {
+                                Assertions.assertThat(upstream.getKey()).isNull();
+                                Assertions.assertThat(upstream.getSecretExtraData()).isNull();
+                            }
+                            Assertions.assertThat(upstream.getExtraData()).isNotNull();
+                        });
+                    });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1");
             Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
         });
@@ -2839,6 +2853,56 @@ public abstract class ConfigTransferFunctionalTest {
         var expected = ResourceUtils.readResource("/import/import_modelWithAdapter_preview.json");
         var expectedPreview = jsonMapper.readValue(expected, ImportConfigPreview.class);
         Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
+    }
+
+    @Test
+    void testExport_CoreFormatDoesNotLeakSecrets() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setEndpoint("https://api.example.com");
+        upstream.setKey("secret-api-key-12345");
+        upstream.setSecretExtraData("{\"apiSecret\":\"super-secret-value\"}");
+        upstream.setExtraData("{\"timeout\":30}");
+        modelDto.setUpstreams(List.of(upstream));
+        modelFacade.createModel(modelDto);
+
+        RouteDto routeDto = createRouteDto("1");
+        UpstreamDto routeUpstream = new UpstreamDto();
+        routeUpstream.setEndpoint("https://route.example.com");
+        routeUpstream.setKey("route-secret-key");
+        routeUpstream.setSecretExtraData("{\"token\":\"route-secret-token\"}");
+        routeUpstream.setExtraData("{\"retries\":3}");
+        routeDto.setUpstreams(List.of(routeUpstream));
+        routeFacade.createRoute(routeDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROUTE));
+
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+        String exportedJson = outputStream.toString();
+
+        Config result = jsonMapper.readValue(exportedJson, Config.class);
+        Assertions.assertThat(result).isNotNull().satisfies(config -> {
+            Assertions.assertThat(config.getModels()).containsKey("model1");
+            Assertions.assertThat(config.getModels().get("model1").getUpstreams()).hasSize(1);
+            var modelUpstream = config.getModels().get("model1").getUpstreams().get(0);
+            Assertions.assertThat(modelUpstream.getKey()).isNull();
+            Assertions.assertThat(modelUpstream.getSecretExtraData()).isNull();
+            Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://api.example.com");
+            Assertions.assertThat(modelUpstream.getExtraData()).isEqualTo("{\"timeout\":30}");
+
+            Assertions.assertThat(config.getRoutes()).containsKey("route1");
+            Assertions.assertThat(config.getRoutes().get("route1").getUpstreams()).hasSize(1);
+            var routeUpstreamResult = config.getRoutes().get("route1").getUpstreams().get(0);
+            Assertions.assertThat(routeUpstreamResult.getKey()).isNull();
+            Assertions.assertThat(routeUpstreamResult.getSecretExtraData()).isNull();
+            Assertions.assertThat(routeUpstreamResult.getEndpoint()).isEqualTo("https://route.example.com");
+            Assertions.assertThat(routeUpstreamResult.getExtraData()).isEqualTo("{\"retries\":3}");
+        });
     }
 
     @SneakyThrows

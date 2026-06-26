@@ -15,22 +15,35 @@ public class ConfigUtils {
         Config secretConfig = new Config();
         secretConfig.setKeys(config.getKeys());
         secretConfig.setModels(config.getModels());
+        secretConfig.setRoutes(config.getRoutes());
+        secretConfig.setApplications(config.getApplications());
         secretConfig.setToolsets(config.getToolsets());
         return secretConfig;
     }
 
     public static void removeSecrets(Config config) {
         config.setKeys(Map.of());
+
         config.getModels().forEach((key, model) -> {
-            if (model.getUpstreams() == null) {
-                return;
-            }
-            List<CoreUpstream> upstreams = model.getUpstreams()
-                    .stream()
-                    .filter(upstream -> upstream.getKey() == null)
-                    .collect(Collectors.toList());
-            model.setUpstreams(upstreams);
+            model.setUpstreams(removeUpstreamsWithSecrets(model.getUpstreams()));
         });
+
+        if (MapUtils.isNotEmpty(config.getRoutes())) {
+            config.getRoutes().forEach((key, route) -> {
+                route.setUpstreams(removeUpstreamsWithSecrets(route.getUpstreams()));
+            });
+        }
+
+        if (MapUtils.isNotEmpty(config.getApplications())) {
+            config.getApplications().forEach((key, application) -> {
+                if (MapUtils.isNotEmpty(application.getRoutes())) {
+                    application.getRoutes().forEach((routeKey, route) -> {
+                        route.setUpstreams(removeUpstreamsWithSecrets(route.getUpstreams()));
+                    });
+                }
+            });
+        }
+
         config.getToolsets().forEach((key, toolset) -> {
             var authSettings = toolset.getAuthSettings();
             if (authSettings == null) {
@@ -38,6 +51,15 @@ public class ConfigUtils {
             }
             toolset.getAuthSettings().setClientSecret(null);
         });
+    }
+
+    private static List<CoreUpstream> removeUpstreamsWithSecrets(List<CoreUpstream> coreUpstreamList) {
+        if (CollectionUtils.isNotEmpty(coreUpstreamList)) {
+            return coreUpstreamList.stream()
+                    .filter(upstream -> (upstream.getKey() == null && upstream.getSecretExtraData() == null))
+                    .collect(Collectors.toList());
+        }
+        return coreUpstreamList;
     }
 
     public static void removeEmptyCollections(Config config) {
