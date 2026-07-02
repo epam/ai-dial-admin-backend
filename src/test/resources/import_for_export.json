@@ -266,6 +266,7 @@
       "endpoint": "http://sample-endpoint/api",
       "transport": "sse",
       "allowedTools": ["branch", "remote"],
+      "provider": "some-provider",
       "forwardAuthToken": true,
       "authSettings": {
         "authenticationType": "OAUTH",

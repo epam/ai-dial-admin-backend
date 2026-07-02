@@ -1033,6 +1033,7 @@
         "responsesEndpoint": "http://toolset1/responses",
         "transport": "sse",
         "allowedTools": ["branch", "remote"],
+        "provider": "some-provider",
         "author": "test-author",
         "source": {
           "$type": "endpoints"

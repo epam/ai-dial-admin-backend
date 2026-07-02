@@ -90,6 +90,7 @@ public class FunctionalTestHelper {
         toolSet.setEndpoint("https://endpoint.test.com/toolset" + suffix);
         toolSet.setTransport(ToolSetDto.TransportDto.HTTP);
         toolSet.setMaxRetryAttempts(1);
+        toolSet.setProvider("test-provider");
         return toolSet;
     }
 

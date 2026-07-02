@@ -25,6 +25,7 @@ public class ToolSetEximDto {
     private Long createdAt;
     private Transport transport;
     private List<String> allowedTools;
+    private String provider;
     private CoreResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;

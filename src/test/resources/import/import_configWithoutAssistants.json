@@ -369,6 +369,7 @@
       "endpoint": "http://sample-endpoint/api",
       "transport": "sse",
       "allowedTools": ["branch", "remote"],
+      "provider": "some-provider",
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
