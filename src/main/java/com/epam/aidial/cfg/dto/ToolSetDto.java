@@ -37,6 +37,7 @@ public class ToolSetDto extends RoleBasedDto {
     @NotNull
     private TransportDto transport;
     private List<String> allowedTools = List.of();
+    private String provider;
 
     private ResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;

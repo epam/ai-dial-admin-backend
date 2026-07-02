@@ -31,6 +31,7 @@
       ],
       "transport": "http",
       "allowed_tools": ["branch", "remote"],
+      "provider": "github",
       "max_retry_attempts": 3,
       "author": "test-author",
       "created_at": 12345,

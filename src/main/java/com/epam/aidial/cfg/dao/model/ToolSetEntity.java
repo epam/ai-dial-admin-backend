@@ -53,6 +53,8 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
 
     private List<String> allowedTools;
 
+    private String provider;
+
     public enum TransportEntity {
         HTTP, SSE
     }

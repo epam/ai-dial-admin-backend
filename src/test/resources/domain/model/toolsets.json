@@ -13,6 +13,7 @@
     "maxRetryAttempts": 3,
     "transport": "http",
     "allowedTools": ["branch", "remote"],
+    "provider": "github",
     "forwardAuthToken": true,
     "deployment": {
       "id": 200,

@@ -24,6 +24,8 @@ public class CoreToolSet extends CoreSecuredResource {
     @JsonAlias({"allowedTools", "allowed_tools"})
     private List<String> allowedTools = List.of();
 
+    private String provider;
+
     public enum Transport {
         HTTP, SSE
     }
