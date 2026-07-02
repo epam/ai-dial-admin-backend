@@ -28,6 +28,7 @@ public class ToolSet extends SecuredRoleBased {
 
     private Transport transport;
     private List<String> allowedTools = new ArrayList<>();
+    private String provider;
 
     public enum Transport {
         HTTP, SSE
