@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceTask;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
@@ -106,8 +108,7 @@ public class ToolSetValidator {
     private void validateContainerSource(ToolSetContainerSource containerSource, String toolSetName) {
         String containerId = containerSource.getContainerId();
         DeploymentInfoDto deploymentInfo = deploymentManagerService.getById(containerId);
-        McpDeploymentInfoDto mcpDeploymentInfoDto = validateDeploymentType(deploymentInfo, toolSetName);
-        validateToolsetTransport(mcpDeploymentInfoDto, toolSetName);
+        validateDeploymentType(deploymentInfo, toolSetName);
         validateEndpointPath(containerSource.getCompletionEndpointPath(), toolSetName);
     }
 
@@ -119,12 +120,19 @@ public class ToolSetValidator {
         }
     }
 
-    private McpDeploymentInfoDto validateDeploymentType(DeploymentInfoDto deploymentInfo, String toolSetName) {
+    private void validateDeploymentType(DeploymentInfoDto deploymentInfo, String toolSetName) {
         if (deploymentInfo instanceof McpDeploymentInfoDto mcpDeploymentInfoDto) {
-            return mcpDeploymentInfoDto;
+            validateToolsetTransport(mcpDeploymentInfoDto, toolSetName);
+            return;
         }
-        log.warn("Toolset deployment type must be mcp. toolSetName: {}. deploymentInfo: {}", toolSetName, deploymentInfo);
-        throw new IllegalArgumentException("Toolset deployment type must be mcp. toolSetName: " + toolSetName);
+        if (deploymentInfo instanceof InferenceDeploymentInfoDto inferenceDeploymentInfoDto
+                && inferenceDeploymentInfoDto.getInferenceTask() == InferenceTask.TEXT_CLASSIFICATION) {
+            return;
+        }
+        log.warn("Toolset deployment must be an MCP container or a text-classification inference deployment. "
+                + "toolSetName: {}. deploymentInfo: {}", toolSetName, deploymentInfo);
+        throw new IllegalArgumentException("Toolset deployment must be an MCP container or a text-classification "
+                + "inference deployment. toolSetName: " + toolSetName);
     }
 
     private void validateEndpoint(String endpoint, String name) {

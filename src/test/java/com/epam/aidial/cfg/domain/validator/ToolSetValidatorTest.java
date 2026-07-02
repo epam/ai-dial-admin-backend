@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceTask;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -223,7 +226,8 @@ public class ToolSetValidatorTest {
         // when/then
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Toolset deployment type must be mcp. toolSetName: test-toolset");
+                .hasMessageStartingWith("Toolset deployment must be an MCP container or a text-classification "
+                        + "inference deployment. toolSetName: test-toolset");
     }
 
     @Test
@@ -241,7 +245,46 @@ public class ToolSetValidatorTest {
         // when/then
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Toolset deployment type must be mcp. toolSetName: test-toolset");
+                .hasMessageStartingWith("Toolset deployment must be an MCP container or a text-classification "
+                        + "inference deployment. toolSetName: test-toolset");
+    }
+
+    @Test
+    void validateContainerSource_shouldNotThrowExceptionForTextClassificationInference() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
+        deploymentInfo.setInferenceTask(InferenceTask.TEXT_CLASSIFICATION);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = InferenceTask.class, names = {"TEXT_GENERATION", "NONE"})
+    void validateContainerSource_shouldThrowExceptionForNonClassificationInference(InferenceTask inferenceTask) {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
+        deploymentInfo.setInferenceTask(inferenceTask);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Toolset deployment must be an MCP container or a text-classification "
+                        + "inference deployment. toolSetName: test-toolset");
     }
 
     @Test
