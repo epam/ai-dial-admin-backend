@@ -486,6 +486,7 @@ public abstract class ToolSetFunctionalTest {
         expected.setDisplayName(toolSetDto.getDisplayName());
         expected.setDescription(toolSetDto.getDescription());
         expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());
+        expected.setProvider(toolSetDto.getProvider());
         expected.setUserRoles(toolSetDto.getRoleLimits().keySet());
 
         CoreToolSet actual = toolSetFacade.getCoreToolSetWithHash(toolSetDto.getName()).core();
@@ -636,7 +637,8 @@ public abstract class ToolSetFunctionalTest {
                         "authentication_type": "NONE"
                       },
                       "transport": "HTTP",
-                      "allowed_tools": []
+                      "allowed_tools": [],
+                      "provider": "test-provider"
                     }
                   }
                 }

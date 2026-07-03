@@ -283,7 +283,8 @@
       "allowed_tools": [
         "branch",
         "remote"
-      ]
+      ],
+      "provider": "some-provider"
     }
   },
   "assistant": {

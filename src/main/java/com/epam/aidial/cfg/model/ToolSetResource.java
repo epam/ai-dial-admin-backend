@@ -29,6 +29,7 @@ public class ToolSetResource {
     private Long createdAt;
     private Transport transport;
     private List<String> allowedTools;
+    private String provider;
     private ResourceAuthSettings authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
