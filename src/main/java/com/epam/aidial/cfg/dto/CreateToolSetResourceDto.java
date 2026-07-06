@@ -28,6 +28,7 @@ public class CreateToolSetResourceDto {
     private Integer maxRetryAttempts;
     private TransportDto transport;
     private List<String> allowedTools;
+    private String provider;
     private CoreResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
