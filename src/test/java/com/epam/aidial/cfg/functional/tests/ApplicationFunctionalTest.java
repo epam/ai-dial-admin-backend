@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -98,6 +99,21 @@ public abstract class ApplicationFunctionalTest {
         Collection<ApplicationInfoDto> actualApplications = applicationFacade.getAllApplications();
 
         assertApp(actualApplications, List.of(createApplicationDtoWithEndpointAndLimits("1"), createApplicationDtoWithEndpointAndLimits("2")));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationWithInterfacesOnly() {
+        initRoles();
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://app.adapter.test.com");
+        applicationDto.setInterfaces(Map.of("openaiChatCompletions", chatInterface));
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(applicationDto.getInterfaces(), actual.getInterfaces());
     }
 
     @Test
