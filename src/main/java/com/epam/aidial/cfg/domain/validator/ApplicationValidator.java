@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.DeploymentInterfaceTypes;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.ApplicationContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
@@ -8,6 +9,7 @@ import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,16 +25,19 @@ public class ApplicationValidator {
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
     private final FeaturesValidator featuresValidator;
+    private final DeploymentInterfacesValidator deploymentInterfacesValidator;
 
     private final String applicationNameValidationPattern;
 
     public ApplicationValidator(DisplayFieldsValidator displayFieldsValidator,
                                 DeploymentValidator deploymentValidator,
                                 FeaturesValidator featuresValidator,
+                                DeploymentInterfacesValidator deploymentInterfacesValidator,
                                 @Value("${validation.application.name:}") String applicationNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
         this.featuresValidator = featuresValidator;
+        this.deploymentInterfacesValidator = deploymentInterfacesValidator;
         this.applicationNameValidationPattern = applicationNameValidationPattern;
     }
 
@@ -84,6 +89,9 @@ public class ApplicationValidator {
             throw new IllegalArgumentException("Invalid endpoint: '%s'. Application: %s".formatted(endpoint, appName));
         }
 
+        deploymentInterfacesValidator.validate(
+                application.getInterfaces(), DeploymentInterfaceTypes.APPLICATION_INTERFACE_TYPES, "Application", appName);
+
         ApplicationSource source = application.getSource();
         if (source == null) {
             throw new IllegalArgumentException("Application source must be provided. Application: %s".formatted(appName));
@@ -101,8 +109,9 @@ public class ApplicationValidator {
 
     private void validateEndpointsSource(Application application, String appName) {
         var mcp = application.getMcp();
-        if (application.getEndpoint() == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))) {
-            throw new IllegalArgumentException("At least application endpoint or MCP endpoint must be provided."
+        if (application.getEndpoint() == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))
+                && MapUtils.isEmpty(application.getInterfaces())) {
+            throw new IllegalArgumentException("At least application endpoint, MCP endpoint or interfaces must be provided."
                     + " Application: %s".formatted(appName));
         }
     }
@@ -113,8 +122,9 @@ public class ApplicationValidator {
                     + " Application: %s".formatted(appName));
         }
 
-        if (application.getEndpoint() != null || application.getMcp() != null) {
-            throw new IllegalArgumentException("Neither application endpoint nor MCP must be set for schema based application."
+        if (application.getEndpoint() != null || application.getMcp() != null
+                || MapUtils.isNotEmpty(application.getInterfaces())) {
+            throw new IllegalArgumentException("Neither application endpoint, MCP nor interfaces must be set for schema based application."
                     + " Application: %s".formatted(appName));
         }
 

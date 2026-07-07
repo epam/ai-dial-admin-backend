@@ -18,6 +18,7 @@ public class ApplicationResourceDto {
     private String name;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceDto> interfaces;
     private String displayName;
     private String displayVersion;
     private String iconUrl;

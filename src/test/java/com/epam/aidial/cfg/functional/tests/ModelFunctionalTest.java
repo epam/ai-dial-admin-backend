@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.AdapterDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -107,6 +108,26 @@ public abstract class ModelFunctionalTest {
 
         Assertions.assertThrows(EntityNotFoundException.class, () -> modelFacade.getModel(modelDto.getName()));
         Assertions.assertTrue(modelFacade.getAll().isEmpty());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetModelWithInterfacesOnly() {
+        initRoles();
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://model.adapter.test.com");
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        modelDto.setInterfaces(Map.of(
+                "openaiChatCompletions", chatInterface,
+                "anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(modelDto.getInterfaces(), actual.getInterfaces());
     }
 
     @Test

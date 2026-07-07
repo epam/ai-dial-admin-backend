@@ -8,6 +8,10 @@
         "user"
       ],
       "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://model.adapter.example.com"},
+        "anthropicMessages": {"base_url": "https://model.adapter.example.com"}
+      },
       "displayName": "Sample Model",
       "displayVersion": "1.0.0",
       "iconUrl": "https://example.com/icon.png",

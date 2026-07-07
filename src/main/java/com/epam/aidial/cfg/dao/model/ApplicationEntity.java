@@ -40,6 +40,8 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
 
     private String endpoint;
     private String responsesEndpoint;
+    @Column(columnDefinition = "CLOB")
+    private String interfaces;
     private String iconUrl;
     private String reference;
     private String description;

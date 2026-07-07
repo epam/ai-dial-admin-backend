@@ -77,6 +77,8 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private Integer embeddingDimensions;
     private String endpoint;
     private String responsesEndpoint;
+    @Column(columnDefinition = "CLOB")
+    private String interfaces;
 
     @Embedded
     private ModelContainerEntity modelContainer;

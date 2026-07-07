@@ -16,6 +16,7 @@ public class Model extends RoleBased {
 
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterface> interfaces;
     private String description;
     private String displayName;
     private String displayVersion;

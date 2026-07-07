@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.domain.model.DeploymentInterfaceTypes;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
@@ -8,6 +9,7 @@ import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,7 @@ public class ModelValidator {
     private final DisplayFieldsValidator displayFieldsValidator;
     private final DeploymentValidator deploymentValidator;
     private final FeaturesValidator featuresValidator;
+    private final DeploymentInterfacesValidator deploymentInterfacesValidator;
     private final ModelEndpointUtils modelEndpointUtils;
 
     private final String modelNameValidationPattern;
@@ -36,11 +39,13 @@ public class ModelValidator {
     public ModelValidator(DisplayFieldsValidator displayFieldsValidator,
                           DeploymentValidator deploymentValidator,
                           FeaturesValidator featuresValidator,
+                          DeploymentInterfacesValidator deploymentInterfacesValidator,
                           ModelEndpointUtils modelEndpointUtils,
                           @Value("${validation.model.name:}") String modelNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
         this.featuresValidator = featuresValidator;
+        this.deploymentInterfacesValidator = deploymentInterfacesValidator;
         this.modelEndpointUtils = modelEndpointUtils;
         this.modelNameValidationPattern = modelNameValidationPattern;
     }
@@ -89,6 +94,9 @@ public class ModelValidator {
         ModelSource source = model.getSource();
         String modelName = model.getDeployment().getName();
 
+        deploymentInterfacesValidator.validate(
+                model.getInterfaces(), DeploymentInterfaceTypes.MODEL_INTERFACE_TYPES, "Model", modelName);
+
         // Model source types are mutually exclusive: a model can have either ModelAdapterSource,
         // ModelContainerSource, or ModelEndpointsSource, but not multiple sources simultaneously.
         // This is enforced by the type system (Model has a single 'source' field of type ModelSource).
@@ -119,8 +127,9 @@ public class ModelValidator {
         String completionEndpoint = model.getEndpoint();
         String responsesEndpoint = model.getResponsesEndpoint();
 
-        if (StringUtils.isBlank(completionEndpoint) && StringUtils.isBlank(responsesEndpoint)) {
-            throw new IllegalArgumentException("At least endpoint or responses endpoint is required when source type is 'Model endpoints'. Model: %s"
+        if (StringUtils.isBlank(completionEndpoint) && StringUtils.isBlank(responsesEndpoint)
+                && MapUtils.isEmpty(model.getInterfaces())) {
+            throw new IllegalArgumentException("At least endpoint, responses endpoint or interfaces is required when source type is 'Model endpoints'. Model: %s"
                     .formatted(name));
         }
 

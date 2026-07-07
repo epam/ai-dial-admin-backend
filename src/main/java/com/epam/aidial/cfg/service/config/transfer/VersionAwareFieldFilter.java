@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,6 +28,9 @@ import java.util.Map;
 public class VersionAwareFieldFilter {
 
     private static final String APPLICATION_TYPE_SCHEMAS_KEY = "applicationTypeSchemas";
+    private static final String INTERFACES_KEY = "interfaces";
+    private static final String INTERFACES_DEFINITION_KEY = "DeploymentInterface";
+    private static final List<String> DEPLOYMENT_ENTITY_TYPES = List.of("models", "applications", "interceptors");
 
     private final CoreConfigVersionService coreConfigVersionService;
     private final VersionedSchemaLoader schemaLoader;
@@ -44,11 +48,74 @@ public class VersionAwareFieldFilter {
             JsonNode schema = schemaLoader.loadSchema(version);
             String configJson = objectMapper.writeValueAsString(config);
             JsonNode configNode = objectMapper.readTree(configJson);
-            return filterNodeBySchema(configNode, schema);
+            JsonNode filteredNode = filterNodeBySchema(configNode, schema);
+            removeDeploymentsLeftWithoutRouting(configNode, filteredNode, schema, version);
+            return filteredNode;
         } catch (Exception e) {
             log.error("Failed to filter config for version: {}", version, e);
             throw new SchemaValidationException("Failed to filter config for version: %s".formatted(version), e);
         }
+    }
+
+    /**
+     * Removes deployments whose only routing configuration was the {@code interfaces} map after it has been
+     * stripped by a target schema that does not support it (Core &lt; 0.46.0). Such deployments would be
+     * exported without any endpoint and would be invalid for the target Core version.
+     */
+    private void removeDeploymentsLeftWithoutRouting(JsonNode originalNode, JsonNode filteredNode,
+                                                     JsonNode schema, String version) {
+        JsonNode definitions = schema.get("definitions");
+        if (definitions != null && definitions.has(INTERFACES_DEFINITION_KEY)) {
+            // Target version supports interfaces - nothing is stripped
+            return;
+        }
+
+        for (String entityType : DEPLOYMENT_ENTITY_TYPES) {
+            JsonNode originalEntities = originalNode.get(entityType);
+            JsonNode filteredEntities = filteredNode.get(entityType);
+            if (originalEntities == null || !originalEntities.isObject()
+                    || filteredEntities == null || !filteredEntities.isObject()) {
+                continue;
+            }
+
+            Iterator<Map.Entry<String, JsonNode>> entities = originalEntities.fields();
+            while (entities.hasNext()) {
+                Map.Entry<String, JsonNode> entity = entities.next();
+                String name = entity.getKey();
+                JsonNode originalEntity = entity.getValue();
+                JsonNode filteredEntity = filteredEntities.get(name);
+
+                if (filteredEntity != null
+                        && hasNonEmptyField(originalEntity, INTERFACES_KEY)
+                        && hasNoRouting(filteredEntity)) {
+                    ((ObjectNode) filteredEntities).remove(name);
+                    log.warn("Skipped {} '{}' on export to Core version {}: its only routing configuration "
+                                    + "is 'interfaces', which is not supported by the target version",
+                            entityType, name, version);
+                }
+            }
+        }
+    }
+
+    private boolean hasNoRouting(JsonNode entity) {
+        JsonNode mcp = entity.get("mcp");
+        return !hasNonEmptyField(entity, "endpoint")
+                && !hasNonEmptyField(entity, "responsesEndpoint")
+                && !hasNonEmptyField(entity, "responses_endpoint")
+                && !hasNonEmptyField(entity, "applicationTypeSchemaId")
+                && !hasNonEmptyField(entity, "application_type_schema_id")
+                && (mcp == null || !hasNonEmptyField(mcp, "endpoint"));
+    }
+
+    private boolean hasNonEmptyField(JsonNode node, String fieldName) {
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) {
+            return false;
+        }
+        if (field.isTextual()) {
+            return !field.asText().isBlank();
+        }
+        return !field.isEmpty() || field.isValueNode();
     }
 
     /**
