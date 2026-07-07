@@ -18,6 +18,7 @@ public class ApplicationExim {
     private String version;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
     private String iconUrl;

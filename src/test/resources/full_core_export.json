@@ -132,7 +132,12 @@
         "temperature",
         "seed",
         "system"
-      ]
+      ],
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://model.adapter.test.com"},
+        "openaiResponses": {"base_url": "https://model.adapter.test.com"},
+        "anthropicMessages": {"base_url": "https://model.adapter.test.com"}
+      }
     },
     "testModel2": {
       "name": "testModel2",
@@ -253,6 +258,9 @@
         "allowedTools": ["classify_text"],
         "configDelivery": "header",
         "forwardPerRequestKey": false
+      },
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://app.adapter.test.com"}
       }
     }
   },
@@ -360,7 +368,10 @@
       "dependencies": [
         "dep1",
         "dep2"
-      ]
+      ],
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://interceptor.adapter.test.com"}
+      }
     },
     "testInterceptor2": {
       "name": "testInterceptor2",

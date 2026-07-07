@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.source.ApplicationSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -25,6 +26,8 @@ public class ApplicationDto extends RoleBasedDto {
     private String endpoint;
     @Endpoint
     private String responsesEndpoint;
+    @Valid
+    private Map<String, DeploymentInterfaceDto> interfaces;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String displayVersion;

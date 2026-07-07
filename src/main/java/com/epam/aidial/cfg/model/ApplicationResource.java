@@ -22,6 +22,7 @@ public class ApplicationResource {
     private String name;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
     private String iconUrl;

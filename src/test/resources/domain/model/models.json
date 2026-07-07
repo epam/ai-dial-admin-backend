@@ -136,6 +136,10 @@
     "updatedAt": 12345,
     "dependencies": ["dep1", "dep2"],
     "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
+    "interfaces": {
+      "openaiChatCompletions": {"baseUrl": "https://model.adapter.example.com"},
+      "anthropicMessages": {"baseUrl": "https://model.adapter.example.com"}
+    },
     "embeddingDimensions": 1536
   }
 ]

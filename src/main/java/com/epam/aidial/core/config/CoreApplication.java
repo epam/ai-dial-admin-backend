@@ -37,6 +37,12 @@ public class CoreApplication extends Deployment {
 
     private Mcp mcp;  // 0.42.0
 
+    /**
+     * Supported LLM API interfaces keyed by interface type. Peer of endpoint.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, CoreDeploymentInterface> interfaces; // 0.46.0
+
     // maintain the order of routes defined in the app config
     private LinkedHashMap<String, CoreRoute> routes = new LinkedHashMap<>(); // 0.32.0
 
@@ -168,6 +174,7 @@ public class CoreApplication extends Deployment {
         coreApplication.setReference(null);
         coreApplication.setResponsesDefaults(null);
         coreApplication.setResponsesEndpoint(null);
+        coreApplication.setInterfaces(null);
         coreApplication.setRoutes(null);
         coreApplication.setUpdatedAt(null);
         coreApplication.setViewerUrl(null);

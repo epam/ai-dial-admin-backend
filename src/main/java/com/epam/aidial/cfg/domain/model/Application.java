@@ -19,6 +19,7 @@ public class Application extends RoleBased {
 
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterface> interfaces;
     private String iconUrl;
     private String reference;
     private String description;

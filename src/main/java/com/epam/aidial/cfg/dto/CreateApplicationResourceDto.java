@@ -26,6 +26,8 @@ public class CreateApplicationResourceDto {
     private String endpoint;
     @Endpoint
     private String responsesEndpoint;
+    @Valid
+    private Map<String, DeploymentInterfaceDto> interfaces;
     private String displayName;
     private String displayVersion;
     private String iconUrl;

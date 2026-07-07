@@ -21,7 +21,8 @@ import java.util.List;
 @Mapper(
         componentModel = "spring",
         uses = {
-                DeploymentCoreMapper.class, FeatureCoreMapper.class, RouteCoreMapper.class
+                DeploymentCoreMapper.class, FeatureCoreMapper.class, RouteCoreMapper.class,
+                DeploymentInterfaceCoreMapper.class
         }
 )
 public abstract class ApplicationCoreMapper {
