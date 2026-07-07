@@ -45,6 +45,7 @@ public class Application extends RoleBased {
     private List<DependentRoute> routes;
     private ValidityState validityState;
     private Mcp mcp;
+    private Map<String, ExternalService> externalServices;
 
     @Deprecated
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

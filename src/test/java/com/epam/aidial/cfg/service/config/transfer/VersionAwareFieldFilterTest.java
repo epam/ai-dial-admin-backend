@@ -388,6 +388,45 @@ class VersionAwareFieldFilterTest {
         assertThat(result.get("models").has("m2")).isTrue();
     }
 
+    @Test
+    void filterForTargetVersion_externalServicesKeptAt046AndStrippedAt045() throws IOException {
+        // given
+        Config config = MAPPER.readValue("""
+                {
+                  "applications": {
+                    "app1": {
+                      "endpoint": "http://app/chat/completions",
+                      "externalServices": {
+                        "service1": {
+                          "displayName": "Service 1",
+                          "description": "External service",
+                          "authSettings": {
+                            "authenticationType": "OAUTH",
+                            "clientId": "client-id-1",
+                            "tokenEndpointAuthMethod": "client_secret_post"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when / then: kept at 0.46
+        mockRealSchema("0.46.0");
+        JsonNode kept = filter.filterForTargetVersion(config);
+        JsonNode service = kept.get("applications").get("app1").get("external_services").get("service1");
+        assertThat(service.get("display_name").asText()).isEqualTo("Service 1");
+        assertThat(service.get("auth_settings").get("client_id").asText()).isEqualTo("client-id-1");
+
+        // when / then: stripped at 0.45, application kept (still has endpoint)
+        mockRealSchema("0.45.0");
+        JsonNode stripped = filter.filterForTargetVersion(config);
+        JsonNode app = stripped.get("applications").get("app1");
+        assertThat(app.has("external_services")).isFalse();
+        assertThat(app.get("endpoint").asText()).isEqualTo("http://app/chat/completions");
+    }
+
     private void mockRealSchema(String version) throws IOException {
         JsonNode schema = loadRealSchema(version);
         when(coreConfigVersionService.getVersionForExport()).thenReturn(version);

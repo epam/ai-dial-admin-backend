@@ -48,5 +48,6 @@ public class ApplicationResource {
     private Map<String, Object> applicationProperties;
     private ValidityStateResource validityState;
     private McpResource mcp;
+    private Map<String, ExternalServiceResource> externalServices;
     private String url;
 }

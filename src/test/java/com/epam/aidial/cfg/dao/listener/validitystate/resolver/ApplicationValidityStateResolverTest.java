@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.DependentRouteEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.DeploymentInterfacesEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.ExternalServicesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.FeaturesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.MapPropertiesMapperImpl;
@@ -45,6 +46,7 @@ import java.util.List;
         DeploymentEntityMapperImpl.class,
         MapPropertiesMapperImpl.class,
         DeploymentInterfacesEntityMapperImpl.class,
+        ExternalServicesEntityMapperImpl.class,
         ObjectMapper.class,
         DependentRouteEntityMapperImpl.class,
         FeaturesEntityMapperImpl.class,

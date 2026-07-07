@@ -41,6 +41,13 @@ public class ConfigUtils {
                         route.setUpstreams(removeUpstreamsWithSecrets(route.getUpstreams()));
                     });
                 }
+                if (MapUtils.isNotEmpty(application.getExternalServices())) {
+                    application.getExternalServices().forEach((serviceKey, externalService) -> {
+                        if (externalService.getAuthSettings() != null) {
+                            externalService.getAuthSettings().setClientSecret(null);
+                        }
+                    });
+                }
             });
         }
 

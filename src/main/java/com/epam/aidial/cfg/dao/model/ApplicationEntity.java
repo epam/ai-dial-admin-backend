@@ -84,6 +84,9 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     @Column(columnDefinition = "CLOB")
     private String routes;
 
+    @Column(columnDefinition = "CLOB")
+    private String externalServices;
+
     @PreRemove
     public void preRemove() {
         for (InterceptorEntity interceptor : interceptors) {

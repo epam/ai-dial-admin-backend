@@ -8,10 +8,13 @@ import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
+import com.epam.aidial.cfg.dto.ExternalServiceDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.McpDto;
+import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.source.ApplicationContainerSourceDto;
 import com.epam.aidial.cfg.dto.source.ApplicationEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -98,6 +101,27 @@ public abstract class ApplicationFunctionalTest {
         Collection<ApplicationInfoDto> actualApplications = applicationFacade.getAllApplications();
 
         assertApp(actualApplications, List.of(createApplicationDtoWithEndpointAndLimits("1"), createApplicationDtoWithEndpointAndLimits("2")));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationWithExternalServices() {
+        initRoles();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        ResourceAuthSettingsDto authSettings = new ResourceAuthSettingsDto();
+        authSettings.setAuthenticationType(AuthenticationTypeDto.API_KEY);
+        authSettings.setClientId("external-client-id");
+        authSettings.setClientSecret("external-client-secret");
+        authSettings.setApiKeyHeader("X-Api-Key");
+        ExternalServiceDto externalService = new ExternalServiceDto();
+        externalService.setDisplayName("Test External Service");
+        externalService.setDescription("External service description");
+        externalService.setAuthSettings(authSettings);
+        applicationDto.setExternalServices(Map.of("service1", externalService));
+
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertEquals(applicationDto.getExternalServices(), actual.getExternalServices());
     }
 
     @Test

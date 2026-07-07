@@ -47,4 +47,5 @@ public class ApplicationResourceDto {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResourceDto mcp;
+    private Map<String, ExternalServiceResourceDto> externalServices;
 }

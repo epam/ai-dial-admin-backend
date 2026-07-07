@@ -295,6 +295,14 @@
                 }
               },
               "additionalProperties": false
+            },
+            "externalServices": {
+              "type": "object",
+              "patternProperties": {
+                ".*": {
+                  "$ref": "#/definitions/ExternalService"
+                }
+              }
             }
           }
         }
@@ -1043,6 +1051,20 @@
       "required": [
         "base_url"
       ]
+    },
+    "ExternalService": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "authSettings": {
+          "$ref": "#/definitions/CoreResourceAuthSettings"
+        }
+      }
     }
   }
 }
