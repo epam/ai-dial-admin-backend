@@ -1,9 +1,12 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.AuthenticationType;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DeploymentInterface;
+import com.epam.aidial.cfg.domain.model.ExternalService;
 import com.epam.aidial.cfg.domain.model.Mcp;
+import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import org.assertj.core.api.Assertions;
@@ -40,7 +43,7 @@ class ApplicationValidatorTest {
     @BeforeEach
     void setUp() {
         applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, featuresValidator,
-                new DeploymentInterfacesValidator(), null);
+                new DeploymentInterfacesValidator(), new ResourceAuthSettingsValidator(), null);
     }
 
     @Test
@@ -329,6 +332,82 @@ class ApplicationValidatorTest {
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match the required pattern");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenExternalServiceHasIncompleteOauthAuthSettings() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService(AuthenticationType.OAUTH)));
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must not be blank for Application external service with id:'deploymentName/svc'");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenExternalServiceHasIncompleteApiKeyAuthSettings() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService(AuthenticationType.API_KEY)));
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("API Key header")
+                .hasMessageContaining("Application external service with id:'deploymentName/svc'");
+    }
+
+    @Test
+    void validateUpdate_shouldThrowExceptionWhenExternalServiceHasIncompleteOauthAuthSettings() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService(AuthenticationType.OAUTH)));
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate("deploymentName", application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must not be blank for Application external service with id:'deploymentName/svc'");
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowWhenExternalServiceAuthSettingsAreValid() {
+        ResourceAuthSettings authSettings = new ResourceAuthSettings();
+        authSettings.setAuthenticationType(AuthenticationType.OAUTH);
+        authSettings.setClientId("client-id");
+        authSettings.setClientSecret("client-secret");
+        authSettings.setAuthorizationEndpoint("https://auth");
+        authSettings.setTokenEndpoint("https://token");
+        ExternalService externalService = new ExternalService();
+        externalService.setAuthSettings(authSettings);
+
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService));
+
+        Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
+    }
+
+    private static ExternalService externalService(AuthenticationType authenticationType) {
+        ResourceAuthSettings authSettings = new ResourceAuthSettings();
+        authSettings.setAuthenticationType(authenticationType);
+        ExternalService externalService = new ExternalService();
+        externalService.setAuthSettings(authSettings);
+        return externalService;
     }
 
     @Test

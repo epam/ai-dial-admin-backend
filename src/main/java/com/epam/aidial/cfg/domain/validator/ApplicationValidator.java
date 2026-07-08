@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.DeploymentInterfaceTypes;
+import com.epam.aidial.cfg.domain.model.ExternalService;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.ApplicationContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -26,6 +28,7 @@ public class ApplicationValidator {
     private final DeploymentValidator deploymentValidator;
     private final FeaturesValidator featuresValidator;
     private final DeploymentInterfacesValidator deploymentInterfacesValidator;
+    private final ResourceAuthSettingsValidator resourceAuthSettingsValidator;
 
     private final String applicationNameValidationPattern;
 
@@ -33,11 +36,13 @@ public class ApplicationValidator {
                                 DeploymentValidator deploymentValidator,
                                 FeaturesValidator featuresValidator,
                                 DeploymentInterfacesValidator deploymentInterfacesValidator,
+                                ResourceAuthSettingsValidator resourceAuthSettingsValidator,
                                 @Value("${validation.application.name:}") String applicationNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
         this.featuresValidator = featuresValidator;
         this.deploymentInterfacesValidator = deploymentInterfacesValidator;
+        this.resourceAuthSettingsValidator = resourceAuthSettingsValidator;
         this.applicationNameValidationPattern = applicationNameValidationPattern;
     }
 
@@ -92,6 +97,8 @@ public class ApplicationValidator {
         deploymentInterfacesValidator.validate(
                 application.getInterfaces(), DeploymentInterfaceTypes.APPLICATION_INTERFACE_TYPES, "Application", appName);
 
+        validateExternalServices(application, appName);
+
         ApplicationSource source = application.getSource();
         if (source == null) {
             throw new IllegalArgumentException("Application source must be provided. Application: %s".formatted(appName));
@@ -104,6 +111,22 @@ public class ApplicationValidator {
             validateContainerSource(containerSource, appName);
         } else {
             throw new IllegalArgumentException("Unsupported application source type. Application: %s".formatted(appName));
+        }
+    }
+
+    private void validateExternalServices(Application application, String appName) {
+        Map<String, ExternalService> externalServices = application.getExternalServices();
+        if (MapUtils.isEmpty(externalServices)) {
+            return;
+        }
+
+        for (Map.Entry<String, ExternalService> entry : externalServices.entrySet()) {
+            ExternalService externalService = entry.getValue();
+            if (externalService == null) {
+                continue;
+            }
+            String id = "%s/%s".formatted(appName, entry.getKey());
+            resourceAuthSettingsValidator.validate(externalService.getAuthSettings(), "Application external service", id);
         }
     }
 
