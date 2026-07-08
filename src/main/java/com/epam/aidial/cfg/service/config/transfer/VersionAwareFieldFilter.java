@@ -104,6 +104,7 @@ public class VersionAwareFieldFilter {
                 && !hasNonEmptyField(entity, "responses_endpoint")
                 && !hasNonEmptyField(entity, "applicationTypeSchemaId")
                 && !hasNonEmptyField(entity, "application_type_schema_id")
+                && !hasNonEmptyField(entity, "routes")
                 && (mcp == null || !hasNonEmptyField(mcp, "endpoint"));
     }
 
