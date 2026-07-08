@@ -26,6 +26,10 @@
         "system"
       ],
       "endpoint": "https://endpoint1/embeddings",
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://model.adapter.test.com"},
+        "anthropicMessages": {"base_url": "https://model.adapter.test.com"}
+      },
       "responsesEndpoint": "http://model1/responses",
       "responsesDefaults": {
         "field": "skipped-value"
@@ -83,6 +87,9 @@
         "testRole1"
       ],
       "endpoint": "endpoint",
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://app.adapter.test.com"}
+      },
       "responsesEndpoint": "http://application2/responses",
       "responsesDefaults": {
         "field": "skipped-value"
@@ -194,6 +201,9 @@
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://interceptor.adapter.test.com"}
+      },
       "userRoles": [
         "testRole1"
       ],

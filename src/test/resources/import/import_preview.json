@@ -348,6 +348,9 @@
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
+        "interfaces": {
+          "openaiChatCompletions": {"baseUrl": "https://interceptor.adapter.test.com"}
+        },
         "forwardAuthToken": false,
         "author": "test-author",
         "dependencies": [],
@@ -640,6 +643,10 @@
         "defaults": {
           "max_tokens": 8000
         },
+        "interfaces": {
+          "openaiChatCompletions": {"baseUrl": "https://model.adapter.test.com"},
+          "anthropicMessages": {"baseUrl": "https://model.adapter.test.com"}
+        },
         "interceptors": [
           "testInterceptor1"
         ],
@@ -930,6 +937,9 @@
         "endpoint": "endpoint",
         "source": {
           "$type": "endpoints"
+        },
+        "interfaces": {
+          "openaiChatCompletions": {"baseUrl": "https://app.adapter.test.com"}
         },
         "responsesEndpoint": "http://application2/responses",
         "responsesDefaults": {

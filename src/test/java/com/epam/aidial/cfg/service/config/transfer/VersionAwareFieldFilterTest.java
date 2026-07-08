@@ -388,6 +388,35 @@ class VersionAwareFieldFilterTest {
         assertThat(result.get("models").has("m2")).isTrue();
     }
 
+    @Test
+    void filterForTargetVersion_applicationWithRoutesKeptWhenInterfacesStripped() throws IOException {
+        // given
+        mockRealSchema("0.45.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "applications": {
+                    "app1": {
+                      "interfaces": {
+                        "openaiChatCompletions": {"base_url": "http://app.adapter"}
+                      },
+                      "routes": {
+                        "route1": {"paths": ["/v1/route"]}
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode application = result.get("applications").get("app1");
+        assertThat(application).isNotNull();
+        assertThat(application.has("interfaces")).isFalse();
+        assertThat(application.get("routes").has("route1")).isTrue();
+    }
+
     private void mockRealSchema(String version) throws IOException {
         JsonNode schema = loadRealSchema(version);
         when(coreConfigVersionService.getVersionForExport()).thenReturn(version);
