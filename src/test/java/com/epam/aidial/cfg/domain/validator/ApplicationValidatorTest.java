@@ -389,6 +389,7 @@ class ApplicationValidatorTest {
         authSettings.setAuthorizationEndpoint("https://auth");
         authSettings.setTokenEndpoint("https://token");
         ExternalService externalService = new ExternalService();
+        externalService.setDisplayName("Service display name");
         externalService.setAuthSettings(authSettings);
 
         Application application = new Application();
@@ -402,10 +403,29 @@ class ApplicationValidatorTest {
         Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
     }
 
+    @Test
+    void validateCreation_shouldValidateExternalServiceDisplayName() {
+        ExternalService externalService = externalService(AuthenticationType.NONE);
+
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService));
+
+        applicationValidator.validateCreation(application);
+
+        verify(displayFieldsValidator)
+                .validateDisplayName("Service display name", "Application external service", "deploymentName/svc");
+    }
+
     private static ExternalService externalService(AuthenticationType authenticationType) {
         ResourceAuthSettings authSettings = new ResourceAuthSettings();
         authSettings.setAuthenticationType(authenticationType);
         ExternalService externalService = new ExternalService();
+        externalService.setDisplayName("Service display name");
         externalService.setAuthSettings(authSettings);
         return externalService;
     }

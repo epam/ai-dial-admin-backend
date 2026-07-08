@@ -4,8 +4,8 @@ import jakarta.validation.Valid;
 import lombok.Data;
 
 /**
- * External service an application authenticates against; credentials are managed per user
- * via the resource auth settings, same as toolsets.
+ * External service an application authenticates against. Authentication is configured via the
+ * resource auth settings (OAuth, API key, or none), the same mechanism used by toolsets.
  */
 @Data
 public class ExternalServiceDto {

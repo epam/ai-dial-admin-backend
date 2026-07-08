@@ -126,6 +126,7 @@ public class ApplicationValidator {
                 continue;
             }
             String id = "%s/%s".formatted(appName, entry.getKey());
+            displayFieldsValidator.validateDisplayName(externalService.getDisplayName(), "Application external service", id);
             resourceAuthSettingsValidator.validate(externalService.getAuthSettings(), "Application external service", id);
         }
     }
