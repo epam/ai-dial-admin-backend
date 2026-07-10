@@ -42,4 +42,5 @@ public class CreateApplicationResource {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResource mcp;
+    private Map<String, ExternalServiceResource> externalServices;
 }

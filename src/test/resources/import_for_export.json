@@ -50,6 +50,20 @@
       "dependencies": ["dep1", "dep2"]
     },
     "testApplication2": {
+      "externalServices": {
+        "service1": {
+          "displayName": "Test External Service",
+          "description": "External service description",
+          "authSettings": {
+            "authenticationType": "api_key",
+            "clientId": "external-client-id",
+            "clientSecret": "external-client-secret",
+            "tokenEndpoint": "https://auth.test.com/token",
+            "apiKeyHeader": "X-Api-Key",
+            "tokenEndpointAuthMethod": "CLIENT_SECRET_BASIC"
+          }
+        }
+      },
       "interfaces": {
         "openaiChatCompletions": {"base_url": "https://app.adapter.test.com"}
       },

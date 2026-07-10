@@ -45,4 +45,5 @@ public class ApplicationResourceDto {
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
     private McpResourceDto mcp;
+    private Map<String, ExternalServiceResourceDto> externalServices;
 }

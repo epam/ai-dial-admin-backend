@@ -63,6 +63,8 @@ public class ApplicationDto extends RoleBasedDto {
     private ApplicationSourceDto source;
     private ValidityStateDto validityState;
     private McpDto mcp;
+    @Valid
+    private Map<String, ExternalServiceDto> externalServices;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {

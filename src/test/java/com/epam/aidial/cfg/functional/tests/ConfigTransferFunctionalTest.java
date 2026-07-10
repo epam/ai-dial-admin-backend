@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.AttachmentPathDto;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
+import com.epam.aidial.cfg.dto.ExternalServiceDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -75,6 +76,7 @@ import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
+import com.epam.aidial.core.config.CoreExternalService;
 import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -119,6 +121,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorRunnerDto;
@@ -2903,6 +2906,37 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(routeUpstreamResult.getEndpoint()).isEqualTo("https://route.example.com");
             Assertions.assertThat(routeUpstreamResult.getExtraData()).isEqualTo("{\"retries\":3}");
         });
+    }
+
+    @Test
+    void testExport_CoreFormatApplicationWithExternalServices_KeepsSecretWhenAddSecrets() throws IOException {
+        // given
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        ResourceAuthSettingsDto authSettings = new ResourceAuthSettingsDto();
+        authSettings.setAuthenticationType(AuthenticationTypeDto.API_KEY);
+        authSettings.setApiKeyHeader("X-Api-Key");
+        authSettings.setClientSecret("external-client-secret");
+        ExternalServiceDto externalService = new ExternalServiceDto();
+        externalService.setDisplayName("Test External Service");
+        externalService.setAuthSettings(authSettings);
+        applicationDto.setExternalServices(Map.of("service1", externalService));
+        applicationFacade.createApplication(applicationDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION));
+        request.setAddSecrets(true);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        // then
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        CoreExternalService exported = result.getApplications().get("application1")
+                .getExternalServices().get("service1");
+        Assertions.assertThat(exported.getAuthSettings().getClientSecret()).isEqualTo("external-client-secret");
     }
 
     @SneakyThrows
