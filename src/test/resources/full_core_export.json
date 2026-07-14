@@ -125,6 +125,17 @@
         "dep1",
         "dep2"
       ],
+      "interfaces": {
+        "openaiChatCompletions": {
+          "base_url": "https://model.adapter.test.com"
+        },
+        "openaiResponses": {
+          "base_url": "https://model.adapter.test.com"
+        },
+        "anthropicMessages": {
+          "base_url": "https://model.adapter.test.com"
+        }
+      },
       "type": "embedding",
       "upstreams": [],
       "fieldsHashingOrder": [
@@ -132,12 +143,7 @@
         "temperature",
         "seed",
         "system"
-      ],
-      "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://model.adapter.test.com"},
-        "openaiResponses": {"base_url": "https://model.adapter.test.com"},
-        "anthropicMessages": {"base_url": "https://model.adapter.test.com"}
-      }
+      ]
     },
     "testModel2": {
       "name": "testModel2",
@@ -252,15 +258,17 @@
       "created_at": 123,
       "updated_at": 123,
       "dependencies": [],
+      "interfaces": {
+        "openaiChatCompletions": {
+          "base_url": "https://app.adapter.test.com"
+        }
+      },
       "mcp": {
         "endpoint": "http://localhost:9876/mcp",
         "transport": "http",
         "allowedTools": ["classify_text"],
         "configDelivery": "header",
         "forwardPerRequestKey": false
-      },
-      "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://app.adapter.test.com"}
       }
     }
   },

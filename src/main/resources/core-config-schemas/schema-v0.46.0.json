@@ -137,6 +137,9 @@
             "description": {
               "type": "string"
             },
+            "intro": {
+              "type": "string"
+            },
             "reference": {
               "type": "string"
             },

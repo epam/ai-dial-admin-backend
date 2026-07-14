@@ -763,6 +763,7 @@
           "seed",
           "system"
         ],
+        "interfaces": {},
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import 0>",
@@ -869,7 +870,8 @@
         ],
         "validityState": {
           "valid": true
-        }
+        },
+        "interfaces": {}
       }
     },
     {

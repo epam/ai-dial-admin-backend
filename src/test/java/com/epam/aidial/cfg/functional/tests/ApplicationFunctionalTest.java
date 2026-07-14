@@ -447,6 +447,7 @@ public abstract class ApplicationFunctionalTest {
         expected.setFeatures(defaultCoreFeatures());
         expected.setUserRoles(applicationDto.getRoleLimits().keySet());
         expected.setRoutes(null);
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();

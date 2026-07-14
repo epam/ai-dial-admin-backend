@@ -33,6 +33,7 @@ public class ModelDto extends RoleBasedDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private FeaturesDto features = new FeaturesDto();

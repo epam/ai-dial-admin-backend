@@ -707,6 +707,7 @@ public abstract class InterceptorFunctionalTest {
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,
                       "author": null,
+                      "intro": null,
                       "createdAt": 1000,
                       "updatedAt": 1000,
                       "dependencies": []

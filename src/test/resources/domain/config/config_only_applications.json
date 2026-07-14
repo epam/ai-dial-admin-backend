@@ -19,6 +19,7 @@
       "viewer_url": "https://viewer.example.com",
       "editor_url": "https://editor.example.com",
       "description": "This is a sample application",
+      "intro": "Brief introduction to sample application",
       "reference": "app-ref-123",
       "forward_auth_token": true,
       "features": {

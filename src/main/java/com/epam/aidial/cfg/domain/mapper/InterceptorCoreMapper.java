@@ -18,6 +18,7 @@ public interface InterceptorCoreMapper {
     @Mapping(target = "maxRetryAttempts", ignore = true)
     @Mapping(target = "responsesEndpoint", ignore = true)
     @Mapping(target = "responsesDefaults", ignore = true)
+    @Mapping(target = "intro", ignore = true)
     CoreInterceptor mapInterceptor(Interceptor interceptor);
 
     @Mapping(target = "entities", ignore = true)

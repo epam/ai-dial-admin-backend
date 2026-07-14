@@ -36,6 +36,7 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private String endpoint;
     private String iconUrl;
     private String description;
+    private String intro;
     private String displayName;
     private Set<String> descriptionKeywords;
     private int maxRetryAttempts = 1;

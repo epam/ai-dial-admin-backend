@@ -23,6 +23,7 @@ public class Application extends RoleBased {
     private String iconUrl;
     private String reference;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
     private List<String> inputAttachmentTypes;

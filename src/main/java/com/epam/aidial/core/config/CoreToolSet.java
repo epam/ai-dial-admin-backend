@@ -48,6 +48,9 @@ public class CoreToolSet extends CoreSecuredResource {
         coreToolSet.setDescriptionKeywords(null);
         coreToolSet.setMaxRetryAttempts(null);
         coreToolSet.setDependencies(null);
+        coreToolSet.setIntro(null);
+        coreToolSet.setProvider(null);
+        coreToolSet.setInterfaces(null);
 
         return coreToolSet;
     }

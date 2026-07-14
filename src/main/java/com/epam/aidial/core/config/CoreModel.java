@@ -2,13 +2,11 @@ package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Accessors(chain = true)
@@ -28,12 +26,6 @@ public class CoreModel extends Deployment {
     @JsonAlias({"embeddingDimensions", "embedding_dimensions"})
     private Integer embeddingDimensions;
 
-    /**
-     * Supported LLM API interfaces keyed by interface type. Peer of endpoint/responsesEndpoint.
-     */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private Map<String, CoreDeploymentInterface> interfaces; // 0.46.0
-
     public CoreModel() {
         setMaxRetryAttempts(5);
     }
@@ -52,6 +44,7 @@ public class CoreModel extends Deployment {
         coreModel.setMaxRetryAttempts(null);
         coreModel.setDependencies(null);
         coreModel.setInterfaces(null);
+        coreModel.setIntro(null);
 
         return coreModel;
     }

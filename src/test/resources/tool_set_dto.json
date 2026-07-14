@@ -3,6 +3,7 @@
   "endpoint": "http://sample-endpoint/call",
   "iconUrl": "https://sample-endpoint/icon.png",
   "description": "Tool set for testing",
+  "intro": "Brief introduction to test toolset",
   "displayName": "Sample ToolSet",
   "descriptionKeywords": [
     "MCP",

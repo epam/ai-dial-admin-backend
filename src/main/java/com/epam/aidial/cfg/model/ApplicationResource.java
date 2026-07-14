@@ -49,4 +49,5 @@ public class ApplicationResource {
     private ValidityStateResource validityState;
     private McpResource mcp;
     private String url;
+    private String intro;
 }

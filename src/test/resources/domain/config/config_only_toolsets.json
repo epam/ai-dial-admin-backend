@@ -23,6 +23,7 @@
       "icon_url": "https://example.com/icon.png",
       "display_name": "Sample ToolSet",
       "description": "Git remote tool set",
+      "intro": "Brief introduction to sample toolset",
       "description_keywords": [
         "git",
         "MCP",

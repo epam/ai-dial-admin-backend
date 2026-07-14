@@ -45,6 +45,7 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private String iconUrl;
     private String reference;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
     private List<String> inputAttachmentTypes;

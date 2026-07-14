@@ -23,6 +23,7 @@ public class ApplicationResourceDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

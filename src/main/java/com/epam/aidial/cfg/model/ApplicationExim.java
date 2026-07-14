@@ -43,4 +43,5 @@ public class ApplicationExim {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResource mcp;
+    private String intro;
 }

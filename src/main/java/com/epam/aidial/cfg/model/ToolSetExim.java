@@ -30,6 +30,7 @@ public class ToolSetExim {
     private ResourceAuthSettings authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
+    private String intro;
 
     public enum Transport {
         HTTP, SSE
