@@ -10,6 +10,20 @@
         "user"
       ],
       "endpoint": "https://example.com/api",
+      "external_services": {
+        "service1": {
+          "display_name": "Test External Service",
+          "description": "External service description",
+          "auth_settings": {
+            "authentication_type": "api_key",
+            "client_id": "some-client-id",
+            "client_secret": "some-client-secret",
+            "token_endpoint": "https://some-token-endpoint",
+            "api_key_header": "someApiKeyHeader",
+            "token_endpoint_auth_method": "CLIENT_SECRET_BASIC"
+          }
+        }
+      },
       "interfaces": {
         "openaiChatCompletions": {"base_url": "https://app.adapter.example.com"}
       },

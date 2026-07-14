@@ -269,6 +269,19 @@
         "allowedTools": ["classify_text"],
         "configDelivery": "header",
         "forwardPerRequestKey": false
+      },
+      "external_services": {
+        "service1": {
+          "display_name": "Test External Service",
+          "description": "External service description",
+          "auth_settings": {
+            "authentication_type": "api_key",
+            "client_id": "external-client-id",
+            "token_endpoint": "https://auth.test.com/token",
+            "api_key_header": "X-Api-Key",
+            "token_endpoint_auth_method": "CLIENT_SECRET_BASIC"
+          }
+        }
       }
     }
   },

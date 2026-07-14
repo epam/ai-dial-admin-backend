@@ -3,6 +3,9 @@ package com.epam.aidial.cfg.service.config.export;
 import com.epam.aidial.cfg.service.config.impl.storage.ConfigSource;
 import com.epam.aidial.cfg.service.config.transfer.ConfigTransferLock;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreApplication;
+import com.epam.aidial.core.config.CoreAuthenticationType;
+import com.epam.aidial.core.config.CoreExternalService;
 import com.epam.aidial.core.config.CoreKey;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreResourceAuthSettings;
@@ -18,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -213,6 +217,91 @@ class ConfigExportServiceSecuredImplTest {
         // Verify secured config doesn't contain toolset with empty client secret
         Config secretConfig = securedConfigCaptor.getValue();
         assertTrue(secretConfig.getToolsets().isEmpty());
+    }
+
+    @Test
+    void testExportWithExternalServices() {
+        // given
+        Config config = createTestConfig();
+
+        CoreResourceAuthSettings secretAuthSettings = new CoreResourceAuthSettings();
+        secretAuthSettings.setClientSecret("service-secret-1");
+        secretAuthSettings.setClientId("client-id-1");
+        secretAuthSettings.setAuthenticationType(CoreAuthenticationType.API_KEY);
+        CoreExternalService secretService = new CoreExternalService()
+                .setDisplayName("Service 1")
+                .setAuthSettings(secretAuthSettings);
+
+        CoreExternalService publicService = new CoreExternalService()
+                .setDisplayName("Service 2")
+                .setAuthSettings(new CoreResourceAuthSettings());
+
+        Map<String, CoreExternalService> externalServices = new LinkedHashMap<>();
+        externalServices.put("service1", secretService);
+        externalServices.put("service2", publicService);
+
+        CoreApplication application = new CoreApplication();
+        application.setName("app1");
+        application.setExternalServices(externalServices);
+        config.getApplications().put("app1", application);
+
+        // when
+        configExportService.export(config, true);
+
+        // then
+        verify(configSource).writeConfig(configCaptor.capture(), eq(true));
+        verify(securedConfigSource).writeConfig(securedConfigCaptor.capture(), eq(true));
+
+        // Verify regular config keeps external services but drops the client secret
+        Config regularConfig = configCaptor.getValue();
+        Map<String, CoreExternalService> regularServices =
+                regularConfig.getApplications().get("app1").getExternalServices();
+        assertNull(regularServices.get("service1").getAuthSettings().getClientSecret());
+        assertEquals("client-id-1", regularServices.get("service1").getAuthSettings().getClientId());
+        assertNotNull(regularServices.get("service2"));
+
+        // Verify secured config carries only the secret-bearing service with only secret fields
+        Config secretConfig = securedConfigCaptor.getValue();
+        CoreApplication securedApp = secretConfig.getApplications().get("app1");
+        assertEquals("service-secret-1",
+                securedApp.getExternalServices().get("service1").getAuthSettings().getClientSecret());
+        assertNull(securedApp.getExternalServices().get("service1").getAuthSettings().getClientId());
+        assertEquals(CoreAuthenticationType.API_KEY,
+                securedApp.getExternalServices().get("service1").getAuthSettings().getAuthenticationType());
+        assertNull(securedApp.getExternalServices().get("service2"));
+    }
+
+    @Test
+    void testExportExcludesApplicationWithoutSecretExternalServices() {
+        // given
+        Config config = createTestConfig();
+
+        CoreExternalService publicService = new CoreExternalService()
+                .setDisplayName("Service 1")
+                .setAuthSettings(new CoreResourceAuthSettings());
+
+        Map<String, CoreExternalService> externalServices = new LinkedHashMap<>();
+        externalServices.put("service1", publicService);
+
+        CoreApplication application = new CoreApplication();
+        application.setName("app1");
+        application.setExternalServices(externalServices);
+        config.getApplications().put("app1", application);
+
+        // when
+        configExportService.export(config, true);
+
+        // then
+        verify(configSource).writeConfig(configCaptor.capture(), eq(true));
+        verify(securedConfigSource).writeConfig(securedConfigCaptor.capture(), eq(true));
+
+        // Regular config keeps the external service (no secret to drop)
+        Config regularConfig = configCaptor.getValue();
+        assertNotNull(regularConfig.getApplications().get("app1").getExternalServices().get("service1"));
+
+        // Secured config excludes the application entirely: no routes and no secret-bearing services
+        Config secretConfig = securedConfigCaptor.getValue();
+        assertTrue(secretConfig.getApplications().isEmpty());
     }
 
     private Config createTestConfig() {

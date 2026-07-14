@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -120,6 +121,13 @@ public class ApplicationExporter {
                         upstream.setKey(null);
                         upstream.setSecretExtraData(null);
                     }
+                }
+            });
+        }
+        if (!addSecrets && MapUtils.isNotEmpty(application.getExternalServices())) {
+            application.getExternalServices().forEach((serviceKey, externalService) -> {
+                if (externalService.getAuthSettings() != null) {
+                    externalService.getAuthSettings().setClientSecret(null);
                 }
             });
         }

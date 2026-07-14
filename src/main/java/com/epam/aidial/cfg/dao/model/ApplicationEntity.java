@@ -85,6 +85,9 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     @Column(columnDefinition = "CLOB")
     private String routes;
 
+    @Column(columnDefinition = "CLOB")
+    private String externalServices;
+
     private String appIdentity;
     private boolean allowUserExternalServices;
 

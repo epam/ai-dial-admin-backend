@@ -64,6 +64,8 @@ public class ApplicationDto extends RoleBasedDto {
     private ApplicationSourceDto source;
     private ValidityStateDto validityState;
     private McpDto mcp;
+    @Valid
+    private Map<String, ExternalServiceDto> externalServices;
     private String appIdentity;
     private boolean allowUserExternalServices;
 

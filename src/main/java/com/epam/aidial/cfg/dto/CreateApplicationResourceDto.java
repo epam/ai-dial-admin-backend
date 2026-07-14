@@ -57,6 +57,7 @@ public class CreateApplicationResourceDto {
     private ApplicationResourceSourceDto source;
     private Map<String, Object> applicationProperties = new HashMap<>();
     private McpResourceDto mcp;
+    private Map<String, ExternalServiceResourceDto> externalServices;
     private String appIdentity;
     private boolean allowUserExternalServices;
 }

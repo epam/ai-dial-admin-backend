@@ -31,6 +31,19 @@ class ResourceAuthSettingsValidatorTest {
     }
 
     @Test
+    void validate_shouldThrowExceptionWhenAuthTypeIsNull() {
+        // given
+        ResourceAuthSettings settings = new ResourceAuthSettings();
+        settings.setAuthenticationType(null);
+
+        // when & then
+        assertThatThrownBy(() -> validator.validate(settings, DOMAIN_OBJECT_TYPE, ID))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Authentication type must be defined for %s with id:'%s'"
+                        .formatted(DOMAIN_OBJECT_TYPE, ID));
+    }
+
+    @Test
     void validate_shouldNotThrowExceptionWhenNoneAuthType() {
         // given
         ResourceAuthSettings settings = new ResourceAuthSettings();

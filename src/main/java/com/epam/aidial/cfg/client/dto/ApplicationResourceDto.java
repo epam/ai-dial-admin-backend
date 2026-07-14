@@ -50,4 +50,5 @@ public class ApplicationResourceDto {
     private McpResourceDto mcp;
     private String appIdentity;
     private boolean allowUserExternalServices;
+    private Map<String, ExternalServiceResourceDto> externalServices;
 }

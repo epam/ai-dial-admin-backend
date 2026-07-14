@@ -45,4 +45,5 @@ public class CreateApplicationResource {
     private String intro;
     private String appIdentity;
     private boolean allowUserExternalServices;
+    private Map<String, ExternalServiceResource> externalServices;
 }

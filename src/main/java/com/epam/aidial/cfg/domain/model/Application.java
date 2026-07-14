@@ -48,6 +48,7 @@ public class Application extends RoleBased {
     private Mcp mcp;
     private String appIdentity;
     private boolean allowUserExternalServices;
+    private Map<String, ExternalService> externalServices;
 
     @Deprecated
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

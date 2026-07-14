@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.service.config.impl.storage.ConfigUtils;
 import com.epam.aidial.cfg.service.config.transfer.ConfigTransferLock;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplication;
+import com.epam.aidial.core.config.CoreExternalService;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreResourceAuthSettings;
 import com.epam.aidial.core.config.CoreRoute;
@@ -63,7 +64,8 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
         Map<String, CoreApplication> applications = config.getApplications().entrySet()
                 .stream()
                 .map(e -> Pair.of(e.getKey(), mapApplication(e.getValue())))
-                .filter(p -> MapUtils.isNotEmpty(p.getValue().getRoutes()))
+                .filter(p -> MapUtils.isNotEmpty(p.getValue().getRoutes())
+                        || MapUtils.isNotEmpty(p.getValue().getExternalServices()))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
         secretConfig.setApplications(applications);
 
@@ -112,9 +114,28 @@ public class ConfigExportServiceSecuredImpl implements ConfigExportService {
                 .filter(p -> CollectionUtils.isNotEmpty(p.getValue().getUpstreams()))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue, (a, b) -> a, LinkedHashMap::new));
 
+        Map<String, CoreExternalService> externalServices = Optional.ofNullable(value)
+                .map(CoreApplication::getExternalServices)
+                .stream()
+                .flatMap(map -> map.entrySet().stream())
+                .filter(e -> e.getValue() != null
+                        && e.getValue().getAuthSettings() != null
+                        && StringUtils.isNotEmpty(e.getValue().getAuthSettings().getClientSecret()))
+                .map(e -> Pair.of(e.getKey(), mapExternalService(e.getValue())))
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue, (a, b) -> a, LinkedHashMap::new));
+
         CoreApplication app = CoreApplication.empty();
         app.setRoutes(routes);
+        app.setExternalServices(externalServices.isEmpty() ? null : externalServices);
         return app;
+    }
+
+    private CoreExternalService mapExternalService(CoreExternalService value) {
+        CoreResourceAuthSettings authSettings = CoreResourceAuthSettings.empty();
+        authSettings.setClientSecret(value.getAuthSettings().getClientSecret());
+        authSettings.setAuthenticationType(value.getAuthSettings().getAuthenticationType());
+
+        return new CoreExternalService().setAuthSettings(authSettings);
     }
 
     private CoreToolSet mapToolSet(CoreToolSet value) {

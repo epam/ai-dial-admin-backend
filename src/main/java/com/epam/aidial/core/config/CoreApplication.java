@@ -37,6 +37,13 @@ public class CoreApplication extends Deployment {
 
     private Mcp mcp;  // 0.42.0
 
+    /**
+     * External services the application authenticates against, keyed by service id.
+     */
+    @JsonAlias({"externalServices", "external_services"})
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, CoreExternalService> externalServices; // 0.46.0
+
     // maintain the order of routes defined in the app config
     private LinkedHashMap<String, CoreRoute> routes = new LinkedHashMap<>(); // 0.32.0
 
@@ -180,6 +187,7 @@ public class CoreApplication extends Deployment {
         coreApplication.setResponsesDefaults(null);
         coreApplication.setResponsesEndpoint(null);
         coreApplication.setInterfaces(null);
+        coreApplication.setExternalServices(null);
         coreApplication.setRoutes(null);
         coreApplication.setUpdatedAt(null);
         coreApplication.setViewerUrl(null);
