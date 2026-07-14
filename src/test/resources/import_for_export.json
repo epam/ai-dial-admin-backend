@@ -299,7 +299,8 @@
         "clientSecret": "some-client-secret",
         "authorizationEndpoint": "some-auth-endpoint",
         "tokenEndpoint": "some-token-endpoint",
-        "tokenEndpointAuthMethod": "CLIENT_SECRET_POST"
+        "tokenEndpointAuthMethod": "CLIENT_SECRET_POST",
+        "dynamicallyRegistered": true
       }
     }
   }

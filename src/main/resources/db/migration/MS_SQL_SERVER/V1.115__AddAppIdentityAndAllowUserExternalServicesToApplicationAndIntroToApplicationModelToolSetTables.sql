@@ -20,3 +20,7 @@ alter table model_entity_aud add intro varchar(255);
 alter table tool_set_entity add intro varchar(255);
 alter table tool_set_entity_aud add intro varchar(255);
 
+-- add dynamically_registered field to deployment_entity tables
+alter table deployment_entity add dynamically_registered bit;
+alter table deployment_entity_aud add dynamically_registered bit;
+

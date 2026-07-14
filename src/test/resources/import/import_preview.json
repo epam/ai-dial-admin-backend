@@ -1034,7 +1034,8 @@
               "first",
               "second"
             ],
-            "tokenEndpointAuthMethod": "NONE"
+            "tokenEndpointAuthMethod": "NONE",
+            "dynamicallyRegistered": true
           }
         },
         "displayName": "ToolSet1",

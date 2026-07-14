@@ -923,6 +923,9 @@
             },
             "tokenEndpointAuthMethod": {
               "type": "string"
+            },
+            "dynamicallyRegistered": {
+              "type": "boolean"
             }
           }
         }

@@ -306,7 +306,8 @@
         "client_id": "some-client-id",
         "authorization_endpoint": "some-auth-endpoint",
         "token_endpoint": "some-token-endpoint",
-        "token_endpoint_auth_method": "CLIENT_SECRET_POST"
+        "token_endpoint_auth_method": "CLIENT_SECRET_POST",
+        "dynamically_registered": true
       },
       "transport": "sse",
       "allowed_tools": [

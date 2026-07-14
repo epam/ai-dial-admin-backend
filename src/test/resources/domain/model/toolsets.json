@@ -71,7 +71,8 @@
           "first",
           "second"
         ],
-        "tokenEndpointAuthMethod": "client_secret_basic"
+        "tokenEndpointAuthMethod": "client_secret_basic",
+        "dynamicallyRegistered": true
       }
     },
     "author": "test-author",

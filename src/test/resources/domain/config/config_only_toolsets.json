@@ -56,7 +56,8 @@
           "first",
           "second"
         ],
-        "token_endpoint_auth_method": "CLIENT_SECRET_BASIC"
+        "token_endpoint_auth_method": "CLIENT_SECRET_BASIC",
+        "dynamically_registered": true
       },
       "forward_per_request_key": false,
       "dependencies": []

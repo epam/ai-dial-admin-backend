@@ -18,3 +18,7 @@ alter table if exists model_entity_aud add column if not exists intro varchar(25
 -- add intro field to tool_set tables
 alter table if exists tool_set_entity add column if not exists intro varchar(255);
 alter table if exists tool_set_entity_aud add column if not exists intro varchar(255);
+
+-- add dynamically_registered field to deployment tables
+alter table if exists deployment_entity add column if not exists dynamically_registered boolean;
+alter table if exists deployment_entity_aud add column if not exists dynamically_registered boolean;

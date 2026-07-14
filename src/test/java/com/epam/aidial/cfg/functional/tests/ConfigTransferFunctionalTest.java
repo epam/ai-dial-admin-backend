@@ -3266,6 +3266,7 @@ public abstract class ConfigTransferFunctionalTest {
         authSettings.setApiKeyHeader("someApiKeyHeader");
         authSettings.setScopesSupported(List.of("first", "second"));
         authSettings.setTokenEndpointAuthMethod(TokenEndpointAuthMethodDto.NONE);
+        authSettings.setDynamicallyRegistered(true);
         return authSettings;
     }
 
