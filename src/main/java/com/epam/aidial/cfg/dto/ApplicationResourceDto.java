@@ -46,4 +46,6 @@ public class ApplicationResourceDto {
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
     private McpResourceDto mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
 }

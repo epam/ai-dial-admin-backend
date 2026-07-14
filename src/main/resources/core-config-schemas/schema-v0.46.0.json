@@ -298,6 +298,12 @@
                 }
               },
               "additionalProperties": false
+            },
+            "appIdentity": {
+              "type": "string"
+            },
+            "allowUserExternalServices": {
+              "type": "boolean"
             }
           }
         }

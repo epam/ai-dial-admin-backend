@@ -64,6 +64,8 @@ public class ApplicationDto extends RoleBasedDto {
     private ApplicationSourceDto source;
     private ValidityStateDto validityState;
     private McpDto mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {

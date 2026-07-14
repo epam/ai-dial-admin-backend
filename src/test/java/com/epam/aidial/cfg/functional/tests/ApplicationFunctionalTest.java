@@ -441,6 +441,7 @@ public abstract class ApplicationFunctionalTest {
         expected.setName(applicationDto.getName());
         expected.setDisplayName(applicationDto.getDisplayName());
         expected.setDescription(applicationDto.getDescription());
+        expected.setIntro(applicationDto.getIntro());
         expected.setEndpoint(applicationDto.getEndpoint());
         expected.setDefaults(applicationDto.getDefaults());
         expected.setApplicationProperties(applicationDto.getApplicationProperties());
@@ -449,6 +450,8 @@ public abstract class ApplicationFunctionalTest {
         expected.setRoutes(null);
         expected.setInterfaces(null);
         expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
+        expected.setAppIdentity(applicationDto.getAppIdentity());
+        expected.setAllowUserExternalServices(applicationDto.isAllowUserExternalServices());
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);

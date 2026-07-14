@@ -43,4 +43,6 @@ public class CreateApplicationResource {
     private Map<String, Object> applicationProperties;
     private McpResource mcp;
     private String intro;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
 }
