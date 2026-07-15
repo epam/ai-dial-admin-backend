@@ -125,6 +125,12 @@
             "responsesEndpoint": {
               "type": "string"
             },
+            "interfaces": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/DeploymentInterface"
+              }
+            },
             "displayName": {
               "type": "string"
             },
@@ -495,15 +501,6 @@
         },
         {
           "properties": {
-            "interfaces": {
-              "type": "object",
-              "properties": {
-                "openaiChatCompletions": {
-                  "$ref": "#/definitions/DeploymentInterface"
-                }
-              },
-              "additionalProperties": false
-            }
           }
         }
       ]
