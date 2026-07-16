@@ -1,4 +1,4 @@
--- add intro app_identity, allow_user_external_services fields to application tables
+-- add app_identity, allow_user_external_services fields to application tables
 alter table if exists application_entity add column if not exists app_identity varchar(255);
 alter table if exists application_entity add column if not exists allow_user_external_services boolean;
 update application_entity set allow_user_external_services = false where allow_user_external_services is null;
