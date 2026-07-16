@@ -9,6 +9,7 @@
     "displayVersion": "1.0.0",
     "iconUrl": "https://example.com/icon.png",
     "reference": "model-ref-123",
+    "intro": "Brief introduction to sample model",
     "forwardAuthToken": true,
     "features": {
       "rateEndpoint": "/rate",

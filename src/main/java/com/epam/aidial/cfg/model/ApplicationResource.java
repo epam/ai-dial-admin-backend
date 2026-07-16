@@ -50,4 +50,7 @@ public class ApplicationResource {
     private McpResource mcp;
     private Map<String, ExternalServiceResource> externalServices;
     private String url;
+    private String intro;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
 }

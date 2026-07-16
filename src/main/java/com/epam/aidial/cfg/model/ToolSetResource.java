@@ -34,6 +34,7 @@ public class ToolSetResource {
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
     private String url;
+    private String intro;
 
     public enum Transport {
         HTTP, SSE

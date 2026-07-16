@@ -24,6 +24,7 @@
     "editorUrl": "https://editor.example.com",
     "reference": "app-ref-123",
     "description": "This is a sample application",
+    "intro": "Brief introduction to sample application",
     "displayName": "Sample Application",
     "displayVersion": "1.0.0",
     "inputAttachmentTypes": [

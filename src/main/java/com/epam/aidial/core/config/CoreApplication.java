@@ -38,12 +38,6 @@ public class CoreApplication extends Deployment {
     private Mcp mcp;  // 0.42.0
 
     /**
-     * Supported LLM API interfaces keyed by interface type. Peer of endpoint.
-     */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private Map<String, CoreDeploymentInterface> interfaces; // 0.46.0
-
-    /**
      * External services the application authenticates against, keyed by service id.
      */
     @JsonAlias({"externalServices", "external_services"})
@@ -52,6 +46,17 @@ public class CoreApplication extends Deployment {
 
     // maintain the order of routes defined in the app config
     private LinkedHashMap<String, CoreRoute> routes = new LinkedHashMap<>(); // 0.32.0
+
+    // The app's own actor identity for OBO credential retrieval: SHA-256 hex of its DIAL key, or its workload
+    // client_id (azp). The caller's derived identity must equal it. Absent ⇒ OBO off.
+    @JsonAlias({"appIdentity", "app_identity"})
+    private String appIdentity; // 0.46.0
+
+    // Governance: when true, regular users (not just admins/owners) may author external services on this
+    // app. Admin-set, default false ⇒ today's admin-only authoring is preserved.
+    @JsonAlias({"allowUserExternalServices", "allow_user_external_services"})
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private Boolean allowUserExternalServices = false;  // 0.46.0
 
     @Data
     @Accessors(chain = true)
@@ -186,6 +191,9 @@ public class CoreApplication extends Deployment {
         coreApplication.setRoutes(null);
         coreApplication.setUpdatedAt(null);
         coreApplication.setViewerUrl(null);
+        coreApplication.setIntro(null);
+        coreApplication.setAppIdentity(null);
+        coreApplication.setAllowUserExternalServices(null);
         return coreApplication;
     }
 }

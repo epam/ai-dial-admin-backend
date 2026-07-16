@@ -23,6 +23,7 @@
       "icon_url": "https://example.com/icon.png",
       "display_name": "Sample ToolSet",
       "description": "Git remote tool set",
+      "intro": "Brief introduction to sample toolset",
       "description_keywords": [
         "git",
         "MCP",
@@ -55,7 +56,8 @@
           "first",
           "second"
         ],
-        "token_endpoint_auth_method": "CLIENT_SECRET_BASIC"
+        "token_endpoint_auth_method": "CLIENT_SECRET_BASIC",
+        "dynamically_registered": true
       },
       "forward_per_request_key": false,
       "dependencies": []

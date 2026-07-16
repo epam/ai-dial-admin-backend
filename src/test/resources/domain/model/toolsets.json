@@ -4,6 +4,7 @@
     "endpoint": "http://git-mcp-server/call",
     "iconUrl": "https://example.com/icon.png",
     "description": "Git remote tool set",
+    "intro": "Brief introduction to sample toolset",
     "displayName": "Sample ToolSet",
     "descriptionKeywords": [
       "MCP",
@@ -70,7 +71,8 @@
           "first",
           "second"
         ],
-        "tokenEndpointAuthMethod": "client_secret_basic"
+        "tokenEndpointAuthMethod": "client_secret_basic",
+        "dynamicallyRegistered": true
       }
     },
     "author": "test-author",

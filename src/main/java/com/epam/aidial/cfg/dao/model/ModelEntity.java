@@ -38,6 +38,7 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @OneToOne(targetEntity = DeploymentEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private DeploymentEntity deployment;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
     private String iconUrl;

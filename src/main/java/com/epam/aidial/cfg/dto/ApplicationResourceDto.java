@@ -23,6 +23,7 @@ public class ApplicationResourceDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
@@ -45,5 +46,7 @@ public class ApplicationResourceDto {
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
     private McpResourceDto mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
     private Map<String, ExternalServiceResourceDto> externalServices;
 }

@@ -16,6 +16,7 @@
       "displayVersion": "1.0.0",
       "iconUrl": "https://example.com/icon.png",
       "description": "This is a sample model",
+      "intro": "Brief introduction to sample model",
       "reference": "model-ref-123",
       "forwardAuthToken": true,
       "features": {

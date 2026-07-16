@@ -557,6 +557,8 @@ public abstract class InterceptorFunctionalTest {
         expected.setDescription(interceptorDto.getDescription());
         expected.setEndpoint(interceptorDto.getEndpoint());
         expected.setFeatures(defaultCoreFeatures());
+        expected.setFeatures(defaultCoreFeatures());
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(interceptorDto.getForwardAuthToken());
 
         CoreInterceptor actual = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
@@ -707,6 +709,7 @@ public abstract class InterceptorFunctionalTest {
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,
                       "author": null,
+                      "intro": null,
                       "createdAt": 1000,
                       "updatedAt": 1000,
                       "dependencies": []

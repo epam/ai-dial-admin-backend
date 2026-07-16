@@ -17,6 +17,7 @@ public class ToolSetResourceDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Long createdAt;

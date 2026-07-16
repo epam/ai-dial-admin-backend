@@ -125,6 +125,12 @@
             "responsesEndpoint": {
               "type": "string"
             },
+            "interfaces": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/DeploymentInterface"
+              }
+            },
             "displayName": {
               "type": "string"
             },
@@ -135,6 +141,9 @@
               "type": "string"
             },
             "description": {
+              "type": "string"
+            },
+            "intro": {
               "type": "string"
             },
             "reference": {
@@ -303,6 +312,12 @@
                   "$ref": "#/definitions/ExternalService"
                 }
               }
+            },
+            "appIdentity": {
+              "type": "string"
+            },
+            "allowUserExternalServices": {
+              "type": "boolean"
             }
           }
         }
@@ -486,15 +501,6 @@
         },
         {
           "properties": {
-            "interfaces": {
-              "type": "object",
-              "properties": {
-                "openaiChatCompletions": {
-                  "$ref": "#/definitions/DeploymentInterface"
-                }
-              },
-              "additionalProperties": false
-            }
           }
         }
       ]
@@ -914,6 +920,9 @@
             },
             "tokenEndpointAuthMethod": {
               "type": "string"
+            },
+            "dynamicallyRegistered": {
+              "type": "boolean"
             }
           }
         }

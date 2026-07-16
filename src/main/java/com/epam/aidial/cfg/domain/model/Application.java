@@ -23,6 +23,7 @@ public class Application extends RoleBased {
     private String iconUrl;
     private String reference;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
     private List<String> inputAttachmentTypes;
@@ -45,6 +46,8 @@ public class Application extends RoleBased {
     private List<DependentRoute> routes;
     private ValidityState validityState;
     private Mcp mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
     private Map<String, ExternalService> externalServices;
 
     @Deprecated

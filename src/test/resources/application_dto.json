@@ -13,6 +13,7 @@
   },
   "displayName": "Test Application",
   "description": "It is a test application",
+  "intro": "Brief introduction to test application",
   "displayVersion": "1.0.0",
   "reference": "test_reference",
   "forwardAuthToken": true,

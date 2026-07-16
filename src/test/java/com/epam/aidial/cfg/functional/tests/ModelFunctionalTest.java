@@ -458,11 +458,13 @@ public abstract class ModelFunctionalTest {
         expected.setName(modelDto.getName());
         expected.setDisplayName(modelDto.getDisplayName());
         expected.setDescription(modelDto.getDescription());
+        expected.setIntro(modelDto.getIntro());
         expected.setEndpoint(modelDto.getEndpoint());
         expected.setDefaults(modelDto.getDefaults());
         expected.setFeatures(defaultCoreFeatures());
         expected.setMaxRetryAttempts(modelDto.getMaxRetryAttempts());
         expected.setUserRoles(modelDto.getRoleLimits().keySet());
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(modelDto.getForwardAuthToken());
 
         CoreModel actual = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
@@ -752,6 +754,7 @@ public abstract class ModelFunctionalTest {
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,
                       "author": null,
+                      "intro" : null,
                       "createdAt": 1000,
                       "updatedAt": 1000,
                       "dependencies": [],

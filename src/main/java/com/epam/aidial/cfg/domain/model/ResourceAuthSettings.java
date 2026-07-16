@@ -27,6 +27,8 @@ public class ResourceAuthSettings {
     @NotNull(message = "Authentication method must be defined")
     private TokenEndpointAuthMethod tokenEndpointAuthMethod = TokenEndpointAuthMethod.CLIENT_SECRET_BASIC;
 
+    private Boolean dynamicallyRegistered;
+
     @Override
     public String toString() {
         return "ResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()

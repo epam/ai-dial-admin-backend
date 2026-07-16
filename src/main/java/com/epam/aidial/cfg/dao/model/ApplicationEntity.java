@@ -45,6 +45,7 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private String iconUrl;
     private String reference;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
     private List<String> inputAttachmentTypes;
@@ -86,6 +87,9 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
 
     @Column(columnDefinition = "CLOB")
     private String externalServices;
+
+    private String appIdentity;
+    private boolean allowUserExternalServices;
 
     @PreRemove
     public void preRemove() {

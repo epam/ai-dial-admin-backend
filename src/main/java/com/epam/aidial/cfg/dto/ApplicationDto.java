@@ -33,6 +33,7 @@ public class ApplicationDto extends RoleBasedDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private FeaturesDto features = new FeaturesDto();
@@ -65,6 +66,8 @@ public class ApplicationDto extends RoleBasedDto {
     private McpDto mcp;
     @Valid
     private Map<String, ExternalServiceDto> externalServices;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {

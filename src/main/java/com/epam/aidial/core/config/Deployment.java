@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -23,6 +24,7 @@ public abstract class Deployment extends RoleBasedEntity {
     private String iconUrl;
     private String description;
     private String reference;
+    private String intro; //0.46.0
     /**
      * Forward Http header with authorization token when request is sent to deployment.
      * Authorization token is NOT forwarded by default.
@@ -43,6 +45,11 @@ public abstract class Deployment extends RoleBasedEntity {
      */
     @JsonAlias({"responses_defaults", "responsesDefaults"})
     private Map<String, Object> responsesDefaults = Map.of(); //0.43.0
+    /**
+     * Supported LLM API interfaces keyed by interface-type value. Peer of endpoint/responsesEndpoint.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, CoreDeploymentInterface> interfaces = Map.of(); //0.46.0
     /**
      * List of interceptors to be called for the deployment
      */
