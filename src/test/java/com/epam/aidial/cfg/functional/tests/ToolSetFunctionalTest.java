@@ -639,7 +639,8 @@ public abstract class ToolSetFunctionalTest {
                       },
                       "transport": "HTTP",
                       "allowed_tools": [],
-                      "provider": "test-provider"
+                      "provider": "test-provider",
+                      "vendor_website":"https://www.vendorWebsite.com"
                     }
                   }
                 }
