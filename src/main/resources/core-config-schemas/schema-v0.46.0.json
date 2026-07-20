@@ -951,6 +951,9 @@
             },
             "provider": {
               "type": "string"
+            },
+            "vendorWebsite": {
+              "type": "string"
             }
           }
         }

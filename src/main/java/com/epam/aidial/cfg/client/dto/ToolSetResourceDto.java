@@ -23,6 +23,7 @@ public class ToolSetResourceDto {
     private String iconUrl;
     private String description;
     private String intro;
+    private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private String author;

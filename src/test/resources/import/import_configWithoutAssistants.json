@@ -381,6 +381,7 @@
       "allowedTools": ["branch", "remote"],
       "provider": "some-provider",
       "author": "test-author",
+      "vendorWebsite": "https://www.vendorWebsite.com",
       "createdAt": 12345,
       "updatedAt": 12345,
       "authSettings": {

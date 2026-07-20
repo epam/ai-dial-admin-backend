@@ -19,4 +19,5 @@ public class ToolSetData extends DeploymentData {
     private List<String> allowedTools;
     private String provider;
     private ResourceAuthSettings authSettings;
+    private String vendorWebsite;
 }

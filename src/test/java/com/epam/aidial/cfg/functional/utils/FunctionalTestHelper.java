@@ -91,6 +91,7 @@ public class FunctionalTestHelper {
         toolSet.setTransport(ToolSetDto.TransportDto.HTTP);
         toolSet.setMaxRetryAttempts(1);
         toolSet.setProvider("test-provider");
+        toolSet.setVendorWebsite("https://www.vendorWebsite.com");
         return toolSet;
     }
 

@@ -292,6 +292,7 @@
       "transport": "sse",
       "allowedTools": ["branch", "remote"],
       "provider": "some-provider",
+      "vendor_website": "https://www.vendorWebsite.com",
       "forwardAuthToken": true,
       "authSettings": {
         "authenticationType": "OAUTH",

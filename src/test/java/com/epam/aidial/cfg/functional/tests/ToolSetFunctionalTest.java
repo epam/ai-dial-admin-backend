@@ -488,6 +488,7 @@ public abstract class ToolSetFunctionalTest {
         expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());
         expected.setProvider(toolSetDto.getProvider());
         expected.setUserRoles(toolSetDto.getRoleLimits().keySet());
+        expected.setVendorWebsite("https://www.vendorWebsite.com");
 
         CoreToolSet actual = toolSetFacade.getCoreToolSetWithHash(toolSetDto.getName()).core();
         actual.setCreatedAt(null);

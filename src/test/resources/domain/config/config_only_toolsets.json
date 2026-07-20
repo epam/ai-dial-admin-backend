@@ -24,6 +24,7 @@
       "display_name": "Sample ToolSet",
       "description": "Git remote tool set",
       "intro": "Brief introduction to sample toolset",
+      "vendor_website": "https://www.vendorWebsite.com",
       "description_keywords": [
         "git",
         "MCP",
