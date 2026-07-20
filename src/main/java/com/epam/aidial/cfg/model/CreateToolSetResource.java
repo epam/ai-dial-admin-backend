@@ -20,6 +20,7 @@ public class CreateToolSetResource {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Transport transport;

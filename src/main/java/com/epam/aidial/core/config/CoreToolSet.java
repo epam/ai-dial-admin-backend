@@ -26,6 +26,9 @@ public class CoreToolSet extends CoreSecuredResource {
 
     private String provider;
 
+    @JsonAlias({"vendorWebsite", "vendor_website"})
+    private String vendorWebsite; //0.46.0
+
     public enum Transport {
         HTTP, SSE
     }
@@ -51,6 +54,7 @@ public class CoreToolSet extends CoreSecuredResource {
         coreToolSet.setIntro(null);
         coreToolSet.setProvider(null);
         coreToolSet.setInterfaces(null);
+        coreToolSet.setVendorWebsite(null);
 
         return coreToolSet;
     }

@@ -314,7 +314,8 @@
         "branch",
         "remote"
       ],
-      "provider": "some-provider"
+      "provider": "some-provider",
+      "vendor_website": "https://www.vendorWebsite.com"
     }
   },
   "assistant": {

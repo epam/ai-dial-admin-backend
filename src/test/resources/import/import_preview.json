@@ -1044,6 +1044,7 @@
         "maxRetryAttempts": 1,
         "endpoint": "http://sample-endpoint/api",
         "responsesEndpoint": "http://toolset1/responses",
+        "vendorWebsite": "https://www.vendorWebsite.com",
         "transport": "sse",
         "allowedTools": ["branch", "remote"],
         "provider": "some-provider",
