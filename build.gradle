@@ -107,7 +107,7 @@ dependencies {
     implementation 'info.picocli:picocli-spring-boot-starter:4.7.6'
 
     implementation 'com.h2database:h2'
-    implementation 'org.postgresql:postgresql:42.7.11'
+    implementation 'org.postgresql:postgresql:42.7.12'
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.2.jre11'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.data:spring-data-envers'
@@ -166,6 +166,9 @@ dependencies {
 
     constraints {
         implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.0') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.22.1') {
             because("previous versions have vulnerabilities")
         }
         implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.22') {
