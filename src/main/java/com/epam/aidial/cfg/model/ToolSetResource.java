@@ -24,15 +24,18 @@ public class ToolSetResource {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Long createdAt;
     private Transport transport;
     private List<String> allowedTools;
+    private String provider;
     private ResourceAuthSettings authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
     private String url;
+    private String intro;
 
     public enum Transport {
         HTTP, SSE

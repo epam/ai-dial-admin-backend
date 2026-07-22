@@ -18,6 +18,7 @@ public class CreateApplicationResource {
     private String folderId;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -41,4 +42,8 @@ public class CreateApplicationResource {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResource mcp;
+    private String intro;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private Map<String, ExternalServiceResource> externalServices;
 }

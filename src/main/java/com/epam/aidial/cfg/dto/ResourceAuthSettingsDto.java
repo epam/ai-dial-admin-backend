@@ -30,6 +30,7 @@ public class ResourceAuthSettingsDto {
     private List<String> scopesSupported;
     @NotNull(message = "Authentication method must be defined")
     private TokenEndpointAuthMethodDto tokenEndpointAuthMethod = TokenEndpointAuthMethodDto.CLIENT_SECRET_BASIC;
+    private Boolean dynamicallyRegistered;
 
     @Override
     public String toString() {

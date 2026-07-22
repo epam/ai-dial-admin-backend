@@ -17,11 +17,14 @@ public class ToolSetResourceDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
+    private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Long createdAt;
     private Transport transport;
     private List<String> allowedTools;
+    private String provider;
     private CoreResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;

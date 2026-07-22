@@ -13,6 +13,11 @@
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
       "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://model.adapter.test.com"},
+        "openaiResponses": {"base_url": "https://model.adapter.test.com"},
+        "anthropicMessages": {"base_url": "https://model.adapter.test.com"}
+      },
       "endpoint": "https://endpoint1/embeddings",
       "responsesEndpoint": "https://endpoint1/responses",
       "responsesDefaults": {
@@ -45,6 +50,23 @@
       "dependencies": ["dep1", "dep2"]
     },
     "testApplication2": {
+      "externalServices": {
+        "service1": {
+          "displayName": "Test External Service",
+          "description": "External service description",
+          "authSettings": {
+            "authenticationType": "api_key",
+            "clientId": "external-client-id",
+            "clientSecret": "external-client-secret",
+            "tokenEndpoint": "https://auth.test.com/token",
+            "apiKeyHeader": "X-Api-Key",
+            "tokenEndpointAuthMethod": "CLIENT_SECRET_BASIC"
+          }
+        }
+      },
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://app.adapter.test.com"}
+      },
       "name": "testApplication2",
       "displayName": "Test Application2",
       "displayVersion": "1.0.0",
@@ -109,6 +131,9 @@
   },
   "interceptors": {
     "testInterceptor1": {
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://interceptor.adapter.test.com"}
+      },
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
@@ -206,6 +231,7 @@
           "endpoint": "http://upstream1.example.com",
           "key": "upstream-key-1",
           "extraData": "{\"custom\":\"data1\"}",
+          "secretExtraData": "{\"secret\":\"value1\"}",
           "weight": 1,
           "tier": 0
         },
@@ -213,6 +239,7 @@
           "endpoint": "http://upstream2.example.com",
           "key": "upstream-key-2",
           "extraData": "{\"custom\":\"data2\"}",
+          "secretExtraData": "{\"secret\":\"value2\"}",
           "weight": 2,
           "tier": 1
         }
@@ -264,6 +291,8 @@
       "endpoint": "http://sample-endpoint/api",
       "transport": "sse",
       "allowedTools": ["branch", "remote"],
+      "provider": "some-provider",
+      "vendor_website": "https://www.vendorWebsite.com",
       "forwardAuthToken": true,
       "authSettings": {
         "authenticationType": "OAUTH",
@@ -271,7 +300,8 @@
         "clientSecret": "some-client-secret",
         "authorizationEndpoint": "some-auth-endpoint",
         "tokenEndpoint": "some-token-endpoint",
-        "tokenEndpointAuthMethod": "CLIENT_SECRET_POST"
+        "tokenEndpointAuthMethod": "CLIENT_SECRET_POST",
+        "dynamicallyRegistered": true
       }
     }
   }

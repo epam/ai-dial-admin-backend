@@ -28,6 +28,8 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     @EqualsAndHashCode.Include
     private String name;
     private String endpoint;
+    @Column(columnDefinition = "CLOB")
+    private String interfaces;
     private String iconUrl;
     private String description;
     private String displayName;

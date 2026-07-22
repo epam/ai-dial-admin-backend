@@ -73,7 +73,8 @@
           "$type": "adapter",
           "adapterName": "adapter1",
           "completionEndpointPath": "testModel1/embeddings"
-        }
+        },
+        "interfaces": {}
       }
     },
     {
@@ -116,7 +117,8 @@
           "$type": "adapter",
           "adapterName": "<will be defined during import 0>",
           "completionEndpointPath": "testModel2/embeddings"
-        }
+        },
+        "interfaces": {}
       }
     }
   ],

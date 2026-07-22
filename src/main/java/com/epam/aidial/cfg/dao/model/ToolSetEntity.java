@@ -36,7 +36,9 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private String endpoint;
     private String iconUrl;
     private String description;
+    private String intro;
     private String displayName;
+    private String vendorWebsite;
     private Set<String> descriptionKeywords;
     private int maxRetryAttempts = 1;
     private String author;
@@ -52,6 +54,8 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private TransportEntity transport;
 
     private List<String> allowedTools;
+
+    private String provider;
 
     public enum TransportEntity {
         HTTP, SSE

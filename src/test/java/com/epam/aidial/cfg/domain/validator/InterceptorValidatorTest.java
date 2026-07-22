@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.domain.model.DeploymentInterface;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
@@ -15,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -46,6 +49,7 @@ class InterceptorValidatorTest {
                 idFieldValidator,
                 displayFieldsValidator,
                 featuresValidator,
+                new DeploymentInterfacesValidator(),
                 null
         );
     }
@@ -130,7 +134,39 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Completion endpoint is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
+                .hasMessage("Completion endpoint or interfaces is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
+    }
+
+    @Test
+    void validateEndpointsSource_shouldNotThrowWhenOnlyInterfacesIsSet() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorEndpointsSource());
+        interceptor.setInterfaces(interfaces("openaiChatCompletions", "http://interceptor.test.com"));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));
+    }
+
+    @Test
+    void validateEndpointsSource_shouldThrowWhenInterceptorHasUnsupportedInterfaceType() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorEndpointsSource());
+        interceptor.setInterfaces(interfaces("openaiResponses", "http://interceptor.test.com"));
+
+        // when/then
+        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported interface type 'openaiResponses'");
+    }
+
+    private static Map<String, DeploymentInterface> interfaces(String type, String baseUrl) {
+        DeploymentInterface deploymentInterface = new DeploymentInterface();
+        deploymentInterface.setBaseUrl(baseUrl);
+        return Map.of(type, deploymentInterface);
     }
 
     @Test

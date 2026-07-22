@@ -18,10 +18,12 @@ public class ApplicationEximDto {
     private String version;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceDto> interfaces;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
@@ -42,4 +44,7 @@ public class ApplicationEximDto {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResourceDto mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private Map<String, ExternalServiceResourceDto> externalServices;
 }

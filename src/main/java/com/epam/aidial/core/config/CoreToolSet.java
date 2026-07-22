@@ -24,6 +24,11 @@ public class CoreToolSet extends CoreSecuredResource {
     @JsonAlias({"allowedTools", "allowed_tools"})
     private List<String> allowedTools = List.of();
 
+    private String provider;
+
+    @JsonAlias({"vendorWebsite", "vendor_website"})
+    private String vendorWebsite; //0.46.0
+
     public enum Transport {
         HTTP, SSE
     }
@@ -46,6 +51,10 @@ public class CoreToolSet extends CoreSecuredResource {
         coreToolSet.setDescriptionKeywords(null);
         coreToolSet.setMaxRetryAttempts(null);
         coreToolSet.setDependencies(null);
+        coreToolSet.setIntro(null);
+        coreToolSet.setProvider(null);
+        coreToolSet.setInterfaces(null);
+        coreToolSet.setVendorWebsite(null);
 
         return coreToolSet;
     }

@@ -22,6 +22,7 @@ public class ApplicationResource {
     private String name;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -47,5 +48,9 @@ public class ApplicationResource {
     private Map<String, Object> applicationProperties;
     private ValidityStateResource validityState;
     private McpResource mcp;
+    private Map<String, ExternalServiceResource> externalServices;
     private String url;
+    private String intro;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
 }

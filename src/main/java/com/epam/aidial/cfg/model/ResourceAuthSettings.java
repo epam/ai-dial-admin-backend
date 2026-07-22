@@ -27,6 +27,7 @@ public class ResourceAuthSettings {
     private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
     private TokenEndpointAuthMethod tokenEndpointAuthMethod;
+    private Boolean dynamicallyRegistered;
 
     public enum ResourceAuthStatus {
         SIGNED_IN,

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.DeploymentInterface;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
@@ -20,6 +21,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -37,7 +40,7 @@ class ModelValidatorTest {
     private static final String INVALID_COMPLETION_END_MESSAGE =
             "Completion endpoint path should end with ";
     private static final String MISSING_COMPLETION_AND_RESPONSES_ENDPOINTS_MESSAGE =
-            "At least endpoint or responses endpoint is required ";
+            "At least endpoint, responses endpoint or interfaces is required ";
     private static final String MISSING_COMPLETION_AND_RESPONSES_ENDPOINT_PATHS_MESSAGE =
             "At least endpoint path or responses endpoint path is required ";
     private static final String INVALID_RESPONSES_MESSAGE = "Invalid responses endpoint:";
@@ -68,7 +71,7 @@ class ModelValidatorTest {
     @BeforeEach
     void setUp() {
         modelValidator = new ModelValidator(displayFieldsValidator,
-                deploymentValidator, featuresValidator, modelEndpointUtils, null);
+                deploymentValidator, featuresValidator, new DeploymentInterfacesValidator(), modelEndpointUtils, null);
     }
 
     @Test
@@ -180,6 +183,64 @@ class ModelValidatorTest {
                 null, "/api/responses");
 
         assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowWhenEndpointsSourceAndOnlyInterfacesIsSet() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.CHAT, null);
+        model.setInterfaces(interfaces("openaiChatCompletions", "http://model.adapter.test.com"));
+
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowForAllModelInterfaceTypes() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.CHAT, null);
+        Map<String, DeploymentInterface> interfaces = new HashMap<>();
+        interfaces.putAll(interfaces("openaiChatCompletions", "http://model.adapter.test.com"));
+        interfaces.putAll(interfaces("openaiResponses", "http://model.adapter.test.com"));
+        interfaces.putAll(interfaces("anthropicMessages", "http://model.adapter.test.com"));
+        model.setInterfaces(interfaces);
+
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @Test
+    void validateCreation_shouldThrowForUnsupportedInterfaceType() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.CHAT, null);
+        model.setInterfaces(interfaces("customInterface", "http://model.adapter.test.com"));
+
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported interface type 'customInterface'");
+    }
+
+    @Test
+    void validateCreation_shouldThrowForBlankInterfaceBaseUrl() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.CHAT, null);
+        model.setInterfaces(interfaces("openaiChatCompletions", " "));
+
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Base URL is required for interface 'openaiChatCompletions'");
+    }
+
+    @Test
+    void validateCreation_shouldThrowForInvalidInterfaceBaseUrl() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.CHAT, null);
+        model.setInterfaces(interfaces("openaiChatCompletions", "//invalid.url"));
+
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid base URL '//invalid.url' for interface 'openaiChatCompletions'");
+    }
+
+    private static Map<String, DeploymentInterface> interfaces(String type, String baseUrl) {
+        DeploymentInterface deploymentInterface = new DeploymentInterface();
+        deploymentInterface.setBaseUrl(baseUrl);
+        Map<String, DeploymentInterface> interfaces = new HashMap<>();
+        interfaces.put(type, deploymentInterface);
+        return interfaces;
     }
 
     private static Model createModel(ModelSource source, ModelType type, String endpoint) {

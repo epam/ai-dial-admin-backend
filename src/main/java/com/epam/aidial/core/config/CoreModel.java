@@ -43,6 +43,8 @@ public class CoreModel extends Deployment {
         coreModel.setDescriptionKeywords(null);
         coreModel.setMaxRetryAttempts(null);
         coreModel.setDependencies(null);
+        coreModel.setInterfaces(null);
+        coreModel.setIntro(null);
 
         return coreModel;
     }

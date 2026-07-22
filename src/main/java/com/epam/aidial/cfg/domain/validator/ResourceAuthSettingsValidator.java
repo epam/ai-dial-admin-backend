@@ -14,6 +14,10 @@ public class ResourceAuthSettingsValidator {
         }
 
         AuthenticationType authenticationType = resourceAuthSettings.getAuthenticationType();
+        if (authenticationType == null) {
+            throw new IllegalArgumentException("Authentication type must be defined for %s with id:'%s'"
+                    .formatted(domainObjectType, id));
+        }
         switch (authenticationType) {
             case OAUTH -> validateOauthSettings(resourceAuthSettings, domainObjectType, id);
             case API_KEY -> validateApiKeySettings(resourceAuthSettings, domainObjectType, id);

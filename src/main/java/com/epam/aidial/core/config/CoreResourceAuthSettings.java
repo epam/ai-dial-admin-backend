@@ -61,6 +61,9 @@ public class CoreResourceAuthSettings {
     @JsonAlias({"tokenEndpointAuthMethod", "token_endpoint_auth_method"})
     private String tokenEndpointAuthMethod; // 0.44.0
 
+    @JsonAlias({"dynamicallyRegistered", "dynamically_registered"})
+    private Boolean dynamicallyRegistered; // 0.46.0
+
     @Override
     public String toString() {
         return "CoreResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()

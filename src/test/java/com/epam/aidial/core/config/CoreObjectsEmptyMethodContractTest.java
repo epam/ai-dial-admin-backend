@@ -21,6 +21,16 @@ class CoreObjectsEmptyMethodContractTest {
     }
 
     @Test
+    void coreApplicationEmpty_shouldHaveAllFieldsNull() throws IllegalAccessException {
+        assertAllFieldsNull(CoreApplication.empty());
+    }
+
+    @Test
+    void coreRouteEmpty_shouldHaveAllFieldsNull() throws IllegalAccessException {
+        assertAllFieldsNull(CoreRoute.empty());
+    }
+
+    @Test
     void coreResourceAuthSettingsEmpty_shouldHaveAllFieldsNull() throws IllegalAccessException {
         assertAllFieldsNull(CoreResourceAuthSettings.empty());
     }

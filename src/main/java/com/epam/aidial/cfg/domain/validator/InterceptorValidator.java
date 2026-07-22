@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.domain.model.DeploymentInterfaceTypes;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,16 +25,19 @@ public class InterceptorValidator {
     private final IdFieldValidator idFieldValidator;
     private final DisplayFieldsValidator displayFieldsValidator;
     private final FeaturesValidator featuresValidator;
+    private final DeploymentInterfacesValidator deploymentInterfacesValidator;
 
     private final String interceptorNameValidationPattern;
 
     public InterceptorValidator(IdFieldValidator idFieldValidator,
                                 DisplayFieldsValidator displayFieldsValidator,
                                 FeaturesValidator featuresValidator,
+                                DeploymentInterfacesValidator deploymentInterfacesValidator,
                                 @Value("${validation.interceptor.name:}") String interceptorNameValidationPattern) {
         this.idFieldValidator = idFieldValidator;
         this.displayFieldsValidator = displayFieldsValidator;
         this.featuresValidator = featuresValidator;
+        this.deploymentInterfacesValidator = deploymentInterfacesValidator;
         this.interceptorNameValidationPattern = interceptorNameValidationPattern;
     }
 
@@ -77,9 +82,13 @@ public class InterceptorValidator {
                 ? interceptor.getFeatures().getConfigurationEndpoint()
                 : null;
 
+        deploymentInterfacesValidator.validate(
+                interceptor.getInterfaces(), DeploymentInterfaceTypes.INTERCEPTOR_INTERFACE_TYPES,
+                "Interceptor", interceptorName);
+
         if (source != null) {
             if (source instanceof InterceptorEndpointsSource) {
-                validateEndpointsSource(endpoint, configurationEndpoint, interceptorName);
+                validateEndpointsSource(interceptor, configurationEndpoint, interceptorName);
             } else if (source instanceof InterceptorRunnerSource runnerSource) {
                 validateRunnerSource(runnerSource, interceptorName);
             } else if (source instanceof InterceptorContainerSource containerSource) {
@@ -96,9 +105,10 @@ public class InterceptorValidator {
         validateEndpoint(configurationEndpoint, CONFIGURATION_ENDPOINT_LOG_NAME, interceptorName);
     }
 
-    private void validateEndpointsSource(String completionEndpoint, String configurationEndpoint, String interceptorName) {
-        if (completionEndpoint == null) {
-            throw new IllegalArgumentException("Completion endpoint is required when source type is 'Interceptor endpoints'. Interceptor: %s"
+    private void validateEndpointsSource(Interceptor interceptor, String configurationEndpoint, String interceptorName) {
+        String completionEndpoint = interceptor.getEndpoint();
+        if (completionEndpoint == null && MapUtils.isEmpty(interceptor.getInterfaces())) {
+            throw new IllegalArgumentException("Completion endpoint or interfaces is required when source type is 'Interceptor endpoints'. Interceptor: %s"
                     .formatted(interceptorName));
         }
         validateEndpoint(completionEndpoint, COMPLETION_ENDPOINT_LOG_NAME, interceptorName);

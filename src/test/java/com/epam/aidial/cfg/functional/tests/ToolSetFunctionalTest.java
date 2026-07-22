@@ -486,7 +486,9 @@ public abstract class ToolSetFunctionalTest {
         expected.setDisplayName(toolSetDto.getDisplayName());
         expected.setDescription(toolSetDto.getDescription());
         expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());
+        expected.setProvider(toolSetDto.getProvider());
         expected.setUserRoles(toolSetDto.getRoleLimits().keySet());
+        expected.setVendorWebsite("https://www.vendorWebsite.com");
 
         CoreToolSet actual = toolSetFacade.getCoreToolSetWithHash(toolSetDto.getName()).core();
         actual.setCreatedAt(null);
@@ -636,7 +638,9 @@ public abstract class ToolSetFunctionalTest {
                         "authentication_type": "NONE"
                       },
                       "transport": "HTTP",
-                      "allowed_tools": []
+                      "allowed_tools": [],
+                      "provider": "test-provider",
+                      "vendor_website":"https://www.vendorWebsite.com"
                     }
                   }
                 }

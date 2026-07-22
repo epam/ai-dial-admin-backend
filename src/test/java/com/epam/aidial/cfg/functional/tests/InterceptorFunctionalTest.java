@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
@@ -101,6 +102,20 @@ public abstract class InterceptorFunctionalTest {
 
         Collection<InterceptorDto> actualInterceptors = interceptorFacade.getAllInterceptors();
         assertInterceptors(actualInterceptors, List.of(expected1, expected2));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetInterceptorWithInterfacesOnly() {
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setEndpoint(null);
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://interceptor.adapter.test.com");
+        interceptorDto.setInterfaces(Map.of("openaiChatCompletions", chatInterface));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(interceptorDto.getInterfaces(), actual.getInterfaces());
     }
 
     @Test
@@ -542,6 +557,8 @@ public abstract class InterceptorFunctionalTest {
         expected.setDescription(interceptorDto.getDescription());
         expected.setEndpoint(interceptorDto.getEndpoint());
         expected.setFeatures(defaultCoreFeatures());
+        expected.setFeatures(defaultCoreFeatures());
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(interceptorDto.getForwardAuthToken());
 
         CoreInterceptor actual = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
@@ -692,6 +709,7 @@ public abstract class InterceptorFunctionalTest {
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,
                       "author": null,
+                      "intro": null,
                       "createdAt": 1000,
                       "updatedAt": 1000,
                       "dependencies": []

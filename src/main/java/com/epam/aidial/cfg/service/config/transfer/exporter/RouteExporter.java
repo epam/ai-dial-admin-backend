@@ -55,13 +55,13 @@ public class RouteExporter {
         return routeService.getAllByDeploymentNamesOrderByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
                 .map(route -> removeDependency(route, componentsByName.get(route.getDeployment().getName()).getDependencies(),
                         selectedItemsExportRequest.getExportFormat()))
-                .map(route -> removeUpstreamKey(route, addSecrets))
+                .map(route -> removeSecretData(route, addSecrets))
                 .toList();
     }
 
     private Collection<Route> getRoutes(FullExportRequest fullExportRequest) {
         return routeService.getAllOrderedByDisplayNameAscNameAsc().stream()
-                .map(route -> removeUpstreamKey(route, fullExportRequest.isAddSecrets()))
+                .map(route -> removeSecretData(route, fullExportRequest.isAddSecrets()))
                 .map(route -> removeDependency(route, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
@@ -86,11 +86,12 @@ public class RouteExporter {
         return route;
     }
 
-    private Route removeUpstreamKey(Route route, boolean addSecrets) {
+    private Route removeSecretData(Route route, boolean addSecrets) {
         List<Upstream> upstreams = route.getUpstreams();
         if (CollectionUtils.isNotEmpty(upstreams) && !addSecrets) {
             for (Upstream upstream : upstreams) {
                 upstream.setKey(null);
+                upstream.setSecretExtraData(null);
             }
         }
         return route;

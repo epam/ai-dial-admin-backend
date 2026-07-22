@@ -11,5 +11,7 @@ public class ToolSetDataDto extends DeploymentDataDto {
 
     private String transport;
     private List<String> allowedTools;
+    private String provider;
     private ResourceAuthSettingsDto authSettings;
+    private String vendorWebsite;
 }

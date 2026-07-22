@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.AdapterDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -107,6 +108,26 @@ public abstract class ModelFunctionalTest {
 
         Assertions.assertThrows(EntityNotFoundException.class, () -> modelFacade.getModel(modelDto.getName()));
         Assertions.assertTrue(modelFacade.getAll().isEmpty());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetModelWithInterfacesOnly() {
+        initRoles();
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://model.adapter.test.com");
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        modelDto.setInterfaces(Map.of(
+                "openaiChatCompletions", chatInterface,
+                "anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(modelDto.getInterfaces(), actual.getInterfaces());
     }
 
     @Test
@@ -437,11 +458,13 @@ public abstract class ModelFunctionalTest {
         expected.setName(modelDto.getName());
         expected.setDisplayName(modelDto.getDisplayName());
         expected.setDescription(modelDto.getDescription());
+        expected.setIntro(modelDto.getIntro());
         expected.setEndpoint(modelDto.getEndpoint());
         expected.setDefaults(modelDto.getDefaults());
         expected.setFeatures(defaultCoreFeatures());
         expected.setMaxRetryAttempts(modelDto.getMaxRetryAttempts());
         expected.setUserRoles(modelDto.getRoleLimits().keySet());
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(modelDto.getForwardAuthToken());
 
         CoreModel actual = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
@@ -731,6 +754,7 @@ public abstract class ModelFunctionalTest {
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,
                       "author": null,
+                      "intro" : null,
                       "createdAt": 1000,
                       "updatedAt": 1000,
                       "dependencies": [],

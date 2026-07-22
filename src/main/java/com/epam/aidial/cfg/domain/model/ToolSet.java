@@ -17,7 +17,9 @@ public class ToolSet extends SecuredRoleBased {
     private String endpoint;
     private String iconUrl;
     private String description;
+    private String intro;
     private String displayName;
+    private String vendorWebsite;
     private Set<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private ToolSetSource source;
@@ -28,6 +30,7 @@ public class ToolSet extends SecuredRoleBased {
 
     private Transport transport;
     private List<String> allowedTools = new ArrayList<>();
+    private String provider;
 
     public enum Transport {
         HTTP, SSE
