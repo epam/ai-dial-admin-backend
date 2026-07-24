@@ -177,7 +177,10 @@ dependencies {
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('io.netty:netty-codec-http2:4.2.15.Final') {
+        implementation('io.netty:netty-codec-http2:4.2.16.Final') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('io.netty:netty-codec-compression:4.2.16.Final') {
             because("previous versions have vulnerabilities")
         }
         implementation ('io.netty:netty-handler:4.2.15.Final') {
