@@ -2,7 +2,6 @@ package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.NotNull;
@@ -24,7 +23,6 @@ public class CoreDeploymentInterface { // 0.46.0
     @JsonAlias({"baseUrl", "base_url"})
     private String baseUrl;
 
-    @JsonProperty("deployment_name")
     @JsonAlias({"deploymentName", "deployment_name"})
-    String deploymentName;
+    private String deploymentName;
 }
