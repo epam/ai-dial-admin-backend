@@ -25,7 +25,10 @@
         }
       },
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://app.adapter.example.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://app.adapter.example.com",
+          "deployment_name": "app-deployment"
+        }
       },
       "display_name": "Sample Application",
       "display_version": "1.0.0",
