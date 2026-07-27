@@ -93,6 +93,9 @@ public abstract class AbstractInfluxPerformanceTest {
     private static final String Q_DISTINCT_USER_COUNT = """
             {"$type":"json","query":{"expressions":["count()"],"from":{"distinct":"true","expressions":["user_hash"],"from":"analytics","where":{"$and":[{"$gte":{"left":"_time","right":"'2026-04-13T12:40:00.403Z'"}},{"$lt":{"left":"_time","right":"'2026-04-15T12:40:00.403Z'"}}]}}}}""";
 
+    private static final String Q_DISTINCT_DEPLOYMENTS = """
+            {"$type":"json","query":{"distinct":"true","expressions":["deployment"],"from":"analytics","where":{"$and":[{"$gte":{"left":"_time","right":"'2026-04-13T12:40:00.403Z'"}},{"$lt":{"left":"_time","right":"'2026-04-15T12:40:00.403Z'"}}]}}}""";
+
     private static final String Q_TOTAL_COUNT = """
             {"$type":"json","query":{"expressions":["count()"],"from":"analytics","where":{"$and":[{"$gte":{"left":"_time","right":"'2026-04-13T12:40:00.404Z'"}},{"$lt":{"left":"_time","right":"'2026-04-15T12:40:00.404Z'"}}]}}}""";
 
@@ -120,6 +123,11 @@ public abstract class AbstractInfluxPerformanceTest {
     @Test
     void distinctUserCount() throws Exception {
         measure("distinct_user_count", Q_DISTINCT_USER_COUNT);
+    }
+
+    @Test
+    void distinctDeployments() throws Exception {
+        measure("distinct_deployments", Q_DISTINCT_DEPLOYMENTS);
     }
 
     @Test
