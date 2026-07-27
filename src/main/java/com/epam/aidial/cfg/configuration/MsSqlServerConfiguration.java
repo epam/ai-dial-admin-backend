@@ -36,14 +36,14 @@ public class MsSqlServerConfiguration {
                                                      @Value("${sqlserver.datasource.driver-class-name}") String driverClassName,
                                                      @Value("${azure.auth.clientId:}") String azureClientId,
                                                      @Value("${azure.auth.jdbcAuthMode:ActiveDirectoryMSI}") String jdbcAuthMode) {
-        if (jdbcAuthMode.isEmpty()) {
+        if (jdbcAuthMode.isBlank()) {
             throw new IllegalArgumentException("azure.auth.jdbcAuthMode must not be empty");
         }
         HikariConfig hikariConfig = new HikariConfig();
 
         hikariConfig.setDriverClassName(driverClassName);
         hikariConfig.setJdbcUrl(url);
-        if (!azureClientId.isEmpty()) {
+        if (!azureClientId.isBlank()) {
             hikariConfig.addDataSourceProperty("msiClientId", azureClientId);
         }
         hikariConfig.addDataSourceProperty("authentication", jdbcAuthMode);
