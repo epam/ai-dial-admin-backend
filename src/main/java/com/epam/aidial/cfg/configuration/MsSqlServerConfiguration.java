@@ -35,9 +35,9 @@ public class MsSqlServerConfiguration {
     public DataSource managedAzureAuthTypeDataSource(@Value("${sqlserver.datasource.url}") String url,
                                                      @Value("${sqlserver.datasource.driver-class-name}") String driverClassName,
                                                      @Value("${azure.auth.clientId:}") String azureClientId,
-                                                     @Value("${azure.auth.jdbcAuthMode:ActiveDirectoryMSI}") String jdbcAuthMode) {
+                                                     @Value("${sqlserver.datasource.jdbcAuthMode:ActiveDirectoryMSI}") String jdbcAuthMode) {
         if (jdbcAuthMode.isBlank()) {
-            throw new IllegalArgumentException("azure.auth.jdbcAuthMode must not be empty");
+            throw new IllegalArgumentException("sqlserver.datasource.jdbcAuthMode must not be empty");
         }
         HikariConfig hikariConfig = new HikariConfig();
 
