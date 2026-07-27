@@ -34,13 +34,14 @@ public class MsSqlServerConfiguration {
     @ConditionalOnProperty(value = "datasource.auth.type", havingValue = "azure")
     public DataSource managedAzureAuthTypeDataSource(@Value("${sqlserver.datasource.url}") String url,
                                                      @Value("${sqlserver.datasource.driver-class-name}") String driverClassName,
-                                                     @Value("${azure.auth.clientId}") String azureClientId) {
+                                                     @Value("${azure.auth.clientId}") String azureClientId,
+                                                     @Value("${azure.auth.jdbcAuthMode:ActiveDirectoryDefault}") String jdbcAuthMode) {
         HikariConfig hikariConfig = new HikariConfig();
 
         hikariConfig.setDriverClassName(driverClassName);
         hikariConfig.setJdbcUrl(url);
         hikariConfig.addDataSourceProperty("msiClientId", azureClientId);
-        hikariConfig.addDataSourceProperty("authentication", "ActiveDirectoryMSI");
+        hikariConfig.addDataSourceProperty("authentication", jdbcAuthMode);
 
         return new HikariDataSource(hikariConfig);
     }
