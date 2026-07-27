@@ -34,10 +34,10 @@ public class MsSqlServerConfiguration {
     @ConditionalOnProperty(value = "datasource.auth.type", havingValue = "azure")
     public DataSource managedAzureAuthTypeDataSource(@Value("${sqlserver.datasource.url}") String url,
                                                      @Value("${sqlserver.datasource.driver-class-name}") String driverClassName,
-                                                     @Value("${azure.auth.clientId:}") String azureClientId,
-                                                     @Value("${sqlserver.datasource.azure-jdbc-auth-mode:ActiveDirectoryMSI}") String jdbcAuthMode) {
+                                                     @Value("${azure.auth.clientId}") String azureClientId,
+                                                     @Value("${sqlserver.datasource.azure-jdbc-auth-mode}") String jdbcAuthMode) {
         if (jdbcAuthMode.isBlank()) {
-            throw new IllegalArgumentException("sqlserver.datasource.azure-jdbc-auth-mode must not be empty");
+            throw new IllegalArgumentException("MS_SQL_SERVER_AZURE_JDBC_AUTH_MODE must not be empty");
         }
         HikariConfig hikariConfig = new HikariConfig();
 
