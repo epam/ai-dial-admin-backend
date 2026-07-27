@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.AssistantEntity;
 import com.epam.aidial.cfg.dao.model.AssistantsPropertyEntity;
+import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.GlobalSettingsEntity;
@@ -64,6 +65,8 @@ public class AuditActivityMapper {
             return ActivityResourceType.GlobalSettings;
         } else if (entityClass == AdminSettingsEntity.class) {
             return ActivityResourceType.AdminSettings;
+        } else if (entityClass == CatalogSchemaEntity.class) {
+            return ActivityResourceType.CatalogSchema;
         } else {
             throw new IllegalArgumentException("Unable to find resource type for class " + entityClass);
         }

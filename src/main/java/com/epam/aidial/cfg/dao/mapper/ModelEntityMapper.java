@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.mapper;
 
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
+import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
@@ -18,6 +19,8 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -36,6 +39,7 @@ public abstract class ModelEntityMapper {
     private ModelContainerEntityMapper modelContainerEntityMapper;
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
+    @Mapping(target = "catalogSchemaId", source = "catalogSchema.schemaId")
     public abstract Model toDomain(ModelEntity entity);
 
     @Named("mapSource")
@@ -70,6 +74,7 @@ public abstract class ModelEntityMapper {
                                 AdapterEntity adapterEntity,
                                 String completionEndpointPath,
                                 ModelContainerEntity modelContainer,
+                                CatalogSchemaEntity catalogSchema,
                                 List<RoleLimit> roleLimits,
                                 List<RoleEntity> rolesForLimits) {
         ModelEntity updatedEntity = update(domain, entity);
@@ -126,6 +131,15 @@ public abstract class ModelEntityMapper {
             updatedEntity.setModelContainer(null);
         }
 
+        CatalogSchemaEntity currentCatalogSchema = updatedEntity.getCatalogSchema();
+        if (currentCatalogSchema != null && !currentCatalogSchema.equals(catalogSchema)) {
+            currentCatalogSchema.getModels().remove(updatedEntity);
+        }
+        if (catalogSchema != null && !catalogSchema.equals(currentCatalogSchema)) {
+            catalogSchema.getModels().add(updatedEntity);
+        }
+        updatedEntity.setCatalogSchema(catalogSchema);
+
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.MODEL);
         updatedEntity.getDeployment().setOwner(updatedEntity);
         return updatedEntity;
@@ -138,5 +152,14 @@ public abstract class ModelEntityMapper {
     @Mapping(target = "modelContainer", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "catalogSchema", ignore = true)
     public abstract ModelEntity update(Model domain, @MappingTarget ModelEntity entity);
+
+    protected URI mapStringToUri(String uriString) {
+        try {
+            return uriString == null ? null : new URI(uriString);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid application applicationTypeSchemaId: " + uriString);
+        }
+    }
 }

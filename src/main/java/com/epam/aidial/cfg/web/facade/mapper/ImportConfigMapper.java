@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.Assistant;
+import com.epam.aidial.cfg.domain.model.CatalogSchema;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
@@ -19,6 +20,7 @@ import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.AssistantDto;
+import com.epam.aidial.cfg.dto.CatalogSchemaDto;
 import com.epam.aidial.cfg.dto.ImportActionDto;
 import com.epam.aidial.cfg.dto.ImportComponentDto;
 import com.epam.aidial.cfg.dto.ImportConfigPreviewDto;
@@ -61,6 +63,8 @@ public abstract class ImportConfigMapper {
     private AdapterDtoMapper adapterDtoMapper;
     @Autowired
     private ToolSetDtoMapper toolSetDtoMapper;
+    @Autowired
+    private CatalogSchemaDtoMapper catalogSchemaDtoMapper;
 
     public abstract ImportConfigPreviewDto toImportConfigPreviewDto(ImportConfigPreview importConfigPreview);
 
@@ -106,6 +110,10 @@ public abstract class ImportConfigMapper {
 
     public Collection<ImportComponentDto<ToolSetDto>> mapToolSets(Collection<ImportComponent<ToolSet>> toolSets) {
         return mapGeneric(toolSets, toolSetDtoMapper::toDto);
+    }
+
+    public Collection<ImportComponentDto<CatalogSchemaDto>> mapCatalogSchemas(Collection<ImportComponent<CatalogSchema>> catalogSchemas) {
+        return mapGeneric(catalogSchemas, catalogSchemaDtoMapper::toDto);
     }
 
     public <T, D> Collection<ImportComponentDto<D>> mapGeneric(Collection<ImportComponent<T>> input,

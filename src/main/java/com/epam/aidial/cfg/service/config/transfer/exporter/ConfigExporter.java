@@ -60,6 +60,7 @@ public class ConfigExporter {
     private final AdapterExporter adapterExporter;
     private final ToolSetExporter toolSetExporter;
     private final GlobalSettingsExporter globalSettingsExporter;
+    private final CatalogSchemaExporter catalogSchemaExporter;
 
     private final FullToSelectedItemsExportRequestTransformer fullToSelectedItemsExportRequestTransformer;
 
@@ -97,6 +98,7 @@ public class ConfigExporter {
         config.setApplicationRunners(applicationTypeSchemaExporter.getApplicationTypeSchemas(request));
         var globalSettings = globalSettingsExporter.getGlobalSettings(request);
         config.setGlobalInterceptors(globalSettings.getGlobalInterceptors());
+        config.setCatalogSchemas(catalogSchemaExporter.getCatalogSchemas(request));
         // todo prompts and files
         return config;
     }

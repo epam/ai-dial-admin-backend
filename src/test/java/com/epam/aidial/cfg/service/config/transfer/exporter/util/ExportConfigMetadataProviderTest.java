@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.ADAPTER;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION_TYPE_SCHEMA;
+import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.CATALOG_SCHEMA;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.GLOBAL_INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR_RUNNER;
@@ -98,6 +99,10 @@ class ExportConfigMetadataProviderTest {
                                 ExportConfigComponentMetadata.builder()
                                         .type(GLOBAL_INTERCEPTOR)
                                         .dependencies(Set.of(INTERCEPTOR, INTERCEPTOR_RUNNER))
+                                        .build(),
+                                ExportConfigComponentMetadata.builder()
+                                        .type(CATALOG_SCHEMA)
+                                        .dependencies(Set.of())
                                         .build())
                 ),
 
@@ -139,6 +144,10 @@ class ExportConfigMetadataProviderTest {
                                 ExportConfigComponentMetadata.builder()
                                         .type(GLOBAL_INTERCEPTOR)
                                         .dependencies(Set.of(INTERCEPTOR))
+                                        .build(),
+                                ExportConfigComponentMetadata.builder()
+                                        .type(CATALOG_SCHEMA)
+                                        .dependencies(Set.of())
                                         .build())
                 )
         );

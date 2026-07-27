@@ -4,12 +4,14 @@ import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.CatalogSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
+import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Application;
@@ -65,6 +67,7 @@ public class ApplicationService {
 
     private final ApplicationJpaRepository applicationJpaRepository;
     private final ApplicationTypeSchemaJpaRepository applicationTypeSchemaJpaRepository;
+    private final CatalogSchemaJpaRepository catalogSchemaJpaRepository;
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final ApplicationEntityMapper mapper;
     private final ApplicationContainerEntityMapper applicationContainerEntityMapper;
@@ -374,10 +377,12 @@ public class ApplicationService {
             applicationContainer = applicationContainerEntityMapper.toEntity(containerSource);
         }
 
+        CatalogSchemaEntity catalogSchema = findCatalogSchemaById(domain.getCatalogSchemaId());
+
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
-        return mapper.toEntity(domain, entity, interceptors, applicationTypeSchema, applicationContainer, roleLimits, rolesForLimits);
+        return mapper.toEntity(domain, entity, interceptors, applicationTypeSchema, applicationContainer, catalogSchema, roleLimits, rolesForLimits);
     }
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
@@ -405,5 +410,16 @@ public class ApplicationService {
 
         return applicationTypeSchemaJpaRepository.findById(schemaId)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find application type schema with schema id: " + schemaId));
+    }
+
+    private CatalogSchemaEntity findCatalogSchemaById(URI catalogSchemaId) {
+        String schemaId = catalogSchemaId != null ? catalogSchemaId.toString() : null;
+
+        if (StringUtils.isBlank(schemaId)) {
+            return null;
+        }
+
+        return catalogSchemaJpaRepository.findById(schemaId)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find catalog schema with schema id: " + schemaId));
     }
 }

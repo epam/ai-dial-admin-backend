@@ -2,6 +2,8 @@ package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -11,6 +13,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CoreModel extends Deployment {
     private ModelType type;
     private String tokenizerModel;
@@ -45,7 +48,8 @@ public class CoreModel extends Deployment {
         coreModel.setDependencies(null);
         coreModel.setInterfaces(null);
         coreModel.setIntro(null);
-
+        coreModel.setCatalogSchemaId(null);
+        coreModel.setCatalogProperties(null);
         return coreModel;
     }
 }

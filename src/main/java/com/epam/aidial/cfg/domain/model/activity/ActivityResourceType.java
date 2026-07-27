@@ -20,5 +20,6 @@ public enum ActivityResourceType {
     GlobalSettings,
     AdminSettings,
     Config,
-    System
+    System,
+    CatalogSchema
 }

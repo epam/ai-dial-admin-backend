@@ -78,6 +78,12 @@
     },
     "author": "test-author",
     "createdAt": 12345,
-    "updatedAt": 12345
+    "updatedAt": 12345,
+    "catalogSchemaId": "https://test-catalog-schema.example",
+    "catalogProperties": {
+      "category": "AI ToolSet",
+      "vendor": "Test Vendor",
+      "tags": ["git", "mcp"]
+    }
   }
 ]

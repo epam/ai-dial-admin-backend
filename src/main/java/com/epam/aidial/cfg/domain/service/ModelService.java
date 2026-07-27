@@ -2,11 +2,13 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
+import com.epam.aidial.cfg.dao.jpa.CatalogSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ModelContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
+import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.ModelContainerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
@@ -37,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -60,6 +63,7 @@ public class ModelService {
     private final ModelJpaRepository modelJpaRepository;
     private final InterceptorJpaRepository interceptorJpaRepository;
     private final AdapterJpaRepository adapterJpaRepository;
+    private final CatalogSchemaJpaRepository catalogSchemaJpaRepository;
     private final ModelEntityMapper mapper;
     private final ModelContainerEntityMapper modelContainerEntityMapper;
     private final DeploymentService deploymentService;
@@ -326,11 +330,13 @@ public class ModelService {
             }
         }
 
+        CatalogSchemaEntity catalogSchema = findCatalogSchemaById(domain.getCatalogSchemaId());
+
         List<RoleLimit> roleLimits = ListUtils.emptyIfNull(domain.getDeployment().getRoleLimits());
         List<RoleEntity> rolesForLimits = deploymentService.findRolesByNames(roleLimits.stream().map(RoleLimit::getRole).toList());
 
         return mapper.toEntity(domain, entity, interceptors, adapterEntity, completionEndpointPath, modelContainer,
-                roleLimits, rolesForLimits);
+                catalogSchema, roleLimits, rolesForLimits);
     }
 
     private List<InterceptorEntity> findInterceptorsByNames(List<String> names) {
@@ -355,5 +361,16 @@ public class ModelService {
         }
         return adapterJpaRepository.findById(name)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find Adapter with name: '%s'".formatted(name)));
+    }
+
+    private CatalogSchemaEntity findCatalogSchemaById(URI catalogSchemaId) {
+        String schemaId = catalogSchemaId != null ? catalogSchemaId.toString() : null;
+
+        if (StringUtils.isBlank(schemaId)) {
+            return null;
+        }
+
+        return catalogSchemaJpaRepository.findById(schemaId)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find catalog schema with schema id: " + schemaId));
     }
 }

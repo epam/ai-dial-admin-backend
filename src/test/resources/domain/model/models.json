@@ -141,6 +141,12 @@
       "openaiChatCompletions": {"baseUrl": "https://model.adapter.example.com"},
       "anthropicMessages": {"baseUrl": "https://model.adapter.example.com"}
     },
-    "embeddingDimensions": 1536
+    "embeddingDimensions": 1536,
+    "catalogSchemaId": "https://test-catalog-schema.example",
+    "catalogProperties": {
+      "category": "AI Model",
+      "vendor": "Test Vendor",
+      "tags": ["chat", "completion"]
+    }
   }
 ]

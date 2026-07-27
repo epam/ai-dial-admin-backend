@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.dao.mapper;
 import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
+import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
@@ -19,6 +20,7 @@ import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -38,11 +40,13 @@ public abstract class ApplicationEntityMapper {
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     @Mapping(target = "applicationTypeSchemaId", ignore = true)
+    @Mapping(target = "catalogSchemaId", source = "catalogSchema.schemaId")
     public abstract Application toDomain(ApplicationEntity entity);
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
     @Mapping(target = "applicationTypeSchemaId", ignore = true)
     @Mapping(target = "deployment.roleLimits", ignore = true)
+    @Mapping(target = "catalogSchemaId", source = "catalogSchema.schemaId")
     public abstract Application toDomainWithoutRoleLimits(ApplicationEntity entity);
 
     @Named("mapSource")
@@ -66,6 +70,7 @@ public abstract class ApplicationEntityMapper {
                                       List<InterceptorEntity> interceptors,
                                       ApplicationTypeSchemaEntity applicationTypeSchema,
                                       ApplicationContainerEntity applicationContainer,
+                                      CatalogSchemaEntity catalogSchema,
                                       List<RoleLimit> roleLimits,
                                       List<RoleEntity> rolesForLimits) {
         ApplicationEntity updatedEntity = update(domain, entity);
@@ -102,6 +107,15 @@ public abstract class ApplicationEntityMapper {
             updatedEntity.setApplicationContainer(applicationContainer);
         }
 
+        CatalogSchemaEntity currentCatalogSchema = updatedEntity.getCatalogSchema();
+        if (currentCatalogSchema != null && !currentCatalogSchema.equals(catalogSchema)) {
+            currentCatalogSchema.getApplications().remove(updatedEntity);
+        }
+        if (catalogSchema != null && !catalogSchema.equals(currentCatalogSchema)) {
+            catalogSchema.getApplications().add(updatedEntity);
+        }
+        updatedEntity.setCatalogSchema(catalogSchema);
+
         deploymentEntityMapper.setRoleLimits(updatedEntity.getDeployment(), rolesForLimits, roleLimits);
         updatedEntity.getDeployment().setType(DeploymentTypeEntity.APPLICATION);
         updatedEntity.getDeployment().setOwner(updatedEntity);
@@ -116,6 +130,15 @@ public abstract class ApplicationEntityMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "validityState", ignore = true)
+    @Mapping(target = "catalogSchema", ignore = true)
     protected abstract ApplicationEntity update(Application domain, @MappingTarget ApplicationEntity entity);
+
+    protected URI mapStringToUri(String uriString) {
+        try {
+            return uriString == null ? null : new URI(uriString);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid application applicationTypeSchemaId: " + uriString);
+        }
+    }
 
 }

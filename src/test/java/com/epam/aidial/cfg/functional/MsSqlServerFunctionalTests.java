@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.functional.tests.ApplicationFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ApplicationTypeSchemaFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.AssistantsPropertyFunctionalTest;
+import com.epam.aidial.cfg.functional.tests.CatalogSchemaFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.ConfigTransferFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.CoreConfigAutoImportOnBootstrapFunctionalTest;
 import com.epam.aidial.cfg.functional.tests.InterceptorFunctionalTest;
@@ -114,6 +115,10 @@ public class MsSqlServerFunctionalTests extends FunctionalTestSuite {
 
     @Nested
     class ApplicationTypeSchemaTests extends ApplicationTypeSchemaFunctionalTest {
+    }
+
+    @Nested
+    class CatalogSchemaTests extends CatalogSchemaFunctionalTest {
     }
 
     @Nested

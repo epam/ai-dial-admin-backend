@@ -35,5 +35,6 @@
   "interceptors": {},
   "globalInterceptors": [],
   "applicationTypeSchemas": [],
+  "catalogSchemas": [],
   "toolsets": {}
 }

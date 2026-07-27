@@ -147,6 +147,18 @@ public enum ExportConfigComponentType {
         Set<ExportConfigComponentType> getDirectDependencies(ExportFormat exportFormat) {
             return Set.of(INTERCEPTOR);
         }
+    },
+
+    CATALOG_SCHEMA {
+        @Override
+        public boolean supports(ExportFormat exportFormat) {
+            return true;
+        }
+
+        @Override
+        Set<ExportConfigComponentType> getDirectDependencies(ExportFormat exportFormat) {
+            return Set.of();
+        }
     };
 
     public abstract boolean supports(ExportFormat exportFormat);

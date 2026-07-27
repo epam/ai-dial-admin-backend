@@ -60,4 +60,6 @@ public class CreateApplicationResourceDto {
     private Map<String, ExternalServiceResourceDto> externalServices;
     private String appIdentity;
     private boolean allowUserExternalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

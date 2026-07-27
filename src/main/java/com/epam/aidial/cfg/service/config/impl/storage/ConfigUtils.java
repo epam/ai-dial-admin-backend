@@ -110,6 +110,9 @@ public class ConfigUtils {
         if (MapUtils.isEmpty(config.getToolsets())) {
             config.setToolsets(null);
         }
+        if (MapUtils.isEmpty(config.getCatalogSchemas())) {
+            config.setCatalogSchemas(null);
+        }
     }
 
 }

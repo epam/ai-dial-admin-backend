@@ -89,6 +89,14 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private AdapterEntity adapter;
     private String adapterCompletionEndpointPath;
 
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "catalog_schema_id")
+    private CatalogSchemaEntity catalogSchema;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
+
     @PreRemove
     public void preRemove() {
         for (InterceptorEntity interceptor : interceptors) {
@@ -96,6 +104,9 @@ public class ModelEntity extends TimeTrackableEntity<String> {
         }
         if (adapter != null) {
             adapter.getModels().remove(this);
+        }
+        if (catalogSchema != null) {
+            catalogSchema.getModels().remove(this);
         }
     }
 

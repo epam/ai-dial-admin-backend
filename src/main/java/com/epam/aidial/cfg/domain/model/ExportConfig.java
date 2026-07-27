@@ -19,6 +19,7 @@ public class ExportConfig {
     private Map<String, Role> roles;
     private Map<String, Key> keys;
     private Map<String, ApplicationTypeSchema> applicationRunners;
+    private Map<String, CatalogSchema> catalogSchemas;
     private Map<String, Interceptor> interceptors;
     private Map<String, InterceptorRunner> interceptorRunners;
     private Map<String, Adapter> adapters;

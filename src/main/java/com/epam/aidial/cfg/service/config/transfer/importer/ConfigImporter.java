@@ -39,6 +39,7 @@ public class ConfigImporter {
     private final AdapterImporter adapterImporter;
     private final ToolSetImporter toolSetImporter;
     private final GlobalSettingsImporter globalSettingsImporter;
+    private final CatalogSchemaImporter catalogSchemaImporter;
 
     private final AdminConfigImportBackwardCompatibilityHandler adminConfigImportBackwardCompatibilityHandler;
     private final AuditActivityLogService auditActivityLogService;
@@ -55,6 +56,7 @@ public class ConfigImporter {
 
         var interceptors = interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
         var applicationRunners = applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
+        var catalogSchemas = catalogSchemaImporter.importCatalogSchemas(config.getCatalogSchemas(), resolutionPolicy);
         var adapters = adapterImporter.importAdapters(config.getModels(), importOptions, true);
         var models = modelImporter.importModels(config.getModels(), importOptions);
         var addons = addonImporter.importAddons(config.getAddons(), importOptions);
@@ -72,6 +74,7 @@ public class ConfigImporter {
 
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
         applicationRunners = applicationTypeSchemaImporter.getActualImportedApplicationTypeSchemas(applicationRunners);
+        catalogSchemas = catalogSchemaImporter.getActualImportedCatalogSchemas(catalogSchemas);
         adapters = adapterImporter.getActualImportedAdapters(adapters);
         models = modelImporter.getActualImportedModels(models);
         addons = addonImporter.getActualImportedAddons(addons);
@@ -81,6 +84,7 @@ public class ConfigImporter {
         toolSets = toolSetImporter.getActualImportedToolSets(toolSets);
         roles = roleImporter.getActualImportedRoles(roles);
         keys = keyImporter.getActualImportedKeys(keys);
+
 
         return ImportConfigPreview.builder()
                 .roles(roles)
@@ -95,6 +99,7 @@ public class ConfigImporter {
                 .assistants(assistants)
                 .toolSets(toolSets)
                 .globalInterceptors(globalInterceptors)
+                .catalogSchemas(catalogSchemas)
                 .build();
     }
 
@@ -111,6 +116,7 @@ public class ConfigImporter {
         var interceptorRunners = interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
         var interceptors = interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
         var applicationRunners = applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
+        var catalogSchemas = catalogSchemaImporter.importAdminCatalogSchemas(config.getCatalogSchemas(), resolutionPolicy);
         var routes = routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
         var adapters = adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
         var models = modelImporter.importAdminModels(config.getModels(), importOptions);
@@ -127,6 +133,7 @@ public class ConfigImporter {
         interceptorRunners = interceptorRunnerImporter.getActualImportedInterceptorRunners(interceptorRunners);
         interceptors = interceptorImporter.getActualImportedInterceptors(interceptors);
         applicationRunners = applicationTypeSchemaImporter.getActualImportedApplicationTypeSchemas(applicationRunners);
+        catalogSchemas = catalogSchemaImporter.getActualImportedCatalogSchemas(catalogSchemas);
         routes = routeImporter.getActualImportedRoutes(routes);
         adapters = adapterImporter.getActualImportedAdapters(adapters);
         models = modelImporter.getActualImportedModels(models);
@@ -147,6 +154,7 @@ public class ConfigImporter {
                 .applications(applications)
                 .toolSets(toolSets)
                 .globalInterceptors(globalInterceptors)
+                .catalogSchemas(catalogSchemas)
                 .build();
     }
 
@@ -164,6 +172,7 @@ public class ConfigImporter {
 
             interceptorImporter.importInterceptors(config.getInterceptors(), resolutionPolicy);
             applicationTypeSchemaImporter.importSchemas(config.getApplicationTypeSchemas(), resolutionPolicy);
+            catalogSchemaImporter.importCatalogSchemas(config.getCatalogSchemas(), resolutionPolicy);
             adapterImporter.importAdapters(config.getModels(), importOptions, false);
             modelImporter.importModels(config.getModels(), importOptions);
             addonImporter.importAddons(config.getAddons(), importOptions);
@@ -186,6 +195,7 @@ public class ConfigImporter {
             interceptorRunnerImporter.importAdminInterceptorRunners(config.getInterceptorRunners(), resolutionPolicy);
             interceptorImporter.importAdminInterceptors(config.getInterceptors(), resolutionPolicy);
             applicationTypeSchemaImporter.importAdminSchemas(config.getApplicationRunners(), resolutionPolicy);
+            catalogSchemaImporter.importAdminCatalogSchemas(config.getCatalogSchemas(), resolutionPolicy);
             routeImporter.importAdminRoutes(config.getRoutes(), importOptions);
             adapterImporter.importAdminAdapters(config.getAdapters(), importOptions);
             modelImporter.importAdminModels(config.getModels(), importOptions);

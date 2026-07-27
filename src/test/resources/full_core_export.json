@@ -490,5 +490,20 @@
       },
       "$defs": {}
     }
+  ],
+  "catalogSchemas": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://test-catalog-schema.example",
+      "type": "OBJECT",
+      "title": "Test Catalog Schema",
+      "description": "Test catalog schema for models",
+      "dial:catalogEntityType": "MODEL",
+      "dial:catalogDisplayName": "Test Model Catalog",
+      "dial:defaultLocale": "en-US",
+      "properties": {},
+      "required": [],
+      "$defs": {}
+    }
   ]
 }
