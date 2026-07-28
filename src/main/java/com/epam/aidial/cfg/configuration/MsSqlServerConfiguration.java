@@ -43,9 +43,7 @@ public class MsSqlServerConfiguration {
 
         hikariConfig.setDriverClassName(driverClassName);
         hikariConfig.setJdbcUrl(url);
-        if (!azureClientId.isBlank()) {
-            hikariConfig.addDataSourceProperty("msiClientId", azureClientId);
-        }
+        hikariConfig.addDataSourceProperty("msiClientId", azureClientId);
         hikariConfig.addDataSourceProperty("authentication", jdbcAuthMode);
 
         return new HikariDataSource(hikariConfig);
