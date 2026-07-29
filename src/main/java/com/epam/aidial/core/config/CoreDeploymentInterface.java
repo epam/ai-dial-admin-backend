@@ -22,7 +22,4 @@ public class CoreDeploymentInterface { // 0.46.0
     @NotNull(message = "base_url must be defined")
     @JsonAlias({"baseUrl", "base_url"})
     private String baseUrl;
-
-    @JsonAlias({"deploymentName", "deployment_name"})
-    private String deploymentName;
 }

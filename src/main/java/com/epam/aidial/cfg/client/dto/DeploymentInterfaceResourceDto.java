@@ -15,5 +15,4 @@ import lombok.NoArgsConstructor;
 public class DeploymentInterfaceResourceDto {
 
     private String baseUrl;
-    private String deploymentName;
 }
