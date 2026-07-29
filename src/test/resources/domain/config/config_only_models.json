@@ -9,10 +9,7 @@
       ],
       "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
       "interfaces": {
-        "openaiChatCompletions": {
-          "base_url": "https://model.adapter.example.com",
-          "deployment_name": "custom-deployment"
-        },
+        "openaiChatCompletions": {"base_url": "https://model.adapter.example.com"},
         "anthropicMessages": {"base_url": "https://model.adapter.example.com"}
       },
       "displayName": "Sample Model",

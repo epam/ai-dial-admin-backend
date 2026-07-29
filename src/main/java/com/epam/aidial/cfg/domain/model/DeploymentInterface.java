@@ -10,5 +10,4 @@ import lombok.Data;
 public class DeploymentInterface {
 
     private String baseUrl;
-    private String deploymentName;
 }

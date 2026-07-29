@@ -4,10 +4,7 @@
     "name": "SampleInterceptor",
     "endpoint": "https://example.com/interceptor",
     "interfaces": {
-      "openaiChatCompletions": {
-        "baseUrl": "https://interceptor.adapter.example.com",
-        "deploymentName": "interceptor-deployment"
-      }
+      "openaiChatCompletions": {"baseUrl": "https://interceptor.adapter.example.com"}
     },
     "iconUrl": "https://example.com/icon.png",
     "description": "This is a sample interceptor",
