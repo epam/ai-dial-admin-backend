@@ -293,10 +293,11 @@ class FluxQueryBuilderTest {
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> group(columns: ["deployment", "_field"])
+                |> first()
                 |> keep(columns: ["deployment"])
                 |> group()
-                |> distinct(column: "deployment")
-                |> rename(columns: {_value: "deployment"})""");
+                |> unique(column: "deployment")""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("deployment"));
     }
 
@@ -327,10 +328,11 @@ class FluxQueryBuilderTest {
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
+                |> group(columns: ["deployment", "_field"])
+                |> first()
                 |> keep(columns: ["deployment"])
                 |> group()
-                |> distinct(column: "deployment")
-                |> rename(columns: {_value: "deployment"})""");
+                |> unique(column: "deployment")""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("deployment"));
     }
 
@@ -360,10 +362,12 @@ class FluxQueryBuilderTest {
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> group(columns: ["deployment", "_field"])
+                |> first()
                 |> keep(columns: ["deployment"])
                 |> group()
-                |> distinct(column: "deployment")
-                |> rename(columns: {_value: "a"})""");
+                |> unique(column: "deployment")
+                |> rename(columns: {deployment: "a"})""");
         assertThat(actual.getColumnNames()).isEqualTo(List.of("a"));
     }
 
