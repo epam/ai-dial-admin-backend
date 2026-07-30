@@ -30,8 +30,8 @@ CREATE TABLE catalog_schema_entity_aud (
     properties text,
     required text array,
     topics text array,
-    created_at_ms bigint not null,
-    updated_at_ms bigint not null,
+    created_at_ms bigint,
+    updated_at_ms bigint,
     PRIMARY KEY (rev, schema_id)
 );
 
