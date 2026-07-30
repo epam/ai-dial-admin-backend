@@ -210,6 +210,21 @@
       "required": []
     }
   ],
+  "catalogSchemas": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://test-catalog-schema.example",
+      "type": "object",
+      "title": "Test Catalog Schema",
+      "description": "Test catalog schema for models",
+      "dial:catalogEntityType": "model",
+      "dial:catalogDisplayName": "Test Model Catalog",
+      "dial:defaultLocale": "en",
+      "properties": {},
+      "required": [],
+      "$defs": {}
+    }
+  ],
   "routes": {
     "test_route1": {
       "name": "test_route1",

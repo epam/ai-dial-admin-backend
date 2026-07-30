@@ -81,6 +81,11 @@ public class CatalogSchemaService {
     }
 
     @Transactional
+    public void update(String schemaId, CatalogSchema schema) {
+        update(schemaId, schema, ANY_HASH);
+    }
+
+    @Transactional
     public String update(String id, CatalogSchema catalogSchema, String hash) {
         CatalogSchemaEntity entity = jpaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(id)));
@@ -126,7 +131,7 @@ public class CatalogSchemaService {
                 .collect(Collectors.toList());
     }
 
-    private Optional<CatalogSchema> tryGet(String id) {
+    public Optional<CatalogSchema> tryGet(String id) {
         return jpaRepository.findById(id).map(mapper::toDomain);
     }
 

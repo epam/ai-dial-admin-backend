@@ -6,7 +6,6 @@ import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.service.CatalogSchemaService;
 import com.epam.aidial.cfg.dto.CatalogSchemaDto;
-import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.web.facade.mapper.CatalogSchemaDtoMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,9 +16,13 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
+import static com.epam.aidial.cfg.domain.model.ImportAction.CREATE;
+import static com.epam.aidial.cfg.domain.model.ImportAction.SKIP;
+import static com.epam.aidial.cfg.domain.model.ImportAction.UPDATE;
 
 @Service
 @Slf4j
@@ -48,8 +51,11 @@ public class CatalogSchemaImporter {
     public List<ImportComponent<CatalogSchema>> importAdminCatalogSchemas(Map<String, CatalogSchema> catalogSchemas,
                                                                           ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(catalogSchemas)) {
-            return catalogSchemas.values().stream()
-                    .map(catalogSchema -> importCatalogSchema(catalogSchema, resolutionPolicy))
+            return catalogSchemas.entrySet().stream()
+                    .map((schemaEntry) -> {
+                        var schema = schemaEntry.getValue();
+                        return process(schemaEntry.getKey(), schema, resolutionPolicy);
+                    })
                     .toList();
         }
         return Collections.emptyList();
@@ -65,40 +71,53 @@ public class CatalogSchemaImporter {
         }
     }
 
-    private ImportComponent<CatalogSchema> importCatalogSchema(CatalogSchema catalogSchema,
-                                                               ConflictResolutionPolicy resolutionPolicy) {
-        String schemaId = catalogSchema.getSchemaId();
-        CatalogSchema existing = null;
-
-        try {
-            existing = catalogSchemaService.get(schemaId);
-        } catch (EntityNotFoundException e) {
-            // Schema doesn't exist, will create it
+    private ImportComponent<CatalogSchema> process(String schemaId,
+                                                   CatalogSchema schema,
+                                                   ConflictResolutionPolicy resolutionPolicy) {
+        Optional<CatalogSchema> existingCatalogSchema = catalogSchemaService.tryGet(schemaId);
+        if (existingCatalogSchema.isPresent()) {
+            ImportAction importAction = handleExisting(schema, resolutionPolicy, schemaId);
+            return new ImportComponent<>(importAction, existingCatalogSchema.get(), schema);
+        } else {
+            catalogSchemaService.create(schema);
+            return new ImportComponent<>(CREATE, null, schema);
         }
+    }
 
-        if (existing == null) {
-            catalogSchemaService.create(catalogSchema);
-            CatalogSchema created = catalogSchemaService.get(schemaId);
-            return new ImportComponent<>(ImportAction.CREATE, null, created);
-        }
-
-        if (resolutionPolicy == ConflictResolutionPolicy.SKIP) {
-            return new ImportComponent<>(ImportAction.SKIP, existing, existing);
-        }
-
-        // OVERRIDE policy
-        catalogSchemaService.update(schemaId, catalogSchema, ANY_HASH);
-        CatalogSchema updated = catalogSchemaService.get(schemaId);
-        return new ImportComponent<>(ImportAction.UPDATE, existing, updated);
+    private ImportAction handleExisting(CatalogSchema newSchema, ConflictResolutionPolicy resolutionPolicy, String schemaId) {
+        return switch (resolutionPolicy) {
+            case SKIP -> SKIP; // Do nothing, the existing applicationTypeSchema will remain unchanged.
+            case OVERRIDE -> {
+                catalogSchemaService.update(schemaId, newSchema);
+                yield UPDATE;
+            }
+        };
     }
 
     public List<ImportComponent<CatalogSchema>> getActualImportedCatalogSchemas(List<ImportComponent<CatalogSchema>> importedSchemas) {
+        List<String> ids = importedSchemas.stream()
+                .map(ImportComponent::getNext)
+                .map(CatalogSchema::getSchemaId)
+                .toList();
+        Map<String, CatalogSchema> importedCatalogSchemaByIds = catalogSchemaService.getAllByIds(ids)
+                .stream()
+                .collect(Collectors.toMap(CatalogSchema::getSchemaId, Function.identity()));
+
         return importedSchemas.stream()
-                .map(component -> {
-                    String schemaId = component.getNext() != null ? component.getNext().getSchemaId() : component.getPrev().getSchemaId();
-                    CatalogSchema actualSchema = catalogSchemaService.get(schemaId);
-                    return new ImportComponent<>(component.getImportAction(), component.getPrev(), actualSchema);
+                .map(importComponent -> {
+                    var next = importedCatalogSchemaByIds.get(importComponent.getNext().getSchemaId());
+                    var prev = importComponent.getPrev();
+                    clearTxDependentFields(next);
+                    clearTxDependentFields(prev);
+                    return new ImportComponent<>(importComponent.getImportAction(), prev, next);
                 })
                 .toList();
+    }
+
+    private void clearTxDependentFields(CatalogSchema catalogSchema) {
+        if (catalogSchema != null) {
+            catalogSchema.setCreatedAt(null);
+            catalogSchema.setUpdatedAt(null);
+        }
     }
 }

@@ -53,19 +53,19 @@ public class CoreCatalogSchema {
 
     public enum CatalogEntityType {
         @JsonAlias("MODEL")
-        @JsonProperty("MODEL")
+        @JsonProperty("model")
         MODEL,
         @JsonAlias("AGENT")
-        @JsonProperty("AGENT")
+        @JsonProperty("agent")
         AGENT,
         @JsonAlias("TOOLSET")
-        @JsonProperty("TOOLSET")
+        @JsonProperty("toolset")
         TOOLSET,
         @JsonAlias("SKILL")
-        @JsonProperty("SKILL")
+        @JsonProperty("skill")
         SKILL,
         @JsonAlias("INTERCEPTOR")
-        @JsonProperty("INTERCEPTOR")
+        @JsonProperty("interceptor")
         INTERCEPTOR
     }
 }

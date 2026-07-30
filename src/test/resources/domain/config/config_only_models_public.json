@@ -4,12 +4,12 @@
     "sampleDeployment": {
       "name": "sampleDeployment",
       "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
-      "display_name": "Sample Model",
-      "display_version": "1.0.0",
-      "icon_url": "https://example.com/icon.png",
+      "displayName": "Sample Model",
+      "displayVersion": "1.0.0",
+      "iconUrl": "https://example.com/icon.png",
       "description": "This is a sample model",
       "reference": "model-ref-123",
-      "forward_auth_token": true,
+      "forwardAuthToken": true,
       "features": {
         "rate_endpoint": "/rate",
         "tokenize_endpoint": "/tokenize",
@@ -35,28 +35,28 @@
         "custom_temperature_supported": true,
         "reasoning_efforts": ["effort1", "effort2"]
       },
-      "input_attachment_types": [
+      "inputAttachmentTypes": [
         "pdf",
         "docx"
       ],
-      "max_input_attachments": 5,
+      "maxInputAttachments": 5,
       "defaults": {
         "timeout": "30s",
         "language": "en"
       },
-      "responses_defaults": {},
+      "responsesDefaults": {},
       "interceptors": [
         "auth",
         "logging"
       ],
-      "description_keywords": [
+      "descriptionKeywords": [
         "AI",
         "ML"
       ],
-      "max_retry_attempts": 3,
+      "maxRetryAttempts": 3,
       "type": "chat",
-      "fields_hashing_order": ["prompt", "temperature", "seed", "system"],
-      "tokenizer_model": "gpt-4-tokenizer",
+      "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
+      "tokenizerModel": "gpt-4-tokenizer",
       "limits": {
         "maxTotalTokens": 4096,
         "maxPromptTokens": 2048,
@@ -87,12 +87,12 @@
           "tier": 2
         }
       ],
-      "override_name": "Custom Model Override",
+      "overrideName": "Custom Model Override",
       "author": "test-author",
-      "created_at": 12345,
-      "updated_at": 12345,
+      "createdAt": 12345,
+      "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
-      "embedding_dimensions": 1536
+      "embeddingDimensions": 1536
     }
   },
   "addons": {},
