@@ -722,16 +722,15 @@ public abstract class ModelFunctionalTest {
                   "models": {
                     "model1": {
                       "name": "model1",
-                      "user_roles": [],
+                      "userRoles": [],
                       "endpoint": null,
-                      "responses_endpoint": null,
-                      "display_name": "model1",
-                      "display_version": null,
-                      "icon_url": null,
+                      "responsesEndpoint": null,
+                      "displayName": "model1",
+                      "displayVersion": null,
+                      "iconUrl": null,
                       "description": "description1",
                       "reference": null,
-                      "intro": null,
-                      "forward_auth_token": false,
+                      "forwardAuthToken": false,
                       "features": {
                         "system_prompt_supported": true,
                         "tools_supported": false,
@@ -747,21 +746,20 @@ public abstract class ModelFunctionalTest {
                         "max_tokens_supported": true,
                         "custom_temperature_supported": true
                       },
-                      "input_attachment_types": null,
-                      "max_input_attachments":null,
+                      "inputAttachmentTypes": null,
+                      "maxInputAttachments":null,
                       "defaults": {},
-                      "responses_defaults": {},
+                      "responsesDefaults": {},
                       "interceptors": [],
-                      "description_keywords": [],
-                      "max_retry_attempts": 1,
+                      "descriptionKeywords": [],
+                      "maxRetryAttempts": 1,
                       "author": null,
-                      "created_at": 1000,
-                      "updated_at": 1000,
+                      "intro" : null,
+                      "createdAt": 1000,
+                      "updatedAt": 1000,
                       "dependencies": [],
-                      "catalog_schema_id": null,
-                      "catalog_properties": null,
                       "type": null,
-                      "tokenizer_model": null,
+                      "tokenizerModel": null,
                       "limits": null,
                       "pricing": null,
                       "upstreams": [
@@ -779,9 +777,9 @@ public abstract class ModelFunctionalTest {
                           "tier":0
                         }
                       ],
-                      "override_name": null,
-                      "fields_hashing_order": ["prefix.body.tools","prefix.body.messages"],
-                      "embedding_dimensions": 1536
+                      "overrideName": null,
+                      "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"],
+                      "embeddingDimensions": 1536
                     }
                   }
                 }
