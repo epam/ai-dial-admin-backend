@@ -17,10 +17,7 @@
       }
     },
     "interfaces": {
-      "openaiChatCompletions": {
-        "baseUrl": "https://app.adapter.example.com",
-        "deploymentName": "app-deployment"
-      }
+      "openaiChatCompletions": {"baseUrl": "https://app.adapter.example.com"}
     },
     "iconUrl": "https://example.com/icon.png",
     "viewerUrl": "https://viewer.example.com",

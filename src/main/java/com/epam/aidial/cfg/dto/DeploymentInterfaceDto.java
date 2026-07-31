@@ -14,6 +14,4 @@ public class DeploymentInterfaceDto {
     @Endpoint
     @NotBlank(message = "Base URL is required")
     private String baseUrl;
-
-    private String deploymentName;
 }
