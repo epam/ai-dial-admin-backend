@@ -37,12 +37,14 @@ public abstract class ToolSetCoreMapper {
     @Mapping(target = "interfaces", ignore = true)
     @Mapping(target = "authSettings", source = "deployment.authSettings")
     @Mapping(target = "forwardPerRequestKey", source = "deployment.forwardPerRequestKey")
+    @Mapping(target = "description", expression = "java(toolSet.getDescription())")
     public abstract CoreToolSet mapToolSet(ToolSet toolSet);
 
     @Mapping(target = "deployment", source = "coreToolSet", qualifiedByName = "toSecuredResource")
     @Mapping(target = "source", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "description", expression = "java(coreToolSet.getDescription())")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public abstract ToolSet mapToolSet(CoreToolSet coreToolSet, @Context List<RoleLimit> roleLimits, @MappingTarget ToolSet toolSet);
 

@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {
-        DeploymentEntityMapper.class
+        DeploymentEntityMapper.class, LocalizedValueEntityMapper.class
 })
 public abstract class ToolSetEntityMapper {
 

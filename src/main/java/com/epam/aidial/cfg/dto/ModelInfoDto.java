@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.Data;
 
 import java.time.Instant;
@@ -11,8 +12,8 @@ public class ModelInfoDto {
     private String name;
     private String overrideName;
     private String endpoint;
-    private String displayName;
-    private String displayVersion;
+    private LocalizedValue displayName;
+    private LocalizedValue displayVersion;
     private String description;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

@@ -16,6 +16,7 @@ import java.util.List;
         componentModel = "spring",
         uses = {
                 DeploymentCoreMapper.class,
+                LocalizedValueMapper.class
         }
 )
 public abstract class AddonCoreMapper {
@@ -23,6 +24,8 @@ public abstract class AddonCoreMapper {
     public abstract Addon copy(Addon addon);
 
     @Mapping(target = "deployment", source = "coreAddon", qualifiedByName = "toDeployment")
+    @Mapping(target = "displayName", source = "coreAddon.displayName", qualifiedByName = "localizedValueToString")
+    @Mapping(target = "description", source = "coreAddon.description", qualifiedByName = "localizedValueToString")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

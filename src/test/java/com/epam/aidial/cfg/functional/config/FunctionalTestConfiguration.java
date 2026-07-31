@@ -39,6 +39,7 @@ import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
@@ -117,6 +118,14 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
+    public com.epam.aidial.cfg.configuration.LocalizationProperties localizationProperties() {
+        com.epam.aidial.cfg.configuration.LocalizationProperties properties =
+                new com.epam.aidial.cfg.configuration.LocalizationProperties();
+        properties.setLocale("en");
+        return properties;
+    }
+
+    @Bean
     public ConfigExportProperties configExportProperties() {
         return new ConfigExportProperties();
     }
@@ -125,7 +134,7 @@ public class FunctionalTestConfiguration {
     public CoreConfigRetriever configSource() {
         CoreModel model = new CoreModel();
         model.setName("testModel");
-        model.setDisplayName("testModel displayName");
+        model.setDisplayName(LocalizedValue.of("testModel displayName"));
         model.setEndpoint("https://endpoint1/chat/completions");
 
         Config config = new Config();

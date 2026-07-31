@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.Data;
 
 import java.util.List;
@@ -14,9 +15,9 @@ public class Interceptor {
     private String endpoint;
     private Map<String, DeploymentInterface> interfaces;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
     private Set<String> topics;
-    private String displayName;
+    private LocalizedValue displayName;
     private Boolean forwardAuthToken;
     private String author;
     private Long createdAt;

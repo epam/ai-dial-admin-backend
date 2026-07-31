@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
@@ -209,14 +210,14 @@ public abstract class ToolSetFunctionalTest {
         toolSetFacade.createToolSet(toolSetDto);
 
         ToolSetDto updatedToolSet = createToolSetDto("1");
-        updatedToolSet.setDescription("New ToolSet description");
+        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
 
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
         var expected = createToolSetDto("1");
-        expected.setDescription("New ToolSet description");
+        expected.setDescription(LocalizedValue.of("New ToolSet description"));
 
         assertToolSet(actual, expected);
     }
@@ -257,14 +258,14 @@ public abstract class ToolSetFunctionalTest {
         var hash = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).hash();
 
         ToolSetDto updatedToolSet = createToolSetDto("1");
-        updatedToolSet.setDescription("New ToolSet description");
+        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
 
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, hash);
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
         var expected = createToolSetDto("1");
-        expected.setDescription("New ToolSet description");
+        expected.setDescription(LocalizedValue.of("New ToolSet description"));
 
         assertToolSet(actual, expected);
     }
@@ -275,7 +276,7 @@ public abstract class ToolSetFunctionalTest {
         toolSetFacade.createToolSet(toolSetDto);
 
         ToolSetDto updatedToolSet = createToolSetDto("1");
-        updatedToolSet.setDescription("New ToolSet description");
+        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
                 () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "test"));
@@ -286,7 +287,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
         ToolSetDto updatedToolSet = createToolSetDto("2");
-        updatedToolSet.setDescription("New ToolSet description");
+        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
@@ -385,7 +386,7 @@ public abstract class ToolSetFunctionalTest {
 
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName("container-toolset");
-        toolSetDto.setDescription("Container toolset");
+        toolSetDto.setDescription(LocalizedValue.of("Container toolset"));
 
         ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
                 containerId,
@@ -438,7 +439,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName(refreshedToolSetName);
 
-        toolSetDto.setDescription("Refresh toolset");
+        toolSetDto.setDescription(LocalizedValue.of("Refresh toolset"));
 
         ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
                 containerId,
@@ -520,7 +521,7 @@ public abstract class ToolSetFunctionalTest {
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenToolSetIsNotEqualToConfigToolSetAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         ToolSetDto toolSetDto = createToolSetDto("1");
-        toolSetDto.setDescription("description OLD");
+        toolSetDto.setDescription(LocalizedValue.of("description OLD"));
         toolSetFacade.createToolSet(toolSetDto);
 
         JsonNode config = coreConfig();

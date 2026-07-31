@@ -1,29 +1,36 @@
 package com.epam.aidial.cfg.service;
 
+import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.exception.ValidationException;
 import com.epam.aidial.core.config.Deployment;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Objects;
 
+@Component
+@RequiredArgsConstructor
 public class Assertions {
 
-    public static void assertUniqueDisplayName(Map<String, ? extends Deployment> deployments, String newDisplayName) {
+    private final LocalizationProperties localizationProperties;
+
+    public void assertUniqueDisplayName(Map<String, ? extends Deployment> deployments, String newDisplayName) {
         if (StringUtils.isEmpty(newDisplayName)) {
             return;
         }
         for (Map.Entry<String, ? extends Deployment> entry : deployments.entrySet()) {
             String entityName = entry.getKey();
             Deployment deployment = entry.getValue();
-            String currentValue = deployment.getDisplayName();
+            String currentValue = deployment.getDisplayName() != null ? deployment.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
             if (StringUtils.isNotEmpty(currentValue) && Objects.equals(newDisplayName, currentValue)) {
                 throw new ValidationException("displayName is not unique. displayName '" + newDisplayName + "' already exists (" + entityName + ")");
             }
         }
     }
 
-    public static void assertUniqueDisplayNameAndVersion(Map<String, ? extends Deployment> deployments, String newDisplayName, String newDisplayVersion) {
+    public void assertUniqueDisplayNameAndVersion(Map<String, ? extends Deployment> deployments, String newDisplayName, String newDisplayVersion) {
         if (StringUtils.isEmpty(newDisplayName) && StringUtils.isEmpty(newDisplayVersion)) {
             return;
         }
@@ -32,7 +39,7 @@ public class Assertions {
             String entityName = entry.getKey();
             Deployment deployment = entry.getValue();
 
-            String displayName = deployment.getDisplayName();
+            String displayName = deployment.getDisplayName() != null ? deployment.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
             String displayVersion = deployment.getDisplayVersion();
 
             boolean isEqualDisplayNameAndDisplayVersion = isEqualDisplayNameAndDisplayVersion(displayName, displayVersion, newDisplayName, newDisplayVersion);

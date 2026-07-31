@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
@@ -158,13 +159,13 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
-        updatedApplication.setDescription("new application description");
+        updatedApplication.setDescription(LocalizedValue.of(Map.of("en", "new application description")));
 
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createApplicationDtoWithEndpointAndLimits("1");
-        expected.setDescription("new application description");
+        expected.setDescription(LocalizedValue.of(Map.of("en", "new application description")));
         assertApplication(actual, expected);
     }
 
@@ -179,7 +180,7 @@ public abstract class ApplicationFunctionalTest {
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
 
-        updatedApplication.setDescription("new model description");
+        updatedApplication.setDescription(LocalizedValue.of("New ToolSet description"));
         updatedApplication.setDefaults(Map.of());
         updatedApplication.setInterceptors(List.of("interceptor1"));
 
@@ -196,7 +197,7 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("2");
-        updatedApplication.setDescription("new application description");
+        updatedApplication.setDescription(LocalizedValue.of("New ToolSet description"));
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
@@ -240,7 +241,7 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
-        updatedApplication.setDescription("new application description");
+        updatedApplication.setDescription(LocalizedValue.of("New ToolSet description"));
 
         var hash = applicationFacade.getApplicationWithHash(applicationDto.getName()).hash();
 
@@ -248,7 +249,7 @@ public abstract class ApplicationFunctionalTest {
 
         var actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createApplicationDtoWithEndpointAndLimits("1");
-        expected.setDescription("new application description");
+        expected.setDescription(LocalizedValue.of("New ToolSet description"));
         assertApplication(actual, expected);
     }
 
@@ -268,7 +269,7 @@ public abstract class ApplicationFunctionalTest {
 
         InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorDto.setName("int1");
-        interceptorDto.setDescription("int1_dsc");
+        interceptorDto.setDescription(LocalizedValue.of("int1_dsc"));
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         interceptorFacade.createInterceptor(interceptorDto);
 
@@ -406,12 +407,12 @@ public abstract class ApplicationFunctionalTest {
         initRoles();
 
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
-        applicationDto.setDisplayName("display_name");
+        applicationDto.setDisplayName(LocalizedValue.of("display_name"));
         applicationDto.setDisplayVersion("1.0");
         applicationFacade.createApplication(applicationDto);
 
         ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
-        applicationDto2.setDisplayName("display_name");
+        applicationDto2.setDisplayName(LocalizedValue.of("display_name"));
         applicationDto2.setDisplayVersion("1.0");
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
@@ -426,14 +427,14 @@ public abstract class ApplicationFunctionalTest {
         initRoles();
 
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
-        applicationDto.setDisplayName("display_name");
+        applicationDto.setDisplayName(LocalizedValue.of("display_name"));
         applicationFacade.createApplication(applicationDto);
 
         ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
-        applicationDto2.setDisplayName("display_name_2");
+        applicationDto2.setDisplayName(LocalizedValue.of("display_name_2"));
         applicationFacade.createApplication(applicationDto2);
 
-        applicationDto.setDisplayName("display_name_2");
+        applicationDto.setDisplayName(LocalizedValue.of("display_name_2"));
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
                 EntityAlreadyExistsException.class,
@@ -517,7 +518,7 @@ public abstract class ApplicationFunctionalTest {
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenApplicationIsNotEqualToConfigApplicationAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
-        applicationDto.setDescription("description OLD");
+        applicationDto.setDescription(LocalizedValue.of("description OLD"));
         applicationFacade.createApplication(applicationDto);
 
         JsonNode config = coreConfig();

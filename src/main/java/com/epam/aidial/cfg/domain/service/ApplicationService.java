@@ -1,18 +1,21 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.client.ToolsClient;
+import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.ApplicationJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
+import com.epam.aidial.cfg.dao.mapper.LocalizedValueEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
 import com.epam.aidial.cfg.dao.model.InterceptorEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.ApplicationComparator;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.RoleBased;
@@ -78,6 +81,9 @@ public class ApplicationService {
     private final ContainerEndpointResolver endpointResolver;
     private final ApplicationRefreshService applicationRefreshService;
     private final ToolsClient toolsClient;
+    private final LocalizationProperties localizationProperties;
+    private final ApplicationComparator applicationComparator;
+    private final LocalizedValueEntityMapper localizedValueEntityMapper;
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
@@ -95,16 +101,18 @@ public class ApplicationService {
 
     @Transactional(readOnly = true)
     public List<Application> getAllApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
-        return applicationJpaRepository.findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+        return applicationJpaRepository.findAll().stream()
                 .map(mapper::toDomain)
-                .collect(Collectors.toList());
+                .sorted(applicationComparator)
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public List<Application> getAllValidApplicationsOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
-        return applicationJpaRepository.findByValidityStateIsValidTrueOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+        return applicationJpaRepository.findAllByValidityStateIsValidTrue().stream()
                 .map(mapper::toDomain)
-                .collect(Collectors.toList());
+                .sorted(applicationComparator)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -112,8 +120,9 @@ public class ApplicationService {
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();
         }
-        return applicationJpaRepository.findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(names).stream()
+        return applicationJpaRepository.findByIdIn(names).stream()
                 .map(mapper::toDomain)
+                .sorted(applicationComparator)
                 .collect(Collectors.toList());
     }
 
@@ -142,7 +151,9 @@ public class ApplicationService {
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
         deploymentService.assertInterceptorNotExists(application.getDeployment().getName());
-        assertNotExists(application.getDisplayName(), application.getDisplayVersion());
+        String displayName = application.getDisplayName() != null ? application.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
+        String displayVersion = application.getDisplayVersion();
+        assertNotExists(displayName, displayVersion);
         resolveEndpointsIfContainerSource(application);
         Optional.of(application)
                 .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))
@@ -346,15 +357,23 @@ public class ApplicationService {
     }
 
     private void assertNotExists(String displayName, String displayVersion) {
-        if ((displayName != null || displayVersion != null) && applicationJpaRepository.existsByDisplayNameAndDisplayVersion(displayName, displayVersion)) {
+        if ((displayName != null || displayVersion != null) && applicationJpaRepository
+                .findByDisplayVersion(displayVersion)
+                .stream()
+                .map(mapper::toDomain)
+                .anyMatch(application ->
+                        Objects.equals(
+                                application.getDisplayName().resolve(null, localizationProperties.getLocale()),
+                                displayName))) {
             throw new EntityAlreadyExistsException("Application with display name: '" + displayName + "' and display version: '" + displayVersion + "' already exists");
         }
     }
 
     private void assertNewApplicationDisplayNameAndDisplayVersion(ApplicationEntity entity, Application domain) {
-        String displayName = entity.getDisplayName();
+        var entityDisplayName = localizedValueEntityMapper.toDomain(entity.getDisplayName());
+        String displayName = entityDisplayName != null ? entityDisplayName.resolve(null, localizationProperties.getLocale()) : null;
         String displayVersion = entity.getDisplayVersion();
-        String newDisplayName = domain.getDisplayName();
+        String newDisplayName = domain.getDisplayName() != null ? domain.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
         String newDisplayVersion = domain.getDisplayVersion();
 
         if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {

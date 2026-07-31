@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetMcpRegistrySource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,13 +63,13 @@ public class ToolSetValidatorTest {
     void validateCreation_shouldDelegateToDeploymentValidator() {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        toolSet.setDisplayName(LocalizedValue.of(TEST_TOOLSET_NAME));
         SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
         toolSet.setDeployment(deployment);
 
         // when & then
         assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
-        verify(deploymentValidator).validateCreation("ToolSet", toolSet.getDisplayName());
+        verify(deploymentValidator).validateCreation("ToolSet", TEST_TOOLSET_NAME);
     }
 
     @ParameterizedTest
@@ -76,7 +77,7 @@ public class ToolSetValidatorTest {
     void validateCreation_shouldThrowExceptionForInvalidName(String toolSetName) {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(toolSetName);
+        toolSet.setDisplayName(LocalizedValue.of(toolSetName));
         SecuredResource deployment = new SecuredResource(toolSetName);
         toolSet.setDeployment(deployment);
 
@@ -90,7 +91,7 @@ public class ToolSetValidatorTest {
     void validateCreation_shouldNotThrowExceptionForValidName() {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        toolSet.setDisplayName(LocalizedValue.of(TEST_TOOLSET_NAME));
         SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
         toolSet.setDeployment(deployment);
         ReflectionTestUtils.setField(toolSetValidator, "toolSetNameValidationPattern", NAME_VALIDATION_PATTERN);
@@ -103,7 +104,7 @@ public class ToolSetValidatorTest {
     void validateCreation_withNameValidationPattern_shouldValidateNameAgainstPattern() {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        toolSet.setDisplayName(LocalizedValue.of(TEST_TOOLSET_NAME));
         SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
         toolSet.setDeployment(deployment);
         ReflectionTestUtils.setField(toolSetValidator, "toolSetNameValidationPattern", NAME_VALIDATION_PATTERN);
@@ -117,7 +118,7 @@ public class ToolSetValidatorTest {
     void validateCreation_withInvalidNameAgainstPattern_shouldThrowException(String invalidName) {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(invalidName);
+        toolSet.setDisplayName(LocalizedValue.of(invalidName));
         SecuredResource deployment = new SecuredResource(invalidName);
         toolSet.setDeployment(deployment);
         ReflectionTestUtils.setField(toolSetValidator, "toolSetNameValidationPattern", NAME_VALIDATION_PATTERN);
@@ -132,7 +133,7 @@ public class ToolSetValidatorTest {
     void validateUpdate_shouldDelegateToDeploymentValidator() {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        toolSet.setDisplayName(LocalizedValue.of(TEST_TOOLSET_NAME));
         SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
         toolSet.setDeployment(deployment);
 
@@ -145,7 +146,7 @@ public class ToolSetValidatorTest {
     void validateToolSetFields_withNullEndpoint_shouldNotThrowException() {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        toolSet.setDisplayName(LocalizedValue.of(TEST_TOOLSET_NAME));
         toolSet.setEndpoint(null);
         SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
         toolSet.setDeployment(deployment);
@@ -158,7 +159,7 @@ public class ToolSetValidatorTest {
     void validateToolSetFields_withValidEndpoint_shouldNotThrowException() {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        toolSet.setDisplayName(LocalizedValue.of(TEST_TOOLSET_NAME));
         toolSet.setEndpoint("https://example.com/api");
         SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
         toolSet.setDeployment(deployment);
@@ -172,7 +173,7 @@ public class ToolSetValidatorTest {
     void validateToolSetFields_withBlankEndpoint_shouldThrowException(String blankEndpoint) {
         // given
         ToolSet toolSet = new ToolSet();
-        toolSet.setDisplayName(TEST_TOOLSET_NAME);
+        toolSet.setDisplayName(LocalizedValue.of(TEST_TOOLSET_NAME));
         toolSet.setEndpoint(blankEndpoint);
         SecuredResource deployment = new SecuredResource(TEST_TOOLSET_NAME);
         toolSet.setDeployment(deployment);

@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ExportConfigComponentTypeDto;
 import com.epam.aidial.cfg.dto.ExportFormatDto;
 import com.epam.aidial.cfg.dto.FullExportRequestDto;
@@ -179,7 +180,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         var model = new Model();
         var deployment = new Deployment("testModel1");
         model.setDeployment(deployment);
-        model.setDisplayName("testModel1");
+        model.setDisplayName(LocalizedValue.of("testModel1"));
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
         model.setAuthor("test-author");
@@ -218,7 +219,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         var model = new Model();
         var deployment = new Deployment("testModel1");
         model.setDeployment(deployment);
-        model.setDisplayName("testModel1");
+        model.setDisplayName(LocalizedValue.of("testModel1"));
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
         model.setAuthor("test-author");

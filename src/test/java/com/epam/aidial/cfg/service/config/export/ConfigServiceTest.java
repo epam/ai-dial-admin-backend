@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ShareResourceLimitMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.UpstreamEntityMapperImpl;
+import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.domain.mapper.MapperPackage;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
@@ -106,6 +107,9 @@ class ConfigServiceTest {
 
     @Autowired
     private CoreConfigAggregatorService configService;
+
+    @MockitoBean
+    private LocalizedValueMapper localizedValueMapper;
 
     @BeforeEach
     void setUp() {

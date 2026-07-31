@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,9 +23,9 @@ public class Application extends RoleBased {
     private Map<String, DeploymentInterface> interfaces;
     private String iconUrl;
     private String reference;
-    private String description;
-    private String intro;
-    private String displayName;
+    private LocalizedValue description;
+    private LocalizedValue intro;
+    private LocalizedValue displayName;
     private String displayVersion;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;

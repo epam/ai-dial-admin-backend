@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
 import com.epam.aidial.cfg.domain.model.page.SortDirection;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AuditActivityDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -79,7 +80,7 @@ public abstract class ActivityAuditFunctionalTest {
 
         // update model1 description
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("ActivityAudit1");
-        updatedModel.setDescription("new model description");
+        updatedModel.setDescription(LocalizedValue.of("new model description"));
         updatedModel.setDefaults(Map.of());
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 

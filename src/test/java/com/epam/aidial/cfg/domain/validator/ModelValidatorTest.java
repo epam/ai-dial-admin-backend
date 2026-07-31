@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,7 +79,7 @@ class ModelValidatorTest {
     void validateCreation_shouldDelegateToDisplayFieldsValidator() {
         // given
         Model model = new Model();
-        model.setDisplayName("display name");
+        model.setDisplayName(LocalizedValue.of("display name"));
         model.setDisplayVersion("1.0");
         Deployment deployment = new Deployment("text");
         model.setDeployment(deployment);
@@ -87,7 +88,7 @@ class ModelValidatorTest {
         modelValidator.validateCreation(model);
 
         // then
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Model", "text");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion(model.getDisplayName(), model.getDisplayVersion(), "Model", "text");
     }
 
     @Test
@@ -98,7 +99,7 @@ class ModelValidatorTest {
         Deployment deployment = new Deployment(deploymentName);
 
         Model model = new Model();
-        model.setDisplayName("display name");
+        model.setDisplayName(LocalizedValue.of("display name"));
         model.setDisplayVersion("1.0");
         model.setDeployment(deployment);
 
@@ -107,7 +108,7 @@ class ModelValidatorTest {
 
         // then
         verify(deploymentValidator).validateUpdate(deploymentName, deployment, "Model");
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Model", "deploymentName");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion(model.getDisplayName(), model.getDisplayVersion(), "Model", "deploymentName");
     }
 
     @ParameterizedTest

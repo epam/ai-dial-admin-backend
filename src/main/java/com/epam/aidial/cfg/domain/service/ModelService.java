@@ -1,9 +1,11 @@
 package com.epam.aidial.cfg.domain.service;
 
+import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
+import com.epam.aidial.cfg.dao.mapper.LocalizedValueEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ModelContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
@@ -14,6 +16,7 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Model;
+import com.epam.aidial.cfg.domain.model.ModelComparator;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
@@ -69,6 +72,9 @@ public class ModelService {
     private final ModelRefreshService refreshService;
     private final ContainerEndpointResolver endpointResolver;
     private final HashCalculator calculator;
+    private final LocalizationProperties localizationProperties;
+    private final ModelComparator modelComparator;
+    private final LocalizedValueEntityMapper localizedValueEntityMapper;
 
     @Transactional(readOnly = true)
     public Collection<Model> getAll() {
@@ -86,9 +92,10 @@ public class ModelService {
 
     @Transactional(readOnly = true)
     public List<Model> getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
-        return modelJpaRepository.findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
+        return modelJpaRepository.findAll().stream()
                 .map(mapper::toDomain)
-                .collect(Collectors.toList());
+                .sorted(modelComparator)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -96,8 +103,9 @@ public class ModelService {
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();
         }
-        return modelJpaRepository.findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(names).stream()
+        return modelJpaRepository.findByIdIn(names).stream()
                 .map(mapper::toDomain)
+                .sorted(modelComparator)
                 .collect(Collectors.toList());
     }
 
@@ -130,7 +138,9 @@ public class ModelService {
         modelValidator.validateCreation(model);
         deploymentService.assertDeploymentNotExists(model.getDeployment().getName());
         deploymentService.assertInterceptorNotExists(model.getDeployment().getName());
-        assertNotExists(model.getDisplayName(), model.getDisplayVersion());
+        String displayName = model.getDisplayName() != null ? model.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
+        String displayVersion = model.getDisplayVersion();
+        assertNotExists(displayName, displayVersion);
         resolveEndpointsIfContainerSource(model);
         Optional.of(model)
                 .map(domainModel -> toEntity(domainModel, new ModelEntity()))
@@ -260,15 +270,23 @@ public class ModelService {
     }
 
     private void assertNotExists(String displayName, String displayVersion) {
-        if ((displayName != null || displayVersion != null) && modelJpaRepository.existsByDisplayNameAndDisplayVersion(displayName, displayVersion)) {
+        if ((displayName != null || displayVersion != null) && modelJpaRepository
+                .findByDisplayVersion(displayVersion)
+                .stream()
+                .map(mapper::toDomain)
+                .anyMatch(application ->
+                        Objects.equals(
+                                application.getDisplayName().resolve(null, localizationProperties.getLocale()),
+                                displayName))) {
             throw new EntityAlreadyExistsException("Model with display name: '" + displayName + "' and display version: '" + displayVersion + "' already exists");
         }
     }
 
     private void assertNewModelDisplayNameAndDisplayVersion(ModelEntity entity, Model domain) {
-        String displayName = entity.getDisplayName();
+        var entityDisplayName = localizedValueEntityMapper.toDomain(entity.getDisplayName());
+        String displayName = entityDisplayName != null ? entityDisplayName.resolve(null, localizationProperties.getLocale()) : null;
         String displayVersion = entity.getDisplayVersion();
-        String newDisplayName = domain.getDisplayName();
+        String newDisplayName = domain.getDisplayName() != null ? domain.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
         String newDisplayVersion = domain.getDisplayVersion();
 
         if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -17,9 +18,9 @@ public class Model extends RoleBased {
     private String endpoint;
     private String responsesEndpoint;
     private Map<String, DeploymentInterface> interfaces;
-    private String description;
-    private String intro;
-    private String displayName;
+    private LocalizedValue description;
+    private LocalizedValue intro;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
     private String reference;

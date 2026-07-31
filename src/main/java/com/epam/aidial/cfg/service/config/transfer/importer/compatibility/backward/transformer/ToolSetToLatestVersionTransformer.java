@@ -2,8 +2,8 @@ package com.epam.aidial.cfg.service.config.transfer.importer.compatibility.backw
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -18,8 +18,8 @@ public class ToolSetToLatestVersionTransformer {
     }
 
     private void transform(ToolSet toolSet) {
-        if (StringUtils.isBlank(toolSet.getDisplayName())) {
-            toolSet.setDisplayName(toolSet.getDeployment().getName());
+        if (toolSet.getDisplayName() == null) {
+            toolSet.setDisplayName(LocalizedValue.of(toolSet.getDeployment().getName()));
         }
     }
 }

@@ -29,7 +29,7 @@ class JsonConfigMergerTest {
         Path file1 = tempFile("{\"models\":{\"gpt-4\":{\"displayName\":\"old\",\"endpoint\":\"https://old\"}}}");
         Path file2 = tempFile("{\"models\":{\"gpt-4\":{\"displayName\":\"new\",\"endpoint\":\"https://new\"}}}");
         Config result = merger.merge(List.of(file1.toString(), file2.toString()));
-        assertThat(result.getModels().get("gpt-4").getDisplayName()).isEqualTo("new");
+        assertThat(result.getModels().get("gpt-4").getDisplayName().getPlainValue()).isEqualTo("new");
     }
 
     @Test

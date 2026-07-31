@@ -1,5 +1,6 @@
 package com.epam.aidial.core.config;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
@@ -17,14 +18,14 @@ public abstract class Deployment extends RoleBasedEntity {
     @JsonAlias({"responsesEndpoint", "responses_endpoint"})
     private String responsesEndpoint;  //0.42.0
     @JsonAlias({"displayName", "display_name"})
-    private String displayName;
+    private LocalizedValue displayName; //0.47.0
     @JsonAlias({"displayVersion", "display_version"})
     private String displayVersion;
     @JsonAlias({"iconUrl", "icon_url"})
     private String iconUrl;
-    private String description;
+    private LocalizedValue description; //0.47.0
     private String reference;
-    private String intro; //0.46.0
+    private LocalizedValue intro; //0.47.0
     /**
      * Forward Http header with authorization token when request is sent to deployment.
      * Authorization token is NOT forwarded by default.

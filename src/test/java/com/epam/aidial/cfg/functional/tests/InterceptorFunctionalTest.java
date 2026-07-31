@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
@@ -472,8 +473,8 @@ public abstract class InterceptorFunctionalTest {
 
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("container-interceptor");
-        interceptorDto.setDisplayName("container-interceptor");
-        interceptorDto.setDescription("Container interceptor");
+        interceptorDto.setDisplayName(LocalizedValue.of("container-interceptor"));
+        interceptorDto.setDescription(LocalizedValue.of("Container interceptor"));
 
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
                 containerId,
@@ -653,7 +654,7 @@ public abstract class InterceptorFunctionalTest {
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenInterceptorIsNotEqualToConfigInterceptorAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         InterceptorDto interceptorDto = createInterceptorDto("1");
-        interceptorDto.setDescription("description OLD");
+        interceptorDto.setDescription(LocalizedValue.of("description OLD"));
         interceptorFacade.createInterceptor(interceptorDto);
 
         JsonNode config = coreConfig();

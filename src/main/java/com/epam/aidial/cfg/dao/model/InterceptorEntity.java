@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.dao.model;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -31,8 +33,30 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     @Column(columnDefinition = "CLOB")
     private String interfaces;
     private String iconUrl;
-    private String description;
-    private String displayName;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(
+                    name = "plainValue",
+                    column = @Column(name = "description")
+            ),
+            @AttributeOverride(
+                    name = "localeMap",
+                    column = @Column(name = "description_i18n")
+            )
+    })
+    private LocalizedValueEntity description;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(
+                    name = "plainValue",
+                    column = @Column(name = "display_name")
+            ),
+            @AttributeOverride(
+                    name = "localeMap",
+                    column = @Column(name = "display_name_i18n")
+            )
+    })
+    private LocalizedValueEntity displayName;
     private Boolean forwardAuthToken;
     private String author;
     private List<String> dependencies;

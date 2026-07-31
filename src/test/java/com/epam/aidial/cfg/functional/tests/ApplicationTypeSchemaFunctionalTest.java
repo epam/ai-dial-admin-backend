@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
 import com.epam.aidial.cfg.domain.service.ExternalSchemaLoader;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
@@ -295,7 +296,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationDto applicationDto = new ApplicationDto();
         applicationDto.setName("application");
-        applicationDto.setDisplayName("application");
+        applicationDto.setDisplayName(LocalizedValue.of("application"));
         applicationDto.setSource(new ApplicationSchemaSourceDto(new URI("https://test-schema.example")));
         applicationFacade.createApplication(applicationDto);
         // when

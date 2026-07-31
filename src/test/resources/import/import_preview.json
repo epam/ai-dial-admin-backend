@@ -650,7 +650,7 @@
         "interceptors": [
           "testInterceptor1"
         ],
-        "topics": ["test1", "test2"],
+       "topics": ["test2", "test1"],
         "maxRetryAttempts": 5,
         "type": "embedding",
         "upstreams": [],

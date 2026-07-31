@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.utils;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.AdminSettingsDto;
@@ -43,8 +44,8 @@ public class FunctionalTestHelper {
     public static ModelDto createModelDto(String suffix) {
         ModelDto modelDto = new ModelDto();
         modelDto.setName("model" + suffix);
-        modelDto.setDisplayName("model" + suffix);
-        modelDto.setDescription("description" + suffix);
+        modelDto.setDisplayName(LocalizedValue.of("model" + suffix));
+        modelDto.setDescription(LocalizedValue.of("description" + suffix));
         modelDto.setMaxRetryAttempts(1);
         return modelDto;
     }
@@ -85,8 +86,8 @@ public class FunctionalTestHelper {
     public static ToolSetDto createToolSetDtoWithoutRoleLimits(String suffix) {
         ToolSetDto toolSet = new ToolSetDto();
         toolSet.setName("ToolSet" + suffix);
-        toolSet.setDisplayName("ToolSet" + suffix);
-        toolSet.setDescription("description" + suffix);
+        toolSet.setDisplayName(LocalizedValue.of("ToolSet" + suffix));
+        toolSet.setDescription(LocalizedValue.of("description" + suffix));
         toolSet.setEndpoint("https://endpoint.test.com/toolset" + suffix);
         toolSet.setTransport(ToolSetDto.TransportDto.HTTP);
         toolSet.setMaxRetryAttempts(1);
@@ -169,8 +170,8 @@ public class FunctionalTestHelper {
     public static InterceptorDto createInterceptorDto(String suffix) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
-        interceptorDto.setDescription("description" + suffix);
-        interceptorDto.setDisplayName("displayName" + suffix);
+        interceptorDto.setDescription(LocalizedValue.of("description" + suffix));
+        interceptorDto.setDisplayName(LocalizedValue.of("displayName" + suffix));
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         interceptorDto.setEntities(List.of());
         interceptorDto.setTopics(new TreeSet<>(Set.of("topic1", "topic2")));
@@ -187,8 +188,8 @@ public class FunctionalTestHelper {
     public static ApplicationDto createBaseApplicationDto(String suffix) {
         ApplicationDto applicationDto = new ApplicationDto();
         applicationDto.setName("application" + suffix);
-        applicationDto.setDisplayName("application" + suffix);
-        applicationDto.setDescription("description" + suffix);
+        applicationDto.setDisplayName(LocalizedValue.of("application" + suffix));
+        applicationDto.setDescription(LocalizedValue.of("description" + suffix));
         applicationDto.setSource(new ApplicationEndpointsSourceDto());
         return applicationDto;
     }

@@ -14,13 +14,14 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {DeploymentCoreMapper.class, FeatureCoreMapper.class})
+@Mapper(componentModel = "spring", uses = {DeploymentCoreMapper.class, FeatureCoreMapper.class, LocalizedValueMapper.class})
 public abstract class AssistantCoreMapper {
 
     public abstract Assistant copy(Assistant assistant);
 
     @Mapping(target = "deployment", source = "coreAssistant", qualifiedByName = "toDeployment")
     @Mapping(target = "topics", source = "coreAssistant.descriptionKeywords")
+    @Mapping(target = "displayName", source = "coreAssistant.displayName", qualifiedByName = "localizedValueToString")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
@@ -62,7 +63,7 @@ public abstract class ApplicationHistoryFunctionalTest {
 
         // 2 update application1 description
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
-        updatedApplication.setDescription("new application description");
+        updatedApplication.setDescription(LocalizedValue.of("new application description"));
         updatedApplication.setEndpoint("endpoint2");
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
 
@@ -71,7 +72,7 @@ public abstract class ApplicationHistoryFunctionalTest {
         var expected = createApplicationDtoWithEndpointAndLimits("1");
         ShareResourceLimitDto defaultShareResourceLimitDto = new ShareResourceLimitDto();
         defaultShareResourceLimitDto.setMaxAcceptedUsers(10);
-        expected.setDescription("new application description");
+        expected.setDescription(LocalizedValue.of("new application description"));
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setInterceptors(List.of());
         expected.setEndpoint("endpoint2");
