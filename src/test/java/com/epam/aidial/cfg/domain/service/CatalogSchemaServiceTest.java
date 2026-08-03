@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.dao.jpa.CatalogSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.CatalogSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.domain.model.CatalogSchema;
+import com.epam.aidial.cfg.domain.validator.CatalogSchemaValidator;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -21,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,6 +43,9 @@ class CatalogSchemaServiceTest {
 
     @Mock
     private HashCalculator calculator;
+
+    @Mock
+    private CatalogSchemaValidator validator;
 
     @InjectMocks
     private CatalogSchemaService catalogSchemaService;
@@ -104,7 +107,7 @@ class CatalogSchemaServiceTest {
         CatalogSchemaEntity entity = createEntity();
 
         when(jpaRepository.existsById(TEST_SCHEMA_ID)).thenReturn(false);
-        when(mapper.update(eq(schema), any(CatalogSchemaEntity.class))).thenReturn(entity);
+        when(mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(entity);
         when(jpaRepository.save(any(CatalogSchemaEntity.class))).thenReturn(entity);
 
         catalogSchemaService.create(schema);
@@ -132,7 +135,7 @@ class CatalogSchemaServiceTest {
         when(mapper.toDomain(entity)).thenReturn(schema, updatedSchema);
         when(calculator.calculateHash(schema)).thenReturn(TEST_HASH);
         when(calculator.calculateHash(updatedSchema)).thenReturn("new-hash");
-        when(mapper.update(eq(schema), eq(entity))).thenReturn(entity);
+        when(mapper.toEntity(any(), any(), any(), any(), any())).thenReturn(entity);
         when(jpaRepository.save(entity)).thenReturn(entity);
 
         String newHash = catalogSchemaService.update(TEST_SCHEMA_ID, schema, TEST_HASH);

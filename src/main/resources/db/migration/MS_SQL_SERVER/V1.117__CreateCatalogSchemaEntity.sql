@@ -5,7 +5,7 @@ CREATE TABLE catalog_schema_entity (
     title nvarchar(max),
     description nvarchar(max),
     catalog_entity_type nvarchar(50),
-    catalog_display_name nvarchar(512),
+    catalog_display_name nvarchar(max),
     default_locale nvarchar(10),
     defs nvarchar(max),
     properties nvarchar(max),
@@ -24,7 +24,7 @@ CREATE TABLE catalog_schema_entity_aud (
     title nvarchar(max),
     description nvarchar(max),
     catalog_entity_type nvarchar(50),
-    catalog_display_name nvarchar(512),
+    catalog_display_name nvarchar(max),
     default_locale nvarchar(10),
     defs nvarchar(max),
     properties nvarchar(max),
@@ -39,15 +39,15 @@ alter table catalog_schema_entity_aud add constraint FK_REVINFO_CATALOG_SCHEMA_E
 
 ALTER TABLE application_entity ADD catalog_schema_id nvarchar(850);
 ALTER TABLE application_entity ADD catalog_properties nvarchar(max);
-ALTER TABLE application_entity ADD CONSTRAINT fk_application_catalog_schema FOREIGN KEY (catalog_schema_id) REFERENCES catalog_schema_entity(schema_id);
+ALTER TABLE application_entity ADD CONSTRAINT FK_APPLICATION_CATALOG_SCHEMA FOREIGN KEY (catalog_schema_id) REFERENCES catalog_schema_entity(schema_id);
 
 ALTER TABLE model_entity ADD catalog_schema_id nvarchar(850);
 ALTER TABLE model_entity ADD catalog_properties nvarchar(max);
-ALTER TABLE model_entity ADD CONSTRAINT fk_model_catalog_schema FOREIGN KEY (catalog_schema_id) REFERENCES catalog_schema_entity(schema_id);
+ALTER TABLE model_entity ADD CONSTRAINT FK_MODEL_CATALOG_SCHEMA FOREIGN KEY (catalog_schema_id) REFERENCES catalog_schema_entity(schema_id);
 
 ALTER TABLE tool_set_entity ADD catalog_schema_id nvarchar(850);
 ALTER TABLE tool_set_entity ADD catalog_properties nvarchar(max);
-ALTER TABLE tool_set_entity ADD CONSTRAINT fk_toolset_catalog_schema FOREIGN KEY (catalog_schema_id) REFERENCES catalog_schema_entity(schema_id);
+ALTER TABLE tool_set_entity ADD CONSTRAINT FK_TOOLSET_CATALOG_SCHEMA FOREIGN KEY (catalog_schema_id) REFERENCES catalog_schema_entity(schema_id);
 
 ALTER TABLE application_entity_aud ADD catalog_schema_id nvarchar(850);
 ALTER TABLE application_entity_aud ADD catalog_properties nvarchar(max);

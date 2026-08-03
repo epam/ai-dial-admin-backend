@@ -14,8 +14,8 @@ public enum ExportConfigComponentType {
         @Override
         Set<ExportConfigComponentType> getDirectDependencies(ExportFormat exportFormat) {
             return switch (exportFormat) {
-                case ADMIN -> Set.of(ADAPTER, INTERCEPTOR);
-                case CORE -> Set.of(INTERCEPTOR);
+                case ADMIN -> Set.of(ADAPTER, INTERCEPTOR, CATALOG_SCHEMA);
+                case CORE -> Set.of(INTERCEPTOR, CATALOG_SCHEMA);
             };
         }
     },
@@ -28,7 +28,7 @@ public enum ExportConfigComponentType {
 
         @Override
         Set<ExportConfigComponentType> getDirectDependencies(ExportFormat exportFormat) {
-            return Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA);
+            return Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA, CATALOG_SCHEMA);
         }
     },
 
@@ -52,7 +52,7 @@ public enum ExportConfigComponentType {
 
         @Override
         Set<ExportConfigComponentType> getDirectDependencies(ExportFormat exportFormat) {
-            return Set.of();
+            return Set.of(CATALOG_SCHEMA);
         }
     },
 

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.config.transfer.exporter;
 
 import com.epam.aidial.cfg.domain.model.CatalogSchema;
+import com.epam.aidial.cfg.domain.model.ExportCatalogSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.service.CatalogSchemaService;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -9,6 +10,7 @@ import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,5 +37,16 @@ public class CatalogSchemaExporter {
         }
 
         return Map.of();
+    }
+
+    protected Collection<ExportCatalogSchemaInfo> preview(ExportRequest request) {
+        return getCatalogSchemas(request).values().stream()
+                .map(component -> ExportCatalogSchemaInfo.builder()
+                        .id(component.getSchemaId())
+                        .displayName(component.getCatalogDisplayName())
+                        .description(component.getDescription())
+                        .type(ExportConfigComponentType.CATALOG_SCHEMA)
+                        .build())
+                .collect(Collectors.toList());
     }
 }

@@ -47,6 +47,9 @@ public abstract class CatalogSchemaFunctionalTest {
         catalogSchemaFacade.create(dto);
         // then
         CatalogSchemaDto actual = catalogSchemaFacade.get(dto.getId());
+        dto.setApplications(List.of());
+        dto.setModels(List.of());
+        dto.setToolSets(List.of());
         Assertions.assertThat(actual).isEqualTo(dto);
     }
 

@@ -234,12 +234,16 @@ public class ApplicationService {
 
         Set<String> allInterceptorNames = interceptorJpaRepository.findAllNames();
         Set<String> allSchemaIds = applicationTypeSchemaJpaRepository.findAllIds();
+        Set<String> allCatalogIds = catalogSchemaJpaRepository.findAllIds();
         for (Application application : applications) {
             application.getInterceptors().removeIf(interceptor -> !allInterceptorNames.contains(interceptor));
             if (application.getSource() instanceof ApplicationSchemaSource schemaSource
                     && !allSchemaIds.contains(schemaSource.getApplicationTypeSchemaId().toString())) {
                 application.setSource(new ApplicationEndpointsSource());
                 application.setEndpoint("endpoint");
+            }
+            if (application.getCatalogSchemaId() != null && !allCatalogIds.contains(application.getCatalogSchemaId().toString())) {
+                application.setCatalogSchemaId(null);
             }
             ApplicationEntity entity = applicationJpaRepository.findById(application.getDeployment().getName()).orElseGet(ApplicationEntity::new);
             ApplicationEntity applicationEntity = toEntity(application, entity);

@@ -137,7 +137,7 @@ public abstract class ApplicationEntityMapper {
         try {
             return uriString == null ? null : new URI(uriString);
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid application applicationTypeSchemaId: " + uriString);
+            throw new IllegalArgumentException("Invalid application catalogSchemaId: " + uriString);
         }
     }
 

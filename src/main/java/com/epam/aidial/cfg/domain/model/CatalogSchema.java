@@ -11,7 +11,7 @@ public class CatalogSchema {
 
     private String schemaId;
     private String schema;
-    private TypeEnum type;
+    private Type type;
     private String title;
     private String description;
     private CatalogEntityType catalogEntityType;
@@ -21,10 +21,13 @@ public class CatalogSchema {
     private Map<String, String> properties;
     private List<String> required;
     private Set<String> topics;
+    private List<String> applications;
+    private List<String> models;
+    private List<String> toolSets;
     private Long createdAt;
     private Long updatedAt;
 
-    public enum TypeEnum {
+    public enum Type {
         OBJECT,
         BOOLEAN
     }

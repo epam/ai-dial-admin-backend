@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.DeploymentHolder;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
+import com.epam.aidial.cfg.domain.model.ExportCatalogSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfig;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
@@ -122,6 +123,7 @@ public class ConfigExporter {
         Collection<ExportComponentInfo> interceptors = interceptorExporter.preview(request);
         Collection<ExportComponentInfo> interceptorRunners = interceptorRunnerExporter.preview(request);
         Collection<ExportApplicationTypeSchemaInfo> applicationRunners = applicationTypeSchemaExporter.preview(request);
+        Collection<ExportCatalogSchemaInfo> catalogSchemas = catalogSchemaExporter.preview(request);
         var globalSettings = globalSettingsExporter.getGlobalSettings(request);
 
         // todo prompts and files
@@ -137,6 +139,7 @@ public class ConfigExporter {
                 .interceptorRunners(interceptorRunners)
                 .applicationRunners(applicationRunners)
                 .adapters(adapters)
+                .catalogSchemas(catalogSchemas)
                 .build();
     }
 
@@ -147,6 +150,7 @@ public class ConfigExporter {
         resolveRoleDependencies(request, result);
         resolveAppDependencies(request, result);
         resolveModelDependencies(request, result);
+        resolveToolSetDependencies(request, result);
         resolveApplicationTypeSchemaDependencies(result);
         resolveGlobalSettingsDependencies(result);
         resolveInterceptorDependencies(request, result);
@@ -231,7 +235,21 @@ public class ConfigExporter {
             if (isValidApplication(application, request)) {
                 processInterceptorDependencies(application.getInterceptors(), dependencies, updatedComponents);
                 processApplicationTypeSchemaDependencies(application, dependencies, updatedComponents);
+                processCatalogSchemaDependencies(application.getCatalogSchemaId(), dependencies, updatedComponents);
             }
+        }
+    }
+
+    private void resolveToolSetDependencies(SelectedItemsExportRequest request, Set<ExportConfigComponent> updatedComponents) {
+        List<ExportConfigComponent> toolSets = filterComponentsByType(updatedComponents, ExportConfigComponentType.TOOL_SET);
+
+        for (ExportConfigComponent component : toolSets) {
+            Set<ExportConfigComponentType> dependencies = component.getDependencies();
+            if (CollectionUtils.isEmpty(dependencies)) {
+                continue;
+            }
+            ToolSet toolSet = toolSetExporter.getToolSet(component.getName());
+            processCatalogSchemaDependencies(toolSet.getCatalogSchemaId(), dependencies, updatedComponents);
         }
     }
 
@@ -249,6 +267,7 @@ public class ConfigExporter {
             }
             Model model = modelExporter.getModel(component.getName());
             processInterceptorDependencies(model.getInterceptors(), dependencies, updatedComponents);
+            processCatalogSchemaDependencies(model.getCatalogSchemaId(), dependencies, updatedComponents);
             if (request.getExportFormat() != CORE && model.getSource() != null
                     && model.getSource() instanceof ModelAdapterSource adapterSource) {
                 processAdapterDependencies(adapterSource.getAdapterName(), dependencies, updatedComponents);
@@ -307,6 +326,14 @@ public class ConfigExporter {
             URI applicationTypeSchemaId = schemaSource.getApplicationTypeSchemaId();
             if (applicationTypeSchemaId != null) {
                 updatedComponents.add(new ExportConfigComponent(applicationTypeSchemaId.toString(), ExportConfigComponentType.APPLICATION_TYPE_SCHEMA, dependencies));
+            }
+        }
+    }
+
+    private void processCatalogSchemaDependencies(URI catalogSchemaId, Set<ExportConfigComponentType> dependencies, Set<ExportConfigComponent> updatedComponents) {
+        if (dependencies.contains(ExportConfigComponentType.CATALOG_SCHEMA)) {
+            if (catalogSchemaId != null) {
+                updatedComponents.add(new ExportConfigComponent(catalogSchemaId.toString(), ExportConfigComponentType.CATALOG_SCHEMA, dependencies));
             }
         }
     }

@@ -55,13 +55,13 @@ public class CatalogSchemaFacade {
         return entitySyncStateDtoMapper.toDto(syncState);
     }
 
-    public void create(@Valid CatalogSchemaDto schemaDto) {
+    public void create(CatalogSchemaDto schemaDto) {
         Optional.of(schemaDto)
                 .map(mapper::toDomain)
                 .ifPresent(schemaService::create);
     }
 
-    public String update(String id, @Valid CatalogSchemaDto dto, String hash) {
+    public String update(String id, CatalogSchemaDto dto, String hash) {
         CatalogSchema value = mapper.toDomain(dto);
         return schemaService.update(id, value, hash);
     }

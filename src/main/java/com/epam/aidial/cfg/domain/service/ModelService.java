@@ -213,6 +213,7 @@ public class ModelService {
 
         Set<String> allInterceptorNames = interceptorJpaRepository.findAllNames();
         Set<String> allAdapterNames = adapterJpaRepository.findAllNames();
+        Set<String> allCatalogIds = catalogSchemaJpaRepository.findAllIds();
         for (Model model : models) {
             if (model.getInterceptors() != null) {
                 List<String> interceptors = model.getInterceptors().stream().filter(allInterceptorNames::contains).toList();
@@ -220,6 +221,9 @@ public class ModelService {
             }
             if (model.getSource() instanceof ModelAdapterSource modelAdapterSource && !allAdapterNames.contains(modelAdapterSource.getAdapterName())) {
                 model.setSource(null);
+            }
+            if (model.getCatalogSchemaId() != null && !allCatalogIds.contains(model.getCatalogSchemaId().toString())) {
+                model.setCatalogSchemaId(null);
             }
             ModelEntity entity = modelJpaRepository.findById(model.getDeployment().getName()).orElseGet(ModelEntity::new);
             ModelEntity modelEntity = toEntity(model, entity);

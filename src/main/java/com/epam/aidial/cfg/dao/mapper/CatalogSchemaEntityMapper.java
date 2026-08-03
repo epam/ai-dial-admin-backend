@@ -10,15 +10,13 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", uses = {PropertiesEntityMapper.class, MapPropertiesMapper.class})
 public abstract class CatalogSchemaEntityMapper {
 
     @Autowired
     protected MapPropertiesMapper mapPropertiesMapper;
-
-    public CatalogSchemaEntity toCatalogSchemaEntity(CatalogSchema catalogSchema, CatalogSchemaEntity entity) {
-        return update(catalogSchema, entity);
-    }
 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -28,8 +26,6 @@ public abstract class CatalogSchemaEntityMapper {
     @Mapping(target = "toolSets", ignore = true)
     public abstract CatalogSchemaEntity update(CatalogSchema catalogSchema, @MappingTarget CatalogSchemaEntity entity);
 
-    @Mapping(target = "createdAt", source = "createdAt")
-    @Mapping(target = "updatedAt", source = "updatedAt")
     public abstract CatalogSchema toDomain(CatalogSchemaEntity entity);
 
     protected String mapApplicationToString(ApplicationEntity value) {
@@ -42,5 +38,57 @@ public abstract class CatalogSchemaEntityMapper {
 
     protected String mapToolSetEntityToString(ToolSetEntity value) {
         return value != null ? value.getDeploymentName() : null;
+    }
+
+    public CatalogSchemaEntity toEntity(CatalogSchema domain,
+                                        CatalogSchemaEntity entity,
+                                        List<ApplicationEntity> applications,
+                                        List<ModelEntity> models,
+                                        List<ToolSetEntity> toolSets) {
+        CatalogSchemaEntity updatedEntity = update(domain, entity);
+
+        if (applications != null) {
+            updatedEntity.getApplications().stream()
+                    .filter(app -> !applications.contains(app))
+                    .forEach(app -> {
+                        app.setCatalogSchema(null);
+                    });
+            applications.stream()
+                    .filter(app -> !updatedEntity.getApplications().contains(app))
+                    .forEach(app -> {
+                        app.setCatalogSchema(updatedEntity);
+                    });
+            updatedEntity.getApplications().clear();
+            updatedEntity.getApplications().addAll(applications);
+        }
+        if (models != null) {
+            updatedEntity.getModels().stream()
+                    .filter(model -> !models.contains(model))
+                    .forEach(model -> {
+                        model.setCatalogSchema(null);
+                    });
+            models.stream()
+                    .filter(model -> !updatedEntity.getModels().contains(model))
+                    .forEach(model -> {
+                        model.setCatalogSchema(updatedEntity);
+                    });
+            updatedEntity.getModels().clear();
+            updatedEntity.getModels().addAll(models);
+        }
+        if (toolSets != null) {
+            updatedEntity.getToolSets().stream()
+                    .filter(toolSet -> !toolSets.contains(toolSet))
+                    .forEach(toolSet -> {
+                        toolSet.setCatalogSchema(null);
+                    });
+            toolSets.stream()
+                    .filter(toolSet -> !updatedEntity.getToolSets().contains(toolSet))
+                    .forEach(toolSet -> {
+                        toolSet.setCatalogSchema(updatedEntity);
+                    });
+            updatedEntity.getToolSets().clear();
+            updatedEntity.getToolSets().addAll(toolSets);
+        }
+        return updatedEntity;
     }
 }

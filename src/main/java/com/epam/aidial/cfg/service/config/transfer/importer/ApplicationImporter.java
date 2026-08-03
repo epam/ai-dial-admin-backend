@@ -12,6 +12,7 @@ import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreApplication;
+import com.epam.aidial.core.config.validation.CatalogSchemaValidationService;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidationContext;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
 import lombok.RequiredArgsConstructor;
@@ -42,9 +43,11 @@ public class ApplicationImporter extends DeploymentHolderImporter {
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
     private final ApplicationCoreMapper applicationCoreMapper;
     private final ApplicationTypeSchemaCoreMapper applicationTypeSchemaCoreMapper;
+    private final CatalogSchemaValidationService catalogSchemaValidationService;
 
     public Collection<ImportComponent<Application>> importApplications(Map<String, CoreApplication> coreApplications,
                                                                        Map<String, String> coreApplicationTypeSchemas,
+                                                                       Map<String, String> catalogSchemas,
                                                                        ConfigImportOptions importOptions) {
         if (MapUtils.isEmpty(coreApplications)) {
             return Collections.emptyList();
@@ -56,6 +59,7 @@ public class ApplicationImporter extends DeploymentHolderImporter {
                         entry.getKey(),
                         entry.getValue(),
                         coreApplicationTypeSchemas,
+                        catalogSchemas,
                         importOptions.conflictResolutionPolicy())
                 )
                 .toList();
@@ -75,9 +79,15 @@ public class ApplicationImporter extends DeploymentHolderImporter {
     private ImportComponent<Application> processApplication(String applicationName,
                                                             CoreApplication coreApplication,
                                                             Map<String, String> coreApplicationTypeSchemas,
+                                                            Map<String, String> catalogSchemas,
                                                             ConflictResolutionPolicy resolutionPolicy) {
         validateApplicationConformsToSchema(coreApplication, coreApplicationTypeSchemas);
-
+        catalogSchemaValidationService.validateCatalogProperties(
+                coreApplication.getCatalogSchemaId(),
+                coreApplication.getCatalogProperties(),
+                applicationName,
+                "Application",
+                catalogSchemas);
         Optional<Application> application = applicationService.tryGetApplication(applicationName);
         if (application.isPresent()) {
             Application existingApplication = application.get();

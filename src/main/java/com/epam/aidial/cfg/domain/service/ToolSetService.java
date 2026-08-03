@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
@@ -217,6 +218,7 @@ public class ToolSetService {
     public void rollbackToolSets(Number revision) {
         Collection<ToolSet> toolSets = getAllAtRevision(revision);
         List<String> ids = toolSets.stream().map(SecuredRoleBased::getDeployment).map(SecuredResource::getName).toList();
+        Set<String> allCatalogIds = catalogSchemaJpaRepository.findAllIds();
         if (CollectionUtils.isEmpty(ids)) {
             toolSetJpaRepository.deleteAll();
         } else {
@@ -225,6 +227,9 @@ public class ToolSetService {
         }
 
         for (ToolSet toolSet : toolSets) {
+            if (toolSet.getCatalogSchemaId() != null && !allCatalogIds.contains(toolSet.getCatalogSchemaId().toString())) {
+                toolSet.setCatalogSchemaId(null);
+            }
             ToolSetEntity entity = toolSetJpaRepository.findById(toolSet.getDeployment().getName()).orElseGet(ToolSetEntity::new);
             ToolSetEntity toolSetEntity = toEntity(toolSet, entity);
             toolSetJpaRepository.save(toolSetEntity);

@@ -13,7 +13,7 @@ import com.epam.aidial.cfg.service.config.syncstate.EntitySyncStateResolver;
 import com.epam.aidial.cfg.service.config.transfer.importer.ConfigImporter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreCatalogSchema;
-import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
+import com.epam.aidial.core.config.validation.CatalogSchemaConformToMetaSchemaValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -76,7 +76,7 @@ public class CoreCatalogSchemaService {
 
         var schema = schemaWithHash.model();
         var coreCatalogSchema = schemaCoreMapper.mapToCoreString(schema);
-        boolean isSchemaValid = SchemaConformToMetaSchemaValidator.isValid(coreCatalogSchema);
+        boolean isSchemaValid = CatalogSchemaConformToMetaSchemaValidator.isValid(coreCatalogSchema);
 
         return entitySyncStateResolver.resolveForEntityInArray(
                 coreCatalogSchema,

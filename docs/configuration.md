@@ -415,16 +415,17 @@ example of dataset configuration JSON can be found at "ai-dial-admin-backend/src
 Allows specifying additional environment-specific entity name validation patterns.
 
 | Setting                             | Environment Variable                          | Default | Required | Applied when | Description                                     |
-|-------------------------------------|-----------------------------------------------|---------|----------|-----------|-------------------------------------------------|
-| validation.role.name                | ROLE_NAME_VALIDATION_PATTERN                  | - | No | - | Validation pattern for Role name                |
-| validation.adapter.name             | ADAPTER_NAME_VALIDATION_PATTERN               | - | No | - | Validation pattern for Adapter name             |
-| validation.addon.name               | ADDON_NAME_VALIDATION_PATTERN                 | - | No | - | Validation pattern for Addon name               |
-| validation.application.name         | APPLICATION_NAME_VALIDATION_PATTERN           | - | No | - | Validation pattern for Application name         |
-| validation.assistant.name           | ASSISTANT_NAME_VALIDATION_PATTERN             | - | No | - | Validation pattern for Assistant name           |
-| validation.interceptor.name         | INTERCEPTOR_NAME_VALIDATION_PATTERN           | - | No | - | Validation pattern for Interceptor name         |
-| validation.interceptorRunner.name   | INTERCEPTOR_RUNNER_NAME_VALIDATION_PATTERN    | - | No | - | Validation pattern for InterceptorRunner name   |
-| validation.key.name                 | KEY_NAME_VALIDATION_PATTERN                   | - | No | - | Validation pattern for Key name                 |
-| validation.model.name               | MODEL_NAME_VALIDATION_PATTERN                 | - | No | - | Validation pattern for Model name               |
-| validation.route.name               | ROUTE_NAME_VALIDATION_PATTERN                 | - | No | - | Validation pattern for Route name               |
-| validation.applicationTypeSchema.id | APPLICATION_TYPE_SCHEMA_ID_VALIDATION_PATTERN | - | No | - | Validation pattern for ApplicationTypeSchema id |
-| validation.toolSet.name             | TOOLSET_NAME_VALIDATION_PATTERN               | - | No | - | Validation pattern for ToolSet name             |
+|-------------------------------------|-----------------------------------------------|---------|----------|--------------|-------------------------------------------------|
+| validation.role.name                | ROLE_NAME_VALIDATION_PATTERN                  | -       | No       | -            | Validation pattern for Role name                |
+| validation.adapter.name             | ADAPTER_NAME_VALIDATION_PATTERN               | -       | No       | -            | Validation pattern for Adapter name             |
+| validation.addon.name               | ADDON_NAME_VALIDATION_PATTERN                 | -       | No       | -            | Validation pattern for Addon name               |
+| validation.application.name         | APPLICATION_NAME_VALIDATION_PATTERN           | -       | No       | -            | Validation pattern for Application name         |
+| validation.assistant.name           | ASSISTANT_NAME_VALIDATION_PATTERN             | -       | No       | -            | Validation pattern for Assistant name           |
+| validation.interceptor.name         | INTERCEPTOR_NAME_VALIDATION_PATTERN           | -       | No       | -            | Validation pattern for Interceptor name         |
+| validation.interceptorRunner.name   | INTERCEPTOR_RUNNER_NAME_VALIDATION_PATTERN    | -       | No       | -            | Validation pattern for InterceptorRunner name   |
+| validation.key.name                 | KEY_NAME_VALIDATION_PATTERN                   | -       | No       | -            | Validation pattern for Key name                 |
+| validation.model.name               | MODEL_NAME_VALIDATION_PATTERN                 | -       | No       | -            | Validation pattern for Model name               |
+| validation.route.name               | ROUTE_NAME_VALIDATION_PATTERN                 | -       | No       | -            | Validation pattern for Route name               |
+| validation.applicationTypeSchema.id | APPLICATION_TYPE_SCHEMA_ID_VALIDATION_PATTERN | -       | No       | -            | Validation pattern for ApplicationTypeSchema id |
+| validation.catalogSchema.id         | CATALOG_SCHEMA_ID_VALIDATION_PATTERN          | -       | No       | -            | Validation pattern for CatalogSchema id         |
+| validation.toolSet.name             | TOOLSET_NAME_VALIDATION_PATTERN               | -       | No       | -            | Validation pattern for ToolSet name             |

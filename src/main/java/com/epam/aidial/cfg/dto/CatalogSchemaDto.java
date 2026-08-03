@@ -56,7 +56,9 @@ public class CatalogSchemaDto {
     private Map<String, String> properties;
 
     private List<String> required;
-
+    private List<String> applications;
+    private List<String> toolSets;
+    private List<String> models;
     private TreeSet<String> topics;
 
     @EqualsAndHashCode.Exclude

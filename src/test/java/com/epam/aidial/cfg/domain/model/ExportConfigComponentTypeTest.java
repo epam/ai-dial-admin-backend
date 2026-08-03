@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.ADAPTER;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION_TYPE_SCHEMA;
+import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.CATALOG_SCHEMA;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.GLOBAL_INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR_RUNNER;
@@ -43,12 +44,14 @@ class ExportConfigComponentTypeTest {
     private static Stream<Arguments> getAllDependencies_shouldReturnSetOfAllComponentDependencies_testParams() {
         return Stream.of(
                 // admin format
-                Arguments.of(MODEL, ExportFormat.ADMIN, Set.of(ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER)),
-                Arguments.of(APPLICATION, ExportFormat.ADMIN, Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA, INTERCEPTOR_RUNNER)),
+                Arguments.of(MODEL, ExportFormat.ADMIN, Set.of(INTERCEPTOR_RUNNER, ADAPTER, INTERCEPTOR, CATALOG_SCHEMA)),
+                Arguments.of(APPLICATION, ExportFormat.ADMIN, Set.of(INTERCEPTOR_RUNNER, INTERCEPTOR, CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA)),
                 Arguments.of(ROUTE, ExportFormat.ADMIN, Set.of()),
-                Arguments.of(TOOL_SET, ExportFormat.ADMIN, Set.of()),
-                Arguments.of(ROLE, ExportFormat.ADMIN, Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER, APPLICATION_TYPE_SCHEMA)),
-                Arguments.of(KEY, ExportFormat.ADMIN, Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER, APPLICATION_TYPE_SCHEMA)),
+                Arguments.of(TOOL_SET, ExportFormat.ADMIN, Set.of(CATALOG_SCHEMA)),
+                Arguments.of(ROLE, ExportFormat.ADMIN, Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR,
+                        INTERCEPTOR_RUNNER, CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA)),
+                Arguments.of(KEY, ExportFormat.ADMIN, Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR,
+                        INTERCEPTOR_RUNNER, CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA)),
                 Arguments.of(INTERCEPTOR, ExportFormat.ADMIN, Set.of(INTERCEPTOR_RUNNER)),
                 Arguments.of(INTERCEPTOR_RUNNER, ExportFormat.ADMIN, Set.of()),
                 Arguments.of(APPLICATION_TYPE_SCHEMA, ExportFormat.ADMIN, Set.of(INTERCEPTOR, INTERCEPTOR_RUNNER)),
@@ -56,12 +59,12 @@ class ExportConfigComponentTypeTest {
                 Arguments.of(GLOBAL_INTERCEPTOR, ExportFormat.ADMIN, Set.of(INTERCEPTOR, INTERCEPTOR_RUNNER)),
 
                 // core format
-                Arguments.of(MODEL, ExportFormat.CORE, Set.of(INTERCEPTOR)),
-                Arguments.of(APPLICATION, ExportFormat.CORE, Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA)),
+                Arguments.of(MODEL, ExportFormat.CORE, Set.of(INTERCEPTOR, CATALOG_SCHEMA)),
+                Arguments.of(APPLICATION, ExportFormat.CORE, Set.of(INTERCEPTOR, CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA)),
                 Arguments.of(ROUTE, ExportFormat.CORE, Set.of()),
-                Arguments.of(TOOL_SET, ExportFormat.CORE, Set.of()),
-                Arguments.of(ROLE, ExportFormat.CORE, Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA)),
-                Arguments.of(KEY, ExportFormat.CORE, Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA)),
+                Arguments.of(TOOL_SET, ExportFormat.CORE, Set.of(CATALOG_SCHEMA)),
+                Arguments.of(ROLE, ExportFormat.CORE, Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA)),
+                Arguments.of(KEY, ExportFormat.CORE, Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA)),
                 Arguments.of(INTERCEPTOR, ExportFormat.CORE, Set.of()),
                 Arguments.of(APPLICATION_TYPE_SCHEMA, ExportFormat.CORE, Set.of(INTERCEPTOR)),
                 Arguments.of(GLOBAL_INTERCEPTOR, ExportFormat.ADMIN, Set.of(INTERCEPTOR, INTERCEPTOR_RUNNER))

@@ -33,7 +33,6 @@ public class CatalogSchemaEntity extends TimeTrackableEntity<String> {
 
     private String title;
 
-    @Column(length = 2048)
     private String description;
 
     @Enumerated(EnumType.STRING)

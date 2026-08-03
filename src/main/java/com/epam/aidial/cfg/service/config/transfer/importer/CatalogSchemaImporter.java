@@ -1,11 +1,11 @@
 package com.epam.aidial.cfg.service.config.transfer.importer;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.mapper.CatalogSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.model.CatalogSchema;
 import com.epam.aidial.cfg.domain.model.ImportAction;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.service.CatalogSchemaService;
-import com.epam.aidial.cfg.dto.CatalogSchemaDto;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.web.facade.mapper.CatalogSchemaDtoMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,19 +30,21 @@ public class CatalogSchemaImporter {
 
     private final CatalogSchemaService catalogSchemaService;
     private final CatalogSchemaDtoMapper catalogSchemaDtoMapper;
+    private final CatalogSchemaCoreMapper mapper;
     private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
 
     public CatalogSchemaImporter(CatalogSchemaService catalogSchemaService,
-                                 CatalogSchemaDtoMapper catalogSchemaDtoMapper) {
+                                 CatalogSchemaDtoMapper catalogSchemaDtoMapper, CatalogSchemaCoreMapper mapper) {
         this.catalogSchemaService = catalogSchemaService;
         this.catalogSchemaDtoMapper = catalogSchemaDtoMapper;
+        this.mapper = mapper;
     }
 
     public List<ImportComponent<CatalogSchema>> importCatalogSchemas(Map<String, String> catalogSchemas,
                                                                      ConflictResolutionPolicy resolutionPolicy) {
         if (MapUtils.isNotEmpty(catalogSchemas)) {
             Map<String, CatalogSchema> schemas = catalogSchemas.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> fromJson(entry.getValue())));
+                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> map(entry.getValue())));
             return importAdminCatalogSchemas(schemas, resolutionPolicy);
         }
         return Collections.emptyList();
@@ -61,14 +63,8 @@ public class CatalogSchemaImporter {
         return Collections.emptyList();
     }
 
-    private CatalogSchema fromJson(String jsonSchema) {
-        try {
-            CatalogSchemaDto dto = objectMapper.readValue(jsonSchema, CatalogSchemaDto.class);
-            return catalogSchemaDtoMapper.toDomain(dto);
-        } catch (Exception e) {
-            log.error("Error parsing catalog schema JSON: {}", jsonSchema, e);
-            throw new RuntimeException("Error parsing catalog schema JSON", e);
-        }
+    private CatalogSchema map(String schema) {
+        return mapper.mapToSchema(schema);
     }
 
     private ImportComponent<CatalogSchema> process(String schemaId,

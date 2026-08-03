@@ -2,7 +2,6 @@ package com.epam.aidial.core.config;
 
 import com.epam.aidial.core.config.databind.JsonArrayToSchemaMapDeserializer;
 import com.epam.aidial.core.config.databind.MapToJsonArraySerializer;
-import com.epam.aidial.core.config.validation.CatalogPropertiesConformToSchemas;
 import com.epam.aidial.core.config.validation.ConformToCatalogMetaSchema;
 import com.epam.aidial.core.config.validation.ConformToMetaSchema;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -20,7 +19,6 @@ import java.util.Set;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-@CatalogPropertiesConformToSchemas(message = "All deployments with catalog_schema_id should conform to their catalog schema")
 public class Config {
     public static final String ASSISTANT = "assistant";
 

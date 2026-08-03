@@ -58,11 +58,11 @@ class ExportConfigMetadataProviderTest {
                         ExportFormat.ADMIN,
                         List.of(ExportConfigComponentMetadata.builder()
                                         .type(MODEL)
-                                        .dependencies(Set.of(ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER))
+                                        .dependencies(Set.of(ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER, CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(APPLICATION)
-                                        .dependencies(Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA, INTERCEPTOR_RUNNER))
+                                        .dependencies(Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA, INTERCEPTOR_RUNNER, CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(ROUTE)
@@ -70,15 +70,17 @@ class ExportConfigMetadataProviderTest {
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(TOOL_SET)
-                                        .dependencies(Set.of())
+                                        .dependencies(Set.of(CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(ROLE)
-                                        .dependencies(Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER, APPLICATION_TYPE_SCHEMA))
+                                        .dependencies(Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER,
+                                                CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(KEY)
-                                        .dependencies(Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER, APPLICATION_TYPE_SCHEMA))
+                                        .dependencies(Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, ADAPTER, INTERCEPTOR, INTERCEPTOR_RUNNER,
+                                                CATALOG_SCHEMA, APPLICATION_TYPE_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(INTERCEPTOR)
@@ -111,11 +113,11 @@ class ExportConfigMetadataProviderTest {
                         ExportFormat.CORE,
                         List.of(ExportConfigComponentMetadata.builder()
                                         .type(MODEL)
-                                        .dependencies(Set.of(INTERCEPTOR))
+                                        .dependencies(Set.of(INTERCEPTOR, CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(APPLICATION)
-                                        .dependencies(Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA))
+                                        .dependencies(Set.of(INTERCEPTOR, APPLICATION_TYPE_SCHEMA, CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(ROUTE)
@@ -123,15 +125,15 @@ class ExportConfigMetadataProviderTest {
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(TOOL_SET)
-                                        .dependencies(Set.of())
+                                        .dependencies(Set.of(CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(ROLE)
-                                        .dependencies(Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA))
+                                        .dependencies(Set.of(MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA, CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(KEY)
-                                        .dependencies(Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA))
+                                        .dependencies(Set.of(ROLE, MODEL, APPLICATION, TOOL_SET, ROUTE, INTERCEPTOR, APPLICATION_TYPE_SCHEMA, CATALOG_SCHEMA))
                                         .build(),
                                 ExportConfigComponentMetadata.builder()
                                         .type(INTERCEPTOR)

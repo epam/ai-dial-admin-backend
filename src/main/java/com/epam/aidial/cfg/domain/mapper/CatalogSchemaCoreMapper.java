@@ -60,6 +60,9 @@ public abstract class CatalogSchemaCoreMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "topics", ignore = true)
+    @Mapping(target = "applications", ignore = true)
+    @Mapping(target = "models", ignore = true)
+    @Mapping(target = "toolSets", ignore = true)
     abstract CatalogSchema mapToCatalogSchema(CoreCatalogSchema coreCatalogSchema);
 
     public String toCatalogSchemaAsString(CoreCatalogSchema catalogSchema) {
