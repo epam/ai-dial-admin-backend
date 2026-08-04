@@ -46,4 +46,6 @@ public class CreateApplicationResource {
     private String appIdentity;
     private boolean allowUserExternalServices;
     private Map<String, ExternalServiceResource> externalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

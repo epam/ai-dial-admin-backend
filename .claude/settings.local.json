@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew test *)",
+      "Bash(./gradlew clean *)",
+      "Bash(./gradlew :test --tests \"com.epam.aidial.cfg.functional.tests.ToolSetFunctionalTest.shouldSuccessfullyGetFullySyncedEntitySyncStateWhenToolSetIsEqualToConfigToolSet\" --no-daemon)",
+      "Bash(./gradlew :test --tests \"com.epam.aidial.cfg.functional.tests.ApplicationFunctionalTest.shouldSuccessfullyGetFullySyncedEntitySyncStateWhenApplicationIsEqualToConfigApplication\" --no-daemon)",
+      "Bash(./gradlew :test --tests 'com.epam.aidial.cfg.functional.H2FunctionalTests$ToolSetTests.shouldSuccessfullyGetFullySyncedEntitySyncStateWhenToolSetIsEqualToConfigToolSet' --no-daemon)",
+      "Bash(./gradlew :test --tests 'com.epam.aidial.cfg.functional.H2FunctionalTests$ToolSetTests.shouldSuccessfullyGetFullySyncedEntitySyncStateWhenToolSetIsEqualToConfigToolSet' --tests 'com.epam.aidial.cfg.functional.H2FunctionalTests$ToolSetTests.shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenToolSetIsNotEqualToConfigToolSetAndUpdatedLongAgo' --no-daemon)",
+      "Bash(./gradlew :test --tests 'com.epam.aidial.cfg.functional.H2FunctionalTests$ApplicationTests.shouldSuccessfullyGetFullySyncedEntitySyncStateWhenApplicationIsEqualToConfigApplication' --tests 'com.epam.aidial.cfg.functional.H2FunctionalTests$ApplicationTests.shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenApplicationIsNotEqualToConfigApplicationAndUpdatedLongAgo' --no-daemon)",
+      "Bash(./gradlew :test --tests 'com.epam.aidial.cfg.functional.H2FunctionalTests$ModelTests.shouldSuccessfullyGetFullySyncedEntitySyncStateWhenModelIsEqualToConfigModel' --tests 'com.epam.aidial.cfg.functional.H2FunctionalTests$ModelTests.shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenModelIsNotEqualToConfigModelAndUpdatedLongAgo' --no-daemon)"
+    ]
+  }
+}

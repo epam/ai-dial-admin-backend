@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,4 +82,17 @@ public abstract class Deployment extends RoleBasedEntity {
      * Dependent deployments
      */
     private List<String> dependencies = List.of(); // 0.27.0
+
+    /**
+     * Catalog schema reference for marketplace/catalog display metadata validation.
+     */
+    @JsonAlias({"catalogSchemaId", "catalog_schema_id"})
+    private URI catalogSchemaId; // 0.47.0
+
+    /**
+     * Curated marketplace/catalog display metadata, validated against {@link #catalogSchemaId}.
+     */
+    @JsonAlias({"catalogProperties", "catalog_properties"})
+    private Map<String, Object> catalogProperties; // 0.47.0
+
 }
