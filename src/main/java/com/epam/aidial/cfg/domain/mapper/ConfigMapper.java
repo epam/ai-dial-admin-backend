@@ -25,6 +25,7 @@ import java.util.Map;
                 InterceptorCoreMapper.class,
                 ApplicationTypeSchemaCoreMapper.class,
                 ToolSetCoreMapper.class,
+                CatalogSchemaCoreMapper.class,
         }
 )
 public abstract class ConfigMapper {
@@ -36,6 +37,7 @@ public abstract class ConfigMapper {
     @Mapping(target = "retriableErrorCodes", ignore = true)
     @Mapping(target = "addons", ignore = true)
     @Mapping(target = "applicationTypeSchemas", source = "applicationRunners")
+    @Mapping(target = "catalogSchemas", source = "catalogSchemas")
     @Mapping(target = "roles", ignore = true)
     public abstract Config toCoreConfig(ExportConfig config);
 

@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 class ConfigSplitterTest {
 
-    private ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
+    private final ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
 
     @Test
     void splitConfigErrorDetailShowsLargestEntries() {
@@ -81,7 +81,7 @@ class ConfigSplitterTest {
             CoreKey key = generateKey(i);
             configBody.getKeys().put("key" + i, key);
         }
-        List<ConfigPart> secretConfigs = splitter.splitConfig(configBody, this::encode, 180, 5);
+        List<ConfigPart> secretConfigs = splitter.splitConfig(configBody, this::encode, 200, 5);
         Assertions.assertEquals(2, secretConfigs.size());
         Assertions.assertEquals(Set.of("key0", "key1", "key2"), secretConfigs.get(0).config().getKeys().keySet());
         Assertions.assertEquals(Set.of("key3", "key4"), secretConfigs.get(1).config().getKeys().keySet());
@@ -110,7 +110,7 @@ class ConfigSplitterTest {
         configBody.getApplicationTypeSchemas().put("schema1", generateSchema());
         configBody.getToolsets().put("toolset1", generateToolSet());
 
-        List<ConfigPart> splittedConfig = splitter.splitConfig(configBody, this::encode, 500, 10);
+        List<ConfigPart> splittedConfig = splitter.splitConfig(configBody, this::encode, 520, 10);
 
         Assertions.assertEquals(9, splittedConfig.size());
         List<Config> expected = expected();
@@ -183,6 +183,7 @@ class ConfigSplitterTest {
         config.setRoles(null);
         config.setInterceptors(null);
         config.setApplicationTypeSchemas(null);
+        config.setCatalogSchemas(null);
         config.setRetriableErrorCodes(null);
         config.setToolsets(null);
         return config;

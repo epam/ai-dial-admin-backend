@@ -26,4 +26,5 @@ public class ExportConfigPreview {
     private List<String> globalInterceptors;
     private Collection<ExportComponentInfo> interceptorRunners;
     private Collection<ExportComponentInfo> adapters;
+    private Collection<ExportCatalogSchemaInfo> catalogSchemas;
 }

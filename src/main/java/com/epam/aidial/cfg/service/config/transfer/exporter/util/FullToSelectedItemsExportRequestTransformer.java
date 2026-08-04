@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ApplicationService;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
+import com.epam.aidial.cfg.domain.service.CatalogSchemaService;
 import com.epam.aidial.cfg.domain.service.GlobalSettingsService;
 import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
 import com.epam.aidial.cfg.domain.service.InterceptorService;
@@ -27,6 +28,7 @@ import java.util.List;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.ADAPTER;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.APPLICATION_TYPE_SCHEMA;
+import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.CATALOG_SCHEMA;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.GLOBAL_INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR;
 import static com.epam.aidial.cfg.domain.model.ExportConfigComponentType.INTERCEPTOR_RUNNER;
@@ -52,6 +54,7 @@ public class FullToSelectedItemsExportRequestTransformer {
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
     private final AdapterService adapterService;
     private final GlobalSettingsService globalSettingsService;
+    private final CatalogSchemaService catalogSchemaService;
 
     public SelectedItemsExportRequest transform(FullExportRequest fullExportRequest) {
         SelectedItemsExportRequest selectedItemsExportRequest = new SelectedItemsExportRequest();
@@ -75,6 +78,7 @@ public class FullToSelectedItemsExportRequestTransformer {
                     case APPLICATION_TYPE_SCHEMA -> getAppTypeSchemaExportComponents(fullExportRequest);
                     case ADAPTER -> getAdapterExportComponents(fullExportRequest);
                     case GLOBAL_INTERCEPTOR -> getGlobalSettingsExportComponents(fullExportRequest);
+                    case CATALOG_SCHEMA -> getCatalogSchemaExportComponents(fullExportRequest);
                 })
                 .flatMap(Collection::stream)
                 .toList();
@@ -153,6 +157,13 @@ public class FullToSelectedItemsExportRequestTransformer {
     private List<ExportConfigComponent> getGlobalSettingsExportComponents(FullExportRequest fullExportRequest) {
         return globalSettingsService.getGlobalSettings().getGlobalInterceptors().stream()
                 .map(name -> exportConfigComponent(fullExportRequest, name, GLOBAL_INTERCEPTOR))
+                .toList();
+    }
+
+    private List<ExportConfigComponent> getCatalogSchemaExportComponents(FullExportRequest fullExportRequest) {
+        return catalogSchemaService.getAll().stream()
+                .filter(schema -> ExportUtils.hasAnyRequestedTopic(schema.getTopics(), fullExportRequest.getTopics()))
+                .map(schema -> exportConfigComponent(fullExportRequest, schema.getSchemaId(), CATALOG_SCHEMA))
                 .toList();
     }
 

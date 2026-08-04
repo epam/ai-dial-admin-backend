@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dao.mapper;
 
+import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.dao.model.DeploymentTypeEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
@@ -15,10 +16,12 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {
-        DeploymentEntityMapper.class
+        DeploymentEntityMapper.class, MapPropertiesMapper.class
 })
 public abstract class ToolSetEntityMapper {
 
@@ -30,6 +33,7 @@ public abstract class ToolSetEntityMapper {
     private ToolSetMcpRegistryEntityMapper toolSetMcpRegistryEntityMapper;
 
     @Mapping(target = "source", source = "entity", qualifiedByName = "mapSource")
+    @Mapping(target = "catalogSchemaId", source = "catalogSchema.schemaId")
     public abstract ToolSet toDomain(ToolSetEntity entity);
 
     @Named("mapSource")
@@ -49,6 +53,7 @@ public abstract class ToolSetEntityMapper {
                                   ToolSetEntity entity,
                                   ToolSetContainerEntity toolSetContainer,
                                   ToolSetMcpRegistryEntity toolSetMcpRegistry,
+                                  CatalogSchemaEntity catalogSchema,
                                   List<RoleLimit> roleLimits,
                                   List<RoleEntity> rolesForLimits) {
         ToolSetEntity updatedEntity = update(domain, entity);
@@ -60,6 +65,15 @@ public abstract class ToolSetEntityMapper {
         updatedEntity.setToolSetContainer(toolSetContainer);
         updatedEntity.setToolSetMcpRegistry(toolSetMcpRegistry);
 
+        CatalogSchemaEntity currentCatalogSchema = updatedEntity.getCatalogSchema();
+        if (currentCatalogSchema != null && !currentCatalogSchema.equals(catalogSchema)) {
+            currentCatalogSchema.getToolSets().remove(updatedEntity);
+        }
+        if (catalogSchema != null && !catalogSchema.equals(currentCatalogSchema)) {
+            catalogSchema.getToolSets().add(updatedEntity);
+        }
+        updatedEntity.setCatalogSchema(catalogSchema);
+
         return updatedEntity;
     }
 
@@ -68,5 +82,14 @@ public abstract class ToolSetEntityMapper {
     @Mapping(target = "toolSetMcpRegistry", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "catalogSchema", ignore = true)
     public abstract ToolSetEntity update(ToolSet domain, @MappingTarget ToolSetEntity entity);
+
+    protected URI mapStringToUri(String uriString) {
+        try {
+            return uriString == null ? null : new URI(uriString);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid application catalogSchemaId: " + uriString);
+        }
+    }
 }

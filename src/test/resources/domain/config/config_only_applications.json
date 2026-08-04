@@ -89,7 +89,13 @@
       "author": "test-author",
       "created_at": 12345,
       "updated_at": 12345,
-      "dependencies": ["dep1", "dep2"]
+      "dependencies": ["dep1", "dep2"],
+      "catalog_schema_id": "https://test-catalog-schema.example",
+      "catalog_properties": {
+        "category": "AI Application",
+        "vendor": "Test Vendor",
+        "tags": ["automation", "workflow"]
+      }
     }
   },
   "assistant": {
@@ -101,5 +107,6 @@
   "interceptors": {},
   "globalInterceptors": [],
   "applicationTypeSchemas": [],
+  "catalogSchemas": [],
   "toolsets": {}
 }

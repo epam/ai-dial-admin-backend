@@ -797,5 +797,6 @@
       }
     }
   ],
-  "toolSets": []
+  "toolSets": [],
+  "catalogSchemas": []
 }

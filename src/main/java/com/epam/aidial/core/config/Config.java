@@ -2,6 +2,7 @@ package com.epam.aidial.core.config;
 
 import com.epam.aidial.core.config.databind.JsonArrayToSchemaMapDeserializer;
 import com.epam.aidial.core.config.databind.MapToJsonArraySerializer;
+import com.epam.aidial.core.config.validation.ConformToCatalogMetaSchema;
 import com.epam.aidial.core.config.validation.ConformToMetaSchema;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -38,5 +39,10 @@ public class Config {
     @JsonSerialize(using = MapToJsonArraySerializer.class)
     @ConformToMetaSchema(message = "All custom application type schemas should conform to meta schema")
     private Map<String, String> applicationTypeSchemas = new HashMap<>();
+
+    @JsonDeserialize(using = JsonArrayToSchemaMapDeserializer.class)
+    @JsonSerialize(using = MapToJsonArraySerializer.class)
+    @ConformToCatalogMetaSchema(message = "All catalog schemas should conform to the catalog meta schema")
+    private Map<String, String> catalogSchemas = new HashMap<>(); // 0.47.0
 
 }

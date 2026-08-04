@@ -28,6 +28,7 @@ public class RollbackService {
     private final AdminSettingsService adminSettingsService;
     private final AuditActivityLogService auditActivityLogService;
     private final AuditParentActivityHolder auditParentActivityHolder;
+    private final CatalogSchemaService catalogSchemaService;
 
     @Transactional
     public void rollbackToRevision(Number revision) {
@@ -48,6 +49,7 @@ public class RollbackService {
             interceptorRunnerService.rollbackInterceptorRunners(revision);
             globalSettingsService.rollbackGlobalSettings(revision);
             adminSettingsService.rollbackAdminSettings(revision);
+            catalogSchemaService.rollbackCatalogSchemas(revision);
         }
     }
 }

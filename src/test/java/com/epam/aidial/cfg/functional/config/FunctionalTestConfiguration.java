@@ -73,7 +73,8 @@ import java.util.Map;
         "com.epam.aidial.cfg.service.config.normalizer",
         "com.epam.aidial.cfg.service.config.syncstate",
         "com.epam.aidial.cfg.service.core",
-        "com.epam.aidial.cfg.transaction"
+        "com.epam.aidial.cfg.transaction",
+        "com.epam.aidial.core.config.validation"
 })
 @Import({JsonMapperConfiguration.class, JpaConfiguration.class, HibernateConfiguration.class, HashCalculator.class, SyncStateConfiguration.class})
 @EnableAspectJAutoProxy
@@ -87,6 +88,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public FeatureFlagGateEvaluationAspect assistantFeatureGateEvaluationAspect() {
         return Mockito.mock(FeatureFlagGateEvaluationAspect.class);
+    }
+
+    @Bean
+    public RunAsInternalUserAspect runAsInternalUserAspect() {
+        return new RunAsInternalUserAspect();
     }
 
     @Bean
@@ -211,11 +217,6 @@ public class FunctionalTestConfiguration {
     @Bean
     public ExternalSchemaLoader externalSchemaLoader() {
         return Mockito.mock(ExternalSchemaLoader.class);
-    }
-
-    @Bean
-    public RunAsInternalUserAspect runAsInternalUserAspect() {
-        return new RunAsInternalUserAspect();
     }
 
 }

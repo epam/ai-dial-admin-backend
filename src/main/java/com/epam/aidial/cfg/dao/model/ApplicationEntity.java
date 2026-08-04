@@ -91,6 +91,14 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private String appIdentity;
     private boolean allowUserExternalServices;
 
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "catalog_schema_id")
+    private CatalogSchemaEntity catalogSchema;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
+
     @PreRemove
     public void preRemove() {
         for (InterceptorEntity interceptor : interceptors) {
@@ -98,6 +106,9 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
         }
         if (applicationTypeSchema != null) {
             applicationTypeSchema.getApplications().remove(this);
+        }
+        if (catalogSchema != null) {
+            catalogSchema.getApplications().remove(this);
         }
     }
 

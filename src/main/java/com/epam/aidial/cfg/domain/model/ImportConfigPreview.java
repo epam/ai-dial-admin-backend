@@ -21,6 +21,7 @@ public class ImportConfigPreview {
     private ImportComponent<List<String>> globalInterceptors;
     private Collection<ImportComponent<InterceptorRunner>> interceptorRunners;
     private Collection<ImportComponent<ApplicationTypeSchema>> applicationRunners;
+    private Collection<ImportComponent<CatalogSchema>> catalogSchemas;
     private Collection<ImportComponent<Route>> routes;
     private Collection<ImportComponent<Adapter>> adapters;
     private Collection<ImportComponent<Model>> models;

@@ -2,10 +2,12 @@ package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.jpa.CatalogSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ToolSetJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ToolSetContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ToolSetEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ToolSetMcpRegistryEntityMapper;
+import com.epam.aidial.cfg.dao.model.CatalogSchemaEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetContainerEntity;
 import com.epam.aidial.cfg.dao.model.ToolSetEntity;
@@ -32,14 +34,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.aidial.cfg.service.hashing.HashCalculator.ANY_HASH;
@@ -53,6 +58,7 @@ public class ToolSetService {
     private static final String NOT_FOUND_MESSAGE_TEMPLATE = "ToolSet with name %s does not exist";
 
     private final ToolSetJpaRepository toolSetJpaRepository;
+    private final CatalogSchemaJpaRepository catalogSchemaJpaRepository;
     private final ToolSetNormalizer toolSetNormalizer;
     private final ToolSetValidator toolSetValidator;
     private final ToolSetEntityMapper mapper;
@@ -212,6 +218,7 @@ public class ToolSetService {
     public void rollbackToolSets(Number revision) {
         Collection<ToolSet> toolSets = getAllAtRevision(revision);
         List<String> ids = toolSets.stream().map(SecuredRoleBased::getDeployment).map(SecuredResource::getName).toList();
+        Set<String> allCatalogIds = catalogSchemaJpaRepository.findAllIds();
         if (CollectionUtils.isEmpty(ids)) {
             toolSetJpaRepository.deleteAll();
         } else {
@@ -220,6 +227,9 @@ public class ToolSetService {
         }
 
         for (ToolSet toolSet : toolSets) {
+            if (toolSet.getCatalogSchemaId() != null && !allCatalogIds.contains(toolSet.getCatalogSchemaId().toString())) {
+                toolSet.setCatalogSchemaId(null);
+            }
             ToolSetEntity entity = toolSetJpaRepository.findById(toolSet.getDeployment().getName()).orElseGet(ToolSetEntity::new);
             ToolSetEntity toolSetEntity = toEntity(toolSet, entity);
             toolSetJpaRepository.save(toolSetEntity);
@@ -312,6 +322,19 @@ public class ToolSetService {
             toolSetMcpRegistry = toolSetMcpRegistryEntityMapper.toEntity(mcpRegistrySource);
         }
 
-        return mapper.toEntity(domain, entity, toolSetContainer, toolSetMcpRegistry, roleLimits, rolesForLimits);
+        CatalogSchemaEntity catalogSchema = findCatalogSchemaById(domain.getCatalogSchemaId());
+
+        return mapper.toEntity(domain, entity, toolSetContainer, toolSetMcpRegistry, catalogSchema, roleLimits, rolesForLimits);
+    }
+
+    private CatalogSchemaEntity findCatalogSchemaById(URI catalogSchemaId) {
+        String schemaId = catalogSchemaId != null ? catalogSchemaId.toString() : null;
+
+        if (StringUtils.isBlank(schemaId)) {
+            return null;
+        }
+
+        return catalogSchemaJpaRepository.findById(schemaId)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find catalog schema with schema id: " + schemaId));
     }
 }

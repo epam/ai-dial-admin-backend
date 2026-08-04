@@ -125,5 +125,6 @@
   "applications": [],
   "addons": [],
   "assistants": [],
-  "toolSets": []
+  "toolSets": [],
+  "catalogSchemas": []
 }

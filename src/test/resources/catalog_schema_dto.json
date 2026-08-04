@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://test-catalog-schema.example",
+  "dial:catalogEntityType": "MODEL",
+  "dial:catalogDisplayName": "AI Model Catalog",
+  "dial:defaultLocale": "en",
+  "$defs": {
+    "LocalizedString": {
+      "type": "object",
+      "properties": {
+        "en": {
+          "type": "string"
+        },
+        "fr": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "properties": {
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "vendor": {
+      "type": "string",
+      "title": "Vendor"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags"
+    }
+  },
+  "required": [
+    "category",
+    "vendor"
+  ],
+  "description": "Test catalog schema for models",
+  "type": "object",
+  "title": "Model Catalog Schema"
+}

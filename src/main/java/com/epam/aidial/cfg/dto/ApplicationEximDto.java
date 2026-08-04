@@ -47,4 +47,6 @@ public class ApplicationEximDto {
     private String appIdentity;
     private boolean allowUserExternalServices;
     private Map<String, ExternalServiceResourceDto> externalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

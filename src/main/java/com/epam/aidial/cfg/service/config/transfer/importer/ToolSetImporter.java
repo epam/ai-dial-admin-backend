@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.exception.DeploymentClientNotExistsException;
 import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.core.config.CoreToolSet;
+import com.epam.aidial.core.config.validation.CatalogSchemaValidationService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Path;
 import jakarta.validation.Validation;
@@ -46,17 +47,20 @@ public class ToolSetImporter extends DeploymentHolderImporter {
     private final ToolSetCoreMapper toolSetCoreMapper;
     private final ToolSetService toolSetService;
     private final Validator validator;
+    private final CatalogSchemaValidationService catalogSchemaValidationService;
 
     public ToolSetImporter(DeploymentManagerService deploymentManagerService,
                            ToolSetCoreMapper toolSetCoreMapper,
-                           ToolSetService toolSetService) {
+                           ToolSetService toolSetService, CatalogSchemaValidationService catalogSchemaValidationService) {
         this.deploymentManagerService = deploymentManagerService;
         this.toolSetCoreMapper = toolSetCoreMapper;
         this.toolSetService = toolSetService;
+        this.catalogSchemaValidationService = catalogSchemaValidationService;
         this.validator = Validation.buildDefaultValidatorFactory().getValidator();
     }
 
     public Collection<ImportComponent<ToolSet>> importToolSets(Map<String, CoreToolSet> coreToolSets,
+                                                               Map<String, String> catalogSchemas,
                                                                ConfigImportOptions importOptions) {
         if (MapUtils.isEmpty(coreToolSets)) {
             return Collections.emptyList();
@@ -64,7 +68,7 @@ public class ToolSetImporter extends DeploymentHolderImporter {
 
         return coreToolSets.entrySet()
                 .stream()
-                .map(entry -> processToolSet(entry.getKey(), entry.getValue(), importOptions.conflictResolutionPolicy()))
+                .map(entry -> processToolSet(entry.getKey(), entry.getValue(), catalogSchemas, importOptions.conflictResolutionPolicy()))
                 .toList();
     }
 
@@ -82,7 +86,14 @@ public class ToolSetImporter extends DeploymentHolderImporter {
 
     private ImportComponent<ToolSet> processToolSet(String toolSetName,
                                                     CoreToolSet coreToolSet,
+                                                    Map<String, String> catalogSchemas,
                                                     ConflictResolutionPolicy resolutionPolicy) {
+        catalogSchemaValidationService.validateCatalogProperties(
+                coreToolSet.getCatalogSchemaId(),
+                coreToolSet.getCatalogProperties(),
+                toolSetName,
+                "ToolSet",
+                catalogSchemas);
         Optional<ToolSet> toolSet = toolSetService.tryGetToolSet(toolSetName);
         if (toolSet.isPresent()) {
             ToolSet existingToolSet = toolSet.get();

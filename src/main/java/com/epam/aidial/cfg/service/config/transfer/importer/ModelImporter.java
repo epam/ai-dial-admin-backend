@@ -16,6 +16,7 @@ import com.epam.aidial.cfg.model.ConfigImportOptions;
 import com.epam.aidial.cfg.service.config.export.ConflictResolutionPolicy;
 import com.epam.aidial.cfg.service.config.transfer.importer.util.ModelSourceResolver;
 import com.epam.aidial.core.config.CoreModel;
+import com.epam.aidial.core.config.validation.CatalogSchemaValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -44,8 +45,10 @@ public class ModelImporter extends DeploymentHolderImporter {
     private final ModelCoreMapper modelMapper;
     private final ModelSourceResolver modelSourceResolver;
     private final DeploymentManagerService deploymentManagerService;
+    private final CatalogSchemaValidationService catalogSchemaValidationService;
 
     public Collection<ImportComponent<Model>> importModels(Map<String, CoreModel> coreModels,
+                                                           Map<String, String> catalogSchemas,
                                                            ConfigImportOptions importOptions) {
         if (MapUtils.isEmpty(coreModels)) {
             return Collections.emptyList();
@@ -53,7 +56,7 @@ public class ModelImporter extends DeploymentHolderImporter {
 
         return coreModels.entrySet()
                 .stream()
-                .map(entry -> processModel(entry.getKey(), entry.getValue(), importOptions.conflictResolutionPolicy()))
+                .map(entry -> processModel(entry.getKey(), entry.getValue(), catalogSchemas, importOptions.conflictResolutionPolicy()))
                 .toList();
     }
 
@@ -70,7 +73,14 @@ public class ModelImporter extends DeploymentHolderImporter {
 
     private ImportComponent<Model> processModel(String modelName,
                                                 CoreModel coreModel,
+                                                Map<String, String> catalogSchemas,
                                                 ConflictResolutionPolicy resolutionPolicy) {
+        catalogSchemaValidationService.validateCatalogProperties(
+                coreModel.getCatalogSchemaId(),
+                coreModel.getCatalogProperties(),
+                modelName,
+                "Model",
+                catalogSchemas);
         Optional<Model> model = modelService.tryGetModel(modelName);
         if (model.isPresent()) {
             Model existingModel = model.get();

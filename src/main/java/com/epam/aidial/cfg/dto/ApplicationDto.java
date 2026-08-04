@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +69,9 @@ public class ApplicationDto extends RoleBasedDto {
     private Map<String, ExternalServiceDto> externalServices;
     private String appIdentity;
     private boolean allowUserExternalServices;
+
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {

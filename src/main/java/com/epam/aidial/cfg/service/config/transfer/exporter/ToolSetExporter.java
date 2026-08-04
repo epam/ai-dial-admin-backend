@@ -93,4 +93,8 @@ public class ToolSetExporter {
         return toolSet;
     }
 
+    protected ToolSet getToolSet(String toolSetName) {
+        return toolSetService.get(toolSetName);
+    }
+
 }
