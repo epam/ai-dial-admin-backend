@@ -16,7 +16,7 @@ public interface UriMapper {
         try {
             return uriString == null ? null : new URI(uriString);
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid application catalogSchemaId: " + uriString);
+            throw new IllegalArgumentException("Invalid URI: " + uriString);
         }
     }
 }
