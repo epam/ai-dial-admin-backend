@@ -165,6 +165,9 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
+        implementation('org.springframework.data:spring-data-commons:3.5.12') {
+            because("previous versions have vulnerabilities")
+        }
         implementation('org.springframework:spring-expression:6.2.19') {
             because("previous versions have vulnerabilities")
         }
