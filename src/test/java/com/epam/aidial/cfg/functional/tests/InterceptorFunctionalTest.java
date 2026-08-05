@@ -679,7 +679,7 @@ public abstract class InterceptorFunctionalTest {
                       "name": "interceptor1",
                       "userRoles": null,
                       "endpoint": "https://endpoint.test.com/interceptor1",
-                      "displayName": "displayName1", 
+                      "displayName": "displayName1",
                       "displayVersion": null,
                       "iconUrl": null,
                       "description": "description1",
@@ -713,8 +713,8 @@ public abstract class InterceptorFunctionalTest {
                       "createdAt": 1000,
                       "updatedAt": 1000,
                       "dependencies": [],
-                      "catalogSchemaId":null,
-                      "catalogProperties":null
+                      "catalogSchemaId": null,
+                      "catalogProperties": null
                     }
                   }
                 }
