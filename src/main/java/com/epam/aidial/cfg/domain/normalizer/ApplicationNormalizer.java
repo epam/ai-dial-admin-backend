@@ -1,21 +1,20 @@
 package com.epam.aidial.cfg.domain.normalizer;
 
 import com.epam.aidial.cfg.domain.model.Application;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class ApplicationNormalizer {
 
     public void normalize(Application application) {
-        normalizeDisplayVersion(application);
+        setDisplayVersionToNullIfBlank(application);
         setEndpointToNullIfBlank(application);
     }
 
-    private void normalizeDisplayVersion(Application application) {
-        if (StringUtils.isBlank(application.getDisplayVersion())) {
+    private void setDisplayVersionToNullIfBlank(Application application) {
+        String displayVersion = application.getDisplayVersion();
+        if (StringUtils.isBlank(displayVersion)) {
             application.setDisplayVersion(null);
         }
     }
