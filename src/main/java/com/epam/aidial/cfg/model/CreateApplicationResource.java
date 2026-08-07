@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.model;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,10 +20,10 @@ public class CreateApplicationResource {
     private String endpoint;
     private String responsesEndpoint;
     private Map<String, DeploymentInterfaceResource> interfaces;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
@@ -42,7 +43,7 @@ public class CreateApplicationResource {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResource mcp;
-    private String intro;
+    private LocalizedValue intro;
     private String appIdentity;
     private boolean allowUserExternalServices;
     private Map<String, ExternalServiceResource> externalServices;

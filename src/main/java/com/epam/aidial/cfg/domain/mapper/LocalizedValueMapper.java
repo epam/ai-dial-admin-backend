@@ -45,6 +45,7 @@ public class LocalizedValueMapper {
      * @param value the LocalizedValue to serialize
      * @return JSON string of locale map, or null if plain value
      */
+    @Named("toJson")
     public String toJson(LocalizedValue value) {
         if (value == null || !value.isMap()) {
             return null;
@@ -87,5 +88,27 @@ public class LocalizedValueMapper {
     @Named("fromString")
     public LocalizedValue fromString(String value) {
         return value != null ? LocalizedValue.of(value) : null;
+    }
+
+    /**
+     * Maps plain String to LocalizedValue (used by MapStruct for automatic conversion).
+     * This is the method signature MapStruct looks for by default.
+     *
+     * @param value plain string value
+     * @return LocalizedValue wrapping the string, or null
+     */
+    public LocalizedValue map(String value) {
+        return fromString(value);
+    }
+
+    /**
+     * Maps LocalizedValue to String (used by MapStruct for automatic conversion).
+     * Resolves to default locale for backward compatibility.
+     *
+     * @param value LocalizedValue to resolve
+     * @return resolved string value, or null
+     */
+    public String map(LocalizedValue value) {
+        return toString(value);
     }
 }

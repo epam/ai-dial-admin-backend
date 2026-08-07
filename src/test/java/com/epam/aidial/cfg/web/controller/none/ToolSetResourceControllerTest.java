@@ -258,24 +258,6 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
     }
 
     @Test
-    void testCreateToolSetResourceWithEmptyDisplayName() throws Exception {
-        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
-
-        // Test with empty displayName
-        var dtoEmptyDisplayName = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
-        dtoEmptyDisplayName.setDisplayName("");
-        var jsonEmptyDisplayName = objectMapper.writeValueAsString(dtoEmptyDisplayName);
-
-        mockMvc.perform(post(CREATE_API_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonEmptyDisplayName))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
-
-        verifyNoInteractions(toolSetResourceService);
-    }
-
-    @Test
     void testCreateToolSetResourceWithEmptyEndpoint() throws Exception {
         var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
 

@@ -3,6 +3,9 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.configuration.LocalizationProperties;
+import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ToolSetEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
@@ -28,6 +31,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,7 +50,9 @@ import static org.mockito.Mockito.when;
         ToolSetClientMapperImpl.class,
         ToolSetEximService.class,
         ResourceImportValidator.class,
-        RouteMapperImpl.class
+        RouteMapperImpl.class,
+        LocalizedValueMapper.class,
+        LocalizationProperties.class
 })
 @TestPropertySource(properties = {
         "toolsets.import.consecutiveErrorsThreshold=2"
@@ -78,9 +84,9 @@ class ToolSetEximServiceTest {
         assertThat(result.getToolSets()).hasSize(1);
 
         var toolSetExim = result.getToolSets().get(0);
-        assertThat(toolSetExim.getDisplayName()).isEqualTo("toolSet1");
+        assertThat(toolSetExim.getDisplayName()).isEqualTo(LocalizedValue.of("toolSet1"));
         assertThat(toolSetExim.getFolderId()).isEqualTo("public/");
-        assertThat(toolSetExim.getDescription()).isEqualTo("toolSet description 1");
+        assertThat(toolSetExim.getDescription()).isEqualTo(LocalizedValue.of("toolSet description 1"));
         assertThat(toolSetExim.isForwardPerRequestKey()).isTrue();
     }
 
@@ -108,14 +114,14 @@ class ToolSetEximServiceTest {
         var toolSetExim1 = result.getToolSets().get(0);
         assertThat(toolSetExim1.getName()).isEqualTo("toolSet1");
         assertThat(toolSetExim1.getFolderId()).isEqualTo("public/");
-        assertThat(toolSetExim1.getDescription()).isEqualTo("toolSet description 1");
+        assertThat(toolSetExim1.getDescription()).isEqualTo(LocalizedValue.of("toolSet description 1"));
         assertThat(toolSetExim1.isForwardPerRequestKey()).isTrue();
 
         // Verify second toolSet1Exim1
         var toolSetExim2 = result.getToolSets().get(1);
         assertThat(toolSetExim2.getName()).isEqualTo("toolSet2");
         assertThat(toolSetExim2.getFolderId()).isEqualTo("public/");
-        assertThat(toolSetExim2.getDescription()).isEqualTo("toolSet description 2");
+        assertThat(toolSetExim2.getDescription()).isEqualTo(LocalizedValue.of("toolSet description 2"));
         assertThat(toolSetExim2.isForwardPerRequestKey()).isTrue();
     }
 
@@ -244,6 +250,7 @@ class ToolSetEximServiceTest {
                 .build();
 
         var toolSetExim = getToolSetEximDto("1");
+        toolSetExim.setIntro(LocalizedValue.of(Map.of("en", "intro en", "de", "intro en")));
         var toolSetsExim = new ToolSetsEximDto();
         toolSetsExim.setToolSets(List.of(toolSetExim));
 
@@ -272,7 +279,8 @@ class ToolSetEximServiceTest {
         assertThat(toolSetEximResource.getName()).isEqualTo("toolSet1");
         assertThat(toolSetEximResource.getVersion()).isEqualTo("0.0.1");
         assertThat(toolSetEximResource.getFolderId()).isEqualTo("public/to/folder1/");
-        assertThat(toolSetEximResource.getDescription()).isEqualTo("toolSet description 1");
+        assertThat(toolSetEximResource.getDescription()).isEqualTo(LocalizedValue.of("toolSet description 1"));
+        assertThat(toolSetEximResource.getIntro()).isEqualTo(LocalizedValue.of(Map.of("en", "intro en", "de", "intro en")));
     }
 
     @Test
@@ -322,7 +330,7 @@ class ToolSetEximServiceTest {
         assertThat(toolSet.getName()).isEqualTo("toolSet1");
         assertThat(toolSet.getVersion()).isEqualTo("0.0.1");
         assertThat(toolSet.getFolderId()).isEqualTo("public/to/");
-        assertThat(toolSet.getDescription()).isEqualTo("toolSet description 1");
+        assertThat(toolSet.getDescription()).isEqualTo(LocalizedValue.of("toolSet description 1"));
         assertThat(toolSet.isForwardPerRequestKey()).isFalse();
     }
 
@@ -372,11 +380,11 @@ class ToolSetEximServiceTest {
     private ToolSetResource getToolSetResource(String suffix) {
         var toolSet = new ToolSetResource();
         toolSet.setName("toolSet" + suffix);
-        toolSet.setDisplayName("toolSet" + suffix);
+        toolSet.setDisplayName(LocalizedValue.of("toolSet" + suffix));
         toolSet.setVersion(String.format("0.0.%s", suffix));
         toolSet.setFolderId(String.format("public/folder%s/", suffix));
         toolSet.setPath(String.format("%s%s__%s", toolSet.getFolderId(), toolSet.getName(), toolSet.getVersion()));
-        toolSet.setDescription(String.format("toolSet description %s", suffix));
+        toolSet.setDescription(LocalizedValue.of(String.format("toolSet description %s", suffix)));
         toolSet.setForwardPerRequestKey(true);
         return toolSet;
     }
@@ -385,9 +393,9 @@ class ToolSetEximServiceTest {
         return ToolSetEximDto.builder()
                 .name("toolSet" + suffix)
                 .version(String.format("0.0.%s", suffix))
-                .displayName("toolSet" + suffix)
+                .displayName(LocalizedValue.of("toolSet" + suffix))
                 .folderId(String.format("public/folder%s/", suffix))
-                .description(String.format("toolSet description %s", suffix))
+                .description(LocalizedValue.of(String.format("toolSet description %s", suffix)))
                 .forwardPerRequestKey(false)
                 .build();
     }

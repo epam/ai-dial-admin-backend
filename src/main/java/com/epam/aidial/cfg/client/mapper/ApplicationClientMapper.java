@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.client.mapper;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.client.dto.NodeTypeDto;
+import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.model.ApplicationExim;
 import com.epam.aidial.cfg.model.ApplicationResource;
@@ -20,7 +21,7 @@ import java.util.List;
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.extractPath;
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.parseEncodedVersionedPath;
 
-@Mapper(componentModel = "spring", uses = {RouteMapper.class})
+@Mapper(componentModel = "spring", uses = {RouteMapper.class, LocalizedValueMapper.class})
 @Slf4j
 public abstract class ApplicationClientMapper {
     public static final String APPLICATIONS_PREFIX = "applications/";

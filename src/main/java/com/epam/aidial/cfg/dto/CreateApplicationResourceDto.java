@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.source.ApplicationResourceSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import jakarta.validation.Valid;
@@ -28,11 +29,11 @@ public class CreateApplicationResourceDto {
     private String responsesEndpoint;
     @Valid
     private Map<String, DeploymentInterfaceDto> interfaces;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
-    private String intro;
+    private LocalizedValue description;
+    private LocalizedValue intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

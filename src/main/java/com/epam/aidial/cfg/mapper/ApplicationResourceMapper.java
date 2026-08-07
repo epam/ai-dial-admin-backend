@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.mapper;
 
+import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.dto.ApplicationResourceDto;
 import com.epam.aidial.cfg.dto.ApplicationResourceNodeInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
@@ -15,7 +16,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {LocalizedValueMapper.class})
 public interface ApplicationResourceMapper {
 
     @Mapping(target = "applicationTypeSchemaId", source = "source", qualifiedByName = "toSchemaIdString")
