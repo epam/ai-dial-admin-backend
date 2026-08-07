@@ -101,7 +101,13 @@
       "createdAt": 12345,
       "updatedAt": 12345,
       "dependencies": ["dep1", "dep2"],
-      "embeddingDimensions": 1536
+      "embeddingDimensions": 1536,
+      "catalogSchemaId": "https://test-catalog-schema.example",
+      "catalogProperties": {
+        "category": "AI Model",
+        "vendor": "Test Vendor",
+        "tags": ["chat", "completion"]
+      }
     }
   },
   "addons": {},

@@ -93,6 +93,11 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
 
     private String provider;
 
+    private String catalogSchemaId;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
+
     public enum TransportEntity {
         HTTP, SSE
     }

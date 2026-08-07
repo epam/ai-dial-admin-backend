@@ -218,6 +218,14 @@
               "items": {
                 "type": "string"
               }
+            },
+            "catalogSchemaId": {
+              "type": "string",
+              "format": "uri"
+            },
+            "catalogProperties": {
+              "type": "object",
+              "description": "Curated marketplace/catalog display metadata, validated against catalogSchemaId"
             }
           }
         }

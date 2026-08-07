@@ -6,8 +6,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -32,6 +34,8 @@ public class ToolSet extends SecuredRoleBased {
     private Transport transport;
     private List<String> allowedTools = new ArrayList<>();
     private String provider;
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public enum Transport {
         HTTP, SSE

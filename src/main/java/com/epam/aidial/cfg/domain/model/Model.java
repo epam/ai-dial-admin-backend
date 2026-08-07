@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,4 +47,6 @@ public class Model extends RoleBased {
     private List<String> fieldsHashingOrder;
     private Integer embeddingDimensions;
     private ModelSource source;
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

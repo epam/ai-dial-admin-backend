@@ -165,6 +165,15 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
+        implementation('org.springframework.data:spring-data-commons:3.5.12') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework:spring-expression:6.2.19') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework:spring-webmvc:6.2.19') {
+            because("previous versions have vulnerabilities")
+        }
         implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.0') {
             because("previous versions have vulnerabilities")
         }

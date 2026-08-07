@@ -124,6 +124,11 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private AdapterEntity adapter;
     private String adapterCompletionEndpointPath;
 
+    private String catalogSchemaId;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
+
     @PreRemove
     public void preRemove() {
         for (InterceptorEntity interceptor : interceptors) {
