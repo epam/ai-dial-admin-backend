@@ -37,24 +37,20 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     @AttributeOverrides({
             @AttributeOverride(
                     name = "plainValue",
-                    column = @Column(name = "description")
-            ),
+                    column = @Column(name = "description")),
             @AttributeOverride(
                     name = "localeMap",
-                    column = @Column(name = "description_i18n")
-            )
+                    column = @Column(name = "description_i18n"))
     })
     private LocalizedValueEntity description;
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(
                     name = "plainValue",
-                    column = @Column(name = "display_name")
-            ),
+                    column = @Column(name = "display_name")),
             @AttributeOverride(
                     name = "localeMap",
-                    column = @Column(name = "display_name_i18n")
-            )
+                    column = @Column(name = "display_name_i18n"))
     })
     private LocalizedValueEntity displayName;
     private Boolean forwardAuthToken;
