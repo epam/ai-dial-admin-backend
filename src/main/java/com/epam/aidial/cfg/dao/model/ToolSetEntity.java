@@ -1,7 +1,5 @@
 package com.epam.aidial.cfg.dao.model;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -38,36 +36,9 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
 
     private String endpoint;
     private String iconUrl;
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(
-                    name = "plainValue",
-                    column = @Column(name = "description")),
-            @AttributeOverride(
-                    name = "localeMap",
-                    column = @Column(name = "description_i18n"))
-    })
-    private LocalizedValueEntity description;
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(
-                    name = "plainValue",
-                    column = @Column(name = "intro")),
-            @AttributeOverride(
-                    name = "localeMap",
-                    column = @Column(name = "intro_i18n"))
-    })
-    private LocalizedValueEntity intro;
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(
-                    name = "plainValue",
-                    column = @Column(name = "display_name")),
-            @AttributeOverride(
-                    name = "localeMap",
-                    column = @Column(name = "display_name_i18n"))
-    })
-    private LocalizedValueEntity displayName;
+    private String description;
+    private String intro;
+    private String displayName;
     private String vendorWebsite;
     private Set<String> descriptionKeywords;
     private int maxRetryAttempts = 1;

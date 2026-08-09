@@ -8,7 +8,6 @@ import com.epam.aidial.cfg.dao.jpa.ApplicationTypeSchemaJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.ApplicationContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
-import com.epam.aidial.cfg.dao.mapper.LocalizedValueEntityMapper;
 import com.epam.aidial.cfg.dao.model.ApplicationContainerEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
@@ -83,7 +82,6 @@ public class ApplicationService {
     private final ToolsClient toolsClient;
     private final LocalizationProperties localizationProperties;
     private final ApplicationComparator applicationComparator;
-    private final LocalizedValueEntityMapper localizedValueEntityMapper;
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
@@ -370,8 +368,7 @@ public class ApplicationService {
     }
 
     private void assertNewApplicationDisplayNameAndDisplayVersion(ApplicationEntity entity, Application domain) {
-        var entityDisplayName = localizedValueEntityMapper.toDomain(entity.getDisplayName());
-        String displayName = entityDisplayName != null ? entityDisplayName.resolve(null, localizationProperties.getLocale()) : null;
+        String displayName = entity.getDisplayName();
         String displayVersion = entity.getDisplayVersion();
         String newDisplayName = domain.getDisplayName() != null ? domain.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
         String newDisplayVersion = domain.getDisplayVersion();

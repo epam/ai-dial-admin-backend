@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
-import com.epam.aidial.cfg.dao.mapper.LocalizedValueEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ModelContainerEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ModelEntityMapper;
 import com.epam.aidial.cfg.dao.model.AdapterEntity;
@@ -74,7 +73,6 @@ public class ModelService {
     private final HashCalculator calculator;
     private final LocalizationProperties localizationProperties;
     private final ModelComparator modelComparator;
-    private final LocalizedValueEntityMapper localizedValueEntityMapper;
 
     @Transactional(readOnly = true)
     public Collection<Model> getAll() {
@@ -283,8 +281,7 @@ public class ModelService {
     }
 
     private void assertNewModelDisplayNameAndDisplayVersion(ModelEntity entity, Model domain) {
-        var entityDisplayName = localizedValueEntityMapper.toDomain(entity.getDisplayName());
-        String displayName = entityDisplayName != null ? entityDisplayName.resolve(null, localizationProperties.getLocale()) : null;
+        String displayName = entity.getDisplayName();
         String displayVersion = entity.getDisplayVersion();
         String newDisplayName = domain.getDisplayName() != null ? domain.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
         String newDisplayVersion = domain.getDisplayVersion();

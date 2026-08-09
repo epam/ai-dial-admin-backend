@@ -12,7 +12,6 @@ import com.epam.aidial.cfg.dao.mapper.ExternalServicesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.FeaturesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LocalizedValueEntityMapper;
-import com.epam.aidial.cfg.dao.mapper.LocalizedValueEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.MapPropertiesMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.PropertiesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ResourceAuthSettingsEntityMapperImpl;
@@ -60,7 +59,7 @@ import java.util.List;
         PropertiesEntityMapperImpl.class,
         ApplicationTypeSchemaCoreMapperImpl.class,
         ApplicationTypeSchemaRouteCoreMapperImpl.class,
-        LocalizedValueEntityMapperImpl.class,
+        LocalizedValueEntityMapper.class,
         UriMapperImpl.class
 })
 class ApplicationValidityStateResolverTest {
@@ -71,8 +70,6 @@ class ApplicationValidityStateResolverTest {
     private ApplicationTypeSchemaEntityMapper applicationTypeSchemaEntityMapper;
     @Autowired
     private ApplicationTypeSchemaCoreMapper applicationTypeSchemaCoreMapper;
-    @Autowired
-    private LocalizedValueEntityMapper localizedValueEntityMapper;
 
     private ApplicationValidityStateResolver applicationValidityStateResolver;
 
