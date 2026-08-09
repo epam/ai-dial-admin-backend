@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.service.config.export;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
@@ -9,7 +10,6 @@ import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RouteEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ShareResourceLimitMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.UpstreamEntityMapperImpl;
-import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.domain.mapper.MapperPackage;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
@@ -65,7 +65,8 @@ import static org.mockito.Mockito.when;
         DeploymentEntityMapperImpl.class,
         UpstreamEntityMapperImpl.class,
         LimitEntityMapperImpl.class,
-        ResourceAuthSettingsEntityMapperImpl.class
+        ResourceAuthSettingsEntityMapperImpl.class,
+        LocalizationProperties.class
 })
 class ConfigServiceTest {
 
@@ -107,9 +108,6 @@ class ConfigServiceTest {
 
     @Autowired
     private CoreConfigAggregatorService configService;
-
-    @MockitoBean
-    private LocalizedValueMapper localizedValueMapper;
 
     @BeforeEach
     void setUp() {

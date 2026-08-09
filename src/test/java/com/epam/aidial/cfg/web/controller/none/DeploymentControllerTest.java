@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.web.controller.none;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDataDto;
 import com.epam.aidial.cfg.dto.ModelCapabilitiesDataDto;
 import com.epam.aidial.cfg.dto.ModelDataDto;
@@ -83,12 +84,12 @@ class DeploymentControllerTest extends AbstractControllerNoneSecureTest {
         var model = ModelData.builder()
                 .id("gpt-4")
                 .object("model")
-                .displayName("GPT-4")
+                .displayName(LocalizedValue.of("GPT-4"))
                 .build();
         var deployment = new ModelDataDto();
         deployment.setId("gpt-4");
         deployment.setObject("model");
-        deployment.setDisplayName("GPT-4");
+        deployment.setDisplayName(LocalizedValue.of("GPT-4"));
 
         when(coreDeploymentService.listDeployments(null, null)).thenReturn(List.of(model));
         when(deploymentMapper.toDeploymentDataDtoList(List.of(model))).thenReturn(List.of(deployment));

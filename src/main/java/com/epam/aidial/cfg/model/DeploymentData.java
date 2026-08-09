@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.model;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,10 +19,11 @@ public class DeploymentData {
     private String model;
     private String application;
     private String toolset;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
+    private LocalizedValue intro;
     private String reference;
     private String owner;
     private String object;

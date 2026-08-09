@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.client.dto;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -37,10 +38,11 @@ public class DeploymentDataDto {
     private String model;
     private String application;
     private String toolset;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
+    private LocalizedValue intro;
     private String reference;
     private String owner;
     private String object;

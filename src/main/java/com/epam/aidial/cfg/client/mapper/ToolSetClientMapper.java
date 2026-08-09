@@ -3,7 +3,6 @@ package com.epam.aidial.cfg.client.mapper;
 import com.epam.aidial.cfg.client.dto.NodeTypeDto;
 import com.epam.aidial.cfg.client.dto.ToolSetMetadataDto;
 import com.epam.aidial.cfg.client.dto.ToolSetResourceDto;
-import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.dto.ToolSetEximDto;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
 import com.epam.aidial.cfg.model.NodeType;
@@ -20,7 +19,7 @@ import java.util.List;
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.extractPath;
 import static com.epam.aidial.cfg.client.mapper.CoreMetadataUtils.parseEncodedVersionedPath;
 
-@Mapper(componentModel = "spring", uses = {LocalizedValueMapper.class})
+@Mapper(componentModel = "spring")
 @Slf4j
 public abstract class ToolSetClientMapper {
     public static final String TOOLSETS_PREFIX = "toolsets/";

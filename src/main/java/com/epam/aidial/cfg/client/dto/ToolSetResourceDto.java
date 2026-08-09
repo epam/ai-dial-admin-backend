@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.client.dto;
 
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -19,11 +20,11 @@ public class ToolSetResourceDto {
 
     private String name;
     private String endpoint;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
-    private String intro;
+    private LocalizedValue description;
+    private LocalizedValue intro;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;

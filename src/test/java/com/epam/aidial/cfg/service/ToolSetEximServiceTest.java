@@ -3,8 +3,6 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
-import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ToolSetEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
@@ -50,9 +48,7 @@ import static org.mockito.Mockito.when;
         ToolSetClientMapperImpl.class,
         ToolSetEximService.class,
         ResourceImportValidator.class,
-        RouteMapperImpl.class,
-        LocalizedValueMapper.class,
-        LocalizationProperties.class
+        RouteMapperImpl.class
 })
 @TestPropertySource(properties = {
         "toolsets.import.consecutiveErrorsThreshold=2"

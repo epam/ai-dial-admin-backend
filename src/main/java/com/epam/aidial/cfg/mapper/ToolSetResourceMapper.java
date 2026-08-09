@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.mapper;
 
-import com.epam.aidial.cfg.domain.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceDto;
 import com.epam.aidial.cfg.dto.ToolSetResourceNodeInfoDto;
@@ -11,7 +10,7 @@ import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
 import com.epam.aidial.cfg.model.ToolSetsExim;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", uses = {LocalizedValueMapper.class})
+@Mapper(componentModel = "spring")
 public interface ToolSetResourceMapper {
 
     CreateToolSetResource toCreateToolSetResourceDto(CreateToolSetResourceDto createToolSetResourceDto);

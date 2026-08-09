@@ -5,7 +5,7 @@ import com.epam.aidial.core.config.CoreInterceptor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {FeatureCoreMapper.class, DeploymentInterfaceCoreMapper.class, LocalizedValueMapper.class})
+@Mapper(componentModel = "spring", uses = {FeatureCoreMapper.class, DeploymentInterfaceCoreMapper.class})
 public interface InterceptorCoreMapper {
 
     @Mapping(target = "userRoles", ignore = true)
