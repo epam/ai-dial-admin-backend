@@ -165,6 +165,15 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
+        implementation("io.micrometer:micrometer-core:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.micrometer:micrometer-observation:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.micrometer:micrometer-commons:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
         implementation('org.springframework.data:spring-data-commons:3.5.12') {
             because("previous versions have vulnerabilities")
         }
