@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.dto;
 import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.source.ToolSetSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -26,7 +27,7 @@ public class ToolSetDto extends RoleBasedDto {
     private String iconUrl;
     private LocalizedValue description;
     private LocalizedValue intro;
-    @NotNull(message = "DisplayName is required")
+    @NotEmptyLocalizedValue(message = "DisplayName is required")
     private LocalizedValue displayName;
     private String vendorWebsite;
     private TreeSet<String> descriptionKeywords;

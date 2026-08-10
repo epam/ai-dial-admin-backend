@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.web.controller.none;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
+import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AuthenticationTypeResourceDto;
 import com.epam.aidial.cfg.dto.CallToolResourceRequestDto;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
@@ -251,6 +252,24 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
         mockMvc.perform(post(CREATE_API_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonNullDisplayName))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
+
+        verifyNoInteractions(toolSetResourceService);
+    }
+
+    @Test
+    void testCreateToolSetResourceWithEmptyDisplayName() throws Exception {
+        var createToolSetDtoJson = ResourceUtils.readResource(DTO_JSON_BASE_PATH + JSON_TOOLSET_CREATE_DTO);
+
+        // Test with empty displayName
+        var dtoEmptyDisplayName = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
+        dtoEmptyDisplayName.setDisplayName(LocalizedValue.of(""));
+        var jsonEmptyDisplayName = objectMapper.writeValueAsString(dtoEmptyDisplayName);
+
+        mockMvc.perform(post(CREATE_API_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonEmptyDisplayName))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("displayName: Display name is required"));
 

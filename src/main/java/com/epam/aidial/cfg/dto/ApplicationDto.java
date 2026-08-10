@@ -4,10 +4,10 @@ import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.source.ApplicationSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,7 +31,7 @@ public class ApplicationDto extends RoleBasedDto {
     private String responsesEndpoint;
     @Valid
     private Map<String, DeploymentInterfaceDto> interfaces;
-    @NotNull(message = "DisplayName is required")
+    @NotEmptyLocalizedValue(message = "DisplayName is required")
     private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
