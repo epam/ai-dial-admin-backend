@@ -32,6 +32,7 @@ public class ApplicationDto extends RoleBasedDto {
     @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private String description;
     private String intro;

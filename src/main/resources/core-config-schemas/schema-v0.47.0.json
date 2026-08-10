@@ -207,6 +207,9 @@
             "catalogProperties": {
               "type": "object",
               "description": "Curated marketplace/catalog display metadata, validated against catalogSchemaId"
+            },
+            "overrideName": {
+              "type": "string"
             }
           }
         }
@@ -242,9 +245,6 @@
               "items": {
                 "$ref": "#/definitions/Upstream"
               }
-            },
-            "overrideName": {
-              "type": "string"
             },
             "fieldsHashingOrder": {
               "type": "array",

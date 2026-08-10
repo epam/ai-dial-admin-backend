@@ -196,6 +196,7 @@ public class CoreApplication extends Deployment {
         coreApplication.setAllowUserExternalServices(null);
         coreApplication.setCatalogSchemaId(null);
         coreApplication.setCatalogProperties(null);
+        coreApplication.setOverrideName(null);
         return coreApplication;
     }
 }

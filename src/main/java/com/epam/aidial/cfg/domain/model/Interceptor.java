@@ -17,6 +17,7 @@ public class Interceptor {
     private String description;
     private Set<String> topics;
     private String displayName;
+    private String overrideName;
     private Boolean forwardAuthToken;
     private String author;
     private Long createdAt;

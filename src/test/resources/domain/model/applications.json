@@ -27,6 +27,7 @@
     "intro": "Brief introduction to sample application",
     "displayName": "Sample Application",
     "displayVersion": "1.0.0",
+    "overrideName": "Custom Application Override",
     "inputAttachmentTypes": [
       "pdf",
       "docx"

@@ -21,6 +21,7 @@ public class ApplicationResourceDto {
     private Map<String, DeploymentInterfaceDto> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private String description;
     private String intro;
