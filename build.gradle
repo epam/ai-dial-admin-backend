@@ -183,7 +183,7 @@ dependencies {
         implementation('org.springframework:spring-webmvc:6.2.19') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.0') {
+        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.1') {
             because("previous versions have vulnerabilities")
         }
         implementation ('com.fasterxml.jackson.core:jackson-core:2.22.1') {
@@ -207,10 +207,10 @@ dependencies {
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
             because("previous versions have vulnerabilities")
         }
-        implementation("io.netty:netty-codec-dns:4.1.135.Final") {
+        implementation("io.netty:netty-codec-dns:4.1.136.Final") {
             because("previous versions have vulnerabilities")
         }
-        implementation("io.netty:netty-resolver-dns:4.1.135.Final") {
+        implementation("io.netty:netty-resolver-dns:4.1.136.Final") {
             because("previous versions have vulnerabilities")
         }
         implementation("io.netty:netty-transport-native-epoll:4.2.15.Final") {
