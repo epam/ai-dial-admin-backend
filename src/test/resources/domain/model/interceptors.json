@@ -9,6 +9,7 @@
     "iconUrl": "https://example.com/icon.png",
     "description": "This is a sample interceptor",
     "displayName": "Sample Interceptor",
+    "overrideName": "Custom Interceptor Override",
     "forwardAuthToken": true,
     "entities": [
       "user",
