@@ -48,7 +48,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter:5.15.2'
 
     constraints {
-        implementation ('com.fasterxml.jackson.core:jackson-core:2.21.1') {
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.21.4') {
             because("previous versions have vulnerabilities")
         }
     }
