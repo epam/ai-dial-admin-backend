@@ -53,4 +53,6 @@ public class ApplicationResource {
     private String intro;
     private String appIdentity;
     private boolean allowUserExternalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

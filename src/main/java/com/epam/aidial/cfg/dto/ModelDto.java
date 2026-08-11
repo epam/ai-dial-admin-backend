@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -61,5 +62,7 @@ public class ModelDto extends RoleBasedDto {
     private List<String> fieldsHashingOrder;
     private Integer embeddingDimensions;
     private ModelSourceDto source;
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
 }

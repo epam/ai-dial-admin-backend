@@ -45,7 +45,8 @@ public class CoreModel extends Deployment {
         coreModel.setDependencies(null);
         coreModel.setInterfaces(null);
         coreModel.setIntro(null);
-
+        coreModel.setCatalogSchemaId(null);
+        coreModel.setCatalogProperties(null);
         return coreModel;
     }
 }

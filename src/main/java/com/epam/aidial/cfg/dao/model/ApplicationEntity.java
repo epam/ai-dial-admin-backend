@@ -91,6 +91,11 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private String appIdentity;
     private boolean allowUserExternalServices;
 
+    private String catalogSchemaId;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
+
     @PreRemove
     public void preRemove() {
         for (InterceptorEntity interceptor : interceptors) {
