@@ -183,7 +183,7 @@ dependencies {
         implementation('org.springframework:spring-webmvc:6.2.19') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.0') {
+        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.1') {
             because("previous versions have vulnerabilities")
         }
         implementation ('com.fasterxml.jackson.core:jackson-core:2.22.1') {
