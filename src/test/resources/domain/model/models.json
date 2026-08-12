@@ -68,7 +68,9 @@
     "pricing": {
       "unit": "per-1000-tokens",
       "prompt": "0.01",
-      "completion": "0.02"
+      "completion": "0.02",
+      "cacheRead": "0.005",
+      "cacheWrite": "0.015"
     },
     "upstreams": [
       {

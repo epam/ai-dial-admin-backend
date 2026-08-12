@@ -110,7 +110,7 @@ class DeploymentControllerTest extends AbstractControllerNoneSecureTest {
                 .object("dial-model")
                 .capabilities(ModelCapabilitiesData.builder().chatCompletion(true).build())
                 .limits(ModelLimitsData.builder().maxPromptTokens(128000).build())
-                .pricing(ModelPricingData.builder().unit("token").build())
+                .pricing(ModelPricingData.builder().unit("token").cacheRead("0.05").cacheWrite("0.1").build())
                 .build();
         var application = ApplicationData.builder()
                 .id("my-app")
@@ -132,6 +132,8 @@ class DeploymentControllerTest extends AbstractControllerNoneSecureTest {
         modelDto.getLimits().setMaxPromptTokens(128000);
         modelDto.setPricing(new ModelPricingDataDto());
         modelDto.getPricing().setUnit("token");
+        modelDto.getPricing().setCacheRead("0.05");
+        modelDto.getPricing().setCacheWrite("0.1");
 
         var applicationDto = new ApplicationDataDto();
         applicationDto.setId("my-app");
@@ -151,6 +153,8 @@ class DeploymentControllerTest extends AbstractControllerNoneSecureTest {
         mockMvc.perform(get("/api/v1/deployments"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].capabilities.chatCompletion").value(true))
+                .andExpect(jsonPath("$[0].pricing.cacheRead").value("0.05"))
+                .andExpect(jsonPath("$[0].pricing.cacheWrite").value("0.1"))
                 .andExpect(jsonPath("$[1].applicationTypeSchemaId").value("schema-1"))
                 .andExpect(jsonPath("$[2].transport").value("streamable-http"));
     }
