@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.source.ApplicationSourceDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,10 +12,10 @@ public class ApplicationInfoDto {
 
     private String name;
     private String endpoint;
-    private LocalizedValue displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private LocalizedValue description;
+    private LocalizedValueDto description;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;

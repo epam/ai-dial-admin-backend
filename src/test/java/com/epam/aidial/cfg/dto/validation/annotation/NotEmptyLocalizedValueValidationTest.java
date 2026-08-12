@@ -1,8 +1,8 @@
 package com.epam.aidial.cfg.dto.validation.annotation;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import jakarta.validation.ConstraintViolation;
@@ -32,7 +32,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("validDisplayNames")
-    void testApplicationDto_ValidDisplayName(LocalizedValue displayName) {
+    void testApplicationDto_ValidDisplayName(LocalizedValueDto displayName) {
         ApplicationDto dto = new ApplicationDto();
         dto.setName("test-app");
         dto.setDisplayName(displayName);
@@ -45,7 +45,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("invalidDisplayNames")
-    void testApplicationDto_InvalidDisplayName(LocalizedValue displayName) {
+    void testApplicationDto_InvalidDisplayName(LocalizedValueDto displayName) {
         ApplicationDto dto = new ApplicationDto();
         dto.setName("test-app");
         dto.setDisplayName(displayName);
@@ -56,7 +56,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("validDisplayNames")
-    void testModelDto_ValidDisplayName(LocalizedValue displayName) {
+    void testModelDto_ValidDisplayName(LocalizedValueDto displayName) {
         ModelDto dto = new ModelDto();
         dto.setName("test-model");
         dto.setDisplayName(displayName);
@@ -69,7 +69,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("invalidDisplayNames")
-    void testModelDto_InvalidDisplayName(LocalizedValue displayName) {
+    void testModelDto_InvalidDisplayName(LocalizedValueDto displayName) {
         ModelDto dto = new ModelDto();
         dto.setName("test-model");
         dto.setDisplayName(displayName);
@@ -80,7 +80,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("validDisplayNames")
-    void testToolSetDto_ValidDisplayName(LocalizedValue displayName) {
+    void testToolSetDto_ValidDisplayName(LocalizedValueDto displayName) {
         ToolSetDto dto = new ToolSetDto();
         dto.setName("test-toolset");
         dto.setTransport(ToolSetDto.TransportDto.HTTP);
@@ -94,7 +94,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("invalidDisplayNames")
-    void testToolSetDto_InvalidDisplayName(LocalizedValue displayName) {
+    void testToolSetDto_InvalidDisplayName(LocalizedValueDto displayName) {
         ToolSetDto dto = new ToolSetDto();
         dto.setName("test-toolset");
         dto.setTransport(ToolSetDto.TransportDto.HTTP);
@@ -106,7 +106,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("validDisplayNames")
-    void testInterceptorDto_ValidDisplayName(LocalizedValue displayName) {
+    void testInterceptorDto_ValidDisplayName(LocalizedValueDto displayName) {
         InterceptorDto dto = new InterceptorDto();
         dto.setName("test-interceptor");
         dto.setDisplayName(displayName);
@@ -119,7 +119,7 @@ class NotEmptyLocalizedValueValidationTest {
 
     @ParameterizedTest
     @MethodSource("invalidDisplayNames")
-    void testInterceptorDto_InvalidDisplayName(LocalizedValue displayName) {
+    void testInterceptorDto_InvalidDisplayName(LocalizedValueDto displayName) {
         InterceptorDto dto = new InterceptorDto();
         dto.setName("test-interceptor");
         dto.setDisplayName(displayName);
@@ -141,20 +141,20 @@ class NotEmptyLocalizedValueValidationTest {
 
     private static Stream<Arguments> validDisplayNames() {
         return Stream.of(
-                Arguments.of(LocalizedValue.of("Test Display Name")),
-                Arguments.of(LocalizedValue.of(Map.of("en", "Test Display Name"))),
-                Arguments.of(LocalizedValue.of(Map.of("en", " ", "fr", "Nom de test")))
+                Arguments.of(LocalizedValueDto.of("Test Display Name")),
+                Arguments.of(LocalizedValueDto.of(Map.of("en", "Test Display Name"))),
+                Arguments.of(LocalizedValueDto.of(Map.of("en", " ", "fr", "Nom de test")))
         );
     }
 
     private static Stream<Arguments> invalidDisplayNames() {
         return Stream.of(
-                Arguments.of((LocalizedValue) null),
-                Arguments.of(LocalizedValue.of("")),
-                Arguments.of(LocalizedValue.of(" ")),
-                Arguments.of(LocalizedValue.of(Map.of())),
-                Arguments.of(LocalizedValue.of(Map.of("en", ""))),
-                Arguments.of(LocalizedValue.of(Map.of("en", " ", "fr", "")))
+                Arguments.of((LocalizedValueDto) null),
+                Arguments.of(LocalizedValueDto.of("")),
+                Arguments.of(LocalizedValueDto.of(" ")),
+                Arguments.of(LocalizedValueDto.of(Map.of())),
+                Arguments.of(LocalizedValueDto.of(Map.of("en", ""))),
+                Arguments.of(LocalizedValueDto.of(Map.of("en", " ", "fr", "")))
         );
     }
 }

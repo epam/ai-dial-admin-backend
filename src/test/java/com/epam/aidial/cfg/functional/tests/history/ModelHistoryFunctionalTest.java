@@ -1,10 +1,10 @@
 package com.epam.aidial.cfg.functional.tests.history;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
@@ -62,14 +62,14 @@ public abstract class ModelHistoryFunctionalTest {
 
         // update model1 description
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
-        updatedModel.setDescription(LocalizedValue.of("new model description"));
+        updatedModel.setDescription(LocalizedValueDto.of("new model description"));
         updatedModel.setDefaults(Map.of());
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 
         // verify model1
         ModelDto actual = modelFacade.getModel(modelDto.getName());
         var expected = createModelDtoWithLimitsAndEndpoint("1");
-        expected.setDescription(LocalizedValue.of("new model description"));
+        expected.setDescription(LocalizedValueDto.of("new model description"));
         expected.setDefaults(Map.of());
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setMaxRetryAttempts(1);
@@ -175,7 +175,7 @@ public abstract class ModelHistoryFunctionalTest {
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
         var actualAtRevision = modelFacade.getAll();
 
-        modelDto.setDescription(LocalizedValue.of("new description"));
+        modelDto.setDescription(LocalizedValueDto.of("new description"));
         modelFacade.updateModel(modelDto.getName(), modelDto, "*");
 
         interceptorFacade.deleteInterceptor(interceptor1.getName());

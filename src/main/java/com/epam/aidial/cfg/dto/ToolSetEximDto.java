@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,11 +17,11 @@ public class ToolSetEximDto {
     private String folderId;
     private String version;
     private String endpoint;
-    private LocalizedValue displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private LocalizedValue description;
-    private LocalizedValue intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;

@@ -3,13 +3,13 @@ package com.epam.aidial.cfg.functional.tests;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ExternalSchema;
 import com.epam.aidial.cfg.domain.service.ExternalSchemaLoader;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.source.ApplicationEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ApplicationSchemaSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -296,7 +296,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationDto applicationDto = new ApplicationDto();
         applicationDto.setName("application");
-        applicationDto.setDisplayName(LocalizedValue.of("application"));
+        applicationDto.setDisplayName(LocalizedValueDto.of("application"));
         applicationDto.setSource(new ApplicationSchemaSourceDto(new URI("https://test-schema.example")));
         applicationFacade.createApplication(applicationDto);
         // when

@@ -12,8 +12,8 @@ import lombok.experimental.SuperBuilder;
 public class ExportComponentInfo {
 
     private String name;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
-    private String description;
+    private LocalizedValue description;
     private ExportConfigComponentType type;
 }

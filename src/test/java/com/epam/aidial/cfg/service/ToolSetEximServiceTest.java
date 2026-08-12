@@ -1,15 +1,18 @@
 package com.epam.aidial.cfg.service;
 
+import com.epam.aidial.cfg.client.mapper.LocalizedValueClientMapper;
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ToolSetEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
+import com.epam.aidial.cfg.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.model.CreateToolSetResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.LocalizedValue;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
@@ -48,7 +51,9 @@ import static org.mockito.Mockito.when;
         ToolSetClientMapperImpl.class,
         ToolSetEximService.class,
         ResourceImportValidator.class,
-        RouteMapperImpl.class
+        RouteMapperImpl.class,
+        LocalizedValueClientMapper.class,
+        LocalizedValueMapper.class
 })
 @TestPropertySource(properties = {
         "toolsets.import.consecutiveErrorsThreshold=2"
@@ -246,7 +251,7 @@ class ToolSetEximServiceTest {
                 .build();
 
         var toolSetExim = getToolSetEximDto("1");
-        toolSetExim.setIntro(LocalizedValue.of(Map.of("en", "intro en", "de", "intro en")));
+        toolSetExim.setIntro(LocalizedValueDto.of(Map.of("en", "intro en", "de", "intro en")));
         var toolSetsExim = new ToolSetsEximDto();
         toolSetsExim.setToolSets(List.of(toolSetExim));
 
@@ -389,9 +394,9 @@ class ToolSetEximServiceTest {
         return ToolSetEximDto.builder()
                 .name("toolSet" + suffix)
                 .version(String.format("0.0.%s", suffix))
-                .displayName(LocalizedValue.of("toolSet" + suffix))
+                .displayName(LocalizedValueDto.of("toolSet" + suffix))
                 .folderId(String.format("public/folder%s/", suffix))
-                .description(LocalizedValue.of(String.format("toolSet description %s", suffix)))
+                .description(LocalizedValueDto.of(String.format("toolSet description %s", suffix)))
                 .forwardPerRequestKey(false)
                 .build();
     }

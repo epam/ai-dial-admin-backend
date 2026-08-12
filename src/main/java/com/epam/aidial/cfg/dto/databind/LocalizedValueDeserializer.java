@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.dto.databind;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -10,27 +10,12 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Custom Jackson deserializer for {@link LocalizedValue}.
- * Supports both plain string and locale map formats for backward compatibility.
- *
- * <p>Accepted formats:</p>
- * <pre>
- * // Plain string
- * "GPT-4"
- *
- * // Locale map
- * {"en": "GPT-4", "fr": "GPT-4", "de": "GPT-4"}
- * </pre>
- *
- * @since 0.47.0
- */
-public class LocalizedValueDeserializer extends JsonDeserializer<LocalizedValue> {
+public class LocalizedValueDeserializer extends JsonDeserializer<LocalizedValueDto> {
 
     @Override
-    public LocalizedValue deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+    public LocalizedValueDto deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
         if (p.getCurrentToken() == JsonToken.VALUE_STRING) {
-            return LocalizedValue.of(p.getValueAsString());
+            return LocalizedValueDto.of(p.getValueAsString());
         }
 
         if (p.getCurrentToken() == JsonToken.START_OBJECT) {
@@ -40,14 +25,14 @@ public class LocalizedValueDeserializer extends JsonDeserializer<LocalizedValue>
                 p.nextToken();
                 localeMap.put(locale, p.getValueAsString());
             }
-            return LocalizedValue.of(localeMap);
+            return LocalizedValueDto.of(localeMap);
         }
 
         if (p.getCurrentToken() == JsonToken.VALUE_NULL) {
             return null;
         }
 
-        return ctx.reportInputMismatch(LocalizedValue.class,
+        return ctx.reportInputMismatch(LocalizedValueDto.class,
                 "Expected a string or a locale-to-value object, got %s", p.getCurrentToken());
     }
 }

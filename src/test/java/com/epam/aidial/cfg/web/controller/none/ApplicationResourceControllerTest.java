@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
 import com.epam.aidial.cfg.mapper.ApplicationResourceMapperImpl;
+import com.epam.aidial.cfg.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
@@ -53,7 +54,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         JsonMapperConfiguration.class,
         ApplicationResourceMapperImpl.class,
         RouteMapperImpl.class,
-        ResourceMapperImpl.class
+        ResourceMapperImpl.class,
+        LocalizedValueMapper.class
 })
 class ApplicationResourceControllerTest extends AbstractControllerNoneSecureTest {
     private static final String DTO_JSON_BASE_PATH = "/application-resources/";

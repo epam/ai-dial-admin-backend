@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.RejectPublicationDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.mapper.ApplicationResourceMapperImpl;
 import com.epam.aidial.cfg.mapper.FileMapperImpl;
+import com.epam.aidial.cfg.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.mapper.PublicationMapperImpl;
 import com.epam.aidial.cfg.model.ApplicationPublication;
 import com.epam.aidial.cfg.model.ConversationPublication;
@@ -57,6 +58,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ApplicationResourceMapperImpl.class,
         RouteMapperImpl.class,
         FileMapperImpl.class,
+        LocalizedValueMapper.class,
 })
 class PublicationControllerTest extends AbstractControllerNoneSecureTest {
 

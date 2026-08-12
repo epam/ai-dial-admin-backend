@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.transfer.exporter;
 
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
@@ -33,7 +32,6 @@ public class InterceptorExporter {
 
     private final InterceptorService interceptorService;
     private final InterceptorRunnerService interceptorRunnerService;
-    private final LocalizationProperties localizationProperties;
 
     protected Map<String, Interceptor> getInterceptors(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
@@ -88,8 +86,8 @@ public class InterceptorExporter {
         return getInterceptors(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getName())
-                        .displayName(component.getDisplayName() != null ? component.getDisplayName().resolve(null, localizationProperties.getLocale()) : null)
-                        .description(component.getDisplayName() != null ? component.getDisplayName().resolve(null, localizationProperties.getLocale()) : null)
+                        .displayName(component.getDisplayName())
+                        .description(component.getDescription())
                         .type(ExportConfigComponentType.INTERCEPTOR)
                         .build())
                 .collect(Collectors.toList());

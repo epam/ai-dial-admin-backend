@@ -7,11 +7,13 @@ import java.util.Collection;
 import java.util.List;
 
 public interface ApplicationJpaRepository extends JpaRepository<ApplicationEntity, String> {
-    List<ApplicationEntity> findByIdIn(Collection<String> ids);
-
     List<ApplicationEntity> findByIdNotIn(Collection<String> ids);
 
-    List<ApplicationEntity> findAllByValidityStateIsValidTrue();
+    List<ApplicationEntity> findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc();
+
+    List<ApplicationEntity> findByValidityStateIsValidTrueOrderByDisplayNameAscDisplayVersionAscIdAsc();
+
+    List<ApplicationEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> ids);
 
     List<ApplicationEntity> findByApplicationContainerIsNotNull();
 

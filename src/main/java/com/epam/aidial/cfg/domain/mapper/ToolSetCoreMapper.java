@@ -17,7 +17,7 @@ import java.util.List;
 @Mapper(
         componentModel = "spring",
         uses = {
-                DeploymentCoreMapper.class, ResourceAuthSettingsCoreMapper.class
+                DeploymentCoreMapper.class, ResourceAuthSettingsCoreMapper.class, LocalizedValueCoreMapper.class
         }
 )
 public abstract class ToolSetCoreMapper {

@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.source.InterceptorSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
@@ -24,9 +23,9 @@ public class InterceptorDto {
     @Valid
     private Map<String, DeploymentInterfaceDto> interfaces;
     private String iconUrl;
-    private LocalizedValue description;
+    private LocalizedValueDto description;
     @NotEmptyLocalizedValue(message = "DisplayName is required")
-    private LocalizedValue displayName;
+    private LocalizedValueDto displayName;
     private Boolean forwardAuthToken;
     private List<String> entities;
     private List<String> applicationTypeSchemas;

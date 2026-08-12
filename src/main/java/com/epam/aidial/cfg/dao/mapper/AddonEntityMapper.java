@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class})
+@Mapper(componentModel = "spring", uses = {DeploymentEntityMapper.class, LocalizedValueEntityMapper.class})
 public abstract class AddonEntityMapper {
 
     @Autowired

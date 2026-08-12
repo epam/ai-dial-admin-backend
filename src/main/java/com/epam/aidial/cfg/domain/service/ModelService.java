@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.domain.service;
 
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.dao.jpa.AdapterJpaRepository;
 import com.epam.aidial.cfg.dao.jpa.InterceptorJpaRepository;
@@ -14,8 +13,8 @@ import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.ModelComparator;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
@@ -24,8 +23,8 @@ import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.normalizer.ModelNormalizer;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
+import com.epam.aidial.cfg.domain.validator.DisplayNameUniquenessValidator;
 import com.epam.aidial.cfg.domain.validator.ModelValidator;
-import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
@@ -44,7 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,8 +70,7 @@ public class ModelService {
     private final ModelRefreshService refreshService;
     private final ContainerEndpointResolver endpointResolver;
     private final HashCalculator calculator;
-    private final LocalizationProperties localizationProperties;
-    private final ModelComparator modelComparator;
+    private final DisplayNameUniquenessValidator displayNameUniquenessValidator;
 
     @Transactional(readOnly = true)
     public Collection<Model> getAll() {
@@ -90,10 +88,9 @@ public class ModelService {
 
     @Transactional(readOnly = true)
     public List<Model> getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc() {
-        return modelJpaRepository.findAll().stream()
+        return modelJpaRepository.findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc().stream()
                 .map(mapper::toDomain)
-                .sorted(modelComparator)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -101,9 +98,8 @@ public class ModelService {
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();
         }
-        return modelJpaRepository.findByIdIn(names).stream()
+        return modelJpaRepository.findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(names).stream()
                 .map(mapper::toDomain)
-                .sorted(modelComparator)
                 .collect(Collectors.toList());
     }
 
@@ -136,9 +132,7 @@ public class ModelService {
         modelValidator.validateCreation(model);
         deploymentService.assertDeploymentNotExists(model.getDeployment().getName());
         deploymentService.assertInterceptorNotExists(model.getDeployment().getName());
-        String displayName = model.getDisplayName() != null ? model.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
-        String displayVersion = model.getDisplayVersion();
-        assertNotExists(displayName, displayVersion);
+        assertDisplayNameAndDisplayVersionUnique(null, model);
         resolveEndpointsIfContainerSource(model);
         Optional.of(model)
                 .map(domainModel -> toEntity(domainModel, new ModelEntity()))
@@ -167,7 +161,7 @@ public class ModelService {
         ModelEntity modelEntity = modelJpaRepository.findById(modelName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(modelName)));
 
-        assertNewModelDisplayNameAndDisplayVersion(modelEntity, model);
+        assertDisplayNameAndDisplayVersionUnique(modelEntity.getDeploymentName(), model);
         assertNotConcurrencyOverwrite(modelEntity, hash);
         resolveEndpointsIfContainerSource(model, modelEntity);
         return save(toEntity(model, modelEntity));
@@ -267,28 +261,13 @@ public class ModelService {
         }
     }
 
-    private void assertNotExists(String displayName, String displayVersion) {
-        if ((displayName != null || displayVersion != null) && modelJpaRepository
-                .findByDisplayVersion(displayVersion)
-                .stream()
+    private void assertDisplayNameAndDisplayVersionUnique(String currentModelName, Model model) {
+        Map<String, LocalizedValue> candidates = modelJpaRepository.findByDisplayVersion(model.getDisplayVersion()).stream()
                 .map(mapper::toDomain)
-                .anyMatch(application ->
-                        Objects.equals(
-                                application.getDisplayName().resolve(null, localizationProperties.getLocale()),
-                                displayName))) {
-            throw new EntityAlreadyExistsException("Model with display name: '" + displayName + "' and display version: '" + displayVersion + "' already exists");
-        }
-    }
-
-    private void assertNewModelDisplayNameAndDisplayVersion(ModelEntity entity, Model domain) {
-        String displayName = entity.getDisplayName();
-        String displayVersion = entity.getDisplayVersion();
-        String newDisplayName = domain.getDisplayName() != null ? domain.getDisplayName().resolve(null, localizationProperties.getLocale()) : null;
-        String newDisplayVersion = domain.getDisplayVersion();
-
-        if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {
-            assertNotExists(newDisplayName, newDisplayVersion);
-        }
+                .filter(m -> m.getDisplayName() != null)
+                .collect(Collectors.toMap(m -> m.getDeployment().getName(), Model::getDisplayName));
+        displayNameUniquenessValidator.validateUnique("Model", currentModelName,
+                model.getDisplayName(), model.getDisplayVersion(), candidates);
     }
 
     private void assertNotConcurrencyOverwrite(ModelEntity entity, String expectedHash) {

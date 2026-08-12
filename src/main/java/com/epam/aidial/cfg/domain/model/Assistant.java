@@ -13,8 +13,8 @@ import java.util.Map;
 public class Assistant extends RoleBased {
 
     private String iconUrl;
-    private String description;
-    private String displayName;
+    private LocalizedValue description;
+    private LocalizedValue displayName;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

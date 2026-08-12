@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
         uses = {
                 LimitDtoMapper.class, UpstreamDtoMapper.class, RoleBasedDtoMapper.class,
                 InstantMapper.class, FeaturesDtoMapper.class, ModelSourceDtoMapper.class,
-                DeploymentInterfaceDtoMapper.class
+                DeploymentInterfaceDtoMapper.class, LocalizedValueDtoMapper.class
         }
 )
 public interface ModelDtoMapper {

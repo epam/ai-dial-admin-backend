@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
         InstantMapper.class, InterceptorSourceDtoMapper.class, FeaturesDtoMapper.class,
-        DeploymentInterfaceDtoMapper.class
+        DeploymentInterfaceDtoMapper.class, LocalizedValueDtoMapper.class
 })
 public interface InterceptorDtoMapper {
 

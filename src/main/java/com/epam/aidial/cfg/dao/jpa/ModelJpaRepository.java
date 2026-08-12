@@ -16,5 +16,7 @@ public interface ModelJpaRepository extends JpaRepository<ModelEntity, String> {
 
     List<ModelEntity> findByDisplayVersion(String displayVersion);
 
-    List<ModelEntity> findByIdIn(Collection<String> names);
+    List<ModelEntity> findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc();
+
+    List<ModelEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> names);
 }

@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.service.config.export;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.dao.jpa.RoleJpaRepository;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
@@ -35,6 +34,7 @@ import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.utils.ResourceUtils;
+import com.epam.aidial.cfg.web.facade.mapper.LocalizedValueDtoMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,7 +66,7 @@ import static org.mockito.Mockito.when;
         UpstreamEntityMapperImpl.class,
         LimitEntityMapperImpl.class,
         ResourceAuthSettingsEntityMapperImpl.class,
-        LocalizationProperties.class
+        LocalizedValueDtoMapper.class
 })
 class ConfigServiceTest {
 

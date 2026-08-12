@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.transfer.exporter;
 
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
@@ -36,7 +35,6 @@ public class ModelExporter {
 
     private final ModelService modelService;
     private final AdapterService adapterService;
-    private final LocalizationProperties localizationProperties;
 
     protected Map<String, Model> getModels(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
@@ -80,9 +78,9 @@ public class ModelExporter {
         return getModels(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getDeployment().getName())
-                        .displayName(component.getDisplayName() != null ? component.getDisplayName().resolve(null, localizationProperties.getLocale()) : null)
+                        .displayName(component.getDisplayName())
                         .displayVersion(component.getDisplayVersion())
-                        .description(component.getDescription() != null ? component.getDescription().resolve(null, localizationProperties.getLocale()) : null)
+                        .description(component.getDescription())
                         .type(ExportConfigComponentType.MODEL)
                         .build())
                 .collect(Collectors.toList());

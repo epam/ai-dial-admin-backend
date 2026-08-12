@@ -1,15 +1,15 @@
 package com.epam.aidial.cfg.dto.validation.validator;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
-public class NotEmptyLocalizedValueValidator implements ConstraintValidator<NotEmptyLocalizedValue, LocalizedValue> {
+public class NotEmptyLocalizedValueValidator implements ConstraintValidator<NotEmptyLocalizedValue, LocalizedValueDto> {
 
     @Override
-    public boolean isValid(LocalizedValue value, ConstraintValidatorContext context) {
+    public boolean isValid(LocalizedValueDto value, ConstraintValidatorContext context) {
         if (value == null) {
             return false;
         }

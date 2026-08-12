@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,11 +19,11 @@ public class ApplicationEximDto {
     private String endpoint;
     private String responsesEndpoint;
     private Map<String, DeploymentInterfaceDto> interfaces;
-    private LocalizedValue displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private LocalizedValue description;
-    private LocalizedValue intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

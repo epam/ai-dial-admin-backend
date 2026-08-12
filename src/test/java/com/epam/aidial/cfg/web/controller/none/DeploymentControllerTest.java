@@ -1,7 +1,7 @@
 package com.epam.aidial.cfg.web.controller.none;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationDataDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelCapabilitiesDataDto;
 import com.epam.aidial.cfg.dto.ModelDataDto;
 import com.epam.aidial.cfg.dto.ModelLimitsDataDto;
@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.mapper.DeploymentMapper;
 import com.epam.aidial.cfg.model.ApplicationData;
 import com.epam.aidial.cfg.model.DeploymentType;
 import com.epam.aidial.cfg.model.InterfaceType;
+import com.epam.aidial.cfg.model.LocalizedValue;
 import com.epam.aidial.cfg.model.ModelCapabilitiesData;
 import com.epam.aidial.cfg.model.ModelData;
 import com.epam.aidial.cfg.model.ModelLimitsData;
@@ -89,7 +90,7 @@ class DeploymentControllerTest extends AbstractControllerNoneSecureTest {
         var deployment = new ModelDataDto();
         deployment.setId("gpt-4");
         deployment.setObject("model");
-        deployment.setDisplayName(LocalizedValue.of("GPT-4"));
+        deployment.setDisplayName(LocalizedValueDto.of("GPT-4"));
 
         when(coreDeploymentService.listDeployments(null, null)).thenReturn(List.of(model));
         when(deploymentMapper.toDeploymentDataDtoList(List.of(model))).thenReturn(List.of(deployment));

@@ -3,13 +3,13 @@ package com.epam.aidial.cfg.service;
 import com.epam.aidial.cfg.client.DeploymentClient;
 import com.epam.aidial.cfg.client.dto.ApplicationDataDto;
 import com.epam.aidial.cfg.client.dto.DeploymentDataDto;
+import com.epam.aidial.cfg.client.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.client.dto.ModelCapabilitiesDataDto;
 import com.epam.aidial.cfg.client.dto.ModelDataDto;
 import com.epam.aidial.cfg.client.dto.ModelLimitsDataDto;
 import com.epam.aidial.cfg.client.dto.ModelPricingDataDto;
 import com.epam.aidial.cfg.client.dto.ToolSetDataDto;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.model.ApplicationData;
 import com.epam.aidial.cfg.model.DeploymentType;
 import com.epam.aidial.cfg.model.InterfaceType;
@@ -106,7 +106,7 @@ class CoreDeploymentServiceTest {
         var modelDto = ModelDataDto.builder()
                 .id("gpt-4")
                 .object("dial-model")
-                .displayName(LocalizedValue.of("GPT-4"))
+                .displayName(LocalizedValueDto.of("GPT-4"))
                 .capabilities(ModelCapabilitiesDataDto.builder().chatCompletion(true).build())
                 .limits(ModelLimitsDataDto.builder().maxPromptTokens(128000).build())
                 .pricing(ModelPricingDataDto.builder().unit("token").prompt("0.1").build())
@@ -114,14 +114,14 @@ class CoreDeploymentServiceTest {
         var applicationDto = ApplicationDataDto.builder()
                 .id("my-app")
                 .object("dial-application")
-                .displayName(LocalizedValue.of("My App"))
+                .displayName(LocalizedValueDto.of("My App"))
                 .applicationTypeSchemaId("schema-1")
                 .applicationProperties(Map.of("key", "value"))
                 .build();
         var toolsetDto = ToolSetDataDto.builder()
                 .id("my-toolset")
                 .object("dial-toolset")
-                .displayName(LocalizedValue.of("My Toolset"))
+                .displayName(LocalizedValueDto.of("My Toolset"))
                 .transport("streamable-http")
                 .allowedTools(List.of("tool-a"))
                 .build();

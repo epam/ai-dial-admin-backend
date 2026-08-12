@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.AssistantDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.web.facade.AssistantFacade;
@@ -106,13 +107,13 @@ public abstract class AssistantFunctionalTest {
         AssistantDto assistantDto = createAssistantDto("1");
         assistantFacade.createAssistant(assistantDto);
         AssistantDto updatedAssistant = createAssistantDto("1");
-        updatedAssistant.setDescription("new assistant description");
+        updatedAssistant.setDescription(LocalizedValueDto.of("new assistant description"));
 
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
 
         AssistantDto actual = assistantFacade.getAssistant(assistantDto.getName());
         var expected = createAssistantDto("1");
-        expected.setDescription("new assistant description");
+        expected.setDescription(LocalizedValueDto.of("new assistant description"));
         assertAssistant(actual, expected);
     }
 
@@ -122,7 +123,7 @@ public abstract class AssistantFunctionalTest {
         AssistantDto assistantDto = createAssistantDto("1");
         assistantFacade.createAssistant(assistantDto);
         AssistantDto updatedAssistant = createAssistantDto("2");
-        updatedAssistant.setDescription("new assistant description");
+        updatedAssistant.setDescription(LocalizedValueDto.of("new assistant description"));
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,

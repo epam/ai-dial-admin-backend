@@ -1,11 +1,12 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,9 +17,7 @@ class DisplayFieldsValidatorTest {
 
     @BeforeEach
     void setUp() {
-        LocalizationProperties props = new LocalizationProperties();
-        props.setLocale("en");
-        displayFieldsValidator = new DisplayFieldsValidator(props);
+        displayFieldsValidator = new DisplayFieldsValidator();
     }
 
     @ParameterizedTest
@@ -64,6 +63,22 @@ class DisplayFieldsValidatorTest {
         assertThatNoException().isThrownBy(() ->
                 displayFieldsValidator.validateDisplayNameDisplayVersion(
                         LocalizedValue.of("text"), "1.0", "DomainObjectType", "name"));
+    }
+
+    @Test
+    void validateDisplayName_shouldThrowExceptionWhenAllLocalesAreBlank() {
+        LocalizedValue displayName = LocalizedValue.of(Map.of("en", "", "fr", " "));
+
+        assertThatThrownBy(() -> displayFieldsValidator.validateDisplayName(displayName, "DomainObjectType", "name"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must not be blank for DomainObjectType with id:'name'");
+    }
+
+    @Test
+    void validateDisplayName_shouldDoNothingWhenAtLeastOneLocaleIsNotBlank() {
+        LocalizedValue displayName = LocalizedValue.of(Map.of("en", "", "fr", "affichage"));
+
+        assertThatNoException().isThrownBy(() -> displayFieldsValidator.validateDisplayName(displayName, "DomainObjectType", "name"));
     }
 
 }

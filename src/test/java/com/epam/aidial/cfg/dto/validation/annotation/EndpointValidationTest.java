@@ -1,11 +1,11 @@
 package com.epam.aidial.cfg.dto.validation.annotation;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.CreateApplicationResourceDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import jakarta.validation.ConstraintViolation;
@@ -38,7 +38,7 @@ class EndpointValidationTest {
     void testApplicationDto_ValidEndpoint(String endpoint) {
         ApplicationDto dto = new ApplicationDto();
         dto.setName("test-app");
-        dto.setDisplayName(LocalizedValue.of("Test App"));
+        dto.setDisplayName(LocalizedValueDto.of("Test App"));
         dto.setEndpoint(endpoint);
 
         Set<ConstraintViolation<ApplicationDto>> violations = validator.validate(dto);
@@ -50,7 +50,7 @@ class EndpointValidationTest {
     void testApplicationDto_InvalidEndpoint(String endpoint) {
         ApplicationDto dto = new ApplicationDto();
         dto.setName("test-app");
-        dto.setDisplayName(LocalizedValue.of("Test App"));
+        dto.setDisplayName(LocalizedValueDto.of("Test App"));
         dto.setEndpoint(endpoint);
 
         Set<ConstraintViolation<ApplicationDto>> violations = validator.validate(dto);
@@ -94,7 +94,7 @@ class EndpointValidationTest {
     void testModelDto_ValidEndpoint(String endpoint) {
         ModelDto dto = new ModelDto();
         dto.setName("test-model");
-        dto.setDisplayName(LocalizedValue.of("Test Model"));
+        dto.setDisplayName(LocalizedValueDto.of("Test Model"));
         dto.setEndpoint(endpoint);
 
         Set<ConstraintViolation<ModelDto>> violations = validator.validate(dto);
@@ -106,7 +106,7 @@ class EndpointValidationTest {
     void testModelDto_InvalidEndpoint(String endpoint) {
         ModelDto dto = new ModelDto();
         dto.setName("test-model");
-        dto.setDisplayName(LocalizedValue.of("Test Model"));
+        dto.setDisplayName(LocalizedValueDto.of("Test Model"));
         dto.setEndpoint(endpoint);
 
         Set<ConstraintViolation<ModelDto>> violations = validator.validate(dto);
@@ -121,7 +121,7 @@ class EndpointValidationTest {
     void testInterceptorDto_ValidEndpoint(String endpoint) {
         InterceptorDto dto = new InterceptorDto();
         dto.setName("test-interceptor");
-        dto.setDisplayName(LocalizedValue.of("Test Interceptor"));
+        dto.setDisplayName(LocalizedValueDto.of("Test Interceptor"));
         dto.setEndpoint(endpoint);
 
         Set<ConstraintViolation<InterceptorDto>> violations = validator.validate(dto);
@@ -133,7 +133,7 @@ class EndpointValidationTest {
     void testInterceptorDto_InvalidEndpoint(String endpoint) {
         InterceptorDto dto = new InterceptorDto();
         dto.setName("test-interceptor");
-        dto.setDisplayName(LocalizedValue.of("Test Interceptor"));
+        dto.setDisplayName(LocalizedValueDto.of("Test Interceptor"));
         dto.setEndpoint(endpoint);
 
         Set<ConstraintViolation<InterceptorDto>> violations = validator.validate(dto);
@@ -148,7 +148,7 @@ class EndpointValidationTest {
     void testToolSetDto_ValidEndpoint(String endpoint) {
         ToolSetDto dto = new ToolSetDto();
         dto.setName("test-toolset");
-        dto.setDisplayName(LocalizedValue.of("Test ToolSet"));
+        dto.setDisplayName(LocalizedValueDto.of("Test ToolSet"));
         dto.setTransport(ToolSetDto.TransportDto.HTTP);
         dto.setEndpoint(endpoint);
 
@@ -161,7 +161,7 @@ class EndpointValidationTest {
     void testToolSetDto_InvalidEndpoint(String endpoint) {
         ToolSetDto dto = new ToolSetDto();
         dto.setName("test-toolset");
-        dto.setDisplayName(LocalizedValue.of("Test ToolSet"));
+        dto.setDisplayName(LocalizedValueDto.of("Test ToolSet"));
         dto.setTransport(ToolSetDto.TransportDto.HTTP);
         dto.setEndpoint(endpoint);
 

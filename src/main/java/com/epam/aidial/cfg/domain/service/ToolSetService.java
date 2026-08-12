@@ -15,7 +15,6 @@ import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.SecuredRoleBased;
 import com.epam.aidial.cfg.domain.model.ToolSet;
-import com.epam.aidial.cfg.domain.model.ToolSetComparator;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetMcpRegistrySource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
@@ -67,7 +66,6 @@ public class ToolSetService {
     private final HashCalculator calculator;
     private final CoreClientUrlUtils coreClientUrlUtils;
     private final ToolsClient toolsClient;
-    private final ToolSetComparator toolSetComparator;
 
     @Transactional(readOnly = true)
     public Collection<ToolSet> getAll() {
@@ -85,9 +83,8 @@ public class ToolSetService {
 
     @Transactional(readOnly = true)
     public List<ToolSet> getAllOrderedByDisplayNameAscNameAsc() {
-        return toolSetJpaRepository.findAll().stream()
+        return toolSetJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
                 .map(mapper::toDomain)
-                .sorted(toolSetComparator)
                 .collect(Collectors.toList());
     }
 
@@ -96,9 +93,8 @@ public class ToolSetService {
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();
         }
-        return toolSetJpaRepository.findByIdIn(names).stream()
+        return toolSetJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(mapper::toDomain)
-                .sorted(toolSetComparator)
                 .collect(Collectors.toList());
     }
 

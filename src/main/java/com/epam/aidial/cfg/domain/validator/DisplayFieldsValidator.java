@@ -1,16 +1,11 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
-import lombok.RequiredArgsConstructor;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class DisplayFieldsValidator {
-
-    private final LocalizationProperties localizationProperties;
 
     public void validateDisplayNameDisplayVersion(LocalizedValue displayName,
                                                   String displayVersion,
@@ -21,10 +16,9 @@ public class DisplayFieldsValidator {
     }
 
     public void validateDisplayName(LocalizedValue displayName, String domainObjectType, String id) {
-        String resolved = displayName != null ? displayName.resolve(null, localizationProperties.getLocale()) : null;
-        if (StringUtils.isBlank(resolved)) {
+        if (isBlank(displayName)) {
             throw new IllegalArgumentException("Display name: '%s' must not be blank for %s with id:'%s'"
-                    .formatted(resolved, domainObjectType, id));
+                    .formatted(displayName, domainObjectType, id));
         }
     }
 
@@ -37,6 +31,16 @@ public class DisplayFieldsValidator {
             throw new IllegalArgumentException("Display name: '%s' must not be blank for %s with id:'%s'"
                     .formatted(displayName, domainObjectType, id));
         }
+    }
+
+    private boolean isBlank(LocalizedValue value) {
+        if (value == null) {
+            return true;
+        }
+        if (value.isPlain()) {
+            return StringUtils.isBlank(value.getPlainValue());
+        }
+        return value.getLocaleMap() == null || value.getLocaleMap().values().stream().allMatch(StringUtils::isBlank);
     }
 
     private void validateDisplayVersion(String displayVersion, String domainObjectType, String id) {

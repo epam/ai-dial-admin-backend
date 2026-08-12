@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.Data;
 
 import java.util.List;

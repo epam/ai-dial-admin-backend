@@ -43,7 +43,7 @@ import org.mapstruct.Mapping;
 import java.util.List;
 import java.util.Objects;
 
-@Mapper(componentModel = "spring", uses = ApplicationResourceMapper.class)
+@Mapper(componentModel = "spring", uses = {ApplicationResourceMapper.class, LocalizedValueMapper.class})
 public interface PublicationMapper {
 
     PublicationInfosDto toPromptPublicationInfosDto(PublicationInfos model);

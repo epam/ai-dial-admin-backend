@@ -1,6 +1,6 @@
 package com.epam.aidial.cfg.dao.mapper;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;

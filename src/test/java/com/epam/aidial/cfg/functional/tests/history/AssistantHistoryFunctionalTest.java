@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -48,13 +49,13 @@ public abstract class AssistantHistoryFunctionalTest {
 
         // 2 update assistant1 description
         AssistantDto updatedAssistant = createAssistantDto("1");
-        updatedAssistant.setDescription("new assistant description");
+        updatedAssistant.setDescription(LocalizedValueDto.of("new assistant description"));
         assistantFacade.updateAssistant(assistantDto.getName(), updatedAssistant);
 
         // verify assistant1
         AssistantDto actual = assistantFacade.getAssistant(assistantDto.getName());
         var expected = createAssistantDto("1");
-        expected.setDescription("new assistant description");
+        expected.setDescription(LocalizedValueDto.of("new assistant description"));
         expected.setDefaultRoleLimit(new LimitDto());
         assertAssistant(actual, expected);
 

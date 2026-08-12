@@ -1,45 +1,28 @@
 package com.epam.aidial.cfg.domain.mapper;
 
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.domain.model.Addon;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.core.config.CoreAddon;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 @Mapper(
         componentModel = "spring",
-        uses = {DeploymentCoreMapper.class}
+        uses = {DeploymentCoreMapper.class, LocalizedValueCoreMapper.class}
 )
 public abstract class AddonCoreMapper {
-
-    @Autowired
-    protected LocalizationProperties localizationProperties;
 
     public abstract Addon copy(Addon addon);
 
     @Mapping(target = "deployment", source = "coreAddon", qualifiedByName = "toDeployment")
-    @Mapping(target = "displayName", source = "coreAddon.displayName", qualifiedByName = "localizedValueToString")
-    @Mapping(target = "description", source = "coreAddon.description", qualifiedByName = "localizedValueToString")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     public abstract Addon mapAddon(CoreAddon coreAddon, @Context List<RoleLimit> roleLimits, @MappingTarget Addon addon);
-
-    @Named("localizedValueToString")
-    public String toString(LocalizedValue value) {
-        if (value == null) {
-            return null;
-        }
-        return value.resolve(null, localizationProperties.getLocale());
-    }
 }

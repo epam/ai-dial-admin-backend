@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.service.config.transfer.exporter;
 
-import com.epam.aidial.cfg.configuration.LocalizationProperties;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
@@ -29,7 +28,6 @@ import static com.epam.aidial.cfg.service.config.transfer.exporter.util.ExportUt
 public class ToolSetExporter {
 
     private final ToolSetService toolSetService;
-    private final LocalizationProperties localizationProperties;
 
     protected Map<String, ToolSet> getToolSets(ExportRequest request) {
         if (request instanceof FullExportRequest fullExportRequest) {
@@ -71,9 +69,9 @@ public class ToolSetExporter {
         return getToolSets(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getDeployment().getName())
-                        .displayName(component.getDisplayName() != null ? component.getDisplayName().resolve(null, localizationProperties.getLocale()) : null)
+                        .displayName(component.getDisplayName())
                         .type(ExportConfigComponentType.TOOL_SET)
-                        .description(component.getDescription() != null ? component.getDescription().resolve(null, localizationProperties.getLocale()) : null)
+                        .description(component.getDescription())
                         .build())
                 .collect(Collectors.toList());
     }

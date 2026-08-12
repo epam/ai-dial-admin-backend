@@ -1,7 +1,6 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.source.ToolSetSource;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

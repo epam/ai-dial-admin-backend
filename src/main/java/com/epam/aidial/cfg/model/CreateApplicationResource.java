@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.model;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

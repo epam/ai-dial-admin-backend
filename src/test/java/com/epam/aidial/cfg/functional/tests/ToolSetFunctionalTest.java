@@ -8,10 +8,10 @@ import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet.Transport;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createToolSetDtoWithoutRoleLimits;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.toCoreLocalizedValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -210,14 +211,14 @@ public abstract class ToolSetFunctionalTest {
         toolSetFacade.createToolSet(toolSetDto);
 
         ToolSetDto updatedToolSet = createToolSetDto("1");
-        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
+        updatedToolSet.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
         var expected = createToolSetDto("1");
-        expected.setDescription(LocalizedValue.of("New ToolSet description"));
+        expected.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         assertToolSet(actual, expected);
     }
@@ -258,14 +259,14 @@ public abstract class ToolSetFunctionalTest {
         var hash = toolSetFacade.getToolSetWithHash(toolSetDto.getName()).hash();
 
         ToolSetDto updatedToolSet = createToolSetDto("1");
-        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
+        updatedToolSet.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, hash);
 
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
 
         var expected = createToolSetDto("1");
-        expected.setDescription(LocalizedValue.of("New ToolSet description"));
+        expected.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         assertToolSet(actual, expected);
     }
@@ -276,7 +277,7 @@ public abstract class ToolSetFunctionalTest {
         toolSetFacade.createToolSet(toolSetDto);
 
         ToolSetDto updatedToolSet = createToolSetDto("1");
-        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
+        updatedToolSet.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
                 () -> toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "test"));
@@ -287,7 +288,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetFacade.createToolSet(toolSetDto);
         ToolSetDto updatedToolSet = createToolSetDto("2");
-        updatedToolSet.setDescription(LocalizedValue.of("New ToolSet description"));
+        updatedToolSet.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
@@ -386,7 +387,7 @@ public abstract class ToolSetFunctionalTest {
 
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName("container-toolset");
-        toolSetDto.setDescription(LocalizedValue.of("Container toolset"));
+        toolSetDto.setDescription(LocalizedValueDto.of("Container toolset"));
 
         ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
                 containerId,
@@ -439,7 +440,7 @@ public abstract class ToolSetFunctionalTest {
         ToolSetDto toolSetDto = createToolSetDto("1");
         toolSetDto.setName(refreshedToolSetName);
 
-        toolSetDto.setDescription(LocalizedValue.of("Refresh toolset"));
+        toolSetDto.setDescription(LocalizedValueDto.of("Refresh toolset"));
 
         ToolSetContainerSourceDto sourceDto = new ToolSetContainerSourceDto(
                 containerId,
@@ -484,8 +485,8 @@ public abstract class ToolSetFunctionalTest {
         expected.setAuthSettings(null);
         expected.setEndpoint(toolSetDto.getEndpoint());
         expected.setTransport(CoreToolSet.Transport.HTTP);
-        expected.setDisplayName(toolSetDto.getDisplayName());
-        expected.setDescription(toolSetDto.getDescription());
+        expected.setDisplayName(toCoreLocalizedValue(toolSetDto.getDisplayName()));
+        expected.setDescription(toCoreLocalizedValue(toolSetDto.getDescription()));
         expected.setMaxRetryAttempts(toolSetDto.getMaxRetryAttempts());
         expected.setProvider(toolSetDto.getProvider());
         expected.setUserRoles(toolSetDto.getRoleLimits().keySet());
@@ -521,7 +522,7 @@ public abstract class ToolSetFunctionalTest {
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenToolSetIsNotEqualToConfigToolSetAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         ToolSetDto toolSetDto = createToolSetDto("1");
-        toolSetDto.setDescription(LocalizedValue.of("description OLD"));
+        toolSetDto.setDescription(LocalizedValueDto.of("description OLD"));
         toolSetFacade.createToolSet(toolSetDto);
 
         JsonNode config = coreConfig();

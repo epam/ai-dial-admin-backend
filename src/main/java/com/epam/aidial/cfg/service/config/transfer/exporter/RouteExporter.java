@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
@@ -70,8 +71,8 @@ public class RouteExporter {
         return getRoutes(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getDeployment().getName())
-                        .displayName(component.getDisplayName())
-                        .description(component.getDescription())
+                        .displayName(LocalizedValue.of(component.getDisplayName()))
+                        .description(LocalizedValue.of(component.getDescription()))
                         .type(ExportConfigComponentType.ROUTE)
                         .build())
                 .collect(Collectors.toList());

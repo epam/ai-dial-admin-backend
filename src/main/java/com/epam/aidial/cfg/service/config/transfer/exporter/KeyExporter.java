@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.Key;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.service.KeyService;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
@@ -81,8 +82,8 @@ public class KeyExporter {
                         .expiresAt(component.getExpiresAt())
                         .keyGeneratedAt(component.getKeyGeneratedAt())
                         .name(component.getName())
-                        .displayName(component.getDisplayName())
-                        .description(component.getDescription())
+                        .displayName(LocalizedValue.of(component.getDisplayName()))
+                        .description(LocalizedValue.of(component.getDescription()))
                         .type(ExportConfigComponentType.KEY)
                         .build())
                 .collect(Collectors.toList());

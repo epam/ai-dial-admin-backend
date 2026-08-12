@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DeploymentInterface;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
@@ -9,7 +10,6 @@ import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.ModelSource;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

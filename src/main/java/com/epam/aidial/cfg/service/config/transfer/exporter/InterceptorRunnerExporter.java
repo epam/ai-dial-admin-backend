@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.InterceptorRunner;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.service.InterceptorRunnerService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -66,8 +67,8 @@ public class InterceptorRunnerExporter {
         return getInterceptorRunners(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getName())
-                        .displayName(component.getDisplayName())
-                        .description(component.getDescription())
+                        .displayName(LocalizedValue.of(component.getDisplayName()))
+                        .description(LocalizedValue.of(component.getDescription()))
                         .type(ExportConfigComponentType.INTERCEPTOR_RUNNER)
                         .build())
                 .collect(Collectors.toList());

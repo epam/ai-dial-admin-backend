@@ -2,7 +2,6 @@ package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

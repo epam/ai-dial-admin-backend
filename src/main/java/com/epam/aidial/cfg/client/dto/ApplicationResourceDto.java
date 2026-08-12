@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.client.dto;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -22,11 +21,11 @@ public class ApplicationResourceDto {
     private String endpoint;
     private String responsesEndpoint;
     private Map<String, DeploymentInterfaceResourceDto> interfaces;
-    private LocalizedValue displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private LocalizedValue description;
-    private LocalizedValue intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

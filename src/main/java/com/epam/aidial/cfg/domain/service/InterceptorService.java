@@ -16,7 +16,6 @@ import com.epam.aidial.cfg.dao.model.InterceptorRunnerEntity;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
 import com.epam.aidial.cfg.domain.model.Interceptor;
-import com.epam.aidial.cfg.domain.model.InterceptorComparator;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorSource;
@@ -71,7 +70,6 @@ public class InterceptorService {
     private final GlobalSettingsService globalSettingsService;
     private final DeploymentService deploymentService;
     private final HashCalculator calculator;
-    private final InterceptorComparator interceptorComparator;
 
     @Transactional(readOnly = true)
     public void ensureExists(String interceptorName) {
@@ -96,9 +94,8 @@ public class InterceptorService {
 
     @Transactional(readOnly = true)
     public List<Interceptor> getAllOrderedByDisplayNameAscNameAsc() {
-        return interceptorJpaRepository.findAll().stream()
+        return interceptorJpaRepository.findAllByOrderByDisplayNameAscIdAsc().stream()
                 .map(mapper::toDomain)
-                .sorted(interceptorComparator)
                 .collect(Collectors.toList());
     }
 
@@ -107,9 +104,8 @@ public class InterceptorService {
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();
         }
-        return interceptorJpaRepository.findByIdIn(names).stream()
+        return interceptorJpaRepository.findByIdInOrderByDisplayNameAscIdAsc(names).stream()
                 .map(mapper::toDomain)
-                .sorted(interceptorComparator)
                 .collect(Collectors.toList());
     }
 

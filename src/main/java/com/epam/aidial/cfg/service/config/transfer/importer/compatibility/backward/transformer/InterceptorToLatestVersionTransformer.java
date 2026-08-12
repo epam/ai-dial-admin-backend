@@ -2,7 +2,7 @@ package com.epam.aidial.cfg.service.config.transfer.importer.compatibility.backw
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Interceptor;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
 

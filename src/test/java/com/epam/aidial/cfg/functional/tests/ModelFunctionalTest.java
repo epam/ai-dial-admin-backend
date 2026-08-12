@@ -4,13 +4,13 @@ import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.web.facade.AdapterFacade;
 import com.epam.aidial.cfg.web.facade.InterceptorFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
 import com.epam.aidial.cfg.web.facade.RoleFacade;
+import com.epam.aidial.core.config.CoreLocalizedValue;
 import com.epam.aidial.core.config.CoreModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -50,6 +51,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createMo
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithLimitsAndEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.toCoreLocalizedValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -143,13 +145,13 @@ public abstract class ModelFunctionalTest {
 
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
         updatedModel.setSource(new ModelAdapterSourceDto("adapter2", "/newEndpointDeploymentName/chat/completions"));
-        updatedModel.setDescription(LocalizedValue.of("new model description"));
+        updatedModel.setDescription(LocalizedValueDto.of("new model description"));
         updatedModel.setDefaults(Map.of());
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
         var expected = createModelDtoWithLimitsAndEndpoint("1");
-        expected.setDescription(LocalizedValue.of("new model description"));
+        expected.setDescription(LocalizedValueDto.of("new model description"));
         expected.setDefaults(Map.of());
         expected.setMaxRetryAttempts(1);
         expected.setDefaultRoleLimit(new LimitDto());
@@ -190,7 +192,7 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelFacade.createModel(modelDto);
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("2");
-        updatedModel.setDescription(LocalizedValue.of("New ToolSet description"));
+        updatedModel.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
@@ -210,7 +212,7 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
         modelFacade.createModel(modelDto);
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
-        updatedModel.setDescription(LocalizedValue.of("New ToolSet description"));
+        updatedModel.setDescription(LocalizedValueDto.of("New ToolSet description"));
         updatedModel.setDefaults(Map.of());
         updatedModel.setInterceptors(List.of("interceptor1"));
 
@@ -381,12 +383,12 @@ public abstract class ModelFunctionalTest {
         initRoles();
 
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
-        modelDto.setDisplayName(LocalizedValue.of("display_name"));
+        modelDto.setDisplayName(LocalizedValueDto.of("display_name"));
         modelDto.setDisplayVersion("1.0");
         modelFacade.createModel(modelDto);
 
         ModelDto modelDto2 = createModelDtoWithLimitsAndEndpoint("2");
-        modelDto2.setDisplayName(LocalizedValue.of("display_name"));
+        modelDto2.setDisplayName(LocalizedValueDto.of("display_name"));
         modelDto2.setDisplayVersion("1.0");
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
@@ -401,14 +403,14 @@ public abstract class ModelFunctionalTest {
         initRoles();
 
         ModelDto modelDto = createModelDtoWithLimitsAndEndpoint("1");
-        modelDto.setDisplayName(LocalizedValue.of("display_name"));
+        modelDto.setDisplayName(LocalizedValueDto.of("display_name"));
         modelFacade.createModel(modelDto);
 
         ModelDto modelDto2 = createModelDtoWithLimitsAndEndpoint("2");
-        modelDto2.setDisplayName(LocalizedValue.of("display_name_2"));
+        modelDto2.setDisplayName(LocalizedValueDto.of("display_name_2"));
         modelFacade.createModel(modelDto2);
 
-        modelDto.setDisplayName(LocalizedValue.of("display_name_2"));
+        modelDto.setDisplayName(LocalizedValueDto.of("display_name_2"));
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
                 EntityAlreadyExistsException.class,
@@ -457,9 +459,9 @@ public abstract class ModelFunctionalTest {
         CoreModel expected = new CoreModel();
         expected.setTokenizerModel(modelDto.getTokenizerModel());
         expected.setName(modelDto.getName());
-        expected.setDisplayName(modelDto.getDisplayName());
-        expected.setDescription(modelDto.getDescription());
-        expected.setIntro(modelDto.getIntro());
+        expected.setDisplayName(toCoreLocalizedValue(modelDto.getDisplayName()));
+        expected.setDescription(toCoreLocalizedValue(modelDto.getDescription()));
+        expected.setIntro(toCoreLocalizedValue(modelDto.getIntro()));
         expected.setEndpoint(modelDto.getEndpoint());
         expected.setDefaults(modelDto.getDefaults());
         expected.setFeatures(defaultCoreFeatures());
@@ -491,14 +493,14 @@ public abstract class ModelFunctionalTest {
         modelFacade.createModel(modelDto);
 
         CoreModel coreModel = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
-        coreModel.setDescription(LocalizedValue.of("New description"));
+        coreModel.setDescription(CoreLocalizedValue.of("New description"));
         modelFacade.updateModel(modelDto.getName(), coreModel, "*");
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
 
         Assertions.assertEquals("model1", actual.getName());
         Assertions.assertEquals(adapterSourceDto, actual.getSource());
-        Assertions.assertEquals(LocalizedValue.of("New description"), actual.getDescription());
+        Assertions.assertEquals(LocalizedValueDto.of("New description"), actual.getDescription());
     }
 
     @Test
@@ -620,7 +622,7 @@ public abstract class ModelFunctionalTest {
 
         ModelDto modelDto = createModelDto("1");
         modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
-        modelDto.setDescription(LocalizedValue.of("description OLD"));
+        modelDto.setDescription(LocalizedValueDto.of("description OLD"));
         modelDto.setEmbeddingDimensions(1536);
         modelFacade.createModel(modelDto);
 
@@ -669,8 +671,8 @@ public abstract class ModelFunctionalTest {
     private ModelDto expectedDto1() {
         ModelDto modelDto = new ModelDto();
         modelDto.setName("model1");
-        modelDto.setDisplayName(LocalizedValue.of("model1"));
-        modelDto.setDescription(LocalizedValue.of("description1"));
+        modelDto.setDisplayName(LocalizedValueDto.of("model1"));
+        modelDto.setDescription(LocalizedValueDto.of("description1"));
         modelDto.setRoleLimits(Map.of(
                 "role1", new LimitDto()
         ));

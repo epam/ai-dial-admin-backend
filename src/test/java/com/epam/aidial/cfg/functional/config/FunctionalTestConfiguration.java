@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.client.ResourceCredentialClient;
 import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.LocalizedValueClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.RouteMapper;
@@ -39,7 +40,6 @@ import com.epam.aidial.cfg.domain.service.ModelService;
 import com.epam.aidial.cfg.domain.service.RoleService;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.domain.service.ToolSetService;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
@@ -55,6 +55,7 @@ import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreLocalizedValue;
 import com.epam.aidial.core.config.CoreModel;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -118,14 +119,6 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
-    public com.epam.aidial.cfg.configuration.LocalizationProperties localizationProperties() {
-        com.epam.aidial.cfg.configuration.LocalizationProperties properties =
-                new com.epam.aidial.cfg.configuration.LocalizationProperties();
-        properties.setLocale("en");
-        return properties;
-    }
-
-    @Bean
     public ConfigExportProperties configExportProperties() {
         return new ConfigExportProperties();
     }
@@ -134,7 +127,7 @@ public class FunctionalTestConfiguration {
     public CoreConfigRetriever configSource() {
         CoreModel model = new CoreModel();
         model.setName("testModel");
-        model.setDisplayName(LocalizedValue.of("testModel displayName"));
+        model.setDisplayName(CoreLocalizedValue.of("testModel displayName"));
         model.setEndpoint("https://endpoint1/chat/completions");
 
         Config config = new Config();
@@ -200,6 +193,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public RouteMapper routeMapper() {
         return new RouteMapperImpl();
+    }
+
+    @Bean
+    public LocalizedValueClientMapper localizedValueClientMapper() {
+        return new LocalizedValueClientMapper();
     }
 
     @Bean

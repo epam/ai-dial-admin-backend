@@ -1,18 +1,21 @@
 package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.mapper.ApplicationClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.LocalizedValueClientMapper;
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.McpResourceDto;
+import com.epam.aidial.cfg.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.LocalizedValue;
 import com.epam.aidial.cfg.model.McpResource;
 import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Rule;
@@ -50,7 +53,9 @@ import static org.mockito.Mockito.when;
         ApplicationClientMapperImpl.class,
         ApplicationEximService.class,
         ResourceImportValidator.class,
-        RouteMapperImpl.class
+        RouteMapperImpl.class,
+        LocalizedValueClientMapper.class,
+        LocalizedValueMapper.class
 })
 @TestPropertySource(properties = {
         "applications.import.consecutiveErrorsThreshold=2"
@@ -413,9 +418,9 @@ class ApplicationEximServiceTest {
                 .applicationTypeSchemaId(String.format("https://test%s.epam.com", suffix))
                 .name("application" + suffix)
                 .version(String.format("0.0.%s", suffix))
-                .displayName(LocalizedValue.of("application" + suffix))
+                .displayName(LocalizedValueDto.of("application" + suffix))
                 .folderId(String.format("public/folder%s/", suffix))
-                .description(LocalizedValue.of(String.format("application description %s", suffix)))
+                .description(LocalizedValueDto.of(String.format("application description %s", suffix)))
                 .mcp(mcp)
                 .build();
     }

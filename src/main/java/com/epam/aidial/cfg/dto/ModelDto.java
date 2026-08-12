@@ -1,6 +1,5 @@
 package com.epam.aidial.cfg.dto;
 
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
 import com.epam.aidial.cfg.dto.source.ModelSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
@@ -32,11 +31,11 @@ public class ModelDto extends RoleBasedDto {
     @Valid
     private Map<String, DeploymentInterfaceDto> interfaces;
     @NotEmptyLocalizedValue(message = "DisplayName is required")
-    private LocalizedValue displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private LocalizedValue description;
-    private LocalizedValue intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String reference;
     private Boolean forwardAuthToken;
     private FeaturesDto features = new FeaturesDto();

@@ -1,10 +1,5 @@
-package com.epam.aidial.cfg.domain.value;
+package com.epam.aidial.cfg.domain.model;
 
-import com.epam.aidial.cfg.dto.databind.LocalizedValueDeserializer;
-import com.epam.aidial.cfg.dto.databind.LocalizedValueSerializer;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -12,8 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Polymorphic value type that represents either a plain string or a map of locale codes to localized strings.
- * Supports backward compatibility by accepting both formats during deserialization.
+ * Polymorphic domain value type that represents either a plain string or a map of locale codes to localized strings.
  *
  * <p>Examples:</p>
  * <pre>
@@ -27,8 +21,6 @@ import java.util.Map;
  * @since 0.47.0
  */
 @Getter
-@JsonDeserialize(using = LocalizedValueDeserializer.class)
-@JsonSerialize(using = LocalizedValueSerializer.class)
 @EqualsAndHashCode
 public final class LocalizedValue {
 
@@ -65,43 +57,20 @@ public final class LocalizedValue {
      *
      * @return true if this is a locale map, false if it's a plain string
      */
-    @JsonIgnore
     public boolean isMap() {
         return localeMap != null;
     }
 
     /**
-     * Collapses a single-entry map keyed by {@code defaultLocale} down to a plain string, leaving
-     * every other shape (plain string, empty/multi-entry map) untouched. Used to keep
-     * single-language deployments wire-identical to their pre-localization representation.
-     *
-     * @param defaultLocale the default locale code (e.g., "en")
-     * @return normalized LocalizedValue perhaps the same instance or a new plain string instance
-     */
-    public LocalizedValue normalize(String defaultLocale) {
-        if (localeMap != null && localeMap.size() == 1 && localeMap.containsKey(defaultLocale)) {
-            return LocalizedValue.of(localeMap.get(defaultLocale));
-        }
-        return this;
-    }
-
-    /**
      * Resolves a definite string value for internal (non-localized) Core usages: the requested
      * locale if present, else the default locale, else the first available value.
-     *
-     * @param locale        the requested locale code
-     * @param defaultLocale the fallback locale code (e.g., "en")
-     * @return resolved string value, or null if no values available
      */
-    public String resolve(String locale, String defaultLocale) {
+    public String resolve(String locale) {
         if (plainValue != null) {
             return plainValue;
         }
         if (locale != null && localeMap.containsKey(locale)) {
             return localeMap.get(locale);
-        }
-        if (defaultLocale != null && localeMap.containsKey(defaultLocale)) {
-            return localeMap.get(defaultLocale);
         }
         return localeMap.values().stream().findFirst().orElse(null);
     }
@@ -111,13 +80,7 @@ public final class LocalizedValue {
         return plainValue != null ? plainValue : String.valueOf(localeMap);
     }
 
-    @JsonIgnore
     public boolean isPlain() {
         return plainValue != null;
-    }
-
-    @JsonIgnore
-    public boolean isLocalized() {
-        return localeMap != null;
     }
 }

@@ -1,11 +1,13 @@
 package com.epam.aidial.cfg.service;
 
+import com.epam.aidial.cfg.client.mapper.LocalizedValueClientMapper;
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ToolSetClientMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
-import com.epam.aidial.cfg.domain.value.LocalizedValue;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ToolSetEximDto;
 import com.epam.aidial.cfg.dto.ToolSetsEximDto;
+import com.epam.aidial.cfg.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResourcePreview;
 import com.epam.aidial.cfg.model.ImportResources;
@@ -13,6 +15,7 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesPreview;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.LocalizedValue;
 import com.epam.aidial.cfg.model.ToolSetResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -44,7 +47,9 @@ import static org.mockito.Mockito.when;
         ToolSetClientMapperImpl.class,
         ZipToolSetEximService.class,
         ResourceImportValidator.class,
-        RouteMapperImpl.class
+        RouteMapperImpl.class,
+        LocalizedValueClientMapper.class,
+        LocalizedValueMapper.class
 })
 class ZipToolSetEximServiceTest {
 
@@ -175,7 +180,7 @@ class ZipToolSetEximServiceTest {
 
         var toolSet1 = getToolSetEximDto("1");
         var toolSet2 = getToolSetEximDto("1");
-        toolSet2.setDescription(LocalizedValue.of("changed description"));
+        toolSet2.setDescription(LocalizedValueDto.of("changed description"));
 
         var inputStream = getZipInputStream(List.of(
                 Pair.of("toolSets/toolSet1.json", ToolSetsEximDto.builder()
@@ -214,8 +219,8 @@ class ZipToolSetEximServiceTest {
         var toolSet1 = getToolSetEximDto("1");
         var toolSet2 = getToolSetEximDto("1");
         var toolSet3 = getToolSetEximDto("1");
-        toolSet2.setDescription(LocalizedValue.of("changed description 2"));
-        toolSet3.setDescription(LocalizedValue.of("changed description 3"));
+        toolSet2.setDescription(LocalizedValueDto.of("changed description 2"));
+        toolSet3.setDescription(LocalizedValueDto.of("changed description 3"));
 
         var inputStream = getZipInputStream(List.of(
                 Pair.of("toolSets/toolSet1.json", ToolSetsEximDto.builder()
@@ -396,9 +401,9 @@ class ZipToolSetEximServiceTest {
         return ToolSetEximDto.builder()
                 .name("toolSet" + suffix)
                 .version(String.format("0.0.%s", suffix))
-                .displayName(LocalizedValue.of("toolSet" + suffix))
+                .displayName(LocalizedValueDto.of("toolSet" + suffix))
                 .folderId(String.format("public/folder%s/", suffix))
-                .description(LocalizedValue.of(String.format("toolSet description %s", suffix)))
+                .description(LocalizedValueDto.of(String.format("toolSet description %s", suffix)))
                 .build();
     }
 
