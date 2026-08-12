@@ -17,6 +17,7 @@
         "openaiChatCompletions": {"base_url": "https://interceptor.adapter.example.com"}
       },
       "displayName": "Sample Interceptor",
+      "overrideName": "Custom Interceptor Override",
       "iconUrl": "https://example.com/icon.png",
       "description": "This is a sample interceptor",
       "forwardAuthToken": true,

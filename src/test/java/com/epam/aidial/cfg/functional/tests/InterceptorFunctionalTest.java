@@ -714,7 +714,8 @@ public abstract class InterceptorFunctionalTest {
                       "updatedAt": 1000,
                       "dependencies": [],
                       "catalogSchemaId": null,
-                      "catalogProperties": null
+                      "catalogProperties": null,
+                      "overrideName": null
                     }
                   }
                 }
