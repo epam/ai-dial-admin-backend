@@ -629,6 +629,12 @@
         },
         "completion": {
           "type": "number"
+        },
+        "cacheRead": {
+          "type": "number"
+        },
+        "cacheWrite": {
+          "type": "number"
         }
       }
     },
