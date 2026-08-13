@@ -1,7 +1,6 @@
 package com.epam.aidial.core.config;
 
 import com.epam.aidial.core.config.databind.DoubleStringDeserializer;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
@@ -14,4 +13,10 @@ public class Pricing {
 
     @JsonDeserialize(using = DoubleStringDeserializer.class)
     private String completion;
+
+    @JsonDeserialize(using = DoubleStringDeserializer.class)
+    private String cacheRead; // 0.47.0
+
+    @JsonDeserialize(using = DoubleStringDeserializer.class)
+    private String cacheWrite; // 0.47.0
 }

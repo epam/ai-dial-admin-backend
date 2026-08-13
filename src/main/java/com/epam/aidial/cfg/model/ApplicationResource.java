@@ -25,6 +25,7 @@ public class ApplicationResource {
     private Map<String, DeploymentInterfaceResource> interfaces;
     private LocalizedValue displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private LocalizedValue description;
     private String reference;

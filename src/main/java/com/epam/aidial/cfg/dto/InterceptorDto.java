@@ -26,6 +26,7 @@ public class InterceptorDto {
     private LocalizedValueDto description;
     @NotEmptyLocalizedValue(message = "DisplayName is required")
     private LocalizedValueDto displayName;
+    private String overrideName;
     private Boolean forwardAuthToken;
     private List<String> entities;
     private List<String> applicationTypeSchemas;

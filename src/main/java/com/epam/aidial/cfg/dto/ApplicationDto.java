@@ -33,6 +33,7 @@ public class ApplicationDto extends RoleBasedDto {
     @NotEmptyLocalizedValue(message = "DisplayName is required")
     private LocalizedValueDto displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private LocalizedValueDto description;
     private LocalizedValueDto intro;

@@ -21,6 +21,7 @@ public class ApplicationEximDto {
     private Map<String, DeploymentInterfaceDto> interfaces;
     private LocalizedValueDto displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private LocalizedValueDto description;
     private LocalizedValueDto intro;

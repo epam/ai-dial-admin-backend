@@ -95,4 +95,10 @@ public abstract class Deployment extends RoleBasedEntity {
     @JsonAlias({"catalogProperties", "catalog_properties"})
     private Map<String, Object> catalogProperties; // 0.47.0
 
+    /**
+     * If it's set then the deployment name is overridden with that name in the request body to the adapter.
+     */
+    @JsonAlias({"overrideName", "override_name"})
+    private String overrideName; // 0.47.0
+
 }

@@ -26,6 +26,7 @@ public class Application extends RoleBased {
     private LocalizedValue intro;
     private LocalizedValue displayName;
     private String displayVersion;
+    private String overrideName;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

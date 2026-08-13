@@ -17,6 +17,7 @@ public class Interceptor {
     private LocalizedValue description;
     private Set<String> topics;
     private LocalizedValue displayName;
+    private String overrideName;
     private Boolean forwardAuthToken;
     private String author;
     private Long createdAt;

@@ -14,6 +14,7 @@ public class ApplicationInfoDto {
     private String endpoint;
     private LocalizedValueDto displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private LocalizedValueDto description;
     private Boolean forwardAuthToken;
