@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportComponent;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.utils.ModelEndpointUtils;
 import com.epam.aidial.cfg.dto.ExportConfigComponentTypeDto;
@@ -41,6 +42,7 @@ import com.epam.aidial.cfg.web.facade.mapper.InterceptorDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.InterceptorSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.KeyDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.LimitDtoMapperImpl;
+import com.epam.aidial.cfg.web.facade.mapper.LocalizedValueDtoMapper;
 import com.epam.aidial.cfg.web.facade.mapper.ModelDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ModelSourceDtoMapperImpl;
 import com.epam.aidial.cfg.web.facade.mapper.ResourceAuthSettingsDtoMapperImpl;
@@ -92,7 +94,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         InterceptorSourceDtoMapperImpl.class, InstantMapperImpl.class, FeaturesDtoMapperImpl.class, AttachmentPathDtoMapperImpl.class,
         DeploymentInterfaceDtoMapperImpl.class,
         ToolSetDtoMapperImpl.class, ModelSourceDtoMapperImpl.class, ResourceAuthSettingsDtoMapperImpl.class, CostLimitDtoMapperImpl.class,
-        ToolSetSourceDtoMapperImpl.class, ValidityStateDtoMapperImpl.class, AdapterSourceDtoMapperImpl.class, ApplicationSourceDtoMapperImpl.class
+        ToolSetSourceDtoMapperImpl.class, ValidityStateDtoMapperImpl.class, AdapterSourceDtoMapperImpl.class, ApplicationSourceDtoMapperImpl.class,
+        LocalizedValueDtoMapper.class
 })
 class ConfigControllerTest extends AbstractControllerNoneSecureTest {
 
@@ -179,7 +182,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         var model = new Model();
         var deployment = new Deployment("testModel1");
         model.setDeployment(deployment);
-        model.setDisplayName("testModel1");
+        model.setDisplayName(LocalizedValue.of("testModel1"));
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
         model.setAuthor("test-author");
@@ -218,7 +221,7 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         var model = new Model();
         var deployment = new Deployment("testModel1");
         model.setDeployment(deployment);
-        model.setDisplayName("testModel1");
+        model.setDisplayName(LocalizedValue.of("testModel1"));
         model.setDisplayVersion("1.0.0");
         model.setInterceptors(List.of("testInterceptor1"));
         model.setAuthor("test-author");
@@ -296,8 +299,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         ExportKeyInfo componentInfo = ExportKeyInfo.builder()
                 .type(ExportConfigComponentType.KEY)
                 .name("keyName")
-                .displayName("displayName")
-                .description("key description")
+                .displayName(LocalizedValue.of("displayName"))
+                .description(LocalizedValue.of("key description"))
                 .roles(List.of("default"))
                 .build();
 
@@ -324,8 +327,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         ExportApplicationTypeSchemaInfo componentInfo = ExportApplicationTypeSchemaInfo.builder()
                 .type(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
                 .id("id")
-                .description("description")
-                .displayName("displayName")
+                .description(LocalizedValue.of("description"))
+                .displayName(LocalizedValue.of("displayName"))
                 .build();
 
         ExportConfigPreview exportConfigPreview = new ExportConfigPreview();
@@ -353,8 +356,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         ExportComponentInfo componentInfo = ExportComponentInfo.builder()
                 .type(ExportConfigComponentType.TOOL_SET)
                 .name("name1")
-                .description("description1")
-                .displayName("displayName1")
+                .description(LocalizedValue.of("description1"))
+                .displayName(LocalizedValue.of("displayName1"))
                 .build();
 
         ExportConfigPreview exportConfigPreview = new ExportConfigPreview();
@@ -387,8 +390,8 @@ class ConfigControllerTest extends AbstractControllerNoneSecureTest {
         ExportComponentInfo componentInfo = ExportComponentInfo.builder()
                 .type(ExportConfigComponentType.INTERCEPTOR_RUNNER)
                 .name("name1")
-                .description("description1")
-                .displayName("displayName1")
+                .description(LocalizedValue.of("description1"))
+                .displayName(LocalizedValue.of("displayName1"))
                 .build();
 
         ExportConfigPreview exportConfigPreview = new ExportConfigPreview();

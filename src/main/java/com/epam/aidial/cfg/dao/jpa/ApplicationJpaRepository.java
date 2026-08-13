@@ -7,12 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface ApplicationJpaRepository extends JpaRepository<ApplicationEntity, String> {
-
-    boolean existsByDisplayNameAndDisplayVersion(String displayName, String displayVersion);
-
     List<ApplicationEntity> findByIdNotIn(Collection<String> ids);
-
-    List<ApplicationEntity> findAllByValidityStateIsValidTrue();
 
     List<ApplicationEntity> findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc();
 
@@ -21,4 +16,6 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationEntit
     List<ApplicationEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> ids);
 
     List<ApplicationEntity> findByApplicationContainerIsNotNull();
+
+    List<ApplicationEntity> findByDisplayVersion(String displayVersion);
 }

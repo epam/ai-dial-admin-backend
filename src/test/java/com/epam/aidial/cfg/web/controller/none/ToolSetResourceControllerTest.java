@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.AuthenticationTypeResourceDto;
 import com.epam.aidial.cfg.dto.CallToolResourceRequestDto;
 import com.epam.aidial.cfg.dto.CreateToolSetResourceDto;
 import com.epam.aidial.cfg.dto.CredentialsLevelDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ResourcePathDto;
 import com.epam.aidial.cfg.dto.ResourcePathsDto;
 import com.epam.aidial.cfg.dto.ResourceSignInRequestDto;
@@ -13,6 +14,7 @@ import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.NotModifiedException;
 import com.epam.aidial.cfg.exception.ResourceNotFoundException;
 import com.epam.aidial.cfg.exception.ResourcePreconditionFailedException;
+import com.epam.aidial.cfg.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.mapper.ResourceCredentialMapper;
 import com.epam.aidial.cfg.mapper.ResourceMapperImpl;
 import com.epam.aidial.cfg.mapper.ToolSetResourceMapperImpl;
@@ -59,7 +61,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         JsonMapperConfiguration.class,
         ToolSetResourceMapperImpl.class,
-        ResourceMapperImpl.class
+        ResourceMapperImpl.class,
+        LocalizedValueMapper.class
 })
 public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureTest {
 
@@ -263,7 +266,7 @@ public class ToolSetResourceControllerTest extends AbstractControllerNoneSecureT
 
         // Test with empty displayName
         var dtoEmptyDisplayName = objectMapper.readValue(createToolSetDtoJson, CreateToolSetResourceDto.class);
-        dtoEmptyDisplayName.setDisplayName("");
+        dtoEmptyDisplayName.setDisplayName(LocalizedValueDto.of(""));
         var jsonEmptyDisplayName = objectMapper.writeValueAsString(dtoEmptyDisplayName);
 
         mockMvc.perform(post(CREATE_API_PATH)

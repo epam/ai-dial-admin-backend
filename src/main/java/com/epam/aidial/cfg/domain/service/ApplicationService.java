@@ -15,6 +15,7 @@ import com.epam.aidial.cfg.dao.model.RoleEntity;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DomainObjectWithHash;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.RoleBased;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.model.ToolSet;
@@ -26,7 +27,7 @@ import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import com.epam.aidial.cfg.domain.util.ContainerSourceChangeDetector;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.domain.validator.ApplicationValidator;
-import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
+import com.epam.aidial.cfg.domain.validator.DisplayNameUniquenessValidator;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.service.hashing.HashCalculator;
@@ -48,7 +49,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,6 +79,7 @@ public class ApplicationService {
     private final ContainerEndpointResolver endpointResolver;
     private final ApplicationRefreshService applicationRefreshService;
     private final ToolsClient toolsClient;
+    private final DisplayNameUniquenessValidator displayNameUniquenessValidator;
 
     @Transactional(readOnly = true)
     public Collection<Application> getAllApplications() {
@@ -142,7 +144,7 @@ public class ApplicationService {
         applicationValidator.validateCreation(application);
         deploymentService.assertDeploymentNotExists(application.getDeployment().getName());
         deploymentService.assertInterceptorNotExists(application.getDeployment().getName());
-        assertNotExists(application.getDisplayName(), application.getDisplayVersion());
+        assertDisplayNameAndDisplayVersionUnique(null, application);
         resolveEndpointsIfContainerSource(application);
         Optional.of(application)
                 .map(domainModel -> toEntity(domainModel, new ApplicationEntity()))
@@ -171,7 +173,7 @@ public class ApplicationService {
         var applicationEntity = applicationJpaRepository.findById(applicationName)
                 .orElseThrow(() -> new EntityNotFoundException(NOT_FOUND_MESSAGE_TEMPLATE.formatted(applicationName)));
 
-        assertNewApplicationDisplayNameAndDisplayVersion(applicationEntity, application);
+        assertDisplayNameAndDisplayVersionUnique(applicationEntity.getDeploymentName(), application);
         assertNotConcurrencyOverwrite(applicationEntity, hash);
         resolveEndpointsIfContainerSource(application, applicationEntity);
         return save(toEntity(application, applicationEntity));
@@ -345,21 +347,13 @@ public class ApplicationService {
         }
     }
 
-    private void assertNotExists(String displayName, String displayVersion) {
-        if ((displayName != null || displayVersion != null) && applicationJpaRepository.existsByDisplayNameAndDisplayVersion(displayName, displayVersion)) {
-            throw new EntityAlreadyExistsException("Application with display name: '" + displayName + "' and display version: '" + displayVersion + "' already exists");
-        }
-    }
-
-    private void assertNewApplicationDisplayNameAndDisplayVersion(ApplicationEntity entity, Application domain) {
-        String displayName = entity.getDisplayName();
-        String displayVersion = entity.getDisplayVersion();
-        String newDisplayName = domain.getDisplayName();
-        String newDisplayVersion = domain.getDisplayVersion();
-
-        if (!Objects.equals(displayName, newDisplayName) || !Objects.equals(displayVersion, newDisplayVersion)) {
-            assertNotExists(newDisplayName, newDisplayVersion);
-        }
+    private void assertDisplayNameAndDisplayVersionUnique(String currentApplicationName, Application application) {
+        Map<String, LocalizedValue> candidates = applicationJpaRepository.findByDisplayVersion(application.getDisplayVersion()).stream()
+                .map(mapper::toDomain)
+                .filter(a -> a.getDisplayName() != null)
+                .collect(Collectors.toMap(a -> a.getDeployment().getName(), Application::getDisplayName));
+        displayNameUniquenessValidator.validateUnique("Application", currentApplicationName,
+                application.getDisplayName(), application.getDisplayVersion(), candidates);
     }
 
     private ApplicationEntity toEntity(Application domain, ApplicationEntity entity) {

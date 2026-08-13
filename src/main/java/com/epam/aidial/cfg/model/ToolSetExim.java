@@ -18,10 +18,10 @@ public class ToolSetExim {
     private String folderId;
     private String version;
     private String endpoint;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -32,7 +32,7 @@ public class ToolSetExim {
     private ResourceAuthSettings authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
-    private String intro;
+    private LocalizedValue intro;
     private String catalogSchemaId;
     private Map<String, Object> catalogProperties;
 

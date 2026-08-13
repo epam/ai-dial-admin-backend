@@ -13,7 +13,7 @@ import org.mapstruct.SubclassMapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = LocalizedValueMapper.class)
 public interface DeploymentMapper {
 
     List<DeploymentDataDto> toDeploymentDataDtoList(List<DeploymentData> models);

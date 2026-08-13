@@ -6,6 +6,7 @@ import com.epam.aidial.cfg.client.ResourceCredentialClient;
 import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.LocalizedValueClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.RouteMapper;
@@ -54,6 +55,7 @@ import com.epam.aidial.cfg.transaction.timestamp.TransactionTimestampContext;
 import com.epam.aidial.cfg.web.facade.AuditActivityFacade;
 import com.epam.aidial.cfg.web.facade.HistoryFacade;
 import com.epam.aidial.core.config.Config;
+import com.epam.aidial.core.config.CoreLocalizedValue;
 import com.epam.aidial.core.config.CoreModel;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -125,7 +127,7 @@ public class FunctionalTestConfiguration {
     public CoreConfigRetriever configSource() {
         CoreModel model = new CoreModel();
         model.setName("testModel");
-        model.setDisplayName("testModel displayName");
+        model.setDisplayName(CoreLocalizedValue.of("testModel displayName"));
         model.setEndpoint("https://endpoint1/chat/completions");
 
         Config config = new Config();
@@ -191,6 +193,11 @@ public class FunctionalTestConfiguration {
     @Bean
     public RouteMapper routeMapper() {
         return new RouteMapperImpl();
+    }
+
+    @Bean
+    public LocalizedValueClientMapper localizedValueClientMapper() {
+        return new LocalizedValueClientMapper();
     }
 
     @Bean

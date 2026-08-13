@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -20,12 +21,12 @@ public class CreateToolSetResourceDto {
     @NotBlank(message = "Completion endpoint is required")
     @Endpoint
     private String endpoint;
-    @NotBlank(message = "Display name is required")
-    private String displayName;
+    @NotEmptyLocalizedValue(message = "Display name is required")
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
-    private String intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;

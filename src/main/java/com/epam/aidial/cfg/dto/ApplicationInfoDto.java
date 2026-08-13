@@ -12,11 +12,11 @@ public class ApplicationInfoDto {
 
     private String name;
     private String endpoint;
-    private String displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String overrideName;
     private String iconUrl;
-    private String description;
+    private LocalizedValueDto description;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;

@@ -13,8 +13,8 @@ public class Addon extends RoleBased {
 
     private String endpoint;
     private String iconUrl;
-    private String description;
-    private String displayName;
+    private LocalizedValue description;
+    private LocalizedValue displayName;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

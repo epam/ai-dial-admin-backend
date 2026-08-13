@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.source.ModelSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -29,12 +30,12 @@ public class ModelDto extends RoleBasedDto {
     private String responsesEndpoint;
     @Valid
     private Map<String, DeploymentInterfaceDto> interfaces;
-    @NotBlank(message = "DisplayName is required")
-    private String displayName;
+    @NotEmptyLocalizedValue(message = "DisplayName is required")
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
-    private String intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String reference;
     private Boolean forwardAuthToken;
     private FeaturesDto features = new FeaturesDto();

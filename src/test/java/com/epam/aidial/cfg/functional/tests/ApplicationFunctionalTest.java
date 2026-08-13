@@ -14,6 +14,7 @@ import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.ExternalServiceDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.McpDto;
 import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.source.ApplicationContainerSourceDto;
@@ -53,6 +54,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBa
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.toCoreLocalizedValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -158,13 +160,13 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
-        updatedApplication.setDescription("new application description");
+        updatedApplication.setDescription(LocalizedValueDto.of(Map.of("en", "new application description")));
 
         applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
 
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createApplicationDtoWithEndpointAndLimits("1");
-        expected.setDescription("new application description");
+        expected.setDescription(LocalizedValueDto.of(Map.of("en", "new application description")));
         assertApplication(actual, expected);
     }
 
@@ -179,7 +181,7 @@ public abstract class ApplicationFunctionalTest {
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
 
-        updatedApplication.setDescription("new model description");
+        updatedApplication.setDescription(LocalizedValueDto.of("New ToolSet description"));
         updatedApplication.setDefaults(Map.of());
         updatedApplication.setInterceptors(List.of("interceptor1"));
 
@@ -196,7 +198,7 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("2");
-        updatedApplication.setDescription("new application description");
+        updatedApplication.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
@@ -240,7 +242,7 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
         applicationFacade.createApplication(applicationDto);
         ApplicationDto updatedApplication = createApplicationDtoWithEndpointAndLimits("1");
-        updatedApplication.setDescription("new application description");
+        updatedApplication.setDescription(LocalizedValueDto.of("New ToolSet description"));
 
         var hash = applicationFacade.getApplicationWithHash(applicationDto.getName()).hash();
 
@@ -248,7 +250,7 @@ public abstract class ApplicationFunctionalTest {
 
         var actual = applicationFacade.getApplication(applicationDto.getName());
         var expected = createApplicationDtoWithEndpointAndLimits("1");
-        expected.setDescription("new application description");
+        expected.setDescription(LocalizedValueDto.of("New ToolSet description"));
         assertApplication(actual, expected);
     }
 
@@ -268,7 +270,7 @@ public abstract class ApplicationFunctionalTest {
 
         InterceptorDto interceptorDto = createInterceptorDto("1");
         interceptorDto.setName("int1");
-        interceptorDto.setDescription("int1_dsc");
+        interceptorDto.setDescription(LocalizedValueDto.of("int1_dsc"));
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor");
         interceptorFacade.createInterceptor(interceptorDto);
 
@@ -406,12 +408,12 @@ public abstract class ApplicationFunctionalTest {
         initRoles();
 
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
-        applicationDto.setDisplayName("display_name");
+        applicationDto.setDisplayName(LocalizedValueDto.of("display_name"));
         applicationDto.setDisplayVersion("1.0");
         applicationFacade.createApplication(applicationDto);
 
         ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
-        applicationDto2.setDisplayName("display_name");
+        applicationDto2.setDisplayName(LocalizedValueDto.of("display_name"));
         applicationDto2.setDisplayVersion("1.0");
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
@@ -426,14 +428,14 @@ public abstract class ApplicationFunctionalTest {
         initRoles();
 
         ApplicationDto applicationDto = createApplicationDtoWithEndpointAndLimits("1");
-        applicationDto.setDisplayName("display_name");
+        applicationDto.setDisplayName(LocalizedValueDto.of("display_name"));
         applicationFacade.createApplication(applicationDto);
 
         ApplicationDto applicationDto2 = createApplicationDtoWithEndpointAndLimits("2");
-        applicationDto2.setDisplayName("display_name_2");
+        applicationDto2.setDisplayName(LocalizedValueDto.of("display_name_2"));
         applicationFacade.createApplication(applicationDto2);
 
-        applicationDto.setDisplayName("display_name_2");
+        applicationDto.setDisplayName(LocalizedValueDto.of("display_name_2"));
 
         EntityAlreadyExistsException exception = Assertions.assertThrows(
                 EntityAlreadyExistsException.class,
@@ -463,9 +465,9 @@ public abstract class ApplicationFunctionalTest {
 
         CoreApplication expected = new CoreApplication();
         expected.setName(applicationDto.getName());
-        expected.setDisplayName(applicationDto.getDisplayName());
-        expected.setDescription(applicationDto.getDescription());
-        expected.setIntro(applicationDto.getIntro());
+        expected.setDisplayName(toCoreLocalizedValue(applicationDto.getDisplayName()));
+        expected.setDescription(toCoreLocalizedValue(applicationDto.getDescription()));
+        expected.setIntro(toCoreLocalizedValue(applicationDto.getIntro()));
         expected.setEndpoint(applicationDto.getEndpoint());
         expected.setDefaults(applicationDto.getDefaults());
         expected.setApplicationProperties(applicationDto.getApplicationProperties());
@@ -517,7 +519,7 @@ public abstract class ApplicationFunctionalTest {
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenApplicationIsNotEqualToConfigApplicationAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
-        applicationDto.setDescription("description OLD");
+        applicationDto.setDescription(LocalizedValueDto.of("description OLD"));
         applicationFacade.createApplication(applicationDto);
 
         JsonNode config = coreConfig();

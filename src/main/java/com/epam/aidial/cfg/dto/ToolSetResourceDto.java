@@ -14,11 +14,11 @@ public class ToolSetResourceDto {
     private String author;
     private String name;
     private String endpoint;
-    private String displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
-    private String intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;

@@ -37,10 +37,11 @@ public class DeploymentDataDto {
     private String model;
     private String application;
     private String toolset;
-    private String displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String reference;
     private String owner;
     private String object;

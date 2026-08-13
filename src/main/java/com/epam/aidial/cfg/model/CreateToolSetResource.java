@@ -17,10 +17,10 @@ public class CreateToolSetResource {
     private String version;
     private String folderId;
     private String endpoint;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -30,7 +30,7 @@ public class CreateToolSetResource {
     private ResourceAuthSettings authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
-    private String intro;
+    private LocalizedValue intro;
     private String catalogSchemaId;
     private Map<String, Object> catalogProperties;
 

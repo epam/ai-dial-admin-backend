@@ -11,8 +11,8 @@ public class ModelInfoDto {
     private String name;
     private String overrideName;
     private String endpoint;
-    private String displayName;
-    private String displayVersion;
+    private LocalizedValueDto displayName;
+    private LocalizedValueDto displayVersion;
     private String description;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

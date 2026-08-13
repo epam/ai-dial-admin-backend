@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,9 +18,9 @@ public class AddonDto extends RoleBasedDto {
 
     private String endpoint;
     private String iconUrl;
-    private String description;
-    @NotBlank(message = "DisplayName is required")
-    private String displayName;
+    private LocalizedValueDto description;
+    @NotEmptyLocalizedValue(message = "DisplayName is required")
+    private LocalizedValueDto displayName;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

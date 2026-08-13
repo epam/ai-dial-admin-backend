@@ -2,8 +2,8 @@ package com.epam.aidial.cfg.service.config.transfer.importer.compatibility.backw
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Interceptor;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -18,8 +18,8 @@ public class InterceptorToLatestVersionTransformer {
     }
 
     private void transform(Interceptor interceptor) {
-        if (StringUtils.isBlank(interceptor.getDisplayName())) {
-            interceptor.setDisplayName(interceptor.getName());
+        if (interceptor.getDisplayName() == null) {
+            interceptor.setDisplayName(LocalizedValue.of(interceptor.getName()));
         }
     }
 }

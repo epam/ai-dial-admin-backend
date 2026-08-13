@@ -13,6 +13,7 @@ import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorContainerSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
@@ -50,6 +51,7 @@ import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createIn
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorRunnerDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createModelDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.defaultCoreFeatures;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.toCoreLocalizedValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -472,8 +474,8 @@ public abstract class InterceptorFunctionalTest {
 
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("container-interceptor");
-        interceptorDto.setDisplayName("container-interceptor");
-        interceptorDto.setDescription("Container interceptor");
+        interceptorDto.setDisplayName(LocalizedValueDto.of("container-interceptor"));
+        interceptorDto.setDescription(LocalizedValueDto.of("Container interceptor"));
 
         InterceptorContainerSourceDto sourceDto = new InterceptorContainerSourceDto(
                 containerId,
@@ -553,8 +555,8 @@ public abstract class InterceptorFunctionalTest {
 
         CoreInterceptor expected = new CoreInterceptor();
         expected.setName(interceptorDto.getName());
-        expected.setDisplayName(interceptorDto.getDisplayName());
-        expected.setDescription(interceptorDto.getDescription());
+        expected.setDisplayName(toCoreLocalizedValue(interceptorDto.getDisplayName()));
+        expected.setDescription(toCoreLocalizedValue(interceptorDto.getDescription()));
         expected.setEndpoint(interceptorDto.getEndpoint());
         expected.setFeatures(defaultCoreFeatures());
         expected.setFeatures(defaultCoreFeatures());
@@ -653,7 +655,7 @@ public abstract class InterceptorFunctionalTest {
     public void shouldSuccessfullyGetInProgressTooLongEntitySyncStateWhenInterceptorIsNotEqualToConfigInterceptorAndUpdatedLongAgo() throws JsonProcessingException {
         doReturn(1000L).when(transactionTimestampContext).getTimestamp();
         InterceptorDto interceptorDto = createInterceptorDto("1");
-        interceptorDto.setDescription("description OLD");
+        interceptorDto.setDescription(LocalizedValueDto.of("description OLD"));
         interceptorFacade.createInterceptor(interceptorDto);
 
         JsonNode config = coreConfig();

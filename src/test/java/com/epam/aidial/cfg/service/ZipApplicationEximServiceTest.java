@@ -1,10 +1,13 @@
 package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.mapper.ApplicationClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.LocalizedValueClientMapper;
 import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
+import com.epam.aidial.cfg.mapper.LocalizedValueMapper;
 import com.epam.aidial.cfg.model.ApplicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResourcePreview;
@@ -13,6 +16,7 @@ import com.epam.aidial.cfg.model.ImportResourcesFileResult;
 import com.epam.aidial.cfg.model.ImportResourcesPreview;
 import com.epam.aidial.cfg.model.ImportResourcesResult;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
+import com.epam.aidial.cfg.model.LocalizedValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,7 +47,9 @@ import static org.mockito.Mockito.when;
         ApplicationClientMapperImpl.class,
         ZipApplicationEximService.class,
         ResourceImportValidator.class,
-        RouteMapperImpl.class
+        RouteMapperImpl.class,
+        LocalizedValueClientMapper.class,
+        LocalizedValueMapper.class
 })
 class ZipApplicationEximServiceTest {
 
@@ -174,7 +180,7 @@ class ZipApplicationEximServiceTest {
 
         var application1 = getApplicationEximDto("1");
         var application2 = getApplicationEximDto("1");
-        application2.setDescription("changed description");
+        application2.setDescription(LocalizedValueDto.of("changed description"));
 
         var inputStream = getZipInputStream(List.of(
                 Pair.of("applications/application1.json", ApplicationsEximDto.builder()
@@ -213,8 +219,8 @@ class ZipApplicationEximServiceTest {
         var application1 = getApplicationEximDto("1");
         var application2 = getApplicationEximDto("1");
         var application3 = getApplicationEximDto("1");
-        application2.setDescription("changed description 2");
-        application3.setDescription("changed description 3");
+        application2.setDescription(LocalizedValueDto.of("changed description 2"));
+        application3.setDescription(LocalizedValueDto.of("changed description 3"));
 
         var inputStream = getZipInputStream(List.of(
                 Pair.of("applications/application1.json", ApplicationsEximDto.builder()
@@ -384,11 +390,11 @@ class ZipApplicationEximServiceTest {
         var application = new ApplicationResource();
         application.setApplicationTypeSchemaId(String.format("https://test%s.epam.com", suffix));
         application.setName("application" + suffix);
-        application.setDisplayName("application" + suffix);
+        application.setDisplayName(LocalizedValue.of("application" + suffix));
         application.setVersion(String.format("0.0.%s", suffix));
         application.setFolderId(String.format("public/folder%s/", suffix));
         application.setPath(String.format("%s/%s__%s", application.getFolderId(), application.getName(), application.getVersion()));
-        application.setDescription(String.format("application description %s", suffix));
+        application.setDescription(LocalizedValue.of(String.format("application description %s", suffix)));
         return application;
     }
 
@@ -397,9 +403,9 @@ class ZipApplicationEximServiceTest {
                 .applicationTypeSchemaId(String.format("https://test%s.epam.com", suffix))
                 .name("application" + suffix)
                 .version(String.format("0.0.%s", suffix))
-                .displayName("application" + suffix)
+                .displayName(LocalizedValueDto.of("application" + suffix))
                 .folderId(String.format("public/folder%s/", suffix))
-                .description(String.format("application description %s", suffix))
+                .description(LocalizedValueDto.of(String.format("application description %s", suffix)))
                 .build();
     }
 

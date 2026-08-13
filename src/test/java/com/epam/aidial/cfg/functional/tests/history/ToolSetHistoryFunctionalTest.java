@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
@@ -80,7 +81,7 @@ public abstract class ToolSetHistoryFunctionalTest {
 
         // 2. Update ToolSet1 description
         ToolSetDto updatedToolSet = createToolSetDto("1");
-        updatedToolSet.setDescription("New ToolSet description");
+        updatedToolSet.setDescription(LocalizedValueDto.of("New ToolSet description"));
         updatedToolSet.setSource(containerSourceDto);
         updatedToolSet.setAuthSettings(authSettingsDto);
         toolSetFacade.updateToolSet(toolSetDto.getName(), updatedToolSet, "*");
@@ -88,7 +89,7 @@ public abstract class ToolSetHistoryFunctionalTest {
         // 3. Verify ToolSet1
         ToolSetDto actual = toolSetFacade.getToolSet(toolSetDto.getName());
         var expected = createToolSetDto("1");
-        expected.setDescription("New ToolSet description");
+        expected.setDescription(LocalizedValueDto.of("New ToolSet description"));
         expected.setDefaultRoleLimit(new LimitDto());
         expected.setEndpoint(containerUrl + endpointPath);
         expected.setSource(containerSourceDto);

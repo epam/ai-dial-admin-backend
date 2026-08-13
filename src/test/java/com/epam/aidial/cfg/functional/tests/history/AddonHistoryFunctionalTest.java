@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.functional.tests.history;
 import com.epam.aidial.cfg.dto.AddonDto;
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.web.facade.AddonFacade;
@@ -47,13 +48,13 @@ public abstract class AddonHistoryFunctionalTest {
 
         // 2 update addon1 description
         AddonDto updatedAddon = createAddonDtoWithAllLimits("1");
-        updatedAddon.setDescription("new addon description");
+        updatedAddon.setDescription(LocalizedValueDto.of("new addon description"));
         addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
 
         // verify addon1
         AddonDto actual = addonFacade.getAddon(addonDto.getName());
         var expected = createAddonDtoWithAllLimits("1");
-        expected.setDescription("new addon description");
+        expected.setDescription(LocalizedValueDto.of("new addon description"));
         expected.setDefaultRoleLimit(new LimitDto());
         assertAddon(actual, expected);
 

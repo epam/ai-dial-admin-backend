@@ -10,7 +10,7 @@ import com.epam.aidial.cfg.model.ToolSetResourceNodeInfo;
 import com.epam.aidial.cfg.model.ToolSetsExim;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = LocalizedValueMapper.class)
 public interface ToolSetResourceMapper {
 
     CreateToolSetResource toCreateToolSetResourceDto(CreateToolSetResourceDto createToolSetResourceDto);

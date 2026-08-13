@@ -18,9 +18,9 @@ public class ToolSet extends SecuredRoleBased {
 
     private String endpoint;
     private String iconUrl;
-    private String description;
-    private String intro;
-    private String displayName;
+    private LocalizedValue description;
+    private LocalizedValue intro;
+    private LocalizedValue displayName;
     private String vendorWebsite;
     private Set<String> descriptionKeywords;
     private Integer maxRetryAttempts;

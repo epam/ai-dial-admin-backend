@@ -111,6 +111,25 @@
         }
       }
     },
+    "LocalizedValue": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Plain string value (backward compatible)"
+        },
+        {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Z]{2})?$": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "description": "Map of locale codes to localized strings (e.g. {\"en\": \"GPT-4\", \"fr\": \"GPT-4\"})"
+        }
+      ]
+    },
     "Deployment": {
       "type": "object",
       "allOf": [
@@ -132,10 +151,10 @@
               }
             },
             "displayName": {
-              "type": "string"
+              "$ref": "#/definitions/LocalizedValue"
             },
             "displayVersion": {
-              "type": "string"
+              "$ref": "#/definitions/LocalizedValue"
             },
             "iconUrl": {
               "type": "string"
@@ -144,7 +163,7 @@
               "type": "string"
             },
             "intro": {
-              "type": "string"
+              "$ref": "#/definitions/LocalizedValue"
             },
             "reference": {
               "type": "string"

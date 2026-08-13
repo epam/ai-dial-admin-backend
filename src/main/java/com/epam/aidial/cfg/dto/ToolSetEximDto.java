@@ -17,11 +17,11 @@ public class ToolSetEximDto {
     private String folderId;
     private String version;
     private String endpoint;
-    private String displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
-    private String intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;

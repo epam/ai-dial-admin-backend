@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.AddonDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
 import com.epam.aidial.cfg.features.flag.aspect.FeatureFlagGateEvaluationAspect;
@@ -109,13 +110,13 @@ public abstract class AddonFunctionalTest {
         AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
         AddonDto updatedAddon = createAddonWithRoleLimitsDto("1");
-        updatedAddon.setDescription("new addon description");
+        updatedAddon.setDescription(LocalizedValueDto.of("new addon description"));
 
         addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
 
         AddonDto actual = addonFacade.getAddon(addonDto.getName());
         var expected = createAddonWithRoleLimitsDto("1");
-        expected.setDescription("new addon description");
+        expected.setDescription(LocalizedValueDto.of("new addon description"));
         assertAddon(actual, expected);
     }
 
@@ -125,14 +126,14 @@ public abstract class AddonFunctionalTest {
         AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
         AddonDto updatedAddon = createAddonWithRoleLimitsDto("1");
-        updatedAddon.setDescription("new addon description");
+        updatedAddon.setDescription(LocalizedValueDto.of("new addon description"));
 
         addonFacade.updateAddon(addonDto.getName(), updatedAddon, "*");
 
         AddonDto actual = addonFacade.getAddon(updatedAddon.getName());
 
         var expected = createAddonWithRoleLimitsDto("1");
-        expected.setDescription("new addon description");
+        expected.setDescription(LocalizedValueDto.of("new addon description"));
         assertAddon(actual, expected);
     }
 
@@ -158,7 +159,7 @@ public abstract class AddonFunctionalTest {
         AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
         AddonDto updatedAddon = createAddonWithRoleLimitsDto("1");
-        updatedAddon.setDescription("new addon description");
+        updatedAddon.setDescription(LocalizedValueDto.of("new addon description"));
 
         var hash = addonFacade.getAddonWithHash(addonDto.getName()).hash();
 
@@ -167,7 +168,7 @@ public abstract class AddonFunctionalTest {
         AddonDto actual = addonFacade.getAddon(updatedAddon.getName());
 
         var expected = createAddonWithRoleLimitsDto("1");
-        expected.setDescription("new addon description");
+        expected.setDescription(LocalizedValueDto.of("new addon description"));
         assertAddon(actual, expected);
     }
 
@@ -177,7 +178,7 @@ public abstract class AddonFunctionalTest {
         AddonDto addonDto = createAddonWithRoleLimitsDto("1");
         addonFacade.createAddon(addonDto);
         AddonDto updatedAddon = createAddonWithRoleLimitsDto("1");
-        updatedAddon.setDescription("new addon description");
+        updatedAddon.setDescription(LocalizedValueDto.of("new addon description"));
 
         Assertions.assertThrows(OptimisticLockConflictException.class,
                 () -> addonFacade.updateAddon(addonDto.getName(), updatedAddon, "test"));

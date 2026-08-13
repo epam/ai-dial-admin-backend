@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.config.transfer.exporter;
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.Role;
 import com.epam.aidial.cfg.domain.model.RoleLimit;
 import com.epam.aidial.cfg.domain.service.RoleService;
@@ -68,8 +69,8 @@ public class RoleExporter {
         return getRoles(request, Set.of()).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getName())
-                        .displayName(component.getDisplayName())
-                        .description(component.getDescription())
+                        .displayName(LocalizedValue.of(component.getDisplayName()))
+                        .description(LocalizedValue.of(component.getDescription()))
                         .type(ExportConfigComponentType.ROLE)
                         .build())
                 .collect(Collectors.toList());

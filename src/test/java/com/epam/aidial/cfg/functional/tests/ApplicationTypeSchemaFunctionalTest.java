@@ -9,6 +9,7 @@ import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.source.ApplicationEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ApplicationSchemaSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -295,7 +296,7 @@ public abstract class ApplicationTypeSchemaFunctionalTest {
 
         ApplicationDto applicationDto = new ApplicationDto();
         applicationDto.setName("application");
-        applicationDto.setDisplayName("application");
+        applicationDto.setDisplayName(LocalizedValueDto.of("application"));
         applicationDto.setSource(new ApplicationSchemaSourceDto(new URI("https://test-schema.example")));
         applicationFacade.createApplication(applicationDto);
         // when

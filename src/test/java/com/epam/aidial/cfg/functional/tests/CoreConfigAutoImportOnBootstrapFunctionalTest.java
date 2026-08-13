@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.ConfigRevisionDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.functional.tests.history.TestHistoryFacade;
 import com.epam.aidial.cfg.web.facade.ModelFacade;
@@ -33,7 +34,7 @@ public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
 
         assertThat(models).hasSize(1).first().satisfies(modelDto -> {
             assertThat(modelDto.getName()).isEqualTo("testModel");
-            assertThat(modelDto.getDisplayName()).isEqualTo("testModel displayName");
+            assertThat(modelDto.getDisplayName()).isEqualTo(LocalizedValueDto.of("testModel displayName"));
         });
 
         ConfigRevisionDto latestRevision = CollectionUtils.lastElement(historyFacade.getRevisionsList());
@@ -60,7 +61,7 @@ public abstract class CoreConfigAutoImportOnBootstrapFunctionalTest {
                     .containsExactlyInAnyOrder("model-a", "model-b", "model-shared");
             assertThat(models).filteredOn(m -> "model-shared".equals(m.getName()))
                     .first().extracting(ModelDto::getDisplayName)
-                    .isEqualTo("Shared from B (wins)");
+                    .isEqualTo(LocalizedValueDto.of("Shared from B (wins)"));
         }
     }
 

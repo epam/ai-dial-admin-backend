@@ -22,7 +22,7 @@ import java.util.List;
         componentModel = "spring",
         uses = {
                 DeploymentCoreMapper.class, FeatureCoreMapper.class, RouteCoreMapper.class,
-                DeploymentInterfaceCoreMapper.class, ExternalServiceCoreMapper.class
+                DeploymentInterfaceCoreMapper.class, ExternalServiceCoreMapper.class, LocalizedValueCoreMapper.class
         }
 )
 public abstract class ApplicationCoreMapper {

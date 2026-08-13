@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.source.ToolSetSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import com.epam.aidial.cfg.dto.validation.annotation.NotEmptyLocalizedValue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -23,10 +24,10 @@ public class ToolSetDto extends RoleBasedDto {
     @Endpoint
     private String endpoint;
     private String iconUrl;
-    private String description;
-    private String intro;
-    @NotBlank(message = "DisplayName is required")
-    private String displayName;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
+    @NotEmptyLocalizedValue(message = "DisplayName is required")
+    private LocalizedValueDto displayName;
     private String vendorWebsite;
     private TreeSet<String> descriptionKeywords;
     @Positive(message = "Max retry attempts should be greater than 0")

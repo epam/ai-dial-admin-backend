@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.domain.model.AuthenticationType;
 import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DeploymentInterface;
 import com.epam.aidial.cfg.domain.model.ExternalService;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.Mcp;
 import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
@@ -50,7 +51,7 @@ class ApplicationValidatorTest {
     void validateCreation_shouldDelegateToDisplayFieldsValidator() {
         // given
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationEndpointsSource());
@@ -61,7 +62,7 @@ class ApplicationValidatorTest {
         applicationValidator.validateCreation(application);
 
         // then
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "text");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion(LocalizedValue.of("display name"), "1.0", "Application", "text");
     }
 
     @ParameterizedTest
@@ -69,7 +70,7 @@ class ApplicationValidatorTest {
     void validateCreation_shouldThrowExceptionWhenEndpointIsNotNullButBlank(String endpoint) {
         // given
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
         application.setSource(new ApplicationEndpointsSource());
@@ -81,14 +82,15 @@ class ApplicationValidatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid endpoint: '" + endpoint + "'. Application: text");
 
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "text");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion(
+                application.getDisplayName(), application.getDisplayVersion(), "Application", "text");
     }
 
     @Test
     void validateCreation_shouldThrowExceptionWhenEndpointsSourceWithNoEndpoints() {
         // given
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationEndpointsSource());
 
@@ -100,13 +102,14 @@ class ApplicationValidatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("At least application endpoint, MCP endpoint or interfaces must be provided. Application: deploymentName");
 
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion(
+                application.getDisplayName(), application.getDisplayVersion(), "Application", "deploymentName");
     }
 
     @Test
     void validateCreation_shouldNotThrowWhenEndpointsSourceWithOnlyInterfaces() {
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationEndpointsSource());
         application.setInterfaces(interfaces("openaiChatCompletions", "http://app.adapter.test.com"));
@@ -120,7 +123,7 @@ class ApplicationValidatorTest {
     @Test
     void validateCreation_shouldThrowWhenApplicationHasUnsupportedInterfaceType() {
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationEndpointsSource());
         application.setInterfaces(interfaces("anthropicMessages", "http://app.adapter.test.com"));
@@ -136,7 +139,7 @@ class ApplicationValidatorTest {
     @Test
     void validateCreation_shouldThrowExceptionWhenSchemaSourceWithInterfacesSet() {
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName(LocalizedValue.of("text"));
         application.setDisplayVersion("1.0");
         application.setInterfaces(interfaces("openaiChatCompletions", "http://app.adapter.test.com"));
         application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
@@ -157,7 +160,7 @@ class ApplicationValidatorTest {
     @Test
     void validateCreation_shouldThrowExceptionWhenSchemaSourceWithNullSchemaId() {
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName(LocalizedValue.of("text"));
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationSchemaSource(null));
         Deployment deployment = new Deployment("deploymentName");
@@ -172,7 +175,7 @@ class ApplicationValidatorTest {
     void validateCreation_shouldThrowExceptionWhenSchemaSourceWithEndpointSet() {
         // given
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName(LocalizedValue.of("text"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
@@ -188,7 +191,7 @@ class ApplicationValidatorTest {
     @Test
     void validateCreation_shouldThrowExceptionWhenSchemaSourceWithMcpProvided() {
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName(LocalizedValue.of("text"));
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
 
@@ -207,7 +210,7 @@ class ApplicationValidatorTest {
     @Test
     void validateCreation_shouldThrowExceptionWhenSourceIsNull() {
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName(LocalizedValue.of("text"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
 
@@ -227,7 +230,7 @@ class ApplicationValidatorTest {
         Deployment deployment = new Deployment(deploymentName);
 
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setDeployment(deployment);
         application.setEndpoint("test");
@@ -238,7 +241,8 @@ class ApplicationValidatorTest {
 
         // then
         verify(deploymentValidator).validateUpdate(deploymentName, deployment, "Application");
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", deploymentName);
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion(
+                application.getDisplayName(), application.getDisplayVersion(), "Application", deploymentName);
     }
 
     @ParameterizedTest
@@ -246,7 +250,7 @@ class ApplicationValidatorTest {
     void validateUpdate_shouldThrowExceptionWhenEndpointIsNotNullButBlank(String endpoint) {
         // given
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
         application.setSource(new ApplicationEndpointsSource());
@@ -259,7 +263,8 @@ class ApplicationValidatorTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid endpoint: '" + endpoint + "'. Application: deploymentName");
 
-        verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
+        verify(displayFieldsValidator).validateDisplayNameDisplayVersion(
+                application.getDisplayName(), application.getDisplayVersion(), "Application", "deploymentName");
     }
 
     @Test
@@ -271,7 +276,7 @@ class ApplicationValidatorTest {
 
         Application application = new Application();
         application.setDeployment(deployment);
-        application.setDisplayName("text");
+        application.setDisplayName(LocalizedValue.of("text"));
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationEndpointsSource());
 
@@ -285,7 +290,7 @@ class ApplicationValidatorTest {
     void validateUpdate_shouldThrowExceptionWhenSchemaSourceWithEndpointSet() {
         // given
         Application application = new Application();
-        application.setDisplayName("text");
+        application.setDisplayName(LocalizedValue.of("text"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
@@ -337,7 +342,7 @@ class ApplicationValidatorTest {
     @Test
     void validateCreation_shouldThrowExceptionWhenExternalServiceHasIncompleteOauthAuthSettings() {
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationEndpointsSource());
@@ -352,7 +357,7 @@ class ApplicationValidatorTest {
     @Test
     void validateCreation_shouldThrowExceptionWhenExternalServiceHasIncompleteApiKeyAuthSettings() {
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationEndpointsSource());
@@ -368,7 +373,7 @@ class ApplicationValidatorTest {
     @Test
     void validateUpdate_shouldThrowExceptionWhenExternalServiceHasIncompleteOauthAuthSettings() {
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationEndpointsSource());
@@ -393,7 +398,7 @@ class ApplicationValidatorTest {
         externalService.setAuthSettings(authSettings);
 
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationEndpointsSource());
@@ -408,7 +413,7 @@ class ApplicationValidatorTest {
         ExternalService externalService = externalService(AuthenticationType.NONE);
 
         Application application = new Application();
-        application.setDisplayName("display name");
+        application.setDisplayName(LocalizedValue.of("display name"));
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
         application.setSource(new ApplicationEndpointsSource());

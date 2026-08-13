@@ -7,6 +7,7 @@ import com.epam.aidial.core.config.CoreApplication;
 import com.epam.aidial.core.config.CoreAuthenticationType;
 import com.epam.aidial.core.config.CoreExternalService;
 import com.epam.aidial.core.config.CoreKey;
+import com.epam.aidial.core.config.CoreLocalizedValue;
 import com.epam.aidial.core.config.CoreModel;
 import com.epam.aidial.core.config.CoreResourceAuthSettings;
 import com.epam.aidial.core.config.CoreRole;
@@ -322,7 +323,7 @@ class ConfigExportServiceSecuredImplTest {
         Map<String, CoreModel> models = new HashMap<>();
         CoreModel model = new CoreModel();
         model.setName("model1");
-        model.setDisplayName("Test Model");
+        model.setDisplayName(CoreLocalizedValue.of("Test Model"));
 
         CoreUpstream upstream = new CoreUpstream();
         upstream.setEndpoint("https://api.example.com");
@@ -336,7 +337,7 @@ class ConfigExportServiceSecuredImplTest {
         Map<String, CoreToolSet> toolsets = new HashMap<>();
         CoreToolSet toolSet = new CoreToolSet();
         toolSet.setName("toolset1");
-        toolSet.setDisplayName("Test ToolSet");
+        toolSet.setDisplayName(CoreLocalizedValue.of("Test ToolSet"));
 
         CoreResourceAuthSettings authSettings = new CoreResourceAuthSettings();
         authSettings.setClientSecret("client-secret-1");
@@ -354,8 +355,8 @@ class ConfigExportServiceSecuredImplTest {
         // Add a second model with both secret and non-secret data
         CoreModel model2 = new CoreModel();
         model2.setName("model2");
-        model2.setDisplayName("Test Model 2");
-        
+        model2.setDisplayName(CoreLocalizedValue.of("Test Model 2"));
+
         CoreUpstream upstream2 = new CoreUpstream();
         upstream2.setEndpoint("https://api2.example.com");
         model2.setUpstreams(List.of(upstream2));
@@ -365,7 +366,7 @@ class ConfigExportServiceSecuredImplTest {
         // Add a toolset without secrets
         CoreToolSet toolSet2 = new CoreToolSet();
         toolSet2.setName("toolset2");
-        toolSet2.setDisplayName("Test ToolSet 2");
+        toolSet2.setDisplayName(CoreLocalizedValue.of("Test ToolSet 2"));
         toolSet2.setAuthSettings(new CoreResourceAuthSettings());
         
         config.getToolsets().put("toolset2", toolSet2);

@@ -22,9 +22,9 @@ public class Application extends RoleBased {
     private Map<String, DeploymentInterface> interfaces;
     private String iconUrl;
     private String reference;
-    private String description;
-    private String intro;
-    private String displayName;
+    private LocalizedValue description;
+    private LocalizedValue intro;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String overrideName;
     private List<String> inputAttachmentTypes;

@@ -13,7 +13,7 @@ import org.mapstruct.SubclassMapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = RouteMapper.class)
+@Mapper(componentModel = "spring", uses = {RouteMapper.class, LocalizedValueClientMapper.class})
 public interface DeploymentClientMapper {
 
     List<DeploymentData> toDeploymentDataList(List<DeploymentDataDto> dtos);

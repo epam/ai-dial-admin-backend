@@ -21,12 +21,12 @@ public class ApplicationResourceDto {
     private String endpoint;
     private String responsesEndpoint;
     private Map<String, DeploymentInterfaceResourceDto> interfaces;
-    private String displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
     private String overrideName;
     private String iconUrl;
-    private String description;
-    private String intro;
+    private LocalizedValueDto description;
+    private LocalizedValueDto intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;

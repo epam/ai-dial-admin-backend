@@ -21,10 +21,10 @@ public class ToolSetResource {
     private String author;
     private String name;
     private String endpoint;
-    private String displayName;
+    private LocalizedValue displayName;
     private String displayVersion;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
     private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -36,7 +36,7 @@ public class ToolSetResource {
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
     private String url;
-    private String intro;
+    private LocalizedValue intro;
     private String catalogSchemaId;
     private Map<String, Object> catalogProperties;
 

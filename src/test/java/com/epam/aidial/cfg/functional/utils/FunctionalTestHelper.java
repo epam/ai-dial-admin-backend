@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.McpDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.RoleDto;
@@ -22,6 +23,7 @@ import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelEndpointsSourceDto;
 import com.epam.aidial.core.config.CoreFeatures;
+import com.epam.aidial.core.config.CoreLocalizedValue;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -43,8 +45,8 @@ public class FunctionalTestHelper {
     public static ModelDto createModelDto(String suffix) {
         ModelDto modelDto = new ModelDto();
         modelDto.setName("model" + suffix);
-        modelDto.setDisplayName("model" + suffix);
-        modelDto.setDescription("description" + suffix);
+        modelDto.setDisplayName(LocalizedValueDto.of("model" + suffix));
+        modelDto.setDescription(LocalizedValueDto.of("description" + suffix));
         modelDto.setMaxRetryAttempts(1);
         return modelDto;
     }
@@ -85,8 +87,8 @@ public class FunctionalTestHelper {
     public static ToolSetDto createToolSetDtoWithoutRoleLimits(String suffix) {
         ToolSetDto toolSet = new ToolSetDto();
         toolSet.setName("ToolSet" + suffix);
-        toolSet.setDisplayName("ToolSet" + suffix);
-        toolSet.setDescription("description" + suffix);
+        toolSet.setDisplayName(LocalizedValueDto.of("ToolSet" + suffix));
+        toolSet.setDescription(LocalizedValueDto.of("description" + suffix));
         toolSet.setEndpoint("https://endpoint.test.com/toolset" + suffix);
         toolSet.setTransport(ToolSetDto.TransportDto.HTTP);
         toolSet.setMaxRetryAttempts(1);
@@ -124,8 +126,8 @@ public class FunctionalTestHelper {
     public static AddonDto createAddonDto(String suffix) {
         AddonDto addonDto = new AddonDto();
         addonDto.setName("addon" + suffix);
-        addonDto.setDisplayName("addon" + suffix);
-        addonDto.setDescription("description" + suffix);
+        addonDto.setDisplayName(LocalizedValueDto.of("addon" + suffix));
+        addonDto.setDescription(LocalizedValueDto.of("description" + suffix));
         return addonDto;
     }
 
@@ -169,8 +171,8 @@ public class FunctionalTestHelper {
     public static InterceptorDto createInterceptorDto(String suffix) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
-        interceptorDto.setDescription("description" + suffix);
-        interceptorDto.setDisplayName("displayName" + suffix);
+        interceptorDto.setDescription(LocalizedValueDto.of("description" + suffix));
+        interceptorDto.setDisplayName(LocalizedValueDto.of("displayName" + suffix));
         interceptorDto.setEndpoint("https://endpoint.test.com/interceptor" + suffix);
         interceptorDto.setEntities(List.of());
         interceptorDto.setTopics(new TreeSet<>(Set.of("topic1", "topic2")));
@@ -187,8 +189,8 @@ public class FunctionalTestHelper {
     public static ApplicationDto createBaseApplicationDto(String suffix) {
         ApplicationDto applicationDto = new ApplicationDto();
         applicationDto.setName("application" + suffix);
-        applicationDto.setDisplayName("application" + suffix);
-        applicationDto.setDescription("description" + suffix);
+        applicationDto.setDisplayName(LocalizedValueDto.of("application" + suffix));
+        applicationDto.setDescription(LocalizedValueDto.of("description" + suffix));
         applicationDto.setSource(new ApplicationEndpointsSourceDto());
         return applicationDto;
     }
@@ -221,8 +223,8 @@ public class FunctionalTestHelper {
     public static AssistantDto createAssistantDto(String suffix) {
         AssistantDto assistantDto = new AssistantDto();
         assistantDto.setName("assistant" + suffix);
-        assistantDto.setDisplayName("assistant" + suffix);
-        assistantDto.setDescription("description" + suffix);
+        assistantDto.setDisplayName(LocalizedValueDto.of("assistant" + suffix));
+        assistantDto.setDescription(LocalizedValueDto.of("description" + suffix));
         assistantDto.setRoleLimits(Map.of(
                 "role" + suffix, new LimitDto()
         ));
@@ -299,5 +301,12 @@ public class FunctionalTestHelper {
         auditActivityDto.setResourceId(resourceId);
 
         return auditActivityDto;
+    }
+
+    public static CoreLocalizedValue toCoreLocalizedValue(LocalizedValueDto dto) {
+        if (dto == null) {
+            return null;
+        }
+        return dto.isPlain() ? CoreLocalizedValue.of(dto.getPlainValue()) : CoreLocalizedValue.of(dto.getLocaleMap());
     }
 }

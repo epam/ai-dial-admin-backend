@@ -13,8 +13,8 @@ import lombok.experimental.SuperBuilder;
 public class ExportComponentInfoDto {
 
     private String name;
-    private String displayName;
+    private LocalizedValueDto displayName;
     private String displayVersion;
-    private String description;
+    private LocalizedValueDto description;
     private ExportConfigComponentType type;
 }

@@ -14,9 +14,9 @@ public class Interceptor {
     private String endpoint;
     private Map<String, DeploymentInterface> interfaces;
     private String iconUrl;
-    private String description;
+    private LocalizedValue description;
     private Set<String> topics;
-    private String displayName;
+    private LocalizedValue displayName;
     private String overrideName;
     private Boolean forwardAuthToken;
     private String author;

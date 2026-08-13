@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring", uses = {
         LimitDtoMapper.class, RoleBasedDtoMapper.class, InstantMapper.class,
-        ResourceAuthSettingsDtoMapper.class, ToolSetSourceDtoMapper.class
+        ResourceAuthSettingsDtoMapper.class, ToolSetSourceDtoMapper.class, LocalizedValueDtoMapper.class
 })
 public abstract class ToolSetDtoMapper {
 

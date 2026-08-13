@@ -16,13 +16,14 @@ import com.epam.aidial.cfg.dto.SelectedItemsExportRequestDto;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.web.facade.mapper.LocalizedValueDtoMapper;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.SubclassMapping;
 
 import static org.mapstruct.SubclassExhaustiveStrategy.RUNTIME_EXCEPTION;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = LocalizedValueDtoMapper.class)
 public interface ExportConfigMapper {
 
     @SubclassMapping(source = FullExportRequestDto.class, target = FullExportRequest.class)

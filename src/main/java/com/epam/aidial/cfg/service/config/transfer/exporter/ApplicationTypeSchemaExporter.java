@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ApplicationTypeSchema;
 import com.epam.aidial.cfg.domain.model.ExportApplicationTypeSchemaInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -77,8 +78,8 @@ public class ApplicationTypeSchemaExporter {
         return getApplicationTypeSchemas(request).values().stream()
                 .map(component -> ExportApplicationTypeSchemaInfo.builder()
                         .id(component.getSchemaId())
-                        .displayName(component.getApplicationTypeDisplayName())
-                        .description(component.getDescription())
+                        .displayName(LocalizedValue.of(component.getApplicationTypeDisplayName()))
+                        .description(LocalizedValue.of(component.getDescription()))
                         .type(ExportConfigComponentType.APPLICATION_TYPE_SCHEMA)
                         .build())
                 .collect(Collectors.toList());

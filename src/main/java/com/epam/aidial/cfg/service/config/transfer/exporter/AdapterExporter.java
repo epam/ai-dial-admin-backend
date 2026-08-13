@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.Adapter;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
@@ -66,8 +67,8 @@ public class AdapterExporter {
         return getAdapters(request).values().stream()
                 .map(component -> ExportComponentInfo.builder()
                         .name(component.getName())
-                        .description(component.getDescription())
-                        .displayName(component.getDisplayName())
+                        .description(LocalizedValue.of(component.getDescription()))
+                        .displayName(LocalizedValue.of(component.getDisplayName()))
                         .type(ExportConfigComponentType.ADAPTER)
                         .build())
                 .collect(Collectors.toList());

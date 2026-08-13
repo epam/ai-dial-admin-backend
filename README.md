@@ -114,6 +114,12 @@ The system creates an empty configuration. To utilize existing Dial Core configu
 
 1. Import configuration file in the AIDIAL admin panel using special import endpoint
 
+**Compatibility Note**
+>
+> Since **v0.47.0**, the Admin Panel supports multilingual metadata through the `LocalizedValue` type.
+> Exported configurations that contain multiple localized values are compatible only with **AIDIAL Core v0.47.0+**.
+> Configurations containing only plain string values remain backward compatible with earlier Core versions.
+
 ## Getting Started
 
 ### Run Application with Gradle

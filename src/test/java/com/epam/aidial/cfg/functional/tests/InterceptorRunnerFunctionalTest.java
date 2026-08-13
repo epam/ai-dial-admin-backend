@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.functional.tests;
 
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
@@ -228,8 +229,8 @@ public abstract class InterceptorRunnerFunctionalTest {
     private InterceptorDto createInterceptorDto(String suffix, String runnerName) {
         InterceptorDto interceptorDto = new InterceptorDto();
         interceptorDto.setName("interceptor" + suffix);
-        interceptorDto.setDisplayName("interceptor" + suffix);
-        interceptorDto.setDescription("description" + suffix);
+        interceptorDto.setDisplayName(LocalizedValueDto.of("interceptor" + suffix));
+        interceptorDto.setDescription(LocalizedValueDto.of("description" + suffix));
         interceptorDto.setSource(new InterceptorRunnerSourceDto(runnerName));
         return interceptorDto;
     }

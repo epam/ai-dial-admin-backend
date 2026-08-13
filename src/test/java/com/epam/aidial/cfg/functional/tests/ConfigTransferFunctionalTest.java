@@ -11,6 +11,7 @@ import com.epam.aidial.cfg.domain.model.ExportConfigPreview;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
+import com.epam.aidial.cfg.domain.model.LocalizedValue;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
 import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
@@ -33,6 +34,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.KeyDto;
 import com.epam.aidial.cfg.dto.LimitDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
 import com.epam.aidial.cfg.dto.ResourceTypeDto;
@@ -285,7 +287,7 @@ public abstract class ConfigTransferFunctionalTest {
         Map<String, ModelDto> models = modelFacade.getAll().stream().collect(Collectors.toMap(ModelDto::getName, a -> a));
         Assertions.assertThat(models).containsOnlyKeys("testModel1", "testModel2");
         Assertions.assertThat(models.get("testModel1")).satisfies(model -> {
-            Assertions.assertThat(model.getDisplayName()).isEqualTo("Test Model1");
+            Assertions.assertThat(model.getDisplayName()).isEqualTo(LocalizedValueDto.of("Test Model1"));
             Assertions.assertThat(model.getDisplayVersion()).isEqualTo("2.0.0");
             Assertions.assertThat(model.getEndpoint()).isNull();
             Assertions.assertThat(model.getSource() instanceof ModelAdapterSource);
@@ -495,7 +497,7 @@ public abstract class ConfigTransferFunctionalTest {
         // given
         var dial22ModelDto = new ModelDto();
         dial22ModelDto.setName("DIAL22");
-        dial22ModelDto.setDisplayName("DIAL22");
+        dial22ModelDto.setDisplayName(LocalizedValueDto.of("DIAL22"));
         dial22ModelDto.setIsPublic(true);
         modelFacade.createModel(dial22ModelDto);
 
@@ -2230,7 +2232,7 @@ public abstract class ConfigTransferFunctionalTest {
                     Assertions.assertThat(preview.getRoles()).hasSize(1).first()
                             .satisfies(role -> {
                                 Assertions.assertThat(role.getName()).isEqualTo("default");
-                                Assertions.assertThat(role.getDisplayName()).isEqualTo("default");
+                                Assertions.assertThat(role.getDisplayName()).isEqualTo(LocalizedValue.of("default"));
                             });
                     Assertions.assertThat(preview.getModels()).hasSize(1).first()
                             .satisfies(model -> {
@@ -2240,17 +2242,17 @@ public abstract class ConfigTransferFunctionalTest {
                     Assertions.assertThat(preview.getApplications()).hasSize(1).first()
                             .satisfies(app -> {
                                 Assertions.assertThat(app.getName()).isEqualTo("testApplication1");
-                                Assertions.assertThat(app.getDisplayName()).isEqualTo("Test Application1");
+                                Assertions.assertThat(app.getDisplayName()).isEqualTo(LocalizedValue.of("Test Application1"));
                             });
                     Assertions.assertThat(preview.getRoutes()).hasSize(1).first()
                             .satisfies(route -> {
                                 Assertions.assertThat(route.getName()).isEqualTo("test_route1");
-                                Assertions.assertThat(route.getDisplayName()).isEqualTo("test_route1");
+                                Assertions.assertThat(route.getDisplayName()).isEqualTo(LocalizedValue.of("test_route1"));
                             });
                     Assertions.assertThat(preview.getInterceptors()).hasSize(1).first()
                             .satisfies(interceptor -> {
                                 Assertions.assertThat(interceptor.getName()).isEqualTo("testInterceptor1");
-                                Assertions.assertThat(interceptor.getDisplayName()).isEqualTo("Test Interceptor1");
+                                Assertions.assertThat(interceptor.getDisplayName()).isEqualTo(LocalizedValue.of("Test Interceptor1"));
                             });
                     Assertions.assertThat(preview.getApplicationRunners()).hasSize(1).first()
                             .isInstanceOfSatisfying(ExportApplicationTypeSchemaInfo.class,
@@ -2303,7 +2305,7 @@ public abstract class ConfigTransferFunctionalTest {
                     Assertions.assertThat(preview.getRoles()).hasSize(1).first()
                             .satisfies(role -> {
                                 Assertions.assertThat(role.getName()).isEqualTo("default");
-                                Assertions.assertThat(role.getDisplayName()).isEqualTo("default");
+                                Assertions.assertThat(role.getDisplayName()).isEqualTo(LocalizedValue.of("default"));
                             });
                     Assertions.assertThat(preview.getModels()).hasSize(1).first()
                             .satisfies(model -> Assertions.assertThat(model.getName()).isEqualTo("testModel1"));
@@ -2312,7 +2314,7 @@ public abstract class ConfigTransferFunctionalTest {
                     Assertions.assertThat(preview.getRoutes()).hasSize(1).first()
                             .satisfies(route -> {
                                 Assertions.assertThat(route.getName()).isEqualTo("test_route1");
-                                Assertions.assertThat(route.getDisplayName()).isEqualTo("test_route1");
+                                Assertions.assertThat(route.getDisplayName()).isEqualTo(LocalizedValue.of("test_route1"));
                             });
                     Assertions.assertThat(preview.getInterceptors()).hasSize(1).first()
                             .satisfies(interceptor -> Assertions.assertThat(interceptor.getName()).isEqualTo("testInterceptor1"));
@@ -2461,7 +2463,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i -> {
             Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
-            Assertions.assertThat(i.getDisplayName()).isEqualTo("testInterceptor1");
+            Assertions.assertThat(i.getDisplayName()).isEqualTo(LocalizedValueDto.of("testInterceptor1"));
         });
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
                 Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
@@ -2560,7 +2562,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         Assertions.assertThat(interceptors.get("testInterceptor1")).satisfies(i -> {
             Assertions.assertThat(i.getEntities()).containsExactlyInAnyOrder("testModel1", "testApplication1");
-            Assertions.assertThat(i.getDisplayName()).isEqualTo("testInterceptor1");
+            Assertions.assertThat(i.getDisplayName()).isEqualTo(LocalizedValueDto.of("testInterceptor1"));
         });
         Assertions.assertThat(interceptors.get("testInterceptor2")).satisfies(i ->
                 Assertions.assertThat(((InterceptorRunnerSourceDto) i.getSource()).runnerName()).isEqualTo("testRunner1")
@@ -3070,7 +3072,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         var modelDto = new ModelDto();
         modelDto.setName(modelName);
-        modelDto.setDisplayName(modelName);
+        modelDto.setDisplayName(LocalizedValueDto.of(modelName));
         modelDto.setAuthor(author);
         modelDto.setCreatedAt(createdAt);
         modelDto.setUpdatedAt(updatedAt);

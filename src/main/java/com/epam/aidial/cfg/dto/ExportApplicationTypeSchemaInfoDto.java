@@ -19,13 +19,13 @@ public class ExportApplicationTypeSchemaInfoDto extends ExportComponentInfoDto {
 
     @JsonProperty("dial:applicationTypeDisplayName")
     @Override
-    public String getDisplayName() {
+    public LocalizedValueDto getDisplayName() {
         return super.getDisplayName();
     }
 
     @JsonProperty("dial:applicationTypeDisplayName")
     @Override
-    public void setDisplayName(String displayName) {
+    public void setDisplayName(LocalizedValueDto displayName) {
         super.setDisplayName(displayName);
     }
 }

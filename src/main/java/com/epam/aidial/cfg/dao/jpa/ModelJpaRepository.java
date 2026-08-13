@@ -9,14 +9,14 @@ import java.util.List;
 
 public interface ModelJpaRepository extends JpaRepository<ModelEntity, String> {
 
-    boolean existsByDisplayNameAndDisplayVersion(String displayName, String displayVersion);
-
-    List<ModelEntity> findByIdNotIn(Collection<String> ids);
-
     @Query("SELECT m FROM ModelEntity m WHERE m.modelContainer IS NOT NULL")
     List<ModelEntity> findByContainerIdIsNotNull();
 
+    List<ModelEntity> findByIdNotIn(Collection<String> ids);
+
+    List<ModelEntity> findByDisplayVersion(String displayVersion);
+
     List<ModelEntity> findAllByOrderByDisplayNameAscDisplayVersionAscIdAsc();
 
-    List<ModelEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> ids);
+    List<ModelEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> names);
 }

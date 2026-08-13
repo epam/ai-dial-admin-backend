@@ -14,7 +14,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {DeploymentCoreMapper.class, FeatureCoreMapper.class})
+@Mapper(componentModel = "spring", uses = {DeploymentCoreMapper.class, FeatureCoreMapper.class, LocalizedValueCoreMapper.class})
 public abstract class AssistantCoreMapper {
 
     public abstract Assistant copy(Assistant assistant);

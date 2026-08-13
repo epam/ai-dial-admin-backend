@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.dto.ConfigRevisionDto;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
+import com.epam.aidial.cfg.dto.LocalizedValueDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.source.InterceptorEndpointsSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
@@ -55,13 +56,13 @@ public abstract class InterceptorHistoryFunctionalTest {
 
         // update interceptor1 description
         InterceptorDto updatedInterceptor = createInterceptorDto("1");
-        updatedInterceptor.setDescription("new interceptor description");
+        updatedInterceptor.setDescription(LocalizedValueDto.of("new interceptor description"));
         interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, "*");
 
         // verify interceptor1
         InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
         var expected = createInterceptorDto("1");
-        expected.setDescription("new interceptor description");
+        expected.setDescription(LocalizedValueDto.of("new interceptor description"));
         expected.setSource(new InterceptorEndpointsSourceDto());
         expected.setApplicationTypeSchemas(List.of());
         assertInterceptor(actual, expected);
@@ -69,7 +70,7 @@ public abstract class InterceptorHistoryFunctionalTest {
         var actualAtRevision = actual;
         final Integer revNumberToRollback = CollectionUtils.lastElement(historyFacade.getRevisionsList()).getId();
 
-        updatedInterceptor.setDescription("new new interceptor description");
+        updatedInterceptor.setDescription(LocalizedValueDto.of("new new interceptor description"));
         updatedInterceptor.setDefaults(Map.of("key1", "val1"));
         interceptorFacade.updateInterceptor(interceptorDto.getName(), updatedInterceptor, "*");
 

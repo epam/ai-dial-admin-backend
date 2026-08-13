@@ -17,9 +17,9 @@ public class AssistantDto extends RoleBasedDto {
     @NotBlank(message = "Name is required")
     private String name;
     private String iconUrl;
-    private String description;
+    private LocalizedValueDto description;
     @NotBlank(message = "DisplayName is required")
-    private String displayName;
+    private LocalizedValueDto displayName;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

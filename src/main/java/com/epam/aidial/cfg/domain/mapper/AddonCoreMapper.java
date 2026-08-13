@@ -14,9 +14,7 @@ import java.util.List;
 
 @Mapper(
         componentModel = "spring",
-        uses = {
-                DeploymentCoreMapper.class,
-        }
+        uses = {DeploymentCoreMapper.class, LocalizedValueCoreMapper.class}
 )
 public abstract class AddonCoreMapper {
 
