@@ -9,4 +9,6 @@ public class PricingEntity {
     private String unit;
     private String prompt;
     private String completion;
+    private String cacheRead;
+    private String cacheWrite;
 }

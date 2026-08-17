@@ -17,4 +17,6 @@ public class ModelPricingDataDto {
     private String unit;
     private String prompt;
     private String completion;
+    private String cacheRead;
+    private String cacheWrite;
 }

@@ -629,6 +629,12 @@
         },
         "completion": {
           "type": "number"
+        },
+        "cacheRead": {
+          "type": "number"
+        },
+        "cacheWrite": {
+          "type": "number"
         }
       }
     },
@@ -866,7 +872,8 @@
               "enum": [
                 "OAUTH",
                 "API_KEY",
-                "NONE"
+                "NONE",
+                "DIAL_NATIVE"
               ]
             },
             "clientId": {
