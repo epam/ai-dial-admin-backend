@@ -872,7 +872,8 @@
               "enum": [
                 "OAUTH",
                 "API_KEY",
-                "NONE"
+                "NONE",
+                "DIAL_NATIVE"
               ]
             },
             "clientId": {
