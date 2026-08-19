@@ -81,7 +81,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
     implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
-    implementation("org.jsoup:jsoup:1.21.1")
+    implementation("org.jsoup:jsoup:1.23.1")
     implementation 'io.modelcontextprotocol.sdk:mcp:0.11.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -165,7 +165,25 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
-        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.0') {
+        implementation("io.micrometer:micrometer-core:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.micrometer:micrometer-observation:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.micrometer:micrometer-commons:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework.data:spring-data-commons:3.5.12') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework:spring-expression:6.2.19') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework:spring-webmvc:6.2.19') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.1') {
             because("previous versions have vulnerabilities")
         }
         implementation ('com.fasterxml.jackson.core:jackson-core:2.22.1') {
@@ -177,7 +195,10 @@ dependencies {
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('io.netty:netty-codec-http2:4.2.15.Final') {
+        implementation('io.netty:netty-codec-http2:4.2.16.Final') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('io.netty:netty-codec-compression:4.2.16.Final') {
             because("previous versions have vulnerabilities")
         }
         implementation ('io.netty:netty-handler:4.2.15.Final') {
@@ -186,10 +207,10 @@ dependencies {
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
             because("previous versions have vulnerabilities")
         }
-        implementation("io.netty:netty-codec-dns:4.1.135.Final") {
+        implementation("io.netty:netty-codec-dns:4.1.136.Final") {
             because("previous versions have vulnerabilities")
         }
-        implementation("io.netty:netty-resolver-dns:4.1.135.Final") {
+        implementation("io.netty:netty-resolver-dns:4.1.136.Final") {
             because("previous versions have vulnerabilities")
         }
         implementation("io.netty:netty-transport-native-epoll:4.2.15.Final") {

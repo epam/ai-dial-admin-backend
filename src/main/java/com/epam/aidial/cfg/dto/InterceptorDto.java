@@ -25,6 +25,7 @@ public class InterceptorDto {
     private String description;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
+    private String overrideName;
     private Boolean forwardAuthToken;
     private List<String> entities;
     private List<String> applicationTypeSchemas;

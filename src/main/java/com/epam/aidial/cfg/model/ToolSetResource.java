@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -36,6 +37,8 @@ public class ToolSetResource {
     private boolean forwardAuthToken;
     private String url;
     private String intro;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public enum Transport {
         HTTP, SSE

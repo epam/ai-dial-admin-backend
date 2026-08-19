@@ -74,10 +74,7 @@ public abstract class AbstractInfluxContainerTest {
     // mcp_analytics record with a UUID-shaped project_id, timestamped outside
     // every other test's time range. Used by UuidLiteralFilterTests to verify
     // that a UUID-shaped string literal is accepted as a filter value against a
-    // STRING tag column. Lives on mcp_analytics (not analytics) because Flux's
-    // distinct(column:) doesn't always respect the upstream range() filter — a
-    // UUID project_id added to analytics would leak into pre-existing distinct
-    // tests like distinctWithContainsFilter.
+    // STRING tag column.
     private static final String UUID_PROJECT_ID = "a36d8a75-aa7d-4185-a84d-566066cf91f2";
     private static final List<String> UUID_PROJECT_RECORDS = List.of(
             // 2026-03-15T10:00:00Z
@@ -118,7 +115,16 @@ public abstract class AbstractInfluxContainerTest {
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
             + "user_hash=\"user3\",price=0.15,deployment_price=0.12,"
             + "prompt_tokens=400i,completion_tokens=200i "
-            + "1773410400000000000"
+            + "1773410400000000000",
+            // OUTSIDE (after range): 2026-03-13T15:00:00Z. The only record with this
+            // deployment/project_id — guards against distinct-on-tag returning values
+            // outside the requested time range (InfluxDB 2 rewrote keep|>group|>distinct
+            // into an index read with shard-granularity time bounds; FluxQueryBuilder
+            // uses group-by-tag|>first() instead of distinct() to avoid that).
+            "analytics,deployment=leak-probe,model=leak-probe,project_id=proj9 "
+            + "user_hash=\"user9\",price=0.01,deployment_price=0.01,"
+            + "prompt_tokens=10i,completion_tokens=5i "
+            + "1773414000000000000"
     );
 
     protected static final List<String> TEST_RECORDS;
@@ -198,6 +204,23 @@ public abstract class AbstractInfluxContainerTest {
             assertThat(columnNames(data)).containsExactly("deployment", "project_id", "price");
             assertThat(data.getData()).containsExactly(
                     List.of("gpt-3.5", "proj1", 0.02)
+            );
+        }
+
+        @Test
+        void distinctDeployments() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "distinct": true,
+                      "expressions": ["deployment"],
+                      "from": "analytics",
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("deployment");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("gpt-3.5"),
+                    List.of("gpt-4")
             );
         }
 

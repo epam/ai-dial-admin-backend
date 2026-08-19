@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Map;
+
 @Data
 @SuperBuilder
 @AllArgsConstructor
@@ -20,4 +22,6 @@ public class ModelDataDto extends DeploymentDataDto {
     private ModelLimitsDataDto limits;
     private ModelPricingDataDto pricing;
     private Integer embeddingDimensions;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

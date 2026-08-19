@@ -55,7 +55,8 @@ public class CoreToolSet extends CoreSecuredResource {
         coreToolSet.setProvider(null);
         coreToolSet.setInterfaces(null);
         coreToolSet.setVendorWebsite(null);
-
+        coreToolSet.setCatalogSchemaId(null);
+        coreToolSet.setCatalogProperties(null);
         return coreToolSet;
     }
 }

@@ -4,4 +4,5 @@ public enum AuthenticationTypeEntity {
     OAUTH,
     API_KEY,
     NONE,
+    DIAL_NATIVE,
 }

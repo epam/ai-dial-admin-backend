@@ -26,6 +26,7 @@ public class Application extends RoleBased {
     private String intro;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
@@ -53,4 +54,7 @@ public class Application extends RoleBased {
     @Deprecated
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private URI applicationTypeSchemaId;
+
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

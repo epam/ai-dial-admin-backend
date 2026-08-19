@@ -25,6 +25,7 @@ public class ApplicationResource {
     private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private String description;
     private String reference;
@@ -53,4 +54,6 @@ public class ApplicationResource {
     private String intro;
     private String appIdentity;
     private boolean allowUserExternalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

@@ -23,4 +23,6 @@ public class ApplicationDataDto extends DeploymentDataDto {
     private Map<String, RouteDto> routes;
     private String viewerUrl;
     private String editorUrl;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

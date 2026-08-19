@@ -21,6 +21,7 @@ public class ApplicationExim {
     private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private String description;
     private String reference;
@@ -47,4 +48,6 @@ public class ApplicationExim {
     private String appIdentity;
     private boolean allowUserExternalServices;
     private Map<String, ExternalServiceResource> externalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

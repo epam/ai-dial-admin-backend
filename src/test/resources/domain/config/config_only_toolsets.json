@@ -61,7 +61,13 @@
         "dynamically_registered": true
       },
       "forward_per_request_key": false,
-      "dependencies": []
+      "dependencies": [],
+      "catalog_schema_id": "https://test-catalog-schema.example",
+      "catalog_properties": {
+        "category": "AI ToolSet",
+        "vendor": "Test Vendor",
+        "tags": ["git", "mcp"]
+      }
     }
   }
 }

@@ -71,6 +71,14 @@ public class SimpleFluxBuilder {
         return "|> distinct(column: %s)".formatted(quote(columnName));
     }
 
+    public static String createFirstPart() {
+        return "|> first()";
+    }
+
+    public static String createUniquePart(String columnName) {
+        return "|> unique(column: %s)".formatted(quote(columnName));
+    }
+
     public static String createRenamePart(Map<String, String> mapping) {
         if (MapUtils.isEmpty(mapping)) {
             return "";

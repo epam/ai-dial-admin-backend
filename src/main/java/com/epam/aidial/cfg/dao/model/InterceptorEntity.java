@@ -33,6 +33,7 @@ public class InterceptorEntity extends TimeTrackableEntity<String> {
     private String iconUrl;
     private String description;
     private String displayName;
+    private String overrideName;
     private Boolean forwardAuthToken;
     private String author;
     private List<String> dependencies;

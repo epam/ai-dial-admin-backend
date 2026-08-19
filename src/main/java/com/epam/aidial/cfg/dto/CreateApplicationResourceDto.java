@@ -30,6 +30,7 @@ public class CreateApplicationResourceDto {
     private Map<String, DeploymentInterfaceDto> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
     private String iconUrl;
     private String description;
     private String intro;
@@ -60,4 +61,6 @@ public class CreateApplicationResourceDto {
     private Map<String, ExternalServiceResourceDto> externalServices;
     private String appIdentity;
     private boolean allowUserExternalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

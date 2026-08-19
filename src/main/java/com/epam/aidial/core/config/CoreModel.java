@@ -17,8 +17,6 @@ public class CoreModel extends Deployment {
     private TokenLimits limits;
     private Pricing pricing;
     private List<CoreUpstream> upstreams = List.of();
-    // if it's set then the model name is overridden with that name in the request body to the model adapter
-    private String overrideName;
 
     @JsonAlias({"fieldsHashingOrder", "fields_hashing_order"})
     private List<String> fieldsHashingOrder = List.of("prefix.body.tools", "prefix.body.messages"); // 0.26.0
@@ -45,7 +43,9 @@ public class CoreModel extends Deployment {
         coreModel.setDependencies(null);
         coreModel.setInterfaces(null);
         coreModel.setIntro(null);
-
+        coreModel.setCatalogSchemaId(null);
+        coreModel.setCatalogProperties(null);
+        coreModel.setOverrideName(null);
         return coreModel;
     }
 }

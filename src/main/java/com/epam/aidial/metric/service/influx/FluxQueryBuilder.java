@@ -282,10 +282,18 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
         var rangePart = FluxConditionPartBuilder.createRangePart(query.getWhere(), true);
         var measurementPart = FluxConditionPartBuilder.createFilterPart(MEASUREMENT_COLUMN, tableDeclaration.getSource().getMeasurement());
         var filterPart = FluxConditionPartBuilder.createFilterPart(query.getWhere());
+        // group-by-(tag,_field) |> first() instead of keep|>group|>distinct: the distinct chain
+        // is rewritten by the InfluxDB 2 planner into an index-backed tag-values read that
+        // applies the time range only at shard granularity, returning tag values outside the
+        // requested range. Grouping reads actual points (time-accurate) and collapses each
+        // group to a single row; _field is part of the key because storage cannot group fields
+        // of different value types together. unique() then dedups the per-field rows.
+        var groupPart = SimpleFluxBuilder.createGroupPart(List.of(tagName, FIELD_COLUMN));
+        var firstPart = SimpleFluxBuilder.createFirstPart();
         var keepPart = SimpleFluxBuilder.createKeepPart(List.of(tagName));
         var ungroupPart = SimpleFluxBuilder.createUngroupPart();
-        var distinctPart = SimpleFluxBuilder.createDistinctPart(tagName);
-        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(VALUE_COLUMN, outerColumnName));
+        var uniquePart = SimpleFluxBuilder.createUniquePart(tagName);
+        var renamePart = SimpleFluxBuilder.createRenamePart(Map.of(tagName, outerColumnName));
         var sortPart = buildSortPart(query.getOrderBy());
         var limitPart = SimpleFluxBuilder.createLimitPart(query);
 
@@ -294,9 +302,11 @@ public class FluxQueryBuilder extends AbstractQueryBuilder<FluxQueryContext, Inf
                 .add(rangePart)
                 .add(measurementPart)
                 .add(filterPart)
+                .add(groupPart)
+                .add(firstPart)
                 .add(keepPart)
                 .add(ungroupPart)
-                .add(distinctPart)
+                .add(uniquePart)
                 .add(sortPart)
                 .add(renamePart)
                 .add(limitPart)

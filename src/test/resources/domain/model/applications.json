@@ -27,6 +27,7 @@
     "intro": "Brief introduction to sample application",
     "displayName": "Sample Application",
     "displayVersion": "1.0.0",
+    "overrideName": "Custom Application Override",
     "inputAttachmentTypes": [
       "pdf",
       "docx"
@@ -124,6 +125,12 @@
     "author": "test-author",
     "createdAt": 12345,
     "updatedAt": 12345,
-    "dependencies": ["dep1", "dep2"]
+    "dependencies": ["dep1", "dep2"],
+    "catalogSchemaId": "https://test-catalog-schema.example",
+    "catalogProperties": {
+      "category": "AI Application",
+      "vendor": "Test Vendor",
+      "tags": ["automation", "workflow"]
+    }
   }
 ]

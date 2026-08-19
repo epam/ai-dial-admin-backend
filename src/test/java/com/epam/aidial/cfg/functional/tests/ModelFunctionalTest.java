@@ -779,7 +779,9 @@ public abstract class ModelFunctionalTest {
                       ],
                       "overrideName": null,
                       "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"],
-                      "embeddingDimensions": 1536
+                      "embeddingDimensions": 1536,
+                      "catalogSchemaId": null,
+                      "catalogProperties": null
                     }
                   }
                 }

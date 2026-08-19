@@ -7,7 +7,9 @@
   "pricing": {
     "unit": "token",
     "prompt": "0.00000013",
-    "completion": "0.00000001"
+    "completion": "0.00000001",
+    "cacheRead": "0.0000000065",
+    "cacheWrite": "0.00000000325"
   },
   "upstreams": [
     {

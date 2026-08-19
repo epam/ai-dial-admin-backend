@@ -19,6 +19,8 @@ public interface InterceptorCoreMapper {
     @Mapping(target = "responsesEndpoint", ignore = true)
     @Mapping(target = "responsesDefaults", ignore = true)
     @Mapping(target = "intro", ignore = true)
+    @Mapping(target = "catalogSchemaId", ignore = true)
+    @Mapping(target = "catalogProperties", ignore = true)
     CoreInterceptor mapInterceptor(Interceptor interceptor);
 
     @Mapping(target = "entities", ignore = true)

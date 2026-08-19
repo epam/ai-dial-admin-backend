@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class CreateToolSetResourceDto {
@@ -34,6 +35,8 @@ public class CreateToolSetResourceDto {
     private CoreResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
     private boolean forwardAuthToken;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public enum TransportDto {
         HTTP, SSE

@@ -319,10 +319,11 @@ class FluxQueryIntegrationTest {
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> group(columns: ["deployment", "_field"])
+                |> first()
                 |> keep(columns: ["deployment"])
                 |> group()
-                |> distinct(column: "deployment")
-                |> rename(columns: {_value: "deployment"})""");
+                |> unique(column: "deployment")""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("deployment"));
     }
 
@@ -341,10 +342,11 @@ class FluxQueryIntegrationTest {
                 from(bucket: "analytics-realtime")
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
+                |> group(columns: ["deployment", "_field"])
+                |> first()
                 |> keep(columns: ["deployment"])
                 |> group()
-                |> distinct(column: "deployment")
-                |> rename(columns: {_value: "deployment"})""");
+                |> unique(column: "deployment")""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("deployment"));
     }
 
@@ -363,10 +365,11 @@ class FluxQueryIntegrationTest {
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
+                |> group(columns: ["deployment", "_field"])
+                |> first()
                 |> keep(columns: ["deployment"])
                 |> group()
-                |> distinct(column: "deployment")
-                |> rename(columns: {_value: "deployment"})""");
+                |> unique(column: "deployment")""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("deployment"));
     }
 
@@ -388,10 +391,11 @@ class FluxQueryIntegrationTest {
                 |> range(start: 2025-02-11T15:12:00Z, stop: 2025-02-11T16:20:00Z)
                 |> filter(fn: (r) => r["_measurement"] == "analytics")
                 |> filter(fn: (r) => r["deployment"] == "dep_value")
+                |> group(columns: ["deployment", "_field"])
+                |> first()
                 |> keep(columns: ["deployment"])
                 |> group()
-                |> distinct(column: "deployment")
-                |> rename(columns: {_value: "deployment"})""");
+                |> unique(column: "deployment")""");
         assertThat(result.getColumnNames()).isEqualTo(List.of("deployment"));
     }
 

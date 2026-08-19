@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -56,6 +57,11 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private List<String> allowedTools;
 
     private String provider;
+
+    private String catalogSchemaId;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
 
     public enum TransportEntity {
         HTTP, SSE
