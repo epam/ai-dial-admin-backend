@@ -16,9 +16,9 @@ RUN gradle --no-daemon clean bootJar
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
-# TODO: remove explicit openssl pinning once eclipse-temurin:21-jre-alpine ships with libcrypto3>=3.5.7-r0 (CVE-2026-45447)
+# TODO: remove explicit openssl pinning once eclipse-temurin:21-jre-alpine ships with libcrypto3>=3.5.8-r0 (CVE-2026-14456)
 # TODO: remove explicit libexpat pinning once eclipse-temurin:21-jre-alpine ships with libexpat>=2.8.2-r0 (CVE-2026-56131/56407/56408)
-RUN apk add --no-cache 'libcrypto3=3.5.7-r0' 'libssl3=3.5.7-r0' 'openssl=3.5.7-r0' && \
+RUN apk add --no-cache 'libcrypto3=3.5.8-r0' 'libssl3=3.5.8-r0' 'openssl=3.5.8-r0' && \
     apk add --no-cache 'p11-kit>=0.26.2-r0' 'p11-kit-trust>=0.26.2-r0' && \
     apk add --no-cache 'libexpat>=2.8.2-r0' && \
     apk add --no-cache bash && \
