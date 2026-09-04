@@ -43,6 +43,7 @@ public class Model extends RoleBased {
     private Pricing pricing;
     private List<Upstream> upstreams;
     private String overrideName;
+    private Map<String, String> defaultHeaders;
     private List<String> fieldsHashingOrder;
     private Integer embeddingDimensions;
     private ModelSource source;
