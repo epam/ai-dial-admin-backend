@@ -189,7 +189,7 @@ dependencies {
         implementation ('com.fasterxml.jackson.core:jackson-core:2.22.1') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.22') {
+        implementation('org.apache.tomcat.embed:tomcat-embed-core:11.0.25') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
