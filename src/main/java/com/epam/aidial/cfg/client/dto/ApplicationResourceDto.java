@@ -25,6 +25,7 @@ public class ApplicationResourceDto {
     private String displayVersion;
     private String overrideName;
     private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
     private String intro;

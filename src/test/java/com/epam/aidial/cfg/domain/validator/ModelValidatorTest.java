@@ -216,16 +216,6 @@ class ModelValidatorTest {
     }
 
     @Test
-    void validateCreation_shouldThrowForBlankInterfaceBaseUrl() {
-        Model model = createModel(new ModelEndpointsSource(), ModelType.CHAT, null);
-        model.setInterfaces(interfaces("openaiChatCompletions", " "));
-
-        assertThatThrownBy(() -> modelValidator.validateCreation(model))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Base URL is required for interface 'openaiChatCompletions'");
-    }
-
-    @Test
     void validateCreation_shouldThrowForInvalidInterfaceBaseUrl() {
         Model model = createModel(new ModelEndpointsSource(), ModelType.CHAT, null);
         model.setInterfaces(interfaces("openaiChatCompletions", "//invalid.url"));

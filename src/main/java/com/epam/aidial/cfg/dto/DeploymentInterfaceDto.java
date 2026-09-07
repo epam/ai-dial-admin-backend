@@ -21,4 +21,6 @@ public class DeploymentInterfaceDto {
      * Interface-specific default HTTP headers.
      */
     private Map<String, String> defaultHeaders;
+
+    private InterfaceModeDto mode;
 }

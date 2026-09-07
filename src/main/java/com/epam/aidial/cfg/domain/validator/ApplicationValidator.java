@@ -93,7 +93,12 @@ public class ApplicationValidator {
         if (endpoint != null && StringUtils.isBlank(endpoint)) {
             throw new IllegalArgumentException("Invalid endpoint: '%s'. Application: %s".formatted(endpoint, appName));
         }
-
+        String baseUrl = application.getBaseUrl();
+        if (!StringUtils.isBlank(baseUrl) && EndpointValidator.isInvalidUrl(baseUrl)) {
+            throw new IllegalArgumentException(
+                    "Invalid base URL '%s'. Application: %s".formatted(endpoint, appName)
+                            .formatted(baseUrl, appName));
+        }
         deploymentInterfacesValidator.validate(
                 application.getInterfaces(), DeploymentInterfaceTypes.APPLICATION_INTERFACE_TYPES, "Application", appName);
 
@@ -134,7 +139,7 @@ public class ApplicationValidator {
     private void validateEndpointsSource(Application application, String appName) {
         var mcp = application.getMcp();
         if (application.getEndpoint() == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))
-                && MapUtils.isEmpty(application.getInterfaces())) {
+                && MapUtils.isEmpty(application.getInterfaces()) && StringUtils.isBlank(application.getBaseUrl())) {
             throw new IllegalArgumentException("At least application endpoint, MCP endpoint or interfaces must be provided."
                     + " Application: %s".formatted(appName));
         }

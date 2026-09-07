@@ -198,6 +198,7 @@ public class CoreApplication extends Deployment {
         coreApplication.setCatalogProperties(null);
         coreApplication.setOverrideName(null);
         coreApplication.setDefaultHeaders(null);
+        coreApplication.setBaseUrl(null);
         return coreApplication;
     }
 }

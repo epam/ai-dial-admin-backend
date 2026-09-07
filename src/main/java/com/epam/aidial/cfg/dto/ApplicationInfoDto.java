@@ -17,6 +17,7 @@ public class ApplicationInfoDto {
     private String displayVersion;
     private String overrideName;
     private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
     private Boolean forwardAuthToken;

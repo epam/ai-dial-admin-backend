@@ -108,4 +108,11 @@ public abstract class Deployment extends RoleBasedEntity {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, String> defaultHeaders = Map.of(); // 0.48.0
 
+    /**
+     * Base URL for the deployment endpoint.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonAlias({"baseUrl", "base_url"})
+    private String baseUrl; // 0.48.0
+
 }

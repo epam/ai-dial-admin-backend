@@ -76,6 +76,7 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private String overrideName;
     @Column(columnDefinition = "CLOB")
     private String defaultHeaders;
+    private String baseUrl;
     private List<String> fieldsHashingOrder;
     private Integer embeddingDimensions;
     private String endpoint;

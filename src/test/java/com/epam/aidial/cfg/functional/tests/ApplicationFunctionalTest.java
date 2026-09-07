@@ -476,6 +476,7 @@ public abstract class ApplicationFunctionalTest {
         expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
         expected.setAppIdentity(applicationDto.getAppIdentity());
         expected.setAllowUserExternalServices(applicationDto.isAllowUserExternalServices());
+        expected.setBaseUrl(null);
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
