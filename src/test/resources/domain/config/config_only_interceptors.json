@@ -14,7 +14,9 @@
       "name": "SampleInterceptor",
       "endpoint": "https://example.com/interceptor",
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://interceptor.adapter.example.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://interceptor.adapter.example.com"
+        }
       },
       "displayName": "Sample Interceptor",
       "overrideName": "Custom Interceptor Override",
@@ -29,7 +31,10 @@
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
-      "dependencies": []
+      "dependencies": [],
+      "defaultHeaders": {
+        "X-Interceptor-Header": "interceptor-value"
+      }
     }
   },
   "globalInterceptors": [],

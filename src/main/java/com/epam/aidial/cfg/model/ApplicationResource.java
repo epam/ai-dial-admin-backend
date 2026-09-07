@@ -26,6 +26,7 @@ public class ApplicationResource {
     private String displayName;
     private String displayVersion;
     private String overrideName;
+    private Map<String, String> defaultHeaders;
     private String iconUrl;
     private String description;
     private String reference;

@@ -140,8 +140,14 @@
     "dependencies": ["dep1", "dep2"],
     "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
     "interfaces": {
-      "openaiChatCompletions": {"baseUrl": "https://model.adapter.example.com"},
-      "anthropicMessages": {"baseUrl": "https://model.adapter.example.com"}
+      "openaiChatCompletions": {
+        "baseUrl": "https://model.adapter.example.com",
+        "defaultHeaders": {}
+      },
+      "anthropicMessages": {
+        "baseUrl": "https://model.adapter.example.com",
+        "defaultHeaders": {}
+      }
     },
     "embeddingDimensions": 1536,
     "catalogSchemaId": "https://test-catalog-schema.example",

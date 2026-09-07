@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Map;
+
 /**
  * Per-interface routing configuration of a deployment. The interface type is the key
  * in the {@code interfaces} map; the value declares the source (adapter) root the matching
@@ -22,4 +24,12 @@ public class CoreDeploymentInterface { // 0.46.0
     @NotNull(message = "base_url must be defined")
     @JsonAlias({"baseUrl", "base_url"})
     private String baseUrl;
+
+    /**
+     * Headers added to a request for this interface that carries none under that name, laid over the
+     * deployment-level {@code defaultHeaders}.
+     */
+    @JsonAlias({"defaultHeaders", "default_headers"})
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> defaultHeaders = Map.of(); // 0.48.0
 }

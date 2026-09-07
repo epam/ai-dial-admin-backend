@@ -46,6 +46,7 @@ public class CoreModel extends Deployment {
         coreModel.setCatalogSchemaId(null);
         coreModel.setCatalogProperties(null);
         coreModel.setOverrideName(null);
+        coreModel.setDefaultHeaders(null);
         return coreModel;
     }
 }
