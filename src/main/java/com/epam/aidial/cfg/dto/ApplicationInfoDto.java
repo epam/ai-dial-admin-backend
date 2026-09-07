@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ApplicationInfoDto {
@@ -15,6 +16,7 @@ public class ApplicationInfoDto {
     private String displayName;
     private String displayVersion;
     private String overrideName;
+    private Map<String, String> defaultHeaders;
     private String iconUrl;
     private String description;
     private Boolean forwardAuthToken;

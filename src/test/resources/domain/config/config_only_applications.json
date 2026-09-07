@@ -25,11 +25,17 @@
         }
       },
       "interfaces": {
-        "openaiChatCompletions": {"base_url": "https://app.adapter.example.com"}
+        "openaiChatCompletions": {
+          "base_url": "https://app.adapter.example.com"
+        }
       },
       "display_name": "Sample Application",
       "display_version": "1.0.0",
       "override_name": "Custom Application Override",
+      "default_headers": {
+        "X-Custom-Header": "custom-value",
+        "X-API-Version": "v1"
+      },
       "icon_url": "https://example.com/icon.png",
       "viewer_url": "https://viewer.example.com",
       "editor_url": "https://editor.example.com",
