@@ -95,9 +95,7 @@ public class ApplicationValidator {
         }
         String baseUrl = application.getBaseUrl();
         if (!StringUtils.isBlank(baseUrl) && EndpointValidator.isInvalidUrl(baseUrl)) {
-            throw new IllegalArgumentException(
-                    "Invalid base URL '%s'. Application: %s".formatted(endpoint, appName)
-                            .formatted(baseUrl, appName));
+            throw new IllegalArgumentException("Invalid base URL '%s'. Application: %s".formatted(baseUrl, appName));
         }
         deploymentInterfacesValidator.validate(
                 application.getInterfaces(), DeploymentInterfaceTypes.APPLICATION_INTERFACE_TYPES, "Application", appName);
