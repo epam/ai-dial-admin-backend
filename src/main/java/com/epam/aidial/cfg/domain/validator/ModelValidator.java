@@ -129,7 +129,7 @@ public class ModelValidator {
 
         if (StringUtils.isBlank(completionEndpoint) && StringUtils.isBlank(responsesEndpoint)
                 && MapUtils.isEmpty(model.getInterfaces()) && StringUtils.isBlank(model.getBaseUrl())) {
-            throw new IllegalArgumentException("At least endpoint, responses endpoint or interfaces is required when source type is 'Model endpoints'. Model: %s"
+            throw new IllegalArgumentException("At least endpoint, responses endpoint, interfaces or base URL is required when source type is 'Model endpoints'. Model: %s"
                     .formatted(name));
         }
 

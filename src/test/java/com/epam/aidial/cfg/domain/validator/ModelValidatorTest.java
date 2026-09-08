@@ -40,7 +40,7 @@ class ModelValidatorTest {
     private static final String INVALID_COMPLETION_END_MESSAGE =
             "Completion endpoint path should end with ";
     private static final String MISSING_COMPLETION_AND_RESPONSES_ENDPOINTS_MESSAGE =
-            "At least endpoint, responses endpoint or interfaces is required ";
+            "At least endpoint, responses endpoint, interfaces or base URL is required ";
     private static final String MISSING_COMPLETION_AND_RESPONSES_ENDPOINT_PATHS_MESSAGE =
             "At least endpoint path or responses endpoint path is required ";
     private static final String INVALID_RESPONSES_MESSAGE = "Invalid responses endpoint:";

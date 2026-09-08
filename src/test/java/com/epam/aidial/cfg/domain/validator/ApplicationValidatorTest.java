@@ -98,7 +98,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("At least application endpoint, MCP endpoint or interfaces must be provided. Application: deploymentName");
+                .hasMessage("At least application endpoint, MCP endpoint, interfaces or base URL must be provided. Application: deploymentName");
 
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
     }
@@ -278,7 +278,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("At least application endpoint, MCP endpoint or interfaces must be provided. Application: deploymentName");
+                .hasMessage("At least application endpoint, MCP endpoint, interfaces or base URL must be provided. Application: deploymentName");
     }
 
     @Test

@@ -138,7 +138,7 @@ public class ApplicationValidator {
         var mcp = application.getMcp();
         if (application.getEndpoint() == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))
                 && MapUtils.isEmpty(application.getInterfaces()) && StringUtils.isBlank(application.getBaseUrl())) {
-            throw new IllegalArgumentException("At least application endpoint, MCP endpoint or interfaces must be provided."
+            throw new IllegalArgumentException("At least application endpoint, MCP endpoint, interfaces or base URL must be provided."
                     + " Application: %s".formatted(appName));
         }
     }

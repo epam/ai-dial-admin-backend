@@ -134,7 +134,7 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Completion endpoint or interfaces is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
+                .hasMessage("Completion endpoint, interfaces or base URL is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
     }
 
     @Test

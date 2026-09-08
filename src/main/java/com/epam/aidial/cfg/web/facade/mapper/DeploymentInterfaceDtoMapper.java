@@ -13,7 +13,5 @@ public interface DeploymentInterfaceDtoMapper {
 
     DeploymentInterfaceDto toDto(DeploymentInterface domain);
 
-    InterfaceMode map(InterfaceModeDto mode);
-
     InterfaceModeDto map(InterfaceMode mode);
 }

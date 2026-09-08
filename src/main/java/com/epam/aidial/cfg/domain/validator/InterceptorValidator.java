@@ -108,7 +108,7 @@ public class InterceptorValidator {
     private void validateEndpointsSource(Interceptor interceptor, String configurationEndpoint, String interceptorName) {
         String completionEndpoint = interceptor.getEndpoint();
         if (completionEndpoint == null && MapUtils.isEmpty(interceptor.getInterfaces()) && StringUtils.isBlank(interceptor.getBaseUrl())) {
-            throw new IllegalArgumentException("Completion endpoint or interfaces is required when source type is 'Interceptor endpoints'. Interceptor: %s"
+            throw new IllegalArgumentException("Completion endpoint, interfaces or base URL is required when source type is 'Interceptor endpoints'. Interceptor: %s"
                     .formatted(interceptorName));
         }
         validateEndpoint(completionEndpoint, COMPLETION_ENDPOINT_LOG_NAME, interceptorName);
