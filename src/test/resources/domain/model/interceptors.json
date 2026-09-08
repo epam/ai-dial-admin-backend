@@ -15,6 +15,7 @@
     "defaultHeaders": {
       "X-Interceptor-Header": "interceptor-value"
     },
+    "baseUrl": null,
     "forwardAuthToken": true,
     "entities": [
       "user",

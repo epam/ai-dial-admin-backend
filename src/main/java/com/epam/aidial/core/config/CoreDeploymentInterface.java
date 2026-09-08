@@ -32,4 +32,10 @@ public class CoreDeploymentInterface { // 0.46.0
     @JsonAlias({"defaultHeaders", "default_headers"})
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, String> defaultHeaders = Map.of(); // 0.48.0
+
+    /**
+     * Whether the interface is forwarded as it arrived or translated first.
+     * Absent means PASSTHROUGH (default for all pre-mode configs).
+     */
+    private CoreInterfaceMode mode; // 0.48.0
 }

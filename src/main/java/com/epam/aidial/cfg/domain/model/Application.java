@@ -28,6 +28,7 @@ public class Application extends RoleBased {
     private String displayVersion;
     private String overrideName;
     private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;

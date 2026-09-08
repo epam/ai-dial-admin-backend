@@ -33,8 +33,7 @@ public class DeploymentInterfacesValidator {
             }
             String baseUrl = deploymentInterface == null ? null : deploymentInterface.getBaseUrl();
             if (StringUtils.isBlank(baseUrl)) {
-                throw new IllegalArgumentException(
-                        "Base URL is required for interface '%s'. %s: %s".formatted(type, entityKind, entityName));
+                return;
             }
             if (EndpointValidator.isInvalidUrl(baseUrl)) {
                 throw new IllegalArgumentException(

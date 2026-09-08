@@ -36,6 +36,7 @@
         "X-Custom-Header": "custom-value",
         "X-API-Version": "v1"
       },
+      "base_url": "https://base.example.com",
       "icon_url": "https://example.com/icon.png",
       "viewer_url": "https://viewer.example.com",
       "editor_url": "https://editor.example.com",
