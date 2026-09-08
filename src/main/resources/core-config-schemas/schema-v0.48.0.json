@@ -754,6 +754,44 @@
         },
         "secretExtraData": {
           "type": "string"
+        },
+        "baseUrl": {
+          "type": "string"
+        },
+        "interfaces": {
+          "type": "object",
+          "properties": {
+            "openaiChatCompletions": {
+              "$ref": "#/definitions/UpstreamInterface"
+            },
+            "openaiResponses": {
+              "$ref": "#/definitions/UpstreamInterface"
+            },
+            "anthropicMessages": {
+              "$ref": "#/definitions/UpstreamInterface"
+            },
+            "openaiEmbeddings": {
+              "$ref": "#/definitions/UpstreamInterface"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "UpstreamInterface": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "extraData": {
+          "type": "string"
+        },
+        "secretExtraData": {
+          "type": "string"
         }
       }
     },

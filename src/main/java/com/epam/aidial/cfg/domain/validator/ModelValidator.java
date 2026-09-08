@@ -32,6 +32,7 @@ public class ModelValidator {
     private final DeploymentValidator deploymentValidator;
     private final FeaturesValidator featuresValidator;
     private final DeploymentInterfacesValidator deploymentInterfacesValidator;
+    private final UpstreamValidator upstreamValidator;
     private final ModelEndpointUtils modelEndpointUtils;
 
     private final String modelNameValidationPattern;
@@ -40,12 +41,14 @@ public class ModelValidator {
                           DeploymentValidator deploymentValidator,
                           FeaturesValidator featuresValidator,
                           DeploymentInterfacesValidator deploymentInterfacesValidator,
+                          UpstreamValidator upstreamValidator,
                           ModelEndpointUtils modelEndpointUtils,
                           @Value("${validation.model.name:}") String modelNameValidationPattern) {
         this.displayFieldsValidator = displayFieldsValidator;
         this.deploymentValidator = deploymentValidator;
         this.featuresValidator = featuresValidator;
         this.deploymentInterfacesValidator = deploymentInterfacesValidator;
+        this.upstreamValidator = upstreamValidator;
         this.modelEndpointUtils = modelEndpointUtils;
         this.modelNameValidationPattern = modelNameValidationPattern;
     }
@@ -96,6 +99,8 @@ public class ModelValidator {
 
         deploymentInterfacesValidator.validate(
                 model.getInterfaces(), DeploymentInterfaceTypes.MODEL_INTERFACE_TYPES, "Model", modelName);
+        upstreamValidator.validate(
+                model.getUpstreams(), DeploymentInterfaceTypes.MODEL_INTERFACE_TYPES, "Model", modelName);
 
         // Model source types are mutually exclusive: a model can have either ModelAdapterSource,
         // ModelContainerSource, or ModelEndpointsSource, but not multiple sources simultaneously.

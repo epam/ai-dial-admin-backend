@@ -7,10 +7,13 @@ import com.epam.aidial.core.config.databind.JsonToStringDeserializer;
 import com.epam.aidial.core.config.databind.StringToJsonSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -32,6 +35,10 @@ public class UpstreamDto {
     @JsonDeserialize(using = JsonToStringDeserializer.class)
     @JsonSerialize(using = StringToJsonSerializer.class)
     private String secretExtraData;
+    @UpstreamEndpoint
+    private String baseUrl;
+    @Valid
+    private Map<String, UpstreamInterfaceDto> interfaces = Map.of();
 
     public String toString() {
         return "Upstream(endpoint=" + this.getEndpoint() + ", responsesEndpoint=" + this.responsesEndpoint
@@ -39,6 +46,7 @@ public class UpstreamDto {
                 + ", extraData=" + this.getExtraData()
                 + ", secretExtraData=" + SecretUtils.mask(this.getSecretExtraData())
                 + ", weight=" + this.getWeight()
-                + ", tier=" + this.getTier() + ")";
+                + ", tier=" + this.getTier()
+                + ", baseUrl=" + this.getBaseUrl() + ")";
     }
 }

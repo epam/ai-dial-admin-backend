@@ -4,14 +4,13 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
-import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.utils.UpstreamSecretUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -87,12 +86,8 @@ public class RouteExporter {
     }
 
     private Route removeSecretData(Route route, boolean addSecrets) {
-        List<Upstream> upstreams = route.getUpstreams();
-        if (CollectionUtils.isNotEmpty(upstreams) && !addSecrets) {
-            for (Upstream upstream : upstreams) {
-                upstream.setKey(null);
-                upstream.setSecretExtraData(null);
-            }
+        if (!addSecrets) {
+            UpstreamSecretUtils.removeSecrets(route.getUpstreams());
         }
         return route;
     }

@@ -456,6 +456,133 @@ class VersionAwareFieldFilterTest {
         assertThat(application.get("routes").has("route1")).isTrue();
     }
 
+    @Test
+    void filterForTargetVersion_upstreamBaseUrlAndInterfacesKeptWhenTargetVersionSupportsThem() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "upstreams": [
+                        {
+                          "id": "upstream1",
+                          "base_url": "http://upstream.adapter",
+                          "interfaces": {
+                            "openaiChatCompletions": {"endpoint": "http://upstream.adapter/v1/chat/completions"}
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstream = result.get("models").get("m1").get("upstreams").get(0);
+        assertThat(upstream.get("baseUrl").asText()).isEqualTo("http://upstream.adapter");
+        assertThat(upstream.get("interfaces").get("openaiChatCompletions").get("endpoint").asText())
+                .isEqualTo("http://upstream.adapter/v1/chat/completions");
+    }
+
+    @Test
+    void filterForTargetVersion_upstreamKeptWhenBaseUrlAndInterfacesStrippedButEndpointPresent() throws IOException {
+        // given
+        mockRealSchema("0.47.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "upstreams": [
+                        {
+                          "id": "upstream1",
+                          "endpoint": "http://upstream.direct/chat/completions",
+                          "base_url": "http://upstream.adapter",
+                          "interfaces": {
+                            "openaiChatCompletions": {"endpoint": "http://upstream.adapter/v1/chat/completions"}
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstreams = result.get("models").get("m1").get("upstreams");
+        assertThat(upstreams).hasSize(1);
+        JsonNode upstream = upstreams.get(0);
+        assertThat(upstream.has("baseUrl")).isFalse();
+        assertThat(upstream.has("interfaces")).isFalse();
+        assertThat(upstream.get("endpoint").asText()).isEqualTo("http://upstream.direct/chat/completions");
+    }
+
+    @Test
+    void filterForTargetVersion_upstreamOnlyBaseUrlAndInterfacesDroppedWhenTargetVersionDoesNotSupportThem() throws IOException {
+        // given
+        mockRealSchema("0.47.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "upstreams": [
+                        {
+                          "id": "upstream1",
+                          "base_url": "http://upstream.adapter",
+                          "interfaces": {
+                            "openaiChatCompletions": {"endpoint": "http://upstream.adapter/v1/chat/completions"}
+                          }
+                        },
+                        {
+                          "endpoint": "http://upstream2.direct/chat/completions"
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstreams = result.get("models").get("m1").get("upstreams");
+        assertThat(upstreams).hasSize(1);
+        assertThat(upstreams.get(0).get("endpoint").asText()).isEqualTo("http://upstream2.direct/chat/completions");
+    }
+
+    @Test
+    void filterForTargetVersion_routeUpstreamOnlyBaseUrlDroppedWhenTargetVersionDoesNotSupportIt() throws IOException {
+        // given
+        mockRealSchema("0.47.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "routes": {
+                    "r1": {
+                      "upstreams": [
+                        {
+                          "base_url": "http://upstream.adapter"
+                        }
+                      ]
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode upstreams = result.get("routes").get("r1").get("upstreams");
+        assertThat(upstreams).isEmpty();
+    }
+
     private void mockRealSchema(String version) throws IOException {
         JsonNode schema = loadRealSchema(version);
         when(coreConfigVersionService.getVersionForExport()).thenReturn(version);
