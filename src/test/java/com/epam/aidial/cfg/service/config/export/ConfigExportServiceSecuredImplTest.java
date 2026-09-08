@@ -12,6 +12,7 @@ import com.epam.aidial.core.config.CoreResourceAuthSettings;
 import com.epam.aidial.core.config.CoreRole;
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.CoreUpstream;
+import com.epam.aidial.core.config.CoreUpstreamInterface;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -167,9 +168,13 @@ class ConfigExportServiceSecuredImplTest {
         Config regularConfig = configCaptor.getValue();
         assertTrue(regularConfig.getKeys().isEmpty());
         assertTrue(regularConfig.getModels().get("model1").getUpstreams().isEmpty());
-        assertEquals(1, regularConfig.getModels().get("model2").getUpstreams().size());
-        assertEquals("https://api2.example.com", regularConfig.getModels().get("model2").getUpstreams().get(0).getEndpoint());
-        assertNull(regularConfig.getModels().get("model2").getUpstreams().get(0).getKey());
+        // model2's upstream carries a secret only inside its interface - it still moves out of the public config
+        assertTrue(regularConfig.getModels().get("model2").getUpstreams().isEmpty());
+        assertEquals(1, regularConfig.getModels().get("model3").getUpstreams().size());
+        CoreUpstream publicUpstream = regularConfig.getModels().get("model3").getUpstreams().get(0);
+        assertEquals("https://api3.example.com", publicUpstream.getEndpoint());
+        assertNull(publicUpstream.getKey());
+        assertEquals("interfaceExtraData", publicUpstream.getInterfaces().get("anthropicMessages").getExtraData());
         assertNull(regularConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
 
         // Verify secured config contains only secrets
@@ -177,6 +182,11 @@ class ConfigExportServiceSecuredImplTest {
         assertNotNull(secretConfig.getKeys().get("key1"));
         assertEquals("upstream-key-1", secretConfig.getModels().get("model1").getUpstreams().get(0).getKey());
         assertEquals("secretExtraData", secretConfig.getModels().get("model1").getUpstreams().get(0).getSecretExtraData());
+        CoreUpstreamInterface securedInterface = secretConfig.getModels().get("model2").getUpstreams().get(0)
+                .getInterfaces().get("anthropicMessages");
+        assertEquals("interface-key-2", securedInterface.getKey());
+        assertEquals("interfaceSecretExtraData", securedInterface.getSecretExtraData());
+        assertNull(secretConfig.getModels().get("model3"));
         assertEquals("client-secret-1", secretConfig.getToolsets().get("toolset1").getAuthSettings().getClientSecret());
         assertTrue(secretConfig.getRoles().isEmpty());
     }
@@ -355,12 +365,33 @@ class ConfigExportServiceSecuredImplTest {
         CoreModel model2 = new CoreModel();
         model2.setName("model2");
         model2.setDisplayName("Test Model 2");
-        
+
+        // No secret of its own - its only secrets live inside an interface
         CoreUpstream upstream2 = new CoreUpstream();
         upstream2.setEndpoint("https://api2.example.com");
+        CoreUpstreamInterface secretInterface = new CoreUpstreamInterface();
+        secretInterface.setEndpoint("https://api2.example.com/v1/messages");
+        secretInterface.setKey("interface-key-2");
+        secretInterface.setSecretExtraData("interfaceSecretExtraData");
+        upstream2.setInterfaces(Map.of("anthropicMessages", secretInterface));
         model2.setUpstreams(List.of(upstream2));
-        
+
         config.getModels().put("model2", model2);
+
+        // Fully secret-free, interface included - must stay in the public config
+        CoreModel model3 = new CoreModel();
+        model3.setName("model3");
+        model3.setDisplayName("Test Model 3");
+
+        CoreUpstream upstream3 = new CoreUpstream();
+        upstream3.setEndpoint("https://api3.example.com");
+        CoreUpstreamInterface publicInterface = new CoreUpstreamInterface();
+        publicInterface.setEndpoint("https://api3.example.com/v1/messages");
+        publicInterface.setExtraData("interfaceExtraData");
+        upstream3.setInterfaces(Map.of("anthropicMessages", publicInterface));
+        model3.setUpstreams(List.of(upstream3));
+
+        config.getModels().put("model3", model3);
         
         // Add a toolset without secrets
         CoreToolSet toolSet2 = new CoreToolSet();

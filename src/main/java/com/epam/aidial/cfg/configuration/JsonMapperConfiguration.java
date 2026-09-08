@@ -9,6 +9,8 @@ import com.epam.aidial.core.config.CoreResourceAuthSettingsMixinForCoreObjectMap
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.CoreToolSetMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstream;
+import com.epam.aidial.core.config.CoreUpstreamInterface;
+import com.epam.aidial.core.config.CoreUpstreamInterfaceMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstreamMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.validation.ValidationModule;
 import com.epam.aidial.ql.deserializers.json.QueryLanguageModule;
@@ -58,6 +60,7 @@ public class JsonMapperConfiguration {
                 .addMixIn(CoreLimit.class, CoreLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreCostLimit.class, CoreCostLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreUpstream.class, CoreUpstreamMixinForCoreObjectMapper.class)
+                .addMixIn(CoreUpstreamInterface.class, CoreUpstreamInterfaceMixinForCoreObjectMapper.class)
                 .addMixIn(CoreToolSet.class, CoreToolSetMixinForCoreObjectMapper.class)
                 .addMixIn(CoreResourceAuthSettings.class, CoreResourceAuthSettingsMixinForCoreObjectMapper.class)
                 .build();

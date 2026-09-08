@@ -4,6 +4,8 @@ import com.epam.aidial.cfg.domain.model.Deployment;
 import com.epam.aidial.cfg.domain.model.DeploymentInterface;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.ModelType;
+import com.epam.aidial.cfg.domain.model.Upstream;
+import com.epam.aidial.cfg.domain.model.UpstreamInterface;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.model.source.ModelContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelEndpointsSource;
@@ -22,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -71,7 +74,8 @@ class ModelValidatorTest {
     @BeforeEach
     void setUp() {
         modelValidator = new ModelValidator(displayFieldsValidator,
-                deploymentValidator, featuresValidator, new DeploymentInterfacesValidator(), modelEndpointUtils, null);
+                deploymentValidator, featuresValidator, new DeploymentInterfacesValidator(),
+                new UpstreamInterfacesValidator(), modelEndpointUtils, null);
     }
 
     @Test
@@ -233,6 +237,83 @@ class ModelValidatorTest {
         assertThatThrownBy(() -> modelValidator.validateCreation(model))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid base URL '//invalid.url' for interface 'openaiChatCompletions'");
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowForUpstreamInterfaceWithOwnEndpoint() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, VALID_ENDPOINT);
+        model.setUpstreams(List.of(
+                upstream("upstream1", null, upstreamInterfaces("openaiChatCompletions", "http://upstream.test.com/v1/chat/completions"))));
+
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowForUpstreamInterfaceResolvedByBaseUrl() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, VALID_ENDPOINT);
+        model.setUpstreams(List.of(
+                upstream("upstream1", "http://upstream.test.com", upstreamInterfaces("openaiChatCompletions", null))));
+
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @Test
+    void validateCreation_shouldThrowForUpstreamUnsupportedInterfaceType() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, VALID_ENDPOINT);
+        model.setUpstreams(List.of(
+                upstream("upstream1", "http://upstream.test.com", upstreamInterfaces("customInterface", null))));
+
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported interface type 'customInterface'");
+    }
+
+    @Test
+    void validateCreation_shouldThrowWhenUpstreamInterfacesSetWithoutId() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, VALID_ENDPOINT);
+        model.setUpstreams(List.of(
+                upstream(null, "http://upstream.test.com", upstreamInterfaces("openaiChatCompletions", null))));
+
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("An upstream declaring interfaces requires an id");
+    }
+
+    @Test
+    void validateCreation_shouldThrowWhenUpstreamInterfaceUnresolvable() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, VALID_ENDPOINT);
+        model.setUpstreams(List.of(
+                upstream("upstream1", null, upstreamInterfaces("openaiChatCompletions", null))));
+
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("declares no endpoint and upstreams[0] declares no baseUrl");
+    }
+
+    @Test
+    void validateCreation_shouldThrowForInvalidUpstreamBaseUrl() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, VALID_ENDPOINT);
+        model.setUpstreams(List.of(upstream("upstream1", "//invalid.url", null)));
+
+        assertThatThrownBy(() -> modelValidator.validateCreation(model))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid base URL '//invalid.url' for upstreams[0]");
+    }
+
+    private static Upstream upstream(String id, String baseUrl, Map<String, UpstreamInterface> interfaces) {
+        Upstream upstream = new Upstream();
+        upstream.setId(id);
+        upstream.setBaseUrl(baseUrl);
+        upstream.setInterfaces(interfaces);
+        return upstream;
+    }
+
+    private static Map<String, UpstreamInterface> upstreamInterfaces(String type, String endpoint) {
+        UpstreamInterface upstreamInterface = new UpstreamInterface();
+        upstreamInterface.setEndpoint(endpoint);
+        Map<String, UpstreamInterface> interfaces = new HashMap<>();
+        interfaces.put(type, upstreamInterface);
+        return interfaces;
     }
 
     private static Map<String, DeploymentInterface> interfaces(String type, String baseUrl) {
