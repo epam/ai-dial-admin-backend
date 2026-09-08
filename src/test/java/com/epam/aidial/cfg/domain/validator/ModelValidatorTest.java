@@ -75,7 +75,7 @@ class ModelValidatorTest {
     void setUp() {
         modelValidator = new ModelValidator(displayFieldsValidator,
                 deploymentValidator, featuresValidator, new DeploymentInterfacesValidator(),
-                new UpstreamInterfacesValidator(), modelEndpointUtils, null);
+                new UpstreamValidator(), modelEndpointUtils, null);
     }
 
     @Test

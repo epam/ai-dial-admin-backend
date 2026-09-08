@@ -17,7 +17,7 @@ import java.util.Set;
  * interface it cannot resolve, the admin backend rejects that at authoring time.
  */
 @Component
-public class UpstreamInterfacesValidator {
+public class UpstreamValidator {
 
     public void validate(List<Upstream> upstreams, Set<String> allowedTypes, String entityKind, String entityName) {
         if (CollectionUtils.isEmpty(upstreams)) {
