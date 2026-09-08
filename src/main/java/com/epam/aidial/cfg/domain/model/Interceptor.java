@@ -19,6 +19,7 @@ public class Interceptor {
     private String displayName;
     private String overrideName;
     private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private Boolean forwardAuthToken;
     private String author;
     private Long createdAt;

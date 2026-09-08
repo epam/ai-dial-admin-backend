@@ -17,4 +17,9 @@ public class DeploymentInterface {
      * Interface-specific default HTTP headers that override deployment-level defaultHeaders.
      */
     private Map<String, String> defaultHeaders;
+
+    /**
+     * Interface forwarding mode. Absent/null means PASSTHROUGH.
+     */
+    private InterfaceMode mode;
 }

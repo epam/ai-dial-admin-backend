@@ -217,6 +217,10 @@
                 "type": "string"
               },
               "description": "Default HTTP headers for requests to the deployment."
+            },
+            "baseUrl": {
+              "type": "string",
+              "description": "Base URL for the deployment endpoint."
             }
           }
         }
@@ -1125,6 +1129,11 @@
             "type": "string"
           },
           "description": "Interface-specific default HTTP headers."
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["PASSTHROUGH", "TRANSLATION"],
+          "description": "Interface forwarding mode. Absent means PASSTHROUGH (default)."
         }
       },
       "required": [
