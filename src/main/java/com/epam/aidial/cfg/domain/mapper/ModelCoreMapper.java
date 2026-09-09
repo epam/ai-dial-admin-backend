@@ -50,7 +50,6 @@ public abstract class ModelCoreMapper {
                                    @Context List<RoleLimit> roleLimits,
                                    @MappingTarget Model model);
 
-    @Mapping(target = "id", ignore = true)
     abstract Upstream map(CoreUpstream upstream);
 
     public abstract Model copy(Model model);

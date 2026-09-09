@@ -3021,6 +3021,46 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(exportedInterface.getExtraData()).isEqualTo("{\"nested\":true}");
     }
 
+    /**
+     * A Core-format config carries an id on each upstream: an upstream declaring interfaces is
+     * addressed by that id, so an import that strips it either loses it silently or fails validation
+     * ("An upstream declaring interfaces requires an id").
+     */
+    @Test
+    void testImport_CoreFormatKeepsUpstreamIdAndInterfaces() throws IOException {
+        String config = FileUtils.readFileToString(
+                new File("src/test/resources/import/import_modelAndRouteWithUpstreamIdAndInterfaces.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes(StandardCharsets.UTF_8)
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        ModelDto model = modelFacade.getModel("testModel1");
+        Assertions.assertThat(model.getUpstreams()).hasSize(1);
+        var modelUpstream = model.getUpstreams().get(0);
+        Assertions.assertThat(modelUpstream.getId()).isEqualTo("model-upstream-1");
+        Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://upstream.test.com/embeddings");
+        Assertions.assertThat(modelUpstream.getBaseUrl()).isEqualTo("https://upstream.test.com");
+        Assertions.assertThat(modelUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(modelUpstream.getInterfaces().get("openaiChatCompletions").getEndpoint())
+                .isEqualTo("https://upstream.test.com/v1/chat/completions");
+
+        RouteDto route = routeFacade.getRoute("route1");
+        Assertions.assertThat(route.getUpstreams()).hasSize(1);
+        var routeUpstream = route.getUpstreams().get(0);
+        Assertions.assertThat(routeUpstream.getId()).isEqualTo("route-upstream-1");
+        Assertions.assertThat(routeUpstream.getEndpoint()).isEqualTo("https://route-upstream.test.com/api");
+        Assertions.assertThat(routeUpstream.getBaseUrl()).isEqualTo("https://route-upstream.test.com");
+        Assertions.assertThat(routeUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(routeUpstream.getInterfaces().get("openaiChatCompletions").getEndpoint())
+                .isEqualTo("https://route-upstream.test.com/v1/chat/completions");
+    }
+
     private UpstreamInterfaceDto createUpstreamInterfaceDto(String endpoint, String key,
                                                             String secretExtraData, String extraData) {
         UpstreamInterfaceDto upstreamInterface = new UpstreamInterfaceDto();
