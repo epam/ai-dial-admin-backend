@@ -1,0 +1,59 @@
+{
+  "models": {
+    "testModel1": {
+      "name": "testModel1",
+      "displayName": "Test Model1",
+      "displayVersion": "1.0.0",
+      "type": "embedding",
+      "source": {
+        "$type": "endpoints"
+      },
+      "endpoint": "https://endpoint1/embeddings",
+      "upstreams": [
+        {
+          "id": "model-upstream-1",
+          "endpoint": "https://upstream.test.com/embeddings",
+          "baseUrl": "https://upstream.test.com",
+          "interfaces": {
+            "openaiChatCompletions": {
+              "endpoint": "https://upstream.test.com/v1/chat/completions"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "routes": {
+    "route1": {
+      "name": "route1",
+      "response": {
+        "status": 200,
+        "body": "success"
+      },
+      "paths": [
+        "/upstream-route"
+      ],
+      "methods": [
+        "POST"
+      ],
+      "upstreams": [
+        {
+          "id": "route-upstream-1",
+          "endpoint": "https://route-upstream.test.com/api",
+          "baseUrl": "https://route-upstream.test.com",
+          "interfaces": {
+            "openaiChatCompletions": {
+              "endpoint": "https://route-upstream.test.com/v1/chat/completions"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "roles": {},
+  "applications": {},
+  "addons": {},
+  "interceptors": {},
+  "keys": {},
+  "toolsets": {}
+}
