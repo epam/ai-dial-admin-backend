@@ -168,6 +168,22 @@ class ModelValidatorTest {
     }
 
     @Test
+    void validateCreation_shouldNotThrowWhenEndpointsSourceAndBothEndpointsAreSet() {
+        Model model = createModel(
+                new ModelEndpointsSource(), ModelType.EMBEDDING,
+                VALID_ENDPOINT, "http://upstream1.endpoint.test.com/responses");
+
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowWhenEndpointsSourceAndOnlyEndpointIsSet() {
+        Model model = createModel(new ModelEndpointsSource(), ModelType.EMBEDDING, VALID_ENDPOINT, null);
+
+        assertThatNoException().isThrownBy(() -> modelValidator.validateCreation(model));
+    }
+
+    @Test
     void validateCreation_shouldNotThrowWhenEndpointsSourceAndOnlyResponsesEndpointIsSet() {
         Model model = createModel(
                 new ModelEndpointsSource(), ModelType.EMBEDDING,

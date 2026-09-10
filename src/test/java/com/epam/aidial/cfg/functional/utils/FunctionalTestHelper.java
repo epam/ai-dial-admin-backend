@@ -210,6 +210,13 @@ public class FunctionalTestHelper {
         return applicationDto;
     }
 
+    public static ApplicationDto createApplicationDtoWithResponsesEndpoint(String suffix) {
+        ApplicationDto applicationDto = createBaseApplicationDto(suffix);
+        applicationDto.setSource(new ApplicationEndpointsSourceDto());
+        applicationDto.setResponsesEndpoint("responsesEndpoint" + suffix);
+        return applicationDto;
+    }
+
     public static ApplicationDto createApplicationDtoWithEndpointAndLimits(String suffix) {
         ApplicationDto applicationDto = createApplicationDtoWithEndpoint(suffix);
         applicationDto.setRoleLimits(Map.of(

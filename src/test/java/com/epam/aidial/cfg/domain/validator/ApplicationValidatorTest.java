@@ -98,7 +98,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("At least application endpoint, MCP endpoint or interfaces must be provided. Application: deploymentName");
+                .hasMessage("At least application endpoint, responses endpoint, MCP endpoint or interfaces must be provided. Application: deploymentName");
 
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
     }
@@ -110,6 +110,52 @@ class ApplicationValidatorTest {
         application.setDisplayVersion("1.0");
         application.setSource(new ApplicationEndpointsSource());
         application.setInterfaces(interfaces("openaiChatCompletions", "http://app.adapter.test.com"));
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowWhenEndpointsSourceWithOnlyResponsesEndpoint() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setResponsesEndpoint("http://app.test.com/responses");
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowWhenEndpointsSourceWithBothEndpoints() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setEndpoint("http://app.test.com/chat/completions");
+        application.setResponsesEndpoint("http://app.test.com/responses");
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowWhenEndpointsSourceWithOnlyMcpEndpoint() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setSource(new ApplicationEndpointsSource());
+
+        Mcp mcp = new Mcp();
+        mcp.setEndpoint("http://app.test.com/mcp");
+        application.setMcp(mcp);
 
         Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
@@ -278,7 +324,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("At least application endpoint, MCP endpoint or interfaces must be provided. Application: deploymentName");
+                .hasMessage("At least application endpoint, responses endpoint, MCP endpoint or interfaces must be provided. Application: deploymentName");
     }
 
     @Test

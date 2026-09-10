@@ -10,6 +10,7 @@ public class ApplicationNormalizer {
     public void normalize(Application application) {
         setDisplayVersionToNullIfBlank(application);
         setEndpointToNullIfBlank(application);
+        setResponsesEndpointToNullIfBlank(application);
     }
 
     private void setDisplayVersionToNullIfBlank(Application application) {
@@ -23,6 +24,13 @@ public class ApplicationNormalizer {
         String endpoint = application.getEndpoint();
         if (StringUtils.isBlank(endpoint)) {
             application.setEndpoint(null);
+        }
+    }
+
+    private void setResponsesEndpointToNullIfBlank(Application application) {
+        String responsesEndpoint = application.getResponsesEndpoint();
+        if (StringUtils.isBlank(responsesEndpoint)) {
+            application.setResponsesEndpoint(null);
         }
     }
 }

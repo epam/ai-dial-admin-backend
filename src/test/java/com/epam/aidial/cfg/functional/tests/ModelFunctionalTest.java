@@ -131,6 +131,49 @@ public abstract class ModelFunctionalTest {
     }
 
     @Test
+    public void shouldSuccessfullyCreateAndGetModelWithResponsesEndpointOnly() {
+        initRoles();
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        modelDto.setResponsesEndpoint("https://endpoint1/responses");
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(modelDto.getResponsesEndpoint(), actual.getResponsesEndpoint());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetModelWithEndpointOnly() {
+        initRoles();
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        modelDto.setEndpoint("https://endpoint1/chat/completions");
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+        Assertions.assertEquals(modelDto.getEndpoint(), actual.getEndpoint());
+        Assertions.assertNull(actual.getResponsesEndpoint());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetModelWithBothEndpoints() {
+        initRoles();
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        modelDto.setEndpoint("https://endpoint1/chat/completions");
+        modelDto.setResponsesEndpoint("https://endpoint1/responses");
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+        Assertions.assertEquals(modelDto.getEndpoint(), actual.getEndpoint());
+        Assertions.assertEquals(modelDto.getResponsesEndpoint(), actual.getResponsesEndpoint());
+    }
+
+    @Test
     public void shouldSuccessfullyCreateAndUpdateModel() {
         initRoles();
         adapterFacade.createAdapter(createAdapterDto("1"));

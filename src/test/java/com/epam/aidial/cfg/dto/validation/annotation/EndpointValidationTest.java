@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.ModelDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
+import com.epam.aidial.cfg.dto.UpstreamDto;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -239,6 +240,125 @@ class EndpointValidationTest {
         Assertions.assertThat(violations.stream()
                 .anyMatch(v -> v.getPropertyPath().toString().equals("configurationEndpoint")))
                 .isTrue();
+    }
+
+    @ParameterizedTest
+    @MethodSource("validEndpointsIncludingEmpty")
+    void testApplicationDto_ValidResponsesEndpoint(String responsesEndpoint) {
+        ApplicationDto dto = new ApplicationDto();
+        dto.setName("test-app");
+        dto.setDisplayName("Test App");
+        dto.setResponsesEndpoint(responsesEndpoint);
+
+        Set<ConstraintViolation<ApplicationDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidEndpoints")
+    void testApplicationDto_InvalidResponsesEndpoint(String responsesEndpoint) {
+        ApplicationDto dto = new ApplicationDto();
+        dto.setName("test-app");
+        dto.setDisplayName("Test App");
+        dto.setResponsesEndpoint(responsesEndpoint);
+
+        Set<ConstraintViolation<ApplicationDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isNotEmpty();
+        Assertions.assertThat(violations.stream()
+                        .anyMatch(v -> v.getPropertyPath().toString().equals("responsesEndpoint")))
+                .isTrue();
+    }
+
+    @Test
+    void testApplicationDto_BothEndpointsNull() {
+        ApplicationDto dto = new ApplicationDto();
+        dto.setName("test-app");
+        dto.setDisplayName("Test App");
+
+        Set<ConstraintViolation<ApplicationDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("validEndpointsIncludingEmpty")
+    void testModelDto_ValidResponsesEndpoint(String responsesEndpoint) {
+        ModelDto dto = new ModelDto();
+        dto.setName("test-model");
+        dto.setDisplayName("Test Model");
+        dto.setResponsesEndpoint(responsesEndpoint);
+
+        Set<ConstraintViolation<ModelDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidEndpoints")
+    void testModelDto_InvalidResponsesEndpoint(String responsesEndpoint) {
+        ModelDto dto = new ModelDto();
+        dto.setName("test-model");
+        dto.setDisplayName("Test Model");
+        dto.setResponsesEndpoint(responsesEndpoint);
+
+        Set<ConstraintViolation<ModelDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isNotEmpty();
+        Assertions.assertThat(violations.stream()
+                        .anyMatch(v -> v.getPropertyPath().toString().equals("responsesEndpoint")))
+                .isTrue();
+    }
+
+    @Test
+    void testModelDto_BothEndpointsNull() {
+        ModelDto dto = new ModelDto();
+        dto.setName("test-model");
+        dto.setDisplayName("Test Model");
+
+        Set<ConstraintViolation<ModelDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    // Upstream endpoint is validated by @UpstreamEndpoint, whose @Pattern rejects an empty string,
+    // so only non-empty endpoints are valid here.
+    @ParameterizedTest
+    @MethodSource("validEndpoints")
+    void testUpstreamDto_ValidEndpoint(String endpoint) {
+        UpstreamDto dto = new UpstreamDto();
+        dto.setEndpoint(endpoint);
+
+        Set<ConstraintViolation<UpstreamDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("validEndpointsIncludingEmpty")
+    void testUpstreamDto_ValidResponsesEndpoint(String responsesEndpoint) {
+        UpstreamDto dto = new UpstreamDto();
+        dto.setEndpoint("http://example.com");
+        dto.setResponsesEndpoint(responsesEndpoint);
+
+        Set<ConstraintViolation<UpstreamDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidEndpoints")
+    void testUpstreamDto_InvalidResponsesEndpoint(String responsesEndpoint) {
+        UpstreamDto dto = new UpstreamDto();
+        dto.setEndpoint("http://example.com");
+        dto.setResponsesEndpoint(responsesEndpoint);
+
+        Set<ConstraintViolation<UpstreamDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isNotEmpty();
+        Assertions.assertThat(violations.stream()
+                        .anyMatch(v -> v.getPropertyPath().toString().equals("responsesEndpoint")))
+                .isTrue();
+    }
+
+    @Test
+    void testUpstreamDto_BothEndpointsNull() {
+        UpstreamDto dto = new UpstreamDto();
+
+        Set<ConstraintViolation<UpstreamDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
     }
 
     // Common valid endpoints (without empty string)

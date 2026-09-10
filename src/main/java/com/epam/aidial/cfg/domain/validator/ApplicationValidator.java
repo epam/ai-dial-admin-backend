@@ -133,9 +133,11 @@ public class ApplicationValidator {
 
     private void validateEndpointsSource(Application application, String appName) {
         var mcp = application.getMcp();
-        if (application.getEndpoint() == null && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))
+        if (StringUtils.isBlank(application.getEndpoint())
+                && StringUtils.isBlank(application.getResponsesEndpoint())
+                && (mcp == null || StringUtils.isBlank(mcp.getEndpoint()))
                 && MapUtils.isEmpty(application.getInterfaces())) {
-            throw new IllegalArgumentException("At least application endpoint, MCP endpoint or interfaces must be provided."
+            throw new IllegalArgumentException("At least application endpoint, responses endpoint, MCP endpoint or interfaces must be provided."
                     + " Application: %s".formatted(appName));
         }
     }

@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpointAndLimits;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithMcp;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithResponsesEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createRoleDto;
@@ -138,6 +139,43 @@ public abstract class ApplicationFunctionalTest {
         ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
         Assertions.assertNull(actual.getEndpoint());
         Assertions.assertEquals(applicationDto.getInterfaces(), actual.getInterfaces());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationWithResponsesEndpointOnly() {
+        initRoles();
+
+        ApplicationDto applicationDto = createApplicationDtoWithResponsesEndpoint("1");
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(applicationDto.getResponsesEndpoint(), actual.getResponsesEndpoint());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationWithEndpointOnly() {
+        initRoles();
+
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertEquals(applicationDto.getEndpoint(), actual.getEndpoint());
+        Assertions.assertNull(actual.getResponsesEndpoint());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationWithBothEndpoints() {
+        initRoles();
+
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setResponsesEndpoint("responsesEndpoint1");
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertEquals(applicationDto.getEndpoint(), actual.getEndpoint());
+        Assertions.assertEquals(applicationDto.getResponsesEndpoint(), actual.getResponsesEndpoint());
     }
 
     @Test
