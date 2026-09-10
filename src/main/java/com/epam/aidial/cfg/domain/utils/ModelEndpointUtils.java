@@ -26,6 +26,12 @@ public class ModelEndpointUtils {
     );
 
     public ModelEndpointComponents parseModelEndpoint(String modelEndpoint, ModelType type) {
+        if (StringUtils.isBlank(modelEndpoint)) {
+            log.debug("Unable to extract adapter endpoint and completion endpoint path "
+                    + "from blank model endpoint: {}", modelEndpoint);
+            return null;
+        }
+
         boolean isChat = isChat(type);
         String endpointEnding = MODEL_PATTERN_MAP.get(isChat).getLeft();
         boolean isDirectOpenAiEndpoint = modelEndpoint.endsWith("/v1/" + endpointEnding);
@@ -40,7 +46,7 @@ public class ModelEndpointUtils {
 
         if (!matcher.matches()) {
             log.info("Unable to extract adapter endpoint and completion endpoint path "
-                    + "from model endpoint: " + modelEndpoint);
+                    + "from model endpoint: {}", modelEndpoint);
             return null;
         }
 
@@ -72,7 +78,7 @@ public class ModelEndpointUtils {
 
     public static String concatEndpointAndPath(String baseEndpoint, String endpointPath) {
         if (baseEndpoint == null) {
-            return endpointPath;
+            return null;
         }
         if (endpointPath == null) {
             return baseEndpoint;

@@ -22,8 +22,12 @@ public class ApplicationResource {
     private String name;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
     private String reference;
@@ -31,6 +35,7 @@ public class ApplicationResource {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -46,5 +51,11 @@ public class ApplicationResource {
     private Map<String, Object> applicationProperties;
     private ValidityStateResource validityState;
     private McpResource mcp;
+    private Map<String, ExternalServiceResource> externalServices;
     private String url;
+    private String intro;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.client.ApplicationClient;
 import com.epam.aidial.cfg.client.ResourceClient;
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.dto.ApplicationMetadataDto;
 import com.epam.aidial.cfg.client.mapper.ApplicationClientMapper;
 import com.epam.aidial.cfg.client.mapper.FolderMapper;
@@ -10,7 +11,6 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.service.ApplicationTypeSchemaService;
 import com.epam.aidial.cfg.domain.service.ToolCallService;
-import com.epam.aidial.cfg.domain.service.ToolDiscoveryService;
 import com.epam.aidial.cfg.domain.utils.CoreClientUrlUtils;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -29,6 +29,7 @@ import com.epam.aidial.cfg.utils.AuthHeaderUtils;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,13 +51,13 @@ public class ApplicationResourceService implements ResourceService {
     private static final String BASE_PATH = "public/";
 
     private final ApplicationClient applicationClient;
+    private final ToolsClient toolsClient;
     private final ApplicationClientMapper applicationClientMapper;
     private final ResourceClient resourceClient;
     private final ResourceClientMapper resourceClientMapper;
     private final FolderMapper folderMapper;
     private final ApplicationResourceValidityStateOnGetResolver applicationResourceValidityStateOnGetResolver;
     private final CoreClientUrlUtils coreClientUrlUtils;
-    private final ToolDiscoveryService toolDiscoveryService;
     private final ToolCallService toolCallService;
     private final ApplicationTypeSchemaService applicationTypeSchemaService;
 
@@ -144,7 +145,7 @@ public class ApplicationResourceService implements ResourceService {
     public String createApplicationResource(CreateApplicationResource createApplicationResource) {
         try {
             return putApplicationResource(createApplicationResource, false, null);
-        } catch (ResourcePreconditionFailedException ex) {
+        } catch (OptimisticLockConflictException ex) {
             throw new EntityAlreadyExistsException("Application with name " + createApplicationResource.getName() + " already exists");
         }
     }
@@ -176,7 +177,7 @@ public class ApplicationResourceService implements ResourceService {
         var transport = resolveTransport(application, application.getName());
 
         var url = String.format(
-                "%s/v1/toolset/%s/mcp",
+                "%s/v1/deployments/%s/mcp",
                 coreClientUrlUtils.getNormalizedCoreClientUrl(),
                 application.getUrl()
         );
@@ -189,22 +190,7 @@ public class ApplicationResourceService implements ResourceService {
 
     @Transactional(readOnly = true)
     public McpSchema.ListToolsResult getDiscoveredTools(String path, String nextCursor) {
-        var application = getApplicationResource(path);
-
-        var transport = resolveTransport(application, application.getName());
-
-        var url = String.format(
-                "%s/v1/toolset/%s/mcp?useAllowedTools=false",
-                coreClientUrlUtils.getNormalizedCoreClientUrl(),
-                application.getUrl()
-        );
-
-        return toolDiscoveryService.discoverTools(
-                url,
-                transport,
-                nextCursor,
-                AuthHeaderUtils.getAuthHeaders()
-        );
+        return toolsClient.getTools(APPLICATIONS_PREFIX + path, nextCursor);
     }
 
     private ToolSet.Transport resolveTransport(ApplicationResource application, String applicationName) {
@@ -212,7 +198,7 @@ public class ApplicationResourceService implements ResourceService {
             return ToolSet.Transport.valueOf(application.getMcp().getTransport().name());
         }
 
-        if (application.getApplicationTypeSchemaId() != null) {
+        if (StringUtils.isNotBlank(application.getApplicationTypeSchemaId())) {
             var schema = applicationTypeSchemaService.get(application.getApplicationTypeSchemaId());
 
             if (schema != null && schema.getApplicationTypeMcp() != null) {

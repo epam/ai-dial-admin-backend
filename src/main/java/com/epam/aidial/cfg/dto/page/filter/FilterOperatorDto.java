@@ -9,4 +9,7 @@ public enum FilterOperatorDto {
     gt,
     co,
     nc,
+    in,
+    isnull,
+    isnotnull
 }

@@ -1,5 +1,6 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.epam.aidial.cfg.utils.SecretUtils;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -14,7 +15,9 @@ public class ResourceAuthSettingsDto {
 
     private String clientId;
     private String clientSecret;
+    @Endpoint
     private String authorizationEndpoint;
+    @Endpoint
     private String tokenEndpoint;
     private String redirectUri;
     private String codeChallenge;
@@ -25,6 +28,9 @@ public class ResourceAuthSettingsDto {
     private ResourceAuthStatus userLevelAuthStatus;
     private ResourceAuthStatus appLevelAuthStatus;
     private List<String> scopesSupported;
+    @NotNull(message = "Authentication method must be defined")
+    private TokenEndpointAuthMethodDto tokenEndpointAuthMethod = TokenEndpointAuthMethodDto.CLIENT_SECRET_BASIC;
+    private Boolean dynamicallyRegistered;
 
     @Override
     public String toString() {
@@ -42,6 +48,7 @@ public class ResourceAuthSettingsDto {
                 + ", userLevelAuthStatus=" + getUserLevelAuthStatus()
                 + ", appLevelAuthStatus=" + getAppLevelAuthStatus()
                 + ", scopesSupported=" + getScopesSupported()
+                + ", tokenEndpointAuthMethod" + getTokenEndpointAuthMethod()
                 + ')';
     }
 

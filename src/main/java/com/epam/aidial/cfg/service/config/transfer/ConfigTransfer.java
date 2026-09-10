@@ -93,7 +93,7 @@ public class ConfigTransfer {
     private StreamingResponseBody exportCoreConfig(ExportConfig config) {
         Config fullCoreConfig = configMapper.toCoreConfig(config);
         normalizers.forEach(n -> n.normalize(fullCoreConfig));
-        Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(fullCoreConfig);
+        JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(fullCoreConfig);
         return outputStream -> {
             try {
                 prettyJsonMapper.writeValue(outputStream, versionedConfig);

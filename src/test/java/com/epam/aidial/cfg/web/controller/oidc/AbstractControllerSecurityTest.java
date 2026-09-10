@@ -33,14 +33,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         "config.rest.security.mode=oidc",
         "config.rest.security.default.email-claim=unique_name",
         "config.rest.security.default.principal-claim=" + PRINCIPAL_CLAIM,
-        "config.rest.security.default.allowedRoles=ConfigAdmin,admin",
-        "config.rest.security.default.roles-mapping={}",
+        "config.rest.security.default.roles-mapping={\"ConfigAdmin\":[\"FULL_ADMIN\"],\"admin\":[\"FULL_ADMIN\"]}",
 
         "providers.test.issuer=" + TEST_ISSUER,
         "providers.test.jwk-set-uri=https://test/keys",
         "providers.test.audiences=" + AbstractControllerSecurityTest.TEST_AUDIENCE,
         "providers.test.role-claims=roles, resource_access.roles",
-        "providers.test.allowed-roles=testRole",
+        "providers.test.roles-mapping={\"testRole\":[\"FULL_ADMIN\"]}",
         "providers.test.email-claims=email",
 
         "providers.test2.issuer=" + TEST_ISSUER_2,

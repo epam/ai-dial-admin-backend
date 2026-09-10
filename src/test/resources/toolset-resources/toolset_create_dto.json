@@ -12,5 +12,6 @@
   "icon_url": "",
   "maxRetryAttempts": 10,
   "transport": "HTTP",
-  "forwardPerRequestKey": true
+  "forwardPerRequestKey": true,
+  "forwardAuthToken": true
 }

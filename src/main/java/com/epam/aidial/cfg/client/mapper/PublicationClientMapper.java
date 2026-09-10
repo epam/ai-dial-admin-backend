@@ -81,7 +81,7 @@ public interface PublicationClientMapper {
     }
 
     @Mapping(target = "requestName", source = "dto.name")
-    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "folderId", source = "dto.targetFolder", qualifiedByName = "decodePath")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
     PromptPublication toPromptPublication(PublicationDto dto, String path, List<PromptPublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
@@ -92,7 +92,7 @@ public interface PublicationClientMapper {
     }
 
     @Mapping(target = "requestName", source = "dto.name")
-    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "folderId", source = "dto.targetFolder", qualifiedByName = "decodePath")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
     FilePublication toFilePublication(PublicationDto dto, String path, List<FilePublicationResource> resources, List<PublicationResourceIssue> resourceIssues);
@@ -104,7 +104,7 @@ public interface PublicationClientMapper {
     }
 
     @Mapping(target = "requestName", source = "dto.name")
-    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "folderId", source = "dto.targetFolder", qualifiedByName = "decodePath")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
@@ -118,7 +118,7 @@ public interface PublicationClientMapper {
     }
 
     @Mapping(target = "requestName", source = "dto.name")
-    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "folderId", source = "dto.targetFolder", qualifiedByName = "decodePath")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
@@ -132,7 +132,7 @@ public interface PublicationClientMapper {
     }
 
     @Mapping(target = "requestName", source = "dto.name")
-    @Mapping(target = "folderId", source = "dto.targetFolder")
+    @Mapping(target = "folderId", source = "dto.targetFolder", qualifiedByName = "decodePath")
     @Mapping(target = "resources", source = "resources")
     @Mapping(target = "files", source = "files")
     @Mapping(target = "resourceIssues", source = "resourceIssues")
@@ -187,7 +187,7 @@ public interface PublicationClientMapper {
         return CoreMetadataUtils.decodePath(path);
     }
 
-    @Mapping(target = "targetFolder", source = "publication.folderId")
+    @Mapping(target = "targetFolder", source = "publication.folderId", qualifiedByName = "encodeFolderPath")
     @Mapping(target = "resourceTypes", source = "list", qualifiedByName = "getResourcesTypes")
     @Mapping(target = "name", source = "publication.requestName")
     @Mapping(target = "url", expression = "java(\"publications/\" + publication.getPath())")

@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.domain.service;
 
 import com.epam.aidial.cfg.configuration.logging.LogExecution;
+import com.epam.aidial.cfg.dao.audit.listener.AuditParentActivityHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,23 +26,28 @@ public class RollbackService {
     private final InterceptorRunnerService interceptorRunnerService;
     private final GlobalSettingsService globalSettingsService;
     private final AdminSettingsService adminSettingsService;
+    private final AuditActivityLogService auditActivityLogService;
+    private final AuditParentActivityHolder auditParentActivityHolder;
 
     @Transactional
     public void rollbackToRevision(Number revision) {
-        roleService.rollbackRoles(revision);
-        keyService.rollbackKeys(revision);
-        modelService.rollbackModels(revision);
-        adapterService.rollbackAdapters(revision);
-        addonService.rollbackAddons(revision);
-        toolSetService.rollbackToolSets(revision);
-        applicationService.rollbackApplications(revision);
-        applicationTypeSchemaService.rollbackApplicationTypeSchemas(revision);
-        assistantService.rollbackAssistants(revision);
-        assistantsPropertyService.rollbackAssistantsProperties(revision);
-        routeService.rollbackRoutes(revision);
-        interceptorService.rollbackInterceptors(revision);
-        interceptorRunnerService.rollbackInterceptorRunners(revision);
-        globalSettingsService.rollbackGlobalSettings(revision);
-        adminSettingsService.rollbackAdminSettings(revision);
+        var parentId = auditActivityLogService.logRollbackOperation(revision);
+        try (var scope = auditParentActivityHolder.openScope(parentId)) {
+            roleService.rollbackRoles(revision);
+            keyService.rollbackKeys(revision);
+            modelService.rollbackModels(revision);
+            adapterService.rollbackAdapters(revision);
+            addonService.rollbackAddons(revision);
+            toolSetService.rollbackToolSets(revision);
+            applicationService.rollbackApplications(revision);
+            applicationTypeSchemaService.rollbackApplicationTypeSchemas(revision);
+            assistantService.rollbackAssistants(revision);
+            assistantsPropertyService.rollbackAssistantsProperties(revision);
+            routeService.rollbackRoutes(revision);
+            interceptorService.rollbackInterceptors(revision);
+            interceptorRunnerService.rollbackInterceptorRunners(revision);
+            globalSettingsService.rollbackGlobalSettings(revision);
+            adminSettingsService.rollbackAdminSettings(revision);
+        }
     }
 }

@@ -6,7 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {
-        InstantMapper.class, InterceptorSourceDtoMapper.class, FeaturesDtoMapper.class
+        InstantMapper.class, InterceptorSourceDtoMapper.class, FeaturesDtoMapper.class,
+        DeploymentInterfaceDtoMapper.class
 })
 public interface InterceptorDtoMapper {
 

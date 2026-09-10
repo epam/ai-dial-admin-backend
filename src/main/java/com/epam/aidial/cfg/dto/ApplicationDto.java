@@ -1,8 +1,10 @@
 package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
+import com.epam.aidial.cfg.dto.source.ApplicationSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -25,17 +27,24 @@ public class ApplicationDto extends RoleBasedDto {
     private String endpoint;
     @Endpoint
     private String responsesEndpoint;
+    @Valid
+    private Map<String, DeploymentInterfaceDto> interfaces;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private FeaturesDto features = new FeaturesDto();
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private TreeSet<String> topics;
     @Positive(message = "Max retry attempts should be greater than 0")
@@ -56,9 +65,16 @@ public class ApplicationDto extends RoleBasedDto {
 
     private Map<String, Object> applicationProperties = new HashMap<>();
 
-    private URI customAppSchemaId;
+    private ApplicationSourceDto source;
     private ValidityStateDto validityState;
     private McpDto mcp;
+    @Valid
+    private Map<String, ExternalServiceDto> externalServices;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public void setFunction(FunctionDto function) {
         if (function != null) {

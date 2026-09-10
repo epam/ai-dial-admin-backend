@@ -3,10 +3,13 @@ package com.epam.aidial.cfg.functional.config;
 import com.epam.aidial.cfg.client.AnonymousCoreConfigClient;
 import com.epam.aidial.cfg.client.DeploymentClient;
 import com.epam.aidial.cfg.client.ResourceCredentialClient;
+import com.epam.aidial.cfg.client.ToolsClient;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapper;
 import com.epam.aidial.cfg.client.mapper.DeploymentClientMapperImpl;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapper;
 import com.epam.aidial.cfg.client.mapper.ResourceCredentialClientMapperImpl;
+import com.epam.aidial.cfg.client.mapper.RouteMapper;
+import com.epam.aidial.cfg.client.mapper.RouteMapperImpl;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.AutoImportOnBootstrapProperties;
 import com.epam.aidial.cfg.configuration.ConfigExportProperties;
@@ -186,8 +189,18 @@ public class FunctionalTestConfiguration {
     }
 
     @Bean
+    public RouteMapper routeMapper() {
+        return new RouteMapperImpl();
+    }
+
+    @Bean
     public DeploymentClient deploymentClient() {
         return Mockito.mock(DeploymentClient.class);
+    }
+
+    @Bean
+    public ToolsClient toolsClient() {
+        return Mockito.mock(ToolsClient.class);
     }
 
     @Bean

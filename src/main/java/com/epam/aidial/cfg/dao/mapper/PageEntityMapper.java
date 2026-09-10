@@ -9,6 +9,7 @@ import org.mapstruct.Mapper;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,7 +45,8 @@ public interface PageEntityMapper {
             }
             final Expression<String> column;
             final String value;
-            if (specificationContext.caseInSensitiveColumns().contains(filter.getColumn())) {
+            if (specificationContext.caseInSensitiveColumns().contains(filter.getColumn())
+                    && filter.getValue() != null) {
                 column = criteriaBuilder.lower(root.get(filter.getColumn()));
                 value = filter.getValue().toLowerCase();
             } else {
@@ -52,6 +54,12 @@ public interface PageEntityMapper {
                 value = filter.getValue();
             }
             switch (filter.getOperator()) {
+                case isnull -> {
+                    return criteriaBuilder.isNull(column);
+                }
+                case isnotnull -> {
+                    return criteriaBuilder.isNotNull(column);
+                }
                 case eq -> {
                     return criteriaBuilder.equal(column, value);
                 }
@@ -75,6 +83,14 @@ public interface PageEntityMapper {
                 }
                 case nc -> {
                     return criteriaBuilder.notLike(column, "%" + value + "%");
+                }
+                case in -> {
+                    Set<String> values = Arrays.stream(value.split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isBlank())
+                            .collect(Collectors.toSet());
+
+                    return column.in(values);
                 }
                 default -> throw new IllegalArgumentException("Operator " + filter.getOperator() + " is not supported");
             }

@@ -18,6 +18,7 @@ import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,8 +44,10 @@ public class CoreModelService {
     public CoreWithDomainHash<CoreModel> getCoreModelWithHash(String modelName) {
         var modelWithHash = modelService.getModelWithHash(modelName);
         var model = modelWithHash.model();
-        var endpoint = getModelEndpoint(model);
-        var coreModel = modelCoreMapper.mapModel(model, endpoint);
+        var modelEndpoints = getModelEndpoints(model);
+        var endpoint = modelEndpoints.getLeft();
+        var responsesEndpoint = modelEndpoints.getRight();
+        var coreModel = modelCoreMapper.mapModel(model, endpoint, responsesEndpoint);
         return new CoreWithDomainHash<>(coreModel, modelWithHash.hash());
     }
 
@@ -78,8 +81,10 @@ public class CoreModelService {
         assertModelWasNotUpdated(modelWithHash, hash, OptimisticLockConflictException::onGetSyncState);
 
         var model = modelWithHash.model();
-        var endpoint = getModelEndpoint(model);
-        var coreModel = modelCoreMapper.mapModel(model, endpoint);
+        var modelEndpoints = getModelEndpoints(model);
+        var endpoint = modelEndpoints.getLeft();
+        var responsesEndpoint = modelEndpoints.getRight();
+        var coreModel = modelCoreMapper.mapModel(model, endpoint, responsesEndpoint);
 
         return entitySyncStateResolver.resolveForEntityInObject(
                 coreModel,
@@ -89,12 +94,15 @@ public class CoreModelService {
         );
     }
 
-    private String getModelEndpoint(Model model) {
+    private Pair<String, String> getModelEndpoints(Model model) {
         if (model.getSource() instanceof ModelAdapterSource adapterSource) {
             var adapter = adapterService.get(adapterSource.getAdapterName());
-            return ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath());
+            return Pair.of(
+                    ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()),
+                    adapter.getResponsesEndpoint()
+            );
         }
-        return model.getEndpoint();
+        return Pair.of(model.getEndpoint(), model.getResponsesEndpoint());
     }
 
     private void assertHashNotNull(String modelName, String hash) {

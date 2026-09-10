@@ -1,9 +1,11 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +25,7 @@ public abstract class Deployment extends RoleBasedEntity {
     private String iconUrl;
     private String description;
     private String reference;
+    private String intro; //0.46.0
     /**
      * Forward Http header with authorization token when request is sent to deployment.
      * Authorization token is NOT forwarded by default.
@@ -38,6 +41,16 @@ public abstract class Deployment extends RoleBasedEntity {
      * Default parameters are applied if a request doesn't contain them in OpenAI chat/completions API call.
      */
     private Map<String, Object> defaults = new HashMap<>();
+    /**
+     * Default parameters are applied if a request doesn't contain them in OpenAI Responses API call.
+     */
+    @JsonAlias({"responses_defaults", "responsesDefaults"})
+    private Map<String, Object> responsesDefaults = Map.of(); //0.43.0
+    /**
+     * Supported LLM API interfaces keyed by interface-type value. Peer of endpoint/responsesEndpoint.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, CoreDeploymentInterface> interfaces = Map.of(); //0.46.0
     /**
      * List of interceptors to be called for the deployment
      */
@@ -69,4 +82,37 @@ public abstract class Deployment extends RoleBasedEntity {
      * Dependent deployments
      */
     private List<String> dependencies = List.of(); // 0.27.0
+
+    /**
+     * Catalog schema reference for marketplace/catalog display metadata validation.
+     */
+    @JsonAlias({"catalogSchemaId", "catalog_schema_id"})
+    private URI catalogSchemaId; // 0.47.0
+
+    /**
+     * Curated marketplace/catalog display metadata, validated against {@link #catalogSchemaId}.
+     */
+    @JsonAlias({"catalogProperties", "catalog_properties"})
+    private Map<String, Object> catalogProperties; // 0.47.0
+
+    /**
+     * If it's set then the deployment name is overridden with that name in the request body to the adapter.
+     */
+    @JsonAlias({"overrideName", "override_name"})
+    private String overrideName; // 0.47.0
+
+    /**
+     * Default HTTP headers to include in requests to the deployment.
+     */
+    @JsonAlias({"defaultHeaders", "default_headers"})
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> defaultHeaders = Map.of(); // 0.48.0
+
+    /**
+     * Base URL for the deployment endpoint.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonAlias({"baseUrl", "base_url"})
+    private String baseUrl; // 0.48.0
+
 }

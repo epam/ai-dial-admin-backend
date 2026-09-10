@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dao.audit.model;
 
 import com.epam.aidial.cfg.domain.model.activity.ActivityResourceType;
 import com.epam.aidial.cfg.domain.model.activity.ActivityType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -29,4 +30,8 @@ public class AuditActivityEntity {
     private String initiatedAuthor;
     private String initiatedEmail;
     private Integer revision;
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    private UUID parentActivityId;
+    @Column(columnDefinition = "CLOB")
+    private String operationMetadata;
 }

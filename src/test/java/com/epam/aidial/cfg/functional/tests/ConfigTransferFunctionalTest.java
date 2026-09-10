@@ -13,6 +13,8 @@ import com.epam.aidial.cfg.domain.model.ExportKeyInfo;
 import com.epam.aidial.cfg.domain.model.ImportConfigPreview;
 import com.epam.aidial.cfg.domain.model.Model;
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.service.DatabaseService;
@@ -24,6 +26,7 @@ import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.AttachmentPathDto;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
+import com.epam.aidial.cfg.dto.ExternalServiceDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -36,12 +39,15 @@ import com.epam.aidial.cfg.dto.ResourceTypeDto;
 import com.epam.aidial.cfg.dto.ResponseDto;
 import com.epam.aidial.cfg.dto.RoleDto;
 import com.epam.aidial.cfg.dto.ShareResourceLimitDto;
+import com.epam.aidial.cfg.dto.TokenEndpointAuthMethodDto;
 import com.epam.aidial.cfg.dto.ToolSetDto;
 import com.epam.aidial.cfg.dto.ToolSetDto.TransportDto;
 import com.epam.aidial.cfg.dto.UpstreamDto;
+import com.epam.aidial.cfg.dto.UpstreamInterfaceDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto;
 import com.epam.aidial.cfg.dto.route.DependentRouteDto.ResourceAccessType;
 import com.epam.aidial.cfg.dto.route.RouteDto;
+import com.epam.aidial.cfg.dto.source.ApplicationSchemaSourceDto;
 import com.epam.aidial.cfg.dto.source.InterceptorRunnerSourceDto;
 import com.epam.aidial.cfg.dto.source.ModelAdapterSourceDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
@@ -71,14 +77,15 @@ import com.epam.aidial.cfg.web.facade.RouteFacade;
 import com.epam.aidial.cfg.web.facade.ToolSetFacade;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreApplicationTypeSchema;
+import com.epam.aidial.core.config.CoreExternalService;
 import com.epam.aidial.core.config.CoreRoute;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -115,6 +122,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createAdapterDto;
+import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createApplicationDtoWithEndpoint;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createBaseApplicationDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorDto;
 import static com.epam.aidial.cfg.functional.utils.FunctionalTestHelper.createInterceptorRunnerDto;
@@ -227,7 +235,8 @@ public abstract class ConfigTransferFunctionalTest {
 
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(applicationDto.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Assertions.assertThat(applicationDto.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(((ApplicationSchemaSourceDto) applicationDto.getSource()).applicationTypeSchemaId().toString()).isEqualTo("https://test-schema-id.example");
         ApplicationDto applicationDto2 = applicationFacade.getApplication("testApplication2");
         Assertions.assertThat(applicationDto2.getDefaults()).containsExactlyInAnyOrderEntriesOf(Map.of("defaults_key", "defaults_value"));
 
@@ -991,7 +1000,7 @@ public abstract class ConfigTransferFunctionalTest {
                                     var upstream = upstreams.get(0);
                                     var expectedUpstream = route1.getUpstreams().get(0);
                                     Assertions.assertThat(upstream.getEndpoint()).isEqualTo(expectedUpstream.getEndpoint());
-                                    Assertions.assertThat(upstream.getKey()).isEqualTo(expectedUpstream.getKey());
+                                    Assertions.assertThat(upstream.getKey()).isNull();
                                     Assertions.assertThat(upstream.getExtraData()).isEqualTo(expectedUpstream.getExtraData());
                                 });
                     });
@@ -1056,12 +1065,12 @@ public abstract class ConfigTransferFunctionalTest {
         URI customAppSchemaId = new URI("https://test-schema-id.example");
 
         ApplicationDto applicationDto1 = createBaseApplicationDto("1");
-        applicationDto1.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto1.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         applicationDto1.setTopics(new TreeSet<>(Set.of("b", "c", "d")));
         applicationFacade.createApplication(applicationDto1);
 
         ApplicationDto applicationDto2 = createBaseApplicationDto("2");
-        applicationDto2.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto2.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         applicationDto2.setTopics(new TreeSet<>(Set.of("c", "d")));
         applicationFacade.createApplication(applicationDto2);
 
@@ -1140,7 +1149,11 @@ public abstract class ConfigTransferFunctionalTest {
                     .containsOnlyKeys(applicationDto1.getName())
                     .satisfies(apps -> {
                         Application app = apps.get(applicationDto1.getName());
-                        Assertions.assertThat(app.getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
+                        Assertions.assertThat(app.getSource())
+                                .isInstanceOf(ApplicationSchemaSource.class);
+                        var schemaSource = (ApplicationSchemaSource) app.getSource();
+                        Assertions.assertThat(schemaSource.getApplicationTypeSchemaId())
+                                .isEqualTo(customAppSchemaId);
                     });
             Assertions.assertThat(config.getModels()).isNotEmpty()
                     .containsOnlyKeys(modelDto1.getName());
@@ -1177,7 +1190,7 @@ public abstract class ConfigTransferFunctionalTest {
         URI customAppSchemaId = new URI("https://test-schema-id.example");
 
         ApplicationDto applicationDto1 = createBaseApplicationDto("1");
-        applicationDto1.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto1.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         applicationDto1.setTopics(new TreeSet<>(Set.of("b", "c", "d")));
         applicationFacade.createApplication(applicationDto1);
 
@@ -1193,7 +1206,8 @@ public abstract class ConfigTransferFunctionalTest {
                     .containsOnlyKeys(applicationDto1.getName())
                     .satisfies(apps -> {
                         Application app = apps.get(applicationDto1.getName());
-                        Assertions.assertThat(app.getApplicationTypeSchemaId()).isNull();
+                        Assertions.assertThat(app.getSource())
+                                .isInstanceOf(ApplicationEndpointsSource.class);
                     });
         });
     }
@@ -1363,7 +1377,7 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto applicationDto = createBaseApplicationDto("1");
         applicationDto.setInterceptors(List.of("interceptor1"));
         URI customAppSchemaId = new URI("https://test-schema-id.example");
-        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         var dto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
         });
         applicationTypeSchemaFacade.create(dto);
@@ -1401,7 +1415,7 @@ public abstract class ConfigTransferFunctionalTest {
 
         URI customAppSchemaId = new URI("https://test-schema-id.example");
         ApplicationDto applicationDto = createBaseApplicationDto("1");
-        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
 
         ApplicationTypeSchemaDto schemaDto = jsonMapper.readValue(
                 getAppRunnerDtoWithRequiredFields(List.of("external_url")),
@@ -1519,7 +1533,7 @@ public abstract class ConfigTransferFunctionalTest {
         shareResourceLimitDto.setMaxAcceptedUsers(10);
         applicationDto.setRoleLimits(Map.of("role1", limitDto));
         URI customAppSchemaId = new URI("https://test-schema-id.example");
-        applicationDto.setCustomAppSchemaId(customAppSchemaId);
+        applicationDto.setSource(new ApplicationSchemaSourceDto(customAppSchemaId));
         var dto = jsonMapper.readValue(getAppRunnerDto(), new TypeReference<ApplicationTypeSchemaDto>() {
         });
         applicationTypeSchemaFacade.create(dto);
@@ -1533,7 +1547,11 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getApplications()).isNotEmpty()
                     .containsOnlyKeys("application1")
                     .satisfies(apps -> {
-                        Assertions.assertThat(apps.get("application1").getApplicationTypeSchemaId()).isEqualTo(customAppSchemaId);
+                        Assertions.assertThat(apps.get("application1").getSource())
+                                .isInstanceOf(ApplicationSchemaSource.class);
+                        var schemaSource = (ApplicationSchemaSource) apps.get("application1").getSource();
+                        Assertions.assertThat(schemaSource.getApplicationTypeSchemaId())
+                                .isEqualTo(customAppSchemaId);
                         Assertions.assertThat(apps.get("application1").getDeployment().getRoleLimits()).isNull();
                     });
 
@@ -1616,7 +1634,7 @@ public abstract class ConfigTransferFunctionalTest {
                                     Assertions.assertThat(upstreams).isNotEmpty();
                                     var upstream = upstreams.get(0);
                                     Assertions.assertThat(upstream.getEndpoint()).isEqualTo("http://upstream.com/api");
-                                    Assertions.assertThat(upstream.getKey()).isEqualTo("123");
+                                    Assertions.assertThat(upstream.getKey()).isEqualTo(null);
                                     Assertions.assertThat(upstream.getExtraData()).isEqualTo("{\"field1\":\"val1\"}");
                                 });
                     });
@@ -1704,7 +1722,21 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getModels()).isNotEmpty().containsOnlyKeys("testModel1")
                     .satisfies(models ->
                             Assertions.assertThat(models.get("testModel1").getInterceptors()).containsExactlyInAnyOrder("testInterceptor1"));
-            Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1");
+            Assertions.assertThat(config.getRoutes()).isNotEmpty().containsOnlyKeys("test_route1")
+                    .satisfies(routes -> {
+                        var route = routes.get("test_route1");
+                        Assertions.assertThat(route.getUpstreams()).isNotEmpty();
+                        route.getUpstreams().forEach(upstream -> {
+                            if (addSecrets) {
+                                Assertions.assertThat(upstream.getKey()).isNotNull();
+                                Assertions.assertThat(upstream.getSecretExtraData()).isNotNull();
+                            } else {
+                                Assertions.assertThat(upstream.getKey()).isNull();
+                                Assertions.assertThat(upstream.getSecretExtraData()).isNull();
+                            }
+                            Assertions.assertThat(upstream.getExtraData()).isNotNull();
+                        });
+                    });
             Assertions.assertThat(config.getInterceptors()).isNotEmpty().containsOnlyKeys("testInterceptor1");
             Assertions.assertThat(config.getApplicationTypeSchemas()).isNotEmpty().containsOnlyKeys("https://test-schema-id.example");
         });
@@ -1889,7 +1921,7 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     @Test
-    void testExport_CoreFormatAll_FullRequest() throws IOException, JSONException {
+    void testExport_CoreFormatAll_FullRequest() throws IOException {
         // given
         String importConfig = ResourceUtils.readResource("/import_for_export.json");
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -1899,8 +1931,8 @@ public abstract class ConfigTransferFunctionalTest {
                 importConfig.getBytes()
         );
 
-        Config expectedConfigObj = jsonMapper.readValue(ResourceUtils.readResource("/full_core_export.json"), Config.class);
-        String expectedConfig = prettyJsonMapper.writeValueAsString(expectedConfigObj);
+        JsonNode expectedConfigNode = jsonMapper.readTree(ResourceUtils.readResource("/full_core_export.json"));
+        String expectedConfig = prettyJsonMapper.writeValueAsString(expectedConfigNode);
 
         doReturn(123L).when(transactionTimestampContext).getTimestamp();
 
@@ -1964,7 +1996,10 @@ public abstract class ConfigTransferFunctionalTest {
             Assertions.assertThat(config.getApplications()).isNotEmpty().containsOnlyKeys("testApplication1")
                     .satisfies(apps -> {
                         Assertions.assertThat(apps.get("testApplication1").getInterceptors()).containsExactlyInAnyOrder("testInterceptor1");
-                        Assertions.assertThat(apps.get("testApplication1").getApplicationTypeSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
+                        Assertions.assertThat(apps.get("testApplication1").getSource())
+                                .isInstanceOf(ApplicationSchemaSource.class);
+                        Assertions.assertThat(((ApplicationSchemaSource) apps.get("testApplication1").getSource())
+                                .getApplicationTypeSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
                     });
             Assertions.assertThat(config.getModels()).isNotEmpty().containsOnlyKeys("testModel1")
                     .satisfies(models ->
@@ -2414,7 +2449,10 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto application2 = applicationFacade.getApplication("testApplication2");
 
         Assertions.assertThat(application1.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(application1.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(((ApplicationSchemaSourceDto) application1.getSource())
+                .applicationTypeSchemaId().toString()).isEqualTo("https://test-schema-id.example");
 
         var appRoute = application2.getRoutes().get(0);
         var expectedRoute = getDependentRouteDto("route1");
@@ -2510,7 +2548,10 @@ public abstract class ConfigTransferFunctionalTest {
         ApplicationDto application2 = applicationFacade.getApplication("testApplication2");
 
         Assertions.assertThat(application1.getInterceptors()).hasSize(1).first().isEqualTo("testInterceptor1");
-        Assertions.assertThat(application1.getCustomAppSchemaId().toString()).isEqualTo("https://test-schema-id.example");
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(application1.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+        Assertions.assertThat(((ApplicationSchemaSourceDto) application1.getSource())
+                .applicationTypeSchemaId().toString()).isEqualTo("https://test-schema-id.example");
 
         var appRoute = application2.getRoutes().get(0);
         var expectedRoute = getDependentRouteDto("route1");
@@ -2612,7 +2653,9 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app -> {
-            Assertions.assertThat(app.getCustomAppSchemaId()).isEqualTo(new URI("https://test2-schema-id.example"));
+            Assertions.assertThat(app.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+            Assertions.assertThat(((ApplicationSchemaSourceDto) app.getSource())
+                    .applicationTypeSchemaId()).isEqualTo(new URI("https://test2-schema-id.example"));
             Assertions.assertThat(app.getInterceptors()).containsExactlyInAnyOrder("testInterceptor1", "testInterceptor2");
         });
     }
@@ -2638,7 +2681,9 @@ public abstract class ConfigTransferFunctionalTest {
         // then
         ApplicationDto applicationDto = applicationFacade.getApplication("testApplication1");
         Assertions.assertThat(applicationDto).isNotNull().satisfies(app -> {
-            Assertions.assertThat(app.getCustomAppSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
+            Assertions.assertThat(app.getSource()).isInstanceOf(ApplicationSchemaSourceDto.class);
+            Assertions.assertThat(((ApplicationSchemaSourceDto) app.getSource())
+                    .applicationTypeSchemaId()).isEqualTo(new URI("https://test-schema-id.example"));
         });
     }
 
@@ -2814,6 +2859,370 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(importConfigPreview).usingRecursiveAssertion().isEqualTo(expectedPreview);
     }
 
+    /**
+     * With "Include secrets" off nothing secret reaches the export, on either the upstream or the
+     * interface level; with it on nothing is stripped. Without the "on" case, stripping every
+     * interface unconditionally would pass just as well.
+     */
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExport_CoreFormatUpstreamSecrets(boolean addSecrets) throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("model-upstream-1");
+        upstream.setEndpoint("https://api.example.com");
+        upstream.setKey("secret-api-key-12345");
+        upstream.setSecretExtraData("{\"apiSecret\":\"super-secret-value\"}");
+        upstream.setExtraData("{\"timeout\":30}");
+        upstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://api.example.com/v1/chat/completions",
+                        "interface-secret-key", "{\"interfaceSecret\":\"nested-super-secret\"}",
+                        "{\"nested\":true}")));
+        modelDto.setUpstreams(List.of(upstream));
+        modelFacade.createModel(modelDto);
+
+        RouteDto routeDto = createRouteDto("1");
+        UpstreamDto routeUpstream = new UpstreamDto();
+        routeUpstream.setId("route-upstream-1");
+        routeUpstream.setEndpoint("https://route.example.com");
+        routeUpstream.setKey("route-secret-key");
+        routeUpstream.setSecretExtraData("{\"token\":\"route-secret-token\"}");
+        routeUpstream.setExtraData("{\"retries\":3}");
+        routeUpstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://route.example.com/v1/chat/completions",
+                        "route-interface-secret-key", "{\"interfaceToken\":\"nested-route-secret\"}",
+                        "{\"nestedRetries\":5}")));
+        routeDto.setUpstreams(List.of(routeUpstream));
+        routeFacade.createRoute(routeDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setAddSecrets(addSecrets);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROUTE));
+
+        String originalVersion = versionProperties.getTarget();
+        // Upstream.interfaces only exists from 0.48.0 - an older target strips the whole subtree
+        versionProperties.setTarget("0.48.0");
+
+        String exportedJson;
+        try {
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+            exportedJson = outputStream.toString();
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
+
+        Config result = jsonMapper.readValue(exportedJson, Config.class);
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result.getModels()).containsKey("model1");
+        Assertions.assertThat(result.getModels().get("model1").getUpstreams()).hasSize(1);
+        Assertions.assertThat(result.getRoutes()).containsKey("route1");
+        Assertions.assertThat(result.getRoutes().get("route1").getUpstreams()).hasSize(1);
+
+        var modelUpstream = result.getModels().get("model1").getUpstreams().get(0);
+        var routeUpstreamResult = result.getRoutes().get("route1").getUpstreams().get(0);
+        Assertions.assertThat(modelUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(routeUpstreamResult.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        var modelInterface = modelUpstream.getInterfaces().get("openaiChatCompletions");
+        var routeInterface = routeUpstreamResult.getInterfaces().get("openaiChatCompletions");
+
+        if (addSecrets) {
+            Assertions.assertThat(modelUpstream.getKey()).isEqualTo("secret-api-key-12345");
+            Assertions.assertThat(modelUpstream.getSecretExtraData())
+                    .isEqualTo("{\"apiSecret\":\"super-secret-value\"}");
+            Assertions.assertThat(modelInterface.getKey()).isEqualTo("interface-secret-key");
+            Assertions.assertThat(modelInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceSecret\":\"nested-super-secret\"}");
+            Assertions.assertThat(routeUpstreamResult.getKey()).isEqualTo("route-secret-key");
+            Assertions.assertThat(routeUpstreamResult.getSecretExtraData())
+                    .isEqualTo("{\"token\":\"route-secret-token\"}");
+            Assertions.assertThat(routeInterface.getKey()).isEqualTo("route-interface-secret-key");
+            Assertions.assertThat(routeInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceToken\":\"nested-route-secret\"}");
+        } else {
+            // Guards against a leak that deserialization into Config could hide
+            Assertions.assertThat(exportedJson).doesNotContain("secret-api-key-12345", "super-secret-value",
+                    "interface-secret-key", "nested-super-secret", "route-secret-key", "route-secret-token",
+                    "route-interface-secret-key", "nested-route-secret");
+
+            Assertions.assertThat(modelUpstream.getKey()).isNull();
+            Assertions.assertThat(modelUpstream.getSecretExtraData()).isNull();
+            Assertions.assertThat(modelInterface.getKey()).isNull();
+            Assertions.assertThat(modelInterface.getSecretExtraData()).isNull();
+            Assertions.assertThat(routeUpstreamResult.getKey()).isNull();
+            Assertions.assertThat(routeUpstreamResult.getSecretExtraData()).isNull();
+            Assertions.assertThat(routeInterface.getKey()).isNull();
+            Assertions.assertThat(routeInterface.getSecretExtraData()).isNull();
+        }
+
+        // Non-secret fields survive either way
+        Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://api.example.com");
+        Assertions.assertThat(modelUpstream.getExtraData()).isEqualTo("{\"timeout\":30}");
+        Assertions.assertThat(modelInterface.getEndpoint()).isEqualTo("https://api.example.com/v1/chat/completions");
+        Assertions.assertThat(modelInterface.getExtraData()).isEqualTo("{\"nested\":true}");
+        Assertions.assertThat(routeUpstreamResult.getEndpoint()).isEqualTo("https://route.example.com");
+        Assertions.assertThat(routeUpstreamResult.getExtraData()).isEqualTo("{\"retries\":3}");
+        Assertions.assertThat(routeInterface.getEndpoint()).isEqualTo("https://route.example.com/v1/chat/completions");
+        Assertions.assertThat(routeInterface.getExtraData()).isEqualTo("{\"nestedRetries\":5}");
+    }
+
+    /**
+     * The upstream itself holds no secret, only its interface does. Such an upstream used to look
+     * secret-free to every stripping site, so it needs a test of its own rather than riding on the
+     * one above.
+     */
+    @Test
+    void testExport_CoreFormatDoesNotLeakInterfaceOnlySecrets() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("model-upstream-1");
+        upstream.setEndpoint("https://api.example.com");
+        upstream.setExtraData("{\"timeout\":30}");
+        upstream.setInterfaces(Map.of("anthropicMessages",
+                createUpstreamInterfaceDto("https://api.example.com/v1/messages",
+                        "interface-only-secret-key", "{\"interfaceSecret\":\"interface-only-secret-value\"}",
+                        "{\"nested\":true}")));
+        modelDto.setUpstreams(List.of(upstream));
+        modelFacade.createModel(modelDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL));
+
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget("0.48.0");
+
+        String exportedJson;
+        try {
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+            exportedJson = outputStream.toString();
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
+
+        Assertions.assertThat(exportedJson)
+                .doesNotContain("interface-only-secret-key", "interface-only-secret-value");
+
+        Config result = jsonMapper.readValue(exportedJson, Config.class);
+        Assertions.assertThat(result.getModels()).containsKey("model1");
+        var exportedUpstream = result.getModels().get("model1").getUpstreams().get(0);
+        Assertions.assertThat(exportedUpstream.getEndpoint()).isEqualTo("https://api.example.com");
+        var exportedInterface = exportedUpstream.getInterfaces().get("anthropicMessages");
+        Assertions.assertThat(exportedInterface).isNotNull();
+        Assertions.assertThat(exportedInterface.getKey()).isNull();
+        Assertions.assertThat(exportedInterface.getSecretExtraData()).isNull();
+        Assertions.assertThat(exportedInterface.getEndpoint()).isEqualTo("https://api.example.com/v1/messages");
+        Assertions.assertThat(exportedInterface.getExtraData()).isEqualTo("{\"nested\":true}");
+    }
+
+    /**
+     * A Core-format config carries an id on each upstream: an upstream declaring interfaces is
+     * addressed by that id, so an import that strips it either loses it silently or fails validation
+     * ("An upstream declaring interfaces requires an id").
+     */
+    @Test
+    void testImport_CoreFormatKeepsUpstreamIdAndInterfaces() throws IOException {
+        String config = FileUtils.readFileToString(
+                new File("src/test/resources/import/import_modelAndRouteWithUpstreamIdAndInterfaces.json"),
+                StandardCharsets.UTF_8);
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                config.getBytes(StandardCharsets.UTF_8)
+        );
+
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        ModelDto model = modelFacade.getModel("testModel1");
+        Assertions.assertThat(model.getUpstreams()).hasSize(1);
+        var modelUpstream = model.getUpstreams().get(0);
+        Assertions.assertThat(modelUpstream.getId()).isEqualTo("model-upstream-1");
+        Assertions.assertThat(modelUpstream.getEndpoint()).isEqualTo("https://upstream.test.com/embeddings");
+        Assertions.assertThat(modelUpstream.getBaseUrl()).isEqualTo("https://upstream.test.com");
+        Assertions.assertThat(modelUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(modelUpstream.getInterfaces().get("openaiChatCompletions").getEndpoint())
+                .isEqualTo("https://upstream.test.com/v1/chat/completions");
+
+        RouteDto route = routeFacade.getRoute("route1");
+        Assertions.assertThat(route.getUpstreams()).hasSize(1);
+        var routeUpstream = route.getUpstreams().get(0);
+        Assertions.assertThat(routeUpstream.getId()).isEqualTo("route-upstream-1");
+        Assertions.assertThat(routeUpstream.getEndpoint()).isEqualTo("https://route-upstream.test.com/api");
+        Assertions.assertThat(routeUpstream.getBaseUrl()).isEqualTo("https://route-upstream.test.com");
+        Assertions.assertThat(routeUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
+        Assertions.assertThat(routeUpstream.getInterfaces().get("openaiChatCompletions").getEndpoint())
+                .isEqualTo("https://route-upstream.test.com/v1/chat/completions");
+    }
+
+    private UpstreamInterfaceDto createUpstreamInterfaceDto(String endpoint, String key,
+                                                            String secretExtraData, String extraData) {
+        UpstreamInterfaceDto upstreamInterface = new UpstreamInterfaceDto();
+        upstreamInterface.setEndpoint(endpoint);
+        upstreamInterface.setKey(key);
+        upstreamInterface.setSecretExtraData(secretExtraData);
+        upstreamInterface.setExtraData(extraData);
+        return upstreamInterface;
+    }
+
+    /**
+     * ADMIN format serializes the domain objects with the plain object mapper, which carries none of the
+     * mixins that hide secrets on the Core side, so it is the format most likely to leak silently.
+     */
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExport_AdminFormatInterfaceSecrets(boolean addSecrets) throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("model-upstream-1");
+        upstream.setEndpoint("https://api.example.com");
+        upstream.setKey("secret-api-key-12345");
+        upstream.setSecretExtraData("{\"apiSecret\":\"super-secret-value\"}");
+        upstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://api.example.com/v1/chat/completions",
+                        "interface-secret-key", "{\"interfaceSecret\":\"nested-super-secret\"}",
+                        "{\"nested\":true}")));
+        modelDto.setUpstreams(List.of(upstream));
+        modelFacade.createModel(modelDto);
+
+        RouteDto routeDto = createRouteDto("1");
+        UpstreamDto routeUpstream = new UpstreamDto();
+        routeUpstream.setId("route-upstream-1");
+        routeUpstream.setEndpoint("https://route.example.com");
+        routeUpstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://route.example.com/v1/chat/completions",
+                        "route-interface-secret-key", "{\"interfaceToken\":\"nested-route-secret\"}",
+                        "{\"nestedRetries\":5}")));
+        routeDto.setUpstreams(List.of(routeUpstream));
+        routeFacade.createRoute(routeDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(addSecrets);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROUTE));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String exportedJson = extractConfigJsonFromZip(streamingResponseBody);
+
+        // then
+        ExportConfig result = jsonMapper.readValue(exportedJson, ExportConfig.class);
+        var modelInterface = result.getModels().get("model1").getUpstreams().get(0)
+                .getInterfaces().get("openaiChatCompletions");
+        var routeInterface = result.getRoutes().get("route1").getUpstreams().get(0)
+                .getInterfaces().get("openaiChatCompletions");
+
+        if (addSecrets) {
+            Assertions.assertThat(modelInterface.getKey()).isEqualTo("interface-secret-key");
+            Assertions.assertThat(modelInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceSecret\":\"nested-super-secret\"}");
+            Assertions.assertThat(routeInterface.getKey()).isEqualTo("route-interface-secret-key");
+            Assertions.assertThat(routeInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceToken\":\"nested-route-secret\"}");
+        } else {
+            Assertions.assertThat(exportedJson).doesNotContain("secret-api-key-12345", "super-secret-value",
+                    "interface-secret-key", "nested-super-secret", "route-interface-secret-key",
+                    "nested-route-secret");
+            Assertions.assertThat(modelInterface.getKey()).isNull();
+            Assertions.assertThat(modelInterface.getSecretExtraData()).isNull();
+            Assertions.assertThat(routeInterface.getKey()).isNull();
+            Assertions.assertThat(routeInterface.getSecretExtraData()).isNull();
+        }
+
+        // Non-secret fields survive either way
+        Assertions.assertThat(modelInterface.getEndpoint()).isEqualTo("https://api.example.com/v1/chat/completions");
+        Assertions.assertThat(modelInterface.getExtraData()).isEqualTo("{\"nested\":true}");
+        Assertions.assertThat(routeInterface.getEndpoint()).isEqualTo("https://route.example.com/v1/chat/completions");
+        Assertions.assertThat(routeInterface.getExtraData()).isEqualTo("{\"nestedRetries\":5}");
+    }
+
+    /**
+     * An application's routes carry upstreams too, on a stripping path of their own.
+     */
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void testExport_AdminFormatApplicationRouteInterfaceSecrets(boolean addSecrets) throws IOException {
+        DependentRouteDto route = getDependentRouteDto("appRoute1");
+        UpstreamDto upstream = new UpstreamDto();
+        upstream.setId("app-route-upstream-1");
+        upstream.setEndpoint("https://app.example.com");
+        upstream.setInterfaces(Map.of("openaiChatCompletions",
+                createUpstreamInterfaceDto("https://app.example.com/v1/chat/completions",
+                        "app-interface-secret-key", "{\"interfaceSecret\":\"nested-app-secret\"}",
+                        "{\"nested\":true}")));
+        route.setUpstreams(List.of(upstream));
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setEndpoint("http://sample.com/app");
+        applicationDto.setRoutes(List.of(route));
+        applicationFacade.createApplication(applicationDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.ADMIN);
+        request.setAddSecrets(addSecrets);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION));
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        String exportedJson = extractConfigJsonFromZip(streamingResponseBody);
+
+        // then
+        ExportConfig result = jsonMapper.readValue(exportedJson, ExportConfig.class);
+        var exportedInterface = result.getApplications().get(applicationDto.getName()).getRoutes().get(0)
+                .getUpstreams().get(0).getInterfaces().get("openaiChatCompletions");
+
+        if (addSecrets) {
+            Assertions.assertThat(exportedInterface.getKey()).isEqualTo("app-interface-secret-key");
+            Assertions.assertThat(exportedInterface.getSecretExtraData())
+                    .isEqualTo("{\"interfaceSecret\":\"nested-app-secret\"}");
+        } else {
+            Assertions.assertThat(exportedJson)
+                    .doesNotContain("app-interface-secret-key", "nested-app-secret");
+            Assertions.assertThat(exportedInterface.getKey()).isNull();
+            Assertions.assertThat(exportedInterface.getSecretExtraData()).isNull();
+        }
+        Assertions.assertThat(exportedInterface.getEndpoint())
+                .isEqualTo("https://app.example.com/v1/chat/completions");
+        Assertions.assertThat(exportedInterface.getExtraData()).isEqualTo("{\"nested\":true}");
+    }
+
+    @Test
+    void testExport_CoreFormatApplicationWithExternalServices_KeepsSecretWhenAddSecrets() throws IOException {
+        // given
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        ResourceAuthSettingsDto authSettings = new ResourceAuthSettingsDto();
+        authSettings.setAuthenticationType(AuthenticationTypeDto.API_KEY);
+        authSettings.setApiKeyHeader("X-Api-Key");
+        authSettings.setClientSecret("external-client-secret");
+        ExternalServiceDto externalService = new ExternalServiceDto();
+        externalService.setDisplayName("Test External Service");
+        externalService.setAuthSettings(authSettings);
+        applicationDto.setExternalServices(Map.of("service1", externalService));
+        applicationFacade.createApplication(applicationDto);
+
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.APPLICATION));
+        request.setAddSecrets(true);
+
+        // when
+        StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        streamingResponseBody.writeTo(outputStream);
+
+        // then
+        Config result = jsonMapper.readValue(outputStream.toString(), Config.class);
+        CoreExternalService exported = result.getApplications().get("application1")
+                .getExternalServices().get("service1");
+        Assertions.assertThat(exported.getAuthSettings().getClientSecret()).isEqualTo("external-client-secret");
+    }
+
     @SneakyThrows
     private InputStream getZipInputStreamWithAdminConfig() {
         byte[] data;
@@ -2836,6 +3245,11 @@ public abstract class ConfigTransferFunctionalTest {
     }
 
     private ExportConfig extractConfigFromZip(StreamingResponseBody streamingResponseBody) throws IOException {
+        String jsonContent = extractConfigJsonFromZip(streamingResponseBody);
+        return jsonContent == null ? null : jsonMapper.readValue(jsonContent, ExportConfig.class);
+    }
+
+    private String extractConfigJsonFromZip(StreamingResponseBody streamingResponseBody) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         streamingResponseBody.writeTo(baos);
         try (InputStream zipInputStream = new ByteArrayInputStream(baos.toByteArray())) {
@@ -2849,8 +3263,7 @@ public abstract class ConfigTransferFunctionalTest {
                     while ((bytesRead = zis.read(buffer)) != -1) {
                         jsonBaos.write(buffer, 0, bytesRead);
                     }
-                    String jsonContent = jsonBaos.toString(StandardCharsets.UTF_8);
-                    return jsonMapper.readValue(jsonContent, ExportConfig.class);
+                    return jsonBaos.toString(StandardCharsets.UTF_8);
                 } else {
                     return null;
                 }
@@ -3140,6 +3553,8 @@ public abstract class ConfigTransferFunctionalTest {
         authSettings.setCodeVerifier("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk");
         authSettings.setApiKeyHeader("someApiKeyHeader");
         authSettings.setScopesSupported(List.of("first", "second"));
+        authSettings.setTokenEndpointAuthMethod(TokenEndpointAuthMethodDto.NONE);
+        authSettings.setDynamicallyRegistered(true);
         return authSettings;
     }
 
@@ -3166,9 +3581,6 @@ public abstract class ConfigTransferFunctionalTest {
         assertEmptyRoleLimit(roleLimit, true);
     }
 
-    private void assertEmptyDisabledRoleLimit(LimitDto roleLimit) {
-        assertEmptyRoleLimit(roleLimit, false);
-    }
 
     private void assertEmptyRoleLimit(LimitDto roleLimit, boolean enabled) {
         Assertions.assertThat(roleLimit).isNotNull().satisfies(limitDto -> {

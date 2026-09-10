@@ -71,6 +71,18 @@ public abstract class AbstractInfluxContainerTest {
             + "1773392400000000000"
     );
 
+    // mcp_analytics record with a UUID-shaped project_id, timestamped outside
+    // every other test's time range. Used by UuidLiteralFilterTests to verify
+    // that a UUID-shaped string literal is accepted as a filter value against a
+    // STRING tag column.
+    private static final String UUID_PROJECT_ID = "a36d8a75-aa7d-4185-a84d-566066cf91f2";
+    private static final List<String> UUID_PROJECT_RECORDS = List.of(
+            // 2026-03-15T10:00:00Z
+            "mcp_analytics,deployment=gpt-4,mcp_method=tools/call,project_id=" + UUID_PROJECT_ID + " "
+            + "execution_path=\"path_uuid\",chat_id=\"chat_uuid\",user_hash=\"user1\" "
+            + "1773568800000000000"
+    );
+
     // Time range: [2026-03-11T13:33:38.680Z, 2026-03-13T13:33:38.680Z)
     // 6 records total: 4 inside the range, 2 outside
     private static final List<String> ANALYTICS_RECORDS = List.of(
@@ -103,7 +115,16 @@ public abstract class AbstractInfluxContainerTest {
             "analytics,deployment=gpt-4,model=gpt-4,project_id=proj1 "
             + "user_hash=\"user3\",price=0.15,deployment_price=0.12,"
             + "prompt_tokens=400i,completion_tokens=200i "
-            + "1773410400000000000"
+            + "1773410400000000000",
+            // OUTSIDE (after range): 2026-03-13T15:00:00Z. The only record with this
+            // deployment/project_id — guards against distinct-on-tag returning values
+            // outside the requested time range (InfluxDB 2 rewrote keep|>group|>distinct
+            // into an index read with shard-granularity time bounds; FluxQueryBuilder
+            // uses group-by-tag|>first() instead of distinct() to avoid that).
+            "analytics,deployment=leak-probe,model=leak-probe,project_id=proj9 "
+            + "user_hash=\"user9\",price=0.01,deployment_price=0.01,"
+            + "prompt_tokens=10i,completion_tokens=5i "
+            + "1773414000000000000"
     );
 
     protected static final List<String> TEST_RECORDS;
@@ -112,6 +133,7 @@ public abstract class AbstractInfluxContainerTest {
         var all = new ArrayList<>(ANALYTICS_RECORDS);
         all.addAll(MCP_RECORDS_NO_PROJECT);
         all.addAll(MCP_RECORDS_WITH_PROJECT);
+        all.addAll(UUID_PROJECT_RECORDS);
         TEST_RECORDS = List.copyOf(all);
     }
 
@@ -161,6 +183,44 @@ public abstract class AbstractInfluxContainerTest {
             assertThat(columnNames(data)).containsExactly("completion_time", "deployment");
             assertThat(data.getData()).containsExactly(
                     List.of(Instant.parse("2026-03-11T14:00:00Z"), "gpt-4")
+            );
+        }
+
+        @Test
+        void simpleSelectWithProjectIdAndDeploymentFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["deployment", "project_id", "price"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$eq": {"left": "deployment", "right": "'gpt-3.5'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("deployment", "project_id", "price");
+            assertThat(data.getData()).containsExactly(
+                    List.of("gpt-3.5", "proj1", 0.02)
+            );
+        }
+
+        @Test
+        void distinctDeployments() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "distinct": true,
+                      "expressions": ["deployment"],
+                      "from": "analytics",
+                      "where": {%s}
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("deployment");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("gpt-3.5"),
+                    List.of("gpt-4")
             );
         }
 
@@ -367,6 +427,34 @@ public abstract class AbstractInfluxContainerTest {
         }
 
         @Test
+        void toolCallsForProjectAndDeployment() throws Exception {
+            // project_id=proj1 AND deployment=gpt-3.5 on mcp_analytics → only MCP #5.
+            // #5 has mcp_method=tools/list, so tool_calls=0, mcp_calls=1.
+            // Exercises a two-aggregation query with no group-by where the two aggregations
+            // take different build paths: count() uses the field-filter fast path, while
+            // sum(case when <tag>) uses the pivot path. The two branches must still join
+            // correctly through the synthetic key.
+            var data = queryFromJson("""
+                    {
+                      "expressions": [
+                        "sum(case when mcp_method = 'tools/call' then 1 else 0 end) as tool_calls",
+                        "count() as mcp_calls"
+                      ],
+                      "from": "mcp_analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$eq": {"left": "deployment", "right": "'gpt-3.5'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("tool_calls", "mcp_calls");
+            assertThat(data.getData()).containsExactly(List.of(0L, 1L));
+        }
+
+        @Test
         void multipleAggregationsWithNullGroupByColumn() throws Exception {
             // Query multiple aggregations grouped by project_id WITHOUT filtering by project_id.
             // Records #1-#3 have no project_id tag (null) → should appear with null project_id.
@@ -477,6 +565,27 @@ public abstract class AbstractInfluxContainerTest {
             );
         }
 
+        @Test
+        void groupByAliasInExpressionsAndOrderBy() throws Exception {
+            // groupBy references an alias defined in expressions ("proj" for project_id)
+            // and orderBy references the count alias ("cnt"). Both must resolve correctly.
+            // 4 in-range records — proj1: #1, #3 → 2; proj2: #2, #4 → 2.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["project_id as proj", "count() as cnt"],
+                      "from": "analytics",
+                      "groupBy": ["proj"],
+                      "where": {%s},
+                      "orderBy": [{"$desc": "cnt"}]
+                    }""".formatted(TIME_FILTER));
+
+            assertThat(columnNames(data)).containsExactly("proj", "cnt");
+            assertThat(data.getData()).containsExactlyInAnyOrder(
+                    List.of("proj1", 2L),
+                    List.of("proj2", 2L)
+            );
+        }
+
     }
 
     @Nested
@@ -568,6 +677,82 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("cnt");
             assertThat(data.getData()).containsExactly(List.of(4L));
+        }
+
+        @Test
+        void doubleEqualityFilterCount() throws Exception {
+            // project_id=proj1 AND deployment=gpt-4 → only INSIDE #1 matches.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$eq": {"left": "deployment", "right": "'gpt-4'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(1L));
+        }
+
+        @Test
+        void equalityAndNotEqualFilter() throws Exception {
+            // project_id=proj1 AND deployment!=gpt-4 → only INSIDE #3 (gpt-3.5, proj1) matches.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}},
+                          {"$ne": {"left": "deployment", "right": "'gpt-4'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(1L));
+        }
+
+        @Test
+        void inFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$in": {"left": "user_hash", "right": ["'user1'", "'user2'"]}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(4L));
+        }
+
+        @Test
+        void notInFilter() throws Exception {
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$nin": {"left": "user_hash", "right": ["'user1'"]}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(2L));
         }
 
     }
@@ -755,6 +940,26 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("deployment");
             assertThat(data.getData()).containsExactly(List.of("gpt-3.5"));
+        }
+
+        @Test
+        void startsWithAndEqualityFilter() throws Exception {
+            // deployment STARTS_WITH 'gpt-4' AND project_id='proj1' → only INSIDE #1.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$starts_with": {"left": "deployment", "right": "'gpt-4'"}},
+                          {"$eq": {"left": "project_id", "right": "'proj1'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(1L));
         }
 
         @Test
@@ -1021,6 +1226,28 @@ public abstract class AbstractInfluxContainerTest {
         }
 
         @Test
+        void doubleEqualityNoIntersection() throws Exception {
+            // deployment=gpt-3.5 matches #3,#4 (user_hash=user1,user2).
+            // user_hash=user3 appears only on the OUT-OF-RANGE record.
+            // AND of both inside the time range → empty intersection.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["count() as cnt"],
+                      "from": "analytics",
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "deployment", "right": "'gpt-3.5'"}},
+                          {"$eq": {"left": "user_hash", "right": "'user3'"}}
+                        ]
+                      }
+                    }""".formatted(TIME_GTE, TIME_LT));
+
+            assertThat(columnNames(data)).containsExactly("cnt");
+            assertThat(data.getData()).containsExactly(List.of(0L));
+        }
+
+        @Test
         void expressionAliasesPreserved() throws Exception {
             var data = queryFromJson("""
                     {
@@ -1031,6 +1258,40 @@ public abstract class AbstractInfluxContainerTest {
 
             assertThat(columnNames(data)).containsExactly("money", "requests");
             assertThat(data.getData()).hasSize(1);
+        }
+    }
+
+    @Nested
+    class UuidLiteralFilterTests {
+
+        // Time range covering only the UUID_PROJECT_RECORDS row at 2026-03-15T10:00:00Z.
+        private static final String UUID_TIME_GTE = """
+                {"$gte": {"left": "_time", "right": "'2026-03-15T00:00:00Z'"}}""";
+        private static final String UUID_TIME_LT = """
+                {"$lt": {"left": "_time", "right": "'2026-03-16T00:00:00Z'"}}""";
+
+        @Test
+        void equalityFilterWithUuidLiteralAgainstStringColumn() throws Exception {
+            // Reproduces the analytics-UI bug: project_id is a STRING tag, but a
+            // UUID-shaped literal is auto-typed as Type.UUID by enterString_literal.
+            // Without the STRING/UUID coercion in ValidationUtils.isSubType this query
+            // throws "Comparison STRING (project_id) and UUID (...) types using
+            // EQUALS operator is unsupported." With the fix it matches exactly one row.
+            var data = queryFromJson("""
+                    {
+                      "expressions": ["project_id", "count() as cnt"],
+                      "from": "mcp_analytics",
+                      "groupBy": ["project_id"],
+                      "where": {
+                        "$and": [
+                          %s, %s,
+                          {"$eq": {"left": "project_id", "right": "'%s'"}}
+                        ]
+                      }
+                    }""".formatted(UUID_TIME_GTE, UUID_TIME_LT, UUID_PROJECT_ID));
+
+            assertThat(columnNames(data)).containsExactly("project_id", "cnt");
+            assertThat(data.getData()).containsExactly(List.of(UUID_PROJECT_ID, 1L));
         }
     }
 

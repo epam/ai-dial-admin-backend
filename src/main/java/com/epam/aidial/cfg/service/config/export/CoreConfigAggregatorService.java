@@ -38,6 +38,7 @@ import com.epam.aidial.core.config.RoleBasedEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,18 +100,23 @@ public class CoreConfigAggregatorService {
     private LinkedHashMap<String, CoreModel> getModels() {
         return modelService.getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc().stream()
                 .map(model -> {
-                    String endpoint = getModelEndpoint(model);
-                    return modelMapper.mapModel(model, endpoint);
+                    Pair<String, String> modelEndpoints = getModelEndpoints(model);
+                    String endpoint = modelEndpoints.getLeft();
+                    String responsesEndpoint = modelEndpoints.getRight();
+                    return modelMapper.mapModel(model, endpoint, responsesEndpoint);
                 })
                 .collect(toLinkedHashMap(RoleBasedEntity::getName));
     }
 
-    private String getModelEndpoint(Model model) {
+    private Pair<String, String> getModelEndpoints(Model model) {
         if (model.getSource() instanceof ModelAdapterSource adapterSource) {
             var adapter = adapterService.get(adapterSource.getAdapterName());
-            return ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath());
+            return Pair.of(
+                    ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()),
+                    adapter.getResponsesEndpoint()
+            );
         }
-        return model.getEndpoint();
+        return Pair.of(model.getEndpoint(), model.getResponsesEndpoint());
     }
 
     private LinkedHashMap<String, CoreApplication> getApplications() {

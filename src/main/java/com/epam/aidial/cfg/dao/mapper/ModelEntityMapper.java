@@ -25,7 +25,8 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {
         DeploymentEntityMapper.class, MapPropertiesMapper.class, UpstreamEntityMapper.class,
-        PropertiesEntityMapper.class, FeaturesEntityMapper.class
+        PropertiesEntityMapper.class, FeaturesEntityMapper.class, DeploymentInterfacesEntityMapper.class,
+        UriMapper.class
 })
 public abstract class ModelEntityMapper {
 
@@ -105,9 +106,10 @@ public abstract class ModelEntityMapper {
         }
         // Explicitly clear and set adapter/container fields to ensure mutual exclusivity
         if (adapterEntity != null) {
-            // Setting adapter: clear container and endpoint and set adapter
+            // Setting adapter: clear container and endpoints and set adapter
             updatedEntity.setModelContainer(null);
             updatedEntity.setEndpoint(null);
+            updatedEntity.setResponsesEndpoint(null);
             if (!adapterEntity.equals(currentAdapter)) {
                 adapterEntity.getModels().add(updatedEntity);
             }

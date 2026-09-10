@@ -38,6 +38,7 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @OneToOne(targetEntity = DeploymentEntity.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private DeploymentEntity deployment;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -49,6 +50,8 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     private Integer maxInputAttachments;
     @Column(columnDefinition = "CLOB")
     private String defaults;
+    @Column(columnDefinition = "CLOB")
+    private String responsesDefaults;
     @ToString.Exclude
     @ManyToMany
     @JoinTable(
@@ -71,9 +74,15 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @Column(columnDefinition = "CLOB")
     private String upstreams;
     private String overrideName;
+    @Column(columnDefinition = "CLOB")
+    private String defaultHeaders;
+    private String baseUrl;
     private List<String> fieldsHashingOrder;
+    private Integer embeddingDimensions;
     private String endpoint;
     private String responsesEndpoint;
+    @Column(columnDefinition = "CLOB")
+    private String interfaces;
 
     @Embedded
     private ModelContainerEntity modelContainer;
@@ -82,6 +91,11 @@ public class ModelEntity extends TimeTrackableEntity<String> {
     @JoinColumn(name = "adapter_name")
     private AdapterEntity adapter;
     private String adapterCompletionEndpointPath;
+
+    private String catalogSchemaId;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
 
     @PreRemove
     public void preRemove() {

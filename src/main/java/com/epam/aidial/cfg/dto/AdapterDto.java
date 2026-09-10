@@ -21,6 +21,8 @@ public class AdapterDto {
     private String displayName;
     @Endpoint
     private String baseEndpoint;
+    @Endpoint
+    private String responsesEndpoint;
     private String description;
     @EqualsAndHashCode.Exclude
     private Instant createdAt;

@@ -9,6 +9,8 @@ import com.epam.aidial.core.config.CoreResourceAuthSettingsMixinForCoreObjectMap
 import com.epam.aidial.core.config.CoreToolSet;
 import com.epam.aidial.core.config.CoreToolSetMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstream;
+import com.epam.aidial.core.config.CoreUpstreamInterface;
+import com.epam.aidial.core.config.CoreUpstreamInterfaceMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.CoreUpstreamMixinForCoreObjectMapper;
 import com.epam.aidial.core.config.validation.ValidationModule;
 import com.epam.aidial.ql.deserializers.json.QueryLanguageModule;
@@ -41,11 +43,6 @@ public class JsonMapperConfiguration {
         return createCoreJsonMapper();
     }
 
-    @Bean
-    public JsonMapper nullIncludedJsonMapper() {
-        return createNullIncludedJsonMapper();
-    }
-
     public static JsonMapper createJsonMapper() {
         return createDefaultJsonMapperBuilder()
                 .build();
@@ -57,18 +54,13 @@ public class JsonMapperConfiguration {
                 .build();
     }
 
-    public static JsonMapper createNullIncludedJsonMapper() {
-        return createDefaultJsonMapperBuilder()
-                .serializationInclusion(JsonInclude.Include.ALWAYS)
-                .build();
-    }
-
     public static JsonMapper createCoreJsonMapper() {
         return JsonMapper.builder()
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .addMixIn(CoreLimit.class, CoreLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreCostLimit.class, CoreCostLimitMixinForCoreObjectMapper.class)
                 .addMixIn(CoreUpstream.class, CoreUpstreamMixinForCoreObjectMapper.class)
+                .addMixIn(CoreUpstreamInterface.class, CoreUpstreamInterfaceMixinForCoreObjectMapper.class)
                 .addMixIn(CoreToolSet.class, CoreToolSetMixinForCoreObjectMapper.class)
                 .addMixIn(CoreResourceAuthSettings.class, CoreResourceAuthSettingsMixinForCoreObjectMapper.class)
                 .build();

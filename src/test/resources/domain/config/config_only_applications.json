@@ -10,12 +10,38 @@
         "user"
       ],
       "endpoint": "https://example.com/api",
+      "external_services": {
+        "service1": {
+          "display_name": "Test External Service",
+          "description": "External service description",
+          "auth_settings": {
+            "authentication_type": "api_key",
+            "client_id": "some-client-id",
+            "client_secret": "some-client-secret",
+            "token_endpoint": "https://some-token-endpoint",
+            "api_key_header": "someApiKeyHeader",
+            "token_endpoint_auth_method": "CLIENT_SECRET_BASIC"
+          }
+        }
+      },
+      "interfaces": {
+        "openaiChatCompletions": {
+          "base_url": "https://app.adapter.example.com"
+        }
+      },
       "display_name": "Sample Application",
       "display_version": "1.0.0",
+      "override_name": "Custom Application Override",
+      "default_headers": {
+        "X-Custom-Header": "custom-value",
+        "X-API-Version": "v1"
+      },
+      "base_url": "https://base.example.com",
       "icon_url": "https://example.com/icon.png",
       "viewer_url": "https://viewer.example.com",
       "editor_url": "https://editor.example.com",
       "description": "This is a sample application",
+      "intro": "Brief introduction to sample application",
       "reference": "app-ref-123",
       "forward_auth_token": true,
       "features": {
@@ -37,7 +63,11 @@
         "consent_required": true,
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": true,
-        "support_comment_in_rate_response": true
+        "support_comment_in_rate_response": true,
+        "max_tokens_supported": true,
+        "max_completion_tokens_supported": false,
+        "custom_temperature_supported": true,
+        "reasoning_efforts": ["effort1", "effort2"]
       },
       "input_attachment_types": [
         "pdf",
@@ -48,6 +78,7 @@
         "timeout": "30s",
         "language": "en"
       },
+      "responses_defaults": {},
       "interceptors": [
         "auth",
         "logging"
@@ -66,7 +97,13 @@
       "author": "test-author",
       "created_at": 12345,
       "updated_at": 12345,
-      "dependencies": ["dep1", "dep2"]
+      "dependencies": ["dep1", "dep2"],
+      "catalog_schema_id": "https://test-catalog-schema.example",
+      "catalog_properties": {
+        "category": "AI Application",
+        "vendor": "Test Vendor",
+        "tags": ["automation", "workflow"]
+      }
     }
   },
   "assistant": {

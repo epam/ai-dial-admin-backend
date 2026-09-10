@@ -9,6 +9,7 @@
     "displayVersion": "1.0.0",
     "iconUrl": "https://example.com/icon.png",
     "reference": "model-ref-123",
+    "intro": "Brief introduction to sample model",
     "forwardAuthToken": true,
     "features": {
       "rateEndpoint": "/rate",
@@ -28,7 +29,11 @@
       "autoCachingSupported": false,
       "consentRequired": true,
       "parallelToolCallsSupported": true,
-      "supportCommentInRateResponse": false
+      "supportCommentInRateResponse": false,
+      "maxTokensSupported": true,
+      "maxCompletionTokensSupported": false,
+      "customTemperatureSupported": true,
+      "reasoningEfforts": ["effort1", "effort2"]
     },
     "inputAttachmentTypes": [
       "pdf",
@@ -63,22 +68,26 @@
     "pricing": {
       "unit": "per-1000-tokens",
       "prompt": "0.01",
-      "completion": "0.02"
+      "completion": "0.02",
+      "cacheRead": "0.005",
+      "cacheWrite": "0.015"
     },
     "upstreams": [
       {
-        "id": 10,
+        "id": "10",
         "endpoint": "https://upstream1.example.com",
         "key": "upstream-key-1",
         "extraData": "metadata-1",
+        "secretExtraData": "secret_value1",
         "weight": 10,
         "tier": 1
       },
       {
-        "id": 11,
+        "id": "11",
         "endpoint": "https://upstream2.example.com",
         "key": "upstream-key-2",
         "extraData": "metadata-2",
+        "secretExtraData": "secret_value2",
         "weight": 20,
         "tier": 2
       }
@@ -129,6 +138,23 @@
     "createdAt": 12345,
     "updatedAt": 12345,
     "dependencies": ["dep1", "dep2"],
-    "endpoint": "https://example.com/model/sampleDeployment/chat/completions"
+    "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
+    "interfaces": {
+      "openaiChatCompletions": {
+        "baseUrl": "https://model.adapter.example.com",
+        "defaultHeaders": {}
+      },
+      "anthropicMessages": {
+        "baseUrl": "https://model.adapter.example.com",
+        "defaultHeaders": {}
+      }
+    },
+    "embeddingDimensions": 1536,
+    "catalogSchemaId": "https://test-catalog-schema.example",
+    "catalogProperties": {
+      "category": "AI Model",
+      "vendor": "Test Vendor",
+      "tags": ["chat", "completion"]
+    }
   }
 ]

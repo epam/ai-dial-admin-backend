@@ -1,6 +1,7 @@
 package com.epam.aidial.cfg.dao.model;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -36,18 +37,31 @@ public class ToolSetEntity extends TimeTrackableEntity<String> {
     private String endpoint;
     private String iconUrl;
     private String description;
+    private String intro;
     private String displayName;
+    private String vendorWebsite;
     private Set<String> descriptionKeywords;
     private int maxRetryAttempts = 1;
     private String author;
+    private boolean forwardAuthToken;
 
     @Embedded
     private ToolSetContainerEntity toolSetContainer;
+
+    @Embedded
+    private ToolSetMcpRegistryEntity toolSetMcpRegistry;
 
     @Enumerated(EnumType.STRING)
     private TransportEntity transport;
 
     private List<String> allowedTools;
+
+    private String provider;
+
+    private String catalogSchemaId;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
 
     public enum TransportEntity {
         HTTP, SSE

@@ -6,6 +6,7 @@ import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import com.azure.security.keyvault.secrets.models.SecretProperties;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +84,7 @@ public class AzureKeyVaultConfigSource extends CompositeConfigSource {
 
     @Override
     @SneakyThrows
-    protected String encode(Config body) {
+    protected String encode(JsonNode body) {
         return objectMapper.writeValueAsString(body);
     }
 }

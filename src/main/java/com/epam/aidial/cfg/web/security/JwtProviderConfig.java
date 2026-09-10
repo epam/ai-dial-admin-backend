@@ -23,7 +23,6 @@ public class JwtProviderConfig {
     private List<String> aliases;
     private List<String> roleClaims;
     private List<String> emailClaims;
-    private Set<String> allowedRoles;
     private Map<String, Set<UserRole>> rolesMapping;
 
     public static JwtProviderConfig from(String name,
@@ -38,7 +37,6 @@ public class JwtProviderConfig {
                 .aliases(config.getAliases())
                 .roleClaims(config.getRoleClaims())
                 .emailClaims(config.getEmailClaims())
-                .allowedRoles(config.getAllowedRoles())
                 .rolesMapping(rolesMapping)
                 .build();
     }

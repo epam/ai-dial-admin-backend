@@ -24,7 +24,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Mapper(componentModel = "spring", uses = {FeaturesEntityMapper.class, MapPropertiesMapper.class})
+@Mapper(componentModel = "spring", uses = {
+        FeaturesEntityMapper.class, MapPropertiesMapper.class, DeploymentInterfacesEntityMapper.class,
+        PropertiesEntityMapper.class
+})
 public abstract class InterceptorEntityMapper {
 
     @Autowired

@@ -17,11 +17,12 @@ public class CoreModel extends Deployment {
     private TokenLimits limits;
     private Pricing pricing;
     private List<CoreUpstream> upstreams = List.of();
-    // if it's set then the model name is overridden with that name in the request body to the model adapter
-    private String overrideName;
 
     @JsonAlias({"fieldsHashingOrder", "fields_hashing_order"})
     private List<String> fieldsHashingOrder = List.of("prefix.body.tools", "prefix.body.messages"); // 0.26.0
+
+    @JsonAlias({"embeddingDimensions", "embedding_dimensions"})
+    private Integer embeddingDimensions;
 
     public CoreModel() {
         setMaxRetryAttempts(5);
@@ -35,11 +36,18 @@ public class CoreModel extends Deployment {
         coreModel.setFieldsHashingOrder(null);
         coreModel.setForwardAuthToken(null);
         coreModel.setDefaults(null);
+        coreModel.setResponsesDefaults(null);
         coreModel.setInterceptors(null);
         coreModel.setDescriptionKeywords(null);
         coreModel.setMaxRetryAttempts(null);
         coreModel.setDependencies(null);
-
+        coreModel.setInterfaces(null);
+        coreModel.setIntro(null);
+        coreModel.setCatalogSchemaId(null);
+        coreModel.setCatalogProperties(null);
+        coreModel.setOverrideName(null);
+        coreModel.setDefaultHeaders(null);
+        coreModel.setBaseUrl(null);
         return coreModel;
     }
 }

@@ -12,11 +12,11 @@ plugins {
     id "java"
     id 'checkstyle'
     id 'io.freefair.lombok' version '8.0.1'
-    id 'org.springframework.boot' version '3.5.13'
+    id 'org.springframework.boot' version '3.5.14'
 }
 
 group = 'com.epam.aidial'
-version = "0.16.0-rc"
+version = "0.0.0"
 
 java {
     toolchain {
@@ -72,7 +72,6 @@ dependencies {
 
     implementation 'org.apache.jclouds:jclouds-allblobstore:2.7.0'
     implementation 'org.apache.jclouds.api:filesystem:2.6.0'
-    implementation 'com.amazonaws:aws-java-sdk-sts:1.12.663'
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.23.0'
     implementation 'com.azure:azure-identity:1.15.3'
     implementation 'com.azure:azure-identity-extensions:1.2.7'
@@ -82,7 +81,7 @@ dependencies {
     implementation 'com.google.cloud:google-cloud-secretmanager:2.59.0'
     implementation 'com.google.cloud.sql:postgres-socket-factory:1.28.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
-    implementation("org.jsoup:jsoup:1.21.1")
+    implementation("org.jsoup:jsoup:1.23.1")
     implementation 'io.modelcontextprotocol.sdk:mcp:0.11.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -108,7 +107,7 @@ dependencies {
     implementation 'info.picocli:picocli-spring-boot-starter:4.7.6'
 
     implementation 'com.h2database:h2'
-    implementation 'org.postgresql:postgresql:42.7.7'
+    implementation 'org.postgresql:postgresql:42.7.12'
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.2.jre11'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.data:spring-data-envers'
@@ -134,9 +133,9 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-log4j2') {
         exclude group: 'org.apache.logging.log4j'
     }
-    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-jul:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-jul:2.25.4'
     implementation 'io.opentelemetry:opentelemetry-sdk'
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:1.33.6-alpha'
@@ -166,17 +165,59 @@ dependencies {
     testImplementation 'org.testcontainers:influxdb'
 
     constraints {
-        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.18') {
+        implementation("io.micrometer:micrometer-core:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.micrometer:micrometer-observation:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.micrometer:micrometer-commons:1.15.12") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework.data:spring-data-commons:3.5.12') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework:spring-expression:6.2.19') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('org.springframework:spring-webmvc:6.2.19') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('com.fasterxml.jackson.core:jackson-databind:2.22.1') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('com.fasterxml.jackson.core:jackson-core:2.22.1') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('org.apache.tomcat.embed:tomcat-embed-core:11.0.25') {
             because("previous versions have vulnerabilities")
         }
         implementation ('commons-fileupload:commons-fileupload:1.6.0') {
             because("previous versions have vulnerabilities")
         }
-        implementation ('io.netty:netty-codec-http2:4.2.11.Final') {
+        implementation('io.netty:netty-codec-http2:4.2.17.Final') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation('io.netty:netty-codec-compression:4.2.17.Final') {
+            because("previous versions have vulnerabilities")
+        }
+        implementation ('io.netty:netty-handler:4.2.17.Final') {
             because("previous versions have vulnerabilities")
         }
         implementation("io.grpc:grpc-netty-shaded:1.75.0") {
-            because("previous versions have vulnerabilities)")
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-codec-dns:4.1.137.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-resolver-dns:4.1.137.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("io.netty:netty-transport-native-epoll:4.2.17.Final") {
+            because("previous versions have vulnerabilities")
+        }
+        implementation("org.bouncycastle:bcprov-jdk18on:1.84") {
+            because("previous versions have vulnerabilities")
         }
         testImplementation('org.apache.commons:commons-compress:1.27.1') {
             because("previous versions have vulnerabilities")
@@ -191,8 +232,26 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'performance'
+    }
     jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+}
+
+tasks.register('perfTest', Test) {
+    description = 'Runs tests tagged "performance". Not part of the default test suite.'
+    group = 'verification'
+    useJUnitPlatform {
+        includeTags 'performance'
+    }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+    shouldRunAfter test
+    outputs.upToDateWhen { false }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 tasks.withType(JavaCompile) {

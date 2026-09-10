@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationTypeSchemaDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
@@ -101,6 +102,20 @@ public abstract class InterceptorFunctionalTest {
 
         Collection<InterceptorDto> actualInterceptors = interceptorFacade.getAllInterceptors();
         assertInterceptors(actualInterceptors, List.of(expected1, expected2));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetInterceptorWithInterfacesOnly() {
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setEndpoint(null);
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://interceptor.adapter.test.com");
+        interceptorDto.setInterfaces(Map.of("openaiChatCompletions", chatInterface));
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        InterceptorDto actual = interceptorFacade.getInterceptor(interceptorDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(interceptorDto.getInterfaces(), actual.getInterfaces());
     }
 
     @Test
@@ -276,6 +291,25 @@ public abstract class InterceptorFunctionalTest {
         );
 
         Assertions.assertEquals("Interceptor with name: 'interceptor1' can not be renamed. New interceptor name: 'interceptor2'", exception.getMessage());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenCreateInterceptorWithExistingApplicationName() {
+        String name = "test";
+
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationDto.setName(name);
+        applicationFacade.createApplication(applicationDto);
+
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setName(name);
+
+        EntityAlreadyExistsException exception = Assertions.assertThrows(
+                EntityAlreadyExistsException.class,
+                () -> interceptorFacade.createInterceptor(interceptorDto)
+        );
+
+        Assertions.assertEquals("Deployment with name test already exists", exception.getMessage());
     }
 
     @Test
@@ -459,7 +493,7 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
         Assertions.assertEquals(containerUrl + configPath, result.getFeatures().getConfigurationEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test
@@ -485,8 +519,6 @@ public abstract class InterceptorFunctionalTest {
 
         Mockito.when(deploymentManagerService.getById(containerId))
                 .thenReturn(initialDeploymentInfo)
-                .thenReturn(initialDeploymentInfo)
-                .thenReturn(updatedDeploymentInfo)
                 .thenReturn(updatedDeploymentInfo);
 
         InterceptorDto interceptorDto = createInterceptorDto("-refresh");
@@ -511,7 +543,7 @@ public abstract class InterceptorFunctionalTest {
         Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
         Assertions.assertEquals(updatedUrl + configPath, refreshedResult.getFeatures().getConfigurationEndpoint());
 
-        Mockito.verify(deploymentManagerService, Mockito.atLeast(2)).getById(containerId);
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
     }
 
     @Test
@@ -525,7 +557,10 @@ public abstract class InterceptorFunctionalTest {
         expected.setDescription(interceptorDto.getDescription());
         expected.setEndpoint(interceptorDto.getEndpoint());
         expected.setFeatures(defaultCoreFeatures());
+        expected.setFeatures(defaultCoreFeatures());
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(interceptorDto.getForwardAuthToken());
+        expected.setBaseUrl(null);
 
         CoreInterceptor actual = interceptorFacade.getCoreInterceptorWithHash(interceptorDto.getName()).core();
         actual.setCreatedAt(null);
@@ -662,19 +697,26 @@ public abstract class InterceptorFunctionalTest {
                         "content_parts_supported": false,
                         "temperature_supported": true,
                         "parallel_tool_calls_supported": true,
-                        "assistant_attachments_in_request_supported": false
+                        "assistant_attachments_in_request_supported": false,
+                        "max_tokens_supported": true,
+                        "custom_temperature_supported": true
                       },
                       "inputAttachmentTypes": null,
                       "maxInputAttachments": null,
                       "responsesEndpoint": null,
                       "defaults": {},
+                      "responsesDefaults": {},
                       "interceptors": [],
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,
                       "author": null,
+                      "intro": null,
                       "createdAt": 1000,
                       "updatedAt": 1000,
-                      "dependencies": []
+                      "dependencies": [],
+                      "catalogSchemaId": null,
+                      "catalogProperties": null,
+                      "overrideName": null
                     }
                   }
                 }

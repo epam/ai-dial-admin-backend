@@ -4,4 +4,5 @@ public enum ImportPromptStatusDto {
     SUCCESS,
     FAILURE,
     ALREADY_EXISTS,
+    SKIPPED,
 }

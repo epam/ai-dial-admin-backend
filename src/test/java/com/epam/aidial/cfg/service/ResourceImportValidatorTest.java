@@ -2,6 +2,8 @@ package com.epam.aidial.cfg.service;
 
 import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
+import com.epam.aidial.cfg.dto.ToolSetEximDto;
+import com.epam.aidial.cfg.dto.ToolSetsEximDto;
 import com.epam.aidial.cfg.model.ImportResources;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -22,19 +24,16 @@ class ResourceImportValidatorTest {
     private final ResourceImportValidator validator = new ResourceImportValidator();
 
     @Test
-    void shouldPassWhenNoDuplicatesInFlatImport() {
+    void collectApplicationUniquenessConflicts_shouldBeEmptyWhenNoDuplicatesInFlatImport() {
         var application1 = getApplicationEximDto("1");
         var application2 = getApplicationEximDto("2");
         ApplicationsEximDto dto = new ApplicationsEximDto(List.of(application1, application2));
 
-        ImportResources importResources = new ImportResources();
-        importResources.setFlatImport(true);
-
-        assertDoesNotThrow(() -> validator.validateApplicationImport(importResources, dto));
+        assertTrue(validator.collectApplicationUniquenessConflicts(true, dto).isEmpty());
     }
 
     @Test
-    void shouldThrowExceptionWhenDuplicatesInFlatImportByNameAndVersionAndPath() {
+    void collectApplicationUniquenessConflicts_flatImport_twoDuplicateVersionGroups() {
         var application1 = getApplicationEximDto("1");
         var application2 = getApplicationEximDto("1");
         var application3 = getApplicationEximDto("1");
@@ -43,70 +42,86 @@ class ResourceImportValidatorTest {
         application4.setVersion("0.0.2");
         ApplicationsEximDto dto = new ApplicationsEximDto(List.of(application1, application2, application3, application4));
 
-        ImportResources importResources = new ImportResources();
-        importResources.setFlatImport(true);
+        var conflicts = validator.collectApplicationUniquenessConflicts(true, dto);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> validator.validateApplicationImport(importResources, dto));
-
-        assertTrue(exception.getMessage().contains("Application uniqueness violation. Conflicts found:\n"
-                + " - Duplicated application name 'application1' and version '0.0.1'\n"
-                + " - Duplicated application name 'application1' and version '0.0.2'"));
+        assertEquals(2, conflicts.size());
+        assertTrue(conflicts.values().stream().anyMatch(m -> m.contains("application1") && m.contains("0.0.1")));
+        assertTrue(conflicts.values().stream().anyMatch(m -> m.contains("application1") && m.contains("0.0.2")));
     }
 
     @Test
-    void shouldThrowExceptionWhenDuplicatesInFlatImportByNameAndVersionNotPath() {
+    void collectApplicationUniquenessConflicts_flatImport_sameNameAndVersionDifferentFolders() {
         var application1 = getApplicationEximDto("1");
         var application2 = getApplicationEximDto("1");
         application2.setFolderId("public/2/");
         ApplicationsEximDto dto = new ApplicationsEximDto(List.of(application1, application2));
 
-        ImportResources importResources = new ImportResources();
-        importResources.setFlatImport(true);
+        var conflicts = validator.collectApplicationUniquenessConflicts(true, dto);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> validator.validateApplicationImport(importResources, dto));
+        var expectedApplicationKey = getResourceNameAndVersionAndPath(application1, true);
 
-        assertTrue(exception.getMessage().contains("Application uniqueness violation. Conflicts found:\n"
-                + " - Duplicated application name 'application1' and version '0.0.1'"));
+        assertEquals(1, conflicts.size());
+        assertTrue(conflicts.containsKey(expectedApplicationKey));
+        assertEquals("Duplicated application name 'application1' and version '0.0.1' appears multiple times in the import file.",
+                conflicts.get(expectedApplicationKey));
     }
 
     @Test
-    void shouldThrowExceptionWhenDuplicatesInNonFlatImportByNameAndVersionAndPath() {
+    void collectApplicationUniquenessConflicts_nonFlatImport_sameFolderDuplicate() {
         var application1 = getApplicationEximDto("1");
         var application2 = getApplicationEximDto("1");
         ApplicationsEximDto dto = new ApplicationsEximDto(List.of(application1, application2));
 
-        ImportResources importResources = new ImportResources();
-        importResources.setFlatImport(false);
+        var conflicts = validator.collectApplicationUniquenessConflicts(false, dto);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> validator.validateApplicationImport(importResources, dto));
+        var expectedApplicationKey = getResourceNameAndVersionAndPath(application1, false);
 
-        assertTrue(exception.getMessage().contains("Application uniqueness violation. Conflicts found:\n"
-                + " - Duplicated application name 'application1' and version '0.0.1' and folder 'public/1/'"));
+        assertEquals(1, conflicts.size());
+        assertTrue(conflicts.containsKey(expectedApplicationKey));
+        assertEquals("Duplicated application name 'application1' and version '0.0.1' and folder 'public/1/' appears multiple times in the import file.",
+                conflicts.get(expectedApplicationKey));
     }
 
     @Test
-    void shouldPassWhenDuplicatesInNonFlatImportByNameAndVersionNotPath() {
+    void collectApplicationUniquenessConflicts_nonFlatImport_sameNameVersionDifferentFolders() {
         var application1 = getApplicationEximDto("1");
         var application2 = getApplicationEximDto("1");
         application2.setFolderId("public/2/");
         ApplicationsEximDto dto = new ApplicationsEximDto(List.of(application1, application2));
 
-        ImportResources importResources = new ImportResources();
-        importResources.setFlatImport(false);
-
-        assertDoesNotThrow(() -> validator.validateApplicationImport(importResources, dto));
+        assertTrue(validator.collectApplicationUniquenessConflicts(false, dto).isEmpty());
     }
 
     @Test
-    void shouldHandleEmptyApplicationsList() {
+    void collectApplicationUniquenessConflicts_emptyApplicationsList() {
         ApplicationsEximDto dto = new ApplicationsEximDto(List.of());
-        ImportResources importResources = new ImportResources();
-        importResources.setFlatImport(false);
 
-        assertDoesNotThrow(() -> validator.validateApplicationImport(importResources, dto));
+        assertTrue(validator.collectApplicationUniquenessConflicts(false, dto).isEmpty());
+    }
+
+    @Test
+    void collectToolSetUniquenessConflicts_flatImport_sameNameAndVersionDifferentFolders() {
+        var toolSet1 = getToolSetEximDto("1");
+        var toolSet2 = getToolSetEximDto("1");
+        toolSet2.setFolderId("public/2/");
+        var dto = new ToolSetsEximDto(List.of(toolSet1, toolSet2));
+
+        var conflicts = validator.collectToolSetUniquenessConflicts(true, dto);
+
+        var expectedToolSetKey = getResourceNameAndVersionAndPath(toolSet1, true);
+
+        assertEquals(1, conflicts.size());
+        assertTrue(conflicts.containsKey(expectedToolSetKey));
+        assertEquals("Duplicated toolset name 'toolSet1' and version '0.0.1' appears multiple times in the import file.",
+                conflicts.get(expectedToolSetKey));
+    }
+
+    private ToolSetEximDto getToolSetEximDto(String suffix) {
+        var toolSet = new ToolSetEximDto();
+        toolSet.setName("toolSet" + suffix);
+        toolSet.setVersion("0.0." + suffix);
+        toolSet.setFolderId("public/" + suffix + "/");
+        return toolSet;
     }
 
     @Test
@@ -141,10 +156,10 @@ class ResourceImportValidatorTest {
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> validator.checkApplicationConflicts(new ImportResources(), applicationsEximDtos));
-        assertTrue(exception.getMessage().equals("""
+        assertEquals("""
                 Application uniqueness violation. Conflicts found:
                   Applications duplicated within the same file:
-                    - File 'test' has duplicate application: name 'application1', version '0.0.1', folder 'public/1/'"""));
+                    - File 'test' has duplicate application: name 'application1', version '0.0.1', folder 'public/1/'""", exception.getMessage());
     }
 
     @Test
@@ -156,10 +171,10 @@ class ResourceImportValidatorTest {
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> validator.checkApplicationConflicts(new ImportResources(), applicationsEximDtos));
-        assertTrue(exception.getMessage().equals("""
+        assertEquals("""
                 Application uniqueness violation. Conflicts found:
                   Applications shared across different files:
-                    - Application with name 'application1', version '0.0.1', folder 'public/1/ found in multiple files: [test2, test1]"""));
+                    - Application with name 'application1', version '0.0.1', folder 'public/1/ found in multiple files: [test2, test1]""", exception.getMessage());
     }
 
     @Test
@@ -175,12 +190,12 @@ class ResourceImportValidatorTest {
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> validator.checkApplicationConflicts(new ImportResources(), applicationsEximDtos));
-        assertTrue(exception.getMessage().equals("""
+        assertEquals("""
                 Application uniqueness violation. Conflicts found:
-                  Applications duplicated within the same file:  
+                  Applications duplicated within the same file:
                     - File 'test2' has duplicate application: name 'application1', version '0.0.1', folder 'public/1/'
                   Applications shared across different files:
-                    - Application with name 'application1', version '0.0.1', folder 'public/1/ found in multiple files: [test2, test1]"""));
+                    - Application with name 'application1', version '0.0.1', folder 'public/1/ found in multiple files: [test2, test1]""", exception.getMessage());
     }
 
     @Test
@@ -194,12 +209,12 @@ class ResourceImportValidatorTest {
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> validator.checkApplicationConflicts(new ImportResources(), applicationsEximDtos));
-        assertTrue(exception.getMessage().equals("""
+        assertEquals("""
                 Application uniqueness violation. Conflicts found:
                   Applications duplicated within the same file:  
                     - File 'test2' has duplicate application: name 'application1', version '0.0.1', folder 'public/1/'
                   Applications shared across different files:
-                    - Application with name 'application1', version '0.0.1', folder 'public/1/ found in multiple files: [test2, test1]"""));
+                    - Application with name 'application1', version '0.0.1', folder 'public/1/ found in multiple files: [test2, test1]""", exception.getMessage());
     }
 
     @Test
@@ -225,9 +240,10 @@ class ResourceImportValidatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> validator.validateFileImportInZip(importResources, mockFile));
 
-        assertTrue(exception.getMessage().equals("""
-                Files uniqueness violation. Conflicts found:
-                 - Duplicated file name 'file1.json' found in folders: folder1/folder2/, folder1/folder2/folder3/"""));
+        assertEquals("""
+                        Files uniqueness violation. Conflicts found:
+                         - Duplicated file name 'file1.json' found in folders: folder1/folder2/, folder1/folder2/folder3/""",
+                exception.getMessage());
     }
 
     @Test
@@ -238,6 +254,27 @@ class ResourceImportValidatorTest {
                 () -> validator.validateFileImportInZip(new ImportResources(), mockFile));
 
         assertEquals("Invalid zip format for file 'test'", exception.getMessage());
+    }
+
+    @Test
+    void collectMultipartFilesUniquenessConflicts_duplicateOriginalNames() {
+        var file1 = new MockMultipartFile("file1", "test.txt", null, "1".getBytes());
+        var file2 = new MockMultipartFile("file2", "test.txt", null, "2".getBytes());
+
+        var conflicts = validator.collectMultipartFilesUniquenessConflicts(List.of(file1, file2));
+
+        assertEquals(1, conflicts.size());
+        assertTrue(conflicts.containsKey("test.txt"));
+    }
+
+    @Test
+    void collectMultipartFilesUniquenessConflicts_noDuplicates() {
+        var file1 = new MockMultipartFile("file", "file1.txt", null, "1".getBytes());
+        var file2 = new MockMultipartFile("file", "file2.txt", null, "2".getBytes());
+
+        var conflicts = validator.collectMultipartFilesUniquenessConflicts(List.of(file1, file2));
+
+        assertTrue(conflicts.isEmpty());
     }
 
     private MockMultipartFile getMockMultipartZipFile(boolean withDuplicates) throws IOException {
@@ -277,5 +314,25 @@ class ResourceImportValidatorTest {
         application.setVersion("0.0." + suffix);
         application.setFolderId("public/" + suffix + "/");
         return application;
+    }
+
+    private ResourceLocation getResourceNameAndVersionAndPath(ApplicationEximDto applicationEximDto,
+                                                              boolean isFlatImport) {
+        return ResourceLocation.from(
+                applicationEximDto.getName(),
+                applicationEximDto.getVersion(),
+                applicationEximDto.getFolderId(),
+                isFlatImport
+        );
+    }
+
+    private ResourceLocation getResourceNameAndVersionAndPath(ToolSetEximDto toolSetEximDto,
+                                                              boolean isFlatImport) {
+        return ResourceLocation.from(
+                toolSetEximDto.getName(),
+                toolSetEximDto.getVersion(),
+                toolSetEximDto.getFolderId(),
+                isFlatImport
+        );
     }
 }

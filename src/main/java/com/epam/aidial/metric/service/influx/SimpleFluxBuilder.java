@@ -54,23 +54,29 @@ public class SimpleFluxBuilder {
         return "|> sort(columns: %s, desc: %s)".formatted(combinedColumnNames, desc);
     }
 
-    public static String createLimitPart(Query query, long defaultLimit) {
+    public static String createLimitPart(Query query) {
         var limit = query.getLimit();
-        var offset = query.getOffset();
-
-        if (limit == null && offset == null) {
+        if (limit == null) {
             return "";
         }
-        var size = limit == null ? defaultLimit : limit;
+        var offset = query.getOffset();
         if (offset == null || offset <= 0) {
-            return "|> limit(n: %d)".formatted(size);
+            return "|> limit(n: %d)".formatted(limit);
         } else {
-            return "|> limit(n: %d, offset: %d)".formatted(size, offset);
+            return "|> limit(n: %d, offset: %d)".formatted(limit, offset);
         }
     }
 
     public static String createDistinctPart(String columnName) {
         return "|> distinct(column: %s)".formatted(quote(columnName));
+    }
+
+    public static String createFirstPart() {
+        return "|> first()";
+    }
+
+    public static String createUniquePart(String columnName) {
+        return "|> unique(column: %s)".formatted(quote(columnName));
     }
 
     public static String createRenamePart(Map<String, String> mapping) {

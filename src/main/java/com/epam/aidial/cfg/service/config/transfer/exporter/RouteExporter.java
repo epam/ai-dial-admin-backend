@@ -4,14 +4,13 @@ import com.epam.aidial.cfg.configuration.logging.LogExecution;
 import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
-import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.route.Route;
 import com.epam.aidial.cfg.domain.service.RouteService;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.utils.UpstreamSecretUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -55,13 +54,13 @@ public class RouteExporter {
         return routeService.getAllByDeploymentNamesOrderByDisplayNameAscNameAsc(componentsByName.keySet()).stream()
                 .map(route -> removeDependency(route, componentsByName.get(route.getDeployment().getName()).getDependencies(),
                         selectedItemsExportRequest.getExportFormat()))
-                .map(route -> removeUpstreamKey(route, addSecrets))
+                .map(route -> removeSecretData(route, addSecrets))
                 .toList();
     }
 
     private Collection<Route> getRoutes(FullExportRequest fullExportRequest) {
         return routeService.getAllOrderedByDisplayNameAscNameAsc().stream()
-                .map(route -> removeUpstreamKey(route, fullExportRequest.isAddSecrets()))
+                .map(route -> removeSecretData(route, fullExportRequest.isAddSecrets()))
                 .map(route -> removeDependency(route, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
@@ -86,12 +85,9 @@ public class RouteExporter {
         return route;
     }
 
-    private Route removeUpstreamKey(Route route, boolean addSecrets) {
-        List<Upstream> upstreams = route.getUpstreams();
-        if (CollectionUtils.isNotEmpty(upstreams) && !addSecrets) {
-            for (Upstream upstream : upstreams) {
-                upstream.setKey(null);
-            }
+    private Route removeSecretData(Route route, boolean addSecrets) {
+        if (!addSecrets) {
+            UpstreamSecretUtils.removeSecrets(route.getUpstreams());
         }
         return route;
     }

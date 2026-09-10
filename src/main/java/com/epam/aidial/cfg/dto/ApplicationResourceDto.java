@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.ApplicationResourceSourceDto;
+import jakarta.validation.Valid;
 import lombok.Data;
 
 import java.util.List;
@@ -16,15 +18,21 @@ public class ApplicationResourceDto {
     private String name;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceDto> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -36,8 +44,14 @@ public class ApplicationResourceDto {
     private List<String> userRoles;
     private FeaturesResourceDto features;
     private List<RouteResourceDto> routes;
-    private String applicationTypeSchemaId;
+    @Valid
+    private ApplicationResourceSourceDto source;
     private Map<String, Object> applicationProperties;
     private ValidityStateResourceDto validityState;
     private McpResourceDto mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private Map<String, ExternalServiceResourceDto> externalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

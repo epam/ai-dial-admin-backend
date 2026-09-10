@@ -294,6 +294,114 @@
           }
         ]
       }
+    },
+    {
+      "name": "routes_analytics",
+      "source": {
+        "table": "${METRICS_STORAGE_ROUTES_ANALYTICS_TABLE:routes_analytics}"
+      },
+      "schema": {
+        "columns": [
+          {
+            "name": "_time",
+            "type": "timestamp",
+            "source": {
+              "column": "time"
+            }
+          },
+          {
+            "name": "project_id",
+            "type": "string",
+            "source": {
+              "column": "project_id"
+            }
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "source": {
+              "column": "title"
+            }
+          },
+          {
+            "name": "route_path",
+            "type": "string",
+            "source": {
+              "column": "route_path"
+            }
+          },
+          {
+            "name": "http_method",
+            "type": "string",
+            "source": {
+              "column": "http_method"
+            }
+          },
+          {
+            "name": "deployment",
+            "type": "string",
+            "source": {
+              "column": "deployment"
+            }
+          },
+          {
+            "name": "parent_deployment",
+            "type": "string",
+            "source": {
+              "column": "parent_deployment"
+            }
+          },
+          {
+            "name": "execution_path",
+            "type": "string",
+            "source": {
+              "column": "execution_path"
+            }
+          },
+          {
+            "name": "chat_id",
+            "type": "string",
+            "source": {
+              "column": "chat_id"
+            }
+          },
+          {
+            "name": "user_hash",
+            "type": "string",
+            "source": {
+              "column": "user_hash"
+            }
+          },
+          {
+            "name": "upstream",
+            "type": "string",
+            "source": {
+              "column": "upstream"
+            }
+          },
+          {
+            "name": "trace_id",
+            "type": "string",
+            "source": {
+              "column": "trace_id"
+            }
+          },
+          {
+            "name": "core_span_id",
+            "type": "string",
+            "source": {
+              "column": "core_span_id"
+            }
+          },
+          {
+            "name": "core_parent_span_id",
+            "type": "string",
+            "source": {
+              "column": "core_parent_span_id"
+            }
+          }
+        ]
+      }
     }
   ]
 }

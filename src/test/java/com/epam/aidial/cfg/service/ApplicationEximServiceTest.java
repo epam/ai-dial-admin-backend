@@ -7,14 +7,17 @@ import com.epam.aidial.cfg.dto.ApplicationEximDto;
 import com.epam.aidial.cfg.dto.ApplicationsEximDto;
 import com.epam.aidial.cfg.dto.McpResourceDto;
 import com.epam.aidial.cfg.model.ApplicationResource;
+import com.epam.aidial.cfg.model.ApplicationResourceNodeInfo;
 import com.epam.aidial.cfg.model.CreateApplicationResource;
 import com.epam.aidial.cfg.model.ImportConflictResolutionStrategy;
 import com.epam.aidial.cfg.model.ImportResources;
 import com.epam.aidial.cfg.model.ImportResourcesStatus;
 import com.epam.aidial.cfg.model.McpResource;
+import com.epam.aidial.cfg.model.NodeType;
 import com.epam.aidial.cfg.model.Rule;
 import com.epam.aidial.cfg.model.RuleFunction;
 import com.epam.aidial.cfg.model.UpdateRulesRequest;
+import com.epam.aidial.cfg.utils.ExportPathUtils;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,10 +34,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -44,6 +47,7 @@ import static org.mockito.Mockito.when;
         JsonMapperConfiguration.class,
         ApplicationClientMapperImpl.class,
         ApplicationEximService.class,
+        ResourceImportValidator.class,
         RouteMapperImpl.class
 })
 @TestPropertySource(properties = {
@@ -55,8 +59,6 @@ class ApplicationEximServiceTest {
     private ApplicationResourceService applicationService;
     @MockitoBean
     private FolderService folderService;
-    @MockitoBean
-    private ResourceImportValidator validator;
 
     @Autowired
     private ApplicationEximService applicationEximService;
@@ -80,7 +82,7 @@ class ApplicationEximServiceTest {
         var applicationExim = result.getApplications().get(0);
         assertThat(applicationExim.getApplicationTypeSchemaId()).isEqualTo("https://test1.epam.com");
         assertThat(applicationExim.getDisplayName()).isEqualTo("application1");
-        assertThat(applicationExim.getFolderId()).isEqualTo("public/folder1/");
+        assertThat(applicationExim.getFolderId()).isEqualTo("public/");
         assertThat(applicationExim.getDescription()).isEqualTo("application description 1");
         assertThat(applicationExim.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
     }
@@ -109,7 +111,7 @@ class ApplicationEximServiceTest {
         var application1Exim1 = result.getApplications().get(0);
         assertThat(application1Exim1.getApplicationTypeSchemaId()).isEqualTo("https://test1.epam.com");
         assertThat(application1Exim1.getName()).isEqualTo("application1");
-        assertThat(application1Exim1.getFolderId()).isEqualTo("public/folder1/");
+        assertThat(application1Exim1.getFolderId()).isEqualTo("public/");
         assertThat(application1Exim1.getDescription()).isEqualTo("application description 1");
         assertThat(application1Exim1.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/1/mcp");
 
@@ -117,9 +119,92 @@ class ApplicationEximServiceTest {
         var application1Exim2 = result.getApplications().get(1);
         assertThat(application1Exim2.getApplicationTypeSchemaId()).isEqualTo("https://test2.epam.com");
         assertThat(application1Exim2.getName()).isEqualTo("application2");
-        assertThat(application1Exim2.getFolderId()).isEqualTo("public/folder2/");
+        assertThat(application1Exim2.getFolderId()).isEqualTo("public/");
         assertThat(application1Exim2.getDescription()).isEqualTo("application description 2");
         assertThat(application1Exim2.getMcp().getEndpoint()).isEqualTo("http://localhost:9876/2/mcp");
+    }
+
+    @Test
+    @SneakyThrows
+    void exportApplications_FolderPath() {
+        var folderPath = "public/folder1/folder2/folder3/";
+        var appStoragePath = "public/folder1/folder2/folder3/folder4/myApp__0.0.1";
+
+        var item = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(appStoragePath)
+                .build();
+        var folder = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(item))
+                .build();
+
+        when(applicationService.getApplications(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var mcp = new McpResource();
+        mcp.setEndpoint("http://localhost/mcp");
+        var application = new ApplicationResource();
+        application.setPath(appStoragePath);
+        application.setName("myApp");
+        application.setVersion("0.0.1");
+        application.setFolderId("public/folder1/folder2/folder3/folder4/");
+        application.setMcp(mcp);
+        application.setApplicationTypeSchemaId("https://test.epam.com");
+
+        when(applicationService.getApplicationResource(appStoragePath)).thenReturn(application);
+
+        var result = applicationEximService.exportApplications(List.of(folderPath));
+
+        assertThat(result.getApplications()).hasSize(1);
+        var exim = result.getApplications().get(0);
+        assertThat(exim.getName()).isEqualTo("myApp");
+        assertThat(exim.getFolderId()).isEqualTo("public/folder3/folder4/");
+        verify(applicationService).getApplicationResource(appStoragePath);
+    }
+
+    @Test
+    @SneakyThrows
+    void exportApplications_FolderPath_excludesTechnicalFile() {
+        var folderPath = "public/folder1/folder2/";
+        var path = "public/folder1/folder2/test__0.0.1";
+        var techPath = "public/folder1/folder2/" + ExportPathUtils.DIAL_FOLDER_FILE + "__0.0.1";
+
+        var techItem = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(techPath)
+                .build();
+        var item = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.ITEM)
+                .path(path)
+                .build();
+        var folder = ApplicationResourceNodeInfo.builder()
+                .nodeType(NodeType.FOLDER)
+                .items(List.of(techItem, item))
+                .build();
+
+        when(applicationService.getApplications(argThat(req ->
+                folderPath.equals(req.getPath()) && req.isRecursive()))).thenReturn(folder);
+
+        var mcp = new McpResource();
+        mcp.setEndpoint("http://localhost/mcp");
+        var application = new ApplicationResource();
+        application.setPath(path);
+        application.setName("test");
+        application.setVersion("0.0.1");
+        application.setFolderId("public/folder1/folder2/");
+        application.setDescription("d");
+        application.setMcp(mcp);
+        application.setApplicationTypeSchemaId("https://test.epam.com");
+
+        when(applicationService.getApplicationResource(path)).thenReturn(application);
+
+        var result = applicationEximService.exportApplications(List.of(folderPath));
+
+        assertThat(result.getApplications()).hasSize(1);
+        assertThat(result.getApplications().get(0).getName()).isEqualTo("test");
+        assertThat(result.getApplications().get(0).getFolderId()).isEqualTo("public/folder2/");
+        verify(applicationService).getApplicationResource(path);
     }
 
     @Test
@@ -256,26 +341,44 @@ class ApplicationEximServiceTest {
 
     @Test
     @SneakyThrows
-    void importApplications_ValidatorThrowsError_RethrowsError() {
-        // given
+    void importApplications_DuplicatePayloadEntries_PerItemFailuresAndNoImport() {
         var importApplications = ImportResources.builder()
                 .path("public/test/")
                 .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
                 .build();
 
-        var applicationExim = getApplicationEximDto("1");
         var applicationsExim = new ApplicationsEximDto();
-        applicationsExim.setApplications(List.of(applicationExim));
+        applicationsExim.setApplications(List.of(getApplicationEximDto("1"), getApplicationEximDto("1")));
 
-        doThrow(new IllegalArgumentException("Validation error"))
-                .when(validator).validateApplicationImport(importApplications, applicationsExim);
+        var importResults = applicationEximService.importApplications(importApplications, applicationsExim);
 
-        // when/then
-        var thrown = assertThrows(IllegalArgumentException.class,
-                () -> applicationEximService.importApplications(importApplications, applicationsExim));
-
-        assertThat(thrown).hasMessage("Validation error");
+        assertThat(importResults.getImportResults()).hasSize(2);
+        assertThat(importResults.getImportResults()).allMatch(r -> r.getStatus() == ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(0).getError()).contains("Duplicated application");
         verifyNoInteractions(applicationService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importApplications_UniquenessConflict_ImportsNonDuplicateItems() {
+        var path = "public/folder/";
+        var importApplications = ImportResources.builder()
+                .path(path)
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var applicationsExim = new ApplicationsEximDto();
+        applicationsExim.setApplications(List.of(getApplicationEximDto("1"), getApplicationEximDto("2"), getApplicationEximDto("2")));
+
+        var captor = ArgumentCaptor.forClass(CreateApplicationResource.class);
+
+        var importResults = applicationEximService.importApplications(importApplications, applicationsExim);
+
+        assertThat(importResults.getImportResults()).hasSize(3);
+        assertThat(importResults.getImportResults().get(0).getStatus()).isEqualTo(ImportResourcesStatus.SUCCESS);
+        assertThat(importResults.getImportResults().get(1).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        assertThat(importResults.getImportResults().get(2).getStatus()).isEqualTo(ImportResourcesStatus.FAILURE);
+        verify(applicationService).putApplicationResource(captor.capture(), eq(true), isNull());
     }
 
     private ApplicationResource getApplicationResource(String suffix) {

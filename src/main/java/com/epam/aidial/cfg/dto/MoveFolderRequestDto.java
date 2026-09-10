@@ -13,5 +13,6 @@ public class MoveFolderRequestDto {
     private String oldPath;
     @MetadataPath
     private String newPath;
+    private boolean overwrite;
     private List<@NotNull ResourceTypeDto> resourceTypes;
 }

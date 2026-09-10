@@ -10,6 +10,7 @@ import com.epam.aidial.cfg.domain.mapper.ApplicationTypeSchemaCoreMapper;
 import com.epam.aidial.cfg.domain.model.Application;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidationContext;
 import com.epam.aidial.core.config.validation.CustomApplicationConformToTypeSchemaValidator;
+import com.epam.aidial.core.config.validation.SchemaConformToMetaSchemaValidator;
 import com.networknt.schema.ValidationMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -42,17 +43,17 @@ public class ApplicationValidityStateResolver {
         var validationContext = new CustomApplicationConformToTypeSchemaValidationContext(
                 Map.of(applicationTypeSchemaEntity.getSchemaId(), coreApplicationTypeSchema)
         );
-        Set<ValidationMessage> validationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        Set<ValidationMessage> appValidationMessages = CustomApplicationConformToTypeSchemaValidator.validate(application, validationContext);
+        Set<ValidationMessage> schemaValidationMessages = SchemaConformToMetaSchemaValidator.getValidationMessages(coreApplicationTypeSchema);
 
-        if (!validationMessages.isEmpty()) {
-            String validityStateMessage = validationMessages.stream()
-                    .map(ValidationMessage::getMessage)
-                    .collect(Collectors.joining(", "));
-            validityStateEntity.setMessage(validityStateMessage);
-            validityStateEntity.setValid(false);
-        } else {
+        if (appValidationMessages.isEmpty() && schemaValidationMessages.isEmpty()) {
             validityStateEntity.setValid(true);
+            return validityStateEntity;
         }
+
+        String validityStateMessage = resolveValidityStateMessage(appValidationMessages, schemaValidationMessages);
+        validityStateEntity.setMessage(validityStateMessage);
+        validityStateEntity.setValid(false);
 
         return validityStateEntity;
     }
@@ -64,5 +65,26 @@ public class ApplicationValidityStateResolver {
     private String mapToCoreApplicationTypeSchema(ApplicationTypeSchemaEntity entity) {
         var applicationTypeSchema = applicationTypeSchemaEntityMapper.toDomain(entity);
         return applicationTypeSchemaCoreMapper.mapToCoreString(applicationTypeSchema);
+    }
+
+    private String resolveValidityStateMessage(Set<ValidationMessage> appValidationMessages,
+                                               Set<ValidationMessage> schemaValidationMessages) {
+        if (!appValidationMessages.isEmpty() && !schemaValidationMessages.isEmpty()) {
+            String appValidityStateMessage = "App: " + buildValidationMessage(appValidationMessages);
+            String schemaValidityStateMessage = "Schema: " + buildValidationMessage(schemaValidationMessages);
+            return appValidityStateMessage + "; " + schemaValidityStateMessage;
+        } else if (!appValidationMessages.isEmpty()) {
+            return "App: " + buildValidationMessage(appValidationMessages);
+        } else if (!schemaValidationMessages.isEmpty()) {
+            return "Schema: " + buildValidationMessage(schemaValidationMessages);
+        } else {
+            throw new IllegalArgumentException("Validation messages are empty");
+        }
+    }
+
+    private String buildValidationMessage(Set<ValidationMessage> validationMessages) {
+        return validationMessages.stream()
+                .map(ValidationMessage::getMessage)
+                .collect(Collectors.joining(", "));
     }
 }

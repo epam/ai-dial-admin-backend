@@ -13,6 +13,7 @@ public class Adapter {
     private String name;
     private String displayName;
     private String baseEndpoint;
+    private String responsesEndpoint;
     private String description;
     private Long createdAt;
     private Long updatedAt;

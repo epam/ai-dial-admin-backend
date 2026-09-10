@@ -67,6 +67,7 @@ public class AssistantService {
     public void createAssistant(Assistant assistant) {
         assistantValidator.validateAssistantCreation(assistant);
         deploymentService.assertDeploymentNotExists(assistant.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(assistant.getDeployment().getName());
         Optional.of(assistant)
                 .map(domainModel -> toEntity(domainModel, new AssistantEntity()))
                 .map(this::save)

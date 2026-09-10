@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -58,27 +59,40 @@ public class AdapterImporter {
             return Collections.emptyList();
         }
 
-        Set<String> adapterBaseEndpointsFromCoreModels = getAdapterBaseEndpoints(coreModels);
-        if (CollectionUtils.isEmpty(adapterBaseEndpointsFromCoreModels)) {
+        Set<Pair<String, String>> adapterEndpointsFromCoreModels = getAdapterEndpoints(coreModels);
+        if (CollectionUtils.isEmpty(adapterEndpointsFromCoreModels)) {
             return Collections.emptyList();
         }
 
-        Set<String> existingAdapterBaseEndpoints = adapterService.getAll().stream()
-                .map(Adapter::getBaseEndpoint)
+        Set<Pair<String, String>> existingAdapterEndpoints = adapterService.getAll().stream()
+                .map(adapter -> Pair.of(adapter.getBaseEndpoint(), adapter.getResponsesEndpoint()))
                 .collect(Collectors.toSet());
         boolean createAdapterIfAbsent = importOptions.createAdapterIfAbsent();
 
         List<ImportComponent<Adapter>> result = new ArrayList<>();
 
         int i = 0;
-        for (String endpoint : adapterBaseEndpointsFromCoreModels) {
-            if (!existingAdapterBaseEndpoints.contains(endpoint)) {
+        for (Pair<String, String> endpoints : adapterEndpointsFromCoreModels) {
+            if (!existingAdapterEndpoints.contains(endpoints)) {
+                String endpoint = endpoints.getLeft();
+                String responsesEndpoint = endpoints.getRight();
+
                 if (!createAdapterIfAbsent) {
-                    throw new IllegalArgumentException("Unable to import adapters, adapter with endpoint " + endpoint + " does not exist");
+                    if (endpoint != null && responsesEndpoint != null) {
+                        throw new IllegalArgumentException("Unable to import adapters, adapter with "
+                                + "endpoint " + endpoint + " and responses endpoint " + responsesEndpoint + " does not exist");
+                    } else if (endpoint != null) {
+                        throw new IllegalArgumentException("Unable to import adapters, adapter with "
+                                + "endpoint " + endpoint + " does not exist");
+                    } else if (responsesEndpoint != null) {
+                        throw new IllegalArgumentException("Unable to import adapters, adapter with "
+                                + "responses endpoint " + responsesEndpoint + " does not exist");
+                    }
                 }
 
                 Adapter adapter = new Adapter();
                 adapter.setBaseEndpoint(endpoint);
+                adapter.setResponsesEndpoint(responsesEndpoint);
                 if (!isPreview) {
                     adapter.setName(UUID.randomUUID().toString());
                 } else {
@@ -94,12 +108,12 @@ public class AdapterImporter {
         return result;
     }
 
-    private Set<String> getAdapterBaseEndpoints(Map<String, CoreModel> coreModels) {
+    private Set<Pair<String, String>> getAdapterEndpoints(Map<String, CoreModel> coreModels) {
         return coreModels.entrySet()
                 .stream()
                 .filter(entry -> shouldSearchForAdapter(entry.getKey(), entry.getValue()))
                 .map(Map.Entry::getValue)
-                .map(this::mapToAdapterBaseEndpoint)
+                .map(this::mapToAdapterEndpoints)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -107,7 +121,15 @@ public class AdapterImporter {
     private boolean shouldSearchForAdapter(String modelName, CoreModel coreModel) {
         return modelService.tryGetModel(modelName)
                 .map(model -> modelSourceRetentionPolicy.shouldChangeSource(coreModel, model))
-                .orElseGet(() -> coreModel.getEndpoint() != null);
+                .orElseGet(() -> coreModel.getEndpoint() != null || coreModel.getResponsesEndpoint() != null);
+    }
+
+    private Pair<String, String> mapToAdapterEndpoints(CoreModel coreModel) {
+        String adapterBaseEndpoint = mapToAdapterBaseEndpoint(coreModel);
+        String adapterResponsesEndpoint = mapToAdapterResponsesEndpoint(coreModel);
+        return (adapterBaseEndpoint != null || adapterResponsesEndpoint != null)
+                ? Pair.of(adapterBaseEndpoint, adapterResponsesEndpoint)
+                : null;
     }
 
     private String mapToAdapterBaseEndpoint(CoreModel coreModel) {
@@ -115,6 +137,11 @@ public class AdapterImporter {
         ModelType type = coreModel.getType();
         ModelEndpointComponents endpointComponents = modelEndpointUtils.parseModelEndpoint(modelEndpoint, type);
         return endpointComponents != null ? endpointComponents.adapterEndpoint() : null;
+    }
+
+    private String mapToAdapterResponsesEndpoint(CoreModel coreModel) {
+        String responsesEndpoint = coreModel.getResponsesEndpoint();
+        return StringUtils.isNotBlank(responsesEndpoint) ? responsesEndpoint : null;
     }
 
     public List<ImportComponent<Adapter>> importAdminAdapters(Map<String, Adapter> adapters,

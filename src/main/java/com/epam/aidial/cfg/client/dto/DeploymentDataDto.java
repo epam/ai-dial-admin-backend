@@ -1,5 +1,7 @@
 package com.epam.aidial.cfg.client.dto;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -15,6 +17,20 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "object",
+        visible = true,
+        defaultImpl = DeploymentDataDto.class
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = ModelDataDto.class, name = "model"),
+        @JsonSubTypes.Type(value = ModelDataDto.class, name = "dial-model"),
+        @JsonSubTypes.Type(value = ToolSetDataDto.class, name = "toolset"),
+        @JsonSubTypes.Type(value = ToolSetDataDto.class, name = "dial-toolset"),
+        @JsonSubTypes.Type(value = ApplicationDataDto.class, name = "application"),
+        @JsonSubTypes.Type(value = ApplicationDataDto.class, name = "dial-application"),
+})
 public class DeploymentDataDto {
 
     private String id;
@@ -36,6 +52,7 @@ public class DeploymentDataDto {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> descriptionKeywords;
     private int maxRetryAttempts;
     private List<String> interfaces;

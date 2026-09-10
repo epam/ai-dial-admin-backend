@@ -44,17 +44,26 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.Map;
+
 @DataJpaTest
 @TestPropertySource(properties = {
         "datasource.vendor=POSTGRES",
-})
+        "spring.datasource.hikari.allow-pool-suspension=true",
+        "spring.datasource.hikari.minimum-idle=0",
+        "spring.datasource.hikari.validation-timeout=3000",
+        })
 @Import(PostgresFunctionalTestConfiguration.class)
 @Testcontainers
 public class PostgresFunctionalTests extends FunctionalTestSuite {
 
     @Container
     @ServiceConnection
-    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17.4");
+    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17.4")
+            // Data live in RAM, not on disk
+            .withTmpFs(Map.of("/var/lib/postgresql/data", "rw"))
+            // Disable sync with disc for maximum speed
+            .withCommand("postgres", "-c", "fsync=off", "-c", "full_page_writes=off");
 
     public static PostgreSQLContainer<?> getContainer() {
         return POSTGRES;

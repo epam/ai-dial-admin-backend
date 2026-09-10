@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class CreateToolSetResourceDto {
@@ -19,19 +20,23 @@ public class CreateToolSetResourceDto {
     @NotBlank(message = "Completion endpoint is required")
     @Endpoint
     private String endpoint;
-    @Endpoint
-    private String responsesEndpoint;
     @NotBlank(message = "Display name is required")
     private String displayName;
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
+    private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private TransportDto transport;
     private List<String> allowedTools;
+    private String provider;
     private CoreResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public enum TransportDto {
         HTTP, SSE

@@ -1,6 +1,8 @@
 package com.epam.aidial.cfg.domain.model;
 
 import com.epam.aidial.cfg.domain.model.route.DependentRoute;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSource;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -17,17 +19,23 @@ public class Application extends RoleBased {
 
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterface> interfaces;
     private String iconUrl;
     private String reference;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
     private Set<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private String author;
     private Long createdAt;
@@ -35,10 +43,20 @@ public class Application extends RoleBased {
     private List<String> dependencies;
     private Features features;
     private Map<String, Object> applicationProperties;
-    private URI applicationTypeSchemaId;
+    private ApplicationSource source;
     private String viewerUrl;
     private String editorUrl;
     private List<DependentRoute> routes;
     private ValidityState validityState;
     private Mcp mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private Map<String, ExternalService> externalServices;
+
+    @Deprecated
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private URI applicationTypeSchemaId;
+
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

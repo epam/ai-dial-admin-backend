@@ -4,4 +4,5 @@ public enum AuthenticationTypeResourceDto {
     OAUTH,
     API_KEY,
     NONE,
+    DIAL_NATIVE,
 }

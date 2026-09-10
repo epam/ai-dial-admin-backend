@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -22,6 +23,8 @@ public class ToolSetResourceDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
+    private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private String author;
@@ -29,8 +32,12 @@ public class ToolSetResourceDto {
     private Long updatedAt;
     private Transport transport;
     private List<String> allowedTools;
+    private String provider;
     private ResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public enum Transport {
         HTTP, SSE

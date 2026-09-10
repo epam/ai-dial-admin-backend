@@ -81,6 +81,7 @@ public class AddonService {
     public void createAddon(Addon addon) {
         addonValidator.validateAddonCreation(addon);
         deploymentService.assertDeploymentNotExists(addon.getDeployment().getName());
+        deploymentService.assertInterceptorNotExists(addon.getDeployment().getName());
         Optional.of(addon)
                 .map(domainAddon -> toEntity(domainAddon, new AddonEntity()))
                 .map(this::save)

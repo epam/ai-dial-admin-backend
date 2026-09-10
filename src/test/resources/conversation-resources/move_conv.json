@@ -1,0 +1,5 @@
+{
+  "sourceUrl": "public/sub1/conversation__1",
+  "destinationUrl": "public/sub1/sub2/conversation__1",
+  "overwrite": false
+}

@@ -33,6 +33,7 @@ public class DeploymentData {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> descriptionKeywords;
     private int maxRetryAttempts;
     private List<String> interfaces;

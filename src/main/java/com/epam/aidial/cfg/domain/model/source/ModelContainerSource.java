@@ -15,4 +15,5 @@ public class ModelContainerSource extends ModelSource {
     private String containerId;
     private String containerName;
     private String completionEndpointPath;
+    private String responsesEndpointPath;
 }

@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 
+import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
+
 @RestController
 @RequestMapping("/api/v1/interceptors")
 @Validated
@@ -36,6 +38,11 @@ public class InterceptorController extends AbstractController {
 
     public InterceptorController(InterceptorFacade interceptorFacade) {
         this.interceptorFacade = interceptorFacade;
+    }
+
+    @RequestMapping(method = HEAD, path = "/{interceptorName}")
+    public void ensureExists(@PathVariable String interceptorName) {
+        interceptorFacade.ensureExists(interceptorName);
     }
 
     @GetMapping(produces = MimeTypeUtils.APPLICATION_JSON_VALUE)

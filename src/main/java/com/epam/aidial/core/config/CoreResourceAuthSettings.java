@@ -57,6 +57,13 @@ public class CoreResourceAuthSettings {
     @JsonAlias({"scopesSupported", "scopes_supported"})
     private List<String> scopesSupported;
 
+    @NotNull(message = "Authentication method must be defined")
+    @JsonAlias({"tokenEndpointAuthMethod", "token_endpoint_auth_method"})
+    private String tokenEndpointAuthMethod; // 0.44.0
+
+    @JsonAlias({"dynamicallyRegistered", "dynamically_registered"})
+    private Boolean dynamicallyRegistered; // 0.46.0
+
     @Override
     public String toString() {
         return "CoreResourceAuthSettings(" + "authenticationType=" + getAuthenticationType()
@@ -70,6 +77,7 @@ public class CoreResourceAuthSettings {
                 + ", codeVerifier='" + getCodeVerifier()
                 + ", apiKeyHeader='" + getApiKeyHeader()
                 + ", scopesSupported=" + getScopesSupported()
+                + ", tokenEndpointAuthMethod=" + getScopesSupported()
                 + ')';
     }
 

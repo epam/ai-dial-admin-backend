@@ -8,8 +8,10 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 @Data
@@ -22,8 +24,10 @@ public class ToolSetDto extends RoleBasedDto {
     private String endpoint;
     private String iconUrl;
     private String description;
+    private String intro;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
+    private String vendorWebsite;
     private TreeSet<String> descriptionKeywords;
     @Positive(message = "Max retry attempts should be greater than 0")
     private Integer maxRetryAttempts;
@@ -37,9 +41,13 @@ public class ToolSetDto extends RoleBasedDto {
     @NotNull
     private TransportDto transport;
     private List<String> allowedTools = List.of();
+    private String provider;
 
     private ResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public enum TransportDto {
         HTTP, SSE

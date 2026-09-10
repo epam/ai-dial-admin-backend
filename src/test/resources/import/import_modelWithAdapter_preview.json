@@ -55,6 +55,7 @@
           "parallelToolCallsSupported": true
         },
         "defaults": {},
+        "responsesDefaults": {},
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
@@ -72,7 +73,9 @@
           "$type": "adapter",
           "adapterName": "adapter1",
           "completionEndpointPath": "testModel1/embeddings"
-        }
+        },
+        "interfaces": {},
+        "defaultHeaders": {}
       }
     },
     {
@@ -103,6 +106,7 @@
           "parallelToolCallsSupported": true
         },
         "defaults": {},
+        "responsesDefaults": {},
         "topics": [],
         "maxRetryAttempts": 5,
         "author": "test-author",
@@ -114,7 +118,9 @@
           "$type": "adapter",
           "adapterName": "<will be defined during import 0>",
           "completionEndpointPath": "testModel2/embeddings"
-        }
+        },
+        "interfaces": {},
+        "defaultHeaders": {}
       }
     }
   ],

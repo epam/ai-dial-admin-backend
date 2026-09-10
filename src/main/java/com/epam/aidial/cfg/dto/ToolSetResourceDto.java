@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.dto;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ToolSetResourceDto {
@@ -17,13 +18,19 @@ public class ToolSetResourceDto {
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
+    private String vendorWebsite;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
     private Long createdAt;
     private Transport transport;
     private List<String> allowedTools;
+    private String provider;
     private CoreResourceAuthSettingsDto authSettings;
     private boolean forwardPerRequestKey;
+    private boolean forwardAuthToken;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
     public enum Transport {
         HTTP, SSE

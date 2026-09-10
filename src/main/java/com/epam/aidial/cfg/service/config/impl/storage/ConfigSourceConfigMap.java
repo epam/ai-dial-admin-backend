@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.util.HttpStatus;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import lombok.SneakyThrows;
@@ -72,7 +73,7 @@ public class ConfigSourceConfigMap extends CompositeConfigSource {
     }
 
     @Override
-    protected String encode(Config body) {
+    protected String encode(JsonNode body) {
         try (var writer = new StringWriter()) {
             objectMapper.writeValue(writer, body);
 

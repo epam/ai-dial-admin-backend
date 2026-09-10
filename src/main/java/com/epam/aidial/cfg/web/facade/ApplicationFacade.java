@@ -94,4 +94,8 @@ public class ApplicationFacade {
     public McpSchema.CallToolResult callTool(String applicationName, McpSchema.CallToolRequest callToolRequest) {
         return applicationService.callTool(applicationName, callToolRequest);
     }
+
+    public void refreshEndpoints() {
+        applicationService.refreshEndpoints();
+    }
 }

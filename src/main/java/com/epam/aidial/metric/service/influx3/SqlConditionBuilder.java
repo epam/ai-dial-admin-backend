@@ -6,6 +6,7 @@ import com.epam.aidial.metric.service.RangeFilterUtils;
 import com.epam.aidial.metric.util.CollectorsUtils;
 import com.epam.aidial.ql.common.model.enums.BinaryComparisonOperator;
 import com.epam.aidial.ql.model.Filter;
+import com.epam.aidial.ql.model.Tuple;
 import com.epam.aidial.ql.model.filters.And;
 import com.epam.aidial.ql.model.filters.BinaryComparisonFilter;
 import com.epam.aidial.ql.model.filters.Not;
@@ -14,9 +15,11 @@ import com.epam.aidial.ql.model.filters.UnaryComparisonFilter;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.NotImplementedException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -102,13 +105,20 @@ public class SqlConditionBuilder {
         if (!(filter.getLeftExpression() instanceof Column column)) {
             throw new NotImplementedException("Left part of expression must be a column");
         }
-        if (!(filter.getRightExpression() instanceof Constant constant)) {
-            throw new NotImplementedException("Right part of expression must be a constant");
+
+        var operator = filter.getOperator();
+        var right = filter.getRightExpression();
+        if (operator == BinaryComparisonOperator.IN || operator == BinaryComparisonOperator.NOT_IN) {
+            if (!(right instanceof Tuple tuple)) {
+                throw new NotImplementedException("Right part of IN/NOT IN expression must be a tuple");
+            }
+            return createInFilter(column.getName(), tuple, operator, paramCounter);
         }
 
-        var columnName = column.getName();
-        var value = constant.getValue();
-        return createBinaryComparisonFilter(columnName, value, filter.getOperator(), paramCounter);
+        if (!(right instanceof Constant constant)) {
+            throw new NotImplementedException("Right part of expression must be a constant");
+        }
+        return createBinaryComparisonFilter(column.getName(), constant.getValue(), operator, paramCounter);
     }
 
     private static SqlConditionResult createBinaryComparisonFilter(String columnName, Comparable<?> value,
@@ -127,16 +137,39 @@ public class SqlConditionBuilder {
             case ENDS_WITH -> createLikePatternFilter(columnName, "%" + escapeLikeWildcards(value), paramCounter);
             case LIKE -> createLikeFilter(columnName, value, paramCounter);
             case NOT_LIKE -> throw new NotImplementedException("NOT LIKE operator is not supported yet");
-            case IN -> throw new NotImplementedException("IN operator is not supported yet");
-            case NOT_IN -> throw new NotImplementedException("NOT IN operator is not supported yet");
+            case IN, NOT_IN -> throw new IllegalStateException("IN/NOT IN handled before this point");
         };
+    }
+
+    private static SqlConditionResult createInFilter(String columnName, Tuple tuple,
+                                                     BinaryComparisonOperator operator, AtomicInteger paramCounter) {
+        var params = new HashMap<String, Object>();
+        var paramRefs = new ArrayList<String>();
+        for (var expression : tuple.getExpressions()) {
+            if (!(expression instanceof Constant constant)) {
+                throw new NotImplementedException("IN values must be constants");
+            }
+            var paramName = "p" + paramCounter.getAndIncrement();
+            params.put(paramName, normalizeParamValue(constant.getValue()));
+            paramRefs.add("$" + paramName);
+        }
+        var sqlOperator = operator == BinaryComparisonOperator.NOT_IN ? "NOT IN" : "IN";
+        var query = "\"%s\" %s (%s)".formatted(columnName, sqlOperator, String.join(", ", paramRefs));
+        return new SqlConditionResult(query, params);
     }
 
     private static SqlConditionResult createSimpleComparisonFilter(String columnName, Comparable<?> value,
                                                                    String operator, AtomicInteger paramCounter) {
         var paramName = "p" + paramCounter.getAndIncrement();
         var query = "\"%s\" %s $%s".formatted(columnName, operator, paramName);
-        return new SqlConditionResult(query, Map.of(paramName, value));
+        return new SqlConditionResult(query, Map.of(paramName, normalizeParamValue(value)));
+    }
+
+    // The InfluxDB 3 client rejects java.util.UUID parameters (unsupported type).
+    // UUID-shaped string literals are auto-typed as Type.UUID by the expressions
+    // parser, so we render them back to their canonical string form for binding.
+    private static Object normalizeParamValue(Comparable<?> value) {
+        return value instanceof UUID ? value.toString() : value;
     }
 
     private static SqlConditionResult createLikePatternFilter(String columnName, String pattern, AtomicInteger paramCounter) {

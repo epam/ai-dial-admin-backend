@@ -14,5 +14,6 @@ import java.util.List;
 public class MoveFolderRequest {
     private String oldPath;
     private String newPath;
+    private boolean overwrite;
     private List<ResourceType> resourceTypes;
 }

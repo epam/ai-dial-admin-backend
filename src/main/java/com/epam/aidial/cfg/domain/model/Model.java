@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +17,9 @@ public class Model extends RoleBased {
 
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterface> interfaces;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
     private String iconUrl;
@@ -26,6 +29,7 @@ public class Model extends RoleBased {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private Set<String> topics; //todo: rename to descriptionKeywords
     private Integer maxRetryAttempts;
@@ -39,6 +43,11 @@ public class Model extends RoleBased {
     private Pricing pricing;
     private List<Upstream> upstreams;
     private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private List<String> fieldsHashingOrder;
+    private Integer embeddingDimensions;
     private ModelSource source;
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

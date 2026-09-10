@@ -1,8 +1,14 @@
 package com.epam.aidial.cfg.domain.validator;
 
 import com.epam.aidial.cfg.domain.model.Application;
+import com.epam.aidial.cfg.domain.model.AuthenticationType;
 import com.epam.aidial.cfg.domain.model.Deployment;
+import com.epam.aidial.cfg.domain.model.DeploymentInterface;
+import com.epam.aidial.cfg.domain.model.ExternalService;
 import com.epam.aidial.cfg.domain.model.Mcp;
+import com.epam.aidial.cfg.domain.model.ResourceAuthSettings;
+import com.epam.aidial.cfg.domain.model.source.ApplicationEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ApplicationSchemaSource;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URI;
+import java.util.Map;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -35,7 +42,8 @@ class ApplicationValidatorTest {
 
     @BeforeEach
     void setUp() {
-        applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, featuresValidator, null);
+        applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, featuresValidator,
+                new DeploymentInterfacesValidator(), new ResourceAuthSettingsValidator(), null);
     }
 
     @Test
@@ -45,6 +53,7 @@ class ApplicationValidatorTest {
         application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
         Deployment deployment = new Deployment("text");
         application.setDeployment(deployment);
 
@@ -63,6 +72,7 @@ class ApplicationValidatorTest {
         application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
+        application.setSource(new ApplicationEndpointsSource());
         Deployment deployment = new Deployment("text");
         application.setDeployment(deployment);
 
@@ -74,17 +84,13 @@ class ApplicationValidatorTest {
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "text");
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {"null, null", "null, ''"}, nullValues = "null")
-    void validateCreation_shouldThrowExceptionWhenEndpointAndApplicationTypeSchemaIdAreBlank(String endpoint, String applicationTypeSchemaIdAsString) {
+    @Test
+    void validateCreation_shouldThrowExceptionWhenEndpointsSourceWithNoEndpoints() {
         // given
-        URI applicationTypeSchemaId = applicationTypeSchemaIdAsString != null ? URI.create(applicationTypeSchemaIdAsString) : null;
-
         Application application = new Application();
         application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
-        application.setEndpoint(endpoint);
-        application.setApplicationTypeSchemaId(applicationTypeSchemaId);
+        application.setSource(new ApplicationEndpointsSource());
 
         Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
@@ -92,34 +98,99 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("At least application endpoint or MCP endpoint must be provided. Application: deploymentName");
+                .hasMessage("At least application endpoint, MCP endpoint, interfaces or base URL must be provided. Application: deploymentName");
 
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
     }
 
     @Test
-    void validateCreation_shouldThrowExceptionWhenEndpointAndApplicationTypeSchemaIdAreNotBlank() {
+    void validateCreation_shouldNotThrowWhenEndpointsSourceWithOnlyInterfaces() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setInterfaces(interfaces("openaiChatCompletions", "http://app.adapter.test.com"));
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
+    }
+
+    @Test
+    void validateCreation_shouldThrowWhenApplicationHasUnsupportedInterfaceType() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setInterfaces(interfaces("anthropicMessages", "http://app.adapter.test.com"));
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported interface type 'anthropicMessages'");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenSchemaSourceWithInterfacesSet() {
+        Application application = new Application();
+        application.setDisplayName("text");
+        application.setDisplayVersion("1.0");
+        application.setInterfaces(interfaces("openaiChatCompletions", "http://app.adapter.test.com"));
+        application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Neither application endpoint, MCP nor interfaces must be set for schema based application. Application: deploymentName");
+    }
+
+    private static Map<String, DeploymentInterface> interfaces(String type, String baseUrl) {
+        DeploymentInterface deploymentInterface = new DeploymentInterface();
+        deploymentInterface.setBaseUrl(baseUrl);
+        return Map.of(type, deploymentInterface);
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenSchemaSourceWithNullSchemaId() {
+        Application application = new Application();
+        application.setDisplayName("text");
+        application.setDisplayVersion("1.0");
+        application.setSource(new ApplicationSchemaSource(null));
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Application type schema id must be provided for schema source. Application: deploymentName");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenSchemaSourceWithEndpointSet() {
         // given
         Application application = new Application();
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
-        application.setApplicationTypeSchemaId(URI.create("https://test.com"));
+        application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
         Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Neither application endpoint nor MCP must be set for schema based application. Application: deploymentName");
+                .hasMessage("Neither application endpoint, MCP nor interfaces must be set for schema based application. Application: deploymentName");
     }
 
     @Test
-    void validateCreation_shouldThrowExceptionWhenApplicationTypeSchemaIdAndMcpProvided() {
+    void validateCreation_shouldThrowExceptionWhenSchemaSourceWithMcpProvided() {
         Application application = new Application();
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
-        application.setApplicationTypeSchemaId(URI.create("https://test.com"));
+        application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
 
         Mcp mcp = new Mcp();
         mcp.setEndpoint("http://mcp");
@@ -130,7 +201,22 @@ class ApplicationValidatorTest {
 
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Neither application endpoint nor MCP must be set for schema based application. Application: deploymentName");
+                .hasMessage("Neither application endpoint, MCP nor interfaces must be set for schema based application. Application: deploymentName");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenSourceIsNull() {
+        Application application = new Application();
+        application.setDisplayName("text");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+
+        Deployment deployment = new Deployment("deploymentName");
+        application.setDeployment(deployment);
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Application source must be provided. Application: deploymentName");
     }
 
     @Test
@@ -145,6 +231,7 @@ class ApplicationValidatorTest {
         application.setDisplayVersion("1.0");
         application.setDeployment(deployment);
         application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
 
         // when
         applicationValidator.validateUpdate(deploymentName, application);
@@ -162,6 +249,7 @@ class ApplicationValidatorTest {
         application.setDisplayName("display name");
         application.setDisplayVersion("1.0");
         application.setEndpoint(endpoint);
+        application.setSource(new ApplicationEndpointsSource());
 
         Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
@@ -174,11 +262,9 @@ class ApplicationValidatorTest {
         verify(displayFieldsValidator).validateDisplayNameDisplayVersion("display name", "1.0", "Application", "deploymentName");
     }
 
-    @ParameterizedTest
-    @CsvSource(value = {"null, null", "null, ''"}, nullValues = "null")
-    void validateUpdate_shouldThrowExceptionWhenEndpointAndApplicationTypeSchemaIdAreBlank(String endpoint, String applicationTypeSchemaIdAsString) {
+    @Test
+    void validateUpdate_shouldThrowExceptionWhenEndpointsSourceWithNoEndpoints() {
         // given
-        URI applicationTypeSchemaId = applicationTypeSchemaIdAsString != null ? URI.create(applicationTypeSchemaIdAsString) : null;
         String deploymentName = "deploymentName";
 
         Deployment deployment = new Deployment(deploymentName);
@@ -187,23 +273,22 @@ class ApplicationValidatorTest {
         application.setDeployment(deployment);
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
-        application.setEndpoint(endpoint);
-        application.setApplicationTypeSchemaId(applicationTypeSchemaId);
+        application.setSource(new ApplicationEndpointsSource());
 
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deploymentName, application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("At least application endpoint or MCP endpoint must be provided. Application: deploymentName");
+                .hasMessage("At least application endpoint, MCP endpoint, interfaces or base URL must be provided. Application: deploymentName");
     }
 
     @Test
-    void validateUpdate_shouldThrowExceptionWhenEndpointAndApplicationTypeSchemaIdAreNotBlank() {
+    void validateUpdate_shouldThrowExceptionWhenSchemaSourceWithEndpointSet() {
         // given
         Application application = new Application();
         application.setDisplayName("text");
         application.setDisplayVersion("1.0");
         application.setEndpoint("test");
-        application.setApplicationTypeSchemaId(URI.create("https://test.com"));
+        application.setSource(new ApplicationSchemaSource(URI.create("https://test.com")));
 
         Deployment deployment = new Deployment("deploymentName");
         application.setDeployment(deployment);
@@ -211,7 +296,7 @@ class ApplicationValidatorTest {
         // then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate(deployment.getName(), application))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Neither application endpoint nor MCP must be set for schema based application. Application: deploymentName");
+                .hasMessage("Neither application endpoint, MCP nor interfaces must be set for schema based application. Application: deploymentName");
     }
 
     @ParameterizedTest
@@ -223,7 +308,8 @@ class ApplicationValidatorTest {
         Deployment deployment = new Deployment(name);
         Application application = new Application();
         application.setDeployment(deployment);
-        application.setEndpoint("test"); // To avoid other validation errors
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
 
         // when/then
         Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
@@ -239,12 +325,109 @@ class ApplicationValidatorTest {
         Deployment deployment = new Deployment(name);
         Application application = new Application();
         application.setDeployment(deployment);
-        application.setEndpoint("test"); // To avoid other validation errors
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
 
         // when/then
         Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match the required pattern");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenExternalServiceHasIncompleteOauthAuthSettings() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService(AuthenticationType.OAUTH)));
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must not be blank for Application external service with id:'deploymentName/svc'");
+    }
+
+    @Test
+    void validateCreation_shouldThrowExceptionWhenExternalServiceHasIncompleteApiKeyAuthSettings() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService(AuthenticationType.API_KEY)));
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateCreation(application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("API Key header")
+                .hasMessageContaining("Application external service with id:'deploymentName/svc'");
+    }
+
+    @Test
+    void validateUpdate_shouldThrowExceptionWhenExternalServiceHasIncompleteOauthAuthSettings() {
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService(AuthenticationType.OAUTH)));
+
+        Assertions.assertThatThrownBy(() -> applicationValidator.validateUpdate("deploymentName", application))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must not be blank for Application external service with id:'deploymentName/svc'");
+    }
+
+    @Test
+    void validateCreation_shouldNotThrowWhenExternalServiceAuthSettingsAreValid() {
+        ResourceAuthSettings authSettings = new ResourceAuthSettings();
+        authSettings.setAuthenticationType(AuthenticationType.OAUTH);
+        authSettings.setClientId("client-id");
+        authSettings.setClientSecret("client-secret");
+        authSettings.setAuthorizationEndpoint("https://auth");
+        authSettings.setTokenEndpoint("https://token");
+        ExternalService externalService = new ExternalService();
+        externalService.setDisplayName("Service display name");
+        externalService.setAuthSettings(authSettings);
+
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService));
+
+        Assertions.assertThatNoException().isThrownBy(() -> applicationValidator.validateCreation(application));
+    }
+
+    @Test
+    void validateCreation_shouldValidateExternalServiceDisplayName() {
+        ExternalService externalService = externalService(AuthenticationType.NONE);
+
+        Application application = new Application();
+        application.setDisplayName("display name");
+        application.setDisplayVersion("1.0");
+        application.setEndpoint("test");
+        application.setSource(new ApplicationEndpointsSource());
+        application.setDeployment(new Deployment("deploymentName"));
+        application.setExternalServices(Map.of("svc", externalService));
+
+        applicationValidator.validateCreation(application);
+
+        verify(displayFieldsValidator)
+                .validateDisplayName("Service display name", "Application external service", "deploymentName/svc");
+    }
+
+    private static ExternalService externalService(AuthenticationType authenticationType) {
+        ResourceAuthSettings authSettings = new ResourceAuthSettings();
+        authSettings.setAuthenticationType(authenticationType);
+        ExternalService externalService = new ExternalService();
+        externalService.setDisplayName("Service display name");
+        externalService.setAuthSettings(authSettings);
+        return externalService;
     }
 
     @Test

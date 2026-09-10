@@ -20,15 +20,21 @@ public class ApplicationResourceDto {
     private String name;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceResourceDto> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -45,4 +51,9 @@ public class ApplicationResourceDto {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResourceDto mcp;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private Map<String, ExternalServiceResourceDto> externalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

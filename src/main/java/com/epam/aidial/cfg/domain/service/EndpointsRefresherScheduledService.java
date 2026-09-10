@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class EndpointsRefresherScheduledService {
 
     private final InterceptorService interceptorService;
+    private final ApplicationService applicationService;
     private final ToolSetService toolSetService;
     private final AdapterService adapterService;
     private final ModelService modelService;
@@ -24,6 +25,7 @@ public class EndpointsRefresherScheduledService {
     @RunAsInternalUser
     public void refreshEndpoints() {
         refreshEndpoints(interceptorService::refreshEndpoints, "interceptor");
+        refreshEndpoints(applicationService::refreshEndpoints, "application");
         refreshEndpoints(adapterService::refreshEndpoints, "adapter");
         refreshEndpoints(toolSetService::refreshEndpoints, "toolset");
         refreshEndpoints(modelService::refreshEndpoints, "model");
@@ -31,11 +33,11 @@ public class EndpointsRefresherScheduledService {
 
     private void refreshEndpoints(Runnable refreshAction, String logEntity) {
         try {
-            log.debug("Refreshing %s endpoints where source is container".formatted(logEntity));
+            log.debug("Refreshing {} endpoints where source is container", logEntity);
             refreshAction.run();
-            log.debug("Successfully refreshed %s endpoints".formatted(logEntity));
+            log.debug("Successfully refreshed {} endpoints", logEntity);
         } catch (Exception e) {
-            log.warn("Failed to refresh %s endpoints".formatted(logEntity), e);
+            log.warn("Failed to refresh {} endpoints", logEntity, e);
         }
     }
 }

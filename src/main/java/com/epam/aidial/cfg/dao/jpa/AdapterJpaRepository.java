@@ -10,7 +10,11 @@ import java.util.Set;
 
 public interface AdapterJpaRepository extends CrudRepository<AdapterEntity, String> {
 
-    Iterable<AdapterEntity> findByBaseEndpointOrderByNameAsc(String endpoint);
+    Iterable<AdapterEntity> findByBaseEndpointAndResponsesEndpointNullOrderByNameAsc(String endpoint);
+
+    Iterable<AdapterEntity> findByResponsesEndpointAndBaseEndpointNullOrderByNameAsc(String responsesEndpoint);
+
+    Iterable<AdapterEntity> findByBaseEndpointAndResponsesEndpointOrderByNameAsc(String endpoint, String responsesEndpoint);
 
     @Query("SELECT a FROM AdapterEntity a WHERE a.adapterContainer IS NOT NULL")
     List<AdapterEntity> findByAdapterContainerIsNotNull();

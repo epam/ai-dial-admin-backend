@@ -8,12 +8,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,44 +24,166 @@ import java.util.Map;
 @Slf4j
 @Service
 @LogExecution
+@RequiredArgsConstructor
 public class VersionAwareFieldFilter {
 
     private static final String APPLICATION_TYPE_SCHEMAS_KEY = "applicationTypeSchemas";
+    private static final String INTERFACES_KEY = "interfaces";
+    private static final String INTERFACES_DEFINITION_KEY = "DeploymentInterface";
+    private static final List<String> DEPLOYMENT_ENTITY_TYPES = List.of("models", "applications", "interceptors");
+    private static final String UPSTREAMS_KEY = "upstreams";
+    private static final String UPSTREAM_INTERFACE_DEFINITION_KEY = "UpstreamInterface";
+    private static final List<String> UPSTREAM_ENTITY_TYPES = List.of("models", "routes");
 
     private final CoreConfigVersionService coreConfigVersionService;
     private final VersionedSchemaLoader schemaLoader;
     private final ObjectMapper objectMapper;
-    private final ObjectMapper nullIncludedJsonMapper;
-
-    public VersionAwareFieldFilter(CoreConfigVersionService coreConfigVersionService,
-                                   VersionedSchemaLoader schemaLoader,
-                                   ObjectMapper objectMapper,
-                                   @Qualifier("nullIncludedJsonMapper") ObjectMapper nullIncludedJsonMapper) {
-        this.coreConfigVersionService = coreConfigVersionService;
-        this.schemaLoader = schemaLoader;
-        this.objectMapper = objectMapper;
-        this.nullIncludedJsonMapper = nullIncludedJsonMapper;
-    }
 
     /**
      * Filters a Config object to include only fields defined in the schema for the specified version.
      *
      * @param config The config to filter by target version
-     * @return Filtered config with only schema-defined fields
+     * @return Filtered config node with only schema-defined fields
      */
-    public Config filterForTargetVersion(Config config) {
+    public JsonNode filterForTargetVersion(Config config) {
         String version = coreConfigVersionService.getVersionForExport();
         try {
             JsonNode schema = schemaLoader.loadSchema(version);
-            String configJson = nullIncludedJsonMapper.writeValueAsString(config);
+            String configJson = objectMapper.writeValueAsString(config);
             JsonNode configNode = objectMapper.readTree(configJson);
             JsonNode filteredNode = filterNodeBySchema(configNode, schema);
-            return objectMapper.treeToValue(filteredNode, Config.class);
-
+            removeDeploymentsLeftWithoutRouting(configNode, filteredNode, schema, version);
+            removeUpstreamsLeftWithoutEndpoint(configNode, filteredNode, schema, version);
+            return filteredNode;
         } catch (Exception e) {
             log.error("Failed to filter config for version: {}", version, e);
             throw new SchemaValidationException("Failed to filter config for version: %s".formatted(version), e);
         }
+    }
+
+    /**
+     * Removes deployments whose only routing configuration was the {@code interfaces} map after it has been
+     * stripped by a target schema that does not support it (Core &lt; 0.46.0). Such deployments would be
+     * exported without any endpoint and would be invalid for the target Core version.
+     */
+    private void removeDeploymentsLeftWithoutRouting(JsonNode originalNode, JsonNode filteredNode,
+                                                     JsonNode schema, String version) {
+        JsonNode definitions = schema.get("definitions");
+        if (definitions != null && definitions.has(INTERFACES_DEFINITION_KEY)) {
+            // Target version supports interfaces - nothing is stripped
+            return;
+        }
+
+        for (String entityType : DEPLOYMENT_ENTITY_TYPES) {
+            JsonNode originalEntities = originalNode.get(entityType);
+            JsonNode filteredEntities = filteredNode.get(entityType);
+            if (originalEntities == null || !originalEntities.isObject()
+                    || filteredEntities == null || !filteredEntities.isObject()) {
+                continue;
+            }
+
+            Iterator<Map.Entry<String, JsonNode>> entities = originalEntities.fields();
+            while (entities.hasNext()) {
+                Map.Entry<String, JsonNode> entity = entities.next();
+                String name = entity.getKey();
+                JsonNode originalEntity = entity.getValue();
+                JsonNode filteredEntity = filteredEntities.get(name);
+
+                if (filteredEntity != null
+                        && hasNonEmptyField(originalEntity, INTERFACES_KEY)
+                        && hasNoRouting(filteredEntity)) {
+                    ((ObjectNode) filteredEntities).remove(name);
+                    log.warn("Skipped {} '{}' on export to Core version {}: its only routing configuration "
+                                    + "is 'interfaces', which is not supported by the target version",
+                            entityType, name, version);
+                }
+            }
+        }
+    }
+
+    private boolean hasNoRouting(JsonNode entity) {
+        JsonNode mcp = entity.get("mcp");
+        return !hasNonEmptyField(entity, "endpoint")
+                && !hasNonEmptyField(entity, "responsesEndpoint")
+                && !hasNonEmptyField(entity, "responses_endpoint")
+                && !hasNonEmptyField(entity, "applicationTypeSchemaId")
+                && !hasNonEmptyField(entity, "application_type_schema_id")
+                && !hasNonEmptyField(entity, "routes")
+                && (mcp == null || !hasNonEmptyField(mcp, "endpoint"));
+    }
+
+    /**
+     * Removes an upstream whose only endpoint source was the (0.48.0+) {@code baseUrl}/{@code interfaces}
+     * pair after it has been stripped by a target schema that does not support it (Core &lt; 0.48.0). Such
+     * an upstream would be exported with no endpoint at all and would be invalid for the target Core
+     * version — mirrors {@link #removeDeploymentsLeftWithoutRouting} one level down, on {@code upstreams}
+     * entries of models and routes rather than on the deployments themselves.
+     */
+    private void removeUpstreamsLeftWithoutEndpoint(JsonNode originalNode, JsonNode filteredNode,
+                                                    JsonNode schema, String version) {
+        JsonNode definitions = schema.get("definitions");
+        if (definitions != null && definitions.has(UPSTREAM_INTERFACE_DEFINITION_KEY)) {
+            // Target version supports Upstream.interfaces/baseUrl - nothing is stripped
+            return;
+        }
+
+        for (String entityType : UPSTREAM_ENTITY_TYPES) {
+            JsonNode originalEntities = originalNode.get(entityType);
+            JsonNode filteredEntities = filteredNode.get(entityType);
+            if (originalEntities == null || !originalEntities.isObject()
+                    || filteredEntities == null || !filteredEntities.isObject()) {
+                continue;
+            }
+
+            Iterator<Map.Entry<String, JsonNode>> entities = originalEntities.fields();
+            while (entities.hasNext()) {
+                Map.Entry<String, JsonNode> entity = entities.next();
+                String name = entity.getKey();
+                JsonNode filteredEntity = filteredEntities.get(name);
+                if (filteredEntity == null) {
+                    continue;
+                }
+                removeUpstreamsWithoutEndpoint(entityType, name, version,
+                        entity.getValue().get(UPSTREAMS_KEY), filteredEntity.get(UPSTREAMS_KEY));
+            }
+        }
+    }
+
+    private void removeUpstreamsWithoutEndpoint(String entityType, String entityName, String version,
+                                                JsonNode originalUpstreams, JsonNode filteredUpstreams) {
+        if (originalUpstreams == null || !originalUpstreams.isArray()
+                || !(filteredUpstreams instanceof ArrayNode filteredArray)
+                || originalUpstreams.size() != filteredArray.size()) {
+            return;
+        }
+
+        for (int i = originalUpstreams.size() - 1; i >= 0; i--) {
+            JsonNode originalUpstream = originalUpstreams.get(i);
+            boolean hadBaseUrlOrInterfaces = hasNonEmptyField(originalUpstream, "baseUrl")
+                    || hasNonEmptyField(originalUpstream, "interfaces");
+            if (!hadBaseUrlOrInterfaces) {
+                continue;
+            }
+            JsonNode filteredUpstream = filteredArray.get(i);
+            if (!hasNonEmptyField(filteredUpstream, "endpoint")
+                    && !hasNonEmptyField(filteredUpstream, "responsesEndpoint")) {
+                log.warn("Skipped upstreams[{}] on {} '{}' on export to Core version {}: its only endpoint "
+                                + "configuration is 'baseUrl'/'interfaces', which is not supported by the target version",
+                        i, entityType, entityName, version);
+                filteredArray.remove(i);
+            }
+        }
+    }
+
+    private boolean hasNonEmptyField(JsonNode node, String fieldName) {
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) {
+            return false;
+        }
+        if (field.isTextual()) {
+            return !field.asText().isBlank();
+        }
+        return !field.isEmpty() || field.isValueNode();
     }
 
     /**
@@ -261,6 +384,11 @@ public class VersionAwareFieldFilter {
             fieldValue = fieldValueWrappedAsMap;
         }
 
+        if (fieldValue.isArray()) {
+            filteredNode.set(fieldName, filterArrayBySchema(fieldValue, fieldSchema, parentSchema));
+            return;
+        }
+
         if (!fieldValue.isObject()) {
             filteredNode.set(fieldName, fieldValue);
             return;
@@ -385,6 +513,29 @@ public class VersionAwareFieldFilter {
         }
 
         return filteredNode;
+    }
+
+    /**
+     * Filters each element of an array field against its {@code items} schema — e.g. {@code Model.upstreams},
+     * an array of {@code Upstream} objects. An array whose items are primitives (or that declares no
+     * filterable {@code items} schema, such as a plain array of strings) is returned unchanged: there is
+     * nothing to strip from a primitive.
+     */
+    private JsonNode filterArrayBySchema(JsonNode arrayValue, JsonNode fieldSchema, JsonNode parentSchema) {
+        JsonNode itemSchema = fieldSchema.get("items");
+        if (itemSchema == null) {
+            return arrayValue;
+        }
+        itemSchema = resolveSchemaReference(itemSchema, parentSchema);
+        if (!itemSchema.has("properties") && !itemSchema.has("patternProperties")) {
+            return arrayValue;
+        }
+
+        ArrayNode filteredArray = objectMapper.createArrayNode();
+        for (JsonNode element : arrayValue) {
+            filteredArray.add(filterNodeBySchema(element, itemSchema));
+        }
+        return filteredArray;
     }
 
     /**

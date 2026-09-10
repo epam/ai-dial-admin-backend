@@ -4,6 +4,8 @@
     "endpoint": "http://git-mcp-server/call",
     "iconUrl": "https://example.com/icon.png",
     "description": "Git remote tool set",
+    "intro": "Brief introduction to sample toolset",
+    "vendorWebsite": "https://www.vendorWebsite.com",
     "displayName": "Sample ToolSet",
     "descriptionKeywords": [
       "MCP",
@@ -13,6 +15,8 @@
     "maxRetryAttempts": 3,
     "transport": "http",
     "allowedTools": ["branch", "remote"],
+    "provider": "github",
+    "forwardAuthToken": true,
     "deployment": {
       "id": 200,
       "name": "sampleDeployment",
@@ -67,11 +71,19 @@
         "scopesSupported": [
           "first",
           "second"
-        ]
+        ],
+        "tokenEndpointAuthMethod": "client_secret_basic",
+        "dynamicallyRegistered": true
       }
     },
     "author": "test-author",
     "createdAt": 12345,
-    "updatedAt": 12345
+    "updatedAt": 12345,
+    "catalogSchemaId": "https://test-catalog-schema.example",
+    "catalogProperties": {
+      "category": "AI ToolSet",
+      "vendor": "Test Vendor",
+      "tags": ["git", "mcp"]
+    }
   }
 ]

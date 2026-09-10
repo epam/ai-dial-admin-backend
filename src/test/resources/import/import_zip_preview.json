@@ -532,6 +532,9 @@
         "fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
         "endpoint": "https://endpoint2/embeddings",
         "responsesEndpoint": "https://endpoint2/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "source": {
           "$type": "endpoints"
         }
@@ -662,7 +665,10 @@
           "parallelToolCallsSupported": true
         },
         "applicationProperties": {},
-        "applicationTypeSchemaId": "https://test-schema-id.example",
+        "source": {
+          "$type": "schema",
+          "applicationTypeSchemaId": "https://test-schema-id.example"
+        },
         "author": "test-author",
         "dependencies": ["dep1", "dep2"],
         "validityState": {
@@ -699,7 +705,13 @@
           "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
+        "source": {
+          "$type": "endpoints"
+        },
         "responsesEndpoint": "https://application1/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,

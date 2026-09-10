@@ -74,7 +74,7 @@ Add the following parameters to AI Dial Admin Backend [**static** settings](http
   providers.google.user-info-endpoint: "https://openidconnect.googleapis.com/v1/userinfo"
   providers.google.role-claims: "fn:getGoogleWorkspaceGroups"
   providers.google.principal-claim: "sub"
-  providers.google.allowed-roles: "example@example.com"
+  providers.google.roles-mapping: "{\"example@example.com\":[\"FULL_ADMIN\"]}"
   providers.google.email-claims: "email"
 ```
 ##### Using jwk-ser-uri (working with id token from Ai Dial Admin Frontend)
@@ -84,7 +84,7 @@ Add the following parameters to AI Dial Admin Backend [**static** settings](http
   providers.google.issuer: "https://accounts.google.com"
   providers.google.audiences: "<google_client_id>"
   providers.google.role-claims: "email"
-  providers.google.allowed-roles: "example@epamle.com,example2@example.com" #list of emails 
+  providers.google.roles-mapping: "{\"example@epamle.com\":[\"FULL_ADMIN\"],\"example2@example.com\":[\"READ_ONLY_ADMIN\"]}" 
   providers.google.email-claims: "email"
 
 ```

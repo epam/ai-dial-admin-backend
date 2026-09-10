@@ -12,6 +12,7 @@
   "inputAttachmentTypes": null,
   "maxInputAttachments": null,
   "defaults": null,
+  "responsesDefaults": null,
   "interceptors": null,
   "descriptionKeywords": [
     "Analysis"
@@ -21,6 +22,7 @@
   "viewerUrl": null,
   "editorUrl": null,
   "description": "",
+  "intro": null,
   "userRoles": null,
   "features": null,
   "routes": null,

@@ -12,11 +12,14 @@ public class Interceptor {
 
     private String name;
     private String endpoint;
-    private String responsesEndpoint;
+    private Map<String, DeploymentInterface> interfaces;
     private String iconUrl;
     private String description;
     private Set<String> topics;
     private String displayName;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private Boolean forwardAuthToken;
     private String author;
     private Long createdAt;

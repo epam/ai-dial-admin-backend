@@ -67,6 +67,9 @@ public abstract class ToolSetHistoryFunctionalTest {
         var authSettingsDto = new ResourceAuthSettingsDto();
         String clientId = "some-client-id";
         authSettingsDto.setClientId(clientId);
+        authSettingsDto.setClientSecret("some-client-secret");
+        authSettingsDto.setAuthorizationEndpoint("some-auth-endpoint");
+        authSettingsDto.setTokenEndpoint("some-token-endpoint");
         authSettingsDto.setAuthenticationType(AuthenticationTypeDto.OAUTH);
         authSettingsDto.setScopesSupported(List.of("one", "two"));
 

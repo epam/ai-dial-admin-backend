@@ -18,8 +18,12 @@ public class CreateApplicationResource {
     private String folderId;
     private String endpoint;
     private String responsesEndpoint;
+    private Map<String, DeploymentInterfaceResource> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
     private String reference;
@@ -27,6 +31,7 @@ public class CreateApplicationResource {
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -40,4 +45,10 @@ public class CreateApplicationResource {
     private String applicationTypeSchemaId;
     private Map<String, Object> applicationProperties;
     private McpResource mcp;
+    private String intro;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private Map<String, ExternalServiceResource> externalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

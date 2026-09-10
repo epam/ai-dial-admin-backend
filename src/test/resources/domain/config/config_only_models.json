@@ -8,10 +8,15 @@
         "user"
       ],
       "endpoint": "https://example.com/model/sampleDeployment/chat/completions",
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://model.adapter.example.com"},
+        "anthropicMessages": {"base_url": "https://model.adapter.example.com"}
+      },
       "displayName": "Sample Model",
       "displayVersion": "1.0.0",
       "iconUrl": "https://example.com/icon.png",
       "description": "This is a sample model",
+      "intro": "Brief introduction to sample model",
       "reference": "model-ref-123",
       "forwardAuthToken": true,
       "features": {
@@ -33,7 +38,11 @@
         "consent_required": true,
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
-        "support_comment_in_rate_response": false
+        "support_comment_in_rate_response": false,
+        "max_tokens_supported": true,
+        "max_completion_tokens_supported": false,
+        "custom_temperature_supported": true,
+        "reasoning_efforts": ["effort1", "effort2"]
       },
       "inputAttachmentTypes": [
         "pdf",
@@ -44,6 +53,7 @@
         "timeout": "30s",
         "language": "en"
       },
+      "responsesDefaults": {},
       "interceptors": [
         "auth",
         "logging"
@@ -64,20 +74,26 @@
       "pricing": {
         "unit": "per-1000-tokens",
         "prompt": "0.01",
-        "completion": "0.02"
+        "completion": "0.02",
+        "cacheRead": "0.005",
+        "cacheWrite": "0.015"
       },
       "upstreams": [
         {
+          "id": "10",
           "endpoint": "https://upstream1.example.com",
           "key": "upstream-key-1",
           "extraData": "metadata-1",
+          "secretExtraData": "secret_value1",
           "weight": 10,
           "tier": 1
         },
         {
+          "id": "11",
           "endpoint": "https://upstream2.example.com",
           "key": "upstream-key-2",
           "extraData": "metadata-2",
+          "secretExtraData": "secret_value2",
           "weight": 20,
           "tier": 2
         }
@@ -86,7 +102,14 @@
       "author": "test-author",
       "createdAt": 12345,
       "updatedAt": 12345,
-      "dependencies": ["dep1", "dep2"]
+      "dependencies": ["dep1", "dep2"],
+      "embeddingDimensions": 1536,
+      "catalogSchemaId": "https://test-catalog-schema.example",
+      "catalogProperties": {
+        "category": "AI Model",
+        "vendor": "Test Vendor",
+        "tags": ["chat", "completion"]
+      }
     }
   },
   "addons": {},

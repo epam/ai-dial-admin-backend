@@ -11,10 +11,12 @@
   "displayVersion": "0.0.1",
   "iconUrl": "",
   "description": "",
+  "intro": null,
   "reference": "a596922a-96f4-447f-a586-9227ff301320",
   "forwardAuthToken": false,
   "inputAttachmentTypes": null,
   "defaults": {},
+  "responsesDefaults": {},
   "interceptors": [],
   "descriptionKeywords": [
     "Analysis"

@@ -5,10 +5,12 @@ import com.epam.aidial.cfg.dao.jpa.ModelJpaRepository;
 import com.epam.aidial.cfg.dao.model.ModelEntity;
 import com.epam.aidial.cfg.domain.util.ContainerEndpointResolver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @LogExecution
 @RequiredArgsConstructor
@@ -23,7 +25,13 @@ public class ModelRefreshService {
         if (modelContainerEntity == null) {
             return;
         }
-        containerEndpointResolver.processContainerEndpoints(modelEntity);
-        modelJpaRepository.save(modelEntity);
+        try {
+            containerEndpointResolver.processContainerEndpoints(modelEntity);
+            modelJpaRepository.save(modelEntity);
+        } catch (IllegalArgumentException e) {
+            log.warn("Failed to refresh container endpoints for model '{}', container '{}'. "
+                    + "Retaining existing endpoints. Reason: {}",
+                    modelEntity.getDeploymentName(), modelContainerEntity.getContainerId(), e.getMessage());
+        }
     }
 }

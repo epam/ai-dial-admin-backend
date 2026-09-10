@@ -1,12 +1,15 @@
 package com.epam.aidial.cfg.dto;
 
+import com.epam.aidial.cfg.dto.source.ApplicationResourceSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,10 +26,16 @@ public class CreateApplicationResourceDto {
     private String endpoint;
     @Endpoint
     private String responsesEndpoint;
+    @Valid
+    private Map<String, DeploymentInterfaceDto> interfaces;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private List<String> inputAttachmentTypes;
@@ -34,6 +43,7 @@ public class CreateApplicationResourceDto {
     @Max(value = 1000, message = "Attachments max number exceeds allowed limit")
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private List<String> descriptionKeywords;
     private Integer maxRetryAttempts;
@@ -46,7 +56,13 @@ public class CreateApplicationResourceDto {
     private List<String> userRoles;
     private FeaturesResourceDto features;
     private List<RouteResourceDto> routes;
-    private String applicationTypeSchemaId;
-    private Map<String, Object> applicationProperties;
+    @Valid
+    private ApplicationResourceSourceDto source;
+    private Map<String, Object> applicationProperties = new HashMap<>();
     private McpResourceDto mcp;
+    private Map<String, ExternalServiceResourceDto> externalServices;
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

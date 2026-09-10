@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -48,8 +49,7 @@ public abstract class CompositeConfigSource implements ConfigSource {
 
     @Override
     public void writeConfig(Config configBody, boolean createResources) {
-        Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(configBody);
-        List<SourceValue> sourceValues = resolveSourceNames(versionedConfig);
+        List<SourceValue> sourceValues = resolveSourceNames(configBody);
 
         for (SourceValue sourceValue : sourceValues) {
             setSource(sourceValue, createResources);
@@ -57,16 +57,11 @@ public abstract class CompositeConfigSource implements ConfigSource {
     }
 
     @SneakyThrows
-    protected List<SourceValue> resolveSourceNames(Config configBody) {
+    private List<SourceValue> resolveSourceNames(Config configBody) {
         if (CollectionUtils.isEmpty(sourceNames)) {
             throw new IllegalStateException("Unable to store source, names is not configured.");
         }
-        if (sourceNames.size() == 1) {
-            String newValue = encode(configBody);
-            return List.of(new SourceValue(sourceNames.get(0), newValue));
-        }
-
-        List<ConfigPart> configs = configSplitter.splitConfig(configBody, this::encode, maxSourceSize, sourceNames.size());
+        List<ConfigPart> configs = configSplitter.splitConfig(configBody, this::encodeConfig, maxSourceSize, sourceNames.size());
 
         if (configs.size() > sourceNames.size()) {
             log.info("configs size {}, names size {}", configs.size(), sourceNames.size());
@@ -84,25 +79,21 @@ public abstract class CompositeConfigSource implements ConfigSource {
     }
 
     private ConfigPart emptyConfigPart() {
-        Config config = createConfig();
-        return new ConfigPart(config, encode(config));
+        Config config = new Config();
+        return new ConfigPart(config, encodeConfig(config));
     }
 
-    protected Config createConfig() {
-        return new Config();
+    private String encodeConfig(Config body) {
+        JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(body);
+        return encode(versionedConfig);
     }
-
 
     protected abstract void setSource(SourceValue source, boolean createIfNotExists);
-    
-    protected void setSource(SourceValue source) {
-        setSource(source, true);
-    }
 
     protected abstract String getSource(String sourceName);
 
 
-    protected abstract String encode(Config body);
+    protected abstract String encode(JsonNode body);
 
     protected abstract Config decode(String encoded);
 

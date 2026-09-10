@@ -1,14 +1,23 @@
 package com.epam.aidial.cfg.functional.tests;
 
+import com.epam.aidial.cfg.client.ToolsClient;
+import com.epam.aidial.cfg.client.dto.ApplicationDeploymentInfoDto;
 import com.epam.aidial.cfg.client.mcp.McpClientFactory;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.model.ToolSet;
+import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.ApplicationInfoDto;
+import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
+import com.epam.aidial.cfg.dto.ExternalServiceDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.McpDto;
+import com.epam.aidial.cfg.dto.ResourceAuthSettingsDto;
+import com.epam.aidial.cfg.dto.source.ApplicationContainerSourceDto;
+import com.epam.aidial.cfg.dto.source.ApplicationEndpointsSourceDto;
 import com.epam.aidial.cfg.exception.EntityAlreadyExistsException;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
 import com.epam.aidial.cfg.exception.OptimisticLockConflictException;
@@ -65,7 +74,11 @@ public abstract class ApplicationFunctionalTest {
     @Autowired
     private CoreConfigReloadCache coreConfigReloadCache;
     @Autowired
+    private DeploymentManagerService deploymentManagerService;
+    @Autowired
     private McpClientFactory mcpClientFactory;
+    @Autowired
+    private ToolsClient toolsClient;
 
     private void initRoles() {
         roleFacade.createRole(createRoleDto("1"));
@@ -89,6 +102,42 @@ public abstract class ApplicationFunctionalTest {
         Collection<ApplicationInfoDto> actualApplications = applicationFacade.getAllApplications();
 
         assertApp(actualApplications, List.of(createApplicationDtoWithEndpointAndLimits("1"), createApplicationDtoWithEndpointAndLimits("2")));
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationWithExternalServices() {
+        initRoles();
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        ResourceAuthSettingsDto authSettings = new ResourceAuthSettingsDto();
+        authSettings.setAuthenticationType(AuthenticationTypeDto.API_KEY);
+        authSettings.setClientId("external-client-id");
+        authSettings.setClientSecret("external-client-secret");
+        authSettings.setApiKeyHeader("X-Api-Key");
+        ExternalServiceDto externalService = new ExternalServiceDto();
+        externalService.setDisplayName("Test External Service");
+        externalService.setDescription("External service description");
+        externalService.setAuthSettings(authSettings);
+        applicationDto.setExternalServices(Map.of("service1", externalService));
+
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertEquals(applicationDto.getExternalServices(), actual.getExternalServices());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetApplicationWithInterfacesOnly() {
+        initRoles();
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://app.adapter.test.com");
+        applicationDto.setInterfaces(Map.of("openaiChatCompletions", chatInterface));
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto actual = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(applicationDto.getInterfaces(), actual.getInterfaces());
     }
 
     @Test
@@ -416,13 +465,18 @@ public abstract class ApplicationFunctionalTest {
         expected.setName(applicationDto.getName());
         expected.setDisplayName(applicationDto.getDisplayName());
         expected.setDescription(applicationDto.getDescription());
+        expected.setIntro(applicationDto.getIntro());
         expected.setEndpoint(applicationDto.getEndpoint());
         expected.setDefaults(applicationDto.getDefaults());
         expected.setApplicationProperties(applicationDto.getApplicationProperties());
         expected.setFeatures(defaultCoreFeatures());
         expected.setUserRoles(applicationDto.getRoleLimits().keySet());
         expected.setRoutes(null);
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(applicationDto.getForwardAuthToken());
+        expected.setAppIdentity(applicationDto.getAppIdentity());
+        expected.setAllowUserExternalServices(applicationDto.isAllowUserExternalServices());
+        expected.setBaseUrl(null);
 
         CoreApplication actual = applicationFacade.getCoreApplicationWithHash(applicationDto.getName()).core();
         actual.setCreatedAt(null);
@@ -491,14 +545,9 @@ public abstract class ApplicationFunctionalTest {
         applicationFacade.createApplication(applicationDto);
 
         var expectedTools = Mockito.mock(McpSchema.ListToolsResult.class);
-        var mcpSyncClient = Mockito.mock(McpSyncClient.class);
-
-        Mockito.when(mcpSyncClient.initialize())
-                .thenReturn(null);
-        Mockito.when(mcpSyncClient.listTools(null))
+        when(toolsClient.getTools(eq(applicationDto.getName()), isNull()))
                 .thenReturn(expectedTools);
-        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/application1/mcp?useAllowedTools=false"),
-                eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
+
         var actualTools = applicationFacade.getDiscoveredTools(applicationDto.getName(), null);
 
         Assertions.assertEquals(expectedTools, actualTools);
@@ -518,7 +567,7 @@ public abstract class ApplicationFunctionalTest {
         var mcpSyncClient = Mockito.mock(McpSyncClient.class);
         Mockito.when(mcpSyncClient.initialize())
                 .thenReturn(null);
-        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/toolset/application1/mcp"),
+        Mockito.when(mcpClientFactory.create(eq("http://localhost:8081/v1/deployments/application1/mcp"),
                 eq(ToolSet.Transport.HTTP), isNull())).thenReturn(mcpSyncClient);
         Mockito.when(mcpSyncClient.callTool(callToolRequest))
                 .thenReturn(expectedCallToolResult);
@@ -526,6 +575,256 @@ public abstract class ApplicationFunctionalTest {
         var actualCallToolResult = applicationFacade.callTool(applicationDto.getName(), callToolRequest);
 
         Assertions.assertEquals(expectedCallToolResult, actualCallToolResult);
+    }
+
+    @Test
+    public void shouldResolveEndpointsForContainerSource() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerName = "test-container";
+        String containerUrl = "https://container-url.com";
+        String completionPath = "/api/completion";
+        String mcpCompletionPath = "/mcp/";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                containerName,
+                completionPath,
+                mcpCompletionPath
+        ));
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+
+        Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
+        Assertions.assertEquals(containerUrl + mcpCompletionPath, result.getMcp().getEndpoint());
+        Assertions.assertInstanceOf(ApplicationContainerSourceDto.class, result.getSource());
+
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
+    }
+
+    @Test
+    public void shouldRefreshEndpointsForContainerSource() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440000";
+        String containerName = "test-container";
+        String initialUrl = "https://initial-url.com";
+        String updatedUrl = "https://updated-url.com";
+        String completionPath = "/api/completion";
+        String mcpCompletionPath = "/mcp/";
+
+        ApplicationDeploymentInfoDto initialDeploymentInfo =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", initialUrl);
+
+        ApplicationDeploymentInfoDto updatedDeploymentInfo =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", updatedUrl);
+
+        Mockito.when(deploymentManagerService.getById(containerId))
+                .thenReturn(initialDeploymentInfo)
+                .thenReturn(updatedDeploymentInfo);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                containerName,
+                completionPath,
+                mcpCompletionPath
+        ));
+        applicationFacade.createApplication(applicationDto);
+
+        ApplicationDto initialResult = applicationFacade.getApplication("application1");
+        Assertions.assertEquals(initialUrl + completionPath, initialResult.getEndpoint());
+        Assertions.assertEquals(initialUrl + mcpCompletionPath, initialResult.getMcp().getEndpoint());
+
+        // When
+        applicationFacade.refreshEndpoints();
+
+        // Then
+        ApplicationDto refreshedResult = applicationFacade.getApplication("application1");
+        Assertions.assertEquals(updatedUrl + completionPath, refreshedResult.getEndpoint());
+        Assertions.assertEquals(updatedUrl + mcpCompletionPath, refreshedResult.getMcp().getEndpoint());
+
+        Mockito.verify(deploymentManagerService, Mockito.atLeast(1)).getById(containerId);
+    }
+
+    @Test
+    public void shouldResetEndpointsSourceWhenChangingApplicationSourceFromEndpointsToContainer() {
+        // Create an Application with endpoints source
+        ApplicationDto applicationDto = createApplicationDtoWithEndpoint("1");
+        applicationFacade.createApplication(applicationDto);
+
+        // Verify the Application has endpoints source
+        ApplicationDto actualApplication = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertInstanceOf(ApplicationEndpointsSourceDto.class, actualApplication.getSource());
+        Assertions.assertEquals("endpoint1", actualApplication.getEndpoint());
+
+        // Update the Application to Container source
+        String containerId = "container-123";
+        String containerUrl = "https://container-url.com";
+        String completionPath = "/api/completion";
+        String mcpCompletionPath = "/mcp/";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto updatedApplication = createBaseApplicationDto("1");
+        updatedApplication.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                mcpCompletionPath
+        ));
+        applicationFacade.updateApplication(applicationDto.getName(), updatedApplication, "*");
+
+        // Verify the Application now has Container source
+        actualApplication = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertInstanceOf(ApplicationContainerSourceDto.class, actualApplication.getSource());
+        ApplicationContainerSourceDto containerSource =
+                (ApplicationContainerSourceDto) actualApplication.getSource();
+        Assertions.assertEquals(containerId, containerSource.containerId());
+        Assertions.assertEquals(containerUrl + completionPath, actualApplication.getEndpoint());
+        Assertions.assertEquals(containerUrl + mcpCompletionPath, actualApplication.getMcp().getEndpoint());
+
+        // Update the Application back to endpoints source
+        ApplicationDto revertedApplication = createApplicationDtoWithEndpoint("1");
+        revertedApplication.setEndpoint("https://new-endpoint.com");
+        applicationFacade.updateApplication(applicationDto.getName(), revertedApplication, "*");
+
+        // Verify the Application now has endpoints source again
+        actualApplication = applicationFacade.getApplication(applicationDto.getName());
+        Assertions.assertInstanceOf(ApplicationEndpointsSourceDto.class, actualApplication.getSource());
+        Assertions.assertEquals("https://new-endpoint.com", actualApplication.getEndpoint());
+    }
+
+    @Test
+    public void shouldNotCreateMcpForContainerSourceWhenMcpAndPathAreAbsent() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440001";
+        String containerUrl = "https://container-no-mcp.com";
+        String completionPath = "/api/completion";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                null
+        ));
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertEquals(containerUrl + completionPath, result.getEndpoint());
+        Assertions.assertNull(result.getMcp());
+    }
+
+    @Test
+    public void shouldCreateMcpForContainerSourceWhenOnlyMcpPathIsProvided() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440002";
+        String containerUrl = "https://container-mcp-path.com";
+        String completionPath = "/api/completion";
+        String mcpCompletionPath = "/mcp/";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                mcpCompletionPath
+        ));
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertNotNull(result.getMcp());
+        Assertions.assertEquals(containerUrl + mcpCompletionPath, result.getMcp().getEndpoint());
+    }
+
+    @Test
+    public void shouldSetMcpEndpointToContainerUrlWhenMcpIsProvidedWithoutPath() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440003";
+        String containerUrl = "https://container-mcp-only.com";
+        String completionPath = "/api/completion";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                null
+        ));
+        McpDto mcp = new McpDto();
+        mcp.setEndpoint("stale-endpoint");
+        applicationDto.setMcp(mcp);
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertNotNull(result.getMcp());
+        Assertions.assertEquals(containerUrl, result.getMcp().getEndpoint());
+    }
+
+    @Test
+    public void shouldSetMcpEndpointToContainerUrlPlusPathWhenBothProvided() {
+        // Given
+        String containerId = "550e8400-e29b-41d4-a716-446655440004";
+        String containerUrl = "https://container-both.com";
+        String completionPath = "/api/completion";
+        String mcpCompletionPath = "/mcp/";
+
+        ApplicationDeploymentInfoDto deploymentInfoDto =
+                new ApplicationDeploymentInfoDto(containerId, "Test Container", containerUrl);
+        Mockito.when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfoDto);
+
+        ApplicationDto applicationDto = createBaseApplicationDto("1");
+        applicationDto.setSource(new ApplicationContainerSourceDto(
+                containerId,
+                "test-container",
+                completionPath,
+                mcpCompletionPath
+        ));
+        McpDto mcp = new McpDto();
+        mcp.setEndpoint("stale-endpoint");
+        applicationDto.setMcp(mcp);
+
+        // When
+        applicationFacade.createApplication(applicationDto);
+
+        // Then
+        ApplicationDto result = applicationFacade.getApplication("application1");
+        Assertions.assertNotNull(result.getMcp());
+        Assertions.assertEquals(containerUrl + mcpCompletionPath, result.getMcp().getEndpoint());
     }
 
     private ApplicationDto createDtoWithDefaults(String suffix) {
@@ -558,6 +857,7 @@ public abstract class ApplicationFunctionalTest {
     private void assertApp(ApplicationInfoDto actual, ApplicationDto expected) {
         Assertions.assertEquals(expected.getName(), actual.getName());
         Assertions.assertEquals(expected.getDescription(), actual.getDescription());
+        Assertions.assertEquals(expected.getSource(), actual.getSource());
     }
 
     private <T> Map<String, T> toMap(Collection<T> dtos, Function<T, String> getName) {
@@ -587,9 +887,12 @@ public abstract class ApplicationFunctionalTest {
                         "content_parts_supported": false,
                         "temperature_supported": true,
                         "parallel_tool_calls_supported": true,
-                        "assistant_attachments_in_request_supported": false
+                        "assistant_attachments_in_request_supported": false,
+                        "max_tokens_supported": true,
+                        "custom_temperature_supported": true
                       },
                       "defaults": {},
+                      "responses_defaults": {},
                       "interceptors": [],
                       "description_keywords": [],
                       "max_retry_attempts": 1,

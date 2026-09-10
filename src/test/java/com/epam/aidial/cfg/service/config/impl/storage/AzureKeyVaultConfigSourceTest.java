@@ -7,6 +7,7 @@ import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
 import com.epam.aidial.core.config.CoreKey;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
@@ -56,15 +57,13 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
-
+        ConfigPart configPart = new ConfigPart(config, objectMapper.writeValueAsString(config));
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.getSecret(any(String.class))).thenReturn(new KeyVaultSecret("secret", "{}"));
-        Config secretConfig = new Config();
-        secretConfig.setKeys(Map.of("key1", key));
 
         source.writeConfig(config, false);
 
-        verify(configSplitter, times(0)).splitConfig(any(), any(), anyInt(), eq(1));
+        verify(configSplitter, times(1)).splitConfig(any(), any(), anyInt(), eq(1));
         verify(secretClient, times(1)).setSecret(keyVaultSecretArgumentCaptor.capture());
 
         List<KeyVaultSecret> allValues = keyVaultSecretArgumentCaptor.getAllValues();
@@ -84,7 +83,8 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
+        Config emptyConfig = new Config();
+        when(versionAwareFieldFilter.filterForTargetVersion(emptyConfig)).thenReturn(configAsJsonNode(emptyConfig));
 
         when(secretClient.getSecret(any(String.class))).thenReturn(new KeyVaultSecret("secret", "{}"));
         Config secretConfig = new Config();
@@ -115,8 +115,6 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
-
         Config secretConfig = new Config();
         secretConfig.setKeys(Map.of("key1", key));
         ConfigPart configPart = new ConfigPart(secretConfig, objectMapper.writeValueAsString(secretConfig));
@@ -137,8 +135,8 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
-
+        ConfigPart configPart = new ConfigPart(config, objectMapper.writeValueAsString(config));
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.getSecret(any(String.class)))
                 .thenThrow(new ResourceNotFoundException("Secret not found", null));
 
@@ -163,8 +161,8 @@ class AzureKeyVaultConfigSourceTest {
         key.setRole("role");
         config.setKeys(Map.of("key1", key));
 
-        when(versionAwareFieldFilter.filterForTargetVersion(config)).thenReturn(config);
-
+        ConfigPart configPart = new ConfigPart(config, "{}");
+        when(configSplitter.splitConfig(any(), any(), anyInt(), eq(1))).thenReturn(List.of(configPart));
         when(secretClient.getSecret(any(String.class)))
                 .thenThrow(new ResourceNotFoundException("Secret not found", null));
 
@@ -180,6 +178,10 @@ class AzureKeyVaultConfigSourceTest {
     private ConfigPart emptyConfigPart() {
         Config config = new Config();
         return new ConfigPart(config, objectMapper.writeValueAsString(config));
+    }
+
+    private JsonNode configAsJsonNode(Config config) {
+        return objectMapper.valueToTree(config);
     }
 
 }

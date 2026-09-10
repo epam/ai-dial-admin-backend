@@ -14,4 +14,6 @@ public class AuditActivity {
     private String initiatedAuthor;
     private String initiatedEmail;
     private Integer revision;
+    private UUID parentActivityId;
+    private String operationMetadata;
 }

@@ -2,13 +2,39 @@
   {
     "id": 1,
     "endpoint": "https://example.com/api",
+    "externalServices": {
+      "service1": {
+        "displayName": "Test External Service",
+        "description": "External service description",
+        "authSettings": {
+          "authenticationType": "API_KEY",
+          "clientId": "some-client-id",
+          "clientSecret": "some-client-secret",
+          "tokenEndpoint": "https://some-token-endpoint",
+          "apiKeyHeader": "someApiKeyHeader",
+          "tokenEndpointAuthMethod": "client_secret_basic"
+        }
+      }
+    },
+    "interfaces": {
+      "openaiChatCompletions": {
+        "baseUrl": "https://app.adapter.example.com"
+      }
+    },
     "iconUrl": "https://example.com/icon.png",
     "viewerUrl": "https://viewer.example.com",
     "editorUrl": "https://editor.example.com",
     "reference": "app-ref-123",
     "description": "This is a sample application",
+    "intro": "Brief introduction to sample application",
     "displayName": "Sample Application",
     "displayVersion": "1.0.0",
+    "overrideName": "Custom Application Override",
+    "defaultHeaders": {
+      "X-Custom-Header": "custom-value",
+      "X-API-Version": "v1"
+    },
+    "baseUrl": "https://base.example.com",
     "inputAttachmentTypes": [
       "pdf",
       "docx"
@@ -48,13 +74,20 @@
       "consentRequired": true,
       "parallelToolCallsSupported": true,
       "assistantAttachmentsInRequestSupported": true,
-      "supportCommentInRateResponse": true
+      "supportCommentInRateResponse": true,
+      "maxTokensSupported": true,
+      "maxCompletionTokensSupported": false,
+      "customTemperatureSupported": true,
+      "reasoningEfforts": ["effort1", "effort2"]
     },
     "applicationProperties": {
       "debug": true,
       "maxUsers": 1000
     },
-    "applicationTypeSchemaId": "https://example.com/schema.json",
+    "source": {
+      "$type": "schema",
+      "applicationTypeSchemaId": "https://example.com/schema.json"
+    },
     "deployment": {
       "id": 100,
       "name": "sampleDeployment",
@@ -99,6 +132,12 @@
     "author": "test-author",
     "createdAt": 12345,
     "updatedAt": 12345,
-    "dependencies": ["dep1", "dep2"]
+    "dependencies": ["dep1", "dep2"],
+    "catalogSchemaId": "https://test-catalog-schema.example",
+    "catalogProperties": {
+      "category": "AI Application",
+      "vendor": "Test Vendor",
+      "tags": ["automation", "workflow"]
+    }
   }
 ]

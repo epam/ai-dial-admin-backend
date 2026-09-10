@@ -5,7 +5,6 @@ import com.epam.aidial.cfg.domain.model.ExportComponentInfo;
 import com.epam.aidial.cfg.domain.model.ExportConfigComponentType;
 import com.epam.aidial.cfg.domain.model.ExportFormat;
 import com.epam.aidial.cfg.domain.model.Model;
-import com.epam.aidial.cfg.domain.model.Upstream;
 import com.epam.aidial.cfg.domain.model.source.ModelAdapterSource;
 import com.epam.aidial.cfg.domain.service.AdapterService;
 import com.epam.aidial.cfg.domain.service.ModelService;
@@ -14,8 +13,8 @@ import com.epam.aidial.cfg.model.ExportConfigComponent;
 import com.epam.aidial.cfg.model.ExportRequest;
 import com.epam.aidial.cfg.model.FullExportRequest;
 import com.epam.aidial.cfg.model.SelectedItemsExportRequest;
+import com.epam.aidial.cfg.utils.UpstreamSecretUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -63,13 +62,13 @@ public class ModelExporter {
                     ExportConfigComponent component = componentsByName.get(model.getDeployment().getName());
                     return removeDependency(model, component.getDependencies(), selectedItemsExportRequest.getExportFormat());
                 })
-                .map(model -> removeUpstreamKey(model, addSecrets))
+                .map(model -> removeSecretData(model, addSecrets))
                 .toList();
     }
 
     private Collection<Model> getModels(FullExportRequest fullExportRequest) {
         return modelService.getAllOrderedByDisplayNameAscDisplayVersionAscNameAsc().stream()
-                .map(model -> removeUpstreamKey(model, fullExportRequest.isAddSecrets()))
+                .map(model -> removeSecretData(model, fullExportRequest.isAddSecrets()))
                 .map(model -> removeDependency(model, fullExportRequest.getComponentTypes(), fullExportRequest.getExportFormat()))
                 .toList();
     }
@@ -105,18 +104,16 @@ public class ModelExporter {
                 && model.getSource() instanceof ModelAdapterSource adapterSource) {
             var adapter = adapterService.get(adapterSource.getAdapterName());
             model.setEndpoint(ModelEndpointUtils.concatEndpointAndPath(adapter.getBaseEndpoint(), adapterSource.getCompletionEndpointPath()));
+            model.setResponsesEndpoint(adapter.getResponsesEndpoint());
             model.setSource(null);
         }
 
         return model;
     }
 
-    private Model removeUpstreamKey(Model model, boolean addSecrets) {
-        List<Upstream> upstreams = model.getUpstreams();
-        if (CollectionUtils.isNotEmpty(upstreams) && !addSecrets) {
-            for (Upstream upstream : upstreams) {
-                upstream.setKey(null);
-            }
+    private Model removeSecretData(Model model, boolean addSecrets) {
+        if (!addSecrets) {
+            UpstreamSecretUtils.removeSecrets(model.getUpstreams());
         }
         return model;
     }

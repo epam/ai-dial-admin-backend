@@ -26,7 +26,14 @@
         "system"
       ],
       "endpoint": "https://endpoint1/embeddings",
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://model.adapter.test.com"},
+        "anthropicMessages": {"base_url": "https://model.adapter.test.com"}
+      },
       "responsesEndpoint": "http://model1/responses",
+      "responsesDefaults": {
+        "field": "skipped-value"
+      },
       "descriptionKeywords": ["test1", "test2"]
     },
     "testModel2": {
@@ -80,7 +87,19 @@
         "testRole1"
       ],
       "endpoint": "endpoint",
+      "interfaces": {
+        "openaiChatCompletions": {
+          "base_url": "https://app.adapter.test.com",
+          "defaultHeaders": {
+            "x-dial-cache-policy": "cache-priority",
+            "x-dial-custom-header": "foo-bar"
+          }
+        }
+      },
       "responsesEndpoint": "http://application2/responses",
+      "responsesDefaults": {
+        "field": "skipped-value"
+      },
       "mcp": {
         "endpoint": "http://localhost:9876/mcp",
         "transport": "http",
@@ -188,6 +207,9 @@
       "name": "testInterceptor1",
       "displayName": "Test Interceptor1",
       "endpoint": "https://endpoint.test.com/interceptor",
+      "interfaces": {
+        "openaiChatCompletions": {"base_url": "https://interceptor.adapter.test.com"}
+      },
       "userRoles": [
         "testRole1"
       ],
@@ -363,7 +385,9 @@
       "endpoint": "http://sample-endpoint/api",
       "transport": "sse",
       "allowedTools": ["branch", "remote"],
+      "provider": "some-provider",
       "author": "test-author",
+      "vendorWebsite": "https://www.vendorWebsite.com",
       "createdAt": 12345,
       "updatedAt": 12345,
       "authSettings": {
@@ -380,7 +404,9 @@
         "scopesSupported": [
           "first",
           "second"
-        ]
+        ],
+        "tokenEndpointAuthMethod": "NONE",
+        "dynamicallyRegistered": true
       }
     }
   }

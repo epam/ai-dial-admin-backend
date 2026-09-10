@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.source.InterceptorSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,12 +19,15 @@ public class InterceptorDto {
     private String name;
     @Endpoint
     private String endpoint;
-    @Endpoint
-    private String responsesEndpoint;
+    @Valid
+    private Map<String, DeploymentInterfaceDto> interfaces;
     private String iconUrl;
     private String description;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
+    private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private Boolean forwardAuthToken;
     private List<String> entities;
     private List<String> applicationTypeSchemas;

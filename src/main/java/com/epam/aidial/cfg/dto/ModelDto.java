@@ -2,11 +2,13 @@ package com.epam.aidial.cfg.dto;
 
 import com.epam.aidial.cfg.dto.source.ModelSourceDto;
 import com.epam.aidial.cfg.dto.validation.annotation.Endpoint;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -25,17 +27,21 @@ public class ModelDto extends RoleBasedDto {
     private String endpoint;
     @Endpoint
     private String responsesEndpoint;
+    @Valid
+    private Map<String, DeploymentInterfaceDto> interfaces;
     @NotBlank(message = "DisplayName is required")
     private String displayName;
     private String displayVersion;
     private String iconUrl;
     private String description;
+    private String intro;
     private String reference;
     private Boolean forwardAuthToken;
     private FeaturesDto features = new FeaturesDto();
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Map<String, Object> defaults;
+    private Map<String, Object> responsesDefaults;
     private List<String> interceptors;
     private TreeSet<String> topics;
     @Positive(message = "Max retry attempts should be greater than 0")
@@ -53,7 +59,12 @@ public class ModelDto extends RoleBasedDto {
     private PricingDto pricing;
     private List<UpstreamDto> upstreams = List.of();
     private String overrideName;
+    private Map<String, String> defaultHeaders;
+    private String baseUrl;
     private List<String> fieldsHashingOrder;
+    private Integer embeddingDimensions;
     private ModelSourceDto source;
+    private URI catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 
 }

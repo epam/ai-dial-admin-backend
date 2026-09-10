@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.dto.PublicationPathDto;
 import com.epam.aidial.cfg.dto.RejectPublicationDto;
 import com.epam.aidial.cfg.exception.EntityNotFoundException;
+import com.epam.aidial.cfg.mapper.ApplicationResourceMapperImpl;
 import com.epam.aidial.cfg.mapper.FileMapperImpl;
 import com.epam.aidial.cfg.mapper.PublicationMapperImpl;
 import com.epam.aidial.cfg.model.ApplicationPublication;
@@ -53,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         JsonMapperConfiguration.class,
         PublicationMapperImpl.class,
+        ApplicationResourceMapperImpl.class,
         RouteMapperImpl.class,
         FileMapperImpl.class,
 })

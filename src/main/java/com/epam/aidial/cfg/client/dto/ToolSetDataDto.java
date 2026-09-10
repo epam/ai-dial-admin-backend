@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @SuperBuilder
@@ -20,5 +21,9 @@ public class ToolSetDataDto extends DeploymentDataDto {
 
     private String transport;
     private List<String> allowedTools;
+    private String provider;
     private ResourceAuthSettingsDto authSettings;
+    private String vendorWebsite;
+    private String catalogSchemaId;
+    private Map<String, Object> catalogProperties;
 }

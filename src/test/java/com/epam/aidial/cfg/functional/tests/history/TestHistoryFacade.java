@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -40,6 +41,10 @@ public class TestHistoryFacade {
         pageRequestDto.setSorts(List.of(resourceTypeSort, resourceIdSort));
 
         return activityFacade.getAuditActivities(pageRequestDto);
+    }
+
+    public AuditActivityDto getAuditActivity(UUID activityId) {
+        return activityFacade.getAuditActivity(activityId);
     }
 
     public List<ConfigRevisionDto> getRevisionsList() {

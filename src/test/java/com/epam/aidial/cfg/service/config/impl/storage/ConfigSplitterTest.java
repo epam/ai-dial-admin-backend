@@ -31,6 +31,48 @@ class ConfigSplitterTest {
     private ObjectMapper objectMapper = JsonMapperConfiguration.createJsonMapper();
 
     @Test
+    void splitConfigErrorDetailShowsLargestEntries() {
+        ConfigSplitter splitter = new ConfigSplitter();
+        Config configBody = new Config();
+        configBody.setKeys(new HashMap<>());
+        for (int i = 0; i < 3; i++) {
+            configBody.getKeys().put("key" + i, generateKey(i));
+        }
+
+        int partitioningLimit = 1;
+        int maxSize = 10;
+
+        // compute expected per-entry sizes using the same encoder and removeEmptyCollections logic
+        int[] keySizes = new int[3];
+        for (int i = 0; i < 3; i++) {
+            Config single = createConfig();
+            single.setKeys(Map.of("key" + i, generateKey(i)));
+            ConfigUtils.removeEmptyCollections(single);
+            keySizes[i] = encode(single).getBytes().length;
+        }
+        // retriableErrorCodes entry is always produced by the splitter
+        Config retriableConfig = createConfig();
+        retriableConfig.setRetriableErrorCodes(configBody.getRetriableErrorCodes());
+        ConfigUtils.removeEmptyCollections(retriableConfig);
+        int retriableSize = encode(retriableConfig).getBytes().length;
+
+        long expectedTotal = (long) keySizes[0] + keySizes[1] + keySizes[2] + retriableSize;
+        long expectedCapacity = (long) partitioningLimit * maxSize;
+
+        IllegalStateException ex = Assertions.assertThrows(IllegalStateException.class,
+                () -> splitter.splitConfig(configBody, this::encode, maxSize, partitioningLimit));
+
+        String message = ex.getMessage();
+        Assertions.assertTrue(message.contains("Unable to split config to 1 part(s) with maxSize 10"), message);
+        Assertions.assertTrue(message.contains("Total encoded size " + expectedTotal + " bytes"), message);
+        Assertions.assertTrue(message.contains("available capacity " + expectedCapacity + " bytes"), message);
+        // all 3 keys should appear in the top-5 largest entries with their exact sizes
+        for (int i = 0; i < 3; i++) {
+            Assertions.assertTrue(message.contains("key" + i + "=" + keySizes[i] + "B"), message);
+        }
+    }
+
+    @Test
     void splitSecretConfig() {
         ConfigSplitter splitter = new ConfigSplitter();
         Config configBody = new Config();

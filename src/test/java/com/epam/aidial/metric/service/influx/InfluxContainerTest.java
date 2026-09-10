@@ -2,7 +2,6 @@ package com.epam.aidial.metric.service.influx;
 
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.utils.ResourceUtils;
-import com.epam.aidial.metric.config.InfluxDatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.influx.InfluxDatasetDeclaration;
 import com.epam.aidial.metric.service.AbstractInfluxContainerTest;
@@ -66,10 +65,7 @@ class InfluxContainerTest extends AbstractInfluxContainerTest {
         var datasetDeclaration = (InfluxDatasetDeclaration) OBJECT_MAPPER.readValue(
                 testMetricConfig, DatasetDeclaration.class);
 
-        var datasetConfiguration = new InfluxDatasetConfiguration();
-        datasetConfiguration.setDefaultPageSize(50);
-
-        var queryBuilderFactory = new FluxQueryBuilderFactory(datasetDeclaration, datasetConfiguration);
+        var queryBuilderFactory = new FluxQueryBuilderFactory(datasetDeclaration);
         var windowGapFiller = new WindowGapFiller(10_000);
         engine = new InfluxEngine(datasetDeclaration, influxClient, queryBuilderFactory, windowGapFiller);
     }

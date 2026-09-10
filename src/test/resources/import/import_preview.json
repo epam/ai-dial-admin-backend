@@ -348,6 +348,12 @@
         "name": "testInterceptor1",
         "displayName": "Test Interceptor1",
         "endpoint": "https://endpoint.test.com/interceptor",
+        "interfaces": {
+          "openaiChatCompletions": {
+            "baseUrl": "https://interceptor.adapter.test.com",
+            "defaultHeaders": {}
+          }
+        },
         "forwardAuthToken": false,
         "author": "test-author",
         "dependencies": [],
@@ -373,7 +379,8 @@
         "applicationTypeSchemas":[],
         "source": {
           "$type": "endpoints"
-        }
+        },
+        "defaultHeaders": {}
       }
     }
   ],
@@ -546,6 +553,7 @@
         "name": "<will be defined during import 1>",
         "displayName": "<will be defined during import 1>",
         "baseEndpoint": "https://endpoint1/",
+        "responsesEndpoint": "http://model1/responses",
         "models": [
           "testModel1"
         ],
@@ -618,7 +626,9 @@
           "isPublic": false,
           "defaultRoleLimit": {}
         },
-        "responsesEndpoint": "http://model1/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "displayName": "Test Model1",
         "displayVersion": "2.0.0",
         "forwardAuthToken": false,
@@ -636,6 +646,16 @@
         },
         "defaults": {
           "max_tokens": 8000
+        },
+        "interfaces": {
+          "openaiChatCompletions": {
+            "baseUrl": "https://model.adapter.test.com",
+            "defaultHeaders": {}
+          },
+          "anthropicMessages": {
+            "baseUrl": "https://model.adapter.test.com",
+            "defaultHeaders": {}
+          }
         },
         "interceptors": [
           "testInterceptor1"
@@ -656,7 +676,8 @@
           "$type": "adapter",
           "adapterName": "<will be defined during import 1>",
           "completionEndpointPath": "embeddings"
-        }
+        },
+        "defaultHeaders": {}
       }
     },
     {
@@ -737,6 +758,7 @@
           "parallelToolCallsSupported": true
         },
         "defaults": {},
+        "responsesDefaults": {},
         "topics": [],
         "maxRetryAttempts": 5,
         "type": "embedding",
@@ -752,6 +774,8 @@
           "seed",
           "system"
         ],
+        "interfaces": {},
+        "defaultHeaders": {},
         "source": {
           "$type": "adapter",
           "adapterName": "<will be defined during import 0>",
@@ -831,6 +855,7 @@
         "descriptionKeywords": [],
         "maxRetryAttempts": 1,
         "defaults": {},
+        "responsesDefaults": {},
         "interceptors": [
           "testInterceptor1"
         ],
@@ -846,7 +871,10 @@
           "temperatureSupported": true,
           "parallelToolCallsSupported": true
         },
-        "applicationTypeSchemaId": "https://test-schema-id.example",
+        "source": {
+          "$type": "schema",
+          "applicationTypeSchemaId": "https://test-schema-id.example"
+        },
         "author": "test-author",
         "dependencies": [
           "dep1",
@@ -854,7 +882,9 @@
         ],
         "validityState": {
           "valid": true
-        }
+        },
+        "interfaces": {},
+        "defaultHeaders": {}
       }
     },
     {
@@ -920,7 +950,22 @@
           "defaultRoleLimit": {}
         },
         "endpoint": "endpoint",
+        "source": {
+          "$type": "endpoints"
+        },
+        "interfaces": {
+          "openaiChatCompletions": {
+            "baseUrl": "https://app.adapter.test.com",
+            "defaultHeaders": {
+              "x-dial-cache-policy": "cache-priority",
+              "x-dial-custom-header": "foo-bar"
+            }
+          }
+        },
         "responsesEndpoint": "http://application2/responses",
+        "responsesDefaults": {
+          "field": "skipped-value"
+        },
         "displayName": "Test Application2",
         "displayVersion": "1.0.0",
         "forwardAuthToken": false,
@@ -952,7 +997,8 @@
           "allowedTools": ["classify_text"],
           "configDelivery": "header",
           "forwardPerRequestKey": false
-        }
+        },
+        "defaultHeaders": {}
       }
     }
   ],
@@ -1007,7 +1053,9 @@
             "scopesSupported": [
               "first",
               "second"
-            ]
+            ],
+            "tokenEndpointAuthMethod": "NONE",
+            "dynamicallyRegistered": true
           }
         },
         "displayName": "ToolSet1",
@@ -1016,8 +1064,10 @@
         "maxRetryAttempts": 1,
         "endpoint": "http://sample-endpoint/api",
         "responsesEndpoint": "http://toolset1/responses",
+        "vendorWebsite": "https://www.vendorWebsite.com",
         "transport": "sse",
         "allowedTools": ["branch", "remote"],
+        "provider": "some-provider",
         "author": "test-author",
         "source": {
           "$type": "endpoints"

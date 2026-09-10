@@ -1,14 +1,11 @@
 package com.epam.aidial.cfg.domain.validator;
 
-import com.epam.aidial.cfg.client.dto.DeploymentInfoDto;
-import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
-import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
+import com.epam.aidial.cfg.domain.model.DeploymentInterface;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.Interceptor;
 import com.epam.aidial.cfg.domain.model.source.InterceptorContainerSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorEndpointsSource;
 import com.epam.aidial.cfg.domain.model.source.InterceptorRunnerSource;
-import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,10 +17,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class InterceptorValidatorTest {
@@ -38,8 +36,6 @@ class InterceptorValidatorTest {
     private InterceptorValidator interceptorValidator;
 
     @Mock
-    private DeploymentManagerService deploymentManagerService;
-    @Mock
     private IdFieldValidator idFieldValidator;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
@@ -50,11 +46,10 @@ class InterceptorValidatorTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         interceptorValidator = new InterceptorValidator(
-                deploymentManagerService,
-                new DeploymentInfoValidator(),
                 idFieldValidator,
                 displayFieldsValidator,
                 featuresValidator,
+                new DeploymentInterfacesValidator(),
                 null
         );
     }
@@ -139,7 +134,39 @@ class InterceptorValidatorTest {
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Completion endpoint is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
+                .hasMessage("Completion endpoint, interfaces or base URL is required when source type is 'Interceptor endpoints'. Interceptor: test-interceptor");
+    }
+
+    @Test
+    void validateEndpointsSource_shouldNotThrowWhenOnlyInterfacesIsSet() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorEndpointsSource());
+        interceptor.setInterfaces(interfaces("openaiChatCompletions", "http://interceptor.test.com"));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));
+    }
+
+    @Test
+    void validateEndpointsSource_shouldThrowWhenInterceptorHasUnsupportedInterfaceType() {
+        // given
+        Interceptor interceptor = new Interceptor();
+        interceptor.setName("test-interceptor");
+        interceptor.setSource(new InterceptorEndpointsSource());
+        interceptor.setInterfaces(interfaces("openaiResponses", "http://interceptor.test.com"));
+
+        // when/then
+        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported interface type 'openaiResponses'");
+    }
+
+    private static Map<String, DeploymentInterface> interfaces(String type, String baseUrl) {
+        DeploymentInterface deploymentInterface = new DeploymentInterface();
+        deploymentInterface.setBaseUrl(baseUrl);
+        return Map.of(type, deploymentInterface);
     }
 
     @Test
@@ -181,47 +208,11 @@ class InterceptorValidatorTest {
     }
 
     @Test
-    void validateContainerSource_shouldThrowExceptionWhenContainerNotFound() {
-        // given
-        Interceptor interceptor = new Interceptor();
-        interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
-
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(null);
-
-        // when/then
-        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Container with ID '550e8400-e29b-41d4-a716-446655440000' not found");
-    }
-
-    @Test
-    void validateContainerSource_shouldThrowExceptionWhenDeploymentUrlIsBlank() {
-        // given
-        Interceptor interceptor = new Interceptor();
-        interceptor.setName("test-interceptor");
-        interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
-
-        DeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
-        deploymentInfo.setUrl("");
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
-
-        // when/then
-        assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Container URL is not present, please check if it is deployed. Container ID: 550e8400-e29b-41d4-a716-446655440000");
-    }
-
-    @Test
     void validateContainerSource_shouldValidateEndpointPaths() {
         // given
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "invalid path with spaces", CONFIG_PATH));
-
-        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
-        deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
@@ -236,10 +227,6 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, "invalid path with spaces"));
 
-        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
-        deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
-
         // when/then
         assertThatThrownBy(() -> interceptorValidator.validateCreation(interceptor))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -253,10 +240,6 @@ class InterceptorValidatorTest {
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH, CONFIG_PATH));
 
-        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
-        deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
-
         // when/then
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));
     }
@@ -267,10 +250,6 @@ class InterceptorValidatorTest {
         Interceptor interceptor = new Interceptor();
         interceptor.setName("test-interceptor");
         interceptor.setSource(new InterceptorContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, "api/completion", "api/config"));
-
-        DeploymentInfoDto deploymentInfo = new InterceptorDeploymentInfoDto();
-        deploymentInfo.setUrl("https://deployment.url");
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
 
         // when/then
         assertThatNoException().isThrownBy(() -> interceptorValidator.validateCreation(interceptor));

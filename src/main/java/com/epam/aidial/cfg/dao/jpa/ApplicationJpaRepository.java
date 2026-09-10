@@ -19,4 +19,6 @@ public interface ApplicationJpaRepository extends JpaRepository<ApplicationEntit
     List<ApplicationEntity> findByValidityStateIsValidTrueOrderByDisplayNameAscDisplayVersionAscIdAsc();
 
     List<ApplicationEntity> findByIdInOrderByDisplayNameAscDisplayVersionAscIdAsc(Collection<String> ids);
+
+    List<ApplicationEntity> findByApplicationContainerIsNotNull();
 }

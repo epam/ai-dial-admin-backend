@@ -5,6 +5,7 @@ import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
 import com.epam.aidial.cfg.configuration.JsonMapperConfiguration;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import com.epam.aidial.cfg.dto.AdapterDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
@@ -107,6 +108,26 @@ public abstract class ModelFunctionalTest {
 
         Assertions.assertThrows(EntityNotFoundException.class, () -> modelFacade.getModel(modelDto.getName()));
         Assertions.assertTrue(modelFacade.getAll().isEmpty());
+    }
+
+    @Test
+    public void shouldSuccessfullyCreateAndGetModelWithInterfacesOnly() {
+        initRoles();
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setSource(new ModelEndpointsSourceDto());
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://model.adapter.test.com");
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        modelDto.setInterfaces(Map.of(
+                "openaiChatCompletions", chatInterface,
+                "anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        ModelDto actual = modelFacade.getModel(modelDto.getName());
+        Assertions.assertNull(actual.getEndpoint());
+        Assertions.assertEquals(modelDto.getInterfaces(), actual.getInterfaces());
     }
 
     @Test
@@ -396,6 +417,25 @@ public abstract class ModelFunctionalTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenCreateModelWithExistingInterceptorName() {
+        String name = "test";
+
+        InterceptorDto interceptorDto = createInterceptorDto("1");
+        interceptorDto.setName(name);
+        interceptorFacade.createInterceptor(interceptorDto);
+
+        ModelDto modelDto = createModelDto("1");
+        modelDto.setName(name);
+
+        EntityAlreadyExistsException exception = Assertions.assertThrows(
+                EntityAlreadyExistsException.class,
+                () -> modelFacade.createModel(modelDto)
+        );
+
+        Assertions.assertEquals("Interceptor with name test already exists", exception.getMessage());
+    }
+
+    @Test
     public void shouldSaveAndReturnModelWithUniqueTopics() {
         ModelDto modelDto = createModelDto("1");
         modelDto.setTopics(new TreeSet<>(Set.of("topic3", "topic2", "topic1")));
@@ -418,12 +458,15 @@ public abstract class ModelFunctionalTest {
         expected.setName(modelDto.getName());
         expected.setDisplayName(modelDto.getDisplayName());
         expected.setDescription(modelDto.getDescription());
+        expected.setIntro(modelDto.getIntro());
         expected.setEndpoint(modelDto.getEndpoint());
         expected.setDefaults(modelDto.getDefaults());
         expected.setFeatures(defaultCoreFeatures());
         expected.setMaxRetryAttempts(modelDto.getMaxRetryAttempts());
         expected.setUserRoles(modelDto.getRoleLimits().keySet());
+        expected.setInterfaces(null);
         expected.setForwardAuthToken(modelDto.getForwardAuthToken());
+        expected.setBaseUrl(null);
 
         CoreModel actual = modelFacade.getCoreModelWithHash(modelDto.getName()).core();
         actual.setCreatedAt(null);
@@ -488,7 +531,7 @@ public abstract class ModelFunctionalTest {
         when(deploymentManagerService.getById(containerId)).thenReturn(deploymentInfo);
 
         ModelDto updatedModel = createModelDtoWithLimitsAndEndpoint("1");
-        updatedModel.setSource(new ModelContainerSourceDto(containerId, "test-container", "/chat/completions"));
+        updatedModel.setSource(new ModelContainerSourceDto(containerId, "test-container", "/chat/completions", "/responses"));
         modelFacade.updateModel(modelDto.getName(), updatedModel, "*");
 
         // Verify the model now has container source (not adapter source)
@@ -536,6 +579,7 @@ public abstract class ModelFunctionalTest {
 
         ModelDto modelDto = createModelDto("1");
         modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
+        modelDto.setEmbeddingDimensions(1536);
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
@@ -577,6 +621,7 @@ public abstract class ModelFunctionalTest {
         ModelDto modelDto = createModelDto("1");
         modelDto.setUpstreams(List.of(secretUpstreamDto, publicUpstreamDto));
         modelDto.setDescription("description OLD");
+        modelDto.setEmbeddingDimensions(1536);
         modelFacade.createModel(modelDto);
 
         JsonNode config = coreConfig();
@@ -698,15 +743,19 @@ public abstract class ModelFunctionalTest {
                         "content_parts_supported": false,
                         "temperature_supported": true,
                         "parallel_tool_calls_supported": true,
-                        "assistant_attachments_in_request_supported": false
+                        "assistant_attachments_in_request_supported": false,
+                        "max_tokens_supported": true,
+                        "custom_temperature_supported": true
                       },
                       "inputAttachmentTypes": null,
                       "maxInputAttachments":null,
                       "defaults": {},
+                      "responsesDefaults": {},
                       "interceptors": [],
                       "descriptionKeywords": [],
                       "maxRetryAttempts": 1,
                       "author": null,
+                      "intro" : null,
                       "createdAt": 1000,
                       "updatedAt": 1000,
                       "dependencies": [],
@@ -730,7 +779,10 @@ public abstract class ModelFunctionalTest {
                         }
                       ],
                       "overrideName": null,
-                      "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"]
+                      "fieldsHashingOrder": ["prefix.body.tools","prefix.body.messages"],
+                      "embeddingDimensions": 1536,
+                      "catalogSchemaId": null,
+                      "catalogProperties": null
                     }
                   }
                 }

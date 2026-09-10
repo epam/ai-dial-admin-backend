@@ -4,6 +4,7 @@ import com.epam.aidial.cfg.utils.PathUtils;
 import com.epam.aidial.core.util.UrlUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,7 +39,7 @@ public class CoreMetadataUtils {
     }
 
     public static String replacePathSegment(String path, String oldPathSegment, String newPathSegment) {
-        return path.replaceFirst(encodePath(oldPathSegment), encodePath(newPathSegment));
+        return path.replaceFirst(Pattern.quote(encodePath(oldPathSegment)), encodePath(newPathSegment));
     }
 
     private static String removeName(String path) {

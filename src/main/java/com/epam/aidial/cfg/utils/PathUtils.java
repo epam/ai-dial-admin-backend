@@ -100,27 +100,37 @@ public class PathUtils {
     }
 
     private static Pair<String, String> extractNameAndVersion(String rawName) {
-        var nameParts = rawName.split("__");
-        String name;
-        String version;
-        if (nameParts.length != 2) {
-            name = rawName;
-            version = null;
-        } else {
-            name = nameParts[0];
-            version = nameParts[1];
+        int lastSeparatorIndex = rawName.lastIndexOf("__");
+
+        if (lastSeparatorIndex == -1) {
+            return Pair.of(rawName, null);
         }
+
+        String name = rawName.substring(0, lastSeparatorIndex);
+        String version = rawName.substring(lastSeparatorIndex + 2);
+
         return Pair.of(name, version);
     }
 
     public static String buildPath(String folderId, String name, String version) {
         var cleanFolderId = StringUtils.stripEnd(folderId, "/");
-        return cleanFolderId + "/" + name + "__" + version;
+        var versionedName = getVersionedName(name, version);
+        return cleanFolderId + "/" + versionedName;
     }
 
     public static String buildEncodedPath(String folderId, String name, String version) {
         var cleanFolderId = StringUtils.stripEnd(folderId, "/");
-        return UrlUtil.encodePath(cleanFolderId + "/" + name + "__" + version);
+        var versionedName = getVersionedName(name, version);
+        return UrlUtil.encodePath(cleanFolderId + "/" + versionedName);
+    }
+
+    public static String getVersionedName(String name, String version) {
+        if (name == null) {
+            throw new IllegalArgumentException("Name must not be null");
+        }
+        return version == null || version.isBlank()
+                ? name
+                : name + "__" + version;
     }
 
     /**

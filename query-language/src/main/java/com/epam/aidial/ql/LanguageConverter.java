@@ -101,7 +101,9 @@ public class LanguageConverter {
         for (int i = 0; i < expressions.size(); i++) {
             final Expression expression = expressions.get(i);
             final boolean aggregation = expression.isAggregation() || isGroupFunction(expression);
-            if (!aggregation && (groupExpressions.contains(expression) || groupExpressions.containsAll(expression.getDependentColumns()))) {
+            if (!aggregation && (groupExpressions.contains(expression)
+                    || groupExpressions.containsAll(expression.getDependentColumns())
+                    || isAliasCoveredByGroupBy(expression, groupExpressions))) {
                 continue;
             } else if (!aggregation) {
                 if (shouldGroup) {
@@ -125,6 +127,19 @@ public class LanguageConverter {
     private boolean isGroupFunction(Expression expression) {
         return expression instanceof Alias alias && alias.getExpression() instanceof GroupFunctionCall
                || expression instanceof GroupFunctionCall;
+    }
+
+    // The user may write `groupBy: ["proj"]` referencing the alias name from
+    // `expressions: ["project_id as proj"]`. The groupBy parser resolves "proj"
+    // to a fresh Column("proj") rather than the original Alias object, so neither
+    // direct membership nor dependent-column coverage matches. Treat the alias as
+    // covered when groupBy contains a Column whose name equals the alias name.
+    private boolean isAliasCoveredByGroupBy(Expression expression, Set<Expression> groupExpressions) {
+        if (!(expression instanceof Alias alias)) {
+            return false;
+        }
+        return groupExpressions.stream()
+                .anyMatch(g -> g instanceof Column column && alias.getName().equals(column.getName()));
     }
 
     private Query convert(final QueryDto query, final Map<String, Table> tables) throws ParseException {

@@ -1,16 +1,20 @@
 package com.epam.aidial.cfg.domain.validator;
 
+import com.epam.aidial.cfg.client.dto.InferenceDeploymentInfoDto;
+import com.epam.aidial.cfg.client.dto.InferenceTask;
 import com.epam.aidial.cfg.client.dto.InterceptorDeploymentInfoDto;
 import com.epam.aidial.cfg.client.dto.McpDeploymentInfoDto;
 import com.epam.aidial.cfg.domain.model.SecuredResource;
 import com.epam.aidial.cfg.domain.model.ToolSet;
 import com.epam.aidial.cfg.domain.model.source.ToolSetContainerSource;
 import com.epam.aidial.cfg.domain.model.source.ToolSetEndpointsSource;
+import com.epam.aidial.cfg.domain.model.source.ToolSetMcpRegistrySource;
 import com.epam.aidial.cfg.domain.service.DeploymentManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -37,6 +41,8 @@ public class ToolSetValidatorTest {
     private DeploymentManagerService deploymentManagerService;
     @Mock
     private DisplayFieldsValidator displayFieldsValidator;
+    @Mock
+    private ResourceAuthSettingsValidator resourceAuthSettingsValidator;
 
     private ToolSetValidator toolSetValidator;
 
@@ -45,9 +51,9 @@ public class ToolSetValidatorTest {
         MockitoAnnotations.openMocks(this);
         toolSetValidator = new ToolSetValidator(
                 deploymentManagerService,
-                new DeploymentInfoValidator(),
                 deploymentValidator,
                 displayFieldsValidator,
+                resourceAuthSettingsValidator,
                 null
         );
     }
@@ -208,38 +214,20 @@ public class ToolSetValidatorTest {
     }
 
     @Test
-    void validateContainerSource_shouldThrowExceptionWhenContainerNotFound() {
+    void validateContainerSource_shouldThrowExceptionWhenContainerHasWrongType() {
         // given
         SecuredResource deployment = new SecuredResource("test-toolset");
         ToolSet toolSet = new ToolSet();
         toolSet.setDeployment(deployment);
         toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
 
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(null);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(new InterceptorDeploymentInfoDto());
 
         // when/then
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Container with ID '550e8400-e29b-41d4-a716-446655440000' not found");
-    }
-
-    @Test
-    void validateContainerSource_shouldThrowExceptionWhenDeploymentUrlIsBlank() {
-        // given
-        SecuredResource deployment = new SecuredResource("test-toolset");
-        ToolSet toolSet = new ToolSet();
-        toolSet.setDeployment(deployment);
-        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
-
-        McpDeploymentInfoDto deploymentInfo = new McpDeploymentInfoDto();
-        deploymentInfo.setUrl("");
-        deploymentInfo.setTransport(McpDeploymentInfoDto.McpTransport.HTTP_STREAMING);
-        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
-
-        // when/then
-        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Container URL is not present, please check if it is deployed. Container ID: 550e8400-e29b-41d4-a716-446655440000");
+                .hasMessageStartingWith("Toolset deployment must be an MCP container or a text-classification "
+                        + "inference deployment. toolSetName: test-toolset");
     }
 
     @Test
@@ -257,7 +245,46 @@ public class ToolSetValidatorTest {
         // when/then
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Toolset deployment type must be mcp. toolSetName: test-toolset");
+                .hasMessageStartingWith("Toolset deployment must be an MCP container or a text-classification "
+                        + "inference deployment. toolSetName: test-toolset");
+    }
+
+    @Test
+    void validateContainerSource_shouldNotThrowExceptionForTextClassificationInference() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
+        deploymentInfo.setInferenceTask(InferenceTask.TEXT_CLASSIFICATION);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = InferenceTask.class, names = {"TEXT_GENERATION", "NONE"})
+    void validateContainerSource_shouldThrowExceptionForNonClassificationInference(InferenceTask inferenceTask) {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setSource(new ToolSetContainerSource(TEST_CONTAINER_ID, TEST_CONTAINER_NAME, COMPLETION_PATH));
+
+        InferenceDeploymentInfoDto deploymentInfo = new InferenceDeploymentInfoDto();
+        deploymentInfo.setUrl("https://deployment.url");
+        deploymentInfo.setInferenceTask(inferenceTask);
+        when(deploymentManagerService.getById(TEST_CONTAINER_ID)).thenReturn(deploymentInfo);
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Toolset deployment must be an MCP container or a text-classification "
+                        + "inference deployment. toolSetName: test-toolset");
     }
 
     @Test
@@ -277,6 +304,92 @@ public class ToolSetValidatorTest {
         assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid endpoint path: 'invalid path with spaces'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenServerNameIsBlank() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource("", "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Server name is required when source type is 'MCP registry'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenServerNameIsNull() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource(null, "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Server name is required when source type is 'MCP registry'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenEndpointIsMissing() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint(null);
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Endpoint is required when source type is 'MCP registry'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldThrowExceptionWhenEndpointIsInvalid() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("invalid-url");
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", "1.0.0"));
+
+        // when/then
+        assertThatThrownBy(() -> toolSetValidator.validateCreation(toolSet))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid endpoint: 'invalid-url'. Toolset: test-toolset");
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldAcceptValidSource() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", "1.0.0"));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
+    }
+
+    @Test
+    void validateMcpRegistrySource_shouldAcceptValidSourceWithoutVersion() {
+        // given
+        SecuredResource deployment = new SecuredResource("test-toolset");
+        ToolSet toolSet = new ToolSet();
+        toolSet.setDeployment(deployment);
+        toolSet.setEndpoint("https://example.com/mcp");
+        toolSet.setSource(new ToolSetMcpRegistrySource("server/name", null));
+
+        // when/then
+        assertThatNoException().isThrownBy(() -> toolSetValidator.validateCreation(toolSet));
     }
 
     @Test

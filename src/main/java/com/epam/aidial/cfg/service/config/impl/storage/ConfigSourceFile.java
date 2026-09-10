@@ -2,6 +2,7 @@ package com.epam.aidial.cfg.service.config.impl.storage;
 
 import com.epam.aidial.cfg.service.config.transfer.VersionAwareFieldFilter;
 import com.epam.aidial.core.config.Config;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,7 @@ public class ConfigSourceFile implements ConfigSource {
     @Override
     public void writeConfig(Config configBody, boolean createResources) {
         try {
-            Config versionedConfig = versionAwareFieldFilter.filterForTargetVersion(configBody);
+            JsonNode versionedConfig = versionAwareFieldFilter.filterForTargetVersion(configBody);
             createDirectoryIfNeed();
             objectMapper.writeValue(new File(outputFilePath), versionedConfig);
         } catch (IOException e) {

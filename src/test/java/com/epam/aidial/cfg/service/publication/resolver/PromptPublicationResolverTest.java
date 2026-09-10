@@ -207,7 +207,6 @@ class PromptPublicationResolverTest {
     void updatePublicationResourcesShouldReturnCorrectPromptPublication() {
         // given
         var publicationPath = "testPublication";
-        var fullPath = "publications/" + publicationPath;
         var promptsPrefix = "prompts/";
         var promptName = "testPrompt";
 
@@ -258,6 +257,85 @@ class PromptPublicationResolverTest {
         verify(promptClientMapper, times(1)).toCreatePrompt(any());
         verify(promptService, times(1))
                 .putPrompt(createPrompt, true, null);
+    }
+
+    @Test
+    void updatePublicationResourceTargetsShouldEncodeTargetFolderAndResourceUrlsWhenFolderHasSpaces() {
+        var promptsPrefix = "prompts/";
+        var targetFolder = "public/target folder/";
+        var promptName = "testPrompt";
+        var version = "1";
+
+        var prompt = new Prompt();
+        prompt.setName(promptName);
+        prompt.setVersion(version);
+
+        var publicationResource = new PromptPublicationResource();
+        publicationResource.setPrompt(prompt);
+
+        var publication = new PromptPublication();
+        publication.setPath("testPublication");
+        publication.setFolderId(targetFolder);
+        publication.setResources(List.of(publicationResource));
+
+        var result = promptPublicationResolver.updatePublicationResourceTargets(publication);
+
+        assertThat(result.getTargetFolder()).isEqualTo("public/target%20folder/");
+        assertThat(result.getResources()).hasSize(1);
+        assertThat(result.getResources().get(0).getTargetUrl())
+                .isEqualTo(promptsPrefix + "public/target%20folder/" + promptName + "__" + version);
+    }
+
+    @Test
+    void resolvePublicationWhenGettingFromClientShouldDecodePercentEncodedTargetFolderToFolderId() {
+        var publicationPath = "testPublication";
+        var fullPath = "publications/" + publicationPath;
+        var promptsPrefix = "prompts/";
+        var promptName = "testPrompt";
+
+        var reviewFolder = "reviewFolder/";
+        var reviewPromptPath = reviewFolder + promptName;
+
+        var decodedTargetFolder = "public/target folder/";
+        var encodedTargetFolder = "public/target%20folder/";
+        var targetPromptPathEncoded = encodedTargetFolder + promptName;
+
+        var sourceFolder = "sourceFolder/";
+        var sourceFolderPath = sourceFolder + promptName;
+
+        var publicationResource = new PublicationResourceDto();
+        publicationResource.setAction(PublicationResourceActionDto.ADD);
+        publicationResource.setTargetUrl(promptsPrefix + targetPromptPathEncoded);
+        publicationResource.setReviewUrl(promptsPrefix + reviewPromptPath);
+        publicationResource.setSourceUrl(promptsPrefix + sourceFolderPath);
+
+        var ruleDto = new RuleDto();
+        ruleDto.setSource("role");
+        ruleDto.setFunction(RuleFunctionDto.EQUAL);
+        ruleDto.setTargets(List.of("admin"));
+
+        var publicationDto = new PublicationDto();
+        publicationDto.setUrl(fullPath);
+        publicationDto.setName("Test Publication");
+        publicationDto.setAuthor("Author Name");
+        publicationDto.setCreatedAt(100);
+        publicationDto.setTargetFolder(encodedTargetFolder);
+        publicationDto.setStatus(PublicationStatusDto.PENDING);
+        publicationDto.setResources(List.of(publicationResource));
+        publicationDto.setResourceTypes(List.of(ResourceTypeDto.PROMPT));
+        publicationDto.setRules(List.of(ruleDto));
+
+        var prompt = new Prompt();
+        prompt.setPath(reviewPromptPath);
+        prompt.setFolderId(reviewFolder);
+
+        when(publicationResourceUrlResolver.resolveUrl(publicationResource, PublicationStatusDto.PENDING))
+                .thenReturn(promptsPrefix + reviewPromptPath);
+        when(promptService.getPrompt(reviewPromptPath)).thenReturn(prompt);
+
+        var result = promptPublicationResolver.resolvePublication(publicationDto);
+
+        assertThat(result.getFolderId()).isEqualTo(decodedTargetFolder);
     }
 
 }

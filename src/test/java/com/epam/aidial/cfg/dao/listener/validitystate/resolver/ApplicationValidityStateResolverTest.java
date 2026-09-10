@@ -1,17 +1,21 @@
 package com.epam.aidial.cfg.dao.listener.validitystate.resolver;
 
+import com.epam.aidial.cfg.dao.mapper.ApplicationContainerEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapper;
 import com.epam.aidial.cfg.dao.mapper.ApplicationTypeSchemaEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.DependentRouteEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.DeploymentEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.DeploymentInterfacesEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.ExternalServicesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.FeaturesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.LimitEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.MapPropertiesMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.PropertiesEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ResourceAuthSettingsEntityMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.RoleLimitEntityMapperImpl;
+import com.epam.aidial.cfg.dao.mapper.UriMapperImpl;
 import com.epam.aidial.cfg.dao.mapper.ValidityStateEntityMapperImpl;
 import com.epam.aidial.cfg.dao.model.ApplicationEntity;
 import com.epam.aidial.cfg.dao.model.ApplicationTypeSchemaEntity;
@@ -36,11 +40,14 @@ import java.util.List;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         ApplicationEntityMapperImpl.class,
+        ApplicationContainerEntityMapperImpl.class,
         RoleLimitEntityMapperImpl.class,
         LimitEntityMapperImpl.class,
         ResourceAuthSettingsEntityMapperImpl.class,
         DeploymentEntityMapperImpl.class,
         MapPropertiesMapperImpl.class,
+        DeploymentInterfacesEntityMapperImpl.class,
+        ExternalServicesEntityMapperImpl.class,
         ObjectMapper.class,
         DependentRouteEntityMapperImpl.class,
         FeaturesEntityMapperImpl.class,
@@ -50,7 +57,8 @@ import java.util.List;
         ApplicationTypeSchemaEntityMapperImpl.class,
         PropertiesEntityMapperImpl.class,
         ApplicationTypeSchemaCoreMapperImpl.class,
-        ApplicationTypeSchemaRouteCoreMapperImpl.class
+        ApplicationTypeSchemaRouteCoreMapperImpl.class,
+        UriMapperImpl.class
 })
 class ApplicationValidityStateResolverTest {
 
@@ -88,11 +96,12 @@ class ApplicationValidityStateResolverTest {
     }
 
     @Test
-    void resolveValidityState_shouldReturnValidStateWhenApplicationConformToItsSchema() {
+    void resolveValidityState_shouldReturnValidStateWhenApplicationConformToItsSchemaAndSchemaConformToMetaSchema() {
         // given
         ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
         applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
         applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setApplicationTypeDisplayName("displayName");
         applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
 
         DeploymentEntity deploymentEntity = new DeploymentEntity();
@@ -119,6 +128,7 @@ class ApplicationValidityStateResolverTest {
         ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
         applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
         applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setApplicationTypeDisplayName("displayName");
         applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
 
         DeploymentEntity deploymentEntity = new DeploymentEntity();
@@ -130,7 +140,61 @@ class ApplicationValidityStateResolverTest {
         applicationEntity.setDeployment(deploymentEntity);
 
         ValidityStateEntity expected = new ValidityStateEntity();
-        expected.setMessage("$: required property 'requiredProp' not found");
+        expected.setMessage("App: $: required property 'requiredProp' not found");
+        expected.setValid(false);
+
+        // when
+        ValidityStateEntity actual = applicationValidityStateResolver.resolveValidityState(applicationEntity);
+
+        // then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void resolveValidityState_shouldReturnInvalidStateWhenSchemaDoesNotConformToMetaSchema() {
+        // given
+        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
+        applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
+        applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
+
+        DeploymentEntity deploymentEntity = new DeploymentEntity();
+        deploymentEntity.setIsPublic(true);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setApplicationProperties("{\"requiredProp\":\"some-value\"}");
+        applicationEntity.setApplicationTypeSchema(applicationTypeSchemaEntity);
+        applicationEntity.setDeployment(deploymentEntity);
+
+        ValidityStateEntity expected = new ValidityStateEntity();
+        expected.setMessage("Schema: $: required property 'dial:applicationTypeDisplayName' not found");
+        expected.setValid(false);
+
+        // when
+        ValidityStateEntity actual = applicationValidityStateResolver.resolveValidityState(applicationEntity);
+
+        // then
+        Assertions.assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void resolveValidityState_shouldReturnInvalidStateWhenApplicationDoesNotConformToItsSchemaAndSchemaDoesNotConformToMetaSchema() {
+        // given
+        ApplicationTypeSchemaEntity applicationTypeSchemaEntity = new ApplicationTypeSchemaEntity();
+        applicationTypeSchemaEntity.setSchemaId("https://test-schema.example");
+        applicationTypeSchemaEntity.setSchema("https://dial.epam.com/application_type_schemas/schema#");
+        applicationTypeSchemaEntity.setRequired(List.of("requiredProp"));
+
+        DeploymentEntity deploymentEntity = new DeploymentEntity();
+        deploymentEntity.setIsPublic(true);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setApplicationProperties("{}");
+        applicationEntity.setApplicationTypeSchema(applicationTypeSchemaEntity);
+        applicationEntity.setDeployment(deploymentEntity);
+
+        ValidityStateEntity expected = new ValidityStateEntity();
+        expected.setMessage("App: $: required property 'requiredProp' not found; Schema: $: required property 'dial:applicationTypeDisplayName' not found");
         expected.setValid(false);
 
         // when

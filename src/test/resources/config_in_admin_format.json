@@ -73,7 +73,10 @@
 				"parallelToolCallsSupported": true
 			},
 			"applicationProperties": {},
-			"applicationTypeSchemaId": "https://test-schema-id.example",
+			"source": {
+				"$type": "schema",
+				"applicationTypeSchemaId": "https://test-schema-id.example"
+			},
 			"viewerUrl": "https://viewer.test.com/app1",
 			"editorUrl": "https://editor.test.com/app1",
 			"author": "test-author",
@@ -88,6 +91,9 @@
 				"defaultRoleLimit": {}
 			},
 			"endpoint": "endpoint",
+			"source": {
+				"$type": "endpoints"
+			},
 			"displayName": "Test Application2",
 			"displayVersion": "1.0.0",
 			"forwardAuthToken": false,
@@ -161,6 +167,9 @@
 				}
 			],
 			"responsesEndpoint": "https://application1/responses",
+			"responsesDefaults": {
+				"field": "skipped-value"
+			},
 			"mcp": {
 				"endpoint": "http://localhost:9876/mcp",
 				"transport": "http",
@@ -206,7 +215,10 @@
 			"dependencies": ["dep1", "dep2"],
 			"fieldsHashingOrder": ["prompt", "temperature", "seed", "system"],
 			"endpoint": "https://endpoint2/embeddings",
-			"responsesEndpoint": "https://endpoint2/responses"
+			"responsesEndpoint": "https://endpoint2/responses",
+			"responsesDefaults": {
+				"field": "skipped-value"
+			}
 		},
 		"testModel1": {
 			"deployment": {

@@ -36,12 +36,14 @@ public class ConfigRevisionListener implements EntityTrackingRevisionListener, A
     private TransactionTimestampContext transactionTimestampContext;
     private DeploymentJpaRepository deploymentJpaRepository;
     private AuditActivityMapper auditActivityMapper;
+    private AuditParentActivityHolder auditParentActivityHolder;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
         this.transactionTimestampContext = applicationContext.getBean(TransactionTimestampContext.class);
         this.auditActivityMapper = applicationContext.getBean(AuditActivityMapper.class);
+        this.auditParentActivityHolder = applicationContext.getBean(AuditParentActivityHolder.class);
     }
 
     @Override
@@ -119,6 +121,7 @@ public class ConfigRevisionListener implements EntityTrackingRevisionListener, A
         auditActivity.setInitiatedAuthor(revEntity.getAuthor());
         auditActivity.setInitiatedEmail(revEntity.getEmail());
         auditActivity.setRevision(revEntity.getId());
+        auditParentActivityHolder.getParentActivityId().ifPresent(auditActivity::setParentActivityId);
         return auditActivity;
     }
 

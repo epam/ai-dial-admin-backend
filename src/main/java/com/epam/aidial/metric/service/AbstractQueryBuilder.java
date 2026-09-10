@@ -7,7 +7,6 @@ import com.epam.aidial.expressions.Expression;
 import com.epam.aidial.expressions.GroupFunctionCall;
 import com.epam.aidial.expressions.impl.ColumnImpl;
 import com.epam.aidial.metric.component.TemporalNameGenerator;
-import com.epam.aidial.metric.config.AbstractDatasetConfiguration;
 import com.epam.aidial.metric.model.configuration.DatasetDeclaration;
 import com.epam.aidial.metric.model.configuration.TableDeclaration;
 import com.epam.aidial.metric.util.CollectorsUtils;
@@ -26,18 +25,15 @@ public abstract class AbstractQueryBuilder<C, T extends TableDeclaration> {
     protected static final String TEMPORAL_COLUMN_NAME = "temp_column_";
 
     protected final Map<String, T> tableDeclarations;
-    protected final AbstractDatasetConfiguration datasetConfiguration;
     protected final Map<Expression, String> expressionToOuterColumnNames = new HashMap<>();
     protected final Map<String, Expression> nameToExpression = new HashMap<>();
     protected final TemporalNameGenerator temporalNameGenerator;
 
     @SuppressWarnings("unchecked")
     protected AbstractQueryBuilder(DatasetDeclaration datasetDeclaration,
-                                   AbstractDatasetConfiguration datasetConfiguration,
                                    TemporalNameGenerator temporalNameGenerator) {
         this.tableDeclarations = (Map<String, T>) datasetDeclaration.getTables().stream()
                 .collect(Collectors.toMap(TableDeclaration::getName, table -> table));
-        this.datasetConfiguration = datasetConfiguration;
         this.temporalNameGenerator = temporalNameGenerator;
     }
 
@@ -246,6 +242,22 @@ public abstract class AbstractQueryBuilder<C, T extends TableDeclaration> {
                 throw new NotImplementedException("Unsupported expression type");
             }
         }
+    }
+
+    /**
+     * Translates a groupBy column name to the underlying source column name. When the
+     * user writes `groupBy: ["proj"]` referencing an alias `"project_id as proj"` in
+     * `expressions`, the parser yields a Column("proj"), but the storage column is
+     * actually "project_id". `nameToExpression["proj"]` was set by
+     * {@link #resolveExpressionsToOuterColumnNames} to the aliased Column, so this
+     * unwinds the alias. For non-aliased names it is a no-op.
+     */
+    protected String resolveGroupBySourceName(String name) {
+        var expression = nameToExpression.get(name);
+        if (expression instanceof Column column) {
+            return column.getName();
+        }
+        return name;
     }
 
     /**

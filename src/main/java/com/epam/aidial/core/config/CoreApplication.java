@@ -1,6 +1,7 @@
 package com.epam.aidial.core.config;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -36,8 +37,26 @@ public class CoreApplication extends Deployment {
 
     private Mcp mcp;  // 0.42.0
 
+    /**
+     * External services the application authenticates against, keyed by service id.
+     */
+    @JsonAlias({"externalServices", "external_services"})
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, CoreExternalService> externalServices; // 0.46.0
+
     // maintain the order of routes defined in the app config
     private LinkedHashMap<String, CoreRoute> routes = new LinkedHashMap<>(); // 0.32.0
+
+    // The app's own actor identity for OBO credential retrieval: SHA-256 hex of its DIAL key, or its workload
+    // client_id (azp). The caller's derived identity must equal it. Absent ⇒ OBO off.
+    @JsonAlias({"appIdentity", "app_identity"})
+    private String appIdentity; // 0.46.0
+
+    // Governance: when true, regular users (not just admins/owners) may author external services on this
+    // app. Admin-set, default false ⇒ today's admin-only authoring is preserved.
+    @JsonAlias({"allowUserExternalServices", "allow_user_external_services"})
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private Boolean allowUserExternalServices = false;  // 0.46.0
 
     @Data
     @Accessors(chain = true)
@@ -129,11 +148,57 @@ public class CoreApplication extends Deployment {
         }
 
         public enum McpConfigDelivery {
-            HEADER, META;
+            HEADER, META
         }
     }
 
     public CoreApplication() {
         super();
+    }
+
+    @JsonIgnore
+    public static CoreApplication empty() {
+        CoreApplication coreApplication = new CoreApplication();
+
+        coreApplication.setApplicationProperties(null);
+        coreApplication.setApplicationTypeSchemaId(null);
+        coreApplication.setAuthor(null);
+        coreApplication.setCreatedAt(null);
+        coreApplication.setDefaults(null);
+        coreApplication.setDependencies(null);
+        coreApplication.setDescription(null);
+        coreApplication.setDescriptionKeywords(null);
+        coreApplication.setDisplayName(null);
+        coreApplication.setDisplayVersion(null);
+        coreApplication.setEditorUrl(null);
+        coreApplication.setEndpoint(null);
+        coreApplication.setFeatures(null);
+        coreApplication.setForwardAuthToken(null);
+        coreApplication.setFunction(null);
+        coreApplication.setIconUrl(null);
+        coreApplication.setInputAttachmentTypes(null);
+        coreApplication.setInterceptors(null);
+        coreApplication.setMaxInputAttachments(null);
+        coreApplication.setMaxRetryAttempts(null);
+        coreApplication.setMcp(null);
+        coreApplication.setName(null);
+        coreApplication.setUserRoles(null);
+        coreApplication.setReference(null);
+        coreApplication.setResponsesDefaults(null);
+        coreApplication.setResponsesEndpoint(null);
+        coreApplication.setInterfaces(null);
+        coreApplication.setExternalServices(null);
+        coreApplication.setRoutes(null);
+        coreApplication.setUpdatedAt(null);
+        coreApplication.setViewerUrl(null);
+        coreApplication.setIntro(null);
+        coreApplication.setAppIdentity(null);
+        coreApplication.setAllowUserExternalServices(null);
+        coreApplication.setCatalogSchemaId(null);
+        coreApplication.setCatalogProperties(null);
+        coreApplication.setOverrideName(null);
+        coreApplication.setDefaultHeaders(null);
+        coreApplication.setBaseUrl(null);
+        return coreApplication;
     }
 }

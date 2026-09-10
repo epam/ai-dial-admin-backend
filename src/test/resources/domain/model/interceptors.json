@@ -3,9 +3,19 @@
     "id": 1,
     "name": "SampleInterceptor",
     "endpoint": "https://example.com/interceptor",
+    "interfaces": {
+      "openaiChatCompletions": {
+        "baseUrl": "https://interceptor.adapter.example.com"
+      }
+    },
     "iconUrl": "https://example.com/icon.png",
     "description": "This is a sample interceptor",
     "displayName": "Sample Interceptor",
+    "overrideName": "Custom Interceptor Override",
+    "defaultHeaders": {
+      "X-Interceptor-Header": "interceptor-value"
+    },
+    "baseUrl": null,
     "forwardAuthToken": true,
     "entities": [
       "user",

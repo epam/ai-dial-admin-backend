@@ -15,7 +15,8 @@ import lombok.experimental.SuperBuilder;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ToolSetEndpointsSource.class, name = "endpoints"),
-        @JsonSubTypes.Type(value = ToolSetContainerSource.class, name = "container")
+        @JsonSubTypes.Type(value = ToolSetContainerSource.class, name = "container"),
+        @JsonSubTypes.Type(value = ToolSetMcpRegistrySource.class, name = "mcp-registry")
 })
 public abstract class ToolSetSource {
 }

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,11 +21,11 @@ import java.util.stream.Collectors;
 @LogExecution
 public class PromptImportValidator {
 
-    public void validatePromptImport(ImportResources importPrompts, @Valid PromptsEximDto promptsEximDto) {
-        validatePromptUniqueness(promptsEximDto.getPrompts(), importPrompts.isFlatImport());
+    public Map<String, String> collectUniquenessConflicts(ImportResources importPrompts, @Valid PromptsEximDto promptsEximDto) {
+        return collectUniquenessConflicts(promptsEximDto.getPrompts(), importPrompts.isFlatImport());
     }
 
-    private void validatePromptUniqueness(List<PromptEximDto> prompts, boolean isFlatImport) {
+    private Map<String, String> collectUniquenessConflicts(List<PromptEximDto> prompts, boolean isFlatImport) {
         var duplicatedPromptIds = getDuplicatedPromptIds(prompts);
         var duplicatedPromptNames = Map.<String, Set<String>>of();
         if (isFlatImport) {
@@ -32,30 +33,35 @@ public class PromptImportValidator {
         }
 
         if (duplicatedPromptIds.isEmpty() && duplicatedPromptNames.isEmpty()) {
-            return;
+            return Map.of();
         }
 
-        var errorMessage = new StringBuilder("Prompt uniqueness violation. Conflicts found:");
-        if (!duplicatedPromptIds.isEmpty()) {
-            errorMessage.append("\n  - Duplicated prompt IDs: %s".formatted(duplicatedPromptIds));
-        }
-        if (!duplicatedPromptNames.isEmpty()) {
-            duplicatedPromptNames.forEach((promptName, promptIds) ->
-                    errorMessage.append("\n  - Duplicated prompt name %s for IDs: %s".formatted(promptName, promptIds))
-            );
-        }
-        throw new IllegalArgumentException(errorMessage.toString());
+        var errorsByPromptId = new LinkedHashMap<String, String>();
+        duplicatedPromptIds.forEach((id, count) ->
+                addError(errorsByPromptId, id, "Duplicated prompt id: \"%s\" appears %d time(s) in the import file."
+                        .formatted(id, count))
+        );
+        duplicatedPromptNames.forEach((promptName, promptIds) -> {
+            var message = "Duplicated prompt name %s for IDs: %s"
+                    .formatted(promptName, String.join(", ", promptIds));
+            promptIds.forEach(id -> addError(errorsByPromptId, id, message));
+        });
+        return errorsByPromptId;
     }
 
-    private Set<String> getDuplicatedPromptIds(List<PromptEximDto> prompts) {
-        var idCounts = prompts.stream()
-                .map(PromptEximDto::getId)
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    private void addError(Map<String, String> errorsByPromptId, String id, String message) {
+        errorsByPromptId.merge(id, message,
+                (oldMsg, newMsg) -> oldMsg + "\n" + newMsg
+        );
+    }
 
-        return idCounts.entrySet().stream()
-                .filter(countEntry -> countEntry.getValue() > 1)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+    private Map<String, Long> getDuplicatedPromptIds(List<PromptEximDto> prompts) {
+        return prompts.stream()
+                .map(PromptEximDto::getId)
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private Map<String, Set<String>> getDuplicatedPromptNames(List<PromptEximDto> prompts) {

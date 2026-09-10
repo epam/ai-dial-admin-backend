@@ -33,6 +33,8 @@ public abstract class ApplicationTypeSchemaRouteCoreMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "responsesEndpoint", ignore = true)
+    @Mapping(target = "baseUrl", ignore = true)
+    @Mapping(target = "interfaces", ignore = true)
     public abstract Upstream mapUpstream(CoreApplicationTypeSchemaUpstream upstream);
 
     public List<DependentRoute> map(LinkedHashMap<String, CoreApplicationTypeSchemaRoute> coreRoutes) {

@@ -41,6 +41,12 @@ class CoreMetadataUtilsTest {
                         "public/test1/test2",
                         "public/test/",
                         "prompts/public/test/Injuries_Preexist__1.0.0"
+                ),
+                Arguments.of(
+                        "prompts/public/New%20folder%20(1)/sf-test-public/Acuity/Injuries_Preexist__1.0.0",
+                        "public/New folder (1)/",
+                        "public/New folder (2)/",
+                        "prompts/public/New%20folder%20(2)/sf-test-public/Acuity/Injuries_Preexist__1.0.0"
                 )
         );
     }

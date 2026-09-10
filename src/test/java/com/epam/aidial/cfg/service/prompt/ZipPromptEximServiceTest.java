@@ -44,6 +44,9 @@ import static org.mockito.Mockito.when;
 })
 class ZipPromptEximServiceTest {
 
+    private static final String INVALID_EXPORT_ZIP =
+            "Invalid archive format. Please upload a valid aidial-admin archive.";
+
     @MockitoBean
     private PromptClient promptClient;
     @MockitoBean
@@ -295,12 +298,57 @@ class ZipPromptEximServiceTest {
         var importResults = zipPromptEximService.importPrompts(importPrompts, mockMultipartFile);
 
         // then
-        // Since the zip doesn't contain prompts.json, the method should return an empty result with an error
         assertThat(importResults.getImportResults()).isEmpty();
-        assertThat(importResults.getError()).isEqualTo("No prompt files (e.g., `prompts/*.json`) found or loaded from the archive. "
-                + "Please ensure prompt files are placed in a `prompts/` directory and have a `.json` extension.");
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
 
-        // Verify that promptEximService was not called
+        verifyNoInteractions(promptEximService);
+        verifyNoInteractions(promptService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importZipPrompts_InvalidJsonInPromptsFile_ReturnsInvalidArchiveError() {
+        var importPrompts = ImportResources.builder()
+                .path("public/test/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var inputStream = getZipWithRawEntry("prompts/broken.json", "{{not-json".getBytes());
+        var mockMultipartFile = new MockMultipartFile("file", inputStream);
+
+        var importResults = zipPromptEximService.importPrompts(importPrompts, mockMultipartFile);
+
+        assertThat(importResults.getImportResults()).isEmpty();
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
+        verifyNoInteractions(promptEximService);
+        verifyNoInteractions(promptService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importZipPrompts_ZipContainsOnlyPathTraversalPromptPaths_ReturnsInvalidArchiveError() {
+        var importPrompts = ImportResources.builder()
+                .path("public/test/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var prompt = PromptEximDto.builder()
+                .id("prompts/public/PROMPT 1__1.0.0")
+                .description("Test description")
+                .content("Test content")
+                .build();
+
+        var inputStream = getZipInputStream(List.of(
+                Pair.of("test/prompts/test.json", PromptsEximDto.builder()
+                        .prompts(List.of(prompt))
+                        .build())
+        ));
+        var mockMultipartFile = new MockMultipartFile("file", inputStream);
+
+        var importResults = zipPromptEximService.importPrompts(importPrompts, mockMultipartFile);
+
+        assertThat(importResults.getImportResults()).isEmpty();
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
         verifyNoInteractions(promptEximService);
         verifyNoInteractions(promptService);
     }
@@ -361,6 +409,22 @@ class ZipPromptEximServiceTest {
             data = baos.toByteArray();
         }
 
+        return new ByteArrayInputStream(data);
+    }
+
+    @SneakyThrows
+    private InputStream getZipWithRawEntry(String entryPath, byte[] rawContent) {
+        byte[] data;
+        try (
+                var baos = new ByteArrayOutputStream();
+                var zos = new ZipOutputStream(baos)
+        ) {
+            zos.putNextEntry(new ZipEntry(entryPath));
+            zos.write(rawContent);
+            zos.closeEntry();
+            zos.finish();
+            data = baos.toByteArray();
+        }
         return new ByteArrayInputStream(data);
     }
 

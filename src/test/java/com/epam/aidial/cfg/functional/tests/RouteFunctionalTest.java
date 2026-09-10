@@ -254,7 +254,6 @@ public abstract class RouteFunctionalTest {
                     "route1": {
                       "name": "route1",
                       "userRoles": [],
-                      "response": null,
                       "rewritePath": false,
                       "paths": ["path1"],
                       "methods": [],

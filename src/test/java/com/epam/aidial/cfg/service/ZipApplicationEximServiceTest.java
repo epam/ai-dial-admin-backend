@@ -47,6 +47,9 @@ import static org.mockito.Mockito.when;
 })
 class ZipApplicationEximServiceTest {
 
+    private static final String INVALID_EXPORT_ZIP =
+            "Invalid archive format. Please upload a valid aidial-admin archive.";
+
     @MockitoBean
     private ApplicationEximService applicationEximService;
 
@@ -260,12 +263,50 @@ class ZipApplicationEximServiceTest {
         var importResults = zipApplicationEximService.importApplications(importApplications, mockMultipartFile);
 
         // then
-        // Since the zip doesn't contain applications.json, the method should return an empty result with an error
         assertThat(importResults.getImportResults()).isEmpty();
-        assertThat(importResults.getError()).isEqualTo("No application files (e.g., `applications/*.json`) found or loaded from the archive. "
-                + "Please ensure application files are placed in a `applications/` directory and have a `.json` extension.");
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
 
-        // Verify that applicationEximService was not called
+        verifyNoInteractions(applicationEximService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importZipApplications_InvalidJsonInApplicationsFile_ReturnsInvalidArchiveError() {
+        var importApplications = ImportResources.builder()
+                .path("public/test/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var inputStream = getZipWithRawEntry("applications/fail.json", "{{not-json".getBytes());
+        var mockMultipartFile = new MockMultipartFile("file", inputStream);
+
+        var importResults = zipApplicationEximService.importApplications(importApplications, mockMultipartFile);
+
+        assertThat(importResults.getImportResults()).isEmpty();
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
+        verifyNoInteractions(applicationEximService);
+    }
+
+    @Test
+    @SneakyThrows
+    void importZipApplications_ZipContainsOnlyPathTraversalApplicationPaths_ReturnsInvalidArchiveError() {
+        var importApplications = ImportResources.builder()
+                .path("public/test/")
+                .conflictResolutionStrategy(ImportConflictResolutionStrategy.OVERRIDE)
+                .build();
+
+        var application = getApplicationEximDto("1");
+        var inputStream = getZipInputStream(List.of(
+                Pair.of("test/applications/test.json", ApplicationsEximDto.builder()
+                        .applications(List.of(application))
+                        .build())
+        ));
+        var mockMultipartFile = new MockMultipartFile("file", inputStream);
+
+        var importResults = zipApplicationEximService.importApplications(importApplications, mockMultipartFile);
+
+        assertThat(importResults.getImportResults()).isEmpty();
+        assertThat(importResults.getError()).isEqualTo(INVALID_EXPORT_ZIP);
         verifyNoInteractions(applicationEximService);
     }
 
@@ -318,6 +359,22 @@ class ZipApplicationEximServiceTest {
             }
             zos.finish();
 
+            data = baos.toByteArray();
+        }
+        return new ByteArrayInputStream(data);
+    }
+
+    @SneakyThrows
+    private InputStream getZipWithRawEntry(String entryPath, byte[] rawContent) {
+        byte[] data;
+        try (
+                var baos = new ByteArrayOutputStream();
+                var zos = new ZipOutputStream(baos)
+        ) {
+            zos.putNextEntry(new ZipEntry(entryPath));
+            zos.write(rawContent);
+            zos.closeEntry();
+            zos.finish();
             data = baos.toByteArray();
         }
         return new ByteArrayInputStream(data);

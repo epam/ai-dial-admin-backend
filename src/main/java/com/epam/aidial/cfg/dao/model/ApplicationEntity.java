@@ -40,11 +40,18 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
 
     private String endpoint;
     private String responsesEndpoint;
+    @Column(columnDefinition = "CLOB")
+    private String interfaces;
     private String iconUrl;
     private String reference;
     private String description;
+    private String intro;
     private String displayName;
     private String displayVersion;
+    private String overrideName;
+    @Column(columnDefinition = "CLOB")
+    private String defaultHeaders;
+    private String baseUrl;
     private List<String> inputAttachmentTypes;
     private Integer maxInputAttachments;
     private Boolean forwardAuthToken;
@@ -52,6 +59,8 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private int maxRetryAttempts = 1;
     @Column(columnDefinition = "CLOB")
     private String defaults;
+    @Column(columnDefinition = "CLOB")
+    private String responsesDefaults;
     @ToString.Exclude
     @ManyToMany
     @JoinTable(
@@ -74,9 +83,22 @@ public class ApplicationEntity extends ValidityStateAwareEntity<String> {
     private String editorUrl;
     @Embedded
     private McpEntity mcp;
+    @Embedded
+    private ApplicationContainerEntity applicationContainer;
 
     @Column(columnDefinition = "CLOB")
     private String routes;
+
+    @Column(columnDefinition = "CLOB")
+    private String externalServices;
+
+    private String appIdentity;
+    private boolean allowUserExternalServices;
+
+    private String catalogSchemaId;
+
+    @Column(columnDefinition = "CLOB")
+    private String catalogProperties;
 
     @PreRemove
     public void preRemove() {
