@@ -231,6 +231,7 @@ public class FunctionalTestHelper {
 
     /**
      * The deployment-level {@link CoreFeatures} produced from a {@code FeaturesDto} left at its defaults.
+     *
      * <p>
      * {@code reasoningEfforts} is deliberately left {@code null}:
      * {@code com.epam.aidial.cfg.domain.mapper.FeatureCoreMapper} collapses the domain default

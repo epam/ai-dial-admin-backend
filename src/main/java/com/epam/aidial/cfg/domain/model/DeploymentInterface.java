@@ -25,6 +25,7 @@ public class DeploymentInterface {
 
     /**
      * Feature flags for this interface only, overriding the deployment-level {@code features}.
+     *
      * <p>
      * {@code null} means the interface inherits every deployment-level feature. A non-null value is
      * the <em>complete</em> effective feature set for the interface, not a sparse overlay: because

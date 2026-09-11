@@ -28,6 +28,7 @@ public class DeploymentInterfaceDto {
      * Feature flags for this interface only, overriding the deployment-level {@code features}.
      * Null means the interface inherits every deployment-level feature; a non-null value is the
      * complete effective feature set for the interface.
+     *
      * <p>
      * Endpoints are validated in the domain layer by
      * {@code com.epam.aidial.cfg.domain.validator.FeaturesValidator}, the same as the
