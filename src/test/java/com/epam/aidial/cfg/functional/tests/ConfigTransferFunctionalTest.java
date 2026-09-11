@@ -26,6 +26,7 @@ import com.epam.aidial.cfg.dto.AssistantDto;
 import com.epam.aidial.cfg.dto.AssistantsPropertyDto;
 import com.epam.aidial.cfg.dto.AttachmentPathDto;
 import com.epam.aidial.cfg.dto.AuthenticationTypeDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.ExternalServiceDto;
 import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.GlobalSettingsDto;
@@ -3059,6 +3060,120 @@ public abstract class ConfigTransferFunctionalTest {
         Assertions.assertThat(routeUpstream.getInterfaces()).containsOnlyKeys("openaiChatCompletions");
         Assertions.assertThat(routeUpstream.getInterfaces().get("openaiChatCompletions").getEndpoint())
                 .isEqualTo("https://route-upstream.test.com/v1/chat/completions");
+    }
+
+    /**
+     * Interface-level features (Core 0.48.0) must survive a full CORE export/import round trip, including
+     * the two cases the deployment level cannot express: an interface with no {@code features} at all
+     * (inherit everything) and an interface whose {@code reasoning_efforts} is an explicit empty array
+     * (support none, clearing the inherited deployment-level list).
+     */
+    @Test
+    void testExportImport_CoreFormatKeepsInterfaceFeaturesIncludingEmptyReasoningEfforts() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        FeaturesDto modelFeatures = new FeaturesDto();
+        modelFeatures.setReasoningEfforts(List.of("low", "high"));
+        modelDto.setFeatures(modelFeatures);
+
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto anthropicFeatures = new FeaturesDto();
+        anthropicFeatures.setToolsSupported(true);
+        anthropicFeatures.setReasoningEfforts(List.of("low", "medium", "high", "xhigh", "max"));
+        anthropicInterface.setFeatures(anthropicFeatures);
+
+        DeploymentInterfaceDto responsesInterface = new DeploymentInterfaceDto();
+        responsesInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto responsesFeatures = new FeaturesDto();
+        responsesFeatures.setReasoningEfforts(List.of());
+        responsesInterface.setFeatures(responsesFeatures);
+
+        DeploymentInterfaceDto chatInterface = new DeploymentInterfaceDto();
+        chatInterface.setBaseUrl("https://model.adapter.test.com");
+
+        modelDto.setInterfaces(Map.of(
+                "openaiChatCompletions", chatInterface,
+                "openaiResponses", responsesInterface,
+                "anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        String exportedJson = exportModelsInCoreFormat("0.48.0");
+
+        Config exported = jsonMapper.readValue(exportedJson, Config.class);
+        var exportedInterfaces = exported.getModels().get("model1").getInterfaces();
+        Assertions.assertThat(exportedInterfaces)
+                .containsOnlyKeys("openaiChatCompletions", "openaiResponses", "anthropicMessages");
+        // no features declared -> nothing exported, so Core keeps applying the model-level features
+        Assertions.assertThat(exportedInterfaces.get("openaiChatCompletions").getFeatures()).isNull();
+        Assertions.assertThat(exportedInterfaces.get("anthropicMessages").getFeatures().getReasoningEfforts())
+                .containsExactly("low", "medium", "high", "xhigh", "max");
+        Assertions.assertThat(exportedInterfaces.get("anthropicMessages").getFeatures().getToolsSupported()).isTrue();
+        // the empty array is the payload of this test: it must be serialized, not dropped
+        Assertions.assertThat(exportedInterfaces.get("openaiResponses").getFeatures().getReasoningEfforts()).isEmpty();
+        Assertions.assertThat(exportedJson.replaceAll("\\s", "")).contains("\"reasoning_efforts\":[]");
+        // deployment-level export is untouched by the interface-level empty-array support
+        Assertions.assertThat(exported.getModels().get("model1").getFeatures().getReasoningEfforts())
+                .containsExactly("low", "high");
+
+        modelFacade.deleteModel("model1");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                exportedJson.getBytes(StandardCharsets.UTF_8)
+        );
+        configTransfer.importConfig(List.of(mockFile), overrideAndCreateRoleAndCreateNew());
+
+        ModelDto reimported = modelFacade.getModel("model1");
+        Assertions.assertThat(reimported.getInterfaces())
+                .containsOnlyKeys("openaiChatCompletions", "openaiResponses", "anthropicMessages");
+        // the RETURN_DEFAULT trap: an absent features block must not come back as a fully defaulted override
+        Assertions.assertThat(reimported.getInterfaces().get("openaiChatCompletions").getFeatures()).isNull();
+        Assertions.assertThat(reimported.getInterfaces().get("anthropicMessages").getFeatures())
+                .isEqualTo(anthropicFeatures);
+        Assertions.assertThat(reimported.getInterfaces().get("openaiResponses").getFeatures())
+                .isEqualTo(responsesFeatures);
+        Assertions.assertThat(reimported.getFeatures().getReasoningEfforts()).containsExactly("low", "high");
+    }
+
+    /**
+     * Older Core versions know no interface-level features, so the field is filtered out while the
+     * interface itself - which still carries usable routing - survives.
+     */
+    @Test
+    void testExport_CoreFormatStripsInterfaceFeaturesForOlderTargetVersion() throws IOException {
+        ModelDto modelDto = createModelDto("1");
+        DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
+        anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto anthropicFeatures = new FeaturesDto();
+        anthropicFeatures.setReasoningEfforts(List.of("low", "medium", "high"));
+        anthropicInterface.setFeatures(anthropicFeatures);
+        modelDto.setInterfaces(Map.of("anthropicMessages", anthropicInterface));
+        modelFacade.createModel(modelDto);
+
+        Config exported = jsonMapper.readValue(exportModelsInCoreFormat("0.47.0"), Config.class);
+
+        var exportedInterface = exported.getModels().get("model1").getInterfaces().get("anthropicMessages");
+        Assertions.assertThat(exportedInterface).isNotNull();
+        Assertions.assertThat(exportedInterface.getBaseUrl()).isEqualTo("https://model.adapter.test.com");
+        Assertions.assertThat(exportedInterface.getFeatures()).isNull();
+    }
+
+    private String exportModelsInCoreFormat(String targetVersion) throws IOException {
+        FullExportRequest request = new FullExportRequest();
+        request.setExportFormat(ExportFormat.CORE);
+        request.setComponentTypes(Set.of(ExportConfigComponentType.MODEL, ExportConfigComponentType.ROLE));
+
+        String originalVersion = versionProperties.getTarget();
+        versionProperties.setTarget(targetVersion);
+        try {
+            StreamingResponseBody streamingResponseBody = configTransfer.exportConfig(request);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            streamingResponseBody.writeTo(outputStream);
+            return outputStream.toString();
+        } finally {
+            versionProperties.setTarget(originalVersion);
+        }
     }
 
     private UpstreamInterfaceDto createUpstreamInterfaceDto(String endpoint, String key,

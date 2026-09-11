@@ -229,6 +229,15 @@ public class FunctionalTestHelper {
         return assistantDto;
     }
 
+    /**
+     * The deployment-level {@link CoreFeatures} produced from a {@code FeaturesDto} left at its defaults.
+     * <p>
+     * {@code reasoningEfforts} is deliberately left {@code null}:
+     * {@code com.epam.aidial.cfg.domain.mapper.FeatureCoreMapper} collapses the domain default
+     * (an empty list) to {@code null} so deployment-level export never emits {@code "reasoning_efforts": []}.
+     * Interface-level features keep an empty list instead — see
+     * {@code com.epam.aidial.cfg.domain.mapper.DeploymentInterfaceCoreMapper}.
+     */
     public static CoreFeatures defaultCoreFeatures() {
         CoreFeatures features = new CoreFeatures();
 
@@ -245,7 +254,6 @@ public class FunctionalTestHelper {
         features.setAssistantAttachmentsInRequestSupported(false);
         features.setCustomTemperatureSupported(true);
         features.setMaxTokensSupported(true);
-        features.setReasoningEfforts(new ArrayList<>());
 
         return features;
     }

@@ -8,6 +8,7 @@ import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateDto;
 import com.epam.aidial.cfg.dto.EntitySyncStateStatusDto;
+import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.LimitDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -120,14 +121,31 @@ public abstract class ModelFunctionalTest {
         chatInterface.setBaseUrl("https://model.adapter.test.com");
         DeploymentInterfaceDto anthropicInterface = new DeploymentInterfaceDto();
         anthropicInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto anthropicFeatures = new FeaturesDto();
+        anthropicFeatures.setRateEndpoint("https://model.adapter.test.com/rate");
+        anthropicFeatures.setToolsSupported(true);
+        anthropicFeatures.setReasoningEfforts(List.of("low", "medium", "high", "xhigh", "max"));
+        anthropicInterface.setFeatures(anthropicFeatures);
+        DeploymentInterfaceDto responsesInterface = new DeploymentInterfaceDto();
+        responsesInterface.setBaseUrl("https://model.adapter.test.com");
+        FeaturesDto responsesFeatures = new FeaturesDto();
+        responsesFeatures.setReasoningEfforts(List.of());
+        responsesInterface.setFeatures(responsesFeatures);
         modelDto.setInterfaces(Map.of(
                 "openaiChatCompletions", chatInterface,
+                "openaiResponses", responsesInterface,
                 "anthropicMessages", anthropicInterface));
         modelFacade.createModel(modelDto);
 
         ModelDto actual = modelFacade.getModel(modelDto.getName());
         Assertions.assertNull(actual.getEndpoint());
         Assertions.assertEquals(modelDto.getInterfaces(), actual.getInterfaces());
+        // an interface that declares no features must come back with none, i.e. inheriting the model's
+        Assertions.assertNull(actual.getInterfaces().get("openaiChatCompletions").getFeatures());
+        assertThat(actual.getInterfaces().get("anthropicMessages").getFeatures().getReasoningEfforts())
+                .containsExactly("low", "medium", "high", "xhigh", "max");
+        // an explicitly empty list survives the round trip: it clears the model-level list in Core
+        assertThat(actual.getInterfaces().get("openaiResponses").getFeatures().getReasoningEfforts()).isEmpty();
     }
 
     @Test

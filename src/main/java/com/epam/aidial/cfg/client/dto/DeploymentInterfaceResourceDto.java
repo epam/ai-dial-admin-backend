@@ -19,4 +19,5 @@ public class DeploymentInterfaceResourceDto {
     private String baseUrl;
     private Map<String, String> defaultHeaders;
     private InterfaceModeResourceDto mode;
+    private FeaturesDto features;
 }

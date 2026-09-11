@@ -43,7 +43,7 @@ class ApplicationValidatorTest {
     @BeforeEach
     void setUp() {
         applicationValidator = new ApplicationValidator(displayFieldsValidator, deploymentValidator, featuresValidator,
-                new DeploymentInterfacesValidator(), new ResourceAuthSettingsValidator(), null);
+                new DeploymentInterfacesValidator(new FeaturesValidator()), new ResourceAuthSettingsValidator(), null);
     }
 
     @Test

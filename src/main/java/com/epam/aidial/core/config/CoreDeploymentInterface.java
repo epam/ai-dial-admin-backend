@@ -11,9 +11,9 @@ import lombok.experimental.Accessors;
 import java.util.Map;
 
 /**
- * Per-interface routing configuration of a deployment. The interface type is the key
+ * Per-interface routing and request configuration of a deployment. The interface type is the key
  * in the {@code interfaces} map; the value declares the source (adapter) root the matching
- * ingress path is appended to at request time.
+ * ingress path is appended to at request time, plus any per-interface overrides.
  */
 @Data
 @Accessors(chain = true)
@@ -38,4 +38,11 @@ public class CoreDeploymentInterface { // 0.46.0
      * Absent means PASSTHROUGH (default for all pre-mode configs).
      */
     private CoreInterfaceMode mode; // 0.48.0
+
+    /**
+     * Feature flags for this interface only. DIAL Core lays these over the deployment-level
+     * {@code features} field by field, so an interface that declares {@code features} declares the
+     * complete effective set for that interface. Absent means the interface inherits everything.
+     */
+    private CoreFeatures features; // 0.48.0
 }

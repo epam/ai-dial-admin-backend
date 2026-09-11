@@ -26,7 +26,23 @@
       },
       "interfaces": {
         "openaiChatCompletions": {
-          "base_url": "https://app.adapter.example.com"
+          "base_url": "https://app.adapter.example.com",
+          "features": {
+            "system_prompt_supported": true,
+            "tools_supported": false,
+            "seed_supported": false,
+            "url_attachments_supported": false,
+            "folder_attachments_supported": false,
+            "allow_resume": true,
+            "accessible_by_per_request_key": true,
+            "content_parts_supported": true,
+            "temperature_supported": true,
+            "parallel_tool_calls_supported": true,
+            "assistant_attachments_in_request_supported": false,
+            "max_tokens_supported": true,
+            "custom_temperature_supported": true,
+            "reasoning_efforts": []
+          }
         }
       },
       "display_name": "Sample Application",
