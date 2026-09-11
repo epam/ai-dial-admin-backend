@@ -74,7 +74,7 @@ class ModelValidatorTest {
     @BeforeEach
     void setUp() {
         modelValidator = new ModelValidator(displayFieldsValidator,
-                deploymentValidator, featuresValidator, new DeploymentInterfacesValidator(),
+                deploymentValidator, featuresValidator, new DeploymentInterfacesValidator(new FeaturesValidator()),
                 new UpstreamValidator(), modelEndpointUtils, null);
     }
 

@@ -146,7 +146,12 @@
       },
       "anthropicMessages": {
         "baseUrl": "https://model.adapter.example.com",
-        "defaultHeaders": {}
+        "defaultHeaders": {},
+        "features": {
+          "rateEndpoint": "/anthropic/rate",
+          "toolsSupported": true,
+          "reasoningEfforts": ["low", "medium", "high", "xhigh", "max"]
+        }
       }
     },
     "embeddingDimensions": 1536,

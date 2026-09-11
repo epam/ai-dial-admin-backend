@@ -49,7 +49,7 @@ class InterceptorValidatorTest {
                 idFieldValidator,
                 displayFieldsValidator,
                 featuresValidator,
-                new DeploymentInterfacesValidator(),
+                new DeploymentInterfacesValidator(new FeaturesValidator()),
                 null
         );
     }

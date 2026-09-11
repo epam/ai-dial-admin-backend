@@ -1134,6 +1134,10 @@
           "type": "string",
           "enum": ["PASSTHROUGH", "TRANSLATION"],
           "description": "Interface forwarding mode. Absent means PASSTHROUGH (default)."
+        },
+        "features": {
+          "$ref": "#/definitions/CoreFeatures",
+          "description": "Feature flags for this interface only, overriding the deployment-level features. Absent means the interface inherits them all."
         }
       },
       "required": [

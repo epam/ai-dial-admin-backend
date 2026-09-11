@@ -67,7 +67,12 @@ public class CoreFeatures {
     @JsonAlias({"customTemperatureSupported", "custom_temperature_supported"})
     private Boolean customTemperatureSupported; // 0.45.0
 
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    /**
+     * An explicit empty list is meaningful and is serialized: at interface level it tells DIAL Core
+     * that the interface supports no reasoning efforts, clearing the inherited deployment-level list.
+     * Deployment-level features never carry an empty list —
+     * {@code com.epam.aidial.cfg.domain.mapper.FeatureCoreMapper} collapses it to null.
+     */
     @JsonAlias({"reasoningEfforts", "reasoning_efforts"})
     private List<String> reasoningEfforts; // 0.45.0
 }
