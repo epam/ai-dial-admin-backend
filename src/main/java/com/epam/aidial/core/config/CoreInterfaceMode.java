@@ -14,5 +14,5 @@ public enum CoreInterfaceMode {
     /**
      * Interface translated before forwarding.
      */
-    TRANSLATION // 0.48.0
+    TRANSLATOR // 0.48.0
 }
