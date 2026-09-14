@@ -34,4 +34,5 @@ public class FeaturesResourceDto {
     private Boolean maxCompletionTokensSupported;
     private Boolean customTemperatureSupported;
     private List<String> reasoningEfforts;
+    private Boolean skillsSupported;
 }

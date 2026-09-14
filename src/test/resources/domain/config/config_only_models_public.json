@@ -33,7 +33,8 @@
         "max_tokens_supported": true,
         "max_completion_tokens_supported": false,
         "custom_temperature_supported": true,
-        "reasoning_efforts": ["effort1", "effort2"]
+        "reasoning_efforts": ["effort1", "effort2"],
+        "skills_supported": false
       },
       "inputAttachmentTypes": [
         "pdf",

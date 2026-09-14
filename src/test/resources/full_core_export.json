@@ -107,7 +107,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {
@@ -133,7 +134,8 @@
             "assistant_attachments_in_request_supported": false,
             "max_tokens_supported": true,
             "custom_temperature_supported": true,
-            "reasoning_efforts": []
+            "reasoning_efforts": [],
+            "skills_supported": false
           }
         },
         "anthropicMessages": {
@@ -159,7 +161,8 @@
               "high",
               "xhigh",
               "max"
-            ]
+            ],
+            "skills_supported": false
           }
         }
       },
@@ -206,7 +209,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -244,7 +248,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responses_defaults": {},
@@ -285,7 +290,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responses_defaults": {
@@ -308,7 +314,8 @@
             "assistant_attachments_in_request_supported": false,
             "max_tokens_supported": true,
             "custom_temperature_supported": true,
-            "reasoning_efforts": []
+            "reasoning_efforts": [],
+            "skills_supported": false
           }
         }
       },
@@ -433,7 +440,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -471,7 +479,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -504,7 +513,8 @@
         "parallel_tool_calls_supported": true,
         "assistant_attachments_in_request_supported": false,
         "max_tokens_supported": true,
-        "custom_temperature_supported": true
+        "custom_temperature_supported": true,
+        "skills_supported": false
       },
       "defaults": {},
       "responsesDefaults": {},
@@ -517,7 +527,10 @@
       "dependencies": []
     }
   },
-  "globalInterceptors": ["testInterceptor2", "testInterceptor1"],
+  "globalInterceptors": [
+    "testInterceptor2",
+    "testInterceptor1"
+  ],
   "applicationTypeSchemas": [
     {
       "properties": {},

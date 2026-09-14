@@ -48,4 +48,5 @@ public class Features {
     private Boolean maxCompletionTokensSupported;
     private boolean customTemperatureSupported = true;
     private List<String> reasoningEfforts = List.of();
+    private boolean skillsSupported;
 }

@@ -893,6 +893,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "skillsSupported": {
+          "type": "boolean"
         }
       }
     },
