@@ -75,4 +75,7 @@ public class CoreFeatures {
      */
     @JsonAlias({"reasoningEfforts", "reasoning_efforts"})
     private List<String> reasoningEfforts; // 0.45.0
+
+    @JsonAlias({"skillsSupported", "skills_supported"})
+    private Boolean skillsSupported; // 0.48.0
 }
