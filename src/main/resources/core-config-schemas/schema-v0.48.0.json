@@ -125,6 +125,10 @@
             "responsesEndpoint": {
               "type": "string"
             },
+            "baseUrl": {
+              "type": "string",
+              "description": "Base URL of the deployment. An interface that declares no base_url of its own is served by this one."
+            },
             "interfaces": {
               "type": "object",
               "additionalProperties": {
@@ -1132,17 +1136,14 @@
         },
         "mode": {
           "type": "string",
-          "enum": ["PASSTHROUGH", "TRANSLATION"],
+          "enum": ["PASSTHROUGH", "TRANSLATOR"],
           "description": "Interface forwarding mode. Absent means PASSTHROUGH (default)."
         },
         "features": {
           "$ref": "#/definitions/CoreFeatures",
           "description": "Feature flags for this interface only, overriding the deployment-level features. Absent means the interface inherits them all."
         }
-      },
-      "required": [
-        "base_url"
-      ]
+      }
     },
     "ExternalService": {
       "type": "object",

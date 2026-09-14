@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -21,7 +20,11 @@ import java.util.Map;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CoreDeploymentInterface { // 0.46.0
 
-    @NotNull(message = "base_url must be defined")
+    /**
+     * Root url the matching ingress path is appended to at request time. Optional, exactly as in DIAL
+     * Core: an interface declaring none is served by the deployment-level {@code baseUrl}, which is what
+     * makes an entry that only overrides {@code features} valid.
+     */
     @JsonAlias({"baseUrl", "base_url"})
     private String baseUrl;
 

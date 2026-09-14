@@ -3,6 +3,8 @@ package com.epam.aidial.cfg.dto.validation.annotation;
 import com.epam.aidial.cfg.dto.AdapterDto;
 import com.epam.aidial.cfg.dto.ApplicationDto;
 import com.epam.aidial.cfg.dto.CreateApplicationResourceDto;
+import com.epam.aidial.cfg.dto.DeploymentInterfaceDto;
+import com.epam.aidial.cfg.dto.FeaturesDto;
 import com.epam.aidial.cfg.dto.InterceptorDto;
 import com.epam.aidial.cfg.dto.InterceptorRunnerDto;
 import com.epam.aidial.cfg.dto.ModelDto;
@@ -238,6 +240,41 @@ class EndpointValidationTest {
         Assertions.assertThat(violations).isNotEmpty();
         Assertions.assertThat(violations.stream()
                 .anyMatch(v -> v.getPropertyPath().toString().equals("configurationEndpoint")))
+                .isTrue();
+    }
+
+    @ParameterizedTest
+    @MethodSource("validEndpointsIncludingEmpty")
+    void testDeploymentInterfaceDto_ValidBaseUrls(String baseUrl) {
+        DeploymentInterfaceDto dto = new DeploymentInterfaceDto();
+        dto.setBaseUrl(baseUrl);
+
+        Set<ConstraintViolation<DeploymentInterfaceDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void testDeploymentInterfaceDto_NullBaseUrlIsValid() {
+        // an interface may declare no base URL at all and be served by the deployment-level one, which is
+        // what makes an entry overriding only features authorable through the REST API
+        DeploymentInterfaceDto dto = new DeploymentInterfaceDto();
+        dto.setBaseUrl(null);
+        dto.setFeatures(new FeaturesDto());
+
+        Set<ConstraintViolation<DeploymentInterfaceDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidEndpoints")
+    void testDeploymentInterfaceDto_InvalidBaseUrls(String baseUrl) {
+        DeploymentInterfaceDto dto = new DeploymentInterfaceDto();
+        dto.setBaseUrl(baseUrl);
+
+        Set<ConstraintViolation<DeploymentInterfaceDto>> violations = validator.validate(dto);
+        Assertions.assertThat(violations).isNotEmpty();
+        Assertions.assertThat(violations.stream()
+                        .anyMatch(v -> v.getPropertyPath().toString().equals("baseUrl")))
                 .isTrue();
     }
 

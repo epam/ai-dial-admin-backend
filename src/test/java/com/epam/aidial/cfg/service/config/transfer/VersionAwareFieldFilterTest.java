@@ -418,6 +418,91 @@ class VersionAwareFieldFilterTest {
     }
 
     @Test
+    void filterForTargetVersion_deploymentBaseUrlKeptAtVersionThatSupportsIt() throws IOException {
+        // given the deployment-level base URL introduced in 0.48.0: it is the fallback that serves every
+        // interface declaring none of its own, so it must not be filtered out of the export
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "baseUrl": "http://model.adapter"
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        assertThat(result.get("models").get("m1").get("baseUrl").asText()).isEqualTo("http://model.adapter");
+    }
+
+    @Test
+    void filterForTargetVersion_featuresOnlyInterfaceWithoutBaseUrlIsKept() throws IOException {
+        // given an interface that only overrides features and relies on the deployment-level base URL:
+        // reading it at all exercises that base_url is optional on CoreDeploymentInterface
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "baseUrl": "http://model.adapter",
+                      "features": {"reasoning_efforts": ["low", "high"]},
+                      "interfaces": {
+                        "anthropicMessages": {
+                          "features": {"reasoning_efforts": ["low", "medium", "high", "xhigh", "max"]}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then the entry survives with its features, carrying no base_url of its own
+        JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("anthropicMessages");
+        assertThat(deploymentInterface.has("base_url")).isFalse();
+        assertThat(deploymentInterface.get("features").get("reasoning_efforts"))
+                .isEqualTo(MAPPER.readTree("""
+                        ["low", "medium", "high", "xhigh", "max"]"""));
+        assertThat(result.get("models").get("m1").get("baseUrl").asText()).isEqualTo("http://model.adapter");
+    }
+
+    @Test
+    void filterForTargetVersion_featuresOnlyInterfaceHasNoSchemaViolations() throws IOException {
+        // given the same features-only entry: the 0.48.0 schema must not require base_url on an interface
+        mockRealSchema("0.48.0");
+        VersionAwareSchemaChecker schemaChecker = new VersionAwareSchemaChecker(schemaLoader);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "baseUrl": "http://model.adapter",
+                      "interfaces": {
+                        "anthropicMessages": {
+                          "features": {"rate_endpoint": "http://model.adapter/rate"}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        assertThat(schemaChecker.check(result, "0.48.0")).isEmpty();
+    }
+
+    @Test
     void filterForTargetVersion_unsupportedInterfaceKeyDroppedForApplication() throws IOException {
         // given
         mockRealSchema("0.46.0");
