@@ -1145,6 +1145,13 @@
         "features": {
           "$ref": "#/definitions/CoreFeatures",
           "description": "Feature flags for this interface only, overriding the deployment-level features. Absent means the interface inherits them all."
+        },
+        "overridePaths": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Upstream paths replacing the operation's default path under the base url, keyed by interface path mapping. Only the {id} and {overrideName} tokens are substituted; all other text, braces included, is forwarded as written."
         }
       }
     },

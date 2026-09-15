@@ -33,4 +33,12 @@ public class DeploymentInterface {
      * populated and therefore always sent to DIAL Core. To inherit, leave this null.
      */
     private Features features;
+
+    /**
+     * Upstream paths replacing the operation's default path under the {@code baseUrl}, keyed by
+     * interface path mapping. A value substitutes exactly two tokens: {@code {id}} renders the
+     * operation's id and {@code {overrideName}} the deployment's override name. Every other
+     * character, braces included, is path text forwarded as written.
+     */
+    private Map<String, String> overridePaths;
 }

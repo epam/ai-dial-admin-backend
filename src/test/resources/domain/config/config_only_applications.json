@@ -43,6 +43,9 @@
             "custom_temperature_supported": true,
             "reasoning_efforts": [],
             "skills_supported": false
+          },
+          "override_paths": {
+            "createChatCompletion": "/v1/{overrideName}/chat/completions"
           }
         }
       },

@@ -418,6 +418,70 @@ class VersionAwareFieldFilterTest {
     }
 
     @Test
+    void filterForTargetVersion_interfaceOverridePathsKeptWhenTargetVersionSupportsThem() throws IOException {
+        // given
+        mockRealSchema("0.48.0");
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "interfaces": {
+                        "openaiResponses": {
+                          "base_url": "http://model.adapter",
+                          "overridePaths": {
+                            "createResponse": "/v1/{overrideName}/responses",
+                            "getResponse": "/v1/{overrideName}/responses/{id}"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then
+        JsonNode overridePaths = result.get("models").get("m1").get("interfaces")
+                .get("openaiResponses").get("override_paths");
+        assertThat(overridePaths.get("createResponse").asText()).isEqualTo("/v1/{overrideName}/responses");
+        assertThat(overridePaths.get("getResponse").asText()).isEqualTo("/v1/{overrideName}/responses/{id}");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0.46.0", "0.47.0"})
+    void filterForTargetVersion_interfaceOverridePathsStrippedButInterfaceKeptForOlderTargetVersions(String version)
+            throws IOException {
+        // given
+        mockRealSchema(version);
+        Config config = MAPPER.readValue("""
+                {
+                  "models": {
+                    "m1": {
+                      "endpoint": "http://model/chat/completions",
+                      "interfaces": {
+                        "openaiChatCompletions": {
+                          "base_url": "http://model.adapter",
+                          "overridePaths": {"createChatCompletion": "/v1/{overrideName}/chat/completions"}
+                        }
+                      }
+                    }
+                  }
+                }
+                """, Config.class);
+
+        // when
+        JsonNode result = filter.filterForTargetVersion(config);
+
+        // then the interface itself survives - only the unsupported overridePaths field is stripped
+        JsonNode deploymentInterface = result.get("models").get("m1").get("interfaces").get("openaiChatCompletions");
+        assertThat(deploymentInterface.get("base_url").asText()).isEqualTo("http://model.adapter");
+        assertThat(deploymentInterface.has("override_paths")).isFalse();
+    }
+
+    @Test
     void filterForTargetVersion_deploymentBaseUrlKeptAtVersionThatSupportsIt() throws IOException {
         // given the deployment-level base URL introduced in 0.48.0: it is the fallback that serves every
         // interface declaring none of its own, so it must not be filtered out of the export
