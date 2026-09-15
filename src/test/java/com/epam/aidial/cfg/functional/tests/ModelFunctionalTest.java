@@ -131,6 +131,10 @@ public abstract class ModelFunctionalTest {
         FeaturesDto responsesFeatures = new FeaturesDto();
         responsesFeatures.setReasoningEfforts(List.of());
         responsesInterface.setFeatures(responsesFeatures);
+        Map<String, String> overridePaths = Map.of(
+                "createResponse", "/v1/{overrideName}/responses",
+                "getResponse", "/v1/{overrideName}/responses/{id}");
+        responsesInterface.setOverridePaths(overridePaths);
         modelDto.setInterfaces(Map.of(
                 "openaiChatCompletions", chatInterface,
                 "openaiResponses", responsesInterface,
@@ -146,6 +150,9 @@ public abstract class ModelFunctionalTest {
                 .containsExactly("low", "medium", "high", "xhigh", "max");
         // an explicitly empty list survives the round trip: it clears the model-level list in Core
         assertThat(actual.getInterfaces().get("openaiResponses").getFeatures().getReasoningEfforts()).isEmpty();
+        Assertions.assertNull(actual.getInterfaces().get("openaiChatCompletions").getOverridePaths());
+        assertThat(actual.getInterfaces().get("openaiResponses").getOverridePaths())
+                .containsExactlyInAnyOrderEntriesOf(overridePaths);
     }
 
     @Test

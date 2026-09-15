@@ -151,6 +151,10 @@
           "rateEndpoint": "/anthropic/rate",
           "toolsSupported": true,
           "reasoningEfforts": ["low", "medium", "high", "xhigh", "max"]
+        },
+        "overridePaths": {
+          "createMessage": "/v1/{overrideName}/messages",
+          "getMessage": "/v1/{overrideName}/messages/{id}"
         }
       }
     },

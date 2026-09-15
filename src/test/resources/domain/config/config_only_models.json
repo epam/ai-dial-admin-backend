@@ -28,6 +28,10 @@
             "max_tokens_supported": true,
             "custom_temperature_supported": true,
             "reasoning_efforts": ["low", "medium", "high", "xhigh", "max"]
+          },
+          "override_paths": {
+            "createMessage": "/v1/{overrideName}/messages",
+            "getMessage": "/v1/{overrideName}/messages/{id}"
           }
         }
       },

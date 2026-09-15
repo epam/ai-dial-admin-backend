@@ -38,4 +38,11 @@ public class DeploymentInterfaceDto {
      * deployment-level {@code features}.
      */
     private FeaturesDto features;
+
+    /**
+     * Upstream paths replacing the operation's default path under the {@link #baseUrl}, keyed by
+     * interface path mapping. Only {@code {id}} and {@code {overrideName}} are substituted; any other
+     * {@code {token}} is rejected by {@code com.epam.aidial.cfg.domain.validator.DeploymentInterfacesValidator}.
+     */
+    private Map<String, String> overridePaths;
 }
