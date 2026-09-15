@@ -38,4 +38,12 @@ public class DeploymentInterfaceDto {
      * deployment-level {@code features}.
      */
     private FeaturesDto features;
+
+    /**
+     * Body parameters added to a request for this interface that carries none under that key.
+     * Declaring any replaces the deployment-level {@code defaults}/{@code responsesDefaults} for
+     * this interface rather than adding to them.
+     */
+    private Map<String, Object> defaults;
+
 }
