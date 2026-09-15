@@ -557,7 +557,6 @@ public abstract class InterceptorFunctionalTest {
         expected.setDescription(interceptorDto.getDescription());
         expected.setEndpoint(interceptorDto.getEndpoint());
         expected.setFeatures(defaultCoreFeatures());
-        expected.setFeatures(defaultCoreFeatures());
         expected.setInterfaces(null);
         expected.setForwardAuthToken(interceptorDto.getForwardAuthToken());
         expected.setBaseUrl(null);
@@ -699,7 +698,8 @@ public abstract class InterceptorFunctionalTest {
                         "parallel_tool_calls_supported": true,
                         "assistant_attachments_in_request_supported": false,
                         "max_tokens_supported": true,
-                        "custom_temperature_supported": true
+                        "custom_temperature_supported": true,
+                        "skills_supported":false
                       },
                       "inputAttachmentTypes": null,
                       "maxInputAttachments": null,

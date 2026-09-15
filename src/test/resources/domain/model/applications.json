@@ -85,7 +85,8 @@
       "maxTokensSupported": true,
       "maxCompletionTokensSupported": false,
       "customTemperatureSupported": true,
-      "reasoningEfforts": ["effort1", "effort2"]
+      "reasoningEfforts": ["effort1", "effort2"],
+      "skillsSupported": true
     },
     "applicationProperties": {
       "debug": true,
