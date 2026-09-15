@@ -351,7 +351,10 @@
         "interfaces": {
           "openaiChatCompletions": {
             "baseUrl": "https://interceptor.adapter.test.com",
-            "defaultHeaders": {}
+            "defaultHeaders": {},
+            "defaults": {
+              "temperature": 0.5
+            }
           }
         },
         "forwardAuthToken": false,
@@ -650,11 +653,15 @@
         "interfaces": {
           "openaiChatCompletions": {
             "baseUrl": "https://model.adapter.test.com",
-            "defaultHeaders": {}
+            "defaultHeaders": {},
+            "defaults": {}
           },
           "anthropicMessages": {
             "baseUrl": "https://model.adapter.test.com",
-            "defaultHeaders": {}
+            "defaultHeaders": {},
+            "defaults": {
+              "temperature": 0.5
+            }
           }
         },
         "interceptors": [
@@ -959,7 +966,8 @@
             "defaultHeaders": {
               "x-dial-cache-policy": "cache-priority",
               "x-dial-custom-header": "foo-bar"
-            }
+            },
+            "defaults": {}
           }
         },
         "responsesEndpoint": "http://application2/responses",

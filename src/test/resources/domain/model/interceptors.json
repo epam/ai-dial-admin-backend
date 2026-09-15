@@ -5,7 +5,10 @@
     "endpoint": "https://example.com/interceptor",
     "interfaces": {
       "openaiChatCompletions": {
-        "baseUrl": "https://interceptor.adapter.example.com"
+        "baseUrl": "https://interceptor.adapter.example.com",
+        "defaults": {
+          "temperature": 0.5
+        }
       }
     },
     "iconUrl": "https://example.com/icon.png",
