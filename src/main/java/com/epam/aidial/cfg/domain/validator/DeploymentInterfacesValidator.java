@@ -3,6 +3,7 @@ package com.epam.aidial.cfg.domain.validator;
 import com.epam.aidial.cfg.domain.model.DeploymentInterface;
 import com.epam.aidial.cfg.domain.model.Features;
 import com.epam.aidial.cfg.domain.model.InterfaceMode;
+import com.epam.aidial.cfg.domain.model.InterfacePathMapping;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -86,7 +87,10 @@ public class DeploymentInterfacesValidator {
      *
      * <p>Also rejects a blank override path value (Core treats an empty template as invalid), and
      * rejects {@code overridePaths} declared on an interface in {@link InterfaceMode#TRANSLATOR} mode,
-     * since Core ignores {@code overridePaths} entirely for translated interfaces.
+     * since Core ignores {@code overridePaths} entirely for translated interfaces. For a mapping key
+     * DIAL Core recognizes ({@link InterfacePathMapping}), also cross-checks that the key belongs to the
+     * declared interface and that {@code {id}} is only used where the operation carries an id to render
+     * (see {@link #validateMapping}) — an unrecognized key is left to Core's own tolerance.
      */
     private void validateOverridePaths(Map<String, String> overridePaths, InterfaceMode mode, String type,
                                        String entityKind, String entityName) {
@@ -119,6 +123,45 @@ public class DeploymentInterfacesValidator {
                                     .formatted(token, path, mapping, type, entityKind, entityName));
                 }
             }
+
+            validateMapping(mapping, path, type, entityKind, entityName);
         });
+    }
+
+    /**
+     * Cross-checks a mapping key against DIAL Core's {@link InterfacePathMapping}: the key must belong
+     * to the interface it is declared under, and {@code {id}} may only be used where Core's mapping says
+     * the operation carries an id to render. A key this admin backend does not recognize is left
+     * unvalidated here, exactly as Core's own {@code find()} tolerates an unknown key — the mapping set
+     * is owned by Core and may grow before this list is updated.
+     */
+    private void validateMapping(String mapping, String path, String type, String entityKind, String entityName) {
+        InterfacePathMapping knownMapping = InterfacePathMapping.find(mapping);
+        if (knownMapping == null) {
+            return;
+        }
+
+        if (!knownMapping.getInterfaceType().equals(type)) {
+            throw new IllegalArgumentException(
+                    "Override path key '%s' belongs to interface '%s', not '%s'. %s: %s"
+                            .formatted(mapping, knownMapping.getInterfaceType(), type, entityKind, entityName));
+        }
+
+        if (!knownMapping.isIdApplicable() && referencesId(path)) {
+            throw new IllegalArgumentException(
+                    ("Override path '%s' for mapping '%s' references {id}, but the operation carries no id to "
+                            + "render for interface '%s'. %s: %s")
+                            .formatted(path, mapping, type, entityKind, entityName));
+        }
+    }
+
+    private static boolean referencesId(String path) {
+        Matcher matcher = PATH_TOKEN.matcher(path);
+        while (matcher.find()) {
+            if ("id".equals(matcher.group(1))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -353,10 +353,10 @@
             "baseUrl": "https://interceptor.adapter.test.com",
             "defaultHeaders": {},
             "overridePaths": {
-              "postOpenaiResponses": "/v1/responses",
-              "getOpenaiResponsesById": "/v1/responses/{id}",
-              "deleteOpenaiResponsesById": "/custom/delete/{id}",
-              "postOpenaiResponsesCancel": "/custom/cancel/{id}"
+              "createResponse": "/v1/responses",
+              "getResponseById": "/v1/responses/{id}",
+              "deleteResponseById": "/custom/delete/{id}",
+              "cancelResponse": "/custom/cancel/{id}"
             }
           }
         },

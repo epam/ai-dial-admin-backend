@@ -191,6 +191,59 @@ class DeploymentInterfacesValidatorTest {
                 .doesNotThrowAnyException();
     }
 
+    @Test
+    void validate_knownMappingKeyMatchingInterfaceAndIdUsage_passes() {
+        Map<String, DeploymentInterface> interfaces = Map.of(
+                "anthropicMessages",
+                withOverridePaths(Map.of("postAnthropicMessages", "/v1/{overrideName}/messages")),
+                "openaiResponses",
+                withOverridePaths(Map.of("getOpenaiResponsesById", "/v1/{overrideName}/responses/{id}")));
+
+        assertThatCode(() -> validate(interfaces)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void validate_knownMappingKeyOnWrongInterface_throws() {
+        Map<String, String> overridePaths = Map.of("postAnthropicMessages", "/v1/{overrideName}/messages");
+
+        assertThatThrownBy(() -> validate(Map.of("openaiResponses", withOverridePaths(overridePaths))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Override path key 'postAnthropicMessages' belongs to interface 'anthropicMessages'")
+                .hasMessageContaining("not 'openaiResponses'")
+                .hasMessageContaining(ENTITY_KIND + ": " + ENTITY_NAME);
+    }
+
+    @Test
+    void validate_knownMappingKeyWithoutIdUsingId_throws() {
+        Map<String, String> overridePaths = Map.of("postAnthropicMessages", "/v1/{overrideName}/messages/{id}");
+
+        assertThatThrownBy(() -> validate(Map.of("anthropicMessages", withOverridePaths(overridePaths))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("references {id}")
+                .hasMessageContaining("postAnthropicMessages")
+                .hasMessageContaining("for interface 'anthropicMessages'")
+                .hasMessageContaining(ENTITY_KIND + ": " + ENTITY_NAME);
+    }
+
+    @Test
+    void validate_knownMappingKeyRequiringIdWithoutId_passes() {
+        // {id} is optional even where idApplicable=true: the path just won't render an id-specific route
+        Map<String, String> overridePaths = Map.of("getOpenaiResponsesById", "/v1/{overrideName}/responses");
+
+        assertThatCode(() -> validate(Map.of("openaiResponses", withOverridePaths(overridePaths))))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void validate_unknownMappingKey_skipsMappingChecksEvenWithId() {
+        // "getResponse" is not a real DIAL Core InterfacePathMapping key: it must be left unvalidated,
+        // proving unknown/future keys are tolerated rather than rejected by a whitelist.
+        Map<String, String> overridePaths = Map.of("getResponse", "/v1/{overrideName}/responses/{id}");
+
+        assertThatCode(() -> validate(Map.of("anthropicMessages", withOverridePaths(overridePaths))))
+                .doesNotThrowAnyException();
+    }
+
     private void validate(Map<String, DeploymentInterface> interfaces) {
         validator.validate(interfaces, ALLOWED_TYPES, ENTITY_KIND, ENTITY_NAME);
     }
