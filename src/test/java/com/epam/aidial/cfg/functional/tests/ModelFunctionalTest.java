@@ -770,7 +770,8 @@ public abstract class ModelFunctionalTest {
                         "parallel_tool_calls_supported": true,
                         "assistant_attachments_in_request_supported": false,
                         "max_tokens_supported": true,
-                        "custom_temperature_supported": true
+                        "custom_temperature_supported": true,
+                        "skills_supported": false
                       },
                       "inputAttachmentTypes": null,
                       "maxInputAttachments":null,

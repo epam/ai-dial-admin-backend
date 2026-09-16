@@ -27,7 +27,14 @@
     "cacheSupported": true,
     "autoCachingSupported": false,
     "consentRequired": true,
-    "parallelToolCallsSupported": true
+    "parallelToolCallsSupported": true,
+    "assistantAttachmentsInRequestSupported": false,
+    "supportCommentInRateResponse": false,
+    "maxTokensSupported": true,
+    "maxCompletionTokensSupported": false,
+    "customTemperatureSupported": true,
+    "reasoningEfforts": [],
+    "skillsSupported": false
   },
   "inputAttachmentTypes": [
     "pdf",
